@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentRecord;
+use App\Models\AssessmentResponse;
 use App\Models\Employee;
 use App\Models\User;
 use App\Services\Assessment\AssessmentRecordService;
@@ -83,11 +84,12 @@ class AssessmentRecordController extends Controller
     {
         $actor = $request->user();
         abort_unless($this->records->visible($actor, $record), 403);
-        $record->load('version.sections.criteria.options', 'reviewer');
+        $record->load('version.sections.criteria.options', 'version.evaluatorSchemes', 'version.form:id,code', 'reviewer');
         $response = $record->responses()->where('evaluator_id', $actor->id)->first();
         return Inertia::render('Assessments/Records/Show', [
-            'record' => $this->present($actor, $record), 'version' => [...$record->version->only(['name_en', 'name_am', 'version_no']), 'sections' => $record->version->sections],
+            'record' => $this->present($actor, $record), 'version' => [...$record->version->only(['name_en', 'name_am', 'version_no']), 'code' => $record->version->form?->code, 'sections' => $record->version->sections],
             'response' => $response?->only(['answers', 'submitted_at']),
+            'sheet' => $this->sheet($actor, $record, $response),
             // Same rules as the evaluator workspace and review services (one engine).
             'can' => ['submit' => $response !== null && app(\App\Services\Assessment\Execution\AssessmentResponseService::class)->canEdit($actor, $response) && $actor->can('assessments.submit'),
                 'review' => $record->status === 'submitted' && app(\App\Services\Assessment\Execution\AssessmentReviewService::class)->canFinalize($actor, $record),
@@ -110,6 +112,36 @@ class AssessmentRecordController extends Controller
         $data = $action === 'unassessed' ? $request->validate(['reason' => ['required', Rule::in(['illness', 'other'])], 'note' => ['nullable', 'string', 'max:2000']]) : [];
         $this->records->transition($request->user(), $record, $action, $data);
         return back();
+    }
+
+    /**
+     * Score columns of the official printed form, one per evaluator in a stable
+     * order and never labelled with who rated (docs/assessment-form-builder.md#printed-form).
+     * An evaluator sees only their own column; every submitted column is
+     * shown only to the reviewer and to managers of the organization.
+     *
+     * @return array{columns: list<array<string, string>|null>}
+     */
+    private function sheet(User $actor, AssessmentRecord $record, ?AssessmentResponse $own): array
+    {
+        $seeAll = $actor->id === $record->reviewer_id || $this->records->manages($actor, $record->organization_id);
+        $scores = $record->version->sections->flatMap->criteria->flatMap->options
+            ->mapWithKeys(fn ($option): array => [(string) $option->id => (string) $option->score]);
+        $columns = $record->responses()->where('status', '!=', 'cancelled')->orderBy('id')->get(['id', 'status', 'answers'])
+            ->map(function (AssessmentResponse $response) use ($own, $seeAll, $scores): ?array {
+                $mine = $own !== null && $response->id === $own->id;
+                if (! $mine && ! ($seeAll && $response->status === 'submitted')) {
+                    return null;
+                }
+
+                return collect((array) $response->answers)
+                    ->map(fn ($optionId): ?string => $scores[(string) $optionId] ?? null)
+                    ->filter(fn (?string $score): bool => $score !== null)->all();
+            })->values();
+        // Before evaluators are assigned, keep the configured number of blank columns.
+        $expected = (int) $record->version->evaluatorSchemes->sum('required_count');
+
+        return ['columns' => $columns->pad(max($columns->count(), $expected, 1), null)->all()];
     }
 
     private function present(User $actor, AssessmentRecord $record): array

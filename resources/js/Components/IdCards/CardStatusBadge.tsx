@@ -43,17 +43,17 @@ const styleMap: Record<CardStatus, StyleEntry> = {
         dot:   'bg-red-600',
     },
     expired: {
-        badge: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700',
+        badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
         dot:   'bg-gray-400',
     },
     replaced: {
-        badge: 'bg-gray-50 text-gray-500 ring-1 ring-gray-200 dark:bg-slate-800 dark:text-slate-500 dark:ring-slate-700',
+        badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
         dot:   'bg-gray-300',
     },
 };
 
 const fallbackStyle: StyleEntry = {
-    badge: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200',
+    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
     dot:   'bg-gray-400',
 };
 

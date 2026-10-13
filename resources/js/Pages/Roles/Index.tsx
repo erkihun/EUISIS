@@ -1,10 +1,14 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
 import { Plus } from '@/Components/Icons';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type RoleRow = {
     id: number;
     name: string;
@@ -15,17 +19,34 @@ type RoleRow = {
     can: { update: boolean; delete: boolean; assignPermissions: boolean };
 };
 
+type Filters = { search: string; scope: string };
+
 export default function RolesIndex({
     roles,
+    filters,
     can,
 }: {
-    roles: RoleRow[];
+    roles: { data: RoleRow[] } & LaravelPageMeta;
+    filters: Filters;
     can: { create: boolean };
 }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
 
-    function destroy(id: number, name: string) {
-        if (!confirm(`${t('roles.deleteRole')} "${name}"? ${t('common.cannotUndo')}`)) return;
+    function submit() {
+        router.get(route('roles.index'), { ...values, page: 1 }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { search: '', scope: '' };
+        setValues(empty);
+        router.get(route('roles.index'), empty, { preserveScroll: true, replace: true });
+    }
+
+    async function destroy(id: number, name: string) {
+        if (!(await confirm({ title: `${t('roles.deleteRole')} "${name}"`, description: t('common.cannotUndo'), variant: 'danger' })).confirmed) return;
         router.delete(route('roles.destroy', id), { preserveScroll: true });
     }
 
@@ -39,7 +60,7 @@ export default function RolesIndex({
                         can.create ? (
                             <Link
                                 href={route('roles.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {t('roles.createRole')}
@@ -51,98 +72,107 @@ export default function RolesIndex({
         >
             <Head title={t('roles.title')} />
 
-            <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                {roles.length === 0 ? (
-                    <div className="p-6">
-                        <EmptyState title={t('roles.noRoles')} description="" />
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full text-left text-sm">
-                            <thead className="bg-gray-50 dark:bg-slate-950">
-                                <tr>
-                                    {[
-                                        t('roles.role'),
-                                        t('roles.scopeType'),
-                                        t('roles.permissions'),
-                                        t('roles.usersCount'),
-                                        '',
-                                    ].map((h) => (
-                                        <th
-                                            key={h}
-                                            className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
+            <div className="space-y-4">
+                <FilterPanel onSubmit={submit} onReset={resetFilters} hasActiveFilters={filtersActive}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input
+                            type="search"
+                            value={values.search}
+                            onChange={(event) => setValues({ ...values, search: event.target.value })}
+                            placeholder={t('common.search')}
+                        />
+                    </FilterField>
+                    <FilterField label={t('roles.scopeType')}>
+                        <Select value={values.scope} onChange={(event) => setValues({ ...values, scope: event.target.value })}>
+                            <option value="">{t('common.all')}</option>
+                            <option value="global">{t('roles.globalRole')}</option>
+                            <option value="scoped">{t('roles.scopedRole')}</option>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
+
+                <TableCard footer={<ListPagination meta={roles} />}>
+                    {roles.data.length === 0 ? (
+                        <div className="p-6">
+                            <EmptyState title={filtersActive ? t('common.noResults') : t('roles.noRoles')} description="" />
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        {[
+                                            t('roles.role'),
+                                            t('roles.scopeType'),
+                                            t('roles.permissions'),
+                                            t('roles.usersCount'),
+                                            '',
+                                        ].map((h) => (
+                                            <th
+                                                key={h}
+                                                className={cx(tableHeaderCellClassName, 'text-left')}
+                                            >
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className={tableBodyClassName}>
+                                    {roles.data.map((r) => (
+                                        <tr
+                                            key={r.id}
+                                            className={tableRowClassName}
                                         >
-                                            {h}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {roles.map((r) => (
-                                    <tr
-                                        key={r.id}
-                                        className="border-t border-gray-100 hover:bg-gray-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
-                                    >
-                                        <td className="py-3 pl-5 pr-4">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-medium text-gray-900 dark:text-slate-100">
-                                                    {r.name}
+                                            <td className={tableCellClassName}>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-[color:var(--app-foreground)]">
+                                                        {r.name}
+                                                    </span>
+                                                    {r.is_super_admin && (
+                                                        <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                                            {t('roles.fullAccess')}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${r.scope_type === 'global'
+                                                    ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
+                                                    {r.scope_type === 'global' ? t('roles.globalRole') : t('roles.scopedRole')}
                                                 </span>
-                                                {r.is_super_admin && (
-                                                    <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                {r.is_super_admin ? (
+                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
                                                         {t('roles.fullAccess')}
                                                     </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center rounded-full bg-[color:var(--app-surface-muted)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--app-foreground)]">
+                                                        {r.permissions.length}
+                                                    </span>
                                                 )}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${r.scope_type === 'global'
-                                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
-                                                {r.scope_type === 'global' ? t('roles.globalRole') : t('roles.scopedRole')}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            {r.is_super_admin ? (
-                                                <span className="text-xs text-gray-400 dark:text-slate-500">
-                                                    {t('roles.fullAccess')}
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:bg-slate-800 dark:text-slate-300">
-                                                    {r.permissions.length}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
-                                            {r.users_count}
-                                        </td>
-                                        <td className="py-3 pl-4 pr-5">
-                                            <div className="flex items-center justify-end gap-3">
-                                                {r.can.update && (
-                                                    <Link
-                                                        href={route('roles.edit', r.id)}
-                                                        className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
-                                                    >
-                                                        {t('common.edit')}
-                                                    </Link>
-                                                )}
-                                                {r.can.delete && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => destroy(r.id, r.name)}
-                                                        className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                                    >
-                                                        {t('common.delete')}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                                {r.users_count}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), href: route('roles.edit', r.id), show: r.can.update },
+                                                            { label: t('common.delete'), onClick: () => destroy(r.id, r.name), variant: 'danger', show: r.can.delete },
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

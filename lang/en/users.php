@@ -58,6 +58,7 @@ return [
     'organization_scope_assigned' => 'User organization scope assigned successfully.',
     'organization_scope_updated' => 'User organization scopes updated successfully.',
     'organization_scope_removed' => 'User organization scope removed successfully.',
+    'organization_scope_last_removal_forbidden' => 'This is the user\'s last organization scope. Removing it would give the account access to every organization. Deactivate it instead, or ask a city-wide administrator.',
     'organization_scope_inactive_organization' => 'An inactive organization cannot be assigned as a scope.',
     'organization_scope_outside_actor_scope' => 'You cannot assign an organization outside your own scope.',
     'organization_scope_citywide_forbidden' => 'You cannot assign a citywide organization scope.',

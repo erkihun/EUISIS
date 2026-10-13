@@ -37,6 +37,7 @@ use App\Models\ServiceTransaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -178,7 +179,7 @@ class DashboardMetricService
             $kpis[] = $this->kpi(
                 'todayVerifications',
                 $this->verificationQuery($scope)
-                    ->whereDate('card_verifications.created_at', now()->toDateString())
+                    ->whereBetween('card_verifications.created_at', $this->todayBounds())
                     ->count(),
                 'shield',
                 'primary',
@@ -193,7 +194,7 @@ class DashboardMetricService
             $kpis[] = $this->kpi(
                 'todayTransactions',
                 $this->transactionQuery($scope)
-                    ->whereDate('service_transactions.occurred_at', now()->toDateString())
+                    ->whereBetween('service_transactions.occurred_at', $this->todayBounds())
                     ->count(),
                 'activity',
                 'primary',
@@ -327,11 +328,11 @@ class DashboardMetricService
         if ($can['verification']) {
             $cards['verification'] = [
                 'allowedToday' => $this->verificationQuery($scope)
-                    ->whereDate('card_verifications.created_at', now()->toDateString())
+                    ->whereBetween('card_verifications.created_at', $this->todayBounds())
                     ->where('card_verifications.allowed', true)
                     ->count(),
                 'deniedToday' => $this->verificationQuery($scope)
-                    ->whereDate('card_verifications.created_at', now()->toDateString())
+                    ->whereBetween('card_verifications.created_at', $this->todayBounds())
                     ->where('card_verifications.allowed', false)
                     ->count(),
             ];
@@ -395,7 +396,7 @@ class DashboardMetricService
                 // NFC taps are counted separately from QR card verifications:
                 // they are different credentials and must never be summed.
                 'verificationsToday' => NfcVerificationLog::query()
-                    ->whereDate('nfc_verification_logs.occurred_at', now()->toDateString())
+                    ->whereBetween('nfc_verification_logs.occurred_at', $this->todayBounds())
                     ->whereIn('nfc_verification_logs.nfc_credential_id', $this->nfcCredentialQuery($scope)->select('nfc_credentials.id'))
                     ->count(),
             ];
@@ -404,7 +405,7 @@ class DashboardMetricService
         if ($can['integration'] ?? false) {
             // API Management is system-level configuration, not organizational
             // data, so it is gated on the permission rather than on scope.
-            $today = now()->toDateString();
+            $today = $this->todayBounds();
 
             $cards['integration'] = [
                 'activeApplications' => ExternalApplication::query()->where('status', 'active')->count(),
@@ -412,8 +413,8 @@ class DashboardMetricService
                     ->where('tokenable_type', ExternalApplication::class)
                     ->count(),
                 'activeEndpoints' => ApiEndpointDefinition::query()->where('status', 'active')->count(),
-                'requestsToday' => ApiRequestLog::query()->whereDate('requested_at', $today)->count(),
-                'failedToday' => ApiRequestLog::query()->whereDate('requested_at', $today)->where('success', false)->count(),
+                'requestsToday' => ApiRequestLog::query()->whereBetween('requested_at', $today)->count(),
+                'failedToday' => ApiRequestLog::query()->whereBetween('requested_at', $today)->where('success', false)->count(),
             ];
         }
 
@@ -894,6 +895,17 @@ class DashboardMetricService
         return $total;
     }
 
+    /**
+     * Today as a timestamp range: whereDate() wraps the column in a function,
+     * so it cannot use the index on large event tables (risk register DB-5).
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function todayBounds(): array
+    {
+        return [now()->startOfDay(), now()->endOfDay()];
+    }
+
     private function scopeKey(array $scope): string
     {
         return md5(json_encode([
@@ -971,12 +983,16 @@ class DashboardMetricService
 
     public function transactionQuery(array $scope): Builder
     {
+        // Scoped by a subquery instead of joining employees and assignments on
+        // every chart: global and provider dashboards no longer pay for two
+        // joins per transaction (load test 2026-10-11).
         return ServiceTransaction::query()
-            ->leftJoin('employees as service_transaction_employee', 'service_transaction_employee.id', '=', 'service_transactions.employee_id')
-            ->leftJoin('employee_assignments as service_transaction_scope_assignment', 'service_transaction_scope_assignment.id', '=', 'service_transaction_employee.current_assignment_id')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
-                fn (Builder $query) => $query->whereIn('service_transaction_scope_assignment.organization_id', $scope['organization_ids'])
+                fn (Builder $query) => $query->whereIn('service_transactions.employee_id', DB::table('employees')
+                    ->join('employee_assignments', 'employee_assignments.id', '=', 'employees.current_assignment_id')
+                    ->whereIn('employee_assignments.organization_id', $scope['organization_ids'])
+                    ->select('employees.id'))
             )
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] === [],
@@ -1035,6 +1051,7 @@ class DashboardMetricService
     public function feedbackQuery(array $scope): Builder
     {
         return EmployeeServiceFeedback::query()
+            ->where('employee_service_feedback.type', 'feedback')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('employee_service_feedback.organization_id', $scope['organization_ids'])

@@ -92,28 +92,28 @@ export default function RequestTimeline({ request }: Props): JSX.Element {
         if (state === 'current') {
             return <span className="text-[color:var(--color-primary)]" aria-hidden="true">&#9679;</span>;
         }
-        return <span className="text-gray-300 dark:text-slate-600" aria-hidden="true">&#9675;</span>;
+        return <span className="text-[color:var(--app-muted-foreground)]" aria-hidden="true">&#9675;</span>;
     }
 
     return (
-        <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-            <header className="border-b border-gray-200 px-4 py-3 dark:border-slate-800">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <header className="border-b border-[color:var(--app-border)] px-4 py-3">
+                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                     {t('organizationalChangeRequests.timeline.heading')}
                 </h2>
             </header>
 
-            <ol className="divide-y divide-gray-100 dark:divide-slate-800">
+            <ol className="divide-y divide-[color:var(--app-border)]">
                 {stages.map(stage => (
                     <li key={stage.key} className="flex items-baseline gap-3 px-4 py-2.5">
                         <span className="w-4 shrink-0 text-center text-sm">{marker(stage.state)}</span>
-                        <span className="w-48 shrink-0 text-sm font-medium text-gray-900 dark:text-slate-100">
+                        <span className="w-48 shrink-0 text-sm font-medium text-[color:var(--app-foreground)]">
                             {t(`organizationalChangeRequests.timeline.${stage.labelKey}`)}
                         </span>
-                        <span className="flex-1 text-xs text-gray-500 dark:text-slate-400">
+                        <span className="flex-1 text-xs text-[color:var(--app-muted-foreground)]">
                             {stage.actor ?? t(`organizationalChangeRequests.timeline.${stage.actorKey}`)}
                         </span>
-                        <span className="shrink-0 text-xs text-gray-500 dark:text-slate-400">
+                        <span className="shrink-0 text-xs text-[color:var(--app-muted-foreground)]">
                             {stage.at
                                 ? <LocalizedDateDisplay value={stage.at} withTime />
                                 : t('organizationalChangeRequests.timeline.pending')}

@@ -299,9 +299,8 @@ export default function Dashboard({
     const backupUrgent = backupHealth?.enforced === true && backupHealth.overall_status === 'CRITICAL';
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<DashboardHeader header={header} refreshing={refreshing} onRefresh={refreshDashboard} filters={<DateRangeFilter filters={filters} t={t} />} />}>
             <Head title={t('dashboard.title')} />
-            <DashboardHeader header={header} refreshing={refreshing} onRefresh={refreshDashboard} filters={<DateRangeFilter filters={filters} t={t} />} />
 
             <div className="min-w-0 space-y-5">
                 {/* A production backup incident outranks the headline figures; otherwise backups follow them. */}
@@ -653,7 +652,7 @@ export default function Dashboard({
                 )}
 
                 {meta.scope.providerOnly && (
-                    <p className="rounded-panel border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                    <p className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm text-[color:var(--app-muted-foreground)]">
                         {t('dashboard.providerScopeNotice')}
                     </p>
                 )}

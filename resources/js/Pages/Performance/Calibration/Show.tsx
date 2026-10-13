@@ -63,13 +63,13 @@ export default function CalibrationShow({ session, items, candidates, can }: Pro
                         </>
                     )}>
                         {candidates.length === 0 ? <Empty>—</Empty> : (
-                            <ul className="divide-y divide-gray-100 text-sm dark:divide-slate-800">
+                            <ul className="divide-y divide-[color:var(--app-border)] text-sm">
                                 {candidates.map((c) => (
                                     <li key={c.id} className="flex items-center gap-3 py-2">
                                         <input type="checkbox" aria-label={c.employee ?? ''} checked={selected.includes(c.id)} onChange={(e) => setSelected(e.target.checked ? [...selected, c.id] : selected.filter((id) => id !== c.id))} />
                                         <span className="flex-1">{employeeName({ name: c.employee, name_en: c.employee_en }, locale)}</span>
                                         <span className="tabular-nums">{formatScore(c.final_score)}</span>
-                                        <span className="w-32 text-xs text-gray-500">{(locale === 'am' && c.rating_am) || c.rating_en}</span>
+                                        <span className="w-32 text-xs text-[color:var(--app-muted-foreground)]">{(locale === 'am' && c.rating_am) || c.rating_en}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -86,7 +86,7 @@ function ItemRow({ item, canDecide, locale }: { item: Item; canDecide: boolean; 
     const form = useForm({ calibrated_score: item.calibrated_score ?? item.manager_score ?? '', reason: item.reason ?? '' });
     return (
         <tr>
-            <td className={tdCls}>{employeeName(item.employee, locale)}<p className="text-xs text-gray-500">{item.employee.number}</p></td>
+            <td className={tdCls}>{employeeName(item.employee, locale)}<p className="text-xs text-[color:var(--app-muted-foreground)]">{item.employee.number}</p></td>
             <td className={`${tdCls} tabular-nums`}>{formatScore(item.manager_score)}</td>
             <td className={`${tdCls} tabular-nums`}>
                 {canDecide ? <input aria-label={t('performance.calibration.calibratedScore')} className={`${inputCls} w-24`} inputMode="decimal" value={form.data.calibrated_score} onChange={(e) => form.setData('calibrated_score', e.target.value)} /> : formatScore(item.calibrated_score)}
@@ -95,7 +95,7 @@ function ItemRow({ item, canDecide, locale }: { item: Item; canDecide: boolean; 
             <td className={tdCls}>
                 {canDecide ? <input aria-label={t('performance.fields.reason')} className={inputCls} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} /> : item.reason}
                 {form.errors.reason && <p className="text-xs text-red-700">{form.errors.reason}</p>}
-                {item.decided_at && <p className="text-xs text-gray-500"><LocalizedDateDisplay value={item.decided_at} withTime /></p>}
+                {item.decided_at && <p className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={item.decided_at} withTime /></p>}
             </td>
             {canDecide && <td className={tdCls}><button type="button" className={smallBtn} disabled={form.processing} onClick={() => form.post(route('performance.calibration.items.decide', item.id), { preserveScroll: true })}>{t('performance.actions.decide')}</button></td>}
         </tr>

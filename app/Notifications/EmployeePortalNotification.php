@@ -2,12 +2,20 @@
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class EmployeePortalNotification extends Notification
+/** Queued on `notifications` so mail/database delivery never blocks a request. */
+class EmployeePortalNotification extends Notification implements ShouldQueue
 {
-    public function __construct(public string $kind, public array $channels) {}
+    use Queueable;
+
+    public function __construct(public string $kind, public array $channels)
+    {
+        $this->onQueue('notifications');
+    }
 
     public function via(object $notifiable): array
     {

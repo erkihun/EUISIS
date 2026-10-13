@@ -6,6 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 export default function OccupationsShow({ occupation }: { occupation: any }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
@@ -43,7 +44,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                             {occupation.can?.update && (
                                 <Link
                                     href={route('occupations.edit', occupation.id)}
-                                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                    className={buttonClassName({ variant: 'primary' })}
                                 >
                                     {t('common.edit')}
                                 </Link>
@@ -52,7 +53,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                                 <button
                                     type="button"
                                     onClick={handleArchive}
-                                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                    className={buttonClassName({ variant: 'destructive' })}
                                 >
                                     {t('occupations.archiveOccupation')}
                                 </button>
@@ -61,7 +62,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                                 <button
                                     type="button"
                                     onClick={handleRestore}
-                                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                                    className={buttonClassName({ variant: 'primary' })}
                                 >
                                     {t('occupations.restoreOccupation')}
                                 </button>
@@ -73,7 +74,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
         >
             <Head title={occupation.name_en ?? occupation.isco_code} />
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 lg:col-span-2">
                     <div className="grid gap-4 md:grid-cols-2 text-sm">
                         <Field label={t('occupations.iscoCode')} value={occupation.isco_code} mono />
                         <Field
@@ -85,23 +86,23 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                         <Field label={t('occupations.skillSpecialization')} value={occupation.skill_specialization} />
                     </div>
                     {(occupation.description_en || occupation.description_am) && (
-                        <div className="mt-4 space-y-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+                        <div className="mt-4 space-y-3 border-t border-[color:var(--app-border)] pt-4">
                             {occupation.description_en && (
                                 <div>
-                                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                         {t('occupations.descriptionEn')}
                                     </div>
-                                    <div className="mt-1 text-sm text-gray-700 dark:text-slate-300 whitespace-pre-wrap">
+                                    <div className="mt-1 text-sm text-[color:var(--app-foreground)] whitespace-pre-wrap">
                                         {occupation.description_en}
                                     </div>
                                 </div>
                             )}
                             {occupation.description_am && (
                                 <div>
-                                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                         {t('occupations.descriptionAm')}
                                     </div>
-                                    <div className="mt-1 text-sm text-gray-700 dark:text-slate-300 whitespace-pre-wrap">
+                                    <div className="mt-1 text-sm text-[color:var(--app-foreground)] whitespace-pre-wrap">
                                         {occupation.description_am}
                                     </div>
                                 </div>
@@ -110,20 +111,20 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                     )}
                 </section>
                 <aside className="space-y-4">
-                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <div className="text-xs text-gray-500 dark:text-slate-400">{t('common.createdAt')}</div>
-                        <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.createdAt')}</div>
+                        <div className="mt-1 text-sm text-[color:var(--app-foreground)]">
                             <LocalizedDateDisplay value={occupation.created_at} withTime />
                         </div>
-                        <div className="mt-3 text-xs text-gray-500 dark:text-slate-400">{t('common.updatedAt')}</div>
-                        <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
+                        <div className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">{t('common.updatedAt')}</div>
+                        <div className="mt-1 text-sm text-[color:var(--app-foreground)]">
                             <LocalizedDateDisplay value={occupation.updated_at} withTime />
                         </div>
                     </section>
                     <div>
                         <Link
                             href={route('occupations.index')}
-                            className="text-sm text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                            className={actionLinkClassName({ size: 'sm' })}
                         >
                             {t('occupations.backToList')}
                         </Link>
@@ -137,7 +138,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
 function Field({ label, value, mono }: { label: string; value: any; mono?: boolean }) {
     return (
         <div>
-            <div className="text-xs text-gray-500 dark:text-slate-400">{label}</div>
+            <div className="text-xs text-[color:var(--app-muted-foreground)]">{label}</div>
             <div className={`mt-1 ${mono ? 'font-mono' : ''}`}>{value ?? '—'}</div>
         </div>
     );

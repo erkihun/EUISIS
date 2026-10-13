@@ -8,9 +8,11 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\CafeteriaSettlementStatus;
 use App\Enums\CafeteriaTransactionStatus;
+use App\Models\CafeteriaSettlement;
 use App\Models\CafeteriaTransaction;
 use App\Models\User;
 use App\Services\Cafeteria\CafeteriaLedgerService;
+use App\Services\Cafeteria\CafeteriaProviderLedgerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +31,20 @@ readonly class ReverseCafeteriaTransactionAction
             // Checked on the locked row, not the caller's copy: two reversals of
             // one meal (a double click, two supervisors) each passed a check made
             // before the lock and each refunded the subsidy.
+            //
+            // Lock order is settlement -> transaction, the same as
+            // CafeteriaSettlementService::finalize(): finalize can no longer
+            // freeze a settlement while one of its meals is being reversed
+            // (the provider would be paid for a reversed meal), and the two
+            // paths cannot deadlock (risk register CON-8).
+            $settlementId = CafeteriaTransaction::query()->whereKey($transaction->getKey())->value('cafeteria_settlement_id');
+            if ($settlementId !== null) {
+                CafeteriaSettlement::query()->whereKey($settlementId)->lockForUpdate()->first();
+            }
             $transaction = CafeteriaTransaction::query()->whereKey($transaction->getKey())->lockForUpdate()->firstOrFail();
+            if ($transaction->cafeteria_settlement_id !== $settlementId) {
+                throw ValidationException::withMessages(['transaction' => [__('cafeteria-policy.validation.settlement_not_draft')]]);
+            }
 
             if ($transaction->isReversed()) {
                 throw ValidationException::withMessages(['transaction' => [__('cafeteria.alreadyReversed')]]);
@@ -72,6 +87,10 @@ readonly class ReverseCafeteriaTransactionAction
                     $actor,
                 );
             }
+
+            // The provider-portal ledger is debited for a credited scan, in the
+            // same transaction, so the provider balance follows reversals (CON-9).
+            app(CafeteriaProviderLedgerService::class)->reverse($transaction, $actor->id);
 
             return $transaction;
         });

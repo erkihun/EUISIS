@@ -1,3 +1,4 @@
+import { FilterField } from '@/Components/ui';
 import { CoverageBar, ExportButtons, Filters, OversightLayout, StatusBadge, named, oversightHref, type ShellProps } from '@/Components/assessmentOversight/shell';
 import { Table, TablePanel, filterInputCls, tdCls, thCls, type Paginator } from '@/Components/performance/ui';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
@@ -40,14 +41,20 @@ export default function OversightInstitutions(props: Props) {
         <OversightLayout title={t('assessmentOversight.nav.institutions')} description={t('assessmentOversight.institutionsHelp')} active="institutions" shell={props}
             actions={cycle && can.export ? <ExportButtons report="consolidated" cycle={cycle} /> : undefined}>
             <Filters routeName="assessment-oversight.institutions" cycle={cycle}>
-                <input name="search" aria-label={t('assessmentOversight.searchInstitution')} placeholder={t('assessmentOversight.searchInstitution')} className={filterInputCls} defaultValue={filters.search ?? ''} />
-                <select name="submission_status" aria-label={t('assessmentOversight.submissionStatus')} className={filterInputCls} defaultValue={filters.submission_status ?? ''}>
-                    <option value="">{t('assessmentOversight.allSubmissionStatuses')}</option>
-                    {['not_submitted', 'submitted', 'returned', 'verified', 'finalized', 'rejected', 'outdated'].map((s) => <option key={s} value={s}>{t(`assessmentOversight.submissionStatuses.${s}`)}</option>)}
-                </select>
-                <select name="participation" aria-label={t('assessmentOversight.participation')} className={filterInputCls} defaultValue={filters.participation ?? 'included'}>
-                    {['included', 'excluded', 'all'].map((s) => <option key={s} value={s}>{t(`assessmentOversight.participationStatuses.${s}`)}</option>)}
-                </select>
+                <FilterField label={t('assessmentOversight.searchInstitution')} wide>
+                    <input name="search" placeholder={t('assessmentOversight.searchInstitution')} className={filterInputCls} defaultValue={filters.search ?? ''} />
+                </FilterField>
+                <FilterField label={t('assessmentOversight.submissionStatus')}>
+                    <select name="submission_status" className={filterInputCls} defaultValue={filters.submission_status ?? ''}>
+                        <option value="">{t('assessmentOversight.allSubmissionStatuses')}</option>
+                        {['not_submitted', 'submitted', 'returned', 'verified', 'finalized', 'rejected', 'outdated'].map((s) => <option key={s} value={s}>{t(`assessmentOversight.submissionStatuses.${s}`)}</option>)}
+                    </select>
+                </FilterField>
+                <FilterField label={t('assessmentOversight.participation')}>
+                    <select name="participation" className={filterInputCls} defaultValue={filters.participation ?? 'included'}>
+                        {['included', 'excluded', 'all'].map((s) => <option key={s} value={s}>{t(`assessmentOversight.participationStatuses.${s}`)}</option>)}
+                    </select>
+                </FilterField>
             </Filters>
 
             {rows && (
@@ -73,7 +80,7 @@ export default function OversightInstitutions(props: Props) {
                             <tr key={row.organization.id}>
                                 <td className={tdCls}>
                                     <Link className="font-medium text-[color:var(--color-primary)] hover:underline" href={oversightHref('assessment-oversight.institution', cycle, { organization: row.organization.id })}>{named(row.organization, locale)}</Link>
-                                    <div className="text-xs text-gray-500">{row.organization.code}{row.participation === 'excluded' ? ` · ${t('assessmentOversight.participationStatuses.excluded')}` : ''}</div>
+                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.organization.code}{row.participation === 'excluded' ? ` · ${t('assessmentOversight.participationStatuses.excluded')}` : ''}</div>
                                 </td>
                                 <td className={`${tdCls} tabular-nums`}>{row.eligible}</td>
                                 <td className={`${tdCls} tabular-nums`}>{row.assigned}</td>

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { selectClassName } from '@/Components/ui';
 export interface AssignableEndpoint {
     id: string;
     method: string;
@@ -27,8 +28,7 @@ const METHOD_COLORS: Record<string, string> = {
     DELETE: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
 };
 
-const filterCls =
-    'rounded-lg border border-gray-300 px-2 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
+const filterCls = selectClassName;
 
 /**
  * Endpoint picker shared by the create and edit forms.
@@ -94,7 +94,7 @@ export default function EndpointAssignment({ endpoints, selected, onChange }: Pr
 
     if (endpoints.length === 0) {
         return (
-            <div className="rounded-lg border border-dashed border-gray-300 p-4 text-center text-xs text-gray-500 dark:border-slate-700 dark:text-slate-400">
+            <div className="rounded-lg border border-dashed border-[color:var(--app-border-strong)] p-4 text-center text-xs text-[color:var(--app-muted-foreground)]">
                 {t('apiManagement.noAssignableEndpoints')}
             </div>
         );
@@ -126,7 +126,7 @@ export default function EndpointAssignment({ endpoints, selected, onChange }: Pr
                     ))}
                 </select>
 
-                <span className="ml-auto text-xs text-gray-500 dark:text-slate-400">
+                <span className="ml-auto text-xs text-[color:var(--app-muted-foreground)]">
                     {selected.length} / {endpoints.length}
                 </span>
                 <button
@@ -139,15 +139,15 @@ export default function EndpointAssignment({ endpoints, selected, onChange }: Pr
             </div>
 
             {grouped.length === 0 ? (
-                <p className="py-4 text-center text-xs text-gray-500 dark:text-slate-400">
+                <p className="py-4 text-center text-xs text-[color:var(--app-muted-foreground)]">
                     {t('apiManagement.noEndpointsMatch')}
                 </p>
             ) : (
-                <div className="max-h-96 space-y-4 overflow-y-auto rounded-lg border border-gray-200 p-3 dark:border-slate-800">
+                <div className="max-h-96 space-y-4 overflow-y-auto rounded-lg border border-[color:var(--app-border)] p-3">
                     {grouped.map(([group, rows]) => (
                         <div key={group}>
                             <div className="mb-1 flex items-center gap-2">
-                                <h4 className="text-xs font-semibold text-gray-700 dark:text-slate-300">
+                                <h4 className="text-xs font-semibold text-[color:var(--app-foreground)]">
                                     {t(`apiManagement.group_${group}`)}
                                 </h4>
                                 <button
@@ -160,7 +160,7 @@ export default function EndpointAssignment({ endpoints, selected, onChange }: Pr
                                 <button
                                     type="button"
                                     onClick={() => clearGroup(rows)}
-                                    className="text-[11px] font-medium text-gray-500 hover:underline dark:text-slate-400"
+                                    className="text-[11px] font-medium text-[color:var(--app-muted-foreground)] hover:underline"
                                 >
                                     {t('apiManagement.clearSelection')}
                                 </button>
@@ -169,39 +169,39 @@ export default function EndpointAssignment({ endpoints, selected, onChange }: Pr
                             <ul className="space-y-1">
                                 {rows.map((endpoint) => (
                                     <li key={endpoint.id}>
-                                        <label className="flex cursor-pointer items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-50 dark:hover:bg-slate-800/50">
+                                        <label className="flex cursor-pointer items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-[color:var(--app-surface-muted)]">
                                             <input
                                                 type="checkbox"
                                                 checked={selected.includes(endpoint.id)}
                                                 onChange={() => toggle(endpoint.id)}
-                                                className="mt-0.5 rounded border-gray-300 dark:border-slate-700"
+                                                className="mt-0.5 rounded border-[color:var(--app-border-strong)]"
                                             />
                                             <span className="min-w-0 flex-1">
                                                 <span className="flex flex-wrap items-center gap-1.5">
                                                     <span
                                                         className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
                                                             METHOD_COLORS[endpoint.method] ??
-                                                            'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300'
+                                                            'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]'
                                                         }`}
                                                     >
                                                         {endpoint.method}
                                                     </span>
-                                                    <code className="font-mono text-xs text-gray-800 dark:text-slate-200">
+                                                    <code className="font-mono text-xs text-[color:var(--app-foreground)]">
                                                         {endpoint.uri}
                                                     </code>
                                                     {endpoint.required_scope && (
-                                                        <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[10px] text-gray-600 dark:bg-slate-800 dark:text-slate-400">
+                                                        <code className="rounded bg-[color:var(--app-surface-muted)] px-1 py-0.5 font-mono text-[10px] text-[color:var(--app-muted-foreground)]">
                                                             {endpoint.required_scope}
                                                         </code>
                                                     )}
                                                     {endpoint.version && (
-                                                        <span className="text-[10px] text-gray-400 dark:text-slate-500">
+                                                        <span className="text-[10px] text-[color:var(--app-muted-foreground)]">
                                                             {endpoint.version}
                                                         </span>
                                                     )}
                                                 </span>
                                                 {endpoint.description && (
-                                                    <span className="mt-0.5 block text-[11px] text-gray-500 dark:text-slate-400">
+                                                    <span className="mt-0.5 block text-[11px] text-[color:var(--app-muted-foreground)]">
                                                         {endpoint.description}
                                                     </span>
                                                 )}
@@ -215,7 +215,7 @@ export default function EndpointAssignment({ endpoints, selected, onChange }: Pr
                 </div>
             )}
 
-            <p className="text-[11px] text-gray-500 dark:text-slate-400">{t('apiManagement.endpointScopeAutoHint')}</p>
+            <p className="text-[11px] text-[color:var(--app-muted-foreground)]">{t('apiManagement.endpointScopeAutoHint')}</p>
         </div>
     );
 }

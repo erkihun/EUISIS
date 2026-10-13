@@ -1,11 +1,9 @@
-import InputError from '@/Components/InputError';
 import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { Button, FieldError, Input } from '@/Components/ui';
 
 export default function UpdatePasswordForm({ className = '' }: { className?: string }) {
     const { t } = useLocale();
@@ -43,8 +41,8 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
         <section className={className}>
             <form onSubmit={updatePassword} className="space-y-4">
                 <div>
-                    <label htmlFor="current_password" className="block text-xs font-medium text-gray-600 dark:text-slate-400">{t('profile.currentPassword')}</label>
-                    <TextInput
+                    <label htmlFor="current_password" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.currentPassword')}</label>
+                    <Input
                         id="current_password"
                         ref={currentPasswordInput}
                         value={data.current_password}
@@ -53,13 +51,13 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                         className="mt-1 block w-full"
                         autoComplete="current-password"
                     />
-                    <InputError message={errors.current_password} className="mt-2" />
+                    <FieldError className="mt-2">{errors.current_password}</FieldError>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                        <label htmlFor="password" className="block text-xs font-medium text-gray-600 dark:text-slate-400">{t('profile.newPassword')}</label>
-                        <TextInput
+                        <label htmlFor="password" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.newPassword')}</label>
+                        <Input
                             id="password"
                             ref={passwordInput}
                             value={data.password}
@@ -68,12 +66,12 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                             className="mt-1 block w-full"
                             autoComplete="new-password"
                         />
-                        <InputError message={errors.password} className="mt-2" />
+                        <FieldError className="mt-2">{errors.password}</FieldError>
                     </div>
 
                     <div>
-                        <label htmlFor="password_confirmation" className="block text-xs font-medium text-gray-600 dark:text-slate-400">{t('profile.confirmPassword')}</label>
-                        <TextInput
+                        <label htmlFor="password_confirmation" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.confirmPassword')}</label>
+                        <Input
                             id="password_confirmation"
                             value={data.password_confirmation}
                             onChange={(e) => setData('password_confirmation', e.target.value)}
@@ -81,17 +79,17 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                             className="mt-1 block w-full"
                             autoComplete="new-password"
                         />
-                        <InputError message={errors.password_confirmation} className="mt-2" />
+                        <FieldError className="mt-2">{errors.password_confirmation}</FieldError>
                     </div>
                 </div>
 
                 <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[account?.name, account?.email]} />
 
-                <div className="flex items-center justify-end gap-4 border-t border-gray-100 pt-5 dark:border-slate-800">
+                <div className="flex items-center justify-end gap-4 border-t border-[color:var(--app-border)] pt-5">
                     <Transition show={recentlySuccessful} enter="transition ease-in-out" enterFrom="opacity-0" leave="transition ease-in-out" leaveTo="opacity-0">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('profile.passwordUpdated')}</p>
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('profile.passwordUpdated')}</p>
                     </Transition>
-                    <PrimaryButton disabled={processing}>{t('profile.updatePassword')}</PrimaryButton>
+                    <Button disabled={processing}>{t('profile.updatePassword')}</Button>
                 </div>
             </form>
         </section>

@@ -13,7 +13,6 @@ import IdCardPortraitBack from '@/Components/IdCards/IdCardPortraitBack';
 import CardPrintExportModal from '@/Components/IdCards/CardPrintExportModal';
 import CardPortraitPrintExportModal from '@/Components/IdCards/CardPortraitPrintExportModal';
 import { formatDateDisplay } from '@/lib/calendar/dateFormat';
-import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
@@ -266,7 +265,6 @@ const inputCls = 'w-full rounded-card border border-gray-300 bg-white px-3 py-2 
 
 export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps) {
     const { t, locale } = useLocale();
-    const calendarSystem = useCalendarSystem();
     const { errors } = usePage().props as { errors: Record<string, string> };
     const [modal, setModal] = useState<string | null>(null);
     const selectedTemplate = useIdCardTemplate();
@@ -285,8 +283,11 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
     const replaceForm  = useForm({ reason: '' });
     const revokeForm   = useForm({ reason: '' });
 
+    // The ID face is always bilingual: Ethiopian on the Amharic row and
+    // Gregorian on the English row. It must not follow the viewer's calendar
+    // preference, which otherwise makes both rows Ethiopian in Amharic mode.
     const fmtDate = (v?: string | null) =>
-        v ? (formatDateDisplay(v.slice(0, 10), calendarSystem, locale) || v.slice(0, 10)) : undefined;
+        v ? (formatDateDisplay(v.slice(0, 10), 'gregorian', 'en') || v.slice(0, 10)) : undefined;
 
     const hasAnyAction = can.issue || can.activate || can.reportLost || can.reportDamaged || can.replace || can.revoke;
 
@@ -411,8 +412,8 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
                                     jobGrade={card.employee?.current_assignment?.position?.grade_level}
                                     issueDate={fmtDate(card.issued_at)}
                                     expiryDate={fmtDate(card.expires_at)}
-                                    issueDateAm={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined}
-                                    expiryDateAm={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined}
+                                    issueDateAm={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), 'ethiopian', 'am', { zeroPadDay: true }) || undefined) : undefined}
+                                    expiryDateAm={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), 'ethiopian', 'am', { zeroPadDay: true }) || undefined) : undefined}
                                     status={card.status}
                                 />
                                 <IdCardBack

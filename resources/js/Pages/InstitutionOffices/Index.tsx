@@ -1,10 +1,13 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 interface PaginatedResponse<T> {
     data: T[];
     current_page: number;
@@ -64,15 +67,15 @@ export default function InstitutionOfficesIndex({
 }: Props) {
     const { t } = useLocale();
 
-    const inputCls =
-        'rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+    const [draft, setDraft] = useState({
+        search: filters.search ?? '',
+        institution_id: filters.institution_id ?? '',
+        status: filters.status ?? '',
+    });
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
-    function handleFilter(key: string, value: string) {
-        router.get(
-            route('institution-offices.index'),
-            { ...filters, [key]: value || undefined },
-            { preserveState: true, preserveScroll: true },
-        );
+    function submit() {
+        router.get(route('institution-offices.index'), draft, { preserveState: true, preserveScroll: true });
     }
 
     return (
@@ -84,7 +87,7 @@ export default function InstitutionOfficesIndex({
                         can.create ? (
                             <Link
                                 href={route('institution-offices.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 <Plus className="h-4 w-4" />
                                 {t('institutionOffices.create')}
@@ -96,49 +99,36 @@ export default function InstitutionOfficesIndex({
         >
             <Head title={t('institutionOffices.title')} />
 
-            <section className="mb-4 flex flex-wrap items-center gap-3">
-                <input
-                    type="text"
-                    placeholder={t('institutionOffices.searchOffices')}
-                    defaultValue={filters.search ?? ''}
-                    onBlur={(event) => handleFilter('search', event.target.value)}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Enter') handleFilter('search', (event.target as HTMLInputElement).value);
-                    }}
-                    className={inputCls}
-                />
+            <FilterPanel onSubmit={submit} onReset={() => router.get(route('institution-offices.index'))} hasActiveFilters={hasActiveFilters} className="mb-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input type="search" placeholder={t('institutionOffices.searchOffices')} value={draft.search} onChange={(event) => setDraft({ ...draft, search: event.target.value })} />
+                </FilterField>
+                <FilterField label={t('institutionOffices.institution')}>
+                    <Select value={draft.institution_id} onChange={(event) => setDraft({ ...draft, institution_id: event.target.value })}>
+                        <option value="">{t('institutionOffices.filterByInstitution')}</option>
+                        {institutions.map((institution) => (
+                            <option key={institution.id} value={institution.id}>
+                                {institution.name_en} ({institution.code})
+                            </option>
+                        ))}
+                    </Select>
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })}>
+                        <option value="">{t('institutionOffices.filterByStatus')}</option>
+                        {statusOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                </FilterField>
+            </FilterPanel>
 
-                <select
-                    value={filters.institution_id ?? ''}
-                    onChange={(event) => handleFilter('institution_id', event.target.value)}
-                    className={inputCls}
-                >
-                    <option value="">{t('institutionOffices.filterByInstitution')}</option>
-                    {institutions.map((institution) => (
-                        <option key={institution.id} value={institution.id}>
-                            {institution.name_en} ({institution.code})
-                        </option>
-                    ))}
-                </select>
-
-                <select
-                    value={filters.status ?? ''}
-                    onChange={(event) => handleFilter('status', event.target.value)}
-                    className={inputCls}
-                >
-                    <option value="">{t('institutionOffices.filterByStatus')}</option>
-                    {statusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                            {option.label}
-                        </option>
-                    ))}
-                </select>
-            </section>
-
-            <section className="rounded-lg border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <section className={tableContainerClassName}>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
                                 {[
                                     t('institutionOffices.unitCode'),
@@ -151,19 +141,19 @@ export default function InstitutionOfficesIndex({
                                 ].map((heading) => (
                                     <th
                                         key={heading}
-                                        className="px-4 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400"
+                                        className={cx(tableHeaderCellClassName, 'text-left')}
                                     >
                                         {heading}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className={tableBodyClassName}>
                             {offices.data.length === 0 ? (
                                 <tr>
                                     <td
                                         colSpan={7}
-                                        className="px-4 py-8 text-center text-sm text-gray-400 dark:text-slate-500"
+                                        className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}
                                     >
                                         {t('institutionOffices.noOffices')}
                                     </td>
@@ -172,21 +162,21 @@ export default function InstitutionOfficesIndex({
                                 offices.data.map((office) => (
                                     <tr
                                         key={office.id}
-                                        className="border-t border-gray-100 text-gray-700 dark:border-slate-800 dark:text-slate-200"
+                                        className={tableRowClassName}
                                     >
-                                        <td className="px-4 py-3 font-mono text-xs">{office.code}</td>
-                                        <td className="px-4 py-3">
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs')}>{office.code}</td>
+                                        <td className={tableCellClassName}>
                                             <div className="font-medium">{office.name_en ?? t('institutionOffices.notSelected')}</div>
                                             {office.name_am && (
-                                                <div className="text-xs text-gray-500 dark:text-slate-400">
+                                                <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                                     {office.name_am}
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {office.organization?.name_en ?? t('institutionOffices.notSelected')}
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {office.parent ? (
                                                 <Link
                                                     href={route('organization-units.show', office.parent.id)}
@@ -195,29 +185,23 @@ export default function InstitutionOfficesIndex({
                                                     {office.parent.name_en}
                                                 </Link>
                                             ) : (
-                                                <span className="text-gray-400 dark:text-slate-500">{t('institutionOffices.notSelected')}</span>
+                                                <span className="text-[color:var(--app-muted-foreground)]">{t('institutionOffices.notSelected')}</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {office.functional_reporting?.name_en ?? t('institutionOffices.notSelected')}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <StatusBadge status={office.status} />
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <Link
-                                                    href={route('organization-units.show', office.id)}
-                                                    className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
-                                                >
-                                                    {t('common.view')}
-                                                </Link>
-                                                <Link
-                                                    href={route('organization-units.edit', office.id)}
-                                                    className="text-xs text-gray-600 hover:underline dark:text-slate-300"
-                                                >
-                                                    {t('common.edit')}
-                                                </Link>
+                                        <td className={tableCellClassName}>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('organization-units.show', office.id) },
+                                                        { label: t('common.edit'), href: route('organization-units.edit', office.id) },
+                                                    ]}
+                                                />
                                             </div>
                                         </td>
                                     </tr>
@@ -226,32 +210,7 @@ export default function InstitutionOfficesIndex({
                         </tbody>
                     </table>
                 </div>
-
-                {offices.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3 dark:border-slate-800">
-                        <p className="text-xs text-gray-500 dark:text-slate-400">
-                            {offices.from}-{offices.to} / {offices.total}
-                        </p>
-                        <div className="flex gap-2">
-                            {offices.prev_page_url && (
-                                <Link
-                                    href={offices.prev_page_url}
-                                    className="rounded-md border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50 dark:border-slate-600 dark:hover:bg-slate-800"
-                                >
-                                    {t('common.previous')}
-                                </Link>
-                            )}
-                            {offices.next_page_url && (
-                                <Link
-                                    href={offices.next_page_url}
-                                    className="rounded-md border border-gray-300 px-3 py-1 text-xs hover:bg-gray-50 dark:border-slate-600 dark:hover:bg-slate-800"
-                                >
-                                    {t('common.next')}
-                                </Link>
-                            )}
-                        </div>
-                    </div>
-                )}
+                <ListPagination meta={offices} />
             </section>
         </AuthenticatedLayout>
     );

@@ -15,6 +15,7 @@ use App\Models\Position;
 use App\Services\DailyActivity\EmployeeWorkContextResolver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Which published form version applies to an employee?
@@ -90,38 +91,61 @@ class AssessmentTargetResolver
      */
     public function preview(string $assessmentTypeId, Carbon $date, ?array $organizationIds = null, int $chunk = 1000): array
     {
+        // A preview is read many times while a form is being set up; a short
+        // cache keyed by type, date and scope stops each click re-walking the
+        // workforce (risk register SCL-6). Five minutes of staleness is
+        // acceptable for a preview; nothing is decided from it.
+        $scopeKey = $organizationIds === null ? 'all' : md5(implode(',', collect($organizationIds)->sort()->values()->all()));
+
+        return Cache::remember(
+            "assessment-target-preview:{$assessmentTypeId}:{$date->toDateString()}:{$scopeKey}:{$chunk}",
+            now()->addMinutes(5),
+            fn (): array => $this->computePreview($assessmentTypeId, $date, $organizationIds, $chunk),
+        );
+    }
+
+    /** @param  array<int, string>|null  $organizationIds */
+    private function computePreview(string $assessmentTypeId, Carbon $date, ?array $organizationIds, int $chunk): array
+    {
         $versions = $this->candidates($assessmentTypeId, $date);
         if ($organizationIds !== null) {
-            $versions = $versions->filter(fn (AssessmentFormVersion $version): bool =>
-                $version->form->organization_id === null
+            $versions = $versions->filter(fn (AssessmentFormVersion $version): bool => $version->form->organization_id === null
                 || in_array($version->form->organization_id, $organizationIds, true));
         }
         $result = ['total' => 0, 'by_version' => $versions->mapWithKeys(fn (AssessmentFormVersion $v): array => [$v->id => 0])->all(), 'unmatched' => 0, 'conflicts' => 0, 'conflict_samples' => []];
         $day = $date->toDateString();
 
-        Employee::query()->select('id')->orderBy('id')->chunk($chunk, function ($employees) use (&$result, $versions, $date, $day, $organizationIds): void {
-            $assignments = $this->context->assignmentsFor($employees->pluck('id')->all(), $date, $date);
-            $picked = $employees->mapWithKeys(fn ($employee): array => [$employee->id => $this->context->pickAssignment($assignments->get($employee->id, collect()), $day)])->filter();
-            if ($organizationIds !== null) {
-                $picked = $picked->filter(fn (EmployeeAssignment $assignment): bool => in_array($assignment->organization_id, $organizationIds, true));
-            }
-            $positions = Position::query()->whereIn('id', $picked->pluck('position_id')->filter()->unique())->get(['id', 'occupation_id', 'grade_level', 'job_family'])->keyBy('id');
-
-            foreach ($picked as $employeeId => $assignment) {
-                $result['total']++;
-                $decision = $this->decide($versions, $assignment, $positions->get($assignment->position_id), $day);
-                if ($decision['status'] === self::MATCHED) {
-                    $result['by_version'][$decision['version']->id]++;
-                } elseif ($decision['status'] === self::CONFLICT) {
-                    $result['conflicts']++;
-                    if (count($result['conflict_samples']) < 20) {
-                        $result['conflict_samples'][] = ['employee_id' => (string) $employeeId, 'versions' => $decision['candidates']];
-                    }
-                } else {
-                    $result['unmatched']++;
+        // Scope is applied in the database (only employees placed in the
+        // organizations on that day), and the walk is by key, not OFFSET.
+        Employee::query()->select('id')
+            ->when($organizationIds !== null, fn ($query) => $query->whereIn('id', EmployeeAssignment::query()
+                ->select('employee_id')
+                ->whereIn('organization_id', $organizationIds)
+                ->where('effective_from', '<=', $day)
+                ->where(fn ($q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', $day))))
+            ->chunkById($chunk, function ($employees) use (&$result, $versions, $date, $day, $organizationIds): void {
+                $assignments = $this->context->assignmentsFor($employees->pluck('id')->all(), $date, $date);
+                $picked = $employees->mapWithKeys(fn ($employee): array => [$employee->id => $this->context->pickAssignment($assignments->get($employee->id, collect()), $day)])->filter();
+                if ($organizationIds !== null) {
+                    $picked = $picked->filter(fn (EmployeeAssignment $assignment): bool => in_array($assignment->organization_id, $organizationIds, true));
                 }
-            }
-        });
+                $positions = Position::query()->whereIn('id', $picked->pluck('position_id')->filter()->unique())->get(['id', 'occupation_id', 'grade_level', 'job_family'])->keyBy('id');
+
+                foreach ($picked as $employeeId => $assignment) {
+                    $result['total']++;
+                    $decision = $this->decide($versions, $assignment, $positions->get($assignment->position_id), $day);
+                    if ($decision['status'] === self::MATCHED) {
+                        $result['by_version'][$decision['version']->id]++;
+                    } elseif ($decision['status'] === self::CONFLICT) {
+                        $result['conflicts']++;
+                        if (count($result['conflict_samples']) < 20) {
+                            $result['conflict_samples'][] = ['employee_id' => (string) $employeeId, 'versions' => $decision['candidates']];
+                        }
+                    } else {
+                        $result['unmatched']++;
+                    }
+                }
+            });
 
         return $result;
     }

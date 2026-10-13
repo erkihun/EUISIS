@@ -9,6 +9,7 @@ import { StatusBadge as UiStatusBadge, Tabs } from '@euisis/ui';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type BandDraft = { code: string; label_en: string; label_am: string | null; min_score: string; max_score: string; min_inclusive: boolean; max_inclusive: boolean };
 type Policy = { id: string; code: string; version_no: number; name_en: string; name_am: string | null; status: string; range_min: string; range_max: string; requires_full_coverage: boolean; activated_at: string | null; bands: BandDraft[]; problems: string[] };
 type Reason = { id: string; code: string; name_en: string; name_am: string | null; source: string; requires_approval: boolean; excludes_from_denominator: boolean; is_system: boolean; is_active: boolean; sort_order: number };
@@ -51,7 +52,7 @@ export default function OversightSetup({ cycles, policies, reasons, types, emplo
                         </>}>
                             {cycles.data.map((c) => (
                                 <tr key={c.id}>
-                                    <td className={tdCls}><span className="font-medium">{named(c, locale)}</span><div className="text-xs text-gray-500">{c.code}</div></td>
+                                    <td className={tdCls}><span className="font-medium">{named(c, locale)}</span><div className="text-xs text-[color:var(--app-muted-foreground)]">{c.code}</div></td>
                                     <td className={tdCls}>{named(c.type, locale)}</td>
                                     <td className={`${tdCls} text-xs`}><LocalizedDateDisplay value={c.period_start} /> – <LocalizedDateDisplay value={c.period_end} /></td>
                                     <td className={`${tdCls} tabular-nums`}>{c.organizations_count}</td>
@@ -98,8 +99,8 @@ function Policies({ policies }: { policies: Policy[] }) {
                     {editing === p.id ? <BandEditor policy={p} onDone={() => setEditing(null)} /> : (
                         <>
                             <ul className="text-sm">
-                                {p.bands.length === 0 && <li className="text-gray-500">{t('assessmentOversight.setup.noBands')}</li>}
-                                {p.bands.map((b) => <li key={b.code} className="flex justify-between border-b border-gray-100 py-1 dark:border-slate-800"><span>{(locale === 'am' && b.label_am) || b.label_en}</span><span className="tabular-nums text-gray-600">{b.min_inclusive ? '[' : '('}{Number(b.min_score)} – {Number(b.max_score)}{b.max_inclusive ? ']' : ')'}</span></li>)}
+                                {p.bands.length === 0 && <li className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.setup.noBands')}</li>}
+                                {p.bands.map((b) => <li key={b.code} className="flex justify-between border-b border-[color:var(--app-border)] py-1"><span>{(locale === 'am' && b.label_am) || b.label_en}</span><span className="tabular-nums text-[color:var(--app-muted-foreground)]">{b.min_inclusive ? '[' : '('}{Number(b.min_score)} – {Number(b.max_score)}{b.max_inclusive ? ']' : ')'}</span></li>)}
                             </ul>
                             {p.problems.length > 0 && <ul className="mt-2 list-disc ps-5 text-sm text-red-700">{p.problems.map((x) => <li key={x}>{x}</li>)}</ul>}
                         </>
@@ -126,23 +127,23 @@ function BandEditor({ policy, onDone }: { policy: Policy; onDone: () => void }) 
                 <label className="flex items-end gap-2 pb-2 text-sm"><input type="checkbox" checked={form.data.requires_full_coverage} onChange={(e) => form.setData('requires_full_coverage', e.target.checked)} />{t('assessmentOversight.setup.fullCoverage')}</label>
             </div>
             <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                    <thead className="text-xs text-gray-500"><tr>
-                        <th className="p-1 text-left">{t('assessmentOversight.setup.code')}</th><th className="p-1 text-left">{t('assessmentOversight.setup.labelEn')}</th><th className="p-1 text-left">{t('assessmentOversight.setup.labelAm')}</th>
-                        <th className="p-1 text-left">{t('assessmentOversight.setup.min')}</th><th className="p-1 text-left">{t('assessmentOversight.setup.minInclusive')}</th>
-                        <th className="p-1 text-left">{t('assessmentOversight.setup.max')}</th><th className="p-1 text-left">{t('assessmentOversight.setup.maxInclusive')}</th><th />
+                <table className={cx(tableClassName, 'min-w-full')}>
+                    <thead className={tableHeadClassName}><tr>
+                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.code')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.labelEn')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.labelAm')}</th>
+                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.min')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.minInclusive')}</th>
+                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.max')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.setup.maxInclusive')}</th><th />
                     </tr></thead>
-                    <tbody>
+                    <tbody className={tableBodyClassName}>
                         {form.data.bands.map((b, i) => (
                             <tr key={i}>
-                                <td className="p-1"><input aria-label={t('assessmentOversight.setup.code')} className={inputCls} value={b.code} onChange={(e) => setBand(i, { code: e.target.value.toUpperCase() })} /></td>
-                                <td className="p-1"><input aria-label={t('assessmentOversight.setup.labelEn')} className={inputCls} value={b.label_en} onChange={(e) => setBand(i, { label_en: e.target.value })} /></td>
-                                <td className="p-1"><input aria-label={t('assessmentOversight.setup.labelAm')} className={inputCls} value={b.label_am ?? ''} onChange={(e) => setBand(i, { label_am: e.target.value })} /></td>
-                                <td className="p-1"><input aria-label={t('assessmentOversight.setup.min')} type="number" step="0.0001" className={inputCls} value={b.min_score} onChange={(e) => setBand(i, { min_score: e.target.value })} /></td>
-                                <td className="p-1 text-center"><input aria-label={t('assessmentOversight.setup.minInclusive')} type="checkbox" checked={b.min_inclusive} onChange={(e) => setBand(i, { min_inclusive: e.target.checked })} /></td>
-                                <td className="p-1"><input aria-label={t('assessmentOversight.setup.max')} type="number" step="0.0001" className={inputCls} value={b.max_score} onChange={(e) => setBand(i, { max_score: e.target.value })} /></td>
-                                <td className="p-1 text-center"><input aria-label={t('assessmentOversight.setup.maxInclusive')} type="checkbox" checked={b.max_inclusive} onChange={(e) => setBand(i, { max_inclusive: e.target.checked })} /></td>
-                                <td className="p-1"><button type="button" className={smallBtn} onClick={() => form.setData('bands', form.data.bands.filter((_, n) => n !== i))}>{t('assessmentOversight.actions.remove')}</button></td>
+                                <td className={tableCellClassName}><input aria-label={t('assessmentOversight.setup.code')} className={inputCls} value={b.code} onChange={(e) => setBand(i, { code: e.target.value.toUpperCase() })} /></td>
+                                <td className={tableCellClassName}><input aria-label={t('assessmentOversight.setup.labelEn')} className={inputCls} value={b.label_en} onChange={(e) => setBand(i, { label_en: e.target.value })} /></td>
+                                <td className={tableCellClassName}><input aria-label={t('assessmentOversight.setup.labelAm')} className={inputCls} value={b.label_am ?? ''} onChange={(e) => setBand(i, { label_am: e.target.value })} /></td>
+                                <td className={tableCellClassName}><input aria-label={t('assessmentOversight.setup.min')} type="number" step="0.0001" className={inputCls} value={b.min_score} onChange={(e) => setBand(i, { min_score: e.target.value })} /></td>
+                                <td className={cx(tableCellClassName, 'text-center')}><input aria-label={t('assessmentOversight.setup.minInclusive')} type="checkbox" checked={b.min_inclusive} onChange={(e) => setBand(i, { min_inclusive: e.target.checked })} /></td>
+                                <td className={tableCellClassName}><input aria-label={t('assessmentOversight.setup.max')} type="number" step="0.0001" className={inputCls} value={b.max_score} onChange={(e) => setBand(i, { max_score: e.target.value })} /></td>
+                                <td className={cx(tableCellClassName, 'text-center')}><input aria-label={t('assessmentOversight.setup.maxInclusive')} type="checkbox" checked={b.max_inclusive} onChange={(e) => setBand(i, { max_inclusive: e.target.checked })} /></td>
+                                <td className={tableCellClassName}><button type="button" className={smallBtn} onClick={() => form.setData('bands', form.data.bands.filter((_, n) => n !== i))}>{t('assessmentOversight.actions.remove')}</button></td>
                             </tr>
                         ))}
                     </tbody>
@@ -154,7 +155,7 @@ function BandEditor({ policy, onDone }: { policy: Policy; onDone: () => void }) 
                 <button className={smallPrimaryBtn} disabled={form.processing}>{t('assessmentOversight.actions.save')}</button>
                 <button type="button" className={smallBtn} onClick={onDone}>{t('assessmentOversight.actions.cancel')}</button>
             </div>
-            <p className="text-xs text-gray-500">{t('assessmentOversight.setup.bandsNote')}</p>
+            <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.setup.bandsNote')}</p>
         </form>
     );
 }
@@ -187,7 +188,7 @@ function Reasons({ reasons }: { reasons: Reason[] }) {
                         <button className={primaryBtn} disabled={form.processing}>{t('assessmentOversight.actions.save')}</button>
                         {form.data.id && <button type="button" className={secondaryBtn} onClick={() => form.setData(blank)}>{t('assessmentOversight.actions.cancel')}</button>}
                     </div>
-                    <p className="text-xs text-gray-500 sm:col-span-3">{t('assessmentOversight.setup.excludesHelp')}</p>
+                    <p className="text-xs text-[color:var(--app-muted-foreground)] sm:col-span-3">{t('assessmentOversight.setup.excludesHelp')}</p>
                 </form>
             </Section>
             <Section title={t('assessmentOversight.setup.tabs.reasons')} flush>
@@ -201,7 +202,7 @@ function Reasons({ reasons }: { reasons: Reason[] }) {
                 </>}>
                     {reasons.map((r) => (
                         <tr key={r.id}>
-                            <td className={`${tdCls} font-mono text-xs`}>{r.code}{r.is_system && <span className="ms-1 text-gray-400">({t('assessmentOversight.system')})</span>}</td>
+                            <td className={`${tdCls} font-mono text-xs`}>{r.code}{r.is_system && <span className="ms-1 text-[color:var(--app-muted-foreground)]">({t('assessmentOversight.system')})</span>}</td>
                             <td className={tdCls}>{named(r, locale)}</td>
                             <td className={tdCls}>{t(`assessmentOversight.reasonSources.${r.source}`)}</td>
                             <td className={tdCls}>{r.excludes_from_denominator ? '✓' : '—'}</td>

@@ -121,7 +121,18 @@ final class GrievanceCaseAccessService
 
     private function isExternalHandler(User $user, ?GrievanceCaseStage $stage): bool
     {
-        return $stage !== null && $stage->handler_type === GrievanceHandlerType::ExternalAuthority && $user->can('grievances.tribunal');
+        if ($stage === null || $stage->handler_type !== GrievanceHandlerType::ExternalAuthority) {
+            return false;
+        }
+
+        $grievance = $stage->relationLoaded('grievance') ? $stage->grievance : Grievance::query()->find($stage->grievance_id);
+
+        // A tribunal permission is operational, not a global case-content
+        // grant. The originating institution remains the case's scope anchor
+        // while it is before an external authority.
+        return $grievance !== null
+            && ! $this->isConflicted($user, $grievance)
+            && $this->scope->canExercisePermission($user, 'grievances.tribunal', $grievance->organization_id);
     }
 
     /** The user currently handles this stage (any handler relationship). */
@@ -438,6 +449,9 @@ final class GrievanceCaseAccessService
         $canAssign = $user->can('grievances.assign');
         $unitIds = ($canAssign || ($canView && $this->settings->unitStaffSeeAllCases())) ? $this->unitIdsOf($user) : [];
         $tribunal = $user->can('grievances.tribunal');
+        $tribunalOrganizationIds = $tribunal && ! $this->scope->isUnrestricted($user)
+            ? $this->scope->accessibleOrganizationIds($user)->all()
+            : null;
 
         if (! $canView && ! $canAssign && ! $tribunal) {
             return $query->whereRaw('1 = 0');
@@ -447,7 +461,7 @@ final class GrievanceCaseAccessService
 
         return $query
             ->whereNotIn($query->qualifyColumn('status'), [GrievanceStatus::Closed->value, GrievanceStatus::Withdrawn->value, GrievanceStatus::RejectedAtIntake->value, GrievanceStatus::Draft->value])
-            ->where(function (Builder $q) use ($employeeId, $user, $canView, $unitIds, $tribunal): void {
+            ->where(function (Builder $q) use ($employeeId, $user, $canView, $unitIds, $tribunal, $tribunalOrganizationIds): void {
                 $q->whereRaw('1 = 0');
                 if ($canView && $employeeId !== null) {
                     $q->orWhereHas('currentStage.members', fn ($m) => $m->where('employee_id', $employeeId)->eligible());
@@ -458,8 +472,13 @@ final class GrievanceCaseAccessService
                 if ($unitIds !== []) {
                     $q->orWhere(fn ($u) => $u->where('current_handler_type', GrievanceHandlerType::OrganizationUnit->value)->whereIn('current_handler_id', $unitIds));
                 }
-                if ($tribunal) {
-                    $q->orWhere('current_handler_type', GrievanceHandlerType::ExternalAuthority->value);
+                if ($tribunal && ($tribunalOrganizationIds === null || $tribunalOrganizationIds !== [])) {
+                    $q->orWhere(function (Builder $external) use ($tribunalOrganizationIds): void {
+                        $external->where('current_handler_type', GrievanceHandlerType::ExternalAuthority->value);
+                        if ($tribunalOrganizationIds !== null) {
+                            $external->whereIn('organization_id', $tribunalOrganizationIds);
+                        }
+                    });
                 }
             });
     }

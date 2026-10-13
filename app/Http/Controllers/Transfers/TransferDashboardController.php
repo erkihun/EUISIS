@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
 use App\Models\TransferSetting;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,33 +22,42 @@ class TransferDashboardController extends Controller
         $this->authorize('view', TransferSetting::class);
 
         $user = Auth::user();
+        $scope = app(OrganizationScopeService::class);
+        $restricted = ! $scope->isUnrestricted($user);
+        $allowed = $restricted ? $scope->allowedOrganizationIds($user) : [];
+
+        // Same rule as the applications list: a scoped user sees transfers
+        // leaving or entering their organizations, and announcements of them.
+        $applications = fn () => TransferApplication::query()->when($restricted, fn ($query) => $query
+            ->where(fn ($scoped) => $scoped
+                ->whereIn('releasing_organization_id', $allowed)
+                ->orWhereIn('receiving_organization_id', $allowed)));
 
         $activeAnnouncements = TransferAnnouncement::query()
             ->where('status', TransferAnnouncementStatus::Published->value)
+            ->when($restricted, fn ($query) => $query->whereIn('organization_id', $allowed))
             ->count();
 
-        $pendingApplications = TransferApplication::query()
-            ->whereNotIn('status', array_map(
-                fn (TransferApplicationStatus $s) => $s->value,
-                array_filter(TransferApplicationStatus::cases(), fn ($s) => $s->isFinal()),
-            ))
-            ->count();
+        $finalStatuses = array_map(
+            fn (TransferApplicationStatus $s) => $s->value,
+            array_filter(TransferApplicationStatus::cases(), fn ($s) => $s->isFinal()),
+        );
 
-        $releasePending = TransferApplication::query()
-            ->where('status', TransferApplicationStatus::ReleasePending->value)
-            ->count();
+        // One grouped query instead of four separate counts.
+        $byStatus = $applications()
+            ->selectRaw('status, count(*) as aggregate')
+            ->groupBy('status')
+            ->toBase()
+            ->pluck('aggregate', 'status');
 
-        $receivingPending = TransferApplication::query()
-            ->where('status', TransferApplicationStatus::ReceivingPending->value)
-            ->count();
+        $pendingApplications = (int) $byStatus->except($finalStatuses)->sum();
+        $releasePending = (int) ($byStatus[TransferApplicationStatus::ReleasePending->value] ?? 0);
+        $receivingPending = (int) ($byStatus[TransferApplicationStatus::ReceivingPending->value] ?? 0);
+        $finalPending = (int) ($byStatus[TransferApplicationStatus::FinalApprovalPending->value] ?? 0);
 
-        $finalPending = TransferApplication::query()
-            ->where('status', TransferApplicationStatus::FinalApprovalPending->value)
-            ->count();
-
-        $recentTransfers = TransferApplication::query()
+        $recentTransfers = $applications()
             ->where('status', TransferApplicationStatus::Transferred->value)
-            ->with(['employee', 'releasingOrganization', 'receivingOrganization'])
+            ->with(['employee:id,employee_number,full_name,name_en', 'releasingOrganization', 'receivingOrganization'])
             ->latest()
             ->limit(5)
             ->get();

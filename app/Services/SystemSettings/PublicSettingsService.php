@@ -30,8 +30,10 @@ class PublicSettingsService
         $sealPath = $settings['general']['seal'] ?? null;
 
         return [
-            'app.name' => $settings['general']['application_name'] ?? 'Addis Ababa Employee Unified ID & Service Platform',
-            'app.short_name' => $settings['general']['application_short_name'] ?? 'AA Employee ID',
+            'app.name' => $settings['general']['application_name'] ?? config('branding.name'),
+            'app.short_name' => $settings['general']['application_short_name'] ?? config('branding.short_name'),
+            'app.official_name_en' => $settings['general']['official_name_en'] ?? config('branding.official_name_en'),
+            'app.official_name_am' => $settings['general']['official_name_am'] ?? config('branding.official_name_am'),
             'general.organization_name' => $settings['general']['organization_name'] ?? 'Addis Ababa City Administration',
             'general.support_email' => $settings['general']['support_email'] ?? null,
             'general.support_phone' => $settings['general']['support_phone'] ?? null,
@@ -108,7 +110,7 @@ class PublicSettingsService
             'id_cards.city_name_en' => $settings['id_cards']['city_name_en'] ?? 'Addis Ababa City Administration',
             'id_cards.city_name_am' => $settings['id_cards']['city_name_am'] ?? 'አዲስ አበባ ከተማ አስተዳደር',
             'id_cards.bureau_name_en' => $settings['id_cards']['bureau_name_en'] ?? 'Public Service & HRD Bureau',
-            'id_cards.bureau_name_am' => $settings['id_cards']['bureau_name_am'] ?? 'የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ',
+            'id_cards.bureau_name_am' => $settings['id_cards']['bureau_name_am'] ?? 'የሲቪል ሰርቪስና ሰው ሀብት ልማት ቢሮ',
             'id_cards.show_organization_logo' => $settings['id_cards']['show_organization_logo'] ?? true,
             'id_cards.show_photo' => $settings['id_cards']['show_photo'] ?? true,
             'id_cards.show_full_name_en' => $settings['id_cards']['show_full_name_en'] ?? true,
@@ -131,7 +133,7 @@ class PublicSettingsService
             'id_cards.back_bg_to' => $settings['id_cards']['back_bg_to'] ?? '#0F172A',
             'id_cards.back_text_color' => $settings['id_cards']['back_text_color'] ?? '#94A3B8',
             'id_cards.return_address_en' => $settings['id_cards']['return_address_en'] ?? 'Addis Ababa City Administration, Public Service & HRD Bureau',
-            'id_cards.return_address_am' => $settings['id_cards']['return_address_am'] ?? 'አዲስ አበባ ከተማ አስተዳደር፣ የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ',
+            'id_cards.return_address_am' => $settings['id_cards']['return_address_am'] ?? 'አዲስ አበባ ከተማ አስተዳደር፣ የሲቪል ሰርቪስና ሰው ሀብት ልማት ቢሮ',
             'id_cards.back_notice_am' => $settings['id_cards']['back_notice_am'] ?? 'ካርዱ የሚወዳደርበት ቦታ ካገኙ ወደ ቅርብ ባለስልጣን ይመልሱ።',
             'id_cards.back_notice_en' => $settings['id_cards']['back_notice_en'] ?? 'If found, please return to the issuing bureau.',
             'id_cards.show_magnetic_stripe' => $settings['id_cards']['show_magnetic_stripe'] ?? true,

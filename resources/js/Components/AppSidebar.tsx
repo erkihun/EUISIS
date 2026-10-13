@@ -48,12 +48,13 @@ import {
     MailIcon,
     FileChartIcon,
     MapPinned,
-} from '@/Components/Icons';
+} from '@/Components/NavIcons';
 import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { useBranding } from '@/hooks/useBranding';
 
 /** A leaf nav item — renders as a clickable link. */
 type NavSubItem = {
@@ -176,6 +177,7 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 items: [
                     { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: ClipboardCheckIcon },
                     { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: ScrollText, permission: 'grievances.view_own', listedInAdmin: true },
+                    { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: ScaleIcon, permission: 'discipline.view_own', listedInAdmin: true },
                     { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: MessageSquareIcon },
                 ],
             },
@@ -302,6 +304,32 @@ const navGroups: NavGroup[] = [
             { routeName: 'assessment-oversight.setup', labelKey: 'nav.assessmentOversightSetup', icon: SettingsIcon, anyPermission: ['assessment_oversight.manage_cycles', 'assessment_oversight.manage_policies'] },
         ],
     },
+    /*
+     * Organization Design & Workforce Planning: the design chain from the
+     * legal mandate down to job descriptions. Every page re-checks scope.
+     */
+    {
+        key: 'organizationDesign',
+        labelKey: 'nav.groupOrganizationDesign',
+        icon: NetworkIcon,
+        items: [
+            { routeName: 'organization-design.mandates.index', labelKey: 'nav.designMandates', icon: ScrollText, permission: 'institution-mandates.viewAny' },
+            { routeName: 'organization-design.functions.index', labelKey: 'nav.designFunctions', icon: GitForkIcon, permission: 'organization-functions.viewAny' },
+            { routeName: 'organization-design.services.index', labelKey: 'nav.designServices', icon: Layers, permission: 'service-catalog.viewAny' },
+            { routeName: 'organization-design.classifications.index', labelKey: 'nav.designClassifications', icon: TagsIcon, permission: 'classifications.viewAny' },
+            { routeName: 'organization-design.processes.index', labelKey: 'nav.designProcesses', icon: ActivityIcon, permission: 'processes.viewAny' },
+            { routeName: 'organization-design.professions.index', labelKey: 'nav.designProfessions', icon: HardHatIcon, anyPermission: ['occupations.viewAny', 'professions.manage'] },
+            { routeName: 'organization-design.competency-catalog.index', labelKey: 'nav.designCompetencyCatalog', icon: BadgeCheckIcon, anyPermission: ['competency-catalog.viewAny', 'competency-catalog.manage'] },
+            { routeName: 'organization-design.studies.index', labelKey: 'nav.designStudies', icon: ClipboardListIcon, permission: 'organization-design.viewAny' },
+            { routeName: 'organization-design.responsibilities.index', labelKey: 'nav.designResponsibilities', icon: HandshakeIcon, permission: 'organization-design.viewAny' },
+            { routeName: 'organization-design.structure.index', labelKey: 'nav.designStructure', icon: GitBranchIcon, permission: 'organization-design.viewAny' },
+            { routeName: 'organization-design.methodologies.index', labelKey: 'nav.designMethodologies', icon: HashIcon, permission: 'methodologies.viewAny' },
+            { routeName: 'organization-design.manpower-plans.index', labelKey: 'nav.designManpowerPlans', icon: Users, permission: 'workforce-planning.viewAny' },
+            { routeName: 'organization-design.position-design.index', labelKey: 'nav.designPositions', icon: Briefcase, anyPermission: ['position-profiles.viewAny', 'job-descriptions.viewAny'] },
+            { routeName: 'organization-design.reports.index', labelKey: 'nav.designReports', icon: FileChartIcon, permission: 'organization-design-reports.view' },
+            { routeName: 'organization-design.mapping.index', labelKey: 'nav.designMapping', icon: SearchIcon, permission: 'data-mapping.view' },
+        ],
+    },
     {
         key: 'employeeManagement',
         labelKey: 'nav.groupEmployeeManagement',
@@ -396,37 +424,69 @@ const navGroups: NavGroup[] = [
             { routeName: 'grievances.sla.index', labelKey: 'nav.grievanceSla', icon: ClockIcon, permission: 'grievance_sla.view' },
             { routeName: 'grievances.reports.index', labelKey: 'nav.grievanceReports', icon: FileChartIcon, permission: 'grievance_reports.view' },
             { routeName: 'grievances.settings.index', labelKey: 'nav.grievanceSettings', icon: SettingsIcon, permission: 'grievance_settings.view' },
-            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: ShieldCheck, permission: 'grievances.tribunal' },
         ],
     },
     {
         /*
-         * Court Cases is its own domain, not part of Grievance Management
-         * (docs/court-cases.md). One entry until the module is designed.
+         * Employee Discipline (Regulation 201/2018) is its own domain: never
+         * part of Grievance Management or of public service complaints.
          */
-        key: 'courtCases',
-        labelKey: 'nav.groupCourtCases',
+        key: 'discipline',
+        labelKey: 'nav.groupDiscipline',
         icon: ScaleIcon,
         items: [
+            { routeName: 'discipline.cases.index', labelKey: 'nav.disciplineCases', icon: ClipboardListIcon, anyPermission: ['discipline.view', 'discipline.investigate', 'discipline.decide'] },
+            { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: Inbox, permission: 'discipline.view_own' },
+        ],
+    },
+    {
+        /*
+         * Tribunal Court: external adjudication of administrative cases. Holds
+         * the Administrative Tribunal cases (grievance appeals routed to it) and
+         * the planned Court Cases module (docs/court-cases.md). Neither is part
+         * of Grievance Management's internal review workflow.
+         */
+        key: 'tribunalCourt',
+        labelKey: 'nav.groupTribunalCourt',
+        icon: ScaleIcon,
+        items: [
+            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: ShieldCheck, permission: 'grievances.tribunal' },
             { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: ScaleIcon, permission: 'court_cases.view' },
         ],
     },
     {
         /*
-         * Client-facing service delivery: what a position offers, and what
-         * citizens said about it. The entitlements catalog sits here too, as
-         * the other half of what "service" means in this system.
+         * Client-facing service definitions and the entitlements catalog.
          */
         key: 'serviceManagement',
         labelKey: 'nav.groupServiceManagement',
-        icon: MessageSquareIcon,
+        icon: Layers,
         items: [
-            { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
-            { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: MessageSquareIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: StarIcon,          permission: 'service_feedback.view' },
             { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', icon: Layers,            permission: 'service-types.viewAny' },
             { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: BadgeCheckIcon,    permission: 'entitlements.view' },
             { routeName: 'entitlement-rules.index', labelKey: 'nav.entitlementRules', icon: ReceiptTextIcon,   permission: 'entitlement-rules.viewAny' },
+        ],
+    },
+    {
+        /*
+         * Public Feedback Management (brief §79–80): what the public said
+         * through the employee and institution QR codes, and how it is routed,
+         * handled and reported. Independent of grievances and discipline.
+         */
+        key: 'serviceFeedback',
+        labelKey: 'nav.groupPublicFeedback',
+        icon: MessageSquareIcon,
+        items: [
+            { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: StarIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: MessageSquareIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: Inbox, permission: 'service_feedback.complaints.view' },
+            { routeName: 'service-feedback.categories.index', labelKey: 'nav.serviceFeedbackCategories', icon: TagsIcon, permission: 'service_feedback.manage_categories' },
+            { routeName: 'service-feedback.routing-rules.index', labelKey: 'nav.serviceFeedbackRoutingRules', icon: GitForkIcon, permission: 'service_feedback.manage_routing' },
+            { routeName: 'service-feedback.organization-qr.index', labelKey: 'nav.organizationFeedbackQrCodes', icon: QrCodeIcon, permission: 'service_feedback.organization_qr.view' },
+            { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: StarIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.submission-reports.index', labelKey: 'nav.serviceSubmissionReports', icon: ClipboardListIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.settings.index', labelKey: 'nav.serviceFeedbackSettings', icon: SettingsIcon, permission: 'service_feedback.settings.manage' },
         ],
     },
     {
@@ -529,13 +589,13 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 /**
  * A section without its own labelKey is a standalone category headed by its
  * single group's label; the group itself renders as the usual collapsible
- * button with its submenu (docs/field-work-navigation.md).
+ * button with its submenu.
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
-    { keys: ['fieldWork'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
-    { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
+    { keys: ['myWork'] },
 ];
 
 interface Props {
@@ -594,15 +654,22 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const [query, setQuery] = useState('');
     const normalizedQuery = query.trim().toLocaleLowerCase();
 
-    const appName = getString('app.short_name', 'AA Employee ID');
+    const { brandName: appName, shortName } = useBranding();
     const orgName = locale === 'am'
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
     const environmentLabel = getString('general.system_environment_label');
     const logoCentered = getString('appearance.logo_position', 'start') === 'center';
 
+    // Modules outside the current production scope (config/features.php) are never listed.
+    const features = (pageProps as { features?: Record<string, boolean> }).features ?? {};
+    const moduleEnabled = (routeName: string) => !(
+        (!features.transport && routeName.startsWith('transport.'))
+        || (!features.court_cases && routeName.startsWith('court-cases.'))
+    );
     // Keep the existing permission contract, including independently permitted child links.
-    const permitted = (item: NavSubItem) => (!item.permission || can(item.permission))
+    const permitted = (item: NavSubItem) => moduleEnabled(item.routeName)
+        && (!item.permission || can(item.permission))
         && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
     const allowedItems = (items: NavItem[]): NavSubItem[] => items
         .filter(permitted)
@@ -727,9 +794,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     title={compact ? label : undefined}
                     className={[
                         // scroll-my keeps an auto-scrolled current page clear of the list's fading edges.
-                        'relative flex scroll-my-12 items-center gap-2.5 rounded-lg text-sm transition-colors',
+                        'relative flex scroll-my-12 items-center gap-2.5 rounded-md text-sm transition-colors duration-150',
                         focusRing, hoverSurface,
-                        compact ? 'mx-auto h-10 w-10 justify-center' : nested ? 'min-h-8 px-3 py-1.5' : 'min-h-9 px-3 py-2',
+                        compact ? 'mx-auto h-10 w-10 justify-center' : nested ? 'min-h-8 px-2.5 py-1.5' : 'min-h-9 px-2.5 py-2',
                         selected ? selectedSurface + ' font-semibold'
                             : nested ? 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]' : 'font-medium text-[color:var(--sidebar-fg)]',
                     ].join(' ')}
@@ -762,7 +829,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         return <div key={labelKey} className="mb-4 last:mb-0">
             {collapsed
                 ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
-                : <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase leading-relaxed tracking-[0.07em] text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
+                : <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase leading-relaxed tracking-[0.08em] text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
             <div className="space-y-0.5">{groups.map(renderGroup)}</div>
         </div>;
     }
@@ -783,15 +850,15 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             return (
                 <Popover key={group.key}>
                     <PopoverButton title={label} aria-label={label}
-                        className={['mx-auto flex h-10 w-10 items-center justify-center rounded-lg transition-colors data-[open]:bg-[color:var(--sidebar-hover)]', focusRing, hoverSurface,
+                        className={['mx-auto flex h-10 w-10 items-center justify-center rounded-md transition-colors data-[open]:bg-[color:var(--sidebar-hover)]', focusRing, hoverSurface,
                             selected ? selectedSurface : 'text-[color:var(--sidebar-fg)]'].join(' ')}>
                         <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                     </PopoverButton>
                     <PopoverPanel anchor="right start" transition
-                        className="z-50 w-64 rounded-xl border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] p-2 text-[color:var(--sidebar-fg)] shadow-xl outline-none transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-[closed]:-translate-x-1 data-[closed]:opacity-0">
+                        className="z-50 w-64 rounded-lg border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] p-2 text-[color:var(--sidebar-fg)] shadow-xl outline-none transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-[closed]:-translate-x-1 data-[closed]:opacity-0">
                         {({ close }) => (
                             <>
-                                <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--sidebar-muted)]">{label}</p>
+                                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--sidebar-muted)]">{label}</p>
                                 {renderGroupItems(group, items, close)}
                             </>
                         )}
@@ -807,7 +874,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     aria-controls={panelId}
                     onClick={() => { if (!normalizedQuery) setOpenGroups((previous) => ({ ...previous, [group.key]: !isOpen })); }}
                     className={[
-                        'flex min-h-9 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[color:var(--sidebar-fg)] transition-colors',
+                        'flex min-h-9 w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-[color:var(--sidebar-fg)] transition-colors duration-150',
                         focusRing, hoverSurface,
                         // Only the page itself carries the selected surface; its group is marked by weight and an accent icon.
                         selected ? 'font-semibold' : 'font-medium',
@@ -818,7 +885,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     <ChevronDown className={['h-3.5 w-3.5 shrink-0 text-[color:var(--sidebar-muted)] transition-transform', isOpen ? '' : '-rotate-90'].join(' ')} aria-hidden="true" />
                 </button>
                 <div id={panelId} hidden={!isOpen}>
-                    <div className="ms-5 mt-0.5 mb-1.5 border-s border-[color:var(--sidebar-border)] ps-2">
+                    <div className="ms-[19px] mt-0.5 mb-1.5 border-s border-[color:var(--sidebar-border)] ps-2">
                         {renderGroupItems(group, items)}
                     </div>
                 </div>
@@ -828,24 +895,25 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
 
     return (
         <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]">
-            <div className={collapsed ? 'flex min-h-20 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'shrink-0 border-b border-[color:var(--sidebar-border)] p-4'}>
+            <div className={collapsed ? 'flex h-16 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'app-dot-grid shrink-0 border-b border-[color:var(--sidebar-border)] px-4 py-3.5'}>
                 <div className="flex items-start gap-2">
                     <Link
                         href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
                         onClick={onClose}
                         aria-label={appName}
                         title={collapsed ? appName : undefined}
-                        className={['flex min-w-0 flex-1 gap-3 rounded-lg', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
+                        className={['flex min-w-0 flex-1 gap-3 rounded-md', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
                     >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[color:var(--sidebar-bg)] p-1 ring-1 ring-[color:var(--sidebar-border)]">
                             <ApplicationLogo className="h-full w-full object-contain" />
                         </span>
                         {!collapsed && <div className="min-w-0">
                             <p className="whitespace-normal break-words text-[15px] font-medium leading-snug">{appName}</p>
+                            <p className="whitespace-normal break-words text-[11px] font-semibold uppercase tracking-wide text-[color:var(--sidebar-muted)]">{shortName}</p>
                             <p className="mt-1 whitespace-normal break-words text-xs leading-relaxed text-[color:var(--sidebar-muted)]">{orgName}</p>
                         </div>}
                     </Link>
-                    {onClose && <button type="button" onClick={onClose} aria-label={t('nav.closeMenu')} className={['flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', focusRing, hoverSurface].join(' ')}><X className="h-4 w-4" aria-hidden="true" /></button>}
+                    {onClose && <button type="button" onClick={onClose} aria-label={t('nav.closeMenu')} className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-md', focusRing, hoverSurface].join(' ')}><X className="h-[18px] w-[18px]" aria-hidden="true" /></button>}
                 </div>
             </div>
 
@@ -855,9 +923,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     aria-label={t('nav.filterMenu')}
                     title={t('nav.filterMenu')}
                     onClick={() => { focusSearchAfterExpand.current = true; onToggleCollapse?.(); }}
-                    className={['mx-auto flex h-11 w-11 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)]', focusRing, hoverSurface].join(' ')}
+                    className={['mx-auto flex h-10 w-10 items-center justify-center rounded-md text-[color:var(--sidebar-muted)]', focusRing, hoverSurface].join(' ')}
                 ><SearchIcon className="h-[18px] w-[18px]" aria-hidden="true" /></button> : (
-                    <div className="flex items-center gap-2 rounded-lg border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-hover)] px-3 focus-within:ring-2 focus-within:ring-[color:var(--sidebar-accent)]">
+                    <div className="flex items-center gap-2 rounded-md border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-hover)] px-2.5 transition-colors focus-within:border-[color:var(--sidebar-accent)] focus-within:ring-2 focus-within:ring-[color:var(--sidebar-accent-wash)]">
                         <SearchIcon className="h-4 w-4 shrink-0 text-[color:var(--sidebar-muted)]" aria-hidden="true" />
                         <input
                             ref={searchRef}
@@ -893,7 +961,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             <div className="shrink-0 border-t border-[color:var(--sidebar-border)] p-2">
                 {onToggleCollapse ? (
                     <button type="button" onClick={onToggleCollapse} aria-label={t(collapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')} title={collapsed ? t('nav.expandSidebar') : undefined}
-                        className={['flex min-h-11 items-center gap-3 rounded-lg text-sm text-[color:var(--sidebar-muted)]', focusRing, hoverSurface, collapsed ? 'mx-auto w-11 justify-center' : 'w-full px-3'].join(' ')}>
+                        className={['flex min-h-10 items-center gap-3 rounded-md text-sm text-[color:var(--sidebar-muted)]', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
                         <ChevronRight className={collapsed ? 'h-4 w-4' : 'h-4 w-4 rotate-180'} aria-hidden="true" />
                         {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
                     </button>

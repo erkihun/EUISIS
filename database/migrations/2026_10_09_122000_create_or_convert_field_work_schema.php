@@ -163,8 +163,8 @@ return new class extends Migration
             $table->unsignedInteger('geofence_radius_m')->nullable();
 
             // Schedule (app-timezone timestamps; Ethiopian reading is display-only).
-            $table->timestamp('starts_at');
-            $table->timestamp('expected_return_at');
+            $table->dateTime('starts_at');
+            $table->dateTime('expected_return_at');
             $table->string('schedule_type', 16);
             $table->boolean('is_team')->default(false);
 
@@ -246,8 +246,8 @@ return new class extends Migration
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
             $table->decimal('accuracy_m', 9, 2)->nullable();
-            $table->timestamp('captured_at');
-            $table->timestamp('received_at');
+            $table->dateTime('captured_at');
+            $table->dateTime('received_at');
             $table->decimal('distance_m', 12, 2)->nullable();
             $table->string('validation_status', 32);
             // GPS policy outcome (System Settings > Field Work GPS): not_required |

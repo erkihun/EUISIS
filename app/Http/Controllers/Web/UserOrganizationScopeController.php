@@ -17,6 +17,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class UserOrganizationScopeController extends Controller
 {
@@ -115,6 +116,16 @@ class UserOrganizationScopeController extends Controller
 
         /** @var User $actor */
         $actor = Auth::user();
+
+        // A user with no scope row is treated as unrestricted (city-wide).
+        // Removing the last row would therefore grant city-wide access, which a
+        // scoped actor may not grant directly; only unrestricted actors may.
+        $isLastScope = ! $user->organizationScopes()->whereKeyNot($scope->getKey())->exists();
+        if ($isLastScope && ! $scopeService->isUnrestricted($actor)) {
+            throw ValidationException::withMessages([
+                'scope' => __('users.organization_scope_last_removal_forbidden'),
+            ]);
+        }
 
         $old = $scope->only(['organization_id', 'scope_type', 'effective_from', 'effective_to', 'is_active']);
 

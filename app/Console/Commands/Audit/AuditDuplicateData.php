@@ -50,10 +50,10 @@ class AuditDuplicateData extends ReadOnlyAuditCommand
             [
                 'key' => 'positions.occupants', 'severity' => 'HIGH',
                 'label' => 'Positions with more current occupants than approved slots',
-                'why' => 'Registration allows one occupant per position; an approved establishment may allow more. Rows: position (occupants / slots).',
+                'why' => 'A position holds its approved establishment slots, or one person without an establishment (CON-5); placements above that predate the rule. Resolve by hand. Rows: position (occupants / slots).',
                 'rows' => fn () => DB::table('employee_assignments')->where('is_current', true)->where('assignment_status', 'active')
                     ->whereNotNull('position_id')->select('position_id', DB::raw('count(*) as occupants'))->groupBy('position_id')->havingRaw('count(*) > 1')->get()
-                    ->map(fn ($row) => [$row, max(1, app(PositionCapacityService::class)->approvedSlotsForPosition($row->position_id))])
+                    ->map(fn ($row) => [$row, app(PositionCapacityService::class)->capacity($row->position_id)])
                     ->filter(fn (array $pair) => $pair[0]->occupants > $pair[1])
                     ->map(fn (array $pair) => "{$pair[0]->position_id} ({$pair[0]->occupants} / {$pair[1]})")->values(),
             ],
@@ -70,6 +70,31 @@ class AuditDuplicateData extends ReadOnlyAuditCommand
                 'why' => 'is_current marks the single card a scan or print should use.',
                 'rows' => fn () => DB::table('id_cards')->where('is_current', true)
                     ->select('employee_id')->groupBy('employee_id')->havingRaw('count(*) > 1')->pluck('employee_id'),
+            ],
+            // Pre-checks for the integrity migrations: each duplicate below stops
+            // its migration with NEEDS_DATA_REVIEW (risk register CON-1/2/9).
+            [
+                'key' => 'employee_transfers.vacancy_application', 'severity' => 'HIGH',
+                'label' => 'Vacancy applications completed by more than one transfer',
+                'why' => 'One application moves the employee once; blocks employee_transfers_one_per_vacancy_application. Rows: application ids.',
+                'rows' => fn () => DB::table('employee_transfers')->whereNotNull('vacancy_application_id')
+                    ->select('vacancy_application_id')->groupBy('vacancy_application_id')->havingRaw('count(*) > 1')->pluck('vacancy_application_id'),
+            ],
+            [
+                'key' => 'service_transactions.reference', 'severity' => 'HIGH',
+                'label' => 'Service transactions sharing a provider reference',
+                'why' => 'A provider reference records one service once; blocks the (service_provider_id, reference) uniqueness. Rows: provider → reference.',
+                'rows' => fn () => DB::table('service_transactions')->whereNotNull('reference')
+                    ->select('service_provider_id', 'reference')->groupBy('service_provider_id', 'reference')->havingRaw('count(*) > 1')->get()
+                    ->map(fn ($row) => "{$row->service_provider_id} → {$row->reference}"),
+            ],
+            [
+                'key' => 'cafeteria_provider_ledger_entries.transaction', 'severity' => 'HIGH',
+                'label' => 'Provider ledger postings repeated for one transaction',
+                'why' => 'A scan is credited once and reversed once; a repeat overstates what the provider is owed. Blocks cp_ledger_transaction_type_unique. Rows: transaction (entry type).',
+                'rows' => fn () => DB::table('cafeteria_provider_ledger_entries')->whereNotNull('cafeteria_transaction_id')
+                    ->select('cafeteria_transaction_id', 'entry_type')->groupBy('cafeteria_transaction_id', 'entry_type')->havingRaw('count(*) > 1')->get()
+                    ->map(fn ($row) => "{$row->cafeteria_transaction_id} ({$row->entry_type})"),
             ],
             [
                 'key' => 'card_requests.pending', 'severity' => 'MEDIUM',

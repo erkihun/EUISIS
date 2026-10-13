@@ -114,17 +114,17 @@ export default function Lookup<T extends Record<string, unknown>>({ url, params 
                 onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
             />
             {open && (
-                <ul id={listId} role="listbox" className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 text-sm shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                <ul id={listId} role="listbox" className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] py-1 text-sm shadow-lg">
                     {options.map((option, index) => (
                         <li key={option.key || '__clear'} id={optionId(index)} role="option" aria-selected={index === active}
-                            className={`cursor-pointer px-3 py-1.5 ${index === active ? 'bg-gray-100 dark:bg-slate-800' : ''} ${option.item === null ? 'text-gray-500 dark:text-slate-400' : ''} ${option.key !== '' && option.key === value ? 'font-medium' : ''}`}
+                            className={`cursor-pointer px-3 py-1.5 ${index === active ? 'bg-[color:var(--app-surface-muted)]' : ''} ${option.item === null ? 'text-[color:var(--app-muted-foreground)]' : ''} ${option.key !== '' && option.key === value ? 'font-medium' : ''}`}
                             onMouseDown={(e) => e.preventDefault()}
                             onMouseEnter={() => setActive(index)}
                             onClick={() => pick(option)}>
                             {option.text}
                         </li>
                     ))}
-                    {hint && <li className="px-3 py-1.5 text-gray-500 dark:text-slate-400" aria-live="polite">{hint}</li>}
+                    {hint && <li className="px-3 py-1.5 text-[color:var(--app-muted-foreground)]" aria-live="polite">{hint}</li>}
                 </ul>
             )}
         </div>

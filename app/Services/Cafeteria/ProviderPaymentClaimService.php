@@ -16,22 +16,26 @@ final readonly class ProviderPaymentClaimService
     /** @param Builder<CafeteriaTransaction> $query */
     public function summary(CafeteriaProvider $provider, Builder $query, array $filters): array
     {
-        $transactions = (clone $query)->get([
-            'id',
-            'status',
-            'subsidy_amount_applied',
-            'employee_payable_amount',
-            'consumed_days_count',
-            'transaction_date',
-        ]);
+        // One aggregate query (risk register SCL-5): the period's
+        // transactions are summed by the database, never loaded into PHP.
+        $accepted = CafeteriaTransactionStatus::Accepted->value;
+        $rejected = CafeteriaTransactionStatus::Rejected->value;
+        $reversed = CafeteriaTransactionStatus::Reversed->value;
 
-        $accepted = $transactions->filter(fn (CafeteriaTransaction $transaction): bool => $transaction->status === CafeteriaTransactionStatus::Accepted);
-        $rejected = $transactions->filter(fn (CafeteriaTransaction $transaction): bool => $transaction->status === CafeteriaTransactionStatus::Rejected);
-        $reversed = $transactions->filter(fn (CafeteriaTransaction $transaction): bool => $transaction->status === CafeteriaTransactionStatus::Reversed);
+        $totals = (clone $query)->toBase()
+            ->reorder()
+            ->selectRaw('COUNT(*) AS total_transactions')
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) AS accepted_transactions', [$accepted])
+            ->selectRaw('SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) AS rejected_transactions', [$rejected])
+            ->selectRaw('SUM(CASE WHEN status = ? THEN COALESCE(subsidy_amount_applied, 0) ELSE 0 END) AS subsidy_payable', [$accepted])
+            ->selectRaw('SUM(CASE WHEN status = ? THEN COALESCE(subsidy_amount_applied, 0) ELSE 0 END) AS reversal_amount', [$reversed])
+            ->selectRaw('SUM(COALESCE(employee_payable_amount, 0)) AS employee_payable')
+            ->selectRaw('SUM(CASE WHEN status = ? THEN COALESCE(consumed_days_count, 0) ELSE 0 END) AS consumed_days', [$accepted])
+            ->first();
 
         $period = $this->period($filters);
-        $totalSubsidyPayable = (float) $accepted->sum(fn (CafeteriaTransaction $transaction): float => (float) $transaction->subsidy_amount_applied);
-        $reversalAmount = (float) $reversed->sum(fn (CafeteriaTransaction $transaction): float => (float) $transaction->subsidy_amount_applied);
+        $totalSubsidyPayable = (float) ($totals->subsidy_payable ?? 0);
+        $reversalAmount = (float) ($totals->reversal_amount ?? 0);
 
         return [
             'provider_name' => $provider->name_en,
@@ -39,13 +43,13 @@ final readonly class ProviderPaymentClaimService
             'assigned_institution' => $provider->organization?->name_en,
             'period_start' => $period['start'],
             'period_end' => $period['end'],
-            'total_transactions' => $transactions->count(),
-            'accepted_transactions' => $accepted->count(),
-            'rejected_transactions' => $rejected->count(),
+            'total_transactions' => (int) ($totals->total_transactions ?? 0),
+            'accepted_transactions' => (int) ($totals->accepted_transactions ?? 0),
+            'rejected_transactions' => (int) ($totals->rejected_transactions ?? 0),
             'total_subsidy_payable' => round($totalSubsidyPayable, 2),
-            'total_employee_payable' => round((float) $transactions->sum(fn (CafeteriaTransaction $transaction): float => (float) $transaction->employee_payable_amount), 2),
+            'total_employee_payable' => round((float) ($totals->employee_payable ?? 0), 2),
             'total_payable_to_provider' => round($totalSubsidyPayable, 2),
-            'total_consumed_days' => (int) $accepted->sum(fn (CafeteriaTransaction $transaction): int => (int) $transaction->consumed_days_count),
+            'total_consumed_days' => (int) ($totals->consumed_days ?? 0),
             'total_food_orders_served' => $this->servedOrdersCount($provider, $period['start'], $period['end']),
             'reversal_amount' => round($reversalAmount, 2),
             'net_payable_amount' => round($totalSubsidyPayable - $reversalAmount, 2),

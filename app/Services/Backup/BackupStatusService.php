@@ -10,6 +10,7 @@ use App\Services\Backup\Infrastructure\InfrastructureSnapshot;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 
 class BackupStatusService
@@ -118,6 +119,10 @@ class BackupStatusService
     /** @return list<array>|null null when the history table is unavailable (migration not applied) */
     private function history(): ?array
     {
+        // Checked first: a failed query would abort an enclosing PostgreSQL transaction.
+        if (! Schema::hasTable('backup_operations')) {
+            return null;
+        }
         try {
             return BackupOperation::query()->latest('started_at')->limit(500)->get()
                 ->map(fn (BackupOperation $operation) => ['id' => $operation->id, 'type' => $operation->type, 'status' => $operation->status,

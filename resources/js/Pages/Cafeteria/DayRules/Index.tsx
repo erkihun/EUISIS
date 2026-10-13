@@ -5,6 +5,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName } from '@/Components/ui';
 const AM_DAY_NAMES: Record<number, string> = {
     1: 'ሰኞ', 2: 'ማክሰኞ', 3: 'ረቡዕ', 4: 'ሐሙስ', 5: 'ዓርብ', 6: 'ቅዳሜ', 7: 'እሑድ',
 };
@@ -56,41 +57,41 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
         });
     }
 
-    const timeCls = 'rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-50';
+    const timeCls = 'rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm text-[color:var(--app-foreground)] disabled:opacity-50';
 
     return (
-        <div className={`flex flex-wrap items-center gap-4 rounded-card border border-gray-200 p-4 dark:border-slate-700 ${DAY_COLORS[rule.day_of_week]}`}>
-            <div className="w-28 font-semibold text-gray-800 dark:text-slate-100">{localizedDayName(rule.day_of_week, locale)}</div>
+        <div className={`flex flex-wrap items-center gap-4 rounded-card border border-[color:var(--app-border)] p-4 ${DAY_COLORS[rule.day_of_week]}`}>
+            <div className="w-28 font-semibold text-[color:var(--app-foreground)]">{localizedDayName(rule.day_of_week, locale)}</div>
 
-            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                 <input type="checkbox" disabled={!canUpdate} checked={isOpen} onChange={e => { setIsOpen(e.target.checked); if (!e.target.checked) setIsSubsidy(false); }} className="h-4 w-4 rounded" />
                 {t('cafeteria.isOpen')}
             </label>
 
-            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                 <input type="checkbox" disabled={!canUpdate || !isOpen} checked={isSubsidy} onChange={e => setIsSubsidy(e.target.checked)} className="h-4 w-4 rounded" />
                 {t('cafeteria.isSubsidyDay')}
             </label>
 
             <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-gray-500 dark:text-slate-400">{t('cafeteria.openTime')}</span>
+                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.openTime')}</span>
                 <LocalizedTimePicker value={openTime} onChange={setOpenTime} disabled={!canUpdate || !isOpen} className={timeCls} />
-                <span className="text-xs text-gray-500 dark:text-slate-400">{t('cafeteria.closeTime')}</span>
+                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.closeTime')}</span>
                 <LocalizedTimePicker value={closeTime} onChange={setCloseTime} disabled={!canUpdate || !isOpen} className={timeCls} />
             </div>
 
             {/* Status badges */}
             <div className="ml-auto flex items-center gap-2">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOpen ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOpen ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
                     {isOpen ? t('cafeteria.openDay') : t('cafeteria.closedDay')}
                 </span>
                 {isOpen && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
                         {isSubsidy ? t('cafeteria.isSubsidyDay') : t('common.no')}
                     </span>
                 )}
                 {canUpdate && (
-                    <button onClick={save} disabled={saving} className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
+                    <button onClick={save} disabled={saving} className={buttonClassName({ variant: 'primary', size: 'sm' })}>
                         {saving ? '…' : t('common.save')}
                     </button>
                 )}
@@ -106,14 +107,14 @@ export default function DayRulesIndex({ rules, can }: { rules: DayRule[]; can: {
         <AuthenticatedLayout header={<PageHeader title={t('cafeteria.dayRules')} />}>
             <Head title={t('cafeteria.dayRules')} />
             <div className="space-y-3">
-                <p className="text-sm text-gray-500 dark:text-slate-400">
+                <p className="text-sm text-[color:var(--app-muted-foreground)]">
                     {t('cafeteria.specialDayOverrideNote')}
                 </p>
                 {rules.map(r => (
                     <DayRuleRow key={r.id} rule={r} canUpdate={can.update} />
                 ))}
                 {rules.length === 0 && (
-                    <div className="rounded-card border border-dashed border-gray-300 p-10 text-center text-sm text-gray-400 dark:border-slate-700">
+                    <div className="rounded-card border border-dashed border-[color:var(--app-border-strong)] p-10 text-center text-sm text-[color:var(--app-muted-foreground)]">
                         {t('common.noResults')}
                     </div>
                 )}

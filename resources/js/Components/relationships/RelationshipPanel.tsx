@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useForm, router } from '@inertiajs/react';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
+import { actionLinkClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type Option = {
     value: string;
     label: string;
@@ -76,6 +78,7 @@ export default function RelationshipPanel({
     canDelete = false,
 }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
 
     function targetName(name_en: string | null | undefined, name_am: string | null | undefined, fallback?: string): string {
         const name = locale === 'am' ? name_am : name_en;
@@ -111,9 +114,9 @@ export default function RelationshipPanel({
         form.setData(emptyForm);
     }
 
-    function handleDelete(row: RelationshipRow) {
+    async function handleDelete(row: RelationshipRow) {
         if (!deleteRoute) return;
-        if (!confirm(t('common.cannotUndo'))) return;
+        if (!(await confirm({ title: t('common.cannotUndo'), variant: 'danger' })).confirmed) return;
         router.delete(deleteRoute(row.id), { preserveScroll: true });
     }
 
@@ -133,14 +136,14 @@ export default function RelationshipPanel({
     const isEditing = editingId !== null;
     const showActionColumn = canUpdate || canDelete;
 
-    const selectCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const selectCls = cx(inputClassName, 'w-full');
 
     return (
-        <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('relationships.title')}</h3>
-                    <div className="mt-2 space-y-1 text-xs text-gray-500 dark:text-slate-400">
+                    <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('relationships.title')}</h3>
+                    <div className="mt-2 space-y-1 text-xs text-[color:var(--app-muted-foreground)]">
                         <p>{t('relationships.helpStructural')}</p>
                         <p>{t('relationships.helpFunctional')}</p>
                         <p>{t('relationships.helpNoManagement')}</p>
@@ -148,9 +151,9 @@ export default function RelationshipPanel({
                 </div>
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-card border border-gray-100 dark:border-slate-800">
-                <table className="min-w-full text-left text-sm">
-                    <thead className="bg-gray-50 dark:bg-slate-950">
+            <div className="mt-4 overflow-hidden rounded-card border border-[color:var(--app-border)]">
+                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <thead className={tableHeadClassName}>
                         <tr>
                             {[
                                 t('relationships.type'),
@@ -162,37 +165,37 @@ export default function RelationshipPanel({
                                 t('relationships.status'),
                                 ...(showActionColumn ? [''] : []),
                             ].map((heading, i) => (
-                                <th key={i} className="px-4 py-2 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">
+                                <th key={i} className={cx(tableHeaderCellClassName, 'text-left')}>
                                     {heading}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className={tableBodyClassName}>
                         {rows.length === 0 ? (
                             <tr>
-                                <td colSpan={showActionColumn ? 8 : 7} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-slate-500">
+                                <td colSpan={showActionColumn ? 8 : 7} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
                                     {t('relationships.noRelationships')}
                                 </td>
                             </tr>
                         ) : rows.map((row) => (
                             <tr
                                 key={row.id}
-                                className={`border-t border-gray-100 dark:border-slate-800 ${editingId === row.id ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
+                                className={`border-t border-[color:var(--app-border)] ${editingId === row.id ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
                             >
-                                <td className="px-4 py-2 text-gray-700 dark:text-slate-200">{t(`relationships.types.${row.relationship_type}`)}</td>
-                                <td className="px-4 py-2 text-gray-700 dark:text-slate-200">{targetName(row.target?.name_en, row.target?.name_am, row.target_id)}</td>
-                                <td className="px-4 py-2 text-gray-500 dark:text-slate-400">{t(`relationships.targetTypes.${row.target_type}`)}</td>
-                                <td className="px-4 py-2 text-gray-500 dark:text-slate-400">
+                                <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{t(`relationships.types.${row.relationship_type}`)}</td>
+                                <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{targetName(row.target?.name_en, row.target?.name_am, row.target_id)}</td>
+                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{t(`relationships.targetTypes.${row.target_type}`)}</td>
+                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                     <LocalizedDateDisplay value={row.effective_from} />
                                 </td>
-                                <td className="px-4 py-2 text-gray-500 dark:text-slate-400">
+                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                     <LocalizedDateDisplay value={row.effective_to} />
                                 </td>
-                                <td className="px-4 py-2 text-gray-500 dark:text-slate-400">{row.is_primary ? t('common.yes') : t('common.no')}</td>
-                                <td className="px-4 py-2 text-gray-500 dark:text-slate-400">{t(`relationships.statuses.${row.status}`)}</td>
+                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{row.is_primary ? t('common.yes') : t('common.no')}</td>
+                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{t(`relationships.statuses.${row.status}`)}</td>
                                 {showActionColumn && (
-                                    <td className="px-4 py-2">
+                                    <td className={tableCellClassName}>
                                         <div className="flex items-center gap-2">
                                             {canUpdate && updateRoute && (
                                                 <button
@@ -224,14 +227,14 @@ export default function RelationshipPanel({
             {showForm && (
                 <form onSubmit={submit} className="mt-5 space-y-3">
                     <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
+                        <h4 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                             {isEditing ? t('relationships.editRelationship') : t('relationships.addRelationship')}
                         </h4>
                         {isEditing && (
                             <button
                                 type="button"
                                 onClick={cancelEdit}
-                                className="text-xs text-gray-500 hover:underline dark:text-slate-400"
+                                className={actionLinkClassName({ tone: 'neutral' })}
                             >
                                 {t('common.cancel')}
                             </button>
@@ -298,12 +301,12 @@ export default function RelationshipPanel({
                     </div>
 
                     <div className="flex items-center justify-between gap-4">
-                        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
+                        <label className="flex items-center gap-2 text-sm text-[color:var(--app-muted-foreground)]">
                             <input
                                 type="checkbox"
                                 checked={form.data.is_primary}
                                 onChange={(e) => form.setData('is_primary', e.target.checked)}
-                                className="rounded border-gray-300"
+                                className="rounded border-[color:var(--app-border-strong)]"
                             />
                             {t('relationships.primary')}
                         </label>
@@ -311,7 +314,7 @@ export default function RelationshipPanel({
                         <button
                             type="submit"
                             disabled={form.processing || (!isEditing && form.data.target_id === '')}
-                            className="inline-flex items-center justify-center rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {isEditing ? t('common.update') : t('relationships.addRelationship')}
                         </button>

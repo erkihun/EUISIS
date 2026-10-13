@@ -1,11 +1,14 @@
 import { Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import NfcStatusBadge, { useNfcTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, filterInputCls } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type CredentialRow = {
     credential_id: string;
@@ -32,6 +35,7 @@ type Props = {
 
 export default function NfcCredentialsIndex({ credentials, filters, organizations, statuses, can }: Props) {
     const { t } = useLocale();
+    const [dates, setDates] = useState({ issued_from: filters.issued_from ?? '', last_used_from: filters.last_used_from ?? '' });
     const typeLabel = useNfcTypeLabel();
     const localizedName = useLocalizedName();
 
@@ -39,105 +43,101 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
     const meta = credentials.meta;
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<PageHeader title={t('nfc.credentials')} description={t('nfc.management')} />}>
             <Head title={t('nfc.credentials')} />
 
-            <PageHeader title={t('nfc.credentials')} description={t('nfc.management')} />
 
             <NfcSubNav can={can} current="credentials" />
 
-            <AppFilterBar routeName="nfc-management.credentials.index" filters={filters}>
-                <input
-                    name="search"
-                    defaultValue={filters.search ?? ''}
-                    placeholder={t('nfc.searchPlaceholder')}
-                    className={`${filterInputCls} min-w-[16rem] flex-1`}
-                    aria-label={t('nfc.searchPlaceholder')}
-                />
-                <select
-                    name="organization_id"
-                    defaultValue={filters.organization_id ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.organization')}
-                >
-                    <option value="">{t('nfc.allOrganizations')}</option>
-                    {organizations.map((organization) => (
-                        <option key={organization.id} value={organization.id}>
-                            {localizedName(organization)}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    name="credential_type"
-                    defaultValue={filters.credential_type ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.credentialType')}
-                >
-                    <option value="">{t('nfc.allTypes')}</option>
-                    {['secure_smart_card', 'ndef_reference', 'mobile_credential'].map((type) => (
-                        <option key={type} value={type}>
-                            {typeLabel(type)}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    name="status"
-                    defaultValue={filters.status ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.status')}
-                >
-                    <option value="">{t('nfc.allStatuses')}</option>
-                    {statuses.map((status) => (
-                        <option key={status} value={status}>
-                            {t(`nfc.status${status.charAt(0).toUpperCase()}${status.slice(1)}`)}
-                        </option>
-                    ))}
-                </select>
-                <input
-                    type="date"
-                    name="issued_from"
-                    defaultValue={filters.issued_from ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.issuedDate')}
-                />
-                <input
-                    type="date"
-                    name="last_used_from"
-                    defaultValue={filters.last_used_from ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.lastUsed')}
-                />
+            <AppFilterBar routeName="nfc-management.credentials.index" filters={filters} onBeforeSubmit={(params) => ({ ...params, ...dates })}>
+                <FilterField label={t('common.search')} wide>
+                    <input
+                        type="search"
+                        name="search"
+                        defaultValue={filters.search ?? ''}
+                        placeholder={t('nfc.searchPlaceholder')}
+                        className={filterInputCls}
+                    />
+                </FilterField>
+                <FilterField label={t('nfc.organization')}>
+                    <select
+                        name="organization_id"
+                        defaultValue={filters.organization_id ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allOrganizations')}</option>
+                        {organizations.map((organization) => (
+                            <option key={organization.id} value={organization.id}>
+                                {localizedName(organization)}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
+                <FilterField label={t('nfc.credentialType')}>
+                    <select
+                        name="credential_type"
+                        defaultValue={filters.credential_type ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allTypes')}</option>
+                        {['secure_smart_card', 'ndef_reference', 'mobile_credential'].map((type) => (
+                            <option key={type} value={type}>
+                                {typeLabel(type)}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
+                <FilterField label={t('nfc.status')}>
+                    <select
+                        name="status"
+                        defaultValue={filters.status ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allStatuses')}</option>
+                        {statuses.map((status) => (
+                            <option key={status} value={status}>
+                                {t(`nfc.status${status.charAt(0).toUpperCase()}${status.slice(1)}`)}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
+                <FilterField label={t('nfc.issuedDate')} htmlFor="nfc-issued-from">
+                    <LocalizedDatePicker id="nfc-issued-from" className={cx(filterInputCls, 'w-full')} value={dates.issued_from} onChange={(value) => setDates({ ...dates, issued_from: value })} />
+                </FilterField>
+                <FilterField label={t('nfc.lastUsed')} htmlFor="nfc-last-used-from">
+                    <LocalizedDatePicker id="nfc-last-used-from" className={cx(filterInputCls, 'w-full')} value={dates.last_used_from} onChange={(value) => setDates({ ...dates, last_used_from: value })} />
+                </FilterField>
             </AppFilterBar>
 
             {rows.length === 0 ? (
-                <p className="rounded-panel border border-dashed border-gray-300 bg-white py-12 text-center text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+                <p className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">
                     {t('nfc.noLogs')}
                 </p>
             ) : (
                 <>
                     {/* Desktop table */}
-                    <div className="hidden overflow-x-auto rounded-panel border border-gray-200 bg-white md:block dark:border-slate-800 dark:bg-slate-900">
-                        <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-800">
-                            <thead className="bg-gray-50 text-left text-xs text-gray-500 dark:bg-slate-950 dark:text-slate-400">
+                    <div className="hidden overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] md:block">
+                        <table className={cx(tableClassName, 'min-w-full')}>
+                            <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
-                                    <th className="px-4 py-3">{t('nfc.credentialId')}</th>
-                                    <th className="px-4 py-3">{t('nfc.cardNumber')}</th>
-                                    <th className="px-4 py-3">{t('nfc.employee')}</th>
-                                    <th className="px-4 py-3">{t('nfc.organization')}</th>
-                                    <th className="px-4 py-3">{t('nfc.credentialType')}</th>
-                                    <th className="px-4 py-3">{t('nfc.status')}</th>
-                                    <th className="px-4 py-3">{t('nfc.issuedDate')}</th>
-                                    <th className="px-4 py-3">{t('nfc.lastUsed')}</th>
-                                    <th className="px-4 py-3" />
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.credentialId')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.cardNumber')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.employee')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.organization')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.credentialType')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.status')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.issuedDate')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.lastUsed')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')} />
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className={tableBodyClassName}>
                                 {rows.map((row) => (
-                                    <tr key={row.credential_id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                                        <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-slate-300">
+                                    <tr key={row.credential_id} className={tableRowClassName}>
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
                                             {row.credential_id.slice(0, 18)}…
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             {row.card ? (
                                                 <Link
                                                     href={route('id-cards.show', row.card.id)}
@@ -149,40 +149,41 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                                                 '—'
                                             )}
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <span className="block text-gray-900 dark:text-slate-100">
+                                        <td className={tableCellClassName}>
+                                            <span className="block text-[color:var(--app-foreground)]">
                                                 {row.employee?.full_name ?? '—'}
                                             </span>
-                                            <span className="block text-xs text-gray-500 dark:text-slate-400">
+                                            <span className="block text-xs text-[color:var(--app-muted-foreground)]">
                                                 {row.employee?.employee_number}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {localizedName(row.organization) || '—'}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {typeLabel(row.credential_type)}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <NfcStatusBadge status={row.status} />
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {row.issued_at ? <LocalizedDateDisplay value={row.issued_at} /> : '—'}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {row.last_used_at ? (
                                                 <LocalizedDateDisplay value={row.last_used_at} />
                                             ) : (
                                                 t('nfc.neverUsed')
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Link
-                                                href={route('nfc-management.credentials.show', row.credential_id)}
-                                                className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
-                                            >
-                                                {t('nfc.view')}
-                                            </Link>
+                                        <td className={cx(tableCellClassName, 'text-right')}>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('nfc.view'), href: route('nfc-management.credentials.show', row.credential_id) },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -196,26 +197,26 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                             <Link
                                 key={row.credential_id}
                                 href={route('nfc-management.credentials.show', row.credential_id)}
-                                className="block rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+                                className="block rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="truncate font-medium text-gray-900 dark:text-slate-100">
+                                        <p className="truncate font-medium text-[color:var(--app-foreground)]">
                                             {row.employee?.full_name ?? row.card?.card_number ?? '—'}
                                         </p>
-                                        <p className="truncate text-xs text-gray-500 dark:text-slate-400">
+                                        <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">
                                             {row.card?.card_number} · {typeLabel(row.credential_type)}
                                         </p>
                                     </div>
                                     <NfcStatusBadge status={row.status} />
                                 </div>
-                                <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-slate-300">
+                                <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-[color:var(--app-muted-foreground)]">
                                     <div>
-                                        <dt className="text-gray-400 dark:text-slate-500">{t('nfc.issuedDate')}</dt>
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('nfc.issuedDate')}</dt>
                                         <dd>{row.issued_at ? <LocalizedDateDisplay value={row.issued_at} /> : '—'}</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-400 dark:text-slate-500">{t('nfc.lastUsed')}</dt>
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('nfc.lastUsed')}</dt>
                                         <dd>
                                             {row.last_used_at ? (
                                                 <LocalizedDateDisplay value={row.last_used_at} />
@@ -231,37 +232,7 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                 </>
             )}
 
-            {meta.last_page > 1 && (
-                <div className="mt-4 flex items-center justify-between text-sm">
-                    <p className="text-gray-500 dark:text-slate-400">
-                        {meta.current_page} / {meta.last_page} · {meta.total}
-                    </p>
-                    <div className="flex gap-2">
-                        {meta.current_page > 1 && (
-                            <Link
-                                href={route('nfc-management.credentials.index', {
-                                    ...filters,
-                                    page: meta.current_page - 1,
-                                })}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 dark:border-slate-700"
-                            >
-                                {t('common.previous')}
-                            </Link>
-                        )}
-                        {meta.current_page < meta.last_page && (
-                            <Link
-                                href={route('nfc-management.credentials.index', {
-                                    ...filters,
-                                    page: meta.current_page + 1,
-                                })}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 dark:border-slate-700"
-                            >
-                                {t('common.next')}
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            )}
+            <ListPagination meta={meta} bare className="mt-4" />
         </AuthenticatedLayout>
     );
 }

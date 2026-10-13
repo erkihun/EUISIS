@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
-import { ActionMenu, Button, Card, DataTable, FilterBar, Select, StatusBadge, type ActionItem, type ColumnDef } from '@euisis/ui';
+import { ActionMenu, Button, Card, DataTable, FilterField, FilterPanel, Input, Select, StatusBadge, type ActionItem, type ColumnDef } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { AccountActionDialog, AccountStatus, useLabel, type AccountAction, type AccountCan, type AccountSummary, type NamedItem } from '@/Components/ProviderUsers/AccountUi';
@@ -123,36 +123,45 @@ export default function ProviderUsersIndex({ rows, meta, filters, stats, provide
                     ))}
                 </div>
 
-                <FilterBar
-                    search={form.search}
-                    onSearchChange={(search) => setForm({ ...form, search })}
-                    searchPlaceholder={t('providerUsers.searchPlaceholder')}
+                <FilterPanel
                     onSubmit={() => apply()}
-                    hasActiveFilters={Object.values(form).some(Boolean)}
+                    hasActiveFilters={Object.values(filters).some(Boolean)}
                     onReset={() => router.get(route('provider-users.index'))}
-                    actions={<Button type="submit" size="sm">{t('providerUsers.search')}</Button>}
                 >
-                    <Select aria-label={t('providerUsers.provider')} className="w-auto" value={form.provider_id} onChange={(e) => setForm({ ...form, provider_id: e.target.value })}>
-                        <option value="">{t('providerUsers.allProviders')}</option>
-                        {providers.map((p) => <option key={p.id} value={p.id}>{label(p)}{p.code ? ` (${p.code})` : ''}</option>)}
-                    </Select>
-                    <Select aria-label={t('providerUsers.status')} className="w-auto" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                        <option value="">{t('providerUsers.allStatuses')}</option>
-                        {STATUSES.map((s) => <option key={s} value={s}>{t(`providerUsers.statuses.${s}`)}</option>)}
-                    </Select>
-                    <Select aria-label={t('providerUsers.role')} className="w-auto" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
-                        <option value="">{t('providerUsers.allRoles')}</option>
-                        {ROLES.map((r) => <option key={r} value={r}>{t(`providerUsers.roles.${r}`)}</option>)}
-                    </Select>
-                    <Select aria-label={t('providerUsers.providerServices')} className="w-auto" value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}>
-                        <option value="">{t('providerUsers.allServices')}</option>
-                        {services.map((s) => <option key={s.code} value={s.code}>{label(s)}</option>)}
-                    </Select>
-                    <Select aria-label={t('providerUsers.statDeleted')} className="w-auto" value={form.trashed} onChange={(e) => setForm({ ...form, trashed: e.target.value })}>
-                        <option value="">{t('providerUsers.currentAccounts')}</option>
-                        <option value="only">{t('providerUsers.deletedAccounts')}</option>
-                    </Select>
-                </FilterBar>
+                    <FilterField label={t('providerUsers.search')} wide>
+                        <Input type="search" value={form.search} placeholder={t('providerUsers.searchPlaceholder')} onChange={(e) => setForm({ ...form, search: e.target.value })} />
+                    </FilterField>
+                    <FilterField label={t('providerUsers.provider')}>
+                        <Select value={form.provider_id} onChange={(e) => setForm({ ...form, provider_id: e.target.value })}>
+                            <option value="">{t('providerUsers.allProviders')}</option>
+                            {providers.map((p) => <option key={p.id} value={p.id}>{label(p)}{p.code ? ` (${p.code})` : ''}</option>)}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('providerUsers.status')}>
+                        <Select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                            <option value="">{t('providerUsers.allStatuses')}</option>
+                            {STATUSES.map((s) => <option key={s} value={s}>{t(`providerUsers.statuses.${s}`)}</option>)}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('providerUsers.role')}>
+                        <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+                            <option value="">{t('providerUsers.allRoles')}</option>
+                            {ROLES.map((r) => <option key={r} value={r}>{t(`providerUsers.roles.${r}`)}</option>)}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('providerUsers.providerServices')}>
+                        <Select value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })}>
+                            <option value="">{t('providerUsers.allServices')}</option>
+                            {services.map((s) => <option key={s.code} value={s.code}>{label(s)}</option>)}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('providerUsers.statDeleted')}>
+                        <Select value={form.trashed} onChange={(e) => setForm({ ...form, trashed: e.target.value })}>
+                            <option value="">{t('providerUsers.currentAccounts')}</option>
+                            <option value="only">{t('providerUsers.deletedAccounts')}</option>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
                 <DataTable
                     data={rows}

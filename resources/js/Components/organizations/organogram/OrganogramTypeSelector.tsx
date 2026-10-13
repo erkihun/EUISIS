@@ -1,6 +1,7 @@
 import { LAYOUT_LABEL_KEYS, ORGANOGRAM_LAYOUTS, type OrganogramLayout } from './shared';
 import { useLocale } from '@/hooks/useLocale';
 
+import { selectClassName } from '@/Components/ui';
 export default function OrganogramTypeSelector({
     value,
     onChange,
@@ -12,13 +13,13 @@ export default function OrganogramTypeSelector({
 
     return (
         <label className="flex items-center gap-2 print:hidden">
-            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">
+            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
                 {t('organizations.organogramType')}
             </span>
             <select
                 value={value}
                 onChange={(event) => onChange(event.target.value as OrganogramLayout)}
-                className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                className={selectClassName}
             >
                 {ORGANOGRAM_LAYOUTS.map((layout) => (
                     <option key={layout} value={layout}>

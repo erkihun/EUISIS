@@ -14,6 +14,7 @@ export type FeedbackSummary = {
     status: string;
     client_name?: string | null;
     client_contact?: string | null;
+    identity_hidden?: boolean;
     created_at: string | null;
     employee: { id: string; name: string | null; employee_number: string | null } | null;
     organization: NamePair;
@@ -87,13 +88,20 @@ export function RatingBar({ value, className }: { value: number; className?: str
 
 const statusTones: Record<string, Tone> = {
     pending: 'warning',
+    unrouted: 'danger',
+    assigned: 'info',
     reviewed: 'info',
+    under_review: 'info',
+    accepted: 'success',
+    not_adopted: 'neutral',
     resolved: 'success',
+    closed: 'neutral',
     hidden: 'neutral',
 };
 
+/** `under_review` → `serviceFeedback.statusUnderReview`. */
 export function statusLabelKey(status: string): string {
-    return `serviceFeedback.status${status.charAt(0).toUpperCase()}${status.slice(1)}`;
+    return `serviceFeedback.status${status.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('')}`;
 }
 
 /*
@@ -170,7 +178,7 @@ export function FeedbackPageHeader({
                     <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">
                         {t('serviceFeedback.clientFeedback')}
                     </p>
-                    <h1 className="mt-1 text-2xl font-bold leading-tight text-[color:var(--app-foreground)]">{title}</h1>
+                    <h1 className="mt-1 break-words text-page-title text-[color:var(--app-foreground)]">{title}</h1>
                     {description && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{description}</p>}
                 </div>
                 {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}

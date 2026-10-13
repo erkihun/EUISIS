@@ -8,6 +8,7 @@ import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import FormSection from '@/Components/FormSection';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
+import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
 
 type Organization = {
@@ -27,11 +28,10 @@ type Organization = {
     branding_secondary_color: string | null;
 };
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+const inputCls = cx(inputClassName, 'w-full');
 
-const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
-const helpCls = 'mt-1 text-xs text-gray-400 dark:text-slate-500';
+const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const helpCls = 'mt-1 text-xs text-[color:var(--app-muted-foreground)]';
 
 function Field({
     label,
@@ -147,7 +147,7 @@ export default function EditOrganization({
             <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="w-full rounded-panel border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
                 >
                     {errorMessages.length > 0 && (
                         <div className="mb-6 rounded-card border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
@@ -257,16 +257,16 @@ export default function EditOrganization({
                                                 <img
                                                     src={organization.logo_url}
                                                     alt={t('organizations.currentLogo')}
-                                                    className="h-14 w-14 rounded-lg border border-gray-200 object-contain p-1 dark:border-slate-700"
+                                                    className="h-14 w-14 rounded-lg border border-[color:var(--app-border)] object-contain p-1"
                                                 />
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
                                                         {t('organizations.currentLogo')}
                                                     </span>
                                                     <button
                                                         type="button"
                                                         onClick={toggleRemoveLogo}
-                                                        className="text-left text-xs text-red-500 hover:text-red-700"
+                                                        className={actionLinkClassName({ tone: 'danger' })}
                                                     >
                                                         {t('organizations.removeLogo')}
                                                     </button>
@@ -282,7 +282,7 @@ export default function EditOrganization({
                                                 <button
                                                     type="button"
                                                     onClick={toggleRemoveLogo}
-                                                    className="ml-auto text-xs text-red-500 hover:text-red-700"
+                                                    className={actionLinkClassName({ tone: 'danger', className: 'ml-auto' })}
                                                 >
                                                     {t('common.undo')}
                                                 </button>
@@ -303,7 +303,7 @@ export default function EditOrganization({
                                                     <button
                                                         type="button"
                                                         onClick={clearNewLogo}
-                                                        className="text-left text-xs text-red-500 hover:text-red-700"
+                                                        className={actionLinkClassName({ tone: 'danger' })}
                                                     >
                                                         {t('common.cancel')}
                                                     </button>
@@ -317,11 +317,11 @@ export default function EditOrganization({
                                                 type="file"
                                                 accept="image/jpeg,image/png,image/webp"
                                                 onChange={handleLogoChange}
-                                                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+                                                className="w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm text-[color:var(--app-foreground)] file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
                                             />
                                         )}
 
-                                        <p className="text-xs text-gray-400 dark:text-slate-500">
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                             {t('organizations.logoHint')}
                                         </p>
                                         {form.errors.logo && (
@@ -338,7 +338,7 @@ export default function EditOrganization({
                                                 type="color"
                                                 value={primary || '#1D4ED8'}
                                                 onChange={(e) => form.setData('branding_primary_color', e.target.value)}
-                                                className="h-9 w-10 cursor-pointer rounded border border-gray-300 p-0.5 dark:border-slate-700"
+                                                className="h-9 w-10 cursor-pointer rounded border border-[color:var(--app-border-strong)] p-0.5"
                                             />
                                             <input
                                                 className={inputCls}
@@ -356,7 +356,7 @@ export default function EditOrganization({
                                                 type="color"
                                                 value={secondary || '#F97316'}
                                                 onChange={(e) => form.setData('branding_secondary_color', e.target.value)}
-                                                className="h-9 w-10 cursor-pointer rounded border border-gray-300 p-0.5 dark:border-slate-700"
+                                                className="h-9 w-10 cursor-pointer rounded border border-[color:var(--app-border-strong)] p-0.5"
                                             />
                                             <input
                                                 className={inputCls}
@@ -370,7 +370,7 @@ export default function EditOrganization({
 
                                     {(primary || secondary) && (
                                         <div
-                                            className="flex items-center gap-2 rounded-lg border border-l-4 border-gray-200 px-3 py-2 dark:border-slate-700"
+                                            className="flex items-center gap-2 rounded-lg border border-l-4 border-[color:var(--app-border)] px-3 py-2"
                                             style={{ borderLeftColor: primary || '#1D4ED8' }}
                                         >
                                             <div className="flex gap-1.5">
@@ -381,7 +381,7 @@ export default function EditOrganization({
                                                     <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: secondary }} />
                                                 )}
                                             </div>
-                                            <span className="text-xs text-gray-500 dark:text-slate-400">
+                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">
                                                 {t('organizations.colorPreview')}
                                             </span>
                                         </div>
@@ -392,17 +392,17 @@ export default function EditOrganization({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-gray-100 bg-white/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8 dark:border-slate-800 dark:bg-slate-900/95">
+                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
                         <Link
                             href={route('organizations.show', organization.id)}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                         >
                             {t('common.cancel')}
                         </Link>
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {form.processing ? t('common.saving') : t('organizations.saveChanges')}
                         </button>

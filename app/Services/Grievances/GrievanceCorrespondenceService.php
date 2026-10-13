@@ -31,8 +31,10 @@ use App\Models\OrganizationLetterhead;
 use App\Models\OrganizationSeal;
 use App\Models\Position;
 use App\Models\User;
+use App\Services\Branding\BrandingService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\SystemSettings\SystemSettingsService;
+use App\Support\Storage\StoredFileChecksum;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -523,7 +525,7 @@ final class GrievanceCorrespondenceService
         if ($channel === GrievanceDispatchChannel::SmsNotice) {
             $phone = $grievance->employee?->phone;
             $destination = $phone ? substr($phone, 0, 3).'****'.substr($phone, -2) : null;
-            $ok = $phone && $this->sms->isConfigured() && $this->sms->send($phone, (string) __('grievances.notifications.sms_letter', ['case' => $grievance->reference_number]));
+            $ok = $phone && $this->sms->isConfigured() && $this->sms->send($phone, (string) __('grievances.notifications.sms_letter', ['app' => app(BrandingService::class)->brandName(), 'case' => $grievance->reference_number]));
             if (! $ok) {
                 $status = GrievanceDispatchStatus::Failed;
                 $failure = $phone ? 'sms_gateway_failed' : 'no_phone';
@@ -553,7 +555,8 @@ final class GrievanceCorrespondenceService
 
         $disk = Storage::disk($letter->pdf_disk ?? self::DISK);
         abort_unless($disk->exists($letter->pdf_path), 404);
-        if ($letter->pdf_sha256 !== null && hash_file('sha256', $disk->path($letter->pdf_path)) !== $letter->pdf_sha256) {
+        // Streamed through the disk so it also works on shared object storage.
+        if ($letter->pdf_sha256 !== null && ! StoredFileChecksum::matches($letter->pdf_disk ?? self::DISK, $letter->pdf_path, $letter->pdf_sha256)) {
             report(new \RuntimeException('Grievance letter integrity check failed: '.$letter->getKey()));
             abort(409, __('grievances.errors.integrity_failed'));
         }

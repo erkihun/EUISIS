@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import OfficialAssessmentSheet, { type SheetColumn } from '@/Components/assessmentForms/OfficialAssessmentSheet';
 import { RecordStatus } from '@/Components/assessmentOversight/RecordStatus';
 import { Details, Field, Section, formatScore, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, titleOf } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
@@ -15,13 +16,15 @@ type Props = {
         period_start: string; period_end: string; percentage: string | number | null; contribution: string | number | null;
         reviewer: { name: string } | null; reviewed_at: string | null; acknowledged_at: string | null; unassessed_reason: string | null;
     };
-    version: { name_en: string; name_am: string | null; version_no: number; sections: { id: string; title_en: string; title_am: string | null; criteria: { id: string; title_en: string; title_am: string | null; is_required: boolean; options: Option[] }[] }[] };
+    version: { name_en: string; name_am: string | null; version_no: number; code: string | null; sections: { id: string; title_en: string; title_am: string | null; criteria: { id: string; code: string | null; title_en: string; title_am: string | null; max_score: string | null; is_required: boolean; options: Option[] }[] }[] };
+    /** Official printed form: one score column per evaluator; null where the viewer may not see it. */
+    sheet: { columns: SheetColumn[] };
     response: null | { answers: Record<string, string>; submitted_at: string | null };
     can: { submit: boolean; review: boolean; acknowledge: boolean; unassessed: boolean };
 };
 
 /** One assessment: the evaluator's ratings, then review and acknowledgement. Printable. */
-export default function AssessmentRecordShow({ record, version, response, can }: Props) {
+export default function AssessmentRecordShow({ record, version, response, sheet, can }: Props) {
     const { t, locale } = useLocale();
     const form = useForm({ answers: response?.answers ?? {} as Record<string, string> });
     const signoff = useForm({});
@@ -46,7 +49,16 @@ export default function AssessmentRecordShow({ record, version, response, can }:
                 <button type="button" className={secondaryBtn} onClick={() => window.print()}>{r('print')}</button>
             </div>} />}>
             <Head title={title} />
-            <style>{'@media print { body * { visibility: hidden; } #assessment-print, #assessment-print * { visibility: visible; } #assessment-print { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; } #assessment-print .print-hidden { display: none !important; } #assessment-print fieldset { break-inside: avoid; } #assessment-print section { border-color: #aaa; background: white; color: black; } }'}</style>
+            <style>{'@media print { @page { size: A4 landscape; margin: 10mm; } body * { visibility: hidden; } #assessment-official-sheet, #assessment-official-sheet * { visibility: visible; } #assessment-official-sheet { display: block !important; position: absolute; left: 0; top: 0; width: 100%; } }'}</style>
+            <div id="assessment-official-sheet" className="hidden">
+                <OfficialAssessmentSheet code={version.code ?? ''} title={{ en: version.name_en, am: version.name_am }} sections={version.sections} columns={sheet.columns}
+                    header={{ unit: record.employee_snapshot.unit || record.employee_snapshot.organization, employee: record.employee_snapshot.name, position: record.employee_snapshot.position, grade: record.employee_snapshot.grade, periodStart: record.period_start, periodEnd: record.period_end }}
+                    signatures={{ assessed: { name: record.employee_snapshot.name, date: record.acknowledged_at }, supervisor: { name: record.reviewer?.name, date: record.reviewed_at } }}
+                    footer={<>
+                        {record.percentage !== null && <p className="font-semibold">{t('assessments.sheet.result')}: {formatScore(record.percentage)}%{record.contribution !== null && <> · {t('assessments.sheet.contribution')}: {formatScore(record.contribution)}</>}</p>}
+                        {sheet.columns.some((column) => column === null) && <p className="text-[11px]">{t('assessments.sheet.othersHidden')}</p>}
+                    </>} />
+            </div>
             <div id="assessment-print" className={pageCls}>
                 <Section title={nameOf(version, locale)} description={`${r('version')} ${version.version_no}`}>
                     <Details items={[
@@ -68,19 +80,19 @@ export default function AssessmentRecordShow({ record, version, response, can }:
                                 <div className="space-y-5">
                                     {section.criteria.map((criterion, index) => (
                                         <fieldset key={criterion.id} disabled={!can.submit || form.processing} className="space-y-2">
-                                            <legend className="mb-2 text-sm font-semibold text-gray-900 dark:text-slate-100">{si + 1}.{index + 1} {titleOf(criterion, locale)}{criterion.is_required && <span className="text-red-600"> *</span>}</legend>
+                                            <legend className="mb-2 text-sm font-semibold text-[color:var(--app-foreground)]">{si + 1}.{index + 1} {titleOf(criterion, locale)}{criterion.is_required && <span className="text-red-600"> *</span>}</legend>
                                             {criterion.options.map((option) => {
                                                 const selected = String(form.data.answers[criterion.id] ?? '') === String(option.id);
                                                 const description = (locale === 'am' && option.description_am) || option.description_en;
                                                 return (
-                                                    <label key={option.id} className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-card border px-3.5 py-3 text-sm ${selected ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary-light)]/50 dark:bg-slate-800' : 'border-gray-200 hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800/50'}`}>
+                                                    <label key={option.id} className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-card border px-3.5 py-3 text-sm ${selected ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary-light)]/50' : 'border-[color:var(--app-border)] hover:bg-[color:var(--app-surface-muted)]'}`}>
                                                         <input type="radio" name={`criterion-${criterion.id}`} value={option.id} checked={selected} required={criterion.is_required}
                                                             onChange={() => form.setData('answers', { ...form.data.answers, [criterion.id]: String(option.id) })} className="mt-1 accent-[color:var(--color-primary)]" />
                                                         <span className="min-w-0 flex-1">
                                                             {labelOf(option) && <span className="block font-medium">{labelOf(option)}</span>}
-                                                            {description && <span className="block text-gray-600 dark:text-slate-400">{description}</span>}
+                                                            {description && <span className="block text-[color:var(--app-muted-foreground)]">{description}</span>}
                                                         </span>
-                                                        <span className="shrink-0 tabular-nums text-gray-500">{formatScore(option.score)}</span>
+                                                        <span className="shrink-0 tabular-nums text-[color:var(--app-muted-foreground)]">{formatScore(option.score)}</span>
                                                     </label>
                                                 );
                                             })}
@@ -90,8 +102,8 @@ export default function AssessmentRecordShow({ record, version, response, can }:
                             </Section>
                         ))}
                         {can.submit && (
-                            <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-gray-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur print-hidden dark:border-slate-700 dark:bg-slate-950/95">
-                                <span className="text-sm text-gray-600 dark:text-slate-300">{r('answered').replace(':answered', String(answered)).replace(':count', String(count))}</span>
+                            <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur print-hidden">
+                                <span className="text-sm text-[color:var(--app-muted-foreground)]">{r('answered').replace(':answered', String(answered)).replace(':count', String(count))}</span>
                                 <button disabled={form.processing || answered !== count} className={primaryBtn}>{r('submitRatings')}</button>
                             </div>
                         )}

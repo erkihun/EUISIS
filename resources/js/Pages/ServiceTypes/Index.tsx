@@ -3,11 +3,12 @@ import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type ServiceTypeRow = {
     id: string;
     code: string;
@@ -35,11 +36,10 @@ export default function ServiceTypesIndex({
         search: filters.search ?? '',
         is_active: filters.is_active ?? '',
     });
-    const inputClassName =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    const hasActiveFilters = Object.values(filters).some(Boolean);
+
+    function submit() {
         router.get(route('service-types.index'), form.data, { preserveState: true, preserveScroll: true });
     }
 
@@ -51,7 +51,7 @@ export default function ServiceTypesIndex({
                     actions={can.create ? (
                         <Link
                             href={route('service-types.create')}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                            className={buttonClassName({ variant: 'primary', size: 'sm' })}
                         >
                             <Plus className="h-3.5 w-3.5" />
                             {t('serviceTypes.createTitle')}
@@ -63,38 +63,33 @@ export default function ServiceTypesIndex({
             <Head title={t('serviceTypes.title')} />
 
             <div className="space-y-6">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <form className="grid gap-3 md:grid-cols-[1fr_220px_auto]" onSubmit={submit}>
-                        <input
-                            className={inputClassName}
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('service-types.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search"
                             value={form.data.search}
                             placeholder={t('serviceTypes.searchPlaceholder')}
                             onChange={(event) => form.setData('search', event.target.value)}
                         />
-                        <select
-                            className={inputClassName}
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select
                             value={form.data.is_active}
                             onChange={(event) => form.setData('is_active', event.target.value)}
                         >
-                            <option value="">{t('common.status')}</option>
+                            <option value="">{t('common.allStatuses')}</option>
                             <option value="1">{t('serviceTypes.activeOnly')}</option>
                             <option value="0">{t('serviceTypes.inactiveOnly')}</option>
-                        </select>
-                        <button className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]" type="submit">
-                            {t('common.filter')}
-                        </button>
-                    </form>
-                </section>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <section className={tableContainerClassName}>
                     {serviceTypes.length === 0 ? (
-                        <div className="p-6">
-                            <EmptyState title={t('serviceTypes.noServiceTypes')} />
-                        </div>
+                        <EmptyState title={t('serviceTypes.noServiceTypes')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-sm">
-                                <thead className="bg-gray-50 dark:bg-slate-950">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
                                             t('serviceTypes.code'),
@@ -105,17 +100,17 @@ export default function ServiceTypesIndex({
                                             t('common.status'),
                                             '',
                                         ].map((heading) => (
-                                            <th key={heading} className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                            <th key={heading} className={cx(tableHeaderCellClassName, 'text-left')}>
                                                 {heading}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className={tableBodyClassName}>
                                     {serviceTypes.map((serviceType) => (
-                                        <tr key={serviceType.id} className="border-t border-gray-100 text-gray-700 dark:border-slate-800 dark:text-slate-200">
-                                            <td className="px-4 py-3 font-mono text-xs">{serviceType.code}</td>
-                                            <td className="px-4 py-3">
+                                        <tr key={serviceType.id} className={tableRowClassName}>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs')}>{serviceType.code}</td>
+                                            <td className={tableCellClassName}>
                                                 {serviceType.can.view ? (
                                                     <Link href={route('service-types.show', serviceType.id)} className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                                                         {serviceType.name_en}
@@ -124,23 +119,18 @@ export default function ServiceTypesIndex({
                                                     serviceType.name_en
                                                 )}
                                             </td>
-                                            <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{serviceType.name_am ?? '—'}</td>
-                                            <td className="px-4 py-3 tabular-nums">{serviceType.providers_count ?? 0}</td>
-                                            <td className="px-4 py-3 tabular-nums">{serviceType.rules_count ?? 0}</td>
-                                            <td className="px-4 py-3">
+                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{serviceType.name_am ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums')}>{serviceType.providers_count ?? 0}</td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums')}>{serviceType.rules_count ?? 0}</td>
+                                            <td className={tableCellClassName}>
                                                 <StatusBadge status={serviceType.is_active ? 'active' : 'inactive'} />
                                             </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex justify-end gap-3">
-                                                    {serviceType.can.update && (
-                                                        <Link href={route('service-types.edit', serviceType.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]">
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                    )}
-                                                    {serviceType.can.archive && serviceType.is_active && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={async () => {
+                                            <td className={tableCellClassName}>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), href: route('service-types.edit', serviceType.id), show: serviceType.can.update },
+                                                            { label: t('common.delete'), onClick: async () => {
                                                                 const { confirmed } = await confirm({
                                                                     title: t('confirmations.confirmDeleteTitle'),
                                                                     description: t('confirmations.thisRecordWillMoveToRecycleBin'),
@@ -149,16 +139,8 @@ export default function ServiceTypesIndex({
                                                                     variant: 'danger',
                                                                 });
                                                                 if (confirmed) router.delete(route('service-types.archive', serviceType.id));
-                                                            }}
-                                                            className="text-xs font-medium text-red-600 hover:text-red-800"
-                                                        >
-                                                            {t('common.delete')}
-                                                        </button>
-                                                    )}
-                                                    {serviceType.can.restore && !serviceType.is_active && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={async () => {
+                                                            }, variant: 'danger', show: serviceType.can.archive && serviceType.is_active },
+                                                            { label: t('common.restore'), onClick: async () => {
                                                                 const { confirmed } = await confirm({
                                                                     title: t('confirmations.confirmRestoreTitle'),
                                                                     description: t('confirmations.thisActionCannotBeUndone'),
@@ -167,12 +149,9 @@ export default function ServiceTypesIndex({
                                                                     variant: 'default',
                                                                 });
                                                                 if (confirmed) router.post(route('service-types.restore', serviceType.id));
-                                                            }}
-                                                            className="text-xs font-medium text-green-600 hover:text-green-800"
-                                                        >
-                                                            {t('common.restore')}
-                                                        </button>
-                                                    )}
+                                                            }, show: serviceType.can.restore && !serviceType.is_active },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

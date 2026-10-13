@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Builder;
  *   own        the agreement's employee is the user's linked employee record
  *   manager    the agreement's manager, OR an explicit reviewer assignment
  *              covering its organization/unit/employee (the same assignments
- *              the Daily Activity module uses — EUISIS records no
+ *              the Daily Activity module uses — Addis One records no
  *              supervisor on positions)
  *   oversight  a permission exercised inside OrganizationScopeService scope
  *

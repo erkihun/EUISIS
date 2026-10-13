@@ -11,6 +11,7 @@ import { Alert, Card, cx } from '@euisis/ui';
 import { Head, Link } from '@inertiajs/react';
 import type { JSX } from 'react';
 
+import { actionLinkClassName, tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
 type DayFigures = { date: string; expected: number; submitted: number; missing: number; late: number; leave: number };
 
 type Props = {
@@ -105,8 +106,8 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
                     <Card className="overflow-hidden p-0">
                         <h2 className="border-b border-[color:var(--app-border)] px-4 py-2.5 text-sm font-semibold text-[color:var(--app-foreground)]">{t('dailyActivities.dashboard.lastSevenDays')}</h2>
                         <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-[color:var(--app-surface-muted)]">
+                        <table className={tableClassName}>
+                            <thead className={tableHeadClassName}>
                                 <tr>
                                     <th scope="col" className={th}>{t('dailyActivities.columns.date')}</th>
                                     <th scope="col" className={`${th} text-right`}>{t('dailyActivities.dashboard.expected')}</th>
@@ -115,7 +116,7 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
                                     <th scope="col" className={`${th} text-right`}>{t('dailyActivities.dashboard.late')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[color:var(--app-border)]">
+                            <tbody className={tableBodyClassName}>
                                 {days.map((day) => (
                                     <tr key={day.date}>
                                         <td className={`${td} whitespace-nowrap`}><LocalizedDateDisplay value={day.date} /></td>
@@ -137,7 +138,7 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
                                 {reviewRequired && pendingReview > 0 && <span className="ms-2 font-normal tabular-nums text-[color:var(--app-muted-foreground)]">({pendingReview})</span>}
                             </h2>
                             {reviewRequired && reviewQueue && (
-                                <Link href={reviewQueue} className="inline-flex items-center gap-1 text-sm font-medium text-[color:var(--color-primary)] hover:underline">
+                                <Link href={reviewQueue} className={actionLinkClassName({ size: 'sm', className: 'inline-flex items-center gap-1' })}>
                                     {t('dailyActivities.dashboard.openReviewQueue')}<ChevronRight className="h-4 w-4" aria-hidden="true" />
                                 </Link>
                             )}

@@ -2,7 +2,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Lookup from '@/Components/performance/Lookup';
-import { Empty, Field, Pager, employeeName, Pill, Section, Table, compactInputCls, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, useEnumLabel, type Bilingual, type Paginator } from '@/Components/performance/ui';
+import { Empty, Field, FilterField, Pager, employeeName, Pill, Section, Table, compactInputCls, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, useEnumLabel, type Bilingual, type Paginator } from '@/Components/performance/ui';
+import { FilterPanel, Input, Select } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -37,7 +38,7 @@ export default function AgreementsIndex({ agreements, filters, statuses, cycles,
     const { t, locale } = useLocale();
     const label = useEnumLabel();
     const [open, setOpen] = useState(false);
-    const [search, setSearch] = useState(filters.search);
+    const [draft, setDraft] = useState({ search: filters.search ?? '', cycle_id: filters.cycle_id ?? '', status: filters.status ?? '' });
     const [picked, setPicked] = useState('');
     const form = useForm({ employee_assignment_id: '', cycle_id: cycles[0]?.id ?? '', is_temporary: false });
 
@@ -79,22 +80,25 @@ export default function AgreementsIndex({ agreements, filters, statuses, cycles,
                     </Section>
                 )}
 
-                <Section title={t('performance.agreements.title')} actions={
-                    <div className="flex flex-wrap gap-2">
-                        <form onSubmit={(e) => { e.preventDefault(); filter({ search }); }} className="flex gap-2">
-                            <input aria-label={t('performance.actions.search')} className={compactInputCls} value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('performance.agreements.findEmployee')} />
-                            <button type="submit" className={smallBtn}>{t('performance.actions.search')}</button>
-                        </form>
-                        <select aria-label={t('performance.fields.cycle')} className={compactInputCls} value={filters.cycle_id ?? ''} onChange={(e) => filter({ cycle_id: e.target.value })}>
-                            <option value="">{t('performance.fields.cycle')}: —</option>
+                <FilterPanel onSubmit={() => filter({ ...draft, page: null })} onReset={() => router.get(route('performance.agreements.index'))} hasActiveFilters={Boolean(filters.search || filters.cycle_id || filters.status)}>
+                    <FilterField label={t('performance.actions.search')} wide>
+                        <Input type="search" value={draft.search} onChange={(e) => setDraft({ ...draft, search: e.target.value })} placeholder={t('performance.agreements.findEmployee')} />
+                    </FilterField>
+                    <FilterField label={t('performance.fields.cycle')}>
+                        <Select value={draft.cycle_id} onChange={(e) => setDraft({ ...draft, cycle_id: e.target.value })}>
+                            <option value="">{t('common.all')}</option>
                             {cycles.map((c) => <option key={c.id} value={c.id}>{nameOf(c, locale)}</option>)}
-                        </select>
-                        <select aria-label={t('performance.fields.status')} className={compactInputCls} value={filters.status ?? ''} onChange={(e) => filter({ status: e.target.value })}>
-                            <option value="">{t('performance.fields.status')}: —</option>
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('performance.fields.status')}>
+                        <Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
+                            <option value="">{t('common.allStatuses')}</option>
                             {statuses.map((s) => <option key={s} value={s}>{label('agreement', s)}</option>)}
-                        </select>
-                    </div>
-                }>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
+
+                <Section title={t('performance.agreements.title')}>
                     {agreements.data.length === 0 ? <Empty>{t('performance.agreements.empty')}</Empty> : (
                         <Table head={<>
                             <th className={thCls}>{t('performance.fields.employee')}</th>
@@ -107,7 +111,7 @@ export default function AgreementsIndex({ agreements, filters, statuses, cycles,
                                 <tr key={a.id}>
                                     <td className={tdCls}>
                                         <Link href={route('performance.agreements.show', a.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{employeeName(a.employee, locale)}</Link>
-                                        <p className="text-xs text-gray-500">{a.employee.number}{a.is_temporary ? ` · ${t('performance.fields.temporary')}` : ''}{a.version > 1 ? ` · v${a.version}` : ''}</p>
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{a.employee.number}{a.is_temporary ? ` · ${t('performance.fields.temporary')}` : ''}{a.version > 1 ? ` · v${a.version}` : ''}</p>
                                     </td>
                                     <td className={tdCls}>{nameOf(a.unit, locale) || nameOf(a.organization, locale)}</td>
                                     <td className={tdCls}>{nameOf(a.cycle, locale)}</td>

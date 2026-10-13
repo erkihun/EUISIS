@@ -7,6 +7,7 @@ namespace App\Actions\Users;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\User;
+use App\Support\Storage\PublicImageExtension;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -24,7 +25,8 @@ class UploadUserProfilePhotoAction
             Storage::disk('public')->delete($user->profile_photo_path);
         }
 
-        $ext = $photo->getClientOriginalExtension();
+        // From the detected content, never the uploader's file name (SEC-10).
+        $ext = PublicImageExtension::for($photo);
         $path = $photo->storeAs(
             "users/profile-photos/{$user->id}",
             Str::uuid().'.'.$ext,

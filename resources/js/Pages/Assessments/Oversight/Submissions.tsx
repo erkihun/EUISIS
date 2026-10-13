@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
+import { FilterField, inputClassName } from '@/Components/ui';
 type Row = {
     id: string; revision_no: number; status: string; eligible_count: number; assessed_count: number; unassessed_count: number; coverage_percent: string | null; return_reason: string | null;
     organization: { id: string; code: string; name_en: string; name_am: string | null } | null; submitter: string | null;
@@ -26,10 +27,12 @@ export default function OversightSubmissions(props: Props) {
         <OversightLayout title={t('assessmentOversight.nav.submissions')} description={t('assessmentOversight.submissionsHelp')} active="submissions" shell={props}
             actions={cycle && can.export ? <ExportButtons report="submissions" cycle={cycle} /> : undefined}>
             <Filters routeName="assessment-oversight.submissions" cycle={cycle}>
-                <select name="status" aria-label={t('assessmentOversight.status')} className={filterInputCls} defaultValue={filters.status ?? ''}>
-                    <option value="">{t('assessmentOversight.allSubmissionStatuses')}</option>
-                    {['submitted', 'under_city_review', 'returned', 'verified', 'finalized', 'rejected', 'outdated'].map((s) => <option key={s} value={s}>{t(`assessmentOversight.submissionStatuses.${s}`)}</option>)}
-                </select>
+                <FilterField label={t('assessmentOversight.status')}>
+                    <select name="status" className={filterInputCls} defaultValue={filters.status ?? ''}>
+                        <option value="">{t('assessmentOversight.allSubmissionStatuses')}</option>
+                        {['submitted', 'under_city_review', 'returned', 'verified', 'finalized', 'rejected', 'outdated'].map((s) => <option key={s} value={s}>{t(`assessmentOversight.submissionStatuses.${s}`)}</option>)}
+                    </select>
+                </FilterField>
             </Filters>
             {rows && (
                 <TablePanel page={rows} empty={t('assessmentOversight.noSubmissions')}>
@@ -48,7 +51,7 @@ export default function OversightSubmissions(props: Props) {
                             const any = row.actions.startReview || row.actions.return || row.actions.reject || row.actions.verify || row.actions.finalize;
                             return (
                                 <tr key={row.id}>
-                                    <td className={tdCls}>{row.organization ? <Link className="hover:underline" href={oversightHref('assessment-oversight.institution', cycle, { organization: row.organization.id })}>{named(row.organization, locale)}</Link> : '—'}<div className="text-xs text-gray-500">{row.submitter}</div></td>
+                                    <td className={tdCls}>{row.organization ? <Link className="hover:underline" href={oversightHref('assessment-oversight.institution', cycle, { organization: row.organization.id })}>{named(row.organization, locale)}</Link> : '—'}<div className="text-xs text-[color:var(--app-muted-foreground)]">{row.submitter}</div></td>
                                     <td className={`${tdCls} tabular-nums`}>{row.revision_no}</td>
                                     <td className={tdCls}><StatusBadge group="submissionStatuses" value={row.status} />{row.return_reason && <div className="mt-1 text-xs text-amber-700">{row.return_reason}</div>}</td>
                                     <td className={`${tdCls} tabular-nums`}>{row.eligible_count}</td>
@@ -59,7 +62,7 @@ export default function OversightSubmissions(props: Props) {
                                     <td className={tdCls}>
                                         {any && (
                                             <div className="flex min-w-56 flex-col gap-1.5">
-                                                <input aria-label={t('assessmentOversight.reviewComment')} placeholder={t('assessmentOversight.reviewComment')} className="rounded-lg border border-gray-300 px-2 py-1 text-xs dark:border-slate-700 dark:bg-slate-950" value={comments[row.id] ?? ''} onChange={(e) => setComments({ ...comments, [row.id]: e.target.value })} />
+                                                <input aria-label={t('assessmentOversight.reviewComment')} placeholder={t('assessmentOversight.reviewComment')} className={inputClassName} value={comments[row.id] ?? ''} onChange={(e) => setComments({ ...comments, [row.id]: e.target.value })} />
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {row.actions.startReview && <button type="button" className={smallPrimaryBtn} onClick={() => move(row, 'start-review')}>{t('assessmentOversight.actions.startReview')}</button>}
                                                     {row.actions.verify && <button type="button" className={smallPrimaryBtn} onClick={() => move(row, 'verify')}>{t('assessmentOversight.actions.verify')}</button>}

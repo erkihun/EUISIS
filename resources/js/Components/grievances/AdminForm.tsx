@@ -50,9 +50,9 @@ export function AdminLookup({ endpoint, organizationId, value, initialLabel, onC
             <option value="">{t('grievances.common.select')}</option>
             {all.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
         </select>
-        {state === 'loading' && <p role="status" className="text-xs text-gray-500">{t('grievances.common.loading')}</p>}
+        {state === 'loading' && <p role="status" className="text-xs text-[color:var(--app-muted-foreground)]">{t('grievances.common.loading')}</p>}
         {state === 'error' && <p role="alert" className="text-xs text-red-600">{t('grievanceAdmin.lookupError')}</p>}
-        {state === 'ready' && !all.length && !disabled && <p className="text-xs text-gray-500">{t(endpoint === 'units' && !organizationId ? 'grievanceAdmin.chooseOrganization' : 'grievanceAdmin.noMatches')}</p>}
+        {state === 'ready' && !all.length && !disabled && <p className="text-xs text-[color:var(--app-muted-foreground)]">{t(endpoint === 'units' && !organizationId ? 'grievanceAdmin.chooseOrganization' : 'grievanceAdmin.noMatches')}</p>}
     </div>;
 }
 
@@ -79,7 +79,7 @@ export function AdminForm({ initial, fields, url, method = 'post', editable = tr
             const fieldError = Object.entries(errors).filter(([key]) => key === field.key || key.startsWith(`${field.key}.`)).map(([, error]) => error).join(' ');
             const common = { id: fieldId, disabled, required: field.required, className: inputCls, 'aria-invalid': Boolean(fieldError), 'aria-describedby': fieldError ? `${fieldId}-error` : undefined };
             let control: ReactNode;
-            if (field.type === 'boolean') control = <input {...common} className="h-5 w-5 rounded border-gray-300" type="checkbox" checked={Boolean(value)} onChange={event => change(field, event.target.checked)} />;
+            if (field.type === 'boolean') control = <input {...common} className="h-5 w-5 rounded border-[color:var(--app-border-strong)]" type="checkbox" checked={Boolean(value)} onChange={event => change(field, event.target.checked)} />;
             else if (field.type === 'date') control = <LocalizedDatePicker id={fieldId} disabled={disabled} required={field.required} className={inputCls} value={String(value ?? '')} onChange={date => change(field, date)} />;
             else if (field.type === 'lookup') control = <AdminLookup id={fieldId} endpoint={field.lookup!} organizationId={field.organizationKey ? String(form.data[field.organizationKey] ?? '') : undefined} value={String(value ?? '')} initialLabel={field.initialLabel} disabled={disabled} required={field.required} onChange={selection => change(field, selection)} />;
             else if (field.type === 'textarea') control = <textarea {...common} rows={field.key === 'body_template' ? 10 : 3} maxLength={field.maxLength ?? 2000} value={String(value ?? '')} onChange={event => change(field, event.target.value)} />;
@@ -95,7 +95,7 @@ export function AdminForm({ initial, fields, url, method = 'post', editable = tr
         {children}
         {Object.keys(errors).length > 0 && <div role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{Object.values(errors).map((error, index) => <p key={index}>{error}</p>)}</div>}
         {editable && <div className="flex items-center gap-3"><button className={primaryBtn} disabled={form.processing} type="submit">{submitLabel ?? t('grievances.common.save')}</button>{onCancel && <button className={secondaryBtn} type="button" onClick={onCancel}>{t('grievances.common.cancel')}</button>}{form.recentlySuccessful && <span role="status" className="text-sm text-emerald-700">{t('grievanceAdmin.saved')}</span>}</div>}
-        {!editable && <p className="text-sm text-gray-500">{t('grievanceAdmin.readOnly')}</p>}
+        {!editable && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('grievanceAdmin.readOnly')}</p>}
     </form>;
 }
 
@@ -107,9 +107,9 @@ function Thresholds({ value, onChange, min, max, disabled }: { value: number[]; 
 export const choices = (values: string[]): Choice[] => values.map(value => ({ value, label: value }));
 export const today = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
 
-export function handlerFields({ prefix = '', options, locale, title, required = false, allowOrganization = false, initial }: {
+export function handlerFields({ prefix = '', options, locale, title, organizationLabel, required = false, allowOrganization = false, initial }: {
     prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations' | 'committees' | 'external_authorities'>;
-    locale: string; title: string; required?: boolean; allowOrganization?: boolean; initial?: HandlerRef | null;
+    locale: string; title: string; organizationLabel: string; required?: boolean; allowOrganization?: boolean; initial?: HandlerRef | null;
 }): AdminField[] {
     const typeKey = `${prefix}handler_type`, idKey = `${prefix}handler_id`, orgKey = `${prefix}lookup_organization_id`;
     const list = (rows: Bilingual[]) => rows.map(row => ({ value: row.id!, label: nameOf(row, locale) }));
@@ -117,7 +117,7 @@ export function handlerFields({ prefix = '', options, locale, title, required = 
     for (const [type, rows] of [['organization', options.organizations], ['committee', options.committees], ['external_authority', options.external_authorities]] as const) {
         result.push({ key: idKey, label: title, type: 'select', required, options: list(rows), visible: data => data[typeKey] === type });
     }
-    result.push({ key: orgKey, label: locale === 'am' ? 'ተቋም' : 'Organization', type: 'select', options: list(options.organizations), visible: data => data[typeKey] === 'organization_unit', clearOnChange: [idKey] });
+    result.push({ key: orgKey, label: organizationLabel, type: 'select', options: list(options.organizations), visible: data => data[typeKey] === 'organization_unit', clearOnChange: [idKey] });
     result.push({ key: idKey, label: title, type: 'lookup', lookup: 'units', organizationKey: orgKey, initialLabel: initial ? nameOf(initial, locale) : undefined, required, visible: data => data[typeKey] === 'organization_unit' });
     return result;
 }

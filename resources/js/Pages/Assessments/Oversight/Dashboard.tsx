@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link } from '@inertiajs/react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
+import { FilterField, buttonClassName, selectClassName } from '@/Components/ui';
 type InstitutionRow = {
     organization: { id: string; code: string; name_en: string; name_am: string | null };
     eligible: number; assessed: number; unassessed: number; coverage_percent: string | null; status: string; submission_status: string;
@@ -48,7 +49,7 @@ export default function OversightDashboard(props: Props) {
         <OversightLayout title={t('assessmentOversight.dashboardTitle')} description={t('assessmentOversight.dashboardDescription')} active="dashboard" shell={props} needsCycle={false}>
             {!cycle && <>
                 <Section title={t('assessmentOversight.dashboardNoCycle')} description={t('assessmentOversight.dashboardSetupHelp')}>
-                    {can.setup && <Link className="inline-flex rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white" href={route('assessment-oversight.setup')}>{t('assessmentOversight.nav.setup')}</Link>}
+                    {can.setup && <Link className={buttonClassName({ variant: 'primary' })} href={route('assessment-oversight.setup')}>{t('assessmentOversight.nav.setup')}</Link>}
                 </Section>
                 <KpiGroup title={t('assessmentOversight.kpi.employees')}>
                     {['eligible', 'assessed', 'unassessed', 'coverage'].map((key) => <Kpi key={key} label={t(`assessmentOversight.${key}`)} value={null} />)}
@@ -57,14 +58,16 @@ export default function OversightDashboard(props: Props) {
                     {['expected', 'started', 'completed', 'submitted', 'verified', 'returned'].map((key) => <Kpi key={key} label={t(`assessmentOversight.kpi.${key}`)} value={null} />)}
                 </KpiGroup>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {['dashboardProgress', 'dashboardEvaluators', 'dashboardForms', 'dashboardReasons', ...(can.demographics ? ['kpi.gender'] : []), ...(can.results ? ['charts.resultDistribution'] : [])].map((key) => <Section key={key} title={t(`assessmentOversight.${key}`)}><p className="text-sm text-gray-500">{t('assessmentOversight.dashboardWaiting')}</p></Section>)}
+                    {['dashboardProgress', 'dashboardEvaluators', 'dashboardForms', 'dashboardReasons', ...(can.demographics ? ['kpi.gender'] : []), ...(can.results ? ['charts.resultDistribution'] : [])].map((key) => <Section key={key} title={t(`assessmentOversight.${key}`)}><p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.dashboardWaiting')}</p></Section>)}
                 </div>
             </>}
             {cycle && props.organizations.length > 0 && <Filters routeName="assessment-oversight.dashboard" cycle={cycle}>
-                <select aria-label={t('assessmentOversight.institution')} name="organization_id" defaultValue={props.filters.organization_id ?? ''} className="rounded-lg border-gray-300 text-sm dark:bg-slate-900">
-                    <option value="">{t('assessmentOversight.allInstitutions')}</option>
-                    {props.organizations.map((org) => <option key={org.id} value={org.id}>{named(org, locale)}</option>)}
-                </select>
+                <FilterField label={t('assessmentOversight.institution')}>
+                    <select name="organization_id" defaultValue={props.filters.organization_id ?? ''} className={selectClassName}>
+                        <option value="">{t('assessmentOversight.allInstitutions')}</option>
+                        {props.organizations.map((org) => <option key={org.id} value={org.id}>{named(org, locale)}</option>)}
+                    </select>
+                </FilterField>
             </Filters>}
             {data && cycle && (
                 <>
@@ -99,12 +102,12 @@ export default function OversightDashboard(props: Props) {
                         <Kpi label={t('assessmentOversight.unassessed')} value={data.totals.unassessed} href={can.employees ? href('assessment-oversight.employees', { outcome: 'unassessed' }) : undefined} tone="warning" />
                         <Kpi label={t('assessmentOversight.coverage')} value={data.totals.coverage_percent} suffix="%"
                             hint={<span className="block"><span className="block">{`${data.totals.assessed.toLocaleString()} / ${data.totals.eligible.toLocaleString()}`}{data.totals.approved_exclusions > 0 ? ` · ${t('assessmentOversight.grossCoverage')} ${pct(data.totals.gross_coverage_percent)}` : ''}</span>
-                                <span className="mt-2 block h-1.5 rounded-full bg-gray-100 dark:bg-slate-800"><span className="block h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${Math.max(0, Math.min(100, Number(data.totals.coverage_percent ?? 0)))}%` }} /></span></span>} />
+                                <span className="mt-2 block h-1.5 rounded-full bg-[color:var(--app-surface-muted)]"><span className="block h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${Math.max(0, Math.min(100, Number(data.totals.coverage_percent ?? 0)))}%` }} /></span></span>} />
                     </KpiGroup>
 
                     <div className="grid gap-4 xl:grid-cols-2">
                         <Section title={t('assessmentOversight.charts.coverageByInstitution')} description={t('assessmentOversight.charts.lowestFirst')}>
-                            {data.comparison.length === 0 ? <p className="text-sm text-gray-500">{t('assessmentOversight.noData')}</p> : (
+                            {data.comparison.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.noData')}</p> : (
                                 <CoverageBars rows={data.comparison.map((r) => ({ id: r.organization.id, label: named(r.organization, locale), value: r.coverage_percent,
                                     href: can.institutions ? oversightHref('assessment-oversight.institution', cycle, { organization: r.organization.id }) : undefined }))} />
                             )}
@@ -119,10 +122,10 @@ export default function OversightDashboard(props: Props) {
                                     <IssueTile label={t('assessmentOversight.kpi.warnings')} value={data.issues.warning} tone="warning" href={can.dataQuality ? href('assessment-oversight.data-quality') : undefined} />
                                     <IssueTile label={t('assessmentOversight.kpi.evaluatorPending')} value={data.issues.evaluator.EVALUATOR_NOT_COMPLETED} tone="info" />
                                 </div>
-                            ) : <p className="text-sm text-gray-500">{t('assessmentOversight.notAvailable')}</p>}
+                            ) : <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.notAvailable')}</p>}
                             {data.actions.length > 0 && (
-                                <div className="mt-4 border-t border-gray-100 pt-3 dark:border-slate-800">
-                                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{t('assessmentOversight.dashboardActions')}</h4>
+                                <div className="mt-4 border-t border-[color:var(--app-border)] pt-3">
+                                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.dashboardActions')}</h4>
                                     <ul className="space-y-1.5 text-sm">{data.actions.map((action) => <li key={action.code}>
                                         <Link href={href(action.route, action.filters)} className="inline-flex items-center gap-2 hover:underline"><SeverityBadge severity={action.priority} />{t(`assessmentOversight.rules.${action.code}`)}: <span className="tabular-nums">{action.count}</span></Link>
                                     </li>)}</ul>
@@ -217,14 +220,14 @@ export default function OversightDashboard(props: Props) {
 
                     <div className="grid gap-4 xl:grid-cols-2">
                         {data.units.length > 0 && <Section title={t('assessmentOversight.sections.units')}>
-                            {data.units.map((unit) => <div key={unit.group_key ?? 'unassigned'} className="border-b py-3 text-sm dark:border-slate-800">
+                            {data.units.map((unit) => <div key={unit.group_key ?? 'unassigned'} className="border-b py-3 text-sm border-[color:var(--app-border)]">
                                 {unit.unit && can.employees ? <Link href={href('assessment-oversight.employees', { organization_unit_id: unit.unit.id, eligibility_status: 'eligible' })}>{named(unit.unit, locale)}</Link> : named(unit.unit, locale)}
                                 <p>{t('assessmentOversight.eligible')}: {unit.eligible} · {t('assessmentOversight.assessed')}: {unit.assessed} · {t('assessmentOversight.unassessed')}: {unit.unassessed}</p>
                                 <CoverageBar value={unit.coverage_percent} />
                             </div>)}
                         </Section>}
                         <Section title={t('assessmentOversight.dashboardForms')}>
-                            {data.forms.map((form) => <div key={form.version_id} className="border-b py-3 text-sm dark:border-slate-800">
+                            {data.forms.map((form) => <div key={form.version_id} className="border-b py-3 text-sm border-[color:var(--app-border)]">
                                 <p>{named({ name_en: form.form_en, name_am: form.form_am }, locale)} · v{form.version_no}</p>
                                 <p>{t('assessmentOversight.kpi.assigned')}: {form.assigned} · {t('assessmentOversight.assessed')}: {form.assessed}</p>
                                 <CoverageBar value={form.completion_percent} />
@@ -232,7 +235,7 @@ export default function OversightDashboard(props: Props) {
                             {data.forms.length === 0 && <p>{t('assessmentOversight.noData')}</p>}
                         </Section>
                         <Section title={t('assessmentOversight.dashboardEvaluators')}>
-                            {data.peers.map((peer) => <div key={peer.version_id} className="border-b py-3 text-sm dark:border-slate-800">
+                            {data.peers.map((peer) => <div key={peer.version_id} className="border-b py-3 text-sm border-[color:var(--app-border)]">
                                 <p>{named(peer, locale)}</p>
                                 <p>{t('assessmentOversight.dashboardRequired')}: {peer.required} · {t('assessmentOversight.kpi.assigned')}: {peer.assigned} · {t('assessmentOversight.kpi.submitted')}: {peer.completed}</p>
                             </div>)}

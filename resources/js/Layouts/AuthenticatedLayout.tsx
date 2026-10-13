@@ -11,6 +11,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
 
+import { buttonClassName } from '@/Components/ui';
 const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 // Page chrome and content share one measure, so titles line up with the content below them
 // and very wide screens keep a readable line length.
@@ -74,6 +75,10 @@ export default function Authenticated({
            dark mode stuck on the light-theme colour. */
         root.style.setProperty('--color-primary-strong', primary);
         root.style.setProperty('--color-primary-soft', darkThemeVariant(primary));
+        // Text on a primary fill: the lighter dark-theme variant of a bright
+        // brand colour needs dark text, not white.
+        root.style.setProperty('--color-on-primary-strong', readableForeground(primary));
+        root.style.setProperty('--color-on-primary-soft', readableForeground(darkThemeVariant(primary)));
         root.style.setProperty('--color-secondary', secondary);
         root.style.setProperty('--color-accent-strong', accent);
         root.style.setProperty('--color-accent-soft', darkThemeVariant(accent));
@@ -115,7 +120,7 @@ export default function Authenticated({
         <div className={`${variant === 'portal' ? 'portal-shell' : 'admin-shell'} min-h-screen bg-[color:var(--app-background)]`}>
             <a
                 href="#main-content"
-                className="sr-only fixed left-4 top-4 z-[60] rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg focus:not-sr-only"
+                className={buttonClassName({ variant: 'primary', className: 'sr-only fixed left-4 top-4 z-[60]' })}
             >
                 {t('publicSite.skipToContent')}
             </a>
@@ -127,7 +132,7 @@ export default function Authenticated({
                     className={[
                         'fixed inset-y-0 left-0 z-30 flex h-screen flex-col',
                         'transition-[width] duration-200 ease-in-out overflow-hidden',
-                        sidebarCollapsed ? 'w-16' : 'w-72',
+                        sidebarCollapsed ? 'w-16' : 'w-[17.5rem]',
                     ].join(' ')}
                 >
                     <AppSidebar
@@ -147,7 +152,7 @@ export default function Authenticated({
                 <div className="fixed inset-0 flex">
                     <DialogPanel
                         transition
-                        className="h-full w-[min(20rem,calc(100vw-3rem))] shadow-2xl transition duration-200 ease-out data-[closed]:-translate-x-full"
+                        className="h-full w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-e-2xl shadow-2xl transition duration-200 ease-out data-[closed]:-translate-x-full"
                     >
                         <DialogTitle className="sr-only">{t('publicSite.mainNavigation')}</DialogTitle>
                         <AppSidebar onClose={() => setSidebarOpen(false)} />
@@ -160,10 +165,10 @@ export default function Authenticated({
                 className={[
                     'flex min-h-screen flex-col',
                     'transition-[margin-left] duration-200 ease-in-out',
-                    sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72',
+                    sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[17.5rem]',
                 ].join(' ')}
             >
-                <AppHeader onMenuClick={() => setSidebarOpen(true)} />
+                <AppHeader onMenuClick={() => setSidebarOpen(true)} onToggleSidebar={toggleSidebarCollapse} sidebarCollapsed={sidebarCollapsed} />
 
                 {maintenanceEnabled && maintenanceMessage && (
                     <div
@@ -176,15 +181,15 @@ export default function Authenticated({
 
                 {/* Breadcrumbs sit above the title they lead to, in the same band. */}
                 {header && (
-                    <div className="app-page-heading shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                        <div className={CONTENT_WIDTH + ' px-4 py-4 sm:px-6 lg:px-8'}>
-                            {showBreadcrumbs && <Breadcrumbs className="mb-3" />}
+                    <div className="app-page-heading app-dot-grid shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                        <div className={CONTENT_WIDTH + ' px-4 py-5 sm:px-6 lg:px-8'}>
+                            {showBreadcrumbs && <Breadcrumbs className="mb-2.5" />}
                             {header}
                         </div>
                     </div>
                 )}
 
-                <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-5 outline-none sm:px-6 sm:py-6 lg:px-8">
+                <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8">
                     <div className={CONTENT_WIDTH}>
                         {!header && showBreadcrumbs && <Breadcrumbs className="mb-4" />}
                         <TemporaryPasswordNotice />

@@ -17,6 +17,7 @@ export function formatDateDisplay(
     gregorianIso: string | null | undefined,
     calendarSystem: CalendarSystem,
     locale: string,
+    options?: { zeroPadDay?: boolean },
 ): string {
     if (!gregorianIso) return '';
 
@@ -29,7 +30,8 @@ export function formatDateDisplay(
         const months = locale === 'am' ? ETH_MONTHS_AM : ETH_MONTHS_EN;
         const monthName = months[eth.month] ?? String(eth.month);
         const suffix = locale === 'am' ? '' : ' E.C.';
-        return `${monthName} ${eth.day}, ${eth.year}${suffix}`;
+        const day = options?.zeroPadDay ? String(eth.day).padStart(2, '0') : String(eth.day);
+        return `${monthName} ${day}, ${eth.year}${suffix}`;
     }
 
     // Gregorian display: format as DD/MM/YYYY

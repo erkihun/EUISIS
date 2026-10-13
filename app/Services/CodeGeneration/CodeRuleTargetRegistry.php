@@ -7,6 +7,13 @@ namespace App\Services\CodeGeneration;
 use App\Enums\CodeRuleEntityType;
 use App\Models\Employee;
 use App\Models\IdCard;
+use App\Models\InstitutionMandate;
+use App\Models\OrganizationFunction;
+use App\Models\OrganizationPower;
+use App\Models\Process;
+use App\Models\ProcessActivity;
+use App\Models\ProcessTask;
+use App\Models\Service;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
@@ -39,6 +46,55 @@ class CodeRuleTargetRegistry
                 'table' => 'organizations',
                 'code_column' => 'code',
                 'label' => 'Organization Code',
+                'immutable_after_create' => false,
+            ],
+            CodeRuleEntityType::InstitutionMandate->value => [
+                'model' => InstitutionMandate::class,
+                'table' => 'institution_mandates',
+                'code_column' => 'code',
+                'label' => 'Institution Mandate Code',
+                'immutable_after_create' => true,
+            ],
+            CodeRuleEntityType::OrganizationPower->value => [
+                'model' => OrganizationPower::class,
+                'table' => 'organization_powers',
+                'code_column' => 'code',
+                'label' => 'Organization Power Code',
+                'immutable_after_create' => false,
+            ],
+            CodeRuleEntityType::OrganizationFunction->value => [
+                'model' => OrganizationFunction::class,
+                'table' => 'organization_functions',
+                'code_column' => 'code',
+                'label' => 'Organization Function Code',
+                'immutable_after_create' => false,
+            ],
+            CodeRuleEntityType::Service->value => [
+                'model' => Service::class,
+                'table' => 'services',
+                'code_column' => 'code',
+                'label' => 'Service Code',
+                'immutable_after_create' => true,
+            ],
+            CodeRuleEntityType::Process->value => [
+                'model' => Process::class,
+                'table' => 'processes',
+                'code_column' => 'code',
+                'label' => 'Process Code',
+                'immutable_after_create' => true,
+            ],
+            CodeRuleEntityType::ProcessActivity->value => [
+                'model' => ProcessActivity::class,
+                'table' => 'process_activities',
+                'code_column' => 'code',
+                'label' => 'Activity Code',
+                'immutable_after_create' => false,
+            ],
+            CodeRuleEntityType::ProcessTask->value => [
+                'model' => ProcessTask::class,
+                'table' => 'process_tasks',
+                'code_column' => 'code',
+                'label' => 'Master Task Code',
                 'immutable_after_create' => false,
             ],
             CodeRuleEntityType::OrganizationType->value => [

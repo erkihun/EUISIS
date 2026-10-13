@@ -73,6 +73,9 @@ return [
         'not_editable' => 'This grievance can no longer be edited.',
         'not_deletable' => 'Only a draft that was never submitted can be deleted.',
         'already_submitted' => 'This grievance was already submitted.',
+        'initial_resolution_required' => 'Raise the matter in writing with your supervisor or responsible officer first; a formal grievance can only follow an unresolved initial attempt.',
+        'initial_resolution_not_failed' => 'This matter was resolved informally, so it cannot be filed as a formal grievance.',
+        'not_late_submission' => 'This grievance was filed within the statutory period; there is no late filing to review.',
         'no_initial_route' => 'No grievance handler is configured for this organization. Configure an initial route or an approved grievance committee.',
         'intake_rejection_disabled' => 'Rejection at intake is not allowed by current policy.',
         'invalid_reason_code' => 'Choose a configured reason.',
@@ -143,6 +146,20 @@ return [
         'delegate_lacks_permission' => 'The delegate must hold the decision approval permission.',
     ],
 
+    // Regulation 201/2018 Art. 30 grievance committee composition problems.
+    'committee_rules' => [
+        'selection_source_missing' => 'Every committee member must record how they were selected (appointed, elected, or HR representative).',
+        'chair_must_be_appointed' => 'The committee must have exactly one chairperson appointed by the institution head.',
+        'hr_secretary_required' => 'The committee must include one HR professional serving as secretary.',
+        'appointed_count' => 'A grievance committee must have exactly one member appointed by the institution head.',
+        'elected_count' => 'A grievance committee must have exactly three members elected by employees.',
+        'member_count' => 'A grievance committee must have exactly five voting members.',
+        'elected_woman_required' => 'At least one of the elected members must be a woman.',
+        'term_limit_exceeded' => 'A member may not serve more than two terms.',
+        'term_longer_than_two_years' => 'A committee term may not exceed two years.',
+        'qualification_not_verifiable' => 'A member’s eligibility could not be verified from available records.',
+    ],
+
     'labels' => [
         'information_response_file' => 'Response attachment',
         'appeal_attachment' => 'Appeal attachment',
@@ -169,8 +186,8 @@ return [
         'title' => 'Grievance case',
         'open' => 'Open',
         'generic' => 'There is an update on grievance case :case.',
-        'sms' => 'EUISIS: action is required on grievance case :case. Please sign in to view it.',
-        'sms_letter' => 'EUISIS: an official letter on grievance case :case is available in My Portal.',
+        'sms' => ':app: action is required on grievance case :case. Please sign in to view it.',
+        'sms_letter' => ':app: an official letter on grievance case :case is available in My Portal.',
         'submitted' => 'Your grievance :case was submitted.',
         'accepted' => 'Your grievance :case was accepted for review.',
         'returned_for_correction' => 'Your grievance :case was returned for correction.',

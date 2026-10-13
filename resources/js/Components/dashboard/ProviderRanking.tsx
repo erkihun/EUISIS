@@ -20,12 +20,12 @@ export default function ProviderRanking({ data }: { data: Item[] }) {
                 <div key={item.key}>
                     <div className="mb-1 flex items-center justify-between gap-3 text-sm">
                         <div className="flex items-center gap-2">
-                            <span className="text-gray-500 dark:text-slate-400">{index + 1}</span>
-                            <span className="font-medium text-gray-800 dark:text-slate-100">{item.key}</span>
+                            <span className="text-[color:var(--app-muted-foreground)]">{index + 1}</span>
+                            <span className="font-medium text-[color:var(--app-foreground)]">{item.key}</span>
                         </div>
-                        <span className="font-semibold text-gray-900 dark:text-slate-100">{item.value}</span>
+                        <span className="font-semibold text-[color:var(--app-foreground)]">{item.value}</span>
                     </div>
-                    <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-800">
+                    <div className="h-2 rounded-full bg-[color:var(--app-surface-muted)]">
                         <div
                             className="h-2 rounded-full"
                             style={{ width: `${Math.round((item.value / max) * 100)}%`, backgroundColor: series[index % series.length] }}

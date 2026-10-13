@@ -16,7 +16,7 @@ th,td { padding: 7px 4px; border: 1px solid #d6dde6; word-wrap: break-word; vert
 .note { font-size: 9px; color: #526176; line-height: 1.6; }
 .signatures { margin-top: 35px; } .signatures td { border: 0; border-top: 1px solid #64748b; padding-top: 8px; }
 </style></head><body>
-<div class="header"><h1>{{ __('cafeteria-statement.title') }}</h1>{{ config('app.name') }}</div>
+<div class="header"><h1>{{ __('cafeteria-statement.title') }}</h1>{{ app(App\Services\Branding\BrandingService::class)->formalLine() }}</div>
 <div class="meta">
 {{ __('cafeteria-statement.provider') }}: {{ $providerName }}<br>
 {{ __('cafeteria-statement.period') }}: {{ $periodLabel }}<br>

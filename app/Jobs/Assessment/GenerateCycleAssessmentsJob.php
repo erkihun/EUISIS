@@ -25,7 +25,10 @@ class GenerateCycleAssessmentsJob implements ShouldBeUnique, ShouldQueue
 
     public int $timeout = 600;
 
-    public function __construct(public string $cycleId, public int $actorId) {}
+    public function __construct(public string $cycleId, public int $actorId)
+    {
+        $this->onQueue('long');
+    }
 
     public function uniqueId(): string
     {

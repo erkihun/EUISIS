@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { AppFilterBar, Field, Pill, Section, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, useEnumLabel, type Paginator } from '@/Components/performance/ui';
+import { AppFilterBar, FilterField, Field, Pill, Section, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, useEnumLabel, type Paginator } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -153,12 +153,16 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                 )}
 
                 <AppFilterBar routeName="performance.kpis.index" filters={{ search: filters.search, active: filters.active ?? '' }}>
-                    <input name="search" defaultValue={filters.search} placeholder={t('performance.actions.search')} aria-label={t('performance.actions.search')} className={`${filterInputCls} min-w-[15rem] flex-1`} />
-                    <select name="active" defaultValue={filters.active ?? ''} aria-label={t('performance.fields.status')} className={filterInputCls}>
-                        <option value="">{t('performance.fields.status')}: —</option>
-                        <option value="1">{t('performance.fields.active')}</option>
-                        <option value="0">{t('performance.fields.inactive')}</option>
-                    </select>
+                    <FilterField label={t('performance.actions.search')} wide>
+                        <input name="search" defaultValue={filters.search} placeholder={t('performance.actions.search')} className={filterInputCls} />
+                    </FilterField>
+                    <FilterField label={t('performance.fields.status')}>
+                        <select name="active" defaultValue={filters.active ?? ''} className={filterInputCls}>
+                            <option value="">{t('common.all')}</option>
+                            <option value="1">{t('performance.fields.active')}</option>
+                            <option value="0">{t('performance.fields.inactive')}</option>
+                        </select>
+                    </FilterField>
                 </AppFilterBar>
 
                 <TablePanel page={kpis} empty={t('performance.kpis.empty')}>
@@ -174,8 +178,8 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                             {kpis.data.map((kpi) => (
                                 <tr key={kpi.id}>
                                     <td className={tdCls}>
-                                        <p className="font-medium text-gray-900 dark:text-slate-100"><span className="font-mono text-xs text-gray-500 dark:text-slate-400">{kpi.code}</span> {nameOf(kpi, locale)}</p>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">{label('measurement', kpi.measurement_type)}{kpi.unit_of_measure ? ` · ${kpi.unit_of_measure}` : ''}{kpi.organization_id === null ? ` · ${t('performance.kpis.globalOwner')}` : ''}{kpi.in_use ? ` · ${t('performance.kpis.inUse')}` : ''}</p>
+                                        <p className="font-medium text-[color:var(--app-foreground)]"><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{kpi.code}</span> {nameOf(kpi, locale)}</p>
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('measurement', kpi.measurement_type)}{kpi.unit_of_measure ? ` · ${kpi.unit_of_measure}` : ''}{kpi.organization_id === null ? ` · ${t('performance.kpis.globalOwner')}` : ''}{kpi.in_use ? ` · ${t('performance.kpis.inUse')}` : ''}</p>
                                     </td>
                                     <td className={tdCls}>{label('direction', kpi.direction)}</td>
                                     <td className={tdCls}>{label('aggregation', kpi.aggregation_method)}</td>

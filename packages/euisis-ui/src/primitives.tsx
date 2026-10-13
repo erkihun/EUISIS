@@ -12,16 +12,19 @@ export function cx(...classes: Array<string | false | null | undefined>): string
     return classes.filter(Boolean).join(' ');
 }
 
-export type ButtonVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'link';
+export type ButtonVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'destructiveOutline' | 'link';
 export type ButtonSize = 'xs' | 'sm' | 'default' | 'md' | 'lg' | 'icon';
 
 const buttonVariants: Record<ButtonVariant, string> = {
-    default: 'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)]',
-    primary: 'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)]',
+    // --color-on-primary: readable text on the theme's primary (dark text on a bright dark-mode variant)
+    default: 'bg-[color:var(--color-primary)] text-[color:var(--color-on-primary,#fff)] hover:bg-[color:var(--color-primary-hover)]',
+    primary: 'bg-[color:var(--color-primary)] text-[color:var(--color-on-primary,#fff)] hover:bg-[color:var(--color-primary-hover)]',
     secondary: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)] hover:brightness-95',
     outline: 'border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]',
     ghost: 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]',
     destructive: 'bg-red-700 text-white hover:bg-red-800 dark:bg-red-700 dark:hover:bg-red-600',
+    // A harmful action that is not the page's main one (Remove, Revoke next to Save).
+    destructiveOutline: 'border border-red-300 bg-[color:var(--app-surface)] text-red-700 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30',
     link: 'h-auto p-0 text-[color:var(--color-primary)] underline-offset-4 hover:underline',
 };
 
@@ -45,6 +48,36 @@ export function buttonClassName({ variant = 'default', size = 'default', classNa
         'disabled:pointer-events-none disabled:opacity-60 aria-disabled:pointer-events-none aria-disabled:opacity-60',
         buttonVariants[variant],
         buttonSizes[size],
+        className,
+    );
+}
+
+export type ActionTone = 'primary' | 'neutral' | 'danger' | 'success';
+
+const actionTones: Record<ActionTone, string> = {
+    primary: 'text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]',
+    neutral: 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+    danger: 'text-red-700 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300',
+    success: 'text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300',
+};
+
+/**
+ * An inline text action — Edit, View, Restore in a table row or beside a
+ * heading. Underlines on hover; `danger` for removals, `success` for restores.
+ * Add layout (`ml-auto`, `inline-flex gap-1`) and typography (`font-mono`)
+ * through `className`, never another colour.
+ */
+export function actionLinkClassName({ tone = 'primary', size = 'xs', className = '' }: {
+    tone?: ActionTone;
+    size?: 'xs' | 'sm';
+    className?: string;
+} = {}): string {
+    return cx(
+        'font-medium underline-offset-4 transition-colors hover:underline',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
+        'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50',
+        size === 'xs' ? 'text-xs' : 'text-sm',
+        actionTones[tone],
         className,
     );
 }
@@ -89,7 +122,7 @@ export const Button = forwardRef(ButtonInner) as <T extends ElementType = 'butto
 const EXPLICIT_PADDING = /(?:^|\s)!?p-\S/;
 
 export function Card({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={cx('rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]', !EXPLICIT_PADDING.test(className ?? '') && 'p-[var(--card-padding)]', className)} {...props}>{children}</div>;
+    return <div className={cx('min-w-0 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]', !EXPLICIT_PADDING.test(className ?? '') && 'p-[var(--card-padding)]', className)} {...props}>{children}</div>;
 }
 
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {

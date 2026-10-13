@@ -18,6 +18,7 @@ import { buttonClassName, cx } from '@euisis/ui';
 import { Head, Link } from '@inertiajs/react';
 import { useState, type JSX, type ReactNode } from 'react';
 
+import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type PerformanceRow = {
     id: string | null;
     name: string | null;
@@ -79,10 +80,8 @@ export default function ServiceFeedbackReports({
     const lowShare = percent(summary.low_rated, summary.total);
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.reports')} />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <FeedbackPageHeader
                     current="reports"
                     title={t('serviceFeedback.reports')}
@@ -95,7 +94,11 @@ export default function ServiceFeedbackReports({
                         </a>
                     ) : undefined}
                 />
+            }
+        >
+            <Head title={t('serviceFeedback.reports')} />
 
+            <div className="space-y-6">
                 <FeedbackFilterBar
                     routeName="service-feedback.admin.reports"
                     filters={filters}
@@ -170,21 +173,21 @@ export default function ServiceFeedbackReports({
                         <p className="px-5 py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noFeedbackYet')}</p>
                     ) : (
                         <div className="max-h-[36rem] overflow-auto">
-                            <table className="w-full min-w-[40rem] text-sm">
-                                <thead className="sticky top-0 z-[1] bg-[color:var(--app-surface-muted)]">
-                                    <tr className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
-                                        <th scope="col" className="w-12 px-5 py-2.5 text-left">#</th>
-                                        <th scope="col" className="px-3 py-2.5 text-left">{active.tab}</th>
-                                        <th scope="col" className="w-28 px-3 py-2.5 text-right">{t('serviceFeedback.responses')}</th>
-                                        {active.showLow && <th scope="col" className="w-28 px-3 py-2.5 text-right">{t('serviceFeedback.lowShort')}</th>}
-                                        <th scope="col" className="w-56 py-2.5 pl-3 pr-5 text-right">{t('serviceFeedback.averageRating')}</th>
+                            <table className={cx(tableClassName, 'min-w-[40rem]')}>
+                                <thead className={cx(tableHeadClassName, 'sticky top-0 z-[1]')}>
+                                    <tr>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-12')}>#</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{active.tab}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'w-28 text-right')}>{t('serviceFeedback.responses')}</th>
+                                        {active.showLow && <th scope="col" className={cx(tableHeaderCellClassName, 'w-28 text-right')}>{t('serviceFeedback.lowShort')}</th>}
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'w-56 text-right')}>{t('serviceFeedback.averageRating')}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-[color:var(--app-border)]">
+                                <tbody className={tableBodyClassName}>
                                     {active.rows.map((row, index) => (
-                                        <tr key={row.id ?? row.name ?? index} className="transition-colors hover:bg-[color:var(--app-surface-muted)]">
-                                            <td className="px-5 py-3 text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{index + 1}</td>
-                                            <td className="px-3 py-3">
+                                        <tr key={row.id ?? row.name ?? index} className={tableRowClassName}>
+                                            <td className={cx(tableCellClassName, 'text-xs tabular-nums text-[color:var(--app-muted-foreground)]')}>{index + 1}</td>
+                                            <td className={tableCellClassName}>
                                                 {row.id ? (
                                                     <Link href={inboxHref(row)} className="font-medium text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] hover:underline">
                                                         {row.name ?? '—'}
@@ -194,9 +197,9 @@ export default function ServiceFeedbackReports({
                                                 )}
                                                 {row.employee_number && <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee_number}</div>}
                                             </td>
-                                            <td className="px-3 py-3 text-right tabular-nums text-[color:var(--app-foreground)]">{row.total.toLocaleString()}</td>
+                                            <td className={cx(tableCellClassName, 'text-right tabular-nums text-[color:var(--app-foreground)]')}>{row.total.toLocaleString()}</td>
                                             {active.showLow && (
-                                                <td className="px-3 py-3 text-right">
+                                                <td className={cx(tableCellClassName, 'text-right')}>
                                                     <span className={cx(
                                                         'inline-flex h-[22px] min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-semibold tabular-nums',
                                                         (row.low_rated ?? 0) > 0 ? toneClasses.low.pill : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
@@ -205,7 +208,7 @@ export default function ServiceFeedbackReports({
                                                     </span>
                                                 </td>
                                             )}
-                                            <td className="py-3 pl-3 pr-5">
+                                            <td className={tableCellClassName}>
                                                 {/* Bar first, number second: the bar is what makes a weak desk visible without reading decimals. */}
                                                 <div className="flex items-center justify-end gap-3">
                                                     <RatingBar value={row.average} className="h-2 w-24 sm:w-36" />

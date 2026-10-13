@@ -7,7 +7,7 @@ return [
     'contract' => 'ኮንትራት',
     'temporary' => 'ጊዜያዊ',
     'probation' => 'የሙከራ ጊዜ',
-    'daily_labor' => 'የቀን ሰራተኛ',
+    'daily_labor' => 'የቀን ሠራተኛ',
     'intern' => 'ተለማማጅ',
     'other' => 'ሌላ',
 ];

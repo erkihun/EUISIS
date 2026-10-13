@@ -6,13 +6,11 @@ namespace App\Services\Employees;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Employees\RegisterEmployeeAction;
-use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Models\Employee;
-use App\Models\EmployeeAssignment;
 use App\Models\EmployeeImportBatch;
 use App\Models\EmployeeImportBatchRow;
 use App\Models\Organization;
@@ -23,6 +21,7 @@ use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Vacancy\PositionCapacityService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -366,10 +365,10 @@ class EmployeeCsvImportService
     {
         $amharic = $locale === 'am';
 
-        $positions = Position::query()
+        // Positions with a free slot under the capacity rule (CON-5).
+        $positions = app(PositionCapacityService::class)->whereHasFreeSlot(Position::query()
             ->where('organization_id', $organization->id)
-            ->where('is_active', true)
-            ->whereDoesntHave('assignments', fn ($query) => $query->where('is_current', true)->where('assignment_status', AssignmentStatus::Active))
+            ->where('is_active', true))
             ->where(fn ($query) => $query->whereNull('organization_unit_id')->orWhereHas('organizationUnit', fn ($unit) => $unit->where('organization_id', $organization->id)->where('status', 'active')))
             ->with('organizationUnit:id,code,name_en,name_am')
             ->orderBy('job_position_code')->orderBy('id')
@@ -632,13 +631,14 @@ class EmployeeCsvImportService
                 $errors[] = __('employees.import.errors.positionNotInUnit', ['code' => $position->job_position_code]);
             }
 
-            if ($this->positionIsOccupied($position->id)) {
-                $errors[] = __('employees.import.errors.positionOccupied', ['code' => $position->job_position_code]);
-            }
-
-            // Claimed by an earlier row of this same file.
-            if (in_array($position->id, $claimedPositions, true)) {
-                $errors[] = __('employees.import.errors.positionDuplicatedInFile', ['code' => $position->job_position_code]);
+            // Capacity rule (CON-5): approved establishment slots, or one
+            // person. Earlier rows of this same file count against it.
+            $capacity = app(PositionCapacityService::class);
+            $claimedInFile = count(array_keys($claimedPositions, $position->id, true));
+            if ($capacity->currentOccupants($position->id) + $claimedInFile >= $capacity->capacity($position->id)) {
+                $errors[] = $claimedInFile === 0
+                    ? __('employees.import.errors.positionOccupied', ['code' => $position->job_position_code])
+                    : __('employees.import.errors.positionDuplicatedInFile', ['code' => $position->job_position_code]);
             }
         }
 
@@ -793,15 +793,6 @@ class EmployeeCsvImportService
             ->where('organization_id', $organization->id)
             ->where(fn ($query) => $query->where('job_position_code', $code)->orWhere('code', $code))
             ->first();
-    }
-
-    private function positionIsOccupied(string $positionId): bool
-    {
-        return EmployeeAssignment::query()
-            ->where('position_id', $positionId)
-            ->where('is_current', true)
-            ->where('assignment_status', AssignmentStatus::Active)
-            ->exists();
     }
 
     /** @param array<string, mixed> $row */

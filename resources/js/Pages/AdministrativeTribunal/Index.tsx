@@ -3,9 +3,11 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
+import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
+import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type TribunalCase = {
     id: string; case_number: string; status: string; hearing_date: string | null; decision_date: string | null;
     grievance: {
@@ -17,65 +19,73 @@ type TribunalCase = {
 };
 
 type Props = {
-    cases: { data: TribunalCase[]; links: unknown[] };
+    cases: LaravelPageMeta & { data: TribunalCase[] };
     filters: { status?: string };
     statuses: string[];
 };
 
-const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-
 export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.Element {
     const { locale, t } = useLocale();
     const am = locale === 'am';
+    const [status, setStatus] = useState(filters.status ?? '');
 
     return (
         <AuthenticatedLayout header={<PageHeader title={t('grievances.tribunalCases')} />}>
             <Head title={t('grievances.tribunalCases')} />
 
             <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <select className={inputCls} value={filters.status ?? ''} onChange={e => router.get(route('tribunal-cases.index'), e.target.value ? { status: e.target.value } : {}, { preserveState: true })}>
-                        <option value="">{t('grievances.filterByStatus')} — {t('common.all')}</option>
-                        {statuses.map(s => (
-                            <option key={s} value={s}>{t(`grievances.tribunalStatus${s.charAt(0).toUpperCase() + s.slice(1)}` as never)}</option>
-                        ))}
-                    </select>
-                </div>
+                <FilterPanel
+                    onSubmit={() => router.get(route('tribunal-cases.index'), status ? { status } : {}, { preserveState: true })}
+                    onReset={() => router.get(route('tribunal-cases.index'))}
+                    hasActiveFilters={Boolean(filters.status)}
+                >
+                    <FilterField label={t('grievances.status')}>
+                        <Select value={status} onChange={e => setStatus(e.target.value)}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            {statuses.map(s => (
+                                <option key={s} value={s}>{t(`grievances.tribunalStatus${s.charAt(0).toUpperCase() + s.slice(1)}` as never)}</option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
                                 {[t('grievances.caseNumber'), t('grievances.grievance'), t('grievances.organization'), t('grievances.hearingDate'), t('grievances.decisionDate'), t('grievances.status')].map(h => (
-                                    <th key={h} className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">{h}</th>
+                                    <th key={h} className={cx(tableHeaderCellClassName, 'text-left whitespace-nowrap')}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className={tableBodyClassName}>
                             {cases.data.map(c => (
-                                <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
-                                    <td className="px-4 py-3">
+                                <tr key={c.id} className={tableRowClassName}>
+                                    <td className={tableCellClassName}>
                                         <Link href={route('tribunal-cases.show', c.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{c.case_number}</Link>
                                     </td>
-                                    <td className="px-4 py-3 text-gray-700 dark:text-slate-200 max-w-xs truncate">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)] max-w-xs truncate')}>
                                         {c.grievance?.subject ?? '-'}
-                                        <div className="text-xs text-gray-400">{c.grievance?.reference_number}</div>
+                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{c.grievance?.reference_number}</div>
                                     </td>
-                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{(am ? c.grievance?.organization?.name_am : null) ?? c.grievance?.organization?.name_en ?? '-'}</td>
-                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{(am ? c.grievance?.organization?.name_am : null) ?? c.grievance?.organization?.name_en ?? '-'}</td>
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                         {c.hearing_date ? <LocalizedDateDisplay value={c.hearing_date} /> : '-'}
                                     </td>
-                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                         {c.decision_date ? <LocalizedDateDisplay value={c.decision_date} /> : '-'}
                                     </td>
-                                    <td className="px-4 py-3"><StatusBadge status={c.status} /></td>
+                                    <td className={tableCellClassName}><StatusBadge status={c.status} /></td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
+                    </div>
                     {cases.data.length === 0 && (
-                        <p className="px-4 py-8 text-center text-sm text-gray-400 dark:text-slate-500">{t('common.noResults')}</p>
+                        <EmptyState description={filters.status ? t('common.noMatchingRecords') : undefined} />
                     )}
+                    <ListPagination meta={cases} />
                 </div>
             </div>
         </AuthenticatedLayout>

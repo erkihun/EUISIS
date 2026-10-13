@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
+import { actionLinkClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 interface Endpoint {
     id: string;
     method: string;
@@ -60,90 +61,90 @@ export default function ApiManagementDocs({ markdown, scopes, groups }: Props) {
             <Head title={t('apiManagement.apiDocumentation')} />
 
             <div className="mb-4">
-                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                <Link href={route('api-management.index')} className={actionLinkClassName({ size: 'sm' })}>
                     &larr; {t('apiManagement.title')}
                 </Link>
             </div>
 
-            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.apiScopes')}</h3>
+            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <h3 className="mb-3 font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.apiScopes')}</h3>
                 <ul className="space-y-1">
                     {scopes.map((scope) => (
                         <li key={scope.value} className="flex flex-wrap items-center gap-2 text-sm">
-                            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-800 dark:bg-slate-800 dark:text-slate-200">
+                            <code className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-foreground)]">
                                 {scope.value}
                             </code>
-                            <span className="text-gray-600 dark:text-slate-400">{scope.label}</span>
+                            <span className="text-[color:var(--app-muted-foreground)]">{scope.label}</span>
                         </li>
                     ))}
                 </ul>
             </section>
 
-            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="mb-1 font-semibold text-gray-900 dark:text-slate-100">
+            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <h3 className="mb-1 font-semibold text-[color:var(--app-foreground)]">
                     {t('apiManagement.availableEndpoints')}
                 </h3>
-                <p className="mb-4 text-xs text-gray-500 dark:text-slate-400">
+                <p className="mb-4 text-xs text-[color:var(--app-muted-foreground)]">
                     {t('apiManagement.availableEndpointsHint')}
                 </p>
 
                 {populated.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-gray-500 dark:text-slate-400">
+                    <p className="py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">
                         {t('apiManagement.noDocumentedEndpoints')}
                     </p>
                 ) : (
                     <div className="space-y-6">
                         {populated.map((group) => (
                             <div key={group}>
-                                <h4 className="mb-2 text-sm font-semibold text-gray-800 dark:text-slate-200">
+                                <h4 className="mb-2 text-sm font-semibold text-[color:var(--app-foreground)]">
                                     {t(`apiManagement.group_${group}`)}
                                 </h4>
 
                                 <div className="overflow-x-auto">
-                                    <table className="min-w-full text-left text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-200 dark:border-slate-800">
-                                                <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">
+                                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                        <thead className={tableHeadClassName}>
+                                            <tr>
+                                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                                     {t('apiManagement.method')}
                                                 </th>
-                                                <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">
+                                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                                     {t('apiManagement.endpoint')}
                                                 </th>
-                                                <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">
+                                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                                     {t('apiManagement.requiredScope')}
                                                 </th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        <tbody className={tableBodyClassName}>
                                             {(groups[group] ?? []).map((endpoint) => (
                                                 <tr key={endpoint.id}>
-                                                    <td className="px-2 py-2 align-top">
+                                                    <td className={cx(tableCellClassName, 'align-top')}>
                                                         <span
                                                             className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${
                                                                 METHOD_COLORS[endpoint.method] ??
-                                                                'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300'
+                                                                'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]'
                                                             }`}
                                                         >
                                                             {endpoint.method}
                                                         </span>
                                                     </td>
-                                                    <td className="px-2 py-2">
-                                                        <code className="font-mono text-xs text-gray-800 dark:text-slate-200">
+                                                    <td className={tableCellClassName}>
+                                                        <code className="font-mono text-xs text-[color:var(--app-foreground)]">
                                                             {endpoint.uri}
                                                         </code>
                                                         {endpoint.description && (
-                                                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+                                                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
                                                                 {endpoint.description}
                                                             </p>
                                                         )}
                                                     </td>
-                                                    <td className="px-2 py-2 align-top">
+                                                    <td className={cx(tableCellClassName, 'align-top')}>
                                                         {endpoint.required_scope ? (
-                                                            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-800 dark:bg-slate-800 dark:text-slate-200">
+                                                            <code className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-foreground)]">
                                                                 {endpoint.required_scope}
                                                             </code>
                                                         ) : (
-                                                            <span className="text-xs text-gray-400 dark:text-slate-500">
+                                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">
                                                                 {t('apiManagement.unmapped')}
                                                             </span>
                                                         )}
@@ -159,13 +160,13 @@ export default function ApiManagementDocs({ markdown, scopes, groups }: Props) {
                 )}
             </section>
 
-            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                 {markdown ? (
-                    <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed text-gray-800 dark:text-slate-200">
+                    <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed text-[color:var(--app-foreground)]">
                         {markdown}
                     </pre>
                 ) : (
-                    <p className="py-8 text-center text-sm text-gray-500 dark:text-slate-400">{t('apiManagement.noDocs')}</p>
+                    <p className="py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('apiManagement.noDocs')}</p>
                 )}
             </section>
         </AuthenticatedLayout>

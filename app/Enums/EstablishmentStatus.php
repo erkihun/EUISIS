@@ -17,10 +17,6 @@ enum EstablishmentStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Draft => 'Draft',
-            self::Approved => 'Approved',
-            self::Archived => 'Archived',
-        };
+        return (string) __('enums.establishment_status.'.$this->value);
     }
 }

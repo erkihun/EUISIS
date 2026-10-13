@@ -101,7 +101,10 @@ class MonitorAssessmentOversight extends Command
         if ($pending > 0 && ! $dry) {
             $reviewers = User::permission('assessment_submissions.verify')->where('status', 'active')->limit(50)->get();
             // One digest a day, not one message per submission.
-            $reviewers = $reviewers->reject(fn (User $u) => $u->notifications()->where('data->kind', 'assessment_verification_pending')->whereDate('created_at', $today)->exists());
+            // notifications.data is a text column: PostgreSQL has no JSON operators for it, so
+            // the (few) notifications of today are filtered here rather than in SQL.
+            $reviewers = $reviewers->reject(fn (User $u) => $u->notifications()->whereDate('created_at', $today)->get(['data'])
+                ->contains(fn ($notification): bool => ($notification->data['kind'] ?? null) === 'assessment_verification_pending'));
             if ($reviewers->isNotEmpty()) {
                 Notification::send($reviewers, new PerformanceNotification('assessment_verification_pending', route('assessment-oversight.submissions', ['status' => 'submitted'], false), ['database']));
             }

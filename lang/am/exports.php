@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 return [
-    'export' => 'ወደ ውጭ ላክ',
-    'export_csv' => 'CSV ወደ ውጭ ላክ',
-    'export_excel' => 'Excel ወደ ውጭ ላክ',
-    'export_pdf' => 'PDF ወደ ውጭ ላክ',
+    'export' => 'ወደ ፋይል ያውጡ',
+    'export_csv' => 'በCSV ያውጡ',
+    'export_excel' => 'በExcel ያውጡ',
+    'export_pdf' => 'በPDF ያውጡ',
     'generating' => 'በመፍጠር ላይ…',
-    'export_success' => 'ወደ ውጭ መላኩ በተሳካ ሁኔታ ተጠናቋል።',
-    'export_error' => 'ወደ ውጭ መላኩ አልተሳካም። እባክዎ እንደገና ይሞክሩ።',
+    'export_success' => 'ፋይሉ ተዘጋጅቷል።',
+    'export_error' => 'ፋይሉን ማዘጋጀት አልተሳካም። እባክዎ እንደገና ይሞክሩ።',
     'no' => 'ተ.ቁ.',
     'name' => 'ስም',
     'employee_number' => 'የሠራተኛ ቁጥር',

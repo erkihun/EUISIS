@@ -10,7 +10,7 @@ const roleStyles: Record<string, string> = {
     'Auditor': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
 };
 
-const defaultStyle = 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300';
+const defaultStyle = 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]';
 
 export default function RoleBadge({ role, className = '' }: Props) {
     const style = roleStyles[role] ?? defaultStyle;

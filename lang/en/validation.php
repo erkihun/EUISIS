@@ -62,4 +62,5 @@ return [
     ],
     'position_already_occupied' => 'This position is no longer available. Please select another position.',
     'organization_scope_denied' => 'Access denied outside your organization scope.',
+    'public_site' => ['url_not_allowed' => 'Enter a full https:// address without spaces.', 'route_not_allowed' => 'This page cannot be linked from the public site.'],
 ];

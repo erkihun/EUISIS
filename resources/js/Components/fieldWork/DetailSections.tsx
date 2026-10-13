@@ -9,7 +9,7 @@ import type { FieldWorkDetail } from './types';
 function Section({ title, children }: { title: string; children: ReactNode }) {
     return (
         <section className={`${panelCls} p-4`}>
-            <h2 className="mb-2 text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
+            <h2 className="mb-2 text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
             {children}
         </section>
     );
@@ -20,8 +20,8 @@ function Meta({ rows }: { rows: [string, ReactNode][] }) {
         <dl className="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[12rem_1fr]">
             {rows.map(([label, value]) => (
                 <div key={label} className="contents">
-                    <dt className="text-gray-500 dark:text-slate-400">{label}</dt>
-                    <dd className="whitespace-pre-line break-words text-gray-900 dark:text-slate-100">{value ?? '—'}</dd>
+                    <dt className="text-[color:var(--app-muted-foreground)]">{label}</dt>
+                    <dd className="whitespace-pre-line break-words text-[color:var(--app-foreground)]">{value ?? '—'}</dd>
                 </div>
             ))}
         </dl>
@@ -62,7 +62,7 @@ export default function DetailSections({ fieldWork }: { fieldWork: FieldWorkDeta
     return (
         <>
             <div className="flex flex-wrap items-center gap-2">
-                <span className="text-base font-semibold text-gray-900 dark:text-slate-100">{fieldWork.reference_number}</span>
+                <span className="text-base font-semibold text-[color:var(--app-foreground)]">{fieldWork.reference_number}</span>
                 <FieldWorkStatusBadge status={fieldWork.status} />
                 {fieldWork.monitoring_flag && <FlagBadge flag={fieldWork.monitoring_flag} />}
                 {fieldWork.status === 'pending_supervisor_approval' && fieldWork.supervisor_resolution === 'supervisor_not_resolved' && <FlagBadge flag="supervisor_not_resolved" />}
@@ -88,13 +88,13 @@ export default function DetailSections({ fieldWork }: { fieldWork: FieldWorkDeta
 
             <Section title={t('fieldWork.show.participants')}>
                 {fieldWork.location_visibility === 'precise' && <p className="mb-2 text-xs text-amber-800 dark:text-amber-300">{t('fieldWork.gps.precise')}</p>}
-                <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                <ul className="divide-y divide-[color:var(--app-border)]">
                     {fieldWork.participants.map((p) => (
                         <li key={p.id} className="py-2 text-sm">
-                            <p className="font-medium text-gray-900 dark:text-slate-100">
-                                {employeeName(p.employee, locale)} <span className="text-xs font-normal text-gray-500 dark:text-slate-400">· {p.employee?.employee_number} · {t(`fieldWork.roles.${p.role}`)}</span>
+                            <p className="font-medium text-[color:var(--app-foreground)]">
+                                {employeeName(p.employee, locale)} <span className="text-xs font-normal text-[color:var(--app-muted-foreground)]">· {p.employee?.employee_number} · {t(`fieldWork.roles.${p.role}`)}</span>
                             </p>
-                            <p className="text-xs text-gray-600 dark:text-slate-400">
+                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                 {p.checked_in_at ? <>{t('fieldWork.show.checkedIn')} <LocalizedDateDisplay value={p.checked_in_at} withTime /></> : t('fieldWork.show.notCheckedIn')}
                                 {' · '}
                                 {p.checked_out_at ? <>{t('fieldWork.show.checkedOut')} <LocalizedDateDisplay value={p.checked_out_at} withTime /></> : t('fieldWork.show.notCheckedOut')}
@@ -102,13 +102,13 @@ export default function DetailSections({ fieldWork }: { fieldWork: FieldWorkDeta
                             {p.events.length > 0 && (
                                 <ul className="mt-1 space-y-1">
                                     {p.events.map((e) => (
-                                        <li key={e.id} className="flex flex-wrap items-center gap-2 text-xs text-gray-700 dark:text-slate-300">
+                                        <li key={e.id} className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--app-foreground)]">
                                             <span className="font-medium">{t(`fieldWork.eventTypes.${e.event_type}`)}</span>
                                             <LocationBadge status={e.validation_status} />
                                             {e.review_state === 'pending_supervisor_review' && <StatusBadge status="returned" label={t('fieldWork.gps.reviewRequired')} />}
                                             <LocalizedDateDisplay value={e.captured_at} withTime />
                                             {e.latitude !== undefined && (
-                                                <span className="tabular-nums text-gray-500 dark:text-slate-400">
+                                                <span className="tabular-nums text-[color:var(--app-muted-foreground)]">
                                                     {t('fieldWork.gps.coordinates')}: {e.latitude}, {e.longitude}
                                                     {e.accuracy_m != null && ` · ${t('fieldWork.gps.accuracy')} ±${Math.round(e.accuracy_m)} m`}
                                                     {e.distance_m != null && ` · ${t('fieldWork.gps.distance')} ${Math.round(e.distance_m)} m`}
@@ -136,15 +136,15 @@ export default function DetailSections({ fieldWork }: { fieldWork: FieldWorkDeta
             )}
 
             <Section title={t('fieldWork.show.history')}>
-                <ol className="space-y-2 border-s border-gray-200 ps-4 dark:border-slate-700">
+                <ol className="space-y-2 border-s border-[color:var(--app-border)] ps-4">
                     {fieldWork.history.map((entry, index) => (
                         <li key={`${entry.action}-${index}`} className="text-sm">
-                            <p className="text-gray-900 dark:text-slate-100">
+                            <p className="text-[color:var(--app-foreground)]">
                                 <span className="font-medium">{t(`fieldWork.historyActions.${entry.action}`)}</span>
-                                {entry.actor && <span className="text-gray-600 dark:text-slate-400"> · {entry.actor}</span>}
-                                <span className="text-xs text-gray-500 dark:text-slate-400"> · <LocalizedDateDisplay value={entry.at} withTime /></span>
+                                {entry.actor && <span className="text-[color:var(--app-muted-foreground)]"> · {entry.actor}</span>}
+                                <span className="text-xs text-[color:var(--app-muted-foreground)]"> · <LocalizedDateDisplay value={entry.at} withTime /></span>
                             </p>
-                            {entry.comment && <p className="whitespace-pre-line text-gray-700 dark:text-slate-300">{entry.comment}</p>}
+                            {entry.comment && <p className="whitespace-pre-line text-[color:var(--app-foreground)]">{entry.comment}</p>}
                         </li>
                     ))}
                 </ol>

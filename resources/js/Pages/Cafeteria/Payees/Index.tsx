@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, router } from '@inertiajs/react';
-import { Button, DataTable, FilterBar, type ColumnDef } from '@euisis/ui';
+import { Button, DataTable, type ColumnDef, FilterField, FilterPanel, Input } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { pageTo, StatusPill, useNames, type Meta } from '@/Components/Cafeteria/PolicyUi';
@@ -32,9 +32,11 @@ export default function PayeesIndex({ rows, meta, filters, can }: { rows: Row[];
             actions={can.manage ? <Button as={Link} href={route('cafeteria.payees.create')} variant="primary" size="sm">{t('cafeteriaPolicy.create')}</Button> : undefined} />}>
             <Head title={t('cafeteriaPolicy.providers')} />
             <div className="space-y-4">
-                <FilterBar search={search} onSearchChange={setSearch} onSubmit={() => router.get(route('cafeteria.payees.index'), { search }, { preserveState: true })}
-                    hasActiveFilters={Boolean(search)} onReset={() => router.get(route('cafeteria.payees.index'))}
-                    actions={<Button type="submit" size="sm">{t('cafeteriaPolicy.search')}</Button>} />
+                <FilterPanel onSubmit={() => router.get(route('cafeteria.payees.index'), { search }, { preserveState: true })} onReset={() => router.get(route('cafeteria.payees.index'))} hasActiveFilters={Boolean(search)}>
+                    <FilterField label={t('cafeteriaPolicy.search')} wide>
+                        <Input type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+                    </FilterField>
+                </FilterPanel>
                 <DataTable data={rows} columns={columns} emptyTitle={t('cafeteriaPolicy.noResults')} pagination={meta} onPageChange={pageTo(route('cafeteria.payees.index'), filters)} />
             </div>
         </AuthenticatedLayout>

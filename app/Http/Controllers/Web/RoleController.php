@@ -23,19 +23,29 @@ class RoleController extends Controller
 {
     public function __construct(private readonly WriteAuditLogAction $writeAuditLogAction) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', Role::class);
 
         /** @var User $actor */
         $actor = Auth::user();
 
+        // The same filter bar as every other list: search by name and the role's scope, kept in the query string.
+        $scope = $request->string('scope')->toString();
+        $filters = [
+            'search' => $request->string('search')->trim()->toString(),
+            'scope' => in_array($scope, ['global', 'scoped'], true) ? $scope : '',
+        ];
+
         $roles = Role::query()
             ->withCount('users')
             ->with('permissions:id,name')
+            ->when($filters['search'] !== '', fn ($query) => $query->where('name', ci_like_operator(), '%'.$filters['search'].'%'))
+            ->when($filters['scope'] !== '', fn ($query) => $query->where('scope_type', $filters['scope']))
             ->orderBy('name')
-            ->get()
-            ->map(fn (Role $r) => [
+            ->paginate(25)
+            ->withQueryString()
+            ->through(fn (Role $r) => [
                 'id' => $r->id,
                 'name' => $r->name,
                 'scope_type' => $r->scope_type->value,
@@ -51,6 +61,7 @@ class RoleController extends Controller
 
         return Inertia::render('Roles/Index', [
             'roles' => $roles,
+            'filters' => $filters,
             'can' => [
                 'create' => $actor?->can('create', Role::class) ?? false,
             ],

@@ -9,13 +9,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use App\Http\Requests\ProviderPortal\ProviderScanRequest;
 use App\Http\Resources\CafeteriaTransactionResource;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaProviderLedgerEntry;
 use App\Models\CafeteriaTransaction;
 use App\Models\Employee;
 use App\Services\Cafeteria\CafeteriaCalendarService;
+use App\Services\Cafeteria\CafeteriaProviderLedgerService;
 use App\Services\Cafeteria\CafeteriaSettingsService;
-use App\Services\Cafeteria\Policy\CafeteriaPricing;
 use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -59,43 +57,30 @@ class ProviderScanController extends Controller
 
         $scannedAt = Carbon::now();
 
-        $result = $action->execute(
-            $request->validated('qr_token'),
-            $provider,
-            $scannedAt,
-            $request->user(),
-            $request,
-            [
-                'usage_mode' => $request->validated('usage_mode'),
-                'scan_nonce' => $request->validated('scan_nonce'),
-            ],
-        );
+        // The scan and its ledger credit commit together: the ledger can no
+        // longer miss a recorded scan (risk register CON-9). The ledger
+        // service keeps a running balance under the provider lock instead of
+        // summing the provider's whole ledger on every scan.
+        $result = DB::transaction(function () use ($action, $request, $provider, $scannedAt): array {
+            $result = $action->execute(
+                $request->validated('qr_token'),
+                $provider,
+                $scannedAt,
+                $request->user(),
+                $request,
+                [
+                    'usage_mode' => $request->validated('usage_mode'),
+                    'scan_nonce' => $request->validated('scan_nonce'),
+                ],
+            );
 
-        $transaction = $result['transaction'];
-        if ($result['allowed'] && $transaction !== null && ! ($result['duplicate'] ?? false)) {
-            DB::transaction(function () use ($provider, $transaction, $request): void {
-                // Two counters scanning at once must not both build on the same
-                // previous balance: serialise on the cafeteria and total the
-                // ledger rather than trusting the "latest" row's timestamp.
-                CafeteriaProvider::query()->whereKey($provider->id)->lockForUpdate()->first();
-                $balance = CafeteriaPricing::toCents((string) CafeteriaProviderLedgerEntry::query()
-                    ->where('cafeteria_provider_id', $provider->id)
-                    ->selectRaw('round(coalesce(sum(credit), 0) - coalesce(sum(debit), 0), 2) as balance')
-                    ->value('balance'));
+            $transaction = $result['transaction'];
+            if ($result['allowed'] && $transaction !== null && ! ($result['duplicate'] ?? false)) {
+                app(CafeteriaProviderLedgerService::class)->credit($transaction, $this->staffUserId($request));
+            }
 
-                CafeteriaProviderLedgerEntry::query()->create([
-                    'cafeteria_provider_id' => $provider->id,
-                    'cafeteria_transaction_id' => $transaction->id,
-                    'entry_date' => $transaction->transaction_date,
-                    'entry_type' => 'scan_subsidy',
-                    'debit' => 0,
-                    'credit' => $transaction->subsidy_amount_applied,
-                    'balance_after' => CafeteriaPricing::format($balance + CafeteriaPricing::toCents((string) $transaction->subsidy_amount_applied)),
-                    'description' => $transaction->transaction_number,
-                    'created_by' => $this->staffUserId($request),
-                ]);
-            });
-        }
+            return $result;
+        });
 
         return back()->with([
             'provider_scan_result' => $this->scanResultPayload($result),

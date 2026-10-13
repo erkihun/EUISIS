@@ -167,7 +167,7 @@ export default function Dashboard({ assigned, queue, intakePending, approvalsPen
 
 function Count({ value, inverted = false }: { value: number; inverted?: boolean }): JSX.Element {
     return (
-        <span className={cx('inline-flex h-5 min-w-[1.375rem] items-center justify-center rounded-full px-1.5 text-xs font-bold tabular-nums', inverted ? 'bg-white/20' : 'bg-[color:var(--app-surface-muted)]')}>
+        <span className={cx('inline-flex h-5 min-w-[1.375rem] items-center justify-center rounded-full px-1.5 text-xs font-bold tabular-nums', inverted ? 'bg-[color:color-mix(in_srgb,var(--app-surface)_20%,transparent)]' : 'bg-[color:var(--app-surface-muted)]')}>
             {value.toLocaleString()}
         </span>
     );

@@ -23,12 +23,12 @@ const gridCols: Record<2 | 3, string> = {
  */
 export default function FormSection({ title, description, aside, grid = true, columns = 2, children }: Props) {
     return (
-        <section className="border-t border-gray-100 pt-6 first:border-t-0 first:pt-0 dark:border-slate-800">
+        <section className="border-t border-[color:var(--app-border)] pt-6 first:border-t-0 first:pt-0">
             <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
+                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
                     {description && (
-                        <p className="mt-1 max-w-2xl text-xs text-gray-500 dark:text-slate-400">{description}</p>
+                        <p className="mt-1 max-w-2xl text-xs text-[color:var(--app-muted-foreground)]">{description}</p>
                     )}
                 </div>
                 {aside && <div className="shrink-0">{aside}</div>}

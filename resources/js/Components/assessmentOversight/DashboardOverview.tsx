@@ -23,8 +23,8 @@ export default function DashboardOverview({ cycle, totals, peers, evaluatorsAvai
     return <>
         <Section title={t('assessmentOversight.dashboardCycle')}>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                <div><p className="text-xs text-gray-500">{t('assessmentOversight.status')}</p><p className="mt-1 font-semibold">{t(`assessmentOversight.cycleStatuses.${cycle.status}`)}</p></div>
-                {dates.map(([key, value]) => <div key={key}><p className="text-xs text-gray-500">{t(`assessmentOversight.cycleForm.${key}`)}</p><p className="mt-1 text-sm font-medium"><LocalizedDateDisplay value={value} fallback={t('assessmentOversight.notAvailable')} /></p></div>)}
+                <div><p className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.status')}</p><p className="mt-1 font-semibold">{t(`assessmentOversight.cycleStatuses.${cycle.status}`)}</p></div>
+                {dates.map(([key, value]) => <div key={key}><p className="text-xs text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.cycleForm.${key}`)}</p><p className="mt-1 text-sm font-medium"><LocalizedDateDisplay value={value} fallback={t('assessmentOversight.notAvailable')} /></p></div>)}
             </div>
         </Section>
         <KpiGroup title={t('assessmentOversight.dashboardWorkload')}>

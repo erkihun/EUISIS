@@ -69,7 +69,7 @@ export default function PublicLayout({ title, description, meta, noindex = false
             >
                 <a
                     href="#main-content"
-                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-gray-900 focus:shadow focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
+                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-[color:var(--app-surface)] focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-[color:var(--app-foreground)] focus:shadow focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
                 >
                     {t('publicSite.skipToContent')}
                 </a>

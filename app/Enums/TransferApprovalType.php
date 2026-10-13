@@ -12,11 +12,7 @@ enum TransferApprovalType: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Release => 'Release Approval',
-            self::Receiving => 'Receiving Approval',
-            self::Final => 'Final Approval',
-        };
+        return (string) __('enums.transfer_approval_type.'.$this->value);
     }
 
     /** Status that the application must be in before this approval type is triggered. */

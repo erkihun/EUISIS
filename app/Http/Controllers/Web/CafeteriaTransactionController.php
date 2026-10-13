@@ -8,7 +8,6 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Cafeteria\ProcessCafeteriaQrScanAction;
 use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
 use App\Enums\AuditEventType;
-use App\Enums\CafeteriaTransactionStatus;
 use App\Exports\Cafeteria\TransactionStatementExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProcessCafeteriaQrScanRequest;
@@ -28,12 +27,16 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CafeteriaTransactionController extends Controller
 {
+    /** Most rows a statement export rendered in a web request may hold. */
+    private const STATEMENT_EXPORT_ROW_LIMIT = 20000;
+
     public function __construct(
         private readonly CafeteriaProviderAccessService $providerAccess,
         private readonly CafeteriaCalendarService $calendarService,
@@ -100,12 +103,20 @@ class CafeteriaTransactionController extends Controller
 
         $filters = $statement->filters($request);
         $query = $statement->query($request->user(), $filters);
-        $transactions = $query->with(['employee', 'provider'])->orderBy('transaction_date')->orderBy('scanned_at')->get();
-        // Summarize the exact exported snapshot, including every page.
-        $accepted = $transactions->where('status', CafeteriaTransactionStatus::Accepted);
-        $summary = ['total' => $transactions->count(), 'accepted' => $accepted->count(),
-            'meals' => $accepted->sum('meal_amount'), 'subsidy' => $accepted->sum('subsidy_amount_applied'),
-            'employee_payable' => $accepted->sum('employee_payable_amount'), 'deductions' => $accepted->sum('deduction_amount')];
+
+        // A web-request export is bounded (risk register SCL-5): totals are
+        // summed by the database, and an export larger than the row limit
+        // (e.g. "all time" at city scale) asks for a narrower period instead
+        // of loading millions of rows into memory.
+        $rowLimit = (int) config('cafeteria.statement_export_row_limit', self::STATEMENT_EXPORT_ROW_LIMIT);
+        $rowCount = (clone $query)->count();
+        if ($rowCount > $rowLimit) {
+            throw ValidationException::withMessages([
+                'period' => __('cafeteria-statement.export_too_large', ['count' => number_format($rowCount), 'limit' => number_format($rowLimit)]),
+            ]);
+        }
+        $summary = $statement->summary($query);
+        $transactions = $query->with(['employee:id,full_name,employee_number', 'provider'])->orderBy('transaction_date')->orderBy('scanned_at')->get();
         $provider = $filters['provider_id'] ? CafeteriaProvider::find($filters['provider_id']) : null;
         if ($provider) {
             abort_unless($this->providerAccess->canAccessProvider($request->user(), $provider), 403);

@@ -11,6 +11,8 @@ use App\Enums\Grievance\GrievanceCaseOfficerRole;
 use App\Enums\Grievance\GrievanceConfidentiality;
 use App\Enums\Grievance\GrievanceCorrectiveActionStatus;
 use App\Enums\Grievance\GrievanceHandlerType;
+use App\Enums\Grievance\GrievanceInitialResolutionOutcome;
+use App\Enums\Grievance\GrievanceInitialResolutionStatus;
 use App\Enums\Grievance\GrievanceMovementType;
 use App\Enums\Grievance\GrievancePriority;
 use App\Enums\Grievance\GrievanceReasonCodeType;
@@ -22,6 +24,7 @@ use App\Enums\Grievance\GrievanceTaskStatus;
 use App\Enums\Grievance\GrievanceTaskType;
 use App\Enums\GrievanceOriginLevel;
 use App\Enums\GrievanceStatus;
+use App\Exceptions\Grievances\InitialResolutionRequiredException;
 use App\Models\Grievance;
 use App\Models\GrievanceAmendment;
 use App\Models\GrievanceCaseOfficer;
@@ -29,10 +32,14 @@ use App\Models\GrievanceCaseStage;
 use App\Models\GrievanceCategory;
 use App\Models\GrievanceCorrectiveAction;
 use App\Models\GrievanceDisciplinaryReferral;
+use App\Models\GrievanceInitialIssue;
 use App\Models\GrievanceNote;
 use App\Models\GrievanceReasonCode;
+use App\Models\GrievanceStatusHistory;
 use App\Models\GrievanceTask;
 use App\Models\User;
+use App\Services\Legal\StatutoryDeadlineService;
+use App\Support\Legal\Regulation201;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -170,6 +177,206 @@ final class GrievanceCaseService
         });
     }
 
+    // ── Initial resolution (pre-grievance, Regulation 201/2018 Art. 33(1)) ────
+
+    /**
+     * Record the written issue the employee raises with the immediate
+     * supervisor / responsible officer before any formal grievance. Identity
+     * and placement are resolved from the authenticated actor and snapshotted;
+     * any employee/organization ids in $data are ignored.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function raiseInitialIssue(User $actor, array $data): GrievanceInitialIssue
+    {
+        $this->access->authorize($actor->can('grievances.create'));
+        if (! $this->settings->enabled()) {
+            throw ValidationException::withMessages(['grievance' => __('grievances.errors.module_disabled')]);
+        }
+
+        $employee = $this->access->employeeOf($actor);
+        $placement = $this->handlers->placementOf($employee);
+        if ($employee === null || $placement['organization_id'] === null) {
+            throw ValidationException::withMessages(['grievance' => __('grievances.errors.no_employee_record')]);
+        }
+
+        return DB::transaction(function () use ($actor, $data, $employee, $placement): GrievanceInitialIssue {
+            $issue = GrievanceInitialIssue::query()->create([
+                'employee_id' => $employee->getKey(),
+                'employee_assignment_id' => $placement['assignment_id'],
+                'organization_id' => $placement['organization_id'],
+                'organization_unit_id' => $placement['unit_ids'][0] ?? null,
+                'position_id' => $placement['position_id'],
+                'issue_subject' => $data['issue_subject'],
+                'issue_description' => $data['issue_description'],
+                'requested_resolution' => $data['requested_resolution'] ?? null,
+                'written_issue_raised_at' => now(),
+                'status' => GrievanceInitialResolutionStatus::Pending,
+            ]);
+
+            $this->audit->record(AuditEventType::GrievanceInitialIssueRaised, $actor, $issue, [
+                'employee_id' => $employee->getKey(),
+            ]);
+
+            return $issue;
+        });
+    }
+
+    /**
+     * Record the outcome of the initial discussion. A resolved matter is
+     * terminal and never becomes a formal grievance; an unresolved or
+     * unanswered matter is marked Failed and may start the filing window.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function recordInitialResolution(
+        GrievanceInitialIssue $issue,
+        User $actor,
+        GrievanceInitialResolutionOutcome $outcome,
+        array $data,
+    ): GrievanceInitialIssue {
+        $this->access->authorize($actor->can('grievances.create'));
+
+        return DB::transaction(function () use ($issue, $actor, $outcome, $data): GrievanceInitialIssue {
+            $issue->update([
+                'outcome' => $outcome,
+                'status' => $outcome === GrievanceInitialResolutionOutcome::Resolved
+                    ? GrievanceInitialResolutionStatus::Resolved
+                    : GrievanceInitialResolutionStatus::Failed,
+                'discussion_notes' => $data['discussion_notes'] ?? $issue->discussion_notes,
+                'officer_response' => $data['officer_response'] ?? $issue->officer_response,
+                'discussion_date' => $data['discussion_date'] ?? $issue->discussion_date ?? now(),
+                'resolved_at' => now(),
+            ]);
+
+            $this->audit->record(AuditEventType::GrievanceInitialResolutionRecorded, $actor, $issue, [
+                'outcome' => $outcome->value,
+            ]);
+
+            return $issue->refresh();
+        });
+    }
+
+    /**
+     * File a formal grievance from a completed, unresolved initial issue
+     * (Regulation 201/2018 Art. 33(1)). Submission-time context is snapshotted
+     * from the issue so a later transfer cannot rewrite the grievance origin,
+     * then the existing submit() carries the routing/intake flow.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function submitFormalGrievance(GrievanceInitialIssue $issue, User $actor, array $data): Grievance
+    {
+        $this->access->authorize($actor->can('grievances.create'));
+        if (! $this->settings->enabled()) {
+            throw ValidationException::withMessages(['grievance' => __('grievances.errors.module_disabled')]);
+        }
+
+        if ((bool) config('grievance.initial_resolution.require_before_formal', true)
+            && $issue->status !== GrievanceInitialResolutionStatus::Failed) {
+            throw $issue->status === GrievanceInitialResolutionStatus::Resolved
+                ? InitialResolutionRequiredException::notFailed()
+                : InitialResolutionRequiredException::missing();
+        }
+
+        $category = $this->activeCategory($data['category_id'] ?? null);
+
+        $deadlines = app(StatutoryDeadlineService::class);
+        $clockStart = $issue->resolved_at ?? now();
+        $filingDueAt = $deadlines->dueAt(Regulation201::GRIEVANCE_COMMITTEE_FILING, $clockStart);
+
+        $grievance = DB::transaction(function () use ($actor, $data, $issue, $category, $clockStart, $filingDueAt, $deadlines): Grievance {
+            $grievance = Grievance::query()->create([
+                'reference_number' => 'DRAFT-'.strtoupper((string) Str::ulid()),
+                'submitted_by_user_id' => $actor->getKey(),
+                'employee_id' => $issue->employee_id,
+                'employee_assignment_id' => $issue->employee_assignment_id,
+                'organization_id' => $issue->organization_id,
+                'organization_unit_id' => $issue->organization_unit_id,
+                'position_id' => $issue->position_id,
+                'immediate_supervisor_employee_id' => $issue->responsible_officer_employee_id,
+                'initial_issue_id' => $issue->getKey(),
+                'origin_level' => $issue->organization_unit_id !== null
+                    ? GrievanceOriginLevel::OrganizationUnit
+                    : GrievanceOriginLevel::Organization,
+                'category_id' => $category->getKey(),
+                'subject' => $issue->issue_subject,
+                'description' => $data['cause_of_grievance'] ?? $issue->issue_description,
+                'incident_date' => $data['incident_date'] ?? null,
+                'respondent_description' => $data['respondent_description'] ?? $issue->responsible_officer_name_snapshot,
+                'priority' => GrievancePriority::tryFrom((string) $category->default_priority) ?? GrievancePriority::Normal,
+                'confidentiality_level' => GrievanceConfidentiality::tryFrom((string) $category->default_confidentiality) ?? GrievanceConfidentiality::NormalConfidential,
+                'status' => GrievanceStatus::Draft,
+                'record_state' => GrievanceRecordState::Active,
+                'filing_clock_started_at' => $clockStart,
+                'filing_deadline_at' => $filingDueAt,
+                'is_late_submission' => now()->greaterThan($filingDueAt),
+                'metadata' => ['requested_remedy' => $data['requested_remedy'] ?? null],
+            ]);
+
+            $issue->update(['grievance_id' => $grievance->getKey()]);
+            $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_COMMITTEE_FILING, $clockStart);
+            $this->audit->record(AuditEventType::GrievanceDraftCreated, $actor, $grievance, [
+                'category_id' => $category->getKey(),
+                'initial_issue_id' => $issue->getKey(),
+            ]);
+
+            return $grievance;
+        });
+
+        $submitted = $this->submit($grievance, $actor);
+        $this->recordStatusTransition($submitted, GrievanceStatus::Draft, GrievanceStatus::Submitted, $actor, 'formal_submission');
+
+        return $submitted;
+    }
+
+    /**
+     * Record the force-majeure late-filing review (Regulation 201/2018
+     * Art. 33(2)). A late filing is never auto-accepted; only an authorized
+     * intake reviewer may accept or reject it.
+     */
+    public function reviewLateSubmission(Grievance $grievance, User $actor, bool $accept, string $reason): Grievance
+    {
+        $this->access->authorize($actor->can('grievances.intake_review'));
+
+        return DB::transaction(function () use ($grievance, $actor, $accept, $reason): Grievance {
+            $grievance = $this->lock($grievance);
+            if (! $grievance->is_late_submission) {
+                throw ValidationException::withMessages(['grievance' => __('grievances.errors.not_late_submission')]);
+            }
+            $grievance->forceFill([
+                'late_review_status' => $accept ? 'accepted' : 'rejected',
+                'late_reviewed_by' => $actor->getKey(),
+                'late_reviewed_at' => now(),
+                'late_decision_reason' => $reason,
+            ])->save();
+
+            $this->audit->record(AuditEventType::GrievanceSubmitted, $actor, $grievance, [
+                'late_review_status' => $grievance->late_review_status,
+            ]);
+
+            return $grievance->refresh();
+        });
+    }
+
+    private function recordStatusTransition(
+        Grievance $grievance,
+        ?GrievanceStatus $from,
+        GrievanceStatus $to,
+        ?User $actor,
+        ?string $reason = null,
+    ): void {
+        GrievanceStatusHistory::query()->create([
+            'grievance_id' => $grievance->getKey(),
+            'from_status' => $from?->value,
+            'to_status' => $to->value,
+            'actor_user_id' => $actor?->getKey(),
+            'actor_employee_id' => $actor?->employee_id,
+            'reason' => $reason,
+            'transitioned_at' => now(),
+        ]);
+    }
+
     // ── Submission and intake ────────────────────────────────────────────────
 
     public function submit(Grievance $grievance, User $actor): Grievance
@@ -289,6 +496,12 @@ final class GrievanceCaseService
         }
 
         $grievance->forceFill(['accepted_at' => now()])->save();
+
+        // Regulation 201/2018 Art. 34(3): the committee has 15 working days
+        // from receipt to report to the institution head. Snapshotted once so
+        // later holiday/work-week changes never move an open deadline.
+        app(StatutoryDeadlineService::class)->snapshot($grievance, Regulation201::GRIEVANCE_COMMITTEE_REPORT, now());
+
         $this->routing->createStage($grievance, $initial['type'], $initial['id'], GrievanceMovementType::InitialAssignment, $initial['route'], null, $notes, $actor);
         $this->notifier->toComplainant($grievance, 'accepted');
     }

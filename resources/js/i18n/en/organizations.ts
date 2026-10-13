@@ -197,6 +197,7 @@ const organizations = {
     employeePhoto: 'Employee Photo',
     noPhoto: 'No Photo',
     photoUnavailable: 'Photo unavailable',
+    positionsByStatus: 'Positions by Status',
 } as const;
 
 export default organizations;

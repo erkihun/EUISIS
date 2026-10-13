@@ -1,3 +1,8 @@
+@php
+    // System attribution only (rebrand brief §56): the poster's subject stays the primary identity.
+    $branding = app(App\Services\Branding\BrandingService::class);
+    $organizationName = (string) app(App\Services\SystemSettings\SystemSettingsService::class)->get('general', 'organization_name', 'Addis Ababa City Administration');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,10 +38,10 @@
         {{-- Matches the public page heading so the printed sheet and the page
              it opens read as one thing to the client. --}}
         <div class="title">Feedback and Suggestion</div>
-        <div class="title-am">ግብረመልስ እና አስተያየት</div>
+        <div class="title-am">ግብረ መልስ እና አስተያየት</div>
 
         <div class="prompt">Scan this code with your phone camera to give feedback.</div>
-        <div class="prompt-am">ግብረመልስ ለመስጠት ይህን ኮድ በስልክዎ ካሜራ ይስካኑ።</div>
+        <div class="prompt-am">ግብረ መልስ ለመስጠት ይህን ኮድ በስልክዎ ካሜራ ይስካኑ።</div>
 
         <div class="qr">
             @if ($qr !== '')
@@ -59,7 +64,8 @@
         <div class="url">{{ $url }}</div>
 
         <div class="footer">
-            Addis Ababa City Administration — Employee Unified ID and Service Integration System
+            {{ $organizationName }} — {{ $branding->officialNameEn() }} ({{ $branding->shortName() }})<br>
+            {{ $branding->officialNameAm() }}
         </div>
     </div>
 </body>

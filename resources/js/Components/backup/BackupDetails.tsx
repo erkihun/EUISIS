@@ -3,6 +3,7 @@ import { Alert, Card, EmptyState, StatusBadge, cx } from '@euisis/ui';
 import { FactRow } from './BackupHealthOverview';
 import { toneClasses, toneFor, useBackupText, useTime, type BackupHealth, type HistoryItem, type Issue, type Policy } from './backupUi';
 
+import { tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
 const SEVERITIES = [
     { severity: 'CRITICAL', tone: 'danger' },
     { severity: 'WARNING', tone: 'warning' },
@@ -135,13 +136,13 @@ export function HistoryPanel({ history }: { history: HistoryItem[] }) {
 
     return (
         <div className="overflow-x-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)]">
-            <table className="w-full text-left text-sm">
-                <thead className="bg-[color:var(--app-surface-muted)] text-xs text-[color:var(--app-muted-foreground)]">
+            <table className={cx(tableClassName, 'text-left')}>
+                <thead className={tableHeadClassName}>
                     <tr>
                         {['started', 'operation', 'repository', 'target', 'result'].map((key) => <th key={key} scope="col" className={cx(cell, 'font-medium')}>{t(`backup.${key}`)}</th>)}
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-[color:var(--app-border)]">
+                <tbody className={tableBodyClassName}>
                     {history.map((item) => (
                         <tr key={item.id}>
                             <td className={cx(cell, 'whitespace-nowrap')} title={time.absolute(item.started_at)}>{time.relative(item.started_at)}</td>

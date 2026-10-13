@@ -12,10 +12,6 @@ enum TransferServiceRecalculationPolicy: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::NoRecalculation => 'No Recalculation',
-            self::RecalculateFromTransfer => 'Recalculate from Transfer Date',
-            self::RecalculateFromEffective => 'Recalculate from Effective Date',
-        };
+        return (string) __('enums.transfer_service_recalculation_policy.'.$this->value);
     }
 }

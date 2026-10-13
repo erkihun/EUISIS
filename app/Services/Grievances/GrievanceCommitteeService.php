@@ -16,6 +16,7 @@ use App\Models\GrievanceCommittee;
 use App\Models\GrievanceCommitteeMember;
 use App\Models\GrievanceStageMember;
 use App\Models\User;
+use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -105,6 +106,17 @@ final class GrievanceCommitteeService
 
         $committee->forceFill(['status' => 'active', 'approved_by' => $actor->getKey(), 'approved_at' => now()]);
         $problems = array_values(array_diff($this->handlers->committeeProblems($committee), ['grievances.errors.committee_not_active']));
+
+        // Regulation 201/2018 Art. 30 statutory composition for grievance
+        // committees: exactly 5 voting members, chair appointed by the head,
+        // 3 elected (at least one woman), HR professional as secretary.
+        if ($committee->committee_type === CommitteeType::Grievance) {
+            foreach (app(StatutoryCommitteeRules::class)->compositionProblems($committee) as $code) {
+                $problems[] = 'grievances.committee_rules.'.$code;
+            }
+        }
+
+        $problems = array_values(array_unique($problems));
         if ($problems !== []) {
             throw ValidationException::withMessages(['committee' => array_map(fn ($p) => __($p), $problems)]);
         }
@@ -116,14 +128,15 @@ final class GrievanceCommitteeService
 
     // ── Membership (history-preserving) ──────────────────────────────────────
 
-    /** @param  array{employee_id: string, role: string, effective_from: string, appointment_reference?: string|null}  $data */
+    /** @param  array{employee_id: string, role: string, effective_from: string, effective_to?: string|null, appointment_reference?: string|null, selection_source?: string|null, term_number?: int|null}  $data */
     public function addMember(GrievanceCommittee $committee, User $actor, array $data): GrievanceCommitteeMember
     {
         $this->assertManageMembers($actor, $committee);
         $role = GrievanceCommitteeRole::from($data['role']);
         $from = Carbon::parse($data['effective_from'])->startOfDay();
+        $to = isset($data['effective_to']) ? Carbon::parse($data['effective_to'])->startOfDay() : null;
 
-        return DB::transaction(function () use ($committee, $actor, $data, $role, $from): GrievanceCommitteeMember {
+        return DB::transaction(function () use ($committee, $actor, $data, $role, $from, $to): GrievanceCommitteeMember {
             GrievanceCommittee::query()->whereKey($committee->getKey())->lockForUpdate()->first();
 
             $employee = Employee::query()->find($data['employee_id']);
@@ -150,9 +163,12 @@ final class GrievanceCommitteeService
                 'employee_id' => $employee->getKey(),
                 'role' => $role->value,
                 'effective_from' => $from->toDateString(),
+                'effective_to' => $to?->toDateString(),
                 'status' => 'active',
                 'appointed_by' => $actor->getKey(),
                 'appointment_reference' => $data['appointment_reference'] ?? null,
+                'selection_source' => $data['selection_source'] ?? null,
+                'term_number' => $data['term_number'] ?? 1,
             ]);
             $this->audit->record(AuditEventType::GrievanceCommitteeMemberAdded, $actor, $committee, ['employee_id' => $employee->getKey(), 'role' => $role->value, 'effective_from' => $from->toDateString()]);
 

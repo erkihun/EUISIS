@@ -14,11 +14,11 @@ export default function ItemsReadOnly({ items, showReviewerNotes = true }: { ite
     const { t, locale } = useLocale();
 
     if (!items.length) {
-        return <p className="px-1 py-3 text-sm text-gray-500 dark:text-slate-400">{t('dailyActivities.entry.noItems')}</p>;
+        return <p className="px-1 py-3 text-sm text-[color:var(--app-muted-foreground)]">{t('dailyActivities.entry.noItems')}</p>;
     }
 
     return (
-        <ol className="divide-y divide-gray-100 dark:divide-slate-800">
+        <ol className="divide-y divide-[color:var(--app-border)]">
             {items.map((item, index) => {
                 // Main service › sub-service › main task for measured work.
                 const task = item.task
@@ -38,54 +38,54 @@ export default function ItemsReadOnly({ items, showReviewerNotes = true }: { ite
                     <li key={item.id ?? index} className="py-3">
                         <div className="flex flex-wrap items-start justify-between gap-2">
                             <div className="min-w-0">
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                     {index + 1}. {task}
                                 </p>
-                                <p className="break-words text-sm font-semibold text-gray-900 dark:text-slate-100">{item.title}</p>
+                                <p className="break-words text-sm font-semibold text-[color:var(--app-foreground)]">{item.title}</p>
                             </div>
                             <StatusBadge status={item.progress_status} label={t(`dailyActivities.progress.${item.progress_status}`)} />
                         </div>
                         <dl className="mt-1.5 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[9rem_1fr]">
                             {item.description && (
                                 <>
-                                    <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.description')}</dt>
-                                    <dd className="whitespace-pre-line break-words text-gray-800 dark:text-slate-200">{item.description}</dd>
+                                    <dt className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.fields.description')}</dt>
+                                    <dd className="whitespace-pre-line break-words text-[color:var(--app-foreground)]">{item.description}</dd>
                                 </>
                             )}
                             {item.output_result && (
                                 <>
-                                    <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.outputResult')}</dt>
-                                    <dd className="whitespace-pre-line break-words text-gray-800 dark:text-slate-200">{item.output_result}</dd>
+                                    <dt className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.fields.outputResult')}</dt>
+                                    <dd className="whitespace-pre-line break-words text-[color:var(--app-foreground)]">{item.output_result}</dd>
                                 </>
                             )}
                             {extra && (
                                 <>
-                                    <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.startedAt')}</dt>
-                                    <dd className="text-gray-800 dark:text-slate-200">{extra}</dd>
+                                    <dt className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.fields.startedAt')}</dt>
+                                    <dd className="text-[color:var(--app-foreground)]">{extra}</dd>
                                 </>
                             )}
                             {item.standard && (
                                 <>
-                                    <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.work.timeTaken')}</dt>
-                                    <dd className="tabular-nums text-gray-800 dark:text-slate-200">{hoursMinutes(item.duration_minutes)}</dd>
+                                    <dt className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.work.timeTaken')}</dt>
+                                    <dd className="tabular-nums text-[color:var(--app-foreground)]">{hoursMinutes(item.duration_minutes)}</dd>
                                     {item.standard.planned_quality !== null && (
                                         <>
-                                            <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.work.actualQuality')}</dt>
-                                            <dd className="text-gray-800 dark:text-slate-200">{item.actual_quality === null || item.actual_quality === undefined ? t('dailyActivities.work.awaitingReviewer') : `${plain(item.actual_quality)} ${item.standard.quality_unit ?? ''}`.trim()}</dd>
+                                            <dt className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.work.actualQuality')}</dt>
+                                            <dd className="text-[color:var(--app-foreground)]">{item.actual_quality === null || item.actual_quality === undefined ? t('dailyActivities.work.awaitingReviewer') : `${plain(item.actual_quality)} ${item.standard.quality_unit ?? ''}`.trim()}</dd>
                                         </>
                                     )}
                                 </>
                             )}
                             {item.challenge_issue && (
                                 <>
-                                    <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.challengeIssue')}</dt>
-                                    <dd className="whitespace-pre-line break-words text-gray-800 dark:text-slate-200">{item.challenge_issue}</dd>
+                                    <dt className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.fields.challengeIssue')}</dt>
+                                    <dd className="whitespace-pre-line break-words text-[color:var(--app-foreground)]">{item.challenge_issue}</dd>
                                 </>
                             )}
                             {item.next_action && (
                                 <>
-                                    <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.nextAction')}</dt>
-                                    <dd className="whitespace-pre-line break-words text-gray-800 dark:text-slate-200">{item.next_action}</dd>
+                                    <dt className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.fields.nextAction')}</dt>
+                                    <dd className="whitespace-pre-line break-words text-[color:var(--app-foreground)]">{item.next_action}</dd>
                                 </>
                             )}
                         </dl>
@@ -95,7 +95,7 @@ export default function ItemsReadOnly({ items, showReviewerNotes = true }: { ite
                                 {item.scores && <ScoreRow scores={item.scores} />}
                             </div>
                         )}
-                        {!!item.cascade_trace?.length && <details className="mt-3 text-xs text-gray-600 dark:text-slate-300">
+                        {!!item.cascade_trace?.length && <details className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">
                             <summary className="cursor-pointer font-medium">{t('performance.plans.cascadeTrace')}</summary>
                             <ol className="mt-2 space-y-2 border-l-2 border-blue-200 pl-3 dark:border-blue-900">
                                 {item.cascade_trace.map((step, stepIndex) => <li key={`${step.type}-${step.id}-${stepIndex}`}>

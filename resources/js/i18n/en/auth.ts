@@ -25,9 +25,9 @@ const auth = {
     noAccount: "Don't have an account?",
     createEmployeeAccount: 'Create employee account',
     securePortal: 'Secure Government Portal',
-    systemHeadline1: 'Unified Employee',
-    systemHeadlineHighlight: 'Identity',
-    systemHeadline2: 'Management',
+    systemHeadline1: 'Integrated Employee',
+    systemHeadlineHighlight: 'Management',
+    systemHeadline2: '& Services',
     systemDesc1: 'A centralized platform for managing employee identification records, digital ID cards, and workforce data across all city administration organizations.',
     systemDesc2: 'The system enforces fine-grained role-based permissions, logs every action in a tamper-evident audit trail, and integrates with occupational classification standards to ensure data quality at scale.',
     featureRoleAccess: 'Role-Based Access',
@@ -40,7 +40,7 @@ const auth = {
 
     registration: {
         title: 'Create Account',
-        systemName: 'Employee Unified Identity System',
+        systemName: '{officialName}',
         secureRegistration: 'Secure employee registration',
         verifyIdentity: 'Verify your identity before creating an account.',
         stepEmployeeNumber: '1. Enter the employee number assigned by HR.',

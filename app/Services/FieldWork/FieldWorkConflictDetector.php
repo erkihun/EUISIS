@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  *
  *   field_work  another pending / approved / in-field request of a participant
  *   leave       approved full-day leave from EmployeeLeaveProvider (the
- *               existing seam; EUISIS has no leave module yet, so the default
+ *               existing seam; Addis One has no leave module yet, so the default
  *               binding reports none)
  *
  * NEEDS_DECISION: training and official travel/mission have no module or

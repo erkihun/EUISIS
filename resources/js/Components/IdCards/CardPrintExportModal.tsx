@@ -76,12 +76,14 @@ export default function CardPrintExportModal({ card, isOpen, onClose }: Props) {
 
     if (!isOpen) return null;
 
+    // Card dates are deliberately not locale-dependent: the English row is
+    // always Gregorian and the Amharic row below is Ethiopian.
     const fmtDate = (v?: string | null) =>
-        v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : undefined;
+        v ? (formatDateDisplay(v.slice(0, 10), 'gregorian', 'en') || v.slice(0, 10)) : undefined;
 
     // The card prints both calendars, so the Ethiopian date is built alongside.
     const fmtEthiopian = (v?: string | null) =>
-        v ? (formatDateDisplay(v.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined;
+        v ? (formatDateDisplay(v.slice(0, 10), 'ethiopian', 'am', { zeroPadDay: true }) || undefined) : undefined;
 
     const qrValue = card.qr_verification_url ?? null;
 

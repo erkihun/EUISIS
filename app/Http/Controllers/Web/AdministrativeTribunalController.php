@@ -8,6 +8,7 @@ use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Models\AdministrativeTribunalCase;
 use App\Services\Grievances\GrievanceAudit;
+use App\Services\Grievances\GrievanceCaseAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,12 +21,13 @@ use Inertia\Response;
  */
 class AdministrativeTribunalController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, GrievanceCaseAccessService $access): Response
     {
         abort_unless($request->user()->can('grievances.tribunal'), 403);
 
         $query = AdministrativeTribunalCase::query()
             ->with(['grievance:id,reference_number,organization_id,category_id,status', 'grievance.organization:id,name_en,name_am', 'grievance.category:id,name_en,name_am', 'assignedToUser:id,name'])
+            ->whereHas('grievance', fn ($grievances) => $access->constrainAssigned($grievances, $request->user()))
             ->latest();
 
         if ($request->filled('status')) {
@@ -39,9 +41,11 @@ class AdministrativeTribunalController extends Controller
         ]);
     }
 
-    public function show(Request $request, AdministrativeTribunalCase $administrativeTribunalCase): Response
+    public function show(Request $request, AdministrativeTribunalCase $administrativeTribunalCase, GrievanceCaseAccessService $access): Response
     {
-        abort_unless($request->user()->can('grievances.tribunal'), 403);
+        abort_unless($request->user()->can('grievances.tribunal')
+            && $administrativeTribunalCase->grievance !== null
+            && $access->canView($request->user(), $administrativeTribunalCase->grievance), 403);
 
         $administrativeTribunalCase->load([
             'grievance:id,reference_number,organization_id,category_id,employee_id,status,subject,submitted_at',
@@ -56,9 +60,11 @@ class AdministrativeTribunalController extends Controller
         ]);
     }
 
-    public function update(Request $request, AdministrativeTribunalCase $administrativeTribunalCase, GrievanceAudit $audit): RedirectResponse
+    public function update(Request $request, AdministrativeTribunalCase $administrativeTribunalCase, GrievanceAudit $audit, GrievanceCaseAccessService $access): RedirectResponse
     {
-        abort_unless($request->user()->can('grievances.tribunal'), 403);
+        abort_unless($request->user()->can('grievances.tribunal')
+            && $administrativeTribunalCase->grievance !== null
+            && $access->handlesCurrent($request->user(), $administrativeTribunalCase->grievance), 403);
 
         $data = $request->validate([
             'status' => ['required', 'string', 'in:open,hearing,decided,closed'],

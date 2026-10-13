@@ -4,99 +4,310 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\PublicFeedbackTargetType;
+use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePublicServiceEntryRequest;
 use App\Http\Requests\StoreServiceFeedbackRequest;
+use App\Models\EmployeeServiceFeedback;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
+use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
+use App\Services\ServiceFeedback\PublicFeedbackCategoryService;
+use App\Services\ServiceFeedback\PublicFeedbackFormToken;
+use App\Services\ServiceFeedback\PublicFeedbackSettings;
+use App\Services\ServiceFeedback\PublicFeedbackSubmissionService;
+use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
 use App\Services\ServiceFeedback\PublicServiceFeedbackService;
+use App\Services\ServiceFeedback\TargetContext;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 /**
- * Public Client Service Feedback — no authentication.
+ * Public Feedback, Suggestion and Complaint — no authentication.
  *
- * The page an employee's printed feedback QR opens. A client picks the service
- * they received, rates it and optionally comments. Nothing identifying about
- * the employee is rendered: the page names the office, unit and role only.
+ * One experience for both QR kinds: the employee feedback QR
+ * (/service-feedback/{token}) and the organization feedback QR
+ * (/feedback/{token}). The token in the URL is the only credential; the
+ * resolver turns it into the target server-side and nothing the browser
+ * posts can replace it (brief §14, 17).
  *
- * Unknown, suspended and revoked tokens all produce the SAME "unavailable"
- * page. Distinguishing them would let anyone with a token list learn which
- * employees exist and which QRs are live.
+ * Unknown, suspended, revoked and disabled tokens, and inactive
+ * organizations, all produce the SAME "unavailable" page. Distinguishing them
+ * would let anyone with a token list learn which targets exist.
  */
 class PublicServiceFeedbackController extends Controller
 {
     public function __construct(
         private readonly PublicServiceFeedbackService $feedback,
         private readonly EmployeeFeedbackTokenService $tokens,
+        private readonly OrganizationFeedbackQrService $organizationCodes,
+        private readonly PublicFeedbackTargetResolver $resolver,
+        private readonly PublicFeedbackSubmissionService $submissions,
+        private readonly PublicFeedbackFormToken $formTokens,
+        private readonly PublicFeedbackCategoryService $categories,
+        private readonly PublicFeedbackSettings $settings,
     ) {}
 
-    /** The page a scanned feedback QR opens. */
+    // ── Employee feedback QR ─────────────────────────────────────────────
+
+    /** The page a scanned employee feedback QR opens. */
     public function show(Request $request, string $token): Response
     {
-        $record = $this->tokens->resolveForPublic($token);
+        return $this->render($request, PublicFeedbackTargetType::Employee, $token, null);
+    }
 
-        if ($record === null) {
-            $this->feedback->auditBlockedScan($request);
-
-            return Inertia::render('Public/ServiceFeedback', [
-                'available' => false,
-                'token' => $token,
-                'context' => null,
-                'serviceTypes' => [],
-                'submitted' => false,
-            ]);
-        }
-
-        $this->tokens->recordScan($record);
-
-        $locale = (string) session('locale', config('app.locale', 'en'));
-
-        return Inertia::render('Public/ServiceFeedback', [
-            'available' => true,
-            'token' => $token,
-            'context' => $this->feedback->publicContext($record, $locale),
-            'serviceTypes' => $this->feedback->serviceOptions(
-                $this->feedback->positionIdForToken($record),
-                $locale,
-            ),
-            'submitted' => (bool) $request->session()->get('feedback_submitted', false),
-        ]);
+    public function form(Request $request, string $token, string $type): Response
+    {
+        return $this->render($request, PublicFeedbackTargetType::Employee, $token, $this->type($type));
     }
 
     public function store(StoreServiceFeedbackRequest $request, string $token): RedirectResponse
     {
-        $record = $this->tokens->resolveForPublic($token);
+        return $this->storeFor($request, PublicFeedbackTargetType::Employee, $token, ServiceFeedbackType::Feedback, legacyRedirect: $request->routeIs('service-feedback.store'));
+    }
 
-        if ($record === null) {
-            $this->feedback->auditBlockedScan($request);
+    public function storeTypedFeedback(StoreServiceFeedbackRequest $request, string $token): RedirectResponse
+    {
+        return $this->storeFor($request, PublicFeedbackTargetType::Employee, $token, ServiceFeedbackType::Feedback);
+    }
 
-            // Same generic outcome as a scan of an unknown token.
-            return redirect()
-                ->route('service-feedback.show', $token);
+    public function storeEntry(StorePublicServiceEntryRequest $request, string $token, string $type): RedirectResponse
+    {
+        return $this->storeFor($request, PublicFeedbackTargetType::Employee, $token, $this->entryType($type));
+    }
+
+    // ── Organization feedback QR ─────────────────────────────────────────
+
+    public function showOrganization(Request $request, string $token): Response
+    {
+        return $this->render($request, PublicFeedbackTargetType::Organization, $token, null);
+    }
+
+    public function formOrganization(Request $request, string $token, string $type): Response
+    {
+        return $this->render($request, PublicFeedbackTargetType::Organization, $token, $this->type($type));
+    }
+
+    public function storeOrganizationFeedback(StoreServiceFeedbackRequest $request, string $token): RedirectResponse
+    {
+        return $this->storeFor($request, PublicFeedbackTargetType::Organization, $token, ServiceFeedbackType::Feedback);
+    }
+
+    public function storeOrganizationEntry(StorePublicServiceEntryRequest $request, string $token, string $type): RedirectResponse
+    {
+        return $this->storeFor($request, PublicFeedbackTargetType::Organization, $token, $this->entryType($type));
+    }
+
+    // ── Shared ───────────────────────────────────────────────────────────
+
+    private function render(Request $request, PublicFeedbackTargetType $kind, string $token, ?ServiceFeedbackType $type): Response
+    {
+        // Brief §93: a type the policy has switched off has no form.
+        if ($type !== null && ! $this->settings->typeEnabled($type)) {
+            abort(404);
         }
 
-        $validated = $request->validated();
+        $context = $this->settings->enabled() ? $this->resolve($kind, $token) : null;
+        $links = $this->links($kind, $token);
 
-        /*
-         * Re-check the chosen service against the employee's own position. The
-         * dropdown narrowed the options, but a submission is just a POST — a
-         * caller can name any service_type_id, including one belonging to a
-         * different role, so the server decides what this officer may be rated
-         * on.
-         */
-        $positionId = $this->feedback->positionIdForToken($record);
+        if ($context === null) {
+            if ($this->settings->enabled()) {
+                $this->feedback->auditBlockedScan($request);
+            }
 
-        if (! $this->feedback->serviceIsAvailable($validated['position_service_id'], $positionId)) {
-            return back()->withErrors([
-                'position_service_id' => __('This service is not provided by this officer.'),
+            return Inertia::render('Public/ServiceFeedback', [
+                'available' => false,
+                'token' => $token,
+                'target' => null,
+                'links' => $links,
+                'serviceTypes' => [],
+                'categories' => [],
+                'submitted' => false,
+                'type' => null,
+                'reference' => null,
+                'receipt' => null,
+                'formToken' => null,
+                'enabledTypes' => $this->settings->enabledTypes(),
+                'identityMode' => $this->settings->identityMode()->value,
+                'allowAttachments' => $this->settings->allowAttachments(),
             ]);
         }
 
-        $this->feedback->submit($record, $validated, $request);
+        $this->recordScan($context);
 
-        return redirect()
-            ->route('service-feedback.show', $token)
-            ->with('feedback_submitted', true);
+        $locale = app()->getLocale();
+        $receipt = $request->session()->get('feedback_receipt');
+
+        return Inertia::render('Public/ServiceFeedback', [
+            'available' => true,
+            'token' => $token,
+            'target' => $context->publicDisplay($locale),
+            'links' => $links,
+            'serviceTypes' => $context->targetType === PublicFeedbackTargetType::Employee
+                ? $this->feedback->serviceOptions($context->contextPositionId, $locale)
+                : [],
+            'categories' => $type === null ? [] : $this->categories->optionsFor($context, $type, $locale),
+            'submitted' => (bool) $request->session()->get('feedback_submitted', false),
+            'type' => $type?->value,
+            'reference' => $receipt['reference'] ?? null,
+            'receipt' => $receipt,
+            'formToken' => $type === null ? null : $this->formTokens->issue(),
+            'enabledTypes' => $this->settings->enabledTypes(),
+            'identityMode' => $this->settings->identityMode()->value,
+            'allowAttachments' => $this->settings->allowAttachments(),
+        ]);
+    }
+
+    private function storeFor(Request $request, PublicFeedbackTargetType $kind, string $token, ServiceFeedbackType $type, bool $legacyRedirect = false): RedirectResponse
+    {
+        if (! $this->settings->typeEnabled($type)) {
+            abort(404);
+        }
+
+        $links = $this->links($kind, $token);
+
+        if (! $this->settings->enabled()) {
+            return redirect()->to($links['landing']);
+        }
+
+        $context = $this->resolve($kind, $token);
+
+        if ($context === null) {
+            $this->feedback->auditBlockedScan($request);
+
+            // Same generic outcome as a scan of an unknown token.
+            return redirect()->to($links['landing']);
+        }
+
+        /** @var array<string, mixed> $validated */
+        $validated = $request->validated();
+
+        if (isset($validated['form_token']) && ! $this->formTokens->consume((string) $validated['form_token'])) {
+            return back()->withErrors(['form_token' => __('service-feedback.form_replayed')]);
+        }
+
+        // A category is accepted only if this visitor could have been offered it.
+        if (! empty($validated['category_id']) && ! $this->categories->isApplicable((string) $validated['category_id'], $context, $type)) {
+            return back()->withErrors(['category_id' => __('service-feedback.category_not_applicable')]);
+        }
+
+        /*
+         * Re-check a chosen service against the employee's own position. The
+         * dropdown narrowed the options, but a submission is just a POST — a
+         * caller can name any service id, including one belonging to a
+         * different role, so the server decides what this officer is rated on.
+         */
+        if ($context->targetType === PublicFeedbackTargetType::Employee
+            && ! empty($validated['position_service_id'])
+            && ! $this->feedback->serviceIsAvailable((string) $validated['position_service_id'], $context->contextPositionId)) {
+            return back()->withErrors(['position_service_id' => __('service-feedback.service_not_provided')]);
+        }
+
+        try {
+            $entry = $this->submissions->submit($context, $type, $validated, $request);
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            // Brief §76–78: storage or database trouble rolls the submission back (nothing is kept) and the
+            // citizen is told to try again. A query exception embeds the bound values, so it is logged by class
+            // and SQLSTATE only; the citizen's words never reach the log.
+            if ($exception instanceof QueryException) {
+                Log::error('Public feedback submission failed', ['exception' => $exception::class, 'sqlstate' => (string) $exception->getCode(), 'target' => $context->targetType->value]);
+            } else {
+                report($exception);
+            }
+
+            return back()->withErrors(['message' => __('service-feedback.submission_failed')])->withInput($request->except('attachments'));
+        }
+
+        return redirect()->to($legacyRedirect ? $links['landing'] : $links[$type->value])
+            ->with('feedback_submitted', true)
+            ->with('feedback_receipt', $this->receipt($entry, $context));
+    }
+
+    private function resolve(PublicFeedbackTargetType $kind, string $token): ?TargetContext
+    {
+        return $kind === PublicFeedbackTargetType::Employee
+            ? $this->resolver->resolveEmployeeToken($token)
+            : $this->resolver->resolveOrganizationToken($token);
+    }
+
+    /** The context was just resolved; count the scan on that record without resolving the token again. */
+    private function recordScan(TargetContext $context): void
+    {
+        if ($context->sourceId === null) {
+            return;
+        }
+
+        $context->targetType === PublicFeedbackTargetType::Employee
+            ? $this->tokens->recordScanById($context->sourceId)
+            : $this->organizationCodes->recordScanById($context->sourceId);
+    }
+
+    /**
+     * Every URL the page needs, built here so the page never assembles one.
+     *
+     * @return array<string, string>
+     */
+    private function links(PublicFeedbackTargetType $kind, string $token): array
+    {
+        if ($kind === PublicFeedbackTargetType::Employee) {
+            return [
+                'landing' => route('service-feedback.show', $token),
+                'feedback' => route('service-feedback.form', ['token' => $token, 'type' => 'feedback']),
+                'suggestion' => route('service-feedback.form', ['token' => $token, 'type' => 'suggestion']),
+                'complaint' => route('service-feedback.form', ['token' => $token, 'type' => 'complaint']),
+                'submitFeedback' => route('service-feedback.feedback.store', $token),
+                'submitSuggestion' => route('service-feedback.entry.store', ['token' => $token, 'type' => 'suggestion']),
+                'submitComplaint' => route('service-feedback.entry.store', ['token' => $token, 'type' => 'complaint']),
+            ];
+        }
+
+        return [
+            'landing' => route('public-feedback.organization.show', $token),
+            'feedback' => route('public-feedback.organization.form', ['token' => $token, 'type' => 'feedback']),
+            'suggestion' => route('public-feedback.organization.form', ['token' => $token, 'type' => 'suggestion']),
+            'complaint' => route('public-feedback.organization.form', ['token' => $token, 'type' => 'complaint']),
+            'submitFeedback' => route('public-feedback.organization.feedback.store', $token),
+            'submitSuggestion' => route('public-feedback.organization.entry.store', ['token' => $token, 'type' => 'suggestion']),
+            'submitComplaint' => route('public-feedback.organization.entry.store', ['token' => $token, 'type' => 'complaint']),
+        ];
+    }
+
+    /**
+     * What the thank-you page may show (brief §42): the type, the target as
+     * the visitor saw it, the reference, and when. Never an internal id.
+     *
+     * @return array<string, string|null>
+     */
+    private function receipt(EmployeeServiceFeedback $entry, TargetContext $context): array
+    {
+        return [
+            'type' => $entry->type->value,
+            'target_type' => $context->targetType->value,
+            'target_name' => (string) $context->publicDisplay(app()->getLocale())['display_name'],
+            'reference' => $entry->reference_number,
+            'submitted_at' => $entry->submitted_at?->toIso8601String(),
+        ];
+    }
+
+    private function type(string $type): ServiceFeedbackType
+    {
+        abort_unless(in_array($type, array_column(ServiceFeedbackType::cases(), 'value'), true), 404);
+
+        return ServiceFeedbackType::from($type);
+    }
+
+    private function entryType(string $type): ServiceFeedbackType
+    {
+        abort_unless(in_array($type, ['suggestion', 'complaint'], true), 404);
+
+        return ServiceFeedbackType::from($type);
     }
 }

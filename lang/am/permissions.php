@@ -3,16 +3,16 @@
 declare(strict_types=1);
 
 return [
-    'title' => 'ፈቃዶች',
-    'permission' => 'ፈቃድ',
+    'title' => 'የመዳረሻ መብቶች',
+    'permission' => 'የመዳረሻ መብት',
     'module' => 'የሥርዓት ክፍል',
     'organization_scopes' => 'የተቋም ወሰኖች',
     'organization_admin' => 'የተቋም አስተዳዳሪ',
-    'no_permissions' => 'ምንም ፈቃድ አልተመዘገበም።',
+    'no_permissions' => 'ምንም የመዳረሻ መብት አልተመዘገበም።',
     'grouped_by_module' => 'በሥርዓት ክፍል ተመድቧል',
-    'created' => 'ፈቃድ በተሳካ ሁኔታ ተፈጥሯል።',
-    'updated' => 'ፈቃድ በተሳካ ሁኔታ ተዘምኗል።',
-    'deleted' => 'ፈቃድ በተሳካ ሁኔታ ተሰርዟል።',
-    'cannotDeleteSystemPermission' => 'የሥርዓት ፈቃዶች ሊሰረዙ አይችሉም።',
-    'cannotRenameSystemPermission' => 'የሥርዓት ፈቃድ ስም ሊቀየር አይችልም።',
+    'created' => 'የመዳረሻ መብቱ ተመዝግቧል።',
+    'updated' => 'የመዳረሻ መብቱ ተዘምኗል።',
+    'deleted' => 'የመዳረሻ መብቱ ተሰርዟል።',
+    'cannotDeleteSystemPermission' => 'የሥርዓት የመዳረሻ መብቶች ሊሰረዙ አይችሉም።',
+    'cannotRenameSystemPermission' => 'የሥርዓት የመዳረሻ መብት ስም ሊቀየር አይችልም።',
 ];

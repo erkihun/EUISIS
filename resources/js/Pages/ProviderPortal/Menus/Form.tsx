@@ -1,10 +1,10 @@
 import CafeteriaProviderPortalLayout from '@/Layouts/CafeteriaProviderPortalLayout';
 import PageHeader from '@/Components/PageHeader';
 import PortalDatePicker from '@/Components/Calendar/PortalDatePicker';
-import InputError from '@/Components/InputError';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { FieldError } from '@/Components/ui';
 
 type Provider = { id: string; code: string; name_en: string; name_am?: string | null };
 type Menu = {
@@ -21,7 +21,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
         <label className="block">
             <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{label}</span>
             {children}
-            <InputError message={error} className="mt-1" />
+            <FieldError className="mt-1">{error}</FieldError>
         </label>
     );
 }

@@ -338,8 +338,12 @@ class DashboardChartService
 
     private function providersTopUsage(array $scope): array
     {
+        // Counts the selected period like every other chart; the all-time join
+        // read every transaction ever recorded (load test 2026-10-11).
         return $this->metrics->providerQuery($scope)
-            ->leftJoin('service_transactions', 'service_transactions.service_provider_id', '=', 'service_providers.id')
+            ->leftJoin('service_transactions', fn ($join) => $join
+                ->on('service_transactions.service_provider_id', '=', 'service_providers.id')
+                ->whereBetween('service_transactions.occurred_at', [$scope['date_from'], $scope['date_to']]))
             ->selectRaw('service_providers.name as "key", COUNT(service_transactions.id) as "value"')
             ->groupBy('service_providers.name')
             ->orderByDesc('value')

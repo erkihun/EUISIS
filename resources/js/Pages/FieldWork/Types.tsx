@@ -60,14 +60,14 @@ export default function FieldWorkTypes({ types }: { types: FieldWorkTypeRow[] })
             <div className="space-y-3">
                 {editing !== null && (
                     <form onSubmit={save} className={`${panelCls} grid gap-3 p-4 sm:grid-cols-2`}>
-                        <h2 className="text-sm font-semibold text-gray-900 sm:col-span-2 dark:text-slate-100">{editing === 'new' ? t('fieldWork.types.add') : t('fieldWork.types.edit')}</h2>
+                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)] sm:col-span-2">{editing === 'new' ? t('fieldWork.types.add') : t('fieldWork.types.edit')}</h2>
                         {field('code', t('fieldWork.types.code'))}
                         {field('sort_order', t('fieldWork.types.sortOrder'))}
                         {field('name_en', t('fieldWork.types.nameEn'))}
                         {field('name_am', t('fieldWork.types.nameAm'))}
                         {field('description_en', t('fieldWork.types.descriptionEn'), true)}
                         {field('description_am', t('fieldWork.types.descriptionAm'), true)}
-                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                        <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                             <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
                             {t('fieldWork.types.active')}
                         </label>
@@ -79,17 +79,17 @@ export default function FieldWorkTypes({ types }: { types: FieldWorkTypeRow[] })
                 )}
 
                 {types.length === 0 ? (
-                    <p className={`${panelCls} p-4 text-sm text-gray-500 dark:text-slate-400`}>{t('fieldWork.types.empty')}</p>
+                    <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{t('fieldWork.types.empty')}</p>
                 ) : (
-                    <ul className={`${panelCls} divide-y divide-gray-100 dark:divide-slate-800`}>
+                    <ul className={`${panelCls} divide-y divide-[color:var(--app-border)]`}>
                         {types.map((row) => (
                             <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                                 <div className="min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                                    <p className="text-sm font-medium text-[color:var(--app-foreground)]">
                                         {locale === 'am' && row.name_am ? row.name_am : row.name_en}
-                                        <span className="ms-2 text-xs font-normal text-gray-500 dark:text-slate-400">{row.code}</span>
+                                        <span className="ms-2 text-xs font-normal text-[color:var(--app-muted-foreground)]">{row.code}</span>
                                     </p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('fieldWork.types.usage')}: {row.requests_count}</p>
+                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('fieldWork.types.usage')}: {row.requests_count}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <StatusBadge status={row.is_active ? 'active' : 'inactive'} label={row.is_active ? t('fieldWork.types.active') : t('fieldWork.types.inactive')} />

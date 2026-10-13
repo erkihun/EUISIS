@@ -42,9 +42,9 @@ export default function TemplateWizardSteps({ steps, current, onSelect, furthest
                                 active
                                     ? 'bg-[color:var(--color-primary)] text-white'
                                     : done
-                                      ? 'text-[color:var(--color-primary)] hover:bg-gray-100 dark:hover:bg-slate-800'
-                                      : 'text-gray-500 dark:text-slate-400',
-                                reachable && !active ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800' : '',
+                                      ? 'text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)]'
+                                      : 'text-[color:var(--app-muted-foreground)]',
+                                reachable && !active ? 'cursor-pointer hover:bg-[color:var(--app-surface-muted)]' : '',
                                 !reachable ? 'cursor-default' : '',
                             ].join(' ')}
                         >
@@ -53,7 +53,7 @@ export default function TemplateWizardSteps({ steps, current, onSelect, furthest
                                 className={[
                                     'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold',
                                     active
-                                        ? 'bg-white/25'
+                                        ? 'bg-[color:color-mix(in_srgb,var(--app-surface)_25%,transparent)]'
                                         : done
                                           ? 'bg-[color:var(--color-primary)] text-white'
                                           : 'border border-current',
@@ -68,7 +68,7 @@ export default function TemplateWizardSteps({ steps, current, onSelect, furthest
                         {index < steps.length - 1 && (
                             <span
                                 aria-hidden="true"
-                                className="mx-0.5 h-px w-3 shrink-0 bg-gray-200 dark:bg-slate-700"
+                                className="mx-0.5 h-px w-3 shrink-0 bg-[color:var(--app-surface-muted)]"
                             />
                         )}
                     </li>

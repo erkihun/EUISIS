@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
-use App\Models\EmployeeAssignment;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Vacancy\PositionCapacityService;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -30,7 +30,7 @@ class EmployeeStoreRequest extends FormRequest
             'name_en' => filled($this->input('name_en')) ? trim((string) $this->input('name_en')) : null,
             // Uniqueness is enforced via the deterministic hash because the
             // raw national_id column is stored encrypted.
-            'national_id_hash' => $nid !== null ? hash('sha256', $nid) : null,
+            'national_id_hash' => $nid !== null ? NationalIdHash::of($nid) : null,
         ]);
     }
 
@@ -99,12 +99,8 @@ class EmployeeStoreRequest extends FormRequest
                     if ($value === null || $value === '') {
                         return;
                     }
-                    $occupied = EmployeeAssignment::query()
-                        ->where('position_id', $value)
-                        ->where('is_current', true)
-                        ->where('assignment_status', AssignmentStatus::Active)
-                        ->exists();
-                    if ($occupied) {
+                    // Approved establishment slots, or one person (CON-5).
+                    if (! app(PositionCapacityService::class)->hasFreeSlot((string) $value)) {
                         $fail(__('validation.position_already_occupied'));
                     }
                 },

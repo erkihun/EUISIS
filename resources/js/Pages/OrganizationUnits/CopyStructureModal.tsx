@@ -1,13 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import Modal from '@/Components/Modal';
-import InputLabel from '@/Components/InputLabel';
-import TextInput from '@/Components/TextInput';
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
-import SecondaryButton from '@/Components/SecondaryButton';
 import { useLocale } from '@/hooks/useLocale';
 
+import { cx, selectClassName, Button, FieldError, FormLabel, Input } from '@/Components/ui';
 interface OrgOption {
     id: string;
     code: string;
@@ -120,8 +116,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
         });
     }
 
-    const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 disabled:opacity-50';
+    const inputCls = cx(selectClassName, 'w-full');
 
     // Units that will be previewed (root source units or selected source unit)
     const previewUnits = data.source_unit_id
@@ -131,14 +126,14 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
     return (
         <Modal show={show} onClose={handleClose} maxWidth="2xl">
             <form onSubmit={handleSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-5">
+                <h2 className="text-lg font-semibold text-[color:var(--app-foreground)] mb-5">
                     {t('organizationUnits.copyStructureTitle')}
                 </h2>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {/* Source Organization */}
                     <div>
-                        <InputLabel htmlFor="source_organization_id" value={t('organizationUnits.sourceOrganization')} />
+                        <FormLabel htmlFor="source_organization_id">{t('organizationUnits.sourceOrganization')}</FormLabel>
                         <select
                             id="source_organization_id"
                             className={inputCls}
@@ -155,12 +150,12 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                                 </option>
                             ))}
                         </select>
-                        <InputError message={errors.source_organization_id} className="mt-1" />
+                        <FieldError className="mt-1">{errors.source_organization_id}</FieldError>
                     </div>
 
                     {/* Source Unit */}
                     <div>
-                        <InputLabel htmlFor="source_unit_id" value={t('organizationUnits.sourceUnit')} />
+                        <FormLabel htmlFor="source_unit_id">{t('organizationUnits.sourceUnit')}</FormLabel>
                         <select
                             id="source_unit_id"
                             className={inputCls}
@@ -175,12 +170,12 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                                 </option>
                             ))}
                         </select>
-                        <InputError message={errors.source_unit_id} className="mt-1" />
+                        <FieldError className="mt-1">{errors.source_unit_id}</FieldError>
                     </div>
 
                     {/* Target Organization */}
                     <div>
-                        <InputLabel htmlFor="target_organization_id" value={t('organizationUnits.targetOrganization')} />
+                        <FormLabel htmlFor="target_organization_id">{t('organizationUnits.targetOrganization')}</FormLabel>
                         <select
                             id="target_organization_id"
                             className={inputCls}
@@ -197,12 +192,12 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                                 </option>
                             ))}
                         </select>
-                        <InputError message={errors.target_organization_id} className="mt-1" />
+                        <FieldError className="mt-1">{errors.target_organization_id}</FieldError>
                     </div>
 
                     {/* Target Parent Unit */}
                     <div>
-                        <InputLabel htmlFor="target_parent_unit_id" value={t('organizationUnits.targetParentUnit')} />
+                        <FormLabel htmlFor="target_parent_unit_id">{t('organizationUnits.targetParentUnit')}</FormLabel>
                         <select
                             id="target_parent_unit_id"
                             className={inputCls}
@@ -217,38 +212,38 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                                 </option>
                             ))}
                         </select>
-                        <InputError message={errors.target_parent_unit_id} className="mt-1" />
+                        <FieldError className="mt-1">{errors.target_parent_unit_id}</FieldError>
                     </div>
 
                     {/* Name Prefix */}
                     <div>
-                        <InputLabel htmlFor="name_prefix" value={t('organizationUnits.namePrefix')} />
-                        <TextInput
+                        <FormLabel htmlFor="name_prefix">{t('organizationUnits.namePrefix')}</FormLabel>
+                        <Input
                             id="name_prefix"
                             className="w-full"
                             value={data.name_prefix}
                             onChange={(e) => setData('name_prefix', e.target.value)}
                             maxLength={50}
                         />
-                        <InputError message={errors.name_prefix} className="mt-1" />
+                        <FieldError className="mt-1">{errors.name_prefix}</FieldError>
                     </div>
 
                     {/* Name Suffix */}
                     <div>
-                        <InputLabel htmlFor="name_suffix" value={t('organizationUnits.nameSuffix')} />
-                        <TextInput
+                        <FormLabel htmlFor="name_suffix">{t('organizationUnits.nameSuffix')}</FormLabel>
+                        <Input
                             id="name_suffix"
                             className="w-full"
                             value={data.name_suffix}
                             onChange={(e) => setData('name_suffix', e.target.value)}
                             maxLength={50}
                         />
-                        <InputError message={errors.name_suffix} className="mt-1" />
+                        <FieldError className="mt-1">{errors.name_suffix}</FieldError>
                     </div>
 
                     {/* Status */}
                     <div>
-                        <InputLabel htmlFor="status" value={t('organizationUnits.allStatuses')} />
+                        <FormLabel htmlFor="status">{t('organizationUnits.allStatuses')}</FormLabel>
                         <select
                             id="status"
                             className={inputCls}
@@ -258,20 +253,20 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             <option value="draft">Draft</option>
                             <option value="active">Active</option>
                         </select>
-                        <InputError message={errors.status} className="mt-1" />
+                        <FieldError className="mt-1">{errors.status}</FieldError>
                     </div>
 
                     {/* Effective From */}
                     <div>
-                        <InputLabel htmlFor="effective_from" value={t('organizationUnits.effectiveFrom')} />
-                        <TextInput
+                        <FormLabel htmlFor="effective_from">{t('organizationUnits.effectiveFrom')}</FormLabel>
+                        <Input
                             id="effective_from"
                             type="date"
                             className="w-full"
                             value={data.effective_from}
                             onChange={(e) => setData('effective_from', e.target.value)}
                         />
-                        <InputError message={errors.effective_from} className="mt-1" />
+                        <FieldError className="mt-1">{errors.effective_from}</FieldError>
                     </div>
                 </div>
 
@@ -280,22 +275,22 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            className="rounded border-gray-300 text-[color:var(--color-primary)] dark:border-slate-600"
+                            className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]"
                             checked={data.copy_positions}
                             onChange={(e) => setData('copy_positions', e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700 dark:text-slate-300">
+                        <span className="text-sm text-[color:var(--app-foreground)]">
                             {t('organizationUnits.copyPositions')}
                         </span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            className="rounded border-gray-300 text-[color:var(--color-primary)] dark:border-slate-600"
+                            className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]"
                             checked={data.copy_functional_relationships}
                             onChange={(e) => setData('copy_functional_relationships', e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700 dark:text-slate-300">
+                        <span className="text-sm text-[color:var(--app-foreground)]">
                             {t('organizationUnits.copyFunctionalRelationships')}
                         </span>
                     </label>
@@ -311,7 +306,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             {previewUnits.map((unit) => (
                                 <li
                                     key={unit.id}
-                                    className="text-sm text-gray-700 dark:text-slate-300"
+                                    className="text-sm text-[color:var(--app-foreground)]"
                                     style={{ paddingLeft: `${unit.depth * 1}rem` }}
                                 >
                                     {data.name_prefix}{unit.name_en}{data.name_suffix}
@@ -322,19 +317,19 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                 )}
 
                 {data.source_organization_id && !data.source_unit_id && previewUnits.length === 0 && !loadingSourceUnits && (
-                    <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">
+                    <p className="mt-4 text-sm text-[color:var(--app-muted-foreground)]">
                         {t('organizationUnits.allUnitsWillBeCopied')}
                     </p>
                 )}
 
                 {/* Actions */}
                 <div className="mt-6 flex justify-end gap-3">
-                    <SecondaryButton type="button" onClick={handleClose} disabled={processing}>
+                    <Button variant="outline" type="button" onClick={handleClose} disabled={processing}>
                         {t('common.cancel')}
-                    </SecondaryButton>
-                    <PrimaryButton type="submit" disabled={processing || !data.source_organization_id || !data.target_organization_id}>
+                    </Button>
+                    <Button type="submit" disabled={processing || !data.source_organization_id || !data.target_organization_id}>
                         {processing ? t('common.saving') : t('organizationUnits.copyStructure')}
-                    </PrimaryButton>
+                    </Button>
                 </div>
             </form>
         </Modal>

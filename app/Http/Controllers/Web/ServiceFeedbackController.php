@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Web;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\ServiceFeedbackStatus;
+use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\PositionService;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\ServiceFeedback\PublicFeedbackMetrics;
+use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\ServiceFeedback\ServiceFeedbackQueryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,6 +54,8 @@ class ServiceFeedbackController extends Controller
     public function __construct(
         private readonly ServiceFeedbackQueryService $feedbackQuery,
         private readonly WriteAuditLogAction $writeAuditLogAction,
+        private readonly PublicFeedbackVisibility $visibility,
+        private readonly PublicFeedbackMetrics $metrics,
     ) {}
 
     public function dashboard(Request $request): Response
@@ -66,6 +71,8 @@ class ServiceFeedbackController extends Controller
         );
 
         return Inertia::render('ServiceFeedback/Dashboard', [
+            // Brief §81: every public submission type, within the same scope and period.
+            'submissions' => $this->metrics->overview($this->metrics->query($user, $this->metrics->filters(array_intersect_key($filters, array_flip(['organization_id', 'date_from', 'date_to']))))),
             'summary' => $this->feedbackQuery->summary($base),
             'ratingDistribution' => $this->feedbackQuery->ratingDistribution($base),
             'byOrganization' => $this->feedbackQuery->byOrganization($base),
@@ -122,6 +129,9 @@ class ServiceFeedbackController extends Controller
 
     public function show(EmployeeServiceFeedback $serviceFeedback): Response
     {
+        abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
+        // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
+        abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('view', $serviceFeedback);
 
         $serviceFeedback->load([
@@ -146,6 +156,9 @@ class ServiceFeedbackController extends Controller
     /** Mark an entry reviewed or resolved. */
     public function review(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
+        abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
+        // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
+        abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('review', $serviceFeedback);
 
         $data = $request->validate([
@@ -184,6 +197,9 @@ class ServiceFeedbackController extends Controller
      */
     public function hide(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
+        abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
+        // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
+        abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('hide', $serviceFeedback);
 
         $hiding = $serviceFeedback->status !== ServiceFeedbackStatus::Hidden;
@@ -208,6 +224,9 @@ class ServiceFeedbackController extends Controller
 
     public function destroy(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
+        abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
+        // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
+        abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('delete', $serviceFeedback);
 
         // Audited before deletion so the record's details survive it.
@@ -301,7 +320,9 @@ class ServiceFeedbackController extends Controller
 
         $filename = 'service-feedback-'.now()->format('Ymd-His').'.csv';
 
-        return response()->streamDownload(function () use ($query): void {
+        $showIdentity = $this->visibility->canSeeIdentity($user);
+
+        return response()->streamDownload(function () use ($query, $showIdentity): void {
             $handle = fopen('php://output', 'wb');
 
             // BOM so Excel opens the Amharic columns as UTF-8.
@@ -313,7 +334,7 @@ class ServiceFeedbackController extends Controller
                 'Client Name', 'Client Contact',
             ]));
 
-            $query->chunk(500, function ($rows) use ($handle): void {
+            $query->chunk(500, function ($rows) use ($handle, $showIdentity): void {
                 foreach ($rows as $item) {
                     fputcsv($handle, csv_safe_row([
                         $item->created_at?->toDateTimeString(),
@@ -325,8 +346,8 @@ class ServiceFeedbackController extends Controller
                         $item->rating,
                         $item->status->value,
                         $item->comment,
-                        $item->client_name,
-                        $item->client_contact,
+                        $showIdentity ? $item->client_name : null,
+                        $showIdentity ? $item->client_contact : null,
                     ]));
                 }
             });
@@ -353,8 +374,8 @@ class ServiceFeedbackController extends Controller
             'rating' => $item->rating,
             'comment' => $item->comment,
             'status' => $item->status->value,
-            'client_name' => $item->client_name,
-            'client_contact' => $item->client_contact,
+            // Brief §36: the submitter is a separate grant.
+            ...$this->visibility->identity(Auth::user(), $item),
             'created_at' => $item->created_at?->toIso8601String(),
             'employee' => $item->employee === null ? null : [
                 'id' => $item->employee->id,

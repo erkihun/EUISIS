@@ -4,6 +4,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type DayTypeOption = { value: string; label: string };
 
 export default function SpecialDayCreate({ day_types }: { day_types: DayTypeOption[] }) {
@@ -23,8 +24,8 @@ export default function SpecialDayCreate({ day_types }: { day_types: DayTypeOpti
         reason_am: '',
     });
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-    const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
+    const inputCls = cx(inputClassName, 'w-full');
+    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)] mb-1';
     const errorCls = 'mt-1 text-xs text-red-500';
 
     function submit(e: React.FormEvent) {
@@ -36,7 +37,7 @@ export default function SpecialDayCreate({ day_types }: { day_types: DayTypeOpti
         <AuthenticatedLayout header={<PageHeader title={t('cafeteria.addSpecialDay')} />}>
             <Head title={t('cafeteria.addSpecialDay')} />
             <div className="mx-auto max-w-2xl">
-                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <form onSubmit={submit} className="space-y-5">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -66,11 +67,11 @@ export default function SpecialDayCreate({ day_types }: { day_types: DayTypeOpti
                         </div>
 
                         <div className="flex gap-6">
-                            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                                 <input type="checkbox" className="h-4 w-4 rounded" checked={data.is_open} onChange={e => { setData('is_open', e.target.checked); if (!e.target.checked) setData('is_subsidy_day', false); }} />
                                 {t('cafeteria.isOpen')}
                             </label>
-                            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                                 <input type="checkbox" className="h-4 w-4 rounded" disabled={!data.is_open} checked={data.is_subsidy_day} onChange={e => setData('is_subsidy_day', e.target.checked)} />
                                 {t('cafeteria.isSubsidyDay')}
                             </label>
@@ -97,8 +98,8 @@ export default function SpecialDayCreate({ day_types }: { day_types: DayTypeOpti
                         </div>
 
                         <div className="flex justify-end gap-3 pt-2">
-                            <a href={route('cafeteria.special-days.index')} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">{t('common.cancel')}</a>
-                            <button type="submit" disabled={processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
+                            <a href={route('cafeteria.special-days.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">{t('common.cancel')}</a>
+                            <button type="submit" disabled={processing} className={buttonClassName({ variant: 'primary' })}>
                                 {processing ? t('common.saving') : t('common.save')}
                             </button>
                         </div>

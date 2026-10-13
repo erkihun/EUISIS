@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
@@ -7,6 +8,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type OrgType = {
     id: string;
     code: string;
@@ -23,15 +26,33 @@ type OrgType = {
     can: { update: boolean; delete: boolean };
 };
 
+type Filters = { search: string; status: string; category: string };
+
 export default function OrganizationTypesIndex({
     types,
+    filters,
+    filterOptions,
     can,
 }: {
-    types: OrgType[];
+    types: { data: OrgType[] } & LaravelPageMeta;
+    filters: Filters;
+    filterOptions: { categories: string[] };
     can: { create: boolean };
 }) {
     const { t: tr } = useLocale();
     const { confirm } = useConfirm();
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
+
+    function submit() {
+        router.get(route('organization-types.index'), { ...values, page: 1 }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { search: '', status: '', category: '' };
+        setValues(empty);
+        router.get(route('organization-types.index'), empty, { preserveScroll: true, replace: true });
+    }
 
     async function destroy(id: string) {
         const { confirmed } = await confirm({
@@ -73,7 +94,7 @@ export default function OrganizationTypesIndex({
                         can.create ? (
                             <Link
                                 href={route('organization-types.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {tr('organizationTypes.createTitle')}
@@ -85,123 +106,137 @@ export default function OrganizationTypesIndex({
         >
             <Head title={tr('organizationTypes.title')} />
 
-            <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                {types.length === 0 ? (
-                    <div className="p-6">
-                        <EmptyState
-                            title={tr('organizationTypes.noTypes')}
-                            description=""
+            <div className="space-y-4">
+                <FilterPanel onSubmit={submit} onReset={resetFilters} hasActiveFilters={filtersActive}>
+                    <FilterField label={tr('common.search')} wide>
+                        <Input
+                            type="search"
+                            value={values.search}
+                            onChange={(event) => setValues({ ...values, search: event.target.value })}
+                            placeholder={tr('organizations.searchByCodeOrName')}
                         />
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full text-left text-sm">
-                            <thead className="bg-gray-50 dark:bg-slate-950">
-                                <tr>
-                                    {[
-                                        tr('common.code'),
-                                        tr('organizationTypes.prefix'),
-                                        tr('common.name'),
-                                        tr('organizationTypes.category'),
-                                        tr('organizationTypes.levelOrder'),
-                                        tr('organizationTypes.parentAllowedTypes'),
-                                        tr('organizationTypes.organizationsCount'),
-                                        tr('common.status'),
-                                        '',
-                                    ].map((h) => (
-                                        <th
-                                            key={h}
-                                            className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
-                                        >
-                                            {h}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {types.map((type) => (
-                                    <tr
-                                        key={type.id}
-                                        className="border-t border-gray-100 text-gray-700 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800/50"
-                                    >
-                                        <td className="py-3 pl-5 pr-4 font-mono text-xs font-medium text-gray-500 dark:text-slate-400">
-                                            {type.code}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            {type.prefix ? (
-                                                <span className="rounded-md bg-orange-50 px-2 py-1 font-mono text-xs font-semibold text-orange-700 ring-1 ring-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:ring-orange-900/50">
-                                                    {type.prefix}
-                                                </span>
-                                            ) : (
-                                                <span className="text-xs text-gray-400 dark:text-slate-500">
-                                                    {tr('organizationTypes.noPrefix')}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <p className="font-medium">{type.name_en}</p>
-                                            {type.name_am && (
-                                                <p className="text-xs text-gray-400 dark:text-slate-500">
-                                                    {type.name_am}
-                                                </p>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
-                                            {categoryLabel(type.category)}
-                                        </td>
-                                        <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
-                                            {type.level_order}
-                                        </td>
-                                        <td className="px-4 py-3 max-w-[180px]">
-                                            {type.parent_allowed_types.length === 0 ? (
-                                                <span className="text-xs text-amber-600 dark:text-amber-400">
-                                                    {tr('organizationTypes.rootOnly')}
-                                                </span>
-                                            ) : (
-                                                <span className="font-mono text-xs text-gray-500 dark:text-slate-400">
-                                                    {parentTypesLabel(type.parent_allowed_types)}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
-                                            {type.organizations_count}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <StatusBadge status={type.is_active ? 'active' : 'inactive'} />
-                                        </td>
-                                        <td className="py-3 pl-4 pr-5">
-                                            <div className="flex items-center justify-end gap-3">
-                                                <Link
-                                                    href={route('organization-types.show', type.id)}
-                                                    className="text-xs font-medium text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200"
-                                                >
-                                                    {tr('common.view')}
-                                                </Link>
-                                                {type.can.update && (
-                                                    <Link
-                                                        href={route('organization-types.edit', type.id)}
-                                                        className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
-                                                    >
-                                                        {tr('common.edit')}
-                                                    </Link>
-                                                )}
-                                                {type.can.delete && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => destroy(type.id)}
-                                                        className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                                    >
-                                                        {tr('common.delete')}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
+                    </FilterField>
+                    <FilterField label={tr('common.status')}>
+                        <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                            <option value="">{tr('common.allStatuses')}</option>
+                            <option value="active">{tr('common.active')}</option>
+                            <option value="inactive">{tr('common.inactive')}</option>
+                        </Select>
+                    </FilterField>
+                    {filterOptions.categories.length > 0 && (
+                        <FilterField label={tr('organizationTypes.category')}>
+                            <Select value={values.category} onChange={(event) => setValues({ ...values, category: event.target.value })}>
+                                <option value="">{tr('organizations.allCategories')}</option>
+                                {filterOptions.categories.map((category) => (
+                                    <option key={category} value={category}>{categoryLabel(category)}</option>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                            </Select>
+                        </FilterField>
+                    )}
+                </FilterPanel>
+
+                <TableCard footer={<ListPagination meta={types} />}>
+                    {types.data.length === 0 ? (
+                        <div className="p-6">
+                            <EmptyState
+                                title={filtersActive ? tr('common.noResults') : tr('organizationTypes.noTypes')}
+                                description=""
+                            />
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        {[
+                                            tr('common.code'),
+                                            tr('organizationTypes.prefix'),
+                                            tr('common.name'),
+                                            tr('organizationTypes.category'),
+                                            tr('organizationTypes.levelOrder'),
+                                            tr('organizationTypes.parentAllowedTypes'),
+                                            tr('organizationTypes.organizationsCount'),
+                                            tr('common.status'),
+                                            '',
+                                        ].map((h) => (
+                                            <th
+                                                key={h}
+                                                className={cx(tableHeaderCellClassName, 'text-left')}
+                                            >
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className={tableBodyClassName}>
+                                    {types.data.map((type) => (
+                                        <tr
+                                            key={type.id}
+                                            className={tableRowClassName}
+                                        >
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
+                                                {type.code}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                {type.prefix ? (
+                                                    <span className={badgeClassName('warning', 'font-mono')}>
+                                                        {type.prefix}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                        {tr('organizationTypes.noPrefix')}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <p className="font-medium">{type.name_en}</p>
+                                                {type.name_am && (
+                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                        {type.name_am}
+                                                    </p>
+                                                )}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                                {categoryLabel(type.category)}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                                {type.level_order}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'max-w-[180px]')}>
+                                                {type.parent_allowed_types.length === 0 ? (
+                                                    <span className="text-xs text-amber-600 dark:text-amber-400">
+                                                        {tr('organizationTypes.rootOnly')}
+                                                    </span>
+                                                ) : (
+                                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                                        {parentTypesLabel(type.parent_allowed_types)}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                                {type.organizations_count}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <StatusBadge status={type.is_active ? 'active' : 'inactive'} />
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: tr('common.view'), href: route('organization-types.show', type.id) },
+                                                            { label: tr('common.edit'), href: route('organization-types.edit', type.id), show: type.can.update },
+                                                            { label: tr('common.delete'), onClick: () => destroy(type.id), variant: 'danger', show: type.can.delete },
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

@@ -2,6 +2,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
+import { useBranding } from '@/hooks/useBranding';
 
 interface Props {
     user: { name: string; email: string };
@@ -9,6 +10,7 @@ interface Props {
 
 export default function MfaChallenge({ user }: Props) {
     const { t } = useLocale();
+    const { brandName } = useBranding();
     const [useRecovery, setUseRecovery] = useState(false);
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -33,7 +35,7 @@ export default function MfaChallenge({ user }: Props) {
                 <div className="mb-8 flex items-center justify-center gap-2">
                     <ApplicationLogo className="h-9 w-9 fill-slate-900 dark:fill-white" />
                     <span className="text-lg font-bold text-slate-900 dark:text-white">
-                        EUISIS
+                        {brandName}
                     </span>
                 </div>
 

@@ -35,14 +35,14 @@ export default function StatusDistribution({ data, labelFor }: Props) {
                     </PieChart>
                 </ResponsiveContainer>
             </div>
-            <div className="divide-y divide-gray-100 self-center dark:divide-slate-800">
+            <div className="divide-y divide-[color:var(--app-border)] self-center">
                 {data.map((item, index) => (
                     <div key={item.key} className="flex items-center justify-between gap-3 py-2.5">
                         <div className="flex items-center gap-2">
                             <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: colors[index % colors.length] }} />
-                            <span className="text-sm text-gray-700 dark:text-slate-200">{labelFor(item.key)}</span>
+                            <span className="text-sm text-[color:var(--app-foreground)]">{labelFor(item.key)}</span>
                         </div>
-                        <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">{item.value}</span>
+                        <span className="text-sm font-semibold text-[color:var(--app-foreground)]">{item.value}</span>
                     </div>
                 ))}
             </div>

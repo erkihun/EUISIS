@@ -2,13 +2,10 @@ import type { FormEvent } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import InputLabel from '@/Components/InputLabel';
-import TextInput from '@/Components/TextInput';
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { useLocale } from '@/hooks/useLocale';
 
+import { actionLinkClassName, cx, selectClassName, Button, FieldError, FormLabel, Input } from '@/Components/ui';
 interface OrganizationOption {
     id: string;
     name_en: string;
@@ -69,8 +66,7 @@ export default function InstitutionOfficeCreate({
         status: 'active',
     });
 
-    const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+    const inputCls = cx(selectClassName, 'w-full');
 
     const selectedOrganization = institutions.find((organization) => organization.id === data.organization_id) ?? selectedInstitution;
     const selectedParentUnit = parentOfficeOptions.find((unit) => unit.id === data.parent_unit_id) ?? null;
@@ -107,19 +103,19 @@ export default function InstitutionOfficeCreate({
                         </div>
                     )}
 
-                    <section className="rounded-lg border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                         <div className="mb-4">
-                            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
                                 {t('institutionOffices.structuralPlacement')}
                             </h2>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
                                 {t('institutionOffices.createdAsOrganizationUnitHelp')}
                             </p>
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                                <InputLabel value={`${t('institutionOffices.structuralOrganization')} *`} />
+                                <FormLabel>{`${t('institutionOffices.structuralOrganization')} *`}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.organization_id}
@@ -133,14 +129,14 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('institutionOffices.structuralOrganizationHelp')}
                                 </p>
-                                <InputError message={errors.organization_id} />
+                                <FieldError>{errors.organization_id}</FieldError>
                             </div>
 
                             <div>
-                                <InputLabel value={`${t('institutionOffices.organizationUnitType')} *`} />
+                                <FormLabel>{`${t('institutionOffices.organizationUnitType')} *`}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.organization_unit_type_id}
@@ -154,11 +150,11 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.organization_unit_type_id} />
+                                <FieldError>{errors.organization_unit_type_id}</FieldError>
                             </div>
 
                             <div className="md:col-span-2">
-                                <InputLabel value={t('institutionOffices.parentOrganizationUnit')} />
+                                <FormLabel>{t('institutionOffices.parentOrganizationUnit')}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.parent_unit_id ?? ''}
@@ -172,35 +168,35 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.parent_unit_id} />
+                                <FieldError>{errors.parent_unit_id}</FieldError>
                             </div>
                         </div>
                     </section>
 
-                    <section className="rounded-lg border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-slate-100">
+                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                        <h2 className="mb-4 text-base font-semibold text-[color:var(--app-foreground)]">
                             {t('institutionOffices.officeUnitIdentity')}
                         </h2>
 
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                                <InputLabel value={`${t('institutionOffices.unitNameEn')} *`} />
-                                <TextInput
+                                <FormLabel>{`${t('institutionOffices.unitNameEn')} *`}</FormLabel>
+                                <Input
                                     className="w-full"
                                     value={data.name_en}
                                     onChange={(event) => setData('name_en', event.target.value)}
                                 />
-                                <InputError message={errors.name_en} />
+                                <FieldError>{errors.name_en}</FieldError>
                             </div>
 
                             <div>
-                                <InputLabel value={t('institutionOffices.unitNameAm')} />
-                                <TextInput
+                                <FormLabel>{t('institutionOffices.unitNameAm')}</FormLabel>
+                                <Input
                                     className="w-full"
                                     value={data.name_am}
                                     onChange={(event) => setData('name_am', event.target.value)}
                                 />
-                                <InputError message={errors.name_am} />
+                                <FieldError>{errors.name_am}</FieldError>
                             </div>
 
                             <div>
@@ -220,7 +216,7 @@ export default function InstitutionOfficeCreate({
                             </div>
 
                             <div>
-                                <InputLabel value={`${t('institutionOffices.status')} *`} />
+                                <FormLabel>{`${t('institutionOffices.status')} *`}</FormLabel>
                                 <select className={inputCls} value={data.status} onChange={(event) => setData('status', event.target.value)}>
                                     {statusOptions.map((option) => (
                                         <option key={option.value} value={option.value}>
@@ -228,24 +224,24 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.status} />
+                                <FieldError>{errors.status}</FieldError>
                             </div>
                         </div>
                     </section>
 
-                    <section className="rounded-lg border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                         <div className="mb-4">
-                            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
                                 {t('institutionOffices.reportingRelationship')}
                             </h2>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
                                 {t('institutionOffices.functionalReportingNoManagementAccess')}
                             </p>
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                                <InputLabel value={t('institutionOffices.functionalReportingOrganization')} />
+                                <FormLabel>{t('institutionOffices.functionalReportingOrganization')}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.functional_reporting_organization_id}
@@ -258,14 +254,14 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('institutionOffices.functionalReportingHelp')}
                                 </p>
-                                <InputError message={errors.functional_reporting_organization_id} />
+                                <FieldError>{errors.functional_reporting_organization_id}</FieldError>
                             </div>
 
                             <div>
-                                <InputLabel value={t('relationships.type')} />
+                                <FormLabel>{t('relationships.type')}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.relationship_type}
@@ -277,7 +273,7 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.relationship_type} />
+                                <FieldError>{errors.relationship_type}</FieldError>
                             </div>
                         </div>
                     </section>
@@ -295,10 +291,10 @@ export default function InstitutionOfficeCreate({
                     </section>
 
                     <div className="flex items-center gap-3">
-                        <PrimaryButton type="submit" disabled={processing}>
+                        <Button type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('institutionOffices.create')}
-                        </PrimaryButton>
-                        <Link href={route('institution-offices.index')} className="text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400">
+                        </Button>
+                        <Link href={route('institution-offices.index')} className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}>
                             {t('common.cancel')}
                         </Link>
                     </div>
@@ -310,9 +306,9 @@ export default function InstitutionOfficeCreate({
 
 function PreviewRow({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-md border border-blue-100 bg-white px-3 py-2 dark:border-blue-900/50 dark:bg-slate-900">
+        <div className="rounded-md border border-blue-100 bg-[color:var(--app-surface)] px-3 py-2 dark:border-blue-900/50">
             <div className="text-xs font-medium uppercase text-blue-700 dark:text-blue-300">{label}</div>
-            <div className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{value}</div>
+            <div className="mt-1 text-sm font-semibold text-[color:var(--app-foreground)]">{value}</div>
         </div>
     );
 }

@@ -4,6 +4,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { CycleForm, type CycleData, type Option } from '@/Components/assessmentOversight/CycleForm';
 import { named, oversightHref, type Cycle as ShellCycle } from '@/Components/assessmentOversight/shell';
 import { Section, Table, dangerLinkBtn, filterInputCls, pageCls, primaryBtn, secondaryBtn, smallBtn, smallPrimaryBtn, tdCls, thCls } from '@/Components/performance/ui';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ type Props = {
 /** One cycle: settings, explicit participating institutions and the eligibility snapshot. */
 export default function OversightCycle({ cycle, participants, organizations, eligibility, pending, policies, types, employeeStatuses, search }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const [picked, setPicked] = useState<string[]>([]);
     const finalized = cycle.eligibility_status === 'finalized';
     const post = (name: string, data: Record<string, string> = {}) => router.post(route(name, cycle.id), data, { preserveScroll: true });
@@ -45,10 +47,10 @@ export default function OversightCycle({ cycle, participants, organizations, eli
 
                 <Section title={t('assessmentOversight.cycleSections.eligibility')} description={t('assessmentOversight.eligibilityHelp')}>
                     <div className="flex flex-wrap items-center gap-6 text-sm">
-                        <div><span className="text-gray-500">{t('assessmentOversight.eligible')}</span> <b className="tabular-nums">{eligibility.eligible}</b></div>
-                        <div><span className="text-gray-500">{t('assessmentOversight.excluded')}</span> <b className="tabular-nums">{eligibility.excluded}</b></div>
-                        <div><span className="text-gray-500">{t('assessmentOversight.snapshotAt')}</span> {cycle.eligibility_snapshot_at ? <LocalizedDateDisplay value={cycle.eligibility_snapshot_at} withTime /> : '—'}</div>
-                        <div><span className="text-gray-500">{t('assessmentOversight.eligibility')}</span> {t(`assessmentOversight.eligibilityStatuses.${cycle.eligibility_status}`)}</div>
+                        <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.eligible')}</span> <b className="tabular-nums">{eligibility.eligible}</b></div>
+                        <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.excluded')}</span> <b className="tabular-nums">{eligibility.excluded}</b></div>
+                        <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.snapshotAt')}</span> {cycle.eligibility_snapshot_at ? <LocalizedDateDisplay value={cycle.eligibility_snapshot_at} withTime /> : '—'}</div>
+                        <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.eligibility')}</span> {t(`assessmentOversight.eligibilityStatuses.${cycle.eligibility_status}`)}</div>
                         {pending > 0 && <div className="text-amber-700">{t('assessmentOversight.pendingExclusions')}: {pending}</div>}
                     </div>
                     {eligibility.by_reason.length > 0 && (
@@ -58,7 +60,7 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                         <div className="mt-4 flex flex-wrap gap-2">
                             <button type="button" className={smallPrimaryBtn} onClick={() => post('assessment-oversight.cycles.eligibility.snapshot')}>{cycle.eligibility_snapshot_at ? t('assessmentOversight.cycleActions.resnapshot') : t('assessmentOversight.cycleActions.snapshot')}</button>
                             {cycle.eligibility_snapshot_at && (
-                                <button type="button" className={smallBtn} onClick={() => { if (window.confirm(t('assessmentOversight.cycleActions.finalizeConfirm'))) post('assessment-oversight.cycles.eligibility.finalize'); }}>{t('assessmentOversight.cycleActions.finalize')}</button>
+                                <button type="button" className={smallBtn} onClick={async () => { if ((await confirm({ title: t('assessmentOversight.cycleActions.finalizeConfirm') })).confirmed) post('assessment-oversight.cycles.eligibility.finalize'); }}>{t('assessmentOversight.cycleActions.finalize')}</button>
                             )}
                         </div>
                     )}
@@ -73,8 +75,8 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                     </>}>
                         {participants.map((p) => (
                             <tr key={p.id}>
-                                <td className={tdCls}>{named(p.organization, locale)} <span className="text-xs text-gray-500">{p.organization?.code}</span></td>
-                                <td className={tdCls}>{t(`assessmentOversight.participationStatuses.${p.status}`)}{p.exclusion_reason && <div className="text-xs text-gray-500">{p.exclusion_reason}</div>}</td>
+                                <td className={tdCls}>{named(p.organization, locale)} <span className="text-xs text-[color:var(--app-muted-foreground)]">{p.organization?.code}</span></td>
+                                <td className={tdCls}>{t(`assessmentOversight.participationStatuses.${p.status}`)}{p.exclusion_reason && <div className="text-xs text-[color:var(--app-muted-foreground)]">{p.exclusion_reason}</div>}</td>
                                 <td className={tdCls}>{t(`assessmentOversight.submissionStatuses.${p.submission_status}`)}</td>
                                 <td className={tdCls}>
                                     {!finalized && p.status === 'included' && (
@@ -99,7 +101,7 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                             {organizations.map((o) => (
                                 <label key={o.id} className="flex items-center gap-2 text-sm">
                                     <input type="checkbox" checked={picked.includes(o.id)} onChange={(e) => setPicked(e.target.checked ? [...picked, o.id] : picked.filter((x) => x !== o.id))} />
-                                    {named(o, locale)} <span className="text-xs text-gray-500">{o.code}</span>
+                                    {named(o, locale)} <span className="text-xs text-[color:var(--app-muted-foreground)]">{o.code}</span>
                                 </label>
                             ))}
                         </div>

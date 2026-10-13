@@ -18,6 +18,7 @@ import amIdCards from '@/i18n/am/idCards';
 import amNfc from '@/i18n/am/nfc';
 import amIsicActivities from '@/i18n/am/isicActivities';
 import amOccupations from '@/i18n/am/occupations';
+import amOrganizationDesign from '@/i18n/am/organizationDesign';
 import amOrganizationalChangeRequests from '@/i18n/am/organizationalChangeRequests';
 import amOrganizationTypes from '@/i18n/am/organizationTypes';
 import amPositionEstablishments from '@/i18n/am/positionEstablishments';
@@ -71,6 +72,7 @@ import enIdCards from '@/i18n/en/idCards';
 import enNfc from '@/i18n/en/nfc';
 import enIsicActivities from '@/i18n/en/isicActivities';
 import enOccupations from '@/i18n/en/occupations';
+import enOrganizationDesign from '@/i18n/en/organizationDesign';
 import enOrganizationalChangeRequests from '@/i18n/en/organizationalChangeRequests';
 import enOrganizationTypes from '@/i18n/en/organizationTypes';
 import enPositionEstablishments from '@/i18n/en/positionEstablishments';
@@ -121,6 +123,8 @@ import enGrievanceAdmin from '@/i18n/en/grievanceAdmin';
 import amGrievanceAdmin from '@/i18n/am/grievanceAdmin';
 import enCourtCases from '@/i18n/en/courtCases';
 import amCourtCases from '@/i18n/am/courtCases';
+import enDiscipline from '@/i18n/en/discipline';
+import amDiscipline from '@/i18n/am/discipline';
 import enWorkStandards from '@/i18n/en/workStandards';
 import amWorkStandards from '@/i18n/am/workStandards';
 import enAssessments from '@/i18n/en/assessments';
@@ -153,6 +157,7 @@ const translations: Record<Locale, TranslationTree> = {
         nfc: enNfc,
         isicActivities: enIsicActivities,
         occupations: enOccupations,
+        organizationDesign: enOrganizationDesign,
         apiManagement: enApiManagement,
         idChecker: enIdChecker,
         publicSite: enPublicSite,
@@ -193,6 +198,7 @@ const translations: Record<Locale, TranslationTree> = {
         grievanceWork: enGrievanceWork,
         grievanceAdmin: enGrievanceAdmin,
         courtCases: enCourtCases,
+        discipline: enDiscipline,
         workStandards: enWorkStandards,
         assessments: enAssessments,
         assessmentOversight: enAssessmentOversight,
@@ -219,6 +225,7 @@ const translations: Record<Locale, TranslationTree> = {
         nfc: amNfc,
         isicActivities: amIsicActivities,
         occupations: amOccupations,
+        organizationDesign: amOrganizationDesign,
         apiManagement: amApiManagement,
         idChecker: amIdChecker,
         publicSite: amPublicSite,
@@ -259,6 +266,7 @@ const translations: Record<Locale, TranslationTree> = {
         grievanceWork: amGrievanceWork,
         grievanceAdmin: amGrievanceAdmin,
         courtCases: amCourtCases,
+        discipline: amDiscipline,
         workStandards: amWorkStandards,
         assessments: amAssessments,
         assessmentOversight: amAssessmentOversight,

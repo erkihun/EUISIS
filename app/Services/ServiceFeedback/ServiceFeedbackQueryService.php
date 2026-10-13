@@ -25,7 +25,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ServiceFeedbackQueryService
 {
-    public function __construct(private readonly OrganizationScopeService $scope) {}
+    public function __construct(
+        private readonly OrganizationScopeService $scope,
+        private readonly PublicFeedbackVisibility $visibility,
+    ) {}
 
     /**
      * Base query for a user, already confined to what they may see.
@@ -34,7 +37,12 @@ class ServiceFeedbackQueryService
      */
     public function scopedQuery(User $user): Builder
     {
-        $query = EmployeeServiceFeedback::query();
+        $query = $this->visibility->applyTargetScope(EmployeeServiceFeedback::query()->where('type', 'feedback'), $user);
+
+        if ($user->employee_id !== null) {
+            // Institution-targeted ratings have no employee; they must not vanish for an employee-linked user.
+            $query->where(fn (Builder $q) => $q->whereNull('employee_id')->orWhere('employee_id', '!=', $user->employee_id));
+        }
 
         if ($this->scope->isUnrestricted($user)) {
             return $query;

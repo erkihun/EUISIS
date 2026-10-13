@@ -37,6 +37,9 @@ use Inertia\Response;
 
 class TransferAnnouncementController extends Controller
 {
+    /** Positions offered by the announcement form; narrow by organization beyond this. */
+    private const FORM_POSITION_LIMIT = 2000;
+
     public function index(Request $request, OrganizationScopeService $scopeService): Response
     {
         $this->authorize('viewAny', TransferAnnouncement::class);
@@ -52,14 +55,17 @@ class TransferAnnouncementController extends Controller
         $query = TransferAnnouncement::query()
             ->with(['organization', 'position', 'positions.organization', 'positions.position'])
             ->withCount('applications')
-            ->when($accessibleOrgIds->isNotEmpty(), function ($q) use ($accessibleOrgIds): void {
+            // Always filtered for a scoped user: an empty scope means nothing (SEC-5).
+            ->when(! $scopeService->isUnrestricted($user), function ($q) use ($accessibleOrgIds): void {
                 $q->whereHas('positions', fn ($p) => $p->whereIn('organization_id', $accessibleOrgIds));
             })
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            // Grouped so the OR cannot escape the scope and status filters above.
             ->when($request->filled('search'), function ($q) use ($request): void {
                 $term = '%'.$request->string('search').'%';
-                $q->whereHas('organization', fn ($o) => $o->where('name_en', ci_like_operator(), $term)->orWhere('name_am', ci_like_operator(), $term))
-                    ->orWhereHas('position', fn ($p) => $p->where('title_en', ci_like_operator(), $term)->orWhere('title_am', ci_like_operator(), $term));
+                $q->where(fn ($search) => $search
+                    ->whereHas('organization', fn ($o) => $o->where('name_en', ci_like_operator(), $term)->orWhere('name_am', ci_like_operator(), $term))
+                    ->orWhereHas('position', fn ($p) => $p->where('title_en', ci_like_operator(), $term)->orWhere('title_am', ci_like_operator(), $term)));
             })
             ->latest();
 
@@ -381,26 +387,35 @@ class TransferAnnouncementController extends Controller
     {
         $scopeService ??= app(OrganizationScopeService::class);
         $actor ??= Auth::user();
-        $establishments = PositionEstablishment::query()
+        $approved = fn () => PositionEstablishment::query()
             ->where('status', EstablishmentStatus::Approved->value)
-            ->when($actor !== null, fn ($query) => $scopeService->applyOrganizationScope($query, $actor))
-            ->withCount(['occupancies as active_count' => fn ($q) => $q->where('status', 'active')])
-            ->get(['id', 'organization_id', 'position_id', 'approved_slots']);
-
-        $vacancyLookup = $establishments->mapWithKeys(function ($e) {
-            $available = max(0, $e->approved_slots - $e->active_count);
-
-            return ["{$e->organization_id}_{$e->position_id}" => $available];
-        });
+            ->when($actor !== null, fn ($query) => $scopeService->applyOrganizationScope($query, $actor));
 
         // Capacity, not a single assignment, is authoritative: a position can
-        // remain selectable while other approved slots are occupied.
+        // remain selectable while other approved slots are occupied. The
+        // free-slot filter and the cap run in SQL (risk register SCL-10): the
+        // form used to load every active position and establishment in scope.
         $positions = Position::query()
             ->where('is_active', true)
             ->when($actor !== null, fn ($query) => $scopeService->applyOrganizationScope($query, $actor))
+            ->where(fn ($query) => $query
+                ->whereIn('id', $approved()
+                    ->whereRaw('approved_slots > (select count(*) from position_occupancies o where o.position_establishment_id = position_establishments.id and o.status = ?)', ['active'])
+                    ->select('position_id'))
+                ->when($includePositionIds !== [], fn ($q) => $q->orWhereIn('id', $includePositionIds)))
             ->with('organizationUnit:id,name_en,name_am,code')
             ->orderBy('title_en')
-            ->get(['id', 'title_en', 'title_am', 'grade_level', 'organization_id']);
+            ->orderBy('id')
+            ->limit(self::FORM_POSITION_LIMIT + 1)
+            ->get(['id', 'title_en', 'title_am', 'grade_level', 'organization_id', 'organization_unit_id', 'job_position_code']);
+        $truncated = $positions->count() > self::FORM_POSITION_LIMIT;
+        $positions = $positions->take(self::FORM_POSITION_LIMIT);
+
+        $vacancyLookup = $approved()
+            ->whereIn('position_id', $positions->modelKeys())
+            ->withCount(['occupancies as active_count' => fn ($q) => $q->where('status', 'active')])
+            ->get(['id', 'organization_id', 'position_id', 'approved_slots'])
+            ->mapWithKeys(fn ($e) => ["{$e->organization_id}_{$e->position_id}" => max(0, $e->approved_slots - $e->active_count)]);
 
         // Only show positions that have at least one vacant slot, PLUS any already
         // selected on an existing announcement (so the edit form doesn't lose them).
@@ -425,6 +440,7 @@ class TransferAnnouncementController extends Controller
                 ->orderBy('name_en'), $actor)
                 ->get(['id', 'name_en', 'name_am']),
             'positions' => $positionsWithSlots,
+            'positionsTruncated' => $truncated,
         ];
     }
 }

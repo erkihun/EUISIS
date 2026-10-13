@@ -23,6 +23,7 @@ class PositionServiceTask extends Model
         'sub_service_id',
         'position_service_id',
         'organization_id',
+        'master_task_id',
         'code',
         'name_en',
         'name_am',
@@ -54,5 +55,11 @@ class PositionServiceTask extends Model
     public function standards(): HasMany
     {
         return $this->hasMany(PositionServiceTaskStandard::class, 'task_id');
+    }
+
+    /** The master task this position task is traced to, when the design has been mapped. */
+    public function masterTask(): BelongsTo
+    {
+        return $this->belongsTo(ProcessTask::class, 'master_task_id');
     }
 }

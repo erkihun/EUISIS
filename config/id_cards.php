@@ -46,4 +46,14 @@ return [
         'short_path' => 'c',
     ],
 
+    // Card-request picker: candidates loaded per page view, searched on the
+    // server (risk register SCL-10). Narrow the search to see the rest.
+    'request_picker_limit' => (int) env('ID_CARD_REQUEST_PICKER_LIMIT', 1000),
+
+    // Decision D-3: a QR that only ends in the card's primary key carries no
+    // secret and is refused at the counter. Printed cards carry the public
+    // card UUID. Turn this on only during a supervised reprint of cards printed
+    // before public UUIDs existed; production:readiness warns while it is on.
+    'accept_legacy_qr' => (bool) env('ID_CARD_ACCEPT_LEGACY_QR', false),
+
 ];

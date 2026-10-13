@@ -4,13 +4,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, router } from '@inertiajs/react';
 
-function paginationLabel(label: string): string {
-    return label.replace(/&laquo;/g, '«').replace(/&raquo;/g, '»').replace(/&amp;/g, '&');
-}
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type AnnouncementCan = {
     update: boolean;
     publish: boolean;
@@ -32,10 +30,8 @@ type Announcement = {
     can: AnnouncementCan;
 };
 
-type PaginationLink = { url: string | null; label: string; active: boolean };
-
 type Props = {
-    announcements: { data: Announcement[]; links: PaginationLink[] };
+    announcements: LaravelPageMeta & { data: Announcement[] };
     filters: { status?: string; search?: string };
     can: { create: boolean };
 };
@@ -43,11 +39,11 @@ type Props = {
 const STATUSES = ['draft', 'published', 'closed', 'cancelled'] as const;
 
 
-const btnBase = 'inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] disabled:opacity-50 disabled:pointer-events-none';
-const btnGray  = `${btnBase} border border-gray-200 text-gray-700 hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] dark:border-slate-700 dark:text-slate-300 dark:hover:border-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]`;
-const btnBlue  = `${btnBase} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]`;
-const btnAmber = `${btnBase} border border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950/30`;
-const btnRed   = `${btnBase} border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30`;
+// Row actions use the shared small buttons.
+const btnGray = buttonClassName({ variant: 'outline', size: 'sm' });
+const btnBlue = buttonClassName({ variant: 'primary', size: 'sm' });
+const btnAmber = buttonClassName({ variant: 'outline', size: 'sm' });
+const btnRed = buttonClassName({ variant: 'destructiveOutline', size: 'sm' });
 
 export default function TransferAnnouncementsIndex({ announcements, filters, can }: Props) {
     const { locale, t } = useLocale();
@@ -55,13 +51,11 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
     const useAmharic = locale === 'am';
     const [processing, setProcessing] = useState<string | null>(null);
 
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const [draft, setDraft] = useState({ search: filters.search ?? '', status: filters.status ?? '' });
 
-    const applyFilters = useCallback((patch: Record<string, string>) => {
-        const next = { ...(filters as Record<string, string>), ...patch };
-        Object.keys(next).forEach((k) => { if (!next[k]) delete next[k]; });
-        router.get(route('transfer-announcements.index'), next, { preserveState: true, replace: true });
-    }, [filters]);
+    function applyFilters() {
+        router.get(route('transfer-announcements.index'), Object.fromEntries(Object.entries(draft).filter(([, value]) => value)), { preserveState: true, replace: true });
+    }
 
     async function handlePublish(a: Announcement) {
         const { confirmed } = await confirm({
@@ -137,7 +131,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                         can.create ? (
                             <Link
                                 href={route('transfer-announcements.create')}
-                                className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 {t('transfers.createAnnouncement')}
                             </Link>
@@ -149,34 +143,27 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
             <Head title={t('transfers.announcements')} />
 
             <div className="space-y-4">
-                {/* Filter bar */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <input
-                        type="search"
-                        placeholder={t('common.search')}
-                        className={inputCls}
-                        defaultValue={filters.search ?? ''}
-                        onKeyDown={(e) => { if (e.key === 'Enter') applyFilters({ search: (e.target as HTMLInputElement).value }); }}
-                        onBlur={(e) => applyFilters({ search: e.target.value })}
-                    />
-                    <select
-                        className={inputCls}
-                        value={filters.status ?? ''}
-                        onChange={(e) => applyFilters({ status: e.target.value })}
-                    >
-                        <option value="">{t('common.status')} — {t('common.all')}</option>
-                        {STATUSES.map((s) => (
-                            <option key={s} value={s}>
-                                {t(`transfers.status${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                <FilterPanel onSubmit={applyFilters} onReset={() => router.get(route('transfer-announcements.index'))} hasActiveFilters={Boolean(filters.search || filters.status)}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={draft.search} onChange={(e) => setDraft({ ...draft, search: e.target.value })} />
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            {STATUSES.map((s) => (
+                                <option key={s} value={s}>
+                                    {t(`transfers.status${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
                 {/* Table */}
-                <div className="overflow-x-auto rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
                                 {[
                                     t('transfers.organization'),
@@ -191,24 +178,24 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                 ].map((h, i) => (
                                     <th
                                         key={h}
-                                        className={`whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400 ${i === 8 ? 'text-right' : ''}`}
+                                        className={`whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)] ${i === 8 ? 'text-right' : ''}`}
                                     >
                                         {h}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className={tableBodyClassName}>
                             {announcements.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="px-4 py-12 text-center">
-                                        <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-slate-500">
+                                    <td colSpan={9} className={cx(tableCellClassName, 'text-center')}>
+                                        <div className="flex flex-col items-center gap-2 text-[color:var(--app-muted-foreground)]">
                                             <svg className="h-10 w-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                                             </svg>
                                             <p className="text-sm">{t('transfers.noAnnouncements')}</p>
                                             {can.create && (
-                                                <Link href={route('transfer-announcements.create')} className="mt-1 text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                                <Link href={route('transfer-announcements.create')} className={actionLinkClassName({ size: 'sm', className: 'mt-1' })}>
                                                     {t('transfers.createAnnouncement')}
                                                 </Link>
                                             )}
@@ -217,30 +204,30 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                 </tr>
                             ) : (
                                 announcements.data.map((a) => (
-                                    <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                                        <td className="px-4 py-3 text-gray-700 dark:text-slate-200">
+                                    <tr key={a.id} className={tableRowClassName}>
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                             {(useAmharic ? a.organization?.name_am : null) ?? a.organization?.name_en ?? '—'}
                                         </td>
-                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
+                                        <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}>
                                             {(useAmharic ? a.position?.title_am : null) ?? a.position?.title_en ?? '—'}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.grade_level ?? '—'}</td>
-                                        <td className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-slate-200">{a.number_of_vacancies}</td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.opening_date} /></td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.closing_date} /></td>
-                                        <td className="px-4 py-3 text-center">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{a.grade_level ?? '—'}</td>
+                                        <td className={cx(tableCellClassName, 'text-center font-semibold text-[color:var(--app-foreground)]')}>{a.number_of_vacancies}</td>
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.opening_date} /></td>
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.closing_date} /></td>
+                                        <td className={cx(tableCellClassName, 'text-center')}>
                                             {a.applications_count > 0 ? (
                                                 <Link href={route('transfer-applications.index') + `?announcement_id=${a.id}`} className="font-semibold text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                                     {a.applications_count}
                                                 </Link>
                                             ) : (
-                                                <span className="text-gray-400">{a.applications_count}</span>
+                                                <span className="text-[color:var(--app-muted-foreground)]">{a.applications_count}</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <StatusBadge status={a.status} />
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <div className="flex flex-wrap items-center justify-end gap-1.5">
                                                 <Link href={route('transfer-announcements.show', a.id)} className={btnGray}>
                                                     {t('common.view')}
@@ -297,26 +284,10 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                             )}
                         </tbody>
                     </table>
+                    </div>
+                    <ListPagination meta={announcements} />
                 </div>
 
-                {/* Pagination */}
-                {announcements.links && announcements.links.length > 3 && (
-                    <div className="flex flex-wrap items-center justify-center gap-1">
-                        {announcements.links.map((link, i) => (
-                            <button
-                                key={i}
-                                disabled={!link.url}
-                                onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
-                                className={[
-                                    'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
-                                    link.active
-                                        ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white'
-                                        : 'border-gray-200 text-gray-600 hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] disabled:opacity-40 disabled:pointer-events-none dark:border-slate-700 dark:text-slate-300',
-                                ].join(' ')}
-                            >{paginationLabel(link.label)}</button>
-                        ))}
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

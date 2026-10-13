@@ -16,6 +16,7 @@ const idCards = {
     clearSelection: 'Clear selection',
     matchingEmployees: ':count matching employees',
     adjustEmployeeFilters: 'Try another search or turn off the selected-only filter.',
+    employeesTruncated: 'Showing the first :count employees. Search by name, number or organization to find others.',
     selectionLimitReached: '500 employees selected. Submit this group before creating another.',
     searchEmployees: 'Search by employee name, number or organization',
     bulkRequestHelp: 'Select up to 500 employees. The request type and reason apply to everyone selected. If any employee cannot be submitted, no requests will be created.',

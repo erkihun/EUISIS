@@ -2,7 +2,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { TaskScores, TaskStandardView } from './types';
 
 /*
- * Work execution register (የባለሞያ የእለት እቅድ ክንውን መመዝገቢያ): the read-only
+ * Work execution register (የባለሞያ የዕለት ዕቅድ ክንውን መመዝገቢያ): the read-only
  * standard an employee works against, and the performance scores.
  *
  * Scores shown while editing are a PREVIEW of the same formulas; the server
@@ -80,15 +80,15 @@ export function StandardSummary({ standard }: { standard: TaskStandardView }) {
 
     return (
         <div className="rounded-lg border border-[color:var(--color-primary)]/20 bg-[color:var(--color-primary)]/5 p-3">
-            <p className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-gray-700 dark:text-slate-200">
+            <p className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-[color:var(--app-foreground)]">
                 <span>{t('dailyActivities.work.standardTitle')}</span>
-                {standard.version_no !== null && <span className="font-normal text-gray-500 dark:text-slate-400">{t('dailyActivities.work.version')} {standard.version_no}</span>}
+                {standard.version_no !== null && <span className="font-normal text-[color:var(--app-muted-foreground)]">{t('dailyActivities.work.version')} {standard.version_no}</span>}
             </p>
             <dl className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[10rem_1fr]">
                 {rows.map(([label, value]) => (
                     <div key={label} className="contents">
-                        <dt className="text-gray-500 dark:text-slate-400">{label}</dt>
-                        <dd className="break-words text-gray-900 dark:text-slate-100">{value}</dd>
+                        <dt className="text-[color:var(--app-muted-foreground)]">{label}</dt>
+                        <dd className="break-words text-[color:var(--app-foreground)]">{value}</dd>
                     </div>
                 ))}
             </dl>
@@ -107,16 +107,16 @@ export function ScoreRow({ scores, preview = false }: { scores: TaskScores; prev
 
     return (
         <div aria-live={preview ? 'polite' : undefined}>
-            <p className="mb-1 text-xs text-gray-500 dark:text-slate-400">{t(preview ? 'dailyActivities.work.previewNote' : 'dailyActivities.work.performance')}</p>
+            <p className="mb-1 text-xs text-[color:var(--app-muted-foreground)]">{t(preview ? 'dailyActivities.work.previewNote' : 'dailyActivities.work.performance')}</p>
             <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {cells.filter(([, value]) => value !== null).map(([label, value]) => (
-                    <div key={label} className="rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-800/60">
-                        <dt className="text-xs text-gray-500 dark:text-slate-400">{label}</dt>
-                        <dd className="text-sm font-semibold tabular-nums text-gray-900 dark:text-slate-100">{percent(value)}</dd>
+                    <div key={label} className="rounded-lg bg-[color:var(--app-surface-muted)] px-3 py-2">
+                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
+                        <dd className="text-sm font-semibold tabular-nums text-[color:var(--app-foreground)]">{percent(value)}</dd>
                     </div>
                 ))}
                 <div className="rounded-lg bg-[color:var(--color-primary)]/10 px-3 py-2">
-                    <dt className="text-xs text-gray-600 dark:text-slate-300">{t('dailyActivities.work.taskScore')}</dt>
+                    <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('dailyActivities.work.taskScore')}</dt>
                     <dd className="text-sm font-bold tabular-nums text-[color:var(--color-primary)]">{scores.task === null ? t('dailyActivities.work.incomplete') : percent(scores.task)}</dd>
                 </div>
             </dl>

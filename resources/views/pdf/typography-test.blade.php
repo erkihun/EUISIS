@@ -23,20 +23,20 @@
     </style>
 </head>
 <body>
-    <h1>EUISIS Typography Test</h1>
-    <h1>የሰራተኞች አስተዳደር</h1>
+    <h1>{{ config('app.name') }} Typography Test</h1>
+    <h1>የሠራተኞች አስተዳደር</h1>
     <div class="meta">Variant: {{ $variant }} · Font: {{ $family }}</div>
 
     <h2>የተቋም መዋቅር — Organization structure</h2>
     <p>
-        ሰራተኛ ቁጥር AAC-00123456 · የሰራተኛ መታወቂያ ID-2026-000781 ·
-        የካፍቴሪያ አገልግሎት ETB 1,250.00 · የአፈጻጸም አስተዳደር 2018 ዓ.ም. (2026-09-28)።
-        Mixed sentence: The employee (ሰራተኛ) completed 12 of 15 tasks — 80% on time.
+        ሠራተኛ ቁጥር AAC-00123456 · የሠራተኛ መታወቂያ ID-2026-000781 ·
+        የካፌቴሪያ አገልግሎት ETB 1,250.00 · የአፈጻጸም አስተዳደር 2018 ዓ.ም. (2026-09-28)።
+        Mixed sentence: The employee (ሠራተኛ) completed 12 of 15 tasks — 80% on time.
     </p>
 
-    <p><strong>Bold / ደማቅ: የሰራተኞች አስተዳደር — Employee Management</strong></p>
+    <p><strong>Bold / ደማቅ: የሠራተኞች አስተዳደር — Employee Management</strong></p>
     <p>Regular / መደበኛ: የተቋም መዋቅር — Organization Structure</p>
-    <p><em>Italic request (maps to the regular face): የሰራተኛ መታወቂያ</em></p>
+    <p><em>Italic request (maps to the regular face): የሠራተኛ መታወቂያ</em></p>
 
     <h2>Table / ሰንጠረዥ</h2>
     <table>
@@ -51,13 +51,13 @@
         <tbody>
             <tr>
                 <td class="code">POS-0001</td>
-                <td>የሰራተኞች አስተዳደር</td>
+                <td>የሠራተኞች አስተዳደር</td>
                 <td>28/09/2026</td>
                 <td class="num">1,250.00</td>
             </tr>
             <tr>
                 <td class="code">POS-0002</td>
-                <td>የካፍቴሪያ አገልግሎት — Cafeteria service</td>
+                <td>የካፌቴሪያ አገልግሎት — Cafeteria service</td>
                 <td>መስከረም 18 ቀን 2019</td>
                 <td class="num">45.00</td>
             </tr>

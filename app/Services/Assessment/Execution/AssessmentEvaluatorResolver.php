@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  * manager role":
  *
  *  - SELF: the active account linked to the employee record.
- *  - DIRECT_MANAGER: EUISIS records no supervisor on positions, so the
+ *  - DIRECT_MANAGER: Addis One records no supervisor on positions, so the
  *    manager comes from the explicit reviewer assignments that already
  *    define line-manager authority (Daily Activity / EPMS). The most
  *    specific assignment covering the employee on the reference date wins:

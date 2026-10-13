@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Occupation extends Model
@@ -17,6 +18,7 @@ class Occupation extends Model
     protected $fillable = [
         'code',
         'isco_code',
+        'isco_group_id',
         'name_en',
         'name_am',
         'skill_specialization',
@@ -32,6 +34,17 @@ class Occupation extends Model
     public function setIscoCodeAttribute(?string $value): void
     {
         $this->attributes['isco_code'] = $value === null ? null : trim($value);
+    }
+
+    /** The ISCO reference row this occupation cites; the recorded codes stay on the occupation. */
+    public function iscoGroup(): BelongsTo
+    {
+        return $this->belongsTo(IscoGroup::class, 'isco_group_id');
+    }
+
+    public function professions(): HasMany
+    {
+        return $this->hasMany(Profession::class)->orderBy('sort_order')->orderBy('code');
     }
 
     public function creator(): BelongsTo

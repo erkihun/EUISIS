@@ -418,6 +418,8 @@ enum AuditEventType: string
 
     // Grievance Management (docs/grievance-management.md §10). Values carry
     // ids, statuses and codes only — never the grievance narrative.
+    case GrievanceInitialIssueRaised = 'grievance.initial_issue_raised';
+    case GrievanceInitialResolutionRecorded = 'grievance.initial_resolution_recorded';
     case GrievanceDraftCreated = 'grievance.draft_created';
     case GrievanceDraftUpdated = 'grievance.draft_updated';
     case GrievanceDraftDeleted = 'grievance.draft_deleted';
@@ -515,6 +517,9 @@ enum AuditEventType: string
      * record which administrator suppressed or resolved a comment.
      */
     case ServiceFeedbackSubmitted = 'service_feedback.submitted';
+    case ServiceSuggestionSubmitted = 'service_feedback.suggestion_submitted';
+    case ServiceComplaintSubmitted = 'service_feedback.complaint_submitted';
+    case ServiceComplaintAttachmentDownloaded = 'service_feedback.complaint_attachment_downloaded';
     case ServiceFeedbackBlocked = 'service_feedback.blocked';
     case ServiceFeedbackReviewed = 'service_feedback.reviewed';
     case ServiceFeedbackResolved = 'service_feedback.resolved';
@@ -528,6 +533,14 @@ enum AuditEventType: string
     case ServiceFeedbackQrSuspended = 'service_feedback.qr_suspended';
     case ServiceFeedbackQrExported = 'service_feedback.qr_exported';
 
+    // Organization public feedback QR (brief §72): state changes and exports; never the token itself.
+    case OrganizationFeedbackQrGenerated = 'service_feedback.organization_qr_generated';
+    case OrganizationFeedbackQrDisabled = 'service_feedback.organization_qr_disabled';
+    case OrganizationFeedbackQrEnabled = 'service_feedback.organization_qr_enabled';
+    case OrganizationFeedbackQrRotated = 'service_feedback.organization_qr_rotated';
+    case OrganizationFeedbackQrRevoked = 'service_feedback.organization_qr_revoked';
+    case OrganizationFeedbackQrExported = 'service_feedback.organization_qr_exported';
+
     /*
      * Employee CSV import. Validation is logged as well as completion, so an
      * upload that was previewed and abandoned still leaves a trace of who
@@ -536,6 +549,21 @@ enum AuditEventType: string
     case EmployeeImportValidated = 'employee_import.validated';
     case EmployeeImportCompleted = 'employee_import.completed';
     case ServiceFeedbackSettingsUpdated = 'service_feedback.settings_updated';
+
+    /*
+     * Public submission workflow: transitions, hand-overs and routing rules.
+     * Old and new status or handler are recorded; never the submission text.
+     */
+    case ServiceFeedbackStatusChanged = 'service_feedback.status_changed';
+    case ServiceFeedbackAssigned = 'service_feedback.assigned';
+    case ServiceFeedbackReassigned = 'service_feedback.reassigned';
+    case ServiceFeedbackUnrouted = 'service_feedback.unrouted';
+    case ServiceFeedbackRoutingRuleSaved = 'service_feedback.routing_rule_saved';
+    case ServiceFeedbackRoutingRuleDeleted = 'service_feedback.routing_rule_deleted';
+    case ServiceFeedbackSubjectAdded = 'service_feedback.subject_added';
+    case ServiceFeedbackSubjectRemoved = 'service_feedback.subject_removed';
+    case ServiceFeedbackReferralRequested = 'service_feedback.referral_requested';
+    case ServiceFeedbackReferralDecided = 'service_feedback.referral_decided';
 
     /*
      * Public Site Management. Changed field NAMES are recorded, never uploaded
@@ -658,4 +686,95 @@ enum AuditEventType: string
     case AssessmentReopened = 'assessments.reopened';
     case AssessmentAcknowledged = 'assessments.acknowledged';
     case AssessmentEvidenceUploaded = 'assessments.evidence_uploaded';
+
+    // Employee Discipline (docs/employee-discipline.md). Ids, statuses and
+    // dates only: charge particulars, statements and testimony never.
+    case DisciplinaryCaseCreated = 'discipline.case_created';
+    case DisciplinaryCaseViewed = 'discipline.case_viewed';
+    case DisciplinaryChargeRecorded = 'discipline.charge_recorded';
+    case DisciplinaryCaseCharged = 'discipline.case_charged';
+    case DisciplinarySummonsServed = 'discipline.summons_served';
+    case DisciplinaryResponseRecorded = 'discipline.response_recorded';
+    case DisciplinaryObjectionDecided = 'discipline.objection_decided';
+    case DisciplinaryEvidenceAdded = 'discipline.evidence_added';
+    case DisciplinaryEvidenceDownloaded = 'discipline.evidence_downloaded';
+    case DisciplinaryWitnessRecorded = 'discipline.witness_recorded';
+    case DisciplinaryMemberRecused = 'discipline.member_recused';
+    case DisciplinaryFinalStatementRecorded = 'discipline.final_statement_recorded';
+    case DisciplinaryRecommendationAdopted = 'discipline.recommendation_adopted';
+    case DisciplinaryReportSubmitted = 'discipline.report_submitted';
+    case DisciplinaryDecisionIssued = 'discipline.decision_issued';
+    case DisciplinaryDecisionDelivered = 'discipline.decision_delivered';
+    case DisciplinaryCaseDiscontinued = 'discipline.case_discontinued';
+    case DisciplinaryCaseTerminated = 'discipline.case_terminated';
+    case DisciplinaryCaseClosed = 'discipline.case_closed';
+    // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md)
+    case MandateCreated = 'organization_design.mandate_created';
+    case MandateUpdated = 'organization_design.mandate_updated';
+    case MandatePublished = 'organization_design.mandate_published';
+    case MandateSuperseded = 'organization_design.mandate_superseded';
+    case MandateCancelled = 'organization_design.mandate_cancelled';
+    case PowerSaved = 'organization_design.power_saved';
+    case PowerRemoved = 'organization_design.power_removed';
+    case FunctionSaved = 'organization_design.function_saved';
+    case FunctionMoved = 'organization_design.function_moved';
+    case FunctionRemoved = 'organization_design.function_removed';
+    case ServiceCreated = 'organization_design.service_created';
+    case ServiceUpdated = 'organization_design.service_updated';
+    case ServicePublished = 'organization_design.service_published';
+    case ServiceSuperseded = 'organization_design.service_superseded';
+    case ServiceCancelled = 'organization_design.service_cancelled';
+    case ClassificationSaved = 'organization_design.classification_saved';
+    case ClassificationImported = 'organization_design.classification_imported';
+    case ProcessCreated = 'organization_design.process_created';
+    case ProcessUpdated = 'organization_design.process_updated';
+    case ProcessPublished = 'organization_design.process_published';
+    case ProcessSuperseded = 'organization_design.process_superseded';
+    case ProcessCancelled = 'organization_design.process_cancelled';
+    case ActivitySaved = 'organization_design.activity_saved';
+    case ActivityMoved = 'organization_design.activity_moved';
+    case ActivityRemoved = 'organization_design.activity_removed';
+    case TaskSaved = 'organization_design.task_saved';
+    case TaskRemoved = 'organization_design.task_removed';
+    case WorkItemIoSynced = 'organization_design.work_item_io_synced';
+    case PositionTaskLinked = 'organization_design.position_task_linked';
+    case WorkRequirementsSynced = 'organization_design.work_requirements_synced';
+    case ProfessionSaved = 'organization_design.profession_saved';
+    case CompetencyCatalogSaved = 'organization_design.competency_catalog_saved';
+    case DesignStudyCreated = 'organization_design.study_created';
+    case DesignStudyUpdated = 'organization_design.study_updated';
+    case DesignStudyApproved = 'organization_design.study_approved';
+    case UnitProposalSaved = 'organization_design.unit_proposal_saved';
+    case UnitProposalRemoved = 'organization_design.unit_proposal_removed';
+    case UnitProposalConverted = 'organization_design.unit_proposal_converted';
+    case UnitProposalImplemented = 'organization_design.unit_proposal_implemented';
+    case ResponsibilitiesSynced = 'organization_design.responsibilities_synced';
+    case ResponsibilityTypeSaved = 'organization_design.responsibility_type_saved';
+    case MethodologyCreated = 'organization_design.methodology_created';
+    case MethodologyUpdated = 'organization_design.methodology_updated';
+    case MethodologyPublished = 'organization_design.methodology_published';
+    case ManpowerPlanCreated = 'organization_design.manpower_plan_created';
+    case ManpowerPlanUpdated = 'organization_design.manpower_plan_updated';
+    case ManpowerPlanApproved = 'organization_design.manpower_plan_approved';
+    case ManpowerLineSaved = 'organization_design.manpower_line_saved';
+    case ManpowerLineCalculated = 'organization_design.manpower_line_calculated';
+    case ManpowerLineRemoved = 'organization_design.manpower_line_removed';
+    case PositionRequirementGenerated = 'organization_design.position_requirement_generated';
+    case PositionRequirementImplemented = 'organization_design.position_requirement_implemented';
+    case PositionProfileCreated = 'organization_design.position_profile_created';
+    case PositionProfileUpdated = 'organization_design.position_profile_updated';
+    case PositionProfilePublished = 'organization_design.position_profile_published';
+    case PositionWorkLinksSynced = 'organization_design.position_work_links_synced';
+    case PositionRequirementsSynced = 'organization_design.position_requirements_synced';
+    case PositionRequirementsDerived = 'organization_design.position_requirements_derived';
+    case JobDescriptionCreated = 'organization_design.job_description_created';
+    case JobDescriptionRegenerated = 'organization_design.job_description_regenerated';
+    case JobDescriptionSectionUpdated = 'organization_design.job_description_section_updated';
+    case JobDescriptionApproved = 'organization_design.job_description_approved';
+    case JobDescriptionPublished = 'organization_design.job_description_published';
+    case ReportExported = 'organization_design.report_exported';
+    case MappingSuggestionsApplied = 'organization_design.mapping_suggestions_applied';
+    case OccupationLinked = 'organization_design.occupation_linked';
+    case CompetencyLinked = 'organization_design.competency_linked';
+    case PositionServiceLinked = 'organization_design.position_service_linked';
 }

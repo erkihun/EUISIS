@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
 /**
  * Who is the immediate supervisor that decides a field work request.
  *
- * EUISIS records no supervisor on positions or units, so the answer comes
+ * Addis One records no supervisor on positions or units, so the answer comes
  * from the explicit line-manager (reviewer) assignments that already define
  * that authority for Daily Activity, EPMS and assessments — the same
  * resolution as AssessmentEvaluatorResolver::directManager(): the most

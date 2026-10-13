@@ -1,6 +1,5 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronRight, Layers, Plus, SearchIcon } from '@/Components/Icons';
-import PaginatorLinks, { type PaginatorLink } from '@/Components/PaginatorLinks';
 import {
     DemoTag,
     PROVIDER_STATUSES,
@@ -14,12 +13,14 @@ import {
     useLocalName,
     type NamedRef,
 } from '@/Components/ServiceProviders/providerUi';
+import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { Input, Select, buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 
+import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type ProviderRow = {
     id: string;
     name: string;
@@ -45,7 +46,7 @@ type TransactionRow = {
 type Filters = { search: string; service_type_id: string | null; status: string | null };
 
 type Props = {
-    providers: { data: ProviderRow[]; links: PaginatorLink[]; from: number | null; to: number | null; total: number };
+    providers: LaravelPageMeta & { data: ProviderRow[] };
     filters: Filters;
     statusCounts: Record<string, number>;
     stats: {
@@ -106,32 +107,33 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
     );
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={
+                <PageHeader
+                    title={t('providers.title')}
+                    description={t('providers.subtitle')}
+                    actions={
+                        <>
+                            {can.viewServiceTypes && (
+                                <Link href={route('service-types.index')} className={buttonClassName({ variant: 'outline' })}>
+                                    <Layers aria-hidden="true" className="h-4 w-4" />
+                                    {t('providers.serviceTypes')}
+                                </Link>
+                            )}
+                            {can.create && (
+                                <Link href={route('service-providers.create')} className={buttonClassName({ variant: 'primary' })}>
+                                    <Plus aria-hidden="true" className="h-4 w-4" />
+                                    {t('providers.addProvider')}
+                                </Link>
+                            )}
+                        </>
+                    }
+                />
+            }
+        >
             <Head title={t('providers.title')} />
 
             <div className="space-y-6">
-                <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">{t('providers.eyebrow')}</p>
-                        <h1 className="mt-1 text-2xl font-bold leading-tight text-[color:var(--app-foreground)]">{t('providers.title')}</h1>
-                        <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('providers.subtitle')}</p>
-                    </div>
-                    <div className="flex shrink-0 flex-wrap gap-2">
-                        {can.viewServiceTypes && (
-                            <Link href={route('service-types.index')} className={buttonClassName({ variant: 'outline' })}>
-                                <Layers aria-hidden="true" className="h-4 w-4" />
-                                {t('providers.serviceTypes')}
-                            </Link>
-                        )}
-                        {can.create && (
-                            <Link href={route('service-providers.create')} className={buttonClassName({ variant: 'primary' })}>
-                                <Plus aria-hidden="true" className="h-4 w-4" />
-                                {t('providers.addProvider')}
-                            </Link>
-                        )}
-                    </div>
-                </header>
-
                 {/* Headline figures */}
                 <section aria-label={t('providers.title')} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <Stat label={t('providers.statProviders')} value={(totals.all ?? 0).toLocaleString()}>
@@ -231,17 +233,17 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             </div>
                         ) : (
                             <>
-                                <table className="hidden w-full text-sm md:table">
-                                    <thead className="bg-[color:var(--app-surface-muted)]">
-                                        <tr className="text-left text-xs font-semibold text-[color:var(--app-muted-foreground)]">
-                                            <th scope="col" className="px-4 py-2.5">{t('providers.columnProvider')}</th>
-                                            <th scope="col" className="w-40 px-3 py-2.5">{t('providers.columnService')}</th>
-                                            <th scope="col" className="w-28 px-3 py-2.5 text-right">{t('providers.columnRecent').replace(':days', days)}</th>
-                                            <th scope="col" className="w-28 px-3 py-2.5">{t('providers.status')}</th>
-                                            <th scope="col" className="w-10 py-2.5 pr-4"><span className="sr-only">{t('providers.openProvider')}</span></th>
+                                <table className={cx(tableClassName, 'hidden')}>
+                                    <thead className={tableHeadClassName}>
+                                        <tr className="text-left">
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('providers.columnProvider')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-40')}>{t('providers.columnService')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'w-28 text-right')}>{t('providers.columnRecent').replace(':days', days)}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-28')}>{t('providers.status')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-10')}><span className="sr-only">{t('providers.openProvider')}</span></th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-[color:var(--app-border)]">
+                                    <tbody className={tableBodyClassName}>
                                         {providers.data.map((provider) => {
                                             const href = route('service-providers.show', provider.id);
                                             return (
@@ -251,9 +253,9 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                                     onClick={(event) => {
                                                         if (!(event.target as HTMLElement).closest('a')) router.visit(href);
                                                     }}
-                                                    className="cursor-pointer transition-colors hover:bg-[color:var(--app-surface-muted)]"
+                                                    className={cx(tableRowClassName, 'cursor-pointer')}
                                                 >
-                                                    <td className="px-4 py-3">
+                                                    <td className={tableCellClassName}>
                                                         <Link href={href} className="group flex items-center gap-3 focus-visible:outline-none">
                                                             <ProviderAvatar name={provider.name} typeCode={provider.service_type?.code} />
                                                             <span className="min-w-0">
@@ -267,15 +269,15 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                                             </span>
                                                         </Link>
                                                     </td>
-                                                    <td className="px-3 py-3 text-[13px] text-[color:var(--app-foreground)]">{localName(provider.service_type, t('providers.unknownService'))}</td>
-                                                    <td className="px-3 py-3 text-right">
+                                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{localName(provider.service_type, t('providers.unknownService'))}</td>
+                                                    <td className={cx(tableCellClassName, 'text-right')}>
                                                         <div className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{provider.transactions_recent.toLocaleString()}</div>
                                                         <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                                             {provider.last_transaction_at ? <LocalizedDateDisplay value={provider.last_transaction_at} /> : t('providers.noActivity')}
                                                         </div>
                                                     </td>
-                                                    <td className="px-3 py-3"><ProviderStatusBadge status={provider.status} /></td>
-                                                    <td className="py-3 pr-4 text-right">
+                                                    <td className={tableCellClassName}><ProviderStatusBadge status={provider.status} /></td>
+                                                    <td className={cx(tableCellClassName, 'text-right')}>
                                                         <ChevronRight aria-hidden="true" className="ml-auto h-4 w-4 text-[color:var(--app-muted-foreground)]" />
                                                     </td>
                                                 </tr>
@@ -306,17 +308,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             </>
                         )}
 
-                        {providers.total > 0 && (
-                            <div className="flex flex-col gap-3 border-t border-[color:var(--app-border)] px-4 py-3 text-[13px] text-[color:var(--app-muted-foreground)] sm:flex-row sm:items-center sm:justify-between">
-                                <span>
-                                    {t('providers.showingRange')
-                                        .replace(':from', String(providers.from ?? 0))
-                                        .replace(':to', String(providers.to ?? 0))
-                                        .replace(':total', providers.total.toLocaleString())}
-                                </span>
-                                <PaginatorLinks links={providers.links} label={t('providers.pagination')} />
-                            </div>
-                        )}
+                        <ListPagination meta={providers} label={t('providers.pagination')} />
                     </section>
 
                     <aside className="space-y-5 lg:col-span-4">

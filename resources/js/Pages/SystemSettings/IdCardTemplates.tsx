@@ -35,6 +35,7 @@ import TemplateWizardSteps from '@/Components/IdCards/TemplateWizardSteps';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import StatusBadge from '@/Components/StatusBadge';
 
+import { cx, inputClassName } from '@/Components/ui';
 type Template = TemplatePresentation & {
     id: string;
     name: string;
@@ -301,7 +302,7 @@ function TemplateForm({
         organizationName: enSettings.templateManager.sample_organization,
         organizationNameAm: amSettings.templateManager.sample_organization,
         positionTitle: 'Employee Position',
-        positionTitleAm: 'የሰራተኛ የስራ መደብ',
+        positionTitleAm: 'የሠራተኛ የሥራ መደብ',
     };
 
     const portrait = form.data.orientation === 'portrait';
@@ -311,7 +312,7 @@ function TemplateForm({
     const Front = portrait ? IdCardPortraitFront : IdCardFront;
     const Back = portrait ? IdCardPortraitBack : IdCardBack;
     const inputClass =
-        'mt-1 w-full rounded-lg border-gray-300 bg-white text-sm dark:border-slate-700 dark:bg-slate-900';
+        'mt-1 w-full rounded-lg border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-sm';
     const error = (field: keyof typeof form.data) =>
         form.errors[field] && (
             <p className="mt-1 text-sm text-red-600" role="alert">
@@ -336,7 +337,7 @@ function TemplateForm({
     ) => (
         <div
             key={field}
-            className="space-y-2 rounded-lg border border-dashed border-gray-300 p-3 dark:border-slate-700"
+            className="space-y-2 rounded-lg border border-dashed border-[color:var(--app-border-strong)] p-3"
         >
             <p className="text-sm font-semibold">{label(field)}</p>
             {url && (
@@ -346,7 +347,7 @@ function TemplateForm({
                     className="h-24 w-full rounded object-contain"
                 />
             )}
-            <label className="inline-flex cursor-pointer items-center rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-slate-800">
+            <label className="inline-flex cursor-pointer items-center rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm hover:bg-[color:var(--app-surface-muted)]">
                 {label(url ? 'replace_background' : 'browse_png')}
                 <input
                     type="file"
@@ -426,8 +427,8 @@ function TemplateForm({
              * cards stacked on top of each other, with each field group in a
              * fourth card inside the middle one.
              */}
-            <div className="min-w-0 overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                <div className="border-b border-gray-200 px-3 py-2 dark:border-slate-800">
+            <div className="min-w-0 overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className="border-b border-[color:var(--app-border)] px-3 py-2">
                     <TemplateWizardSteps
                         steps={stepKeys.map((key) => label(key))}
                         current={step}
@@ -444,7 +445,7 @@ function TemplateForm({
 
                 {/* Identity — the fields an admin always fills in. */}
                 {step === 0 && <TemplateEditorSection title={label(template ? 'edit' : 'create')}>
-                {form.data.orientation === 'landscape' && <fieldset className="rounded-lg border p-3"><legend className="px-2 text-sm font-semibold">{label('printedFields')}</legend><p className="mb-3 text-xs text-gray-500">{label('printedFieldsHelp')}</p><div className="grid grid-cols-2 gap-2">{Object.entries({ name: 'fullName', sex: 'gender', dob: 'dateOfBirth', nationality: 'nationality', employment: 'employmentType', phone: 'phone', idNumber: 'employeeNumber', email: 'email', address: 'address', emergency_contact_name: 'emergencyContactName', emergency_contact_phone: 'emergencyContactPhone' }).map(([key, textKey]) => <label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.employee_fields.includes(key)} onChange={e => form.setData('employee_fields', e.target.checked ? [...form.data.employee_fields, key] : form.data.employee_fields.filter(item => item !== key))} />{t(`employees.${textKey}`)}</label>)}</div></fieldset>}
+                {form.data.orientation === 'landscape' && <fieldset className="rounded-lg border p-3"><legend className="px-2 text-sm font-semibold">{label('printedFields')}</legend><p className="mb-3 text-xs text-[color:var(--app-muted-foreground)]">{label('printedFieldsHelp')}</p><div className="grid grid-cols-2 gap-2">{Object.entries({ name: 'fullName', sex: 'gender', dob: 'dateOfBirth', nationality: 'nationality', employment: 'employmentType', phone: 'phone', idNumber: 'employeeNumber', email: 'email', address: 'address', emergency_contact_name: 'emergencyContactName', emergency_contact_phone: 'emergencyContactPhone' }).map(([key, textKey]) => <label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.employee_fields.includes(key)} onChange={e => form.setData('employee_fields', e.target.checked ? [...form.data.employee_fields, key] : form.data.employee_fields.filter(item => item !== key))} />{t(`employees.${textKey}`)}</label>)}</div></fieldset>}
                 {(['name', 'code', 'description'] as const).map((field) => (
                     <label key={field} className="block text-sm font-medium">
                         {label(field)}
@@ -506,7 +507,7 @@ function TemplateForm({
                 </TemplateEditorSection>}
 
                 {step === 2 && <TemplateEditorSection title={label('backgroundsSection')} description={label('backgroundsSectionHelp')}>
-                <p className="text-xs text-gray-500">{label('upload_help').replace(':max', String(uploadLimitMb))}</p>
+                <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('upload_help').replace(':max', String(uploadLimitMb))}</p>
                 {([
                     { field: 'front_background', remove: 'remove_front_background', url: frontUrl },
                     { field: 'back_background', remove: 'remove_back_background', url: backUrl },
@@ -518,7 +519,7 @@ function TemplateForm({
                 {step === 3 && <>
                 {/* Sections are flush inside the editor panel, so the two
                     logo slots are split by a rule rather than a gap. */}
-                <div className="grid border-b border-gray-100 md:grid-cols-2 md:divide-x md:divide-gray-100 dark:border-slate-800 md:dark:divide-slate-800 [&>section]:border-b-0">
+                <div className="grid border-b border-[color:var(--app-border)] md:grid-cols-2 md:divide-x md:divide-[color:var(--app-border)] md: [&>section]:border-b-0">
                 {([
                     { slot: 'left', show: 'show_logo', field: 'logo_primary', remove: 'remove_logo_primary', url: logoPrimaryUrl },
                     { slot: 'right', show: 'show_secondary_logo', field: 'logo_secondary', remove: 'remove_logo_secondary', url: logoSecondaryUrl },
@@ -531,7 +532,7 @@ function TemplateForm({
                         <label className="flex items-center gap-2 text-sm">
                             <input
                                 type="checkbox"
-                                className="rounded border-gray-300"
+                                className="rounded border-[color:var(--app-border-strong)]"
                                 checked={form.data.header_config[show]}
                                 disabled={!editable || form.processing}
                                 onChange={(e) =>
@@ -549,7 +550,7 @@ function TemplateForm({
                 </div>
 
                 {/* Back-face marks. Portrait omits the signature entirely. */}
-                <div className="grid border-b border-gray-100 md:grid-cols-2 md:divide-x md:divide-gray-100 dark:border-slate-800 md:dark:divide-slate-800 [&>section]:border-b-0">
+                <div className="grid border-b border-[color:var(--app-border)] md:grid-cols-2 md:divide-x md:divide-[color:var(--app-border)] md: [&>section]:border-b-0">
                 {(portrait ? [
                     { mark: 'seal', field: 'seal', remove: 'remove_seal', url: sealUrl },
                 ] as const : [
@@ -567,7 +568,7 @@ function TemplateForm({
                 </div>
 
                 {/* Institution text — shown beside the left logo only. */}
-                {portrait ? <p role="note" className="px-4 py-4 text-sm leading-6 text-gray-600 dark:text-slate-400">{t('settings.idCardCleanup.portraitHeader')}</p> : <TemplateEditorSection
+                {portrait ? <p role="note" className="px-4 py-4 text-sm leading-6 text-[color:var(--app-muted-foreground)]">{t('settings.idCardCleanup.portraitHeader')}</p> : <TemplateEditorSection
                     title={label('headerSection')}
                     description={label('headerSectionHelp')}
                 >
@@ -578,7 +579,7 @@ function TemplateForm({
                             {label(`header_${field}`)}
                             <input
                                 type="text"
-                                className="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-slate-700 dark:bg-slate-900"
+                                className={cx(inputClassName, 'mt-1 w-full')}
                                 value={form.data.header_config[field]}
                                 disabled={!editable || form.processing}
                                 // Blank inherits, so the system value is the placeholder.
@@ -597,7 +598,7 @@ function TemplateForm({
                             )}
                         </label>
                     ))}
-                    <p className="text-xs text-gray-500">{label('header_inherit_help')}</p>
+                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('header_inherit_help')}</p>
                 </TemplateEditorSection>}
                 </>}
 
@@ -610,7 +611,7 @@ function TemplateForm({
                     <label className="flex items-center gap-2 text-sm">
                         <input
                             type="checkbox"
-                            className="rounded border-gray-300"
+                            className="rounded border-[color:var(--app-border-strong)]"
                             checked={form.data.back_photo_config.show}
                             disabled={!editable || form.processing}
                             onChange={(e) =>
@@ -667,7 +668,7 @@ function TemplateForm({
                             {label('back_photo_background')}
                             <input
                                 type="color"
-                                className="mt-1 h-9 w-full rounded border border-gray-300 dark:border-slate-700"
+                                className="mt-1 h-9 w-full rounded border border-[color:var(--app-border-strong)]"
                                 value={form.data.back_photo_config.background_color || '#FFFFFF'}
                                 disabled={!editable || form.processing}
                                 onChange={(e) =>
@@ -701,7 +702,7 @@ function TemplateForm({
                     title={label('text_style_management')}
                     description={label('text_styling_help')}
                     defaultOpen={false}
-                    badge={<span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-slate-800 dark:text-slate-300">{activeStyleGroups.length}</span>}
+                    badge={<span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs text-[color:var(--app-muted-foreground)]">{activeStyleGroups.length}</span>}
                 >
                     {activeStyleGroups.map(({ side, role }) => {
                         const style = form.data.text_style_config[side][role as keyof object] as TextStyle;
@@ -714,14 +715,14 @@ function TemplateForm({
                         const errorFor = (key: string) =>
                             form.errors[`text_style_config.${side}.${role}.${key}` as keyof typeof form.errors];
                         return (
-                            <div key={groupKey} className="space-y-2 rounded-md bg-gray-50 p-3 dark:bg-slate-900">
+                            <div key={groupKey} className="space-y-2 rounded-md bg-[color:var(--app-surface-muted)] p-3">
                                 <p className="text-sm font-semibold">{label(groupKey)}</p>
                                 <div className="grid gap-2 sm:grid-cols-3">
                                     <label className="text-xs font-medium">
                                         {label('text_color')}
                                         <input
                                             type="color"
-                                            className="mt-1 h-9 w-full rounded border border-gray-300 dark:border-slate-700"
+                                            className="mt-1 h-9 w-full rounded border border-[color:var(--app-border-strong)]"
                                             value={style.color}
                                             aria-label={`${label(groupKey)} — ${label('text_color')}`}
                                             onChange={(e) => set({ color: e.target.value })}
@@ -798,8 +799,8 @@ function TemplateForm({
                      * Back / Next stay reachable on the long steps. Status on the
                      * left, actions on the right — the primary action ends the row.
                      */
-                    <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
-                        <span className="text-xs tabular-nums text-gray-500 dark:text-slate-400">
+                    <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3">
+                        <span className="text-xs tabular-nums text-[color:var(--app-muted-foreground)]">
                             {label('stepCounter')
                                 .replace(':current', String(step + 1))
                                 .replace(':total', String(stepKeys.length))}
@@ -831,12 +832,12 @@ function TemplateForm({
                 </fieldset>
             </div>
             {/* Preview follows the admin down the form. */}
-            <div className="self-start rounded-panel border border-gray-200 bg-white xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
-                <div className="border-b border-gray-200 px-4 py-2.5 dark:border-slate-800">
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{label('live_preview')}</h2>
-                    <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{label('preview_help')}</p>
+            <div className="self-start rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] xl:sticky xl:top-4">
+                <div className="border-b border-[color:var(--app-border)] px-4 py-2.5">
+                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{label('live_preview')}</h2>
+                    <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{label('preview_help')}</p>
                 </div>
-                <div className="bg-gray-50 p-4 dark:bg-slate-950/40">
+                <div className="bg-[color:var(--app-surface-muted)] p-4">
                 <IdCardTemplateContext.Provider value={presentation}>
                     <div className="space-y-4">
                         {/* The designer overlays the real preview, so the box an
@@ -1018,11 +1019,11 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                                         'flex min-w-0 max-w-xs items-center gap-2 rounded-card border px-3 py-2 text-left transition-colors',
                                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
                                         active
-                                            ? 'border-[color:var(--color-primary)] bg-white ring-1 ring-[color:var(--color-primary)] dark:bg-slate-900'
-                                            : 'border-gray-200 bg-white hover:border-gray-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700',
+                                            ? 'border-[color:var(--color-primary)] bg-[color:var(--app-surface)] ring-1 ring-[color:var(--color-primary)]'
+                                            : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)] hover:border-[color:var(--app-border-strong)]',
                                     ].join(' ')}
                                 >
-                                    <span className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">
+                                    <span className="truncate text-sm font-medium text-[color:var(--app-foreground)]">
                                         {item.name}
                                     </span>
                                     {item.is_default && <StatusBadge status="active" label={label('default')} />}
@@ -1047,7 +1048,7 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                             onSaved={id => { setSelected(id); setRevision(value => value + 1); }}
                         />
                     ) : (
-                        <p className="text-sm text-gray-500 dark:text-slate-400">{label('empty')}</p>
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{label('empty')}</p>
                     )}
                 </div>
             </div>

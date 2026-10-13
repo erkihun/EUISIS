@@ -14,6 +14,7 @@ use App\Models\Grievance;
 use App\Models\GrievanceEvidence;
 use App\Models\GrievanceEvidenceCustody;
 use App\Models\User;
+use App\Support\Storage\StoredFileChecksum;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -188,7 +189,8 @@ final class GrievanceEvidenceService
 
         $disk = Storage::disk($evidence->disk);
         abort_unless($disk->exists($evidence->path), 404);
-        if (hash_file('sha256', $disk->path($evidence->path)) !== $evidence->sha256) {
+        // Streamed through the disk so it also works on shared object storage.
+        if (! StoredFileChecksum::matches($evidence->disk, $evidence->path, $evidence->sha256)) {
             report(new \RuntimeException('Grievance evidence integrity check failed: '.$evidence->getKey()));
             abort(409, __('grievances.errors.integrity_failed'));
         }

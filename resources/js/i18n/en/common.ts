@@ -46,6 +46,8 @@ const common = {
     back: 'Back',
     next: 'Next',
     previous: 'Previous',
+    change: 'Change',
+    searchEmployee: 'Search by employee number or name (min. 2 characters)',
     close: 'Close',
     open: 'Open',
     more: 'More',
@@ -109,6 +111,12 @@ const common = {
     notAvailable: 'N/A',
     page: 'Page',
     of: 'of',
+    pagination: 'Pages',
+    paginationRange: ':from–:to of :total',
+    unassigned: 'Unassigned',
+    allStatuses: 'All statuses',
+    filters: 'Filters',
+    noMatchingRecords: 'Nothing matches these filters. Reset them to see every record.',
     preview: 'Preview',
     occupied: 'Occupied',
     vacant: 'Vacant',
@@ -126,6 +134,7 @@ const common = {
     replaced: 'Replaced',
     copy: 'Copy',
     copied: 'Copied',
+    confirmDelete: 'Delete this record? This action cannot be undone.',
 } as const;
 
 export default common;

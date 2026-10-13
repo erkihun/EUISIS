@@ -68,7 +68,7 @@ export default function CalibrationIndex({ sessions, cycles, organizations, comm
                         </>}>
                             {sessions.data.map((s) => (
                                 <tr key={s.id}>
-                                    <td className={tdCls}><Link href={route('performance.calibration.show', s.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{s.title}</Link><p className="text-xs text-gray-500">{nameOf(s.cycle, locale)}</p></td>
+                                    <td className={tdCls}><Link href={route('performance.calibration.show', s.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{s.title}</Link><p className="text-xs text-[color:var(--app-muted-foreground)]">{nameOf(s.cycle, locale)}</p></td>
                                     <td className={tdCls}>{nameOf(s.organization, locale)}</td>
                                     <td className={tdCls}><LocalizedDateDisplay value={s.session_date} /></td>
                                     <td className={`${tdCls} tabular-nums`}>{s.items_count}</td>

@@ -14,6 +14,7 @@ import { useBilingual } from '@/Components/public/bilingual';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import type { PageSection } from '@/Components/public/PublicPage';
+import { useBranding } from '@/hooks/useBranding';
 
 type Faq = {
     id: string;
@@ -40,6 +41,7 @@ interface Props {
 export default function Support({ sections, faqs, meta }: Props) {
     const pick = useBilingual();
     const { t } = useLocale();
+    const { withBrand } = useBranding();
     const { getString } = useSystemSettings();
 
     const header = sections.header;
@@ -97,8 +99,8 @@ export default function Support({ sections, faqs, meta }: Props) {
                                         </FaqItem>
                                     )) : DEFAULT_FAQS.map((n) => (
                                         // Until administrators add their own questions, the home page's answers apply.
-                                        <FaqItem key={n} question={t(`home.faq${n}Q`)}>
-                                            <p className="relative pb-2 text-sm text-gray-700 dark:text-slate-300">{t(`home.faq${n}A`)}</p>
+                                        <FaqItem key={n} question={withBrand(t(`home.faq${n}Q`))}>
+                                            <p className="relative pb-2 text-sm text-gray-700 dark:text-slate-300">{withBrand(t(`home.faq${n}A`))}</p>
                                         </FaqItem>
                                     ))}
                                 </div>
@@ -152,7 +154,7 @@ function HelpCard({ name, routeName, link, tone, icon }: HelpRoute) {
             <span className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] ${tone}`}>{icon}</span>
             <span className="flex min-w-0 flex-col gap-1.5">
                 <span className="text-[15px] font-semibold text-gray-900 dark:text-slate-100">{t(`publicSite.help${name}Title`)}</span>
-                <span className="text-justify text-[13px] leading-relaxed text-gray-600 dark:text-slate-400">{t(`publicSite.help${name}Desc`)}</span>
+                <span className="text-[13px] leading-relaxed text-gray-600 dark:text-slate-400">{t(`publicSite.help${name}Desc`)}</span>
                 {link && <span className="text-[13px] font-semibold text-[color:var(--color-primary)]">{t(link)} <span aria-hidden="true">→</span></span>}
             </span>
         </>

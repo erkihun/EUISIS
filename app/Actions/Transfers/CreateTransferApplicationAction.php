@@ -41,12 +41,12 @@ readonly class CreateTransferApplicationAction
         $assignment = $employee->currentAssignment;
 
         if ($assignment === null) {
-            throw new DomainException('Employee has no current assignment.');
+            throw new DomainException(__('transfers.noCurrentAssignment'));
         }
 
         $eligibilitySnapshot = $this->eligibility->evaluate($employee, $announcement, $settings, $announcementPosition);
         if (! $eligibilitySnapshot['eligible']) {
-            throw new DomainException('Employee does not meet the configured transfer eligibility criteria.');
+            throw new DomainException(__('transfers.notEligible'));
         }
 
         return DB::transaction(function () use ($announcement, $announcementPosition, $employee, $actor, $data): TransferApplication {
@@ -58,7 +58,7 @@ readonly class CreateTransferApplicationAction
             $this->ensureCanApply($announcement, $employee, $announcementPosition);
             $eligibilitySnapshot = $this->eligibility->evaluate($employee, $announcement, TransferSetting::current(), $announcementPosition);
             if (! $eligibilitySnapshot['eligible']) {
-                throw new DomainException('Employee does not meet the configured transfer eligibility criteria.');
+                throw new DomainException(__('transfers.notEligible'));
             }
             $applicationNumber = $this->generateCode->execute(
                 CodeRuleEntityType::TransferApplication,

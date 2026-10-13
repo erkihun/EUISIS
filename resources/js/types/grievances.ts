@@ -330,7 +330,7 @@ export type CommitteesIndexProps = {
 };
 export type CommitteeShowProps = {
     committee: CommitteeRow & { description_en: string | null; description_am: string | null; approved_at: string | null; created_by: number | null };
-    members: { id: string; employee: EmployeeRef | null; role: 'chairperson' | 'writer' | 'member'; effective_from: string | null; effective_to: string | null; status: string; is_active: boolean; appointment_reference: string | null; appointed_by: string | null; end_reason: string | null }[];
+    members: { id: string; employee: EmployeeRef | null; role: 'chairperson' | 'writer' | 'member'; selection_source: string | null; term_number: number | null; effective_from: string | null; effective_to: string | null; status: string; is_active: boolean; appointment_reference: string | null; appointed_by: string | null; end_reason: string | null }[];
     problems: string[];
     openCases: number;
     policy: { min: number; max: number; require_writer: boolean };

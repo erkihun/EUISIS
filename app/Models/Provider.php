@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Support\Features;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -119,6 +120,11 @@ class Provider extends Model
 
     public function hasService(string $serviceCode): bool
     {
+        // A service of a disabled module (config/features.php) is never offered.
+        if (! Features::serviceAvailable($serviceCode)) {
+            return false;
+        }
+
         return $this->services()
             ->where('status', 'active')
             ->whereHas('serviceType', fn ($query) => $query->where('code', $serviceCode)->where('is_active', true))

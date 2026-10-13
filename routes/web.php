@@ -76,6 +76,13 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
+use App\Http\Controllers\Web\OrganizationFeedbackQrController;
+use App\Http\Controllers\Web\PublicFeedbackCategoryController;
+use App\Http\Controllers\Web\PublicFeedbackReferralController;
+use App\Http\Controllers\Web\PublicFeedbackReportController;
+use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
+use App\Http\Controllers\Web\PublicFeedbackSettingsController;
+use App\Http\Controllers\Web\PublicFeedbackSubjectController;
 use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
@@ -113,6 +120,7 @@ use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
+use App\Http\Controllers\Web\ServiceSubmissionController;
 use App\Http\Controllers\Web\ServiceTypeController;
 use App\Http\Controllers\Web\SystemSettingController;
 use App\Http\Controllers\Web\TypographyTestController;
@@ -464,6 +472,43 @@ Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class,
 Route::post('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'store'])
     ->middleware('throttle:service-feedback-submit')
     ->name('service-feedback.store');
+
+Route::get('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'form'])
+    ->where('type', 'feedback|suggestion|complaint')
+    ->middleware('throttle:30,1')
+    ->name('service-feedback.form');
+
+Route::post('/service-feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeTypedFeedback'])
+    ->middleware('throttle:service-feedback-submit')
+    ->name('service-feedback.feedback.store');
+
+Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeEntry'])
+    ->where('type', 'suggestion|complaint')
+    ->middleware('throttle:service-feedback-submit')
+    ->name('service-feedback.entry.store');
+
+/*
+ * Organization public feedback QR — the same three submissions about an
+ * institution. /feedback/{token} is the URL printed on the institutional QR
+ * sheet (OrganizationFeedbackQrCode::publicUrl()).
+ */
+Route::get('/feedback/{token}', [PublicServiceFeedbackController::class, 'showOrganization'])
+    ->middleware('throttle:30,1')
+    ->name('public-feedback.organization.show');
+
+Route::get('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'formOrganization'])
+    ->where('type', 'feedback|suggestion|complaint')
+    ->middleware('throttle:30,1')
+    ->name('public-feedback.organization.form');
+
+Route::post('/feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeOrganizationFeedback'])
+    ->middleware('throttle:service-feedback-submit')
+    ->name('public-feedback.organization.feedback.store');
+
+Route::post('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeOrganizationEntry'])
+    ->where('type', 'suggestion|complaint')
+    ->middleware('throttle:service-feedback-submit')
+    ->name('public-feedback.organization.entry.store');
 
 /*
  * Legacy public card verification.
@@ -1263,6 +1308,22 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/work-structure/standards/{standard}/approve', [WorkStructureController::class, 'approveStandard'])->whereUuid('standard')->name('work-structure.standards.approve');
     Route::post('/work-structure/standards/{standard}/retire', [WorkStructureController::class, 'retireStandard'])->whereUuid('standard')->name('work-structure.standards.retire');
 
+    // Public feedback categories: before the {serviceFeedback} wildcard below.
+    Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');
+    Route::post('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'store'])->name('service-feedback.categories.store');
+    Route::put('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'update'])->whereUuid('category')->name('service-feedback.categories.update');
+    Route::delete('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'destroy'])->whereUuid('category')->name('service-feedback.categories.destroy');
+    Route::get('/feedback-admin/organization-qr', [OrganizationFeedbackQrController::class, 'index'])->name('service-feedback.organization-qr.index');
+    Route::get('/feedback-admin/submission-reports', [PublicFeedbackReportController::class, 'index'])->name('service-feedback.submission-reports.index');
+    Route::post('/feedback-admin/submission-reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-feedback.submission-reports.export');
+    Route::get('/feedback-admin/submission-reports/exports/{export}', [PublicFeedbackReportController::class, 'download'])->whereUuid('export')->name('service-feedback.submission-reports.download');
+    Route::get('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'index'])->name('service-feedback.settings.index');
+    Route::put('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'update'])->name('service-feedback.settings.update');
+    Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');
+    Route::get('/feedback-admin/routing-rules/handlers', [PublicFeedbackRoutingRuleController::class, 'handlers'])->name('service-feedback.routing-rules.handlers');
+    Route::post('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'store'])->name('service-feedback.routing-rules.store');
+    Route::put('/feedback-admin/routing-rules/{rule}', [PublicFeedbackRoutingRuleController::class, 'update'])->whereUuid('rule')->name('service-feedback.routing-rules.update');
+    Route::delete('/feedback-admin/routing-rules/{rule}', [PublicFeedbackRoutingRuleController::class, 'destroy'])->whereUuid('rule')->name('service-feedback.routing-rules.destroy');
     Route::get('/feedback-admin/dashboard', [ServiceFeedbackController::class, 'dashboard'])->name('service-feedback.admin.dashboard');
     Route::get('/feedback-admin/reports', [ServiceFeedbackController::class, 'reports'])->name('service-feedback.admin.reports');
     Route::get('/feedback-admin/export', [ServiceFeedbackController::class, 'export'])->name('service-feedback.admin.export');
@@ -1272,6 +1333,25 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/{serviceFeedback}/hide', [ServiceFeedbackController::class, 'hide'])->name('service-feedback.admin.hide');
     Route::delete('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'destroy'])->name('service-feedback.admin.destroy');
 
+    Route::get('/service-suggestions', [ServiceSubmissionController::class, 'suggestions'])->name('service-submissions.suggestions');
+    Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');
+    Route::get('/service-submissions/{type}/{submission}', [ServiceSubmissionController::class, 'show'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.show');
+    Route::post('/service-submissions/{type}/{submission}/transition', [ServiceSubmissionController::class, 'transition'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.transition');
+    Route::post('/service-submissions/{type}/{submission}/assign', [ServiceSubmissionController::class, 'assign'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.assign');
+    Route::post('/service-submissions/{type}/{submission}/subjects', [PublicFeedbackSubjectController::class, 'store'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.subjects.store');
+    Route::delete('/service-submissions/{type}/{submission}/subjects/{subject}', [PublicFeedbackSubjectController::class, 'destroy'])
+        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'subject'])->name('service-submissions.subjects.destroy');
+    Route::post('/service-submissions/{type}/{submission}/referrals', [PublicFeedbackReferralController::class, 'store'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.referrals.store');
+    Route::patch('/service-submissions/{type}/{submission}/referrals/{referral}', [PublicFeedbackReferralController::class, 'update'])
+        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'referral'])->name('service-submissions.referrals.update');
+    Route::get('/service-submissions/{type}/{submission}/attachments/{attachment}', [ServiceSubmissionController::class, 'download'])
+        ->where('type', 'complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
+
     // Per-employee feedback QR management.
     Route::get('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'show'])->name('employees.feedback-qr.show');
     Route::post('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'generate'])->name('employees.feedback-qr.generate');
@@ -1279,6 +1359,17 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/employees/{employee}/feedback-qr/revoke', [EmployeeFeedbackQrController::class, 'revoke'])->name('employees.feedback-qr.revoke');
     Route::get('/employees/{employee}/feedback-qr/png', [EmployeeFeedbackQrController::class, 'exportPng'])->name('employees.feedback-qr.png');
     Route::get('/employees/{employee}/feedback-qr/pdf', [EmployeeFeedbackQrController::class, 'exportPdf'])->name('employees.feedback-qr.pdf');
+
+    // Organization public feedback QR (docs/public-feedback.md). Opening the
+    // page never mints a code; enable, disable, rotate and revoke are explicit.
+    Route::get('/organizations/{organization}/feedback-qr', [OrganizationFeedbackQrController::class, 'show'])->name('organizations.feedback-qr.show');
+    Route::post('/organizations/{organization}/feedback-qr', [OrganizationFeedbackQrController::class, 'generate'])->name('organizations.feedback-qr.generate');
+    Route::post('/organizations/{organization}/feedback-qr/disable', [OrganizationFeedbackQrController::class, 'disable'])->name('organizations.feedback-qr.disable');
+    Route::post('/organizations/{organization}/feedback-qr/enable', [OrganizationFeedbackQrController::class, 'enable'])->name('organizations.feedback-qr.enable');
+    Route::post('/organizations/{organization}/feedback-qr/rotate', [OrganizationFeedbackQrController::class, 'rotate'])->name('organizations.feedback-qr.rotate');
+    Route::post('/organizations/{organization}/feedback-qr/revoke', [OrganizationFeedbackQrController::class, 'revoke'])->name('organizations.feedback-qr.revoke');
+    Route::get('/organizations/{organization}/feedback-qr/png', [OrganizationFeedbackQrController::class, 'exportPng'])->name('organizations.feedback-qr.png');
+    Route::get('/organizations/{organization}/feedback-qr/pdf', [OrganizationFeedbackQrController::class, 'exportPdf'])->name('organizations.feedback-qr.pdf');
 
     // Grievance Management routes live in routes/grievances.php.
 });
@@ -1305,10 +1396,19 @@ require __DIR__.'/assessments.php';
 
 require __DIR__.'/grievances.php';
 
+// Employee Discipline — Regulation 201/2018, separate from grievances and public complaints.
+require __DIR__.'/discipline.php';
+
 // Field Work Management (docs/field-work-management.md).
 require __DIR__.'/field-work.php';
 
+// Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
+require __DIR__.'/organization-design.php';
+
 // Court Cases — planned standalone module, separate from Grievance Management.
 require __DIR__.'/court-cases.php';
+
+// Cross-cutting platform endpoints (scoped lookups).
+require __DIR__.'/platform.php';
 
 require __DIR__.'/auth.php';

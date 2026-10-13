@@ -23,6 +23,7 @@ import {
     labelCls,
 } from '@/Components/employees/EmployeeFormLayout';
 
+import { buttonClassName } from '@/Components/ui';
 const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation', 'daily_labor', 'intern', 'other'] as const;
 
 type Option = {
@@ -213,6 +214,10 @@ export default function EmployeesCreate({
             organization_unit_id: '',
             position_id: '',
         });
+        // Unit and position options are sent for one organization at a time.
+        if (organizationId !== '') {
+            router.reload({ only: ['organizationUnits', 'positions'], data: { organization_id: organizationId } });
+        }
     }
 
     function changeOrganizationUnit(organizationUnitId: string) {
@@ -297,7 +302,7 @@ export default function EmployeesCreate({
                     >
                         {placementContext ? (
                             <div className="md:col-span-2 xl:col-span-3">
-                                <div className="rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
+                                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4">
                                     <dl className="grid gap-4 sm:grid-cols-3">
                                         <ReadOnlyValue
                                             label={t('employees.selectedOrganization')}
@@ -319,15 +324,15 @@ export default function EmployeesCreate({
                                             value={localizedName(placementContext.position.name_en, placementContext.position.name_am, locale)}
                                         />
                                     </dl>
-                                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 pt-3 dark:border-slate-700">
-                                        <p className="min-w-0 text-xs text-gray-500 dark:text-slate-400">
+                                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--app-border)] pt-3">
+                                        <p className="min-w-0 text-xs text-[color:var(--app-muted-foreground)]">
                                             {t('employees.placementFromPositionContext')}
                                             {' - '}
                                             {t('employees.positionContextLocked')}
                                         </p>
                                         <Link
                                             href={route('positions.index')}
-                                            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:bg-white dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                         >
                                             {t('employees.changePosition')}
                                         </Link>
@@ -504,19 +509,19 @@ export default function EmployeesCreate({
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                                 {photoPreview ? (
                                     <div className="relative flex-shrink-0 self-start">
-                                        <img src={photoPreview} alt="" className="h-20 w-16 rounded-lg border border-gray-200 object-cover dark:border-slate-700" />
+                                        <img src={photoPreview} alt="" className="h-20 w-16 rounded-lg border border-[color:var(--app-border)] object-cover" />
                                         <button
                                             type="button"
                                             onClick={clearPhoto}
                                             aria-label={t('employees.removePhoto')}
                                             title={t('employees.removePhoto')}
-                                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white hover:bg-red-600"
+                                            className={buttonClassName({ variant: 'destructive', size: 'sm', className: 'absolute w-5' })}
                                         >
                                             x
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center self-start rounded-lg border-2 border-dashed border-gray-300 text-gray-400 dark:border-slate-600 dark:text-slate-500">
+                                    <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center self-start rounded-lg border-2 border-dashed border-[color:var(--app-border-strong)] text-[color:var(--app-muted-foreground)]">
                                         <BasicIcon />
                                     </div>
                                 )}
@@ -527,7 +532,7 @@ export default function EmployeesCreate({
                                         type="file"
                                         accept="image/jpeg,image/png,image/webp"
                                         onChange={handlePhotoChange}
-                                        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+                                        className="w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm text-[color:var(--app-foreground)] file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
                                     />
                                     <p className={helpCls}>{t('employees.photoHint')}</p>
                                     {form.errors.photo && <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.photo}</p>}

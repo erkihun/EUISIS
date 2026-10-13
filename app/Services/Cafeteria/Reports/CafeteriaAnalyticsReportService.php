@@ -30,6 +30,9 @@ use Illuminate\Support\Collection;
  */
 class CafeteriaAnalyticsReportService
 {
+    /** Most groups one grouped report returns (largest first); see `truncated`. */
+    public const MAX_GROUP_ROWS = 5000;
+
     public const TYPES = [
         'daily_transactions', 'organization_subsidy_usage', 'organization_liability', 'provider_payables',
         'cafeteria_usage', 'network_usage', 'branch_usage', 'employee_usage', 'advance_usage',
@@ -73,9 +76,16 @@ class CafeteriaAnalyticsReportService
         $query = $this->transactions($filters, $organizationIds)
             ->when($branchesOnly, fn (Builder $q) => $q->whereIn('cafeteria_provider_id', CafeteriaProvider::query()->whereIn('location_type', ['branch', 'service_point'])->select('id')))
             ->selectRaw(implode(', ', $groupBy).', COUNT(*) as transaction_count, SUM(consumed_days_count) as entitlement_days, SUM(subsidy_amount_applied) as subsidy, SUM(employee_payable_amount) as employee_share')
-            ->groupBy($groupBy);
+            ->groupBy($groupBy)
+            // A per-employee report at city scale would be millions of rows:
+            // return the largest groups first, at most MAX_GROUP_ROWS (SCL-5).
+            ->orderByDesc('transaction_count')
+            ->limit(self::MAX_GROUP_ROWS + 1);
 
-        $rows = $query->get()->map(fn ($row): array => [
+        $fetched = $query->get();
+        $truncated = $fetched->count() > self::MAX_GROUP_ROWS;
+
+        $rows = $fetched->take(self::MAX_GROUP_ROWS)->map(fn ($row): array => [
             ...array_combine($groupBy, array_map(fn ($column) => $row->{$column}, $groupBy)),
             'transaction_count' => (int) $row->transaction_count,
             'entitlement_days' => (int) $row->entitlement_days,
@@ -87,6 +97,7 @@ class CafeteriaAnalyticsReportService
         $rows = $this->label($rows, $groupBy, $labels)->sortBy(fn (array $r) => implode('|', array_map(fn ($l) => (string) ($r[$l] ?? ''), $labels)))->values();
 
         return [
+            'truncated' => $truncated,
             'columns' => [...$labels, 'transactions', ...($withDays ? ['entitlement_days'] : []), 'subsidy', 'employee_share', 'provider_total'],
             'rows' => $rows->map(fn (array $r) => [
                 ...array_intersect_key($r, array_flip($labels)),

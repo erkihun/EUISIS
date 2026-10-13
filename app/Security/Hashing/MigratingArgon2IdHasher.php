@@ -15,7 +15,7 @@ use Illuminate\Hashing\Argon2IdHasher;
  *                       sign-in replaces it with Argon2id
  *   anything else       rejected (never "verified" by some other algorithm)
  *
- * Only the two algorithms EUISIS has ever written are accepted, so the
+ * Only the two algorithms Addis One has ever written are accepted, so the
  * algorithm check Laravel performs is kept, not switched off globally.
  */
 class MigratingArgon2IdHasher extends Argon2IdHasher

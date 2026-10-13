@@ -7,6 +7,7 @@ import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls } from '@/Components/Cafeteria/PolicyUi';
 
+import { buttonClassName } from '@/Components/ui';
 type Payee = {
     id: string; provider_code: string; name_en: string; name_am: string | null; contact_person: string | null;
     phone_number: string | null; email: string | null; address: string | null; status: string; settlement_details: string | null;
@@ -72,7 +73,7 @@ export default function PayeeForm({ provider }: { provider: Payee | null }) {
                 </FormSection>
                 <div className="flex justify-end gap-3">
                     <Link href={route('cafeteria.payees.index')} className="rounded-[var(--radius-control)] border border-[color:var(--app-border)] px-4 py-2 text-sm font-medium">{tt('cancel')}</Link>
-                    <button type="submit" disabled={form.processing} className="rounded-[var(--radius-control)] bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{tt('save')}</button>
+                    <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>{tt('save')}</button>
                 </div>
             </form>
         </AuthenticatedLayout>

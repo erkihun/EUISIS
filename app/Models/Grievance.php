@@ -11,11 +11,13 @@ use App\Enums\Grievance\GrievanceRecordState;
 use App\Enums\GrievanceOriginLevel;
 use App\Enums\GrievanceStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Support\Legal\Regulation201;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * A formal employee grievance case (docs/grievance-management.md).
@@ -72,6 +74,19 @@ class Grievance extends Model
         'legal_hold_reason',
         'retention_until',
         'appeal_deadline_at',
+        'initial_issue_id',
+        'position_id',
+        'immediate_supervisor_employee_id',
+        'filing_clock_started_at',
+        'filing_deadline_at',
+        'is_late_submission',
+        'late_submission_reason',
+        'cause_started_at',
+        'cause_ended_at',
+        'late_review_status',
+        'late_reviewed_by',
+        'late_reviewed_at',
+        'late_decision_reason',
         'respondent_type',
         'respondent_employee_id',
         'respondent_organization_unit_id',
@@ -108,7 +123,67 @@ class Grievance extends Model
             'closed_at' => 'datetime',
             'archived_at' => 'datetime',
             'appeal_deadline_at' => 'datetime',
+            'filing_clock_started_at' => 'datetime',
+            'filing_deadline_at' => 'datetime',
+            'is_late_submission' => 'boolean',
+            'cause_started_at' => 'datetime',
+            'cause_ended_at' => 'datetime',
+            'late_reviewed_at' => 'datetime',
             'metadata' => 'array',
+        ];
+    }
+
+    public function initialIssue(): BelongsTo
+    {
+        return $this->belongsTo(GrievanceInitialIssue::class, 'initial_issue_id');
+    }
+
+    /**
+     * The open statutory deadline (Regulation 201/2018) for $ruleKey, if one
+     * has been snapshotted. The stored due date is immutable: it is never
+     * recalculated when holidays or the work week change later.
+     */
+    public function statutoryDeadline(string $ruleKey): ?StatutoryDeadline
+    {
+        return StatutoryDeadline::query()
+            ->whereMorphedTo('subject', $this)
+            ->where('rule_key', $ruleKey)
+            ->whereNull('superseded_at')
+            ->latest('started_at')
+            ->first();
+    }
+
+    /**
+     * The deadline that legally governs $ruleKey. The statutory snapshot is
+     * authoritative and always wins over any internal SLA target (spec §70).
+     */
+    public function effectiveDeadline(string $ruleKey): ?Carbon
+    {
+        return $this->statutoryDeadline($ruleKey)?->due_at;
+    }
+
+    /**
+     * Operational overdue flags (spec §69), derived from the open statutory
+     * deadlines. These never change the legal workflow status — a passed
+     * deadline is reported, not silently advanced.
+     *
+     * @return array{committee_report: bool, head_decision: bool, decision_delivery: bool}
+     */
+    public function overdueFlags(): array
+    {
+        $overdue = function (string $ruleKey): bool {
+            $deadline = $this->statutoryDeadline($ruleKey);
+
+            return $deadline !== null
+                && $deadline->completed_at === null
+                && $deadline->due_at !== null
+                && now()->greaterThan($deadline->due_at);
+        };
+
+        return [
+            'committee_report' => $overdue(Regulation201::GRIEVANCE_COMMITTEE_REPORT),
+            'head_decision' => $overdue(Regulation201::GRIEVANCE_HEAD_DECISION),
+            'decision_delivery' => $overdue(Regulation201::GRIEVANCE_DECISION_DELIVERY),
         ];
     }
 

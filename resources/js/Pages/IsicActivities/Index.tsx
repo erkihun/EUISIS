@@ -4,11 +4,12 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import IsicActivityLevelBadge from '@/Components/isic-activities/IsicActivityLevelBadge';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { FormEvent } from 'react';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Row = {
     id: string;
     isic_code: string;
@@ -44,11 +45,9 @@ export default function IsicActivitiesIndex({
         is_active: filters.is_active ?? '',
     });
 
-    const inputCls =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    function submit() {
         router.get(route('isic-activities.index'), form.data, { preserveState: true, preserveScroll: true });
     }
 
@@ -83,7 +82,7 @@ export default function IsicActivitiesIndex({
                         can.create ? (
                             <Link
                                 href={route('isic-activities.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 <Plus className="h-3.5 w-3.5" />
                                 {t('isicActivities.createIsicActivity')}
@@ -96,53 +95,46 @@ export default function IsicActivitiesIndex({
             <Head title={t('isicActivities.isicActivities')} />
 
             <div className="space-y-6">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <form className="grid gap-3 sm:grid-cols-2 md:grid-cols-4" onSubmit={submit}>
-                        <input
-                            className={inputCls}
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('isic-activities.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search"
                             value={form.data.search}
                             placeholder={t('isicActivities.searchIsicActivities')}
                             onChange={(e) => form.setData('search', e.target.value)}
                         />
-                        <select
-                            className={inputCls}
+                    </FilterField>
+                    <FilterField label={t('isicActivities.activityLevel')}>
+                        <Select
                             value={form.data.level}
                             onChange={(e) => form.setData('level', e.target.value)}
                         >
                             <option value="">{t('isicActivities.allLevels')}</option>
                             {levels.map((l) => (
                                 <option key={l} value={l}>
-                                    {l}
+                                    {t(`isicActivities.${l}`)}
                                 </option>
                             ))}
-                        </select>
-                        <select
-                            className={inputCls}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select
                             value={form.data.is_active}
                             onChange={(e) => form.setData('is_active', e.target.value)}
                         >
                             <option value="">{t('isicActivities.allStatuses')}</option>
                             <option value="1">{t('common.active')}</option>
                             <option value="0">{t('common.inactive')}</option>
-                        </select>
-                        <button
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
-                            type="submit"
-                        >
-                            {t('common.filter')}
-                        </button>
-                    </form>
-                </section>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <section className={tableContainerClassName}>
                     {isicActivities.length === 0 ? (
-                        <div className="p-6">
-                            <EmptyState title={t('isicActivities.noIsicActivitiesFound')} />
-                        </div>
+                        <EmptyState title={t('isicActivities.noIsicActivitiesFound')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-sm">
-                                <thead className="bg-gray-50 dark:bg-slate-950">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
                                             t('isicActivities.isicCode'),
@@ -154,20 +146,20 @@ export default function IsicActivitiesIndex({
                                         ].map((heading, i) => (
                                             <th
                                                 key={i}
-                                                className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400"
+                                                className={cx(tableHeaderCellClassName, 'text-left')}
                                             >
                                                 {heading}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className={tableBodyClassName}>
                                     {isicActivities.map((act) => (
                                         <tr
                                             key={act.id}
-                                            className="border-t border-gray-100 text-gray-700 dark:border-slate-800 dark:text-slate-200"
+                                            className={tableRowClassName}
                                         >
-                                            <td className="px-4 py-3 font-mono text-xs">
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs')}>
                                                 <Link
                                                     href={route('isic-activities.show', act.id)}
                                                     className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
@@ -175,50 +167,26 @@ export default function IsicActivitiesIndex({
                                                     {act.isic_code}
                                                 </Link>
                                             </td>
-                                            <td className="px-4 py-3 font-medium">
+                                            <td className={cx(tableCellClassName, 'font-medium')}>
                                                 {act.name_en ?? act.name_am ?? '—'}
                                             </td>
-                                            <td className="px-4 py-3">
+                                            <td className={tableCellClassName}>
                                                 <IsicActivityLevelBadge level={act.level} />
                                             </td>
-                                            <td className="px-4 py-3">{act.section_code ?? '—'}</td>
-                                            <td className="px-4 py-3">
+                                            <td className={tableCellClassName}>{act.section_code ?? '—'}</td>
+                                            <td className={tableCellClassName}>
                                                 <StatusBadge status={act.is_active ? 'active' : 'inactive'} />
                                             </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex justify-end gap-3">
-                                                    <Link
-                                                        href={route('isic-activities.show', act.id)}
-                                                        className="text-xs font-medium text-gray-500 hover:text-gray-800 dark:text-slate-400"
-                                                    >
-                                                        {t('common.view')}
-                                                    </Link>
-                                                    {act.can.update && (
-                                                        <Link
-                                                            href={route('isic-activities.edit', act.id)}
-                                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]"
-                                                        >
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                    )}
-                                                    {act.can.archive && !act.deleted_at && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleArchive(act.id)}
-                                                            className="text-xs font-medium text-red-600 hover:text-red-800"
-                                                        >
-                                                            {t('common.delete')}
-                                                        </button>
-                                                    )}
-                                                    {act.can.restore && act.deleted_at && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRestore(act.id)}
-                                                            className="text-xs font-medium text-emerald-600 hover:text-emerald-800"
-                                                        >
-                                                            {t('common.restore')}
-                                                        </button>
-                                                    )}
+                                            <td className={tableCellClassName}>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.view'), href: route('isic-activities.show', act.id) },
+                                                            { label: t('common.edit'), href: route('isic-activities.edit', act.id), show: act.can.update },
+                                                            { label: t('common.delete'), onClick: () => handleArchive(act.id), variant: 'danger', show: act.can.archive && !act.deleted_at },
+                                                            { label: t('common.restore'), onClick: () => handleRestore(act.id), show: !!(act.can.restore && act.deleted_at) },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>
@@ -227,46 +195,9 @@ export default function IsicActivitiesIndex({
                             </table>
                         </div>
                     )}
+                    <ListPagination meta={meta} />
                 </section>
 
-                {meta.last_page > 1 && (
-                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-slate-400">
-                        <span>
-                            {t('common.page')} {meta.current_page} {t('common.of')} {meta.last_page} ({meta.total}{' '}
-                            {t('common.total').toLowerCase()})
-                        </span>
-                        <div className="flex gap-2">
-                            {meta.current_page > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        router.get(route('isic-activities.index'), {
-                                            ...filters,
-                                            page: meta.current_page - 1,
-                                        })
-                                    }
-                                    className="rounded-lg border border-gray-300 px-3 py-1 hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
-                                >
-                                    ‹
-                                </button>
-                            )}
-                            {meta.current_page < meta.last_page && (
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        router.get(route('isic-activities.index'), {
-                                            ...filters,
-                                            page: meta.current_page + 1,
-                                        })
-                                    }
-                                    className="rounded-lg border border-gray-300 px-3 py-1 hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
-                                >
-                                    ›
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 
+import { buttonClassName, cx, inputClassName, textareaClassName } from '@/Components/ui';
 export type ConfirmVariant = 'default' | 'warning' | 'danger' | 'success';
 
 export interface ConfirmationDialogProps {
@@ -60,7 +61,7 @@ const iconWrapperCls: Record<ConfirmVariant, string> = {
 
 const confirmBtnCls: Record<ConfirmVariant, string> = {
     danger:  'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:opacity-60',
-    warning: 'bg-amber-500 text-slate-900 hover:bg-amber-600 focus:ring-amber-400 disabled:opacity-60',
+    warning: 'bg-amber-500 text-[color:var(--app-foreground)] hover:bg-amber-600 focus:ring-amber-400 disabled:opacity-60',
     success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:opacity-60',
     default: 'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] focus:ring-[color:var(--color-primary)] disabled:opacity-60',
 };
@@ -153,7 +154,7 @@ export default function ConfirmationDialog({
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                 >
-                    <DialogPanel className="relative w-full max-w-md rounded-panel bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-700">
+                    <DialogPanel className="relative w-full max-w-md rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-[color:var(--app-border-strong)]">
                         {/* Header */}
                         <div className="flex items-start gap-4 p-6">
                             <div className={iconWrapperCls[variant]} aria-hidden="true">
@@ -162,14 +163,14 @@ export default function ConfirmationDialog({
                             <div className="min-w-0 flex-1">
                                 <h3
                                     id={titleId}
-                                    className="text-base font-semibold text-gray-900 dark:text-slate-100"
+                                    className="text-base font-semibold text-[color:var(--app-foreground)]"
                                 >
                                     {title}
                                 </h3>
                                 {description && (
                                     <p
                                         id={descId}
-                                        className="mt-1 text-sm text-gray-500 dark:text-slate-400"
+                                        className="mt-1 text-sm text-[color:var(--app-muted-foreground)]"
                                     >
                                         {description}
                                     </p>
@@ -179,7 +180,7 @@ export default function ConfirmationDialog({
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="ml-2 shrink-0 rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                                    className="ml-2 shrink-0 rounded-lg p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-muted-foreground)]"
                                     aria-label={cancelLabel}
                                 >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -192,14 +193,14 @@ export default function ConfirmationDialog({
                         {/* Body: typed confirmation */}
                         {requireTyped && (
                             <div className="px-6 pb-2">
-                                <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                                <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                     {`Type "${requireTyped}" to confirm`}
                                 </label>
                                 <input
                                     type="text"
                                     value={typed}
                                     onChange={(e) => setTyped(e.target.value)}
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                                    className={cx(inputClassName, 'w-full')}
                                     placeholder={requireTyped}
                                     autoComplete="off"
                                     spellCheck={false}
@@ -210,27 +211,27 @@ export default function ConfirmationDialog({
                         {/* Body: reason textarea */}
                         {requireReason && (
                             <div className="px-6 pb-2">
-                                <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                                <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                     {reasonLabel}
                                 </label>
                                 <textarea
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value)}
                                     rows={3}
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                                    className={cx(textareaClassName, 'w-full')}
                                     placeholder={reasonLabel}
                                 />
                             </div>
                         )}
 
                         {/* Footer */}
-                        <div className="flex justify-end gap-2 rounded-b-panel border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
+                        <div className="flex justify-end gap-2 rounded-b-panel border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-6 py-4">
                             <button
                                 ref={cancelRef}
                                 type="button"
                                 onClick={onClose}
                                 disabled={loading}
-                                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                className={buttonClassName({ variant: 'outline' })}
                             >
                                 {cancelLabel}
                             </button>

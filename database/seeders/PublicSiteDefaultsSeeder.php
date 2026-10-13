@@ -68,7 +68,7 @@ class PublicSiteDefaultsSeeder extends Seeder
                 'code' => 'ID-CARDS', 'slug' => 'id-cards', 'icon' => 'card',
                 'name_en' => 'ID Cards', 'name_am' => 'መታወቂያ ካርዶች',
                 'en' => 'Full card lifecycle management: request, print, issue, activate, replace, and revoke.',
-                'am' => 'ሙሉ ካርድ ዑደት አስተዳደር፡ ጥያቄ፣ ህትመት፣ ስጦታ፣ ማንቃት፣ መቀየር፣ እና መሰረዝ።',
+                'am' => 'የመታወቂያ ካርድ ሙሉ ሂደት አስተዳደር፦ ጥያቄ፣ ሕትመት፣ መስጠት፣ ገቢር ማድረግ፣ መተካት እና መሻር።',
                 'action_route' => null,
             ],
             [
@@ -119,8 +119,8 @@ class PublicSiteDefaultsSeeder extends Seeder
         $sections = [
             Registry::PAGE_HOME => [
                 'intro' => [
-                    'title_en' => 'Unified Employee ID & Service Integration System',
-                    'title_am' => 'የተቀናጀ የሠራተኛ መታወቂያ እና አገልግሎት ስርዓት',
+                    'title_en' => 'Addis Ababa Integrated Employee Management & Service System',
+                    'title_am' => 'የአዲስ አበባ የተቀናጀ የሰራተኛ አስተዳደርና አገልግሎት ሥርዓት',
                     'subtitle_en' => 'Secure digital identity and service access management for Addis Ababa City Administration employees.',
                     'subtitle_am' => 'ለአዲስ አበባ ከተማ አስተዳደር ሠራተኞች ደህንነቱ የተጠበቀ ዲጂታል መታወቂያ እና የአገልግሎት ፈቃድ አስተዳደር።',
                     'options' => [

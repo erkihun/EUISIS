@@ -11,12 +11,14 @@ use App\Enums\AuditEventType;
 use App\Enums\TransferStatus;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeTransfer;
+use App\Models\Position;
 use App\Models\User;
 use App\Models\VacancyApplication;
 use App\Services\Vacancy\PositionCapacityService;
 use App\Services\Vacancy\VacancyTransferService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 readonly class CompleteVacancyTransferAction
 {
@@ -29,20 +31,37 @@ readonly class CompleteVacancyTransferAction
 
     public function execute(VacancyApplication $application, array $data, User $actor): EmployeeTransfer
     {
+        // Fast rejection before taking locks; re-checked under the locks below.
         $this->vacancyTransferService->assertTransferEligible($application);
 
         return DB::transaction(function () use ($application, $data, $actor): EmployeeTransfer {
+            // Lock order: vacancy entry → position → application → employee →
+            // assignment. The entry lock serializes every application to the
+            // same vacancy, so the slot count below cannot be raced; the
+            // position lock serializes with registration and other transfers.
             $positionEntry = $application->positionEntry()->lockForUpdate()->firstOrFail();
+            Position::query()->whereKey($positionEntry->position_id)->lockForUpdate()->first();
+            $application = VacancyApplication::query()->whereKey($application->getKey())->lockForUpdate()->firstOrFail();
+            $this->vacancyTransferService->assertTransferEligible($application);
+
             $announcement = $application->announcement;
             $employee = $application->employee()->lockForUpdate()->firstOrFail();
             $currentAssignment = $employee->currentAssignment()->lockForUpdate()->firstOrFail();
 
             $effectiveDate = Carbon::parse($data['effective_date'] ?? now());
 
+            // The position as a whole, under its lock (CON-5): people placed
+            // by registration hold slots without an occupancy row.
+            if (! $this->capacityService->hasFreeSlot($positionEntry->position_id, $effectiveDate)) {
+                throw ValidationException::withMessages(['slots' => __('vacancies.noSlotsRemaining')]);
+            }
+
             $currentAssignment->update([
                 'assignment_status' => AssignmentStatus::Closed,
                 'is_current' => false,
-                'effective_to' => $effectiveDate->toDateString(),
+                // The old placement ends the day before the new one starts,
+                // so the two intervals never overlap (as CompleteTransferAction).
+                'effective_to' => $effectiveDate->copy()->subDay()->toDateString(),
                 'reason' => __('vacancies.transferReason'),
             ]);
 

@@ -32,9 +32,11 @@ class CafeteriaSubsidyLedgerController extends Controller
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
         $employeeId = $filters['employee_id'] ?? null;
-        $employees = Employee::query()->whereHas('currentAssignment', fn ($query) => $scope->applyOrganizationScope($query, $request->user()))
-            ->orderBy('full_name')->get(['id', 'full_name', 'employee_number']);
-        $employee = $employeeId ? $employees->firstWhere('id', $employeeId) : null;
+        // Only the filtered employee is loaded; the picker searches through
+        // lookup.employees instead of shipping everyone in scope (SCL-10).
+        $employee = $employeeId ? Employee::query()->whereKey($employeeId)
+            ->whereHas('currentAssignment', fn ($query) => $scope->applyOrganizationScope($query, $request->user()))
+            ->first(['id', 'full_name', 'employee_number']) : null;
         abort_if($employeeId && ! $employee, 404);
 
         $query = CafeteriaSubsidyLedger::query()
@@ -62,7 +64,6 @@ class CafeteriaSubsidyLedgerController extends Controller
                 'per_page' => $entries->perPage(),
             ],
             'filters' => collect($filters)->except('page')->all(),
-            'employees' => $employees,
             'entryTypes' => array_column(CafeteriaLedgerEntryType::cases(), 'value'),
             'summary' => ['credits' => (float) $summary->credits, 'debits' => (float) $summary->debits, 'net' => (float) $summary->credits - (float) $summary->debits],
             'employee' => $employee?->only(['id', 'full_name', 'employee_number']),

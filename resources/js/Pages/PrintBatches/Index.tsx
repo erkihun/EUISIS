@@ -2,9 +2,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type BatchRow = {
     id: string;
     batch_number: string;
@@ -16,17 +19,16 @@ type BatchRow = {
     created_by?: { name: string } | null;
 };
 
+type Filters = { search: string; status: string };
+
 type PageProps = {
-    batches: {
-        data: BatchRow[];
-        current_page: number;
-        last_page: number;
-        total: number;
-    };
+    batches: LaravelPageMeta & { data: BatchRow[] };
+    filters: Filters;
     can?: { create?: boolean };
 };
 
 type BatchStatus = 'draft' | 'printing' | 'completed' | 'cancelled';
+const BATCH_STATUSES: BatchStatus[] = ['draft', 'printing', 'completed', 'cancelled'];
 
 type StyleEntry = { badge: string; dot: string };
 
@@ -38,7 +40,7 @@ const batchStatusStyle: Record<BatchStatus, StyleEntry> = {
 };
 
 const fallbackStyle: StyleEntry = {
-    badge: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700',
+    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
     dot:   'bg-gray-400',
 };
 
@@ -54,8 +56,20 @@ function BatchStatusBadge({ status }: { status: string }) {
     );
 }
 
-export default function PrintBatchesIndex({ batches, can }: PageProps) {
+export default function PrintBatchesIndex({ batches, filters, can }: PageProps) {
     const { t } = useLocale();
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
+
+    function submitFilters() {
+        router.get(route('print-batches.index'), { ...values, page: 1 }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { search: '', status: '' };
+        setValues(empty);
+        router.get(route('print-batches.index'), empty, { preserveScroll: true, replace: true });
+    }
 
     return (
         <AuthenticatedLayout
@@ -67,7 +81,7 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                         can?.create && (
                             <Link
                                 href={route('print-batches.create')}
-                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] transition-colors"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 {t('idCards.createPrintBatch')}
                             </Link>
@@ -78,99 +92,117 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
         >
             <Head title={t('idCards.printBatches')} />
 
-            <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <FilterPanel onSubmit={submitFilters} onReset={resetFilters} hasActiveFilters={filtersActive} className="mb-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input
+                        type="search"
+                        value={values.search}
+                        onChange={(event) => setValues({ ...values, search: event.target.value })}
+                        placeholder={t('idCards.batchNumber')}
+                    />
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                        <option value="">{t('common.allStatuses')}</option>
+                        {BATCH_STATUSES.map((status) => (
+                            <option key={status} value={status}>{t(`idCards.batchStatus_${status}`)}</option>
+                        ))}
+                    </Select>
+                </FilterField>
+            </FilterPanel>
+
+            <div className={tableContainerClassName}>
                 {batches.data.length === 0 ? (
-                    <div className="p-8">
-                        <EmptyState
-                            title={t('idCards.noPrintBatchesFound')}
-                            description={t('idCards.noBatchesDescription')}
-                            action={
-                                can?.create ? (
-                                    <Link
-                                        href={route('print-batches.create')}
-                                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
-                                    >
-                                        {t('idCards.createPrintBatch')}
-                                    </Link>
-                                ) : undefined
-                            }
-                        />
-                    </div>
+                    <EmptyState
+                        title={t('idCards.noPrintBatchesFound')}
+                        description={t('idCards.noBatchesDescription')}
+                        action={
+                            can?.create ? (
+                                <Link
+                                    href={route('print-batches.create')}
+                                    className={buttonClassName({ variant: 'primary' })}
+                                >
+                                    {t('idCards.createPrintBatch')}
+                                </Link>
+                            ) : undefined
+                        }
+                    />
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                        <table className={tableClassName}>
+                            <thead className={tableHeadClassName}>
+                                <tr>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('idCards.batchNumber')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('idCards.batchStatus')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('idCards.cardsInBatch')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('idCards.printedAt')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('common.createdAt')}
                                     </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-right')}>
                                         {t('common.actions')}
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className={tableBodyClassName}>
                                 {batches.data.map((batch) => (
                                     <tr
                                         key={batch.id}
-                                        className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                                        className={tableRowClassName}
                                     >
-                                        <td className="px-4 py-3">
-                                            <span className="font-mono text-sm font-semibold text-gray-900 dark:text-slate-100">
+                                        <td className={tableCellClassName}>
+                                            <span className="font-mono text-sm font-semibold text-[color:var(--app-foreground)]">
                                                 {batch.batch_number}
                                             </span>
                                             {batch.created_by && (
-                                                <p className="text-xs text-gray-400 dark:text-slate-500">
+                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                     {batch.created_by.name}
                                                 </p>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <BatchStatusBadge status={batch.status} />
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <div className="flex items-center gap-2">
-                                                <span className="font-semibold text-gray-900 dark:text-slate-100">
+                                                <span className="font-semibold text-[color:var(--app-foreground)]">
                                                     {batch.printed_count}
                                                 </span>
-                                                <span className="text-gray-400">/</span>
-                                                <span className="text-gray-600 dark:text-slate-400">
+                                                <span className="text-[color:var(--app-muted-foreground)]">/</span>
+                                                <span className="text-[color:var(--app-muted-foreground)]">
                                                     {batch.total_cards}
                                                 </span>
                                             </div>
                                             {/* Progress bar */}
-                                            <div className="mt-1 h-1.5 w-20 rounded-full bg-gray-100 dark:bg-slate-700">
+                                            <div className="mt-1 h-1.5 w-20 rounded-full bg-[color:var(--app-surface-muted)]">
                                                 <div
                                                     className="h-1.5 rounded-full bg-blue-500 transition-all"
                                                     style={{ width: `${batch.total_cards > 0 ? (batch.printed_count / batch.total_cards) * 100 : 0}%` }}
                                                 />
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                             <LocalizedDateDisplay value={batch.printed_at} withTime />
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                             <LocalizedDateDisplay value={batch.created_at} withTime />
                                         </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Link
-                                                href={route('print-batches.show', batch.id)}
-                                                className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
-                                            >
-                                                {t('common.view')}
-                                            </Link>
+                                        <td className={cx(tableCellClassName, 'text-right')}>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('print-batches.show', batch.id) },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -178,15 +210,7 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                         </table>
                     </div>
                 )}
-
-                {batches.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3 text-xs text-gray-400 dark:border-slate-800 dark:text-slate-500">
-                        <span>
-                            {t('common.page')} {batches.current_page} {t('common.of')} {batches.last_page}
-                        </span>
-                        <span>{batches.total} {t('common.total').toLowerCase()}</span>
-                    </div>
-                )}
+                <ListPagination meta={batches} />
             </div>
         </AuthenticatedLayout>
     );

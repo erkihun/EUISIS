@@ -31,7 +31,20 @@ use App\Models\FieldWorkRequest;
 use App\Models\GradeLevel;
 use App\Models\IdCard;
 use App\Models\IsicActivity;
+use App\Models\InstitutionMandate;
 use App\Models\Occupation;
+use App\Models\OrganizationFunction;
+use App\Models\OrganizationPower;
+use App\Models\JobDescription;
+use App\Models\ManpowerPlan;
+use App\Models\OrganizationDesignReportExport;
+use App\Models\PublicFeedbackReportExport;
+use App\Models\PositionProfile;
+use App\Models\OrganizationDesignStudy;
+use App\Models\WorkforcePlanningMethodology;
+use App\Models\Process;
+use App\Models\Service;
+use App\Models\ServiceClassification;
 use App\Models\Organization;
 use App\Models\OrganizationalChangeRequest;
 use App\Models\OrganizationEdge;
@@ -81,7 +94,18 @@ use App\Policies\FieldWorkRequestPolicy;
 use App\Policies\GradeLevelPolicy;
 use App\Policies\IdCardPolicy;
 use App\Policies\IsicActivityPolicy;
+use App\Policies\InstitutionMandatePolicy;
 use App\Policies\OccupationPolicy;
+use App\Policies\OrganizationFunctionPolicy;
+use App\Policies\ManpowerPlanPolicy;
+use App\Policies\OrganizationDesignReportExportPolicy;
+use App\Policies\PublicFeedbackReportExportPolicy;
+use App\Policies\PositionDesignPolicy;
+use App\Policies\OrganizationDesignStudyPolicy;
+use App\Policies\WorkforcePlanningMethodologyPolicy;
+use App\Policies\ProcessPolicy;
+use App\Policies\ServiceClassificationPolicy;
+use App\Policies\ServicePolicy;
 use App\Policies\OrganizationalChangeRequestPolicy;
 use App\Policies\OrganizationEdgePolicy;
 use App\Policies\OrganizationPolicy;
@@ -119,6 +143,7 @@ use App\Services\Calendar\LocalizedDateService;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
 use App\Services\Security\SessionActivityService;
 use App\Services\Sms\BudgetedSmsGateway;
+use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
@@ -212,6 +237,19 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(OrganizationUnit::class, OrganizationUnitPolicy::class);
         Gate::policy(OrganizationUnitType::class, OrganizationUnitTypePolicy::class);
         Gate::policy(Occupation::class, OccupationPolicy::class);
+        Gate::policy(InstitutionMandate::class, InstitutionMandatePolicy::class);
+        Gate::policy(OrganizationFunction::class, OrganizationFunctionPolicy::class);
+        Gate::policy(OrganizationPower::class, OrganizationFunctionPolicy::class);
+        Gate::policy(Service::class, ServicePolicy::class);
+        Gate::policy(Process::class, ProcessPolicy::class);
+        Gate::policy(OrganizationDesignStudy::class, OrganizationDesignStudyPolicy::class);
+        Gate::policy(ManpowerPlan::class, ManpowerPlanPolicy::class);
+        Gate::policy(PositionProfile::class, PositionDesignPolicy::class);
+        Gate::policy(JobDescription::class, PositionDesignPolicy::class);
+        Gate::policy(OrganizationDesignReportExport::class, OrganizationDesignReportExportPolicy::class);
+        Gate::policy(PublicFeedbackReportExport::class, PublicFeedbackReportExportPolicy::class);
+        Gate::policy(WorkforcePlanningMethodology::class, WorkforcePlanningMethodologyPolicy::class);
+        Gate::policy(ServiceClassification::class, ServiceClassificationPolicy::class);
         Gate::policy(IsicActivity::class, IsicActivityPolicy::class);
         Gate::policy(GradeLevel::class, GradeLevelPolicy::class);
         Gate::policy(Position::class, PositionPolicy::class);
@@ -279,10 +317,26 @@ class AppServiceProvider extends ServiceProvider
          * the second, a script could rate every desk in a building from one
          * machine and still stay under a per-token limit.
          */
-        RateLimiter::for('service-feedback-submit', fn (Request $request): array => [
-            Limit::perMinutes(10, 3)->by('sf-submit:'.$request->route('token').'|'.$request->ip()),
-            Limit::perMinutes(10, 8)->by('sf-submit-ip:'.$request->ip()),
-        ]);
+        // Brief §37–38: per QR code and per address, thresholds from the public feedback policy.
+        RateLimiter::for('service-feedback-submit', function (Request $request): array {
+            $perSource = 3;
+            $perIp = 8;
+
+            try {
+                if (Schema::hasTable('system_settings')) {
+                    $policy = app(PublicFeedbackSettings::class);
+                    $perSource = $policy->rateLimitPerSource();
+                    $perIp = $policy->rateLimitPerIp();
+                }
+            } catch (\Throwable) {
+                // Defaults stand while the database is unavailable.
+            }
+
+            return [
+                Limit::perMinutes(10, $perSource)->by('sf-submit:'.$request->route('token').'|'.$request->ip()),
+                Limit::perMinutes(10, $perIp)->by('sf-submit-ip:'.$request->ip()),
+            ];
+        });
 
         RateLimiter::for('api', function (Request $request): array {
             $perMinute = 120;

@@ -9,6 +9,7 @@ import { toast } from '@/lib/toast';
 import { localizedName } from '@/utils/localizedName';
 import { useEffect } from 'react';
 
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 /**
  * Single-organization organogram. The tree itself is the same component the
  * detail page uses, so node content and expand/collapse behave identically;
@@ -30,12 +31,11 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
         }
     }, [error, t, clearError]);
 
-    const exportButtonCls =
-        'rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
+    const exportButtonCls = buttonClassName({ variant: 'outline', size: 'sm' });
 
     const exportButtons = (
         <>
-            <span className="mx-1 h-4 w-px bg-gray-200 dark:bg-slate-700" />
+            <span className="mx-1 h-4 w-px bg-[color:var(--app-surface-muted)]" />
             <button type="button" onClick={exportPng} disabled={exporting !== null} className={exportButtonCls}>
                 {exporting === 'png' ? t('organizations.exporting') : t('organizations.exportPng')}
             </button>
@@ -63,7 +63,7 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
                 <Link
                     href={route('organizations.show', tree.organization.id)}
-                    className="text-sm text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                    className={actionLinkClassName({ size: 'sm' })}
                 >
                     ← {t('organizations.backToOrganization')}
                 </Link>
@@ -72,7 +72,7 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
                     <button
                         type="button"
                         onClick={() => window.print()}
-                        className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                     >
                         {t('organizations.printOrganogram')}
                     </button>
@@ -81,14 +81,14 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
                         client-side visual capture in the chart toolbar. */}
                     <a
                         href={`${route('organizations.organogram', tree.organization.id)}?format=pdf`}
-                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                        className={buttonClassName({ variant: 'primary', size: 'sm' })}
                     >
                         {t('organizations.exportOutlinePdf')}
                     </a>
                 </div>
             </div>
 
-            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 print:border-0 print:p-0">
+            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 print:border-0 print:p-0">
                 <OrganogramChart tree={tree} captureRef={captureRef} toolbarExtra={exportButtons} />
             </section>
         </AuthenticatedLayout>

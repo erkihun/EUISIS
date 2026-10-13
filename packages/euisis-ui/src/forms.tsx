@@ -11,24 +11,42 @@ import {
 import { Button, cx } from './primitives';
 import { useUiMessages } from './context';
 
-export const controlClassName = cx(
-    'h-[var(--control-h-md)] w-full rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)]',
+/*
+ * One control style. Width and height are kept out of the base on purpose:
+ * when two classes set the same property the generated CSS order decides,
+ * not the class order, so a caller's `w-40` could never beat a built-in
+ * `w-full`. Callers add their own width.
+ */
+const controlBase = cx(
+    'rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)]',
     'bg-[color:var(--app-surface)] px-3 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)]',
     'focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20',
     'disabled:cursor-not-allowed disabled:bg-[color:var(--app-surface-muted)] disabled:opacity-70',
     'aria-[invalid=true]:border-red-600 aria-[invalid=true]:ring-red-600/20',
+    // On a <select>, keep room for the native chevron: `:is(select)` outranks
+    // `px-3`, so one shared input style serves inputs and selects alike.
+    '[&:is(select)]:pr-9',
 );
+
+/** Single-line input; no width (add `w-full`, `w-40`, …). */
+export const inputClassName = cx('h-[var(--control-h-md)]', controlBase);
+/** Native select; no width. */
+export const selectClassName = cx('h-[var(--control-h-md)] pr-9', controlBase);
+/** Multi-line input; no width and no fixed height. */
+export const textareaClassName = cx('min-h-24 py-2', controlBase);
+/** Full-width single-line control, as the Input and Select components render. */
+export const controlClassName = cx(inputClassName, 'w-full');
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(function Input({ className, ...props }, ref) {
     return <input ref={ref} className={cx(controlClassName, className)} {...props} />;
 });
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(function Textarea({ className, ...props }, ref) {
-    return <textarea ref={ref} className={cx(controlClassName, 'h-auto min-h-24 py-2', className)} {...props} />;
+    return <textarea ref={ref} className={cx(textareaClassName, 'w-full', className)} {...props} />;
 });
 
 export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(function Select({ className, ...props }, ref) {
-    return <select ref={ref} className={cx(controlClassName, 'pr-9', className)} {...props} />;
+    return <select ref={ref} className={cx(selectClassName, 'w-full', className)} {...props} />;
 });
 
 export function FormLabel({ required, className, children, ...props }: LabelHTMLAttributes<HTMLLabelElement> & { required?: boolean }) {

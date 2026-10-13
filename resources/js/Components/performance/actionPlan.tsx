@@ -3,6 +3,7 @@ import { gregorianIsoToEthiopian } from '@/lib/calendar/ethiopianCalendar';
 import { nameOf, tableCls, titleOf } from '@/Components/performance/ui';
 import { Fragment, type ReactNode } from 'react';
 
+import { cx, tableBodyClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 /*
  * The plan as an action-plan table (ድርጊት መርሃ ግብር): a row per strategic
  * goal with its weight, then a row per objective / KPI with number, weight,
@@ -64,14 +65,14 @@ export function ActionPlanTable({ objectives, goals, cycleStart }: { objectives:
     ].filter((g) => g.objectives.length > 0);
     const withGoals = groups.some((g) => g.goal !== null);
 
-    const th = 'border border-gray-200 px-2 py-2 text-center align-middle font-semibold dark:border-slate-700';
-    const td = 'border border-gray-200 px-2 py-2 align-top dark:border-slate-700';
+    const th = 'border border-[color:var(--app-border)] px-2 py-2 text-center align-middle font-semibold';
+    const td = 'border border-[color:var(--app-border)] px-2 py-2 align-top';
     const cell = `${td} text-center tabular-nums whitespace-nowrap`;
     const isPercent = (target: PlanTarget) => target.kpi.measurement === 'PERCENTAGE';
     const value = (target: PlanTarget, v: string | null, numerator?: string | null, denominator?: string | null) =>
         numerator !== null && numerator !== undefined && numerator !== '' ? `${num(numerator)} / ${num(denominator)}` : v === null || v === '' ? '' : `${num(v)}${isPercent(target) ? '%' : ''}`;
     const unit = (target: PlanTarget) => target.kpi.unit || (target.kpi.measurement ? t(`performance.enums.measurement.${target.kpi.measurement}`) : '');
-    const dash = <span className="text-gray-300 dark:text-slate-600">—</span>;
+    const dash = <span className="text-[color:var(--app-muted-foreground)]">—</span>;
 
     function schedule(target: PlanTarget | null): ReactNode {
         const rows = target?.period_targets ?? [];
@@ -105,7 +106,7 @@ export function ActionPlanTable({ objectives, goals, cycleStart }: { objectives:
     return (
         <div className="overflow-x-auto">
             <table className={`${tableCls} border-collapse text-xs`}>
-                <thead className="bg-gray-50 text-gray-600 dark:bg-slate-950 dark:text-slate-300">
+                <thead className={tableHeadClassName}>
                     <tr>
                         <th rowSpan={3} className={th}>{t('performance.plans.actionPlanNo')}</th>
                         <th rowSpan={3} className={`${th} text-left`}>{t('performance.plans.actionPlanItem')}</th>
@@ -118,13 +119,13 @@ export function ActionPlanTable({ objectives, goals, cycleStart }: { objectives:
                     <tr>{[1, 2, 3, 4].map((q) => <th key={q} colSpan={3} className={th}>{quarterLabel(t, q)}</th>)}</tr>
                     <tr>{months.map((m, i) => <th key={i} className={`${th} whitespace-nowrap font-medium`}>{m}</th>)}</tr>
                 </thead>
-                <tbody>
+                <tbody className={tableBodyClassName}>
                     {groups.map(({ goal, objectives: list }) => (
                         <Fragment key={goal?.id ?? 'other'}>
                             {withGoals && (
-                                <tr className="bg-[color:var(--color-primary)]/10">
+                                <tr className={cx(tableRowClassName, 'bg-[color:var(--color-primary)]/10')}>
                                     <td className={`${td} whitespace-nowrap font-mono text-xs font-semibold`}>{goal?.code ?? ''}</td>
-                                    <td colSpan={17} className={`${td} font-semibold text-gray-900 dark:text-slate-100`}>
+                                    <td colSpan={17} className={`${td} font-semibold text-[color:var(--app-foreground)]`}>
                                         {goal ? `${nameOf(goal, locale)} (${num(goal.weight_percent)}%)` : t('performance.plans.actionPlanOther')}
                                     </td>
                                 </tr>

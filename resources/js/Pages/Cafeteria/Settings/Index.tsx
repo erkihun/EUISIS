@@ -9,6 +9,8 @@ import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 // ─── shared types ────────────────────────────────────────────────────────────
 type Settings = Record<string, unknown>;
 type InPageTab = 'general' | 'subsidy' | 'days' | 'scan' | 'day-rules' | 'holidays' | 'subsidy-rules' | 'reports' | 'provider-users';
@@ -103,37 +105,37 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
         });
     }
 
-    const timeCls = 'rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-50';
+    const timeCls = 'rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm text-[color:var(--app-foreground)] disabled:opacity-50';
 
     return (
-        <div className={`flex flex-wrap items-center gap-4 rounded-card border border-gray-200 p-4 dark:border-slate-700 ${DAY_COLORS[rule.day_of_week]}`}>
+        <div className={`flex flex-wrap items-center gap-4 rounded-card border border-[color:var(--app-border)] p-4 ${DAY_COLORS[rule.day_of_week]}`}>
             {Object.keys(errors).length > 0 && <div role="alert" className="w-full text-sm text-red-700 dark:text-red-300">{Object.values(errors).join(' ')}</div>}
-            <div className="w-28 font-semibold text-gray-800 dark:text-slate-100">{localizedDayName(rule.day_of_week, locale)}</div>
-            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+            <div className="w-28 font-semibold text-[color:var(--app-foreground)]">{localizedDayName(rule.day_of_week, locale)}</div>
+            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                 <input type="checkbox" disabled={!canUpdate} checked={isOpen} onChange={e => { setIsOpen(e.target.checked); if (!e.target.checked) setIsSubsidy(false); }} className="h-4 w-4 rounded" />
                 {t('cafeteria.isOpen')}
             </label>
-            <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                 <input type="checkbox" disabled={!canUpdate || !isOpen} checked={isSubsidy} onChange={e => setIsSubsidy(e.target.checked)} className="h-4 w-4 rounded" />
                 {t('cafeteria.isSubsidyDay')}
             </label>
             <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-gray-500 dark:text-slate-400">{t('cafeteria.openTime')}</span>
+                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.openTime')}</span>
                 <LocalizedTimePicker value={openTime} onChange={setOpenTime} disabled={!canUpdate || !isOpen} className={timeCls} />
-                <span className="text-xs text-gray-500 dark:text-slate-400">{t('cafeteria.closeTime')}</span>
+                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.closeTime')}</span>
                 <LocalizedTimePicker value={closeTime} onChange={setCloseTime} disabled={!canUpdate || !isOpen} className={timeCls} />
             </div>
             <div className="ml-auto flex items-center gap-2">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOpen ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOpen ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
                     {isOpen ? t('cafeteria.openDay') : t('cafeteria.closedDay')}
                 </span>
                 {isOpen && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
                         {isSubsidy ? t('cafeteria.isSubsidyDay') : t('common.no')}
                     </span>
                 )}
                 {canUpdate && (
-                    <button onClick={save} disabled={saving} className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
+                    <button onClick={save} disabled={saving} className={buttonClassName({ variant: 'primary', size: 'sm' })}>
                         {saving ? '…' : t('common.save')}
                     </button>
                 )}
@@ -224,16 +226,16 @@ export default function CafeteriaSettingsIndex({
     });
     const [saving, setSaving] = useState(false);
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-60';
-    const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
-    const sectionCls = 'rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 space-y-5';
-    const tableCls = 'overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900';
-    const thCls = 'px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-slate-400';
-    const tdCls = 'px-4 py-3 text-sm text-gray-700 dark:text-slate-300';
+    const inputCls = cx(inputClassName, 'w-full');
+    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)] mb-1';
+    const sectionCls = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 space-y-5';
+    const tableCls = 'overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
+    const thCls = 'px-4 py-3 text-left text-sm font-medium text-[color:var(--app-muted-foreground)]';
+    const tdCls = 'px-4 py-3 text-sm text-[color:var(--app-foreground)]';
 
     const canEdit = (key: string) => can.update && editableSettingKeys.includes(key);
     const settingHint = (key: string) => (
-        <p id={`setting-hint-${key}`} className="mt-1 text-xs leading-5 text-gray-500 dark:text-slate-400">
+        <p id={`setting-hint-${key}`} className="mt-1 text-xs leading-5 text-[color:var(--app-muted-foreground)]">
             {t(readOnlySettingReasons[key] ? `cafeteria.settingHelp.${readOnlySettingReasons[key]}` : `cafeteria.settingHelp.${key}`)}
         </p>
     );
@@ -364,7 +366,7 @@ export default function CafeteriaSettingsIndex({
         `whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             active
                 ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'
-                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'
         }`;
 
     const isSettingsTab = (k: InPageTab) => ['general', 'subsidy', 'days', 'scan', 'reports'].includes(k);
@@ -375,7 +377,7 @@ export default function CafeteriaSettingsIndex({
             <div className="space-y-6">
                 {/* Tab bar */}
                 <div className="overflow-x-auto">
-                    <div className="flex min-w-max border-b border-gray-200 dark:border-slate-700">
+                    <div className="flex min-w-max border-b border-[color:var(--app-border)]">
                         {tabDefs.filter(tb => tb.key !== 'provider-users' || can.manageProviderUsers).map(tb => (
                             <button
                                 key={tb.key}
@@ -403,7 +405,7 @@ export default function CafeteriaSettingsIndex({
                         {/* General */}
                         {tab === 'general' && (
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.generalSettings')}</h3>
+                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.generalSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-currency" className={labelCls}>{t('cafeteria.currency')}</label>
@@ -441,7 +443,7 @@ export default function CafeteriaSettingsIndex({
                         {/* Subsidy */}
                         {tab === 'subsidy' && (
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.subsidySettings')}</h3>
+                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.subsidySettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-default_daily_subsidy_amount" className={labelCls}>{t('cafeteria.defaultDailySubsidyAmount')}</label>
@@ -495,7 +497,7 @@ export default function CafeteriaSettingsIndex({
                         {/* Working Days */}
                         {tab === 'days' && (
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.daySettings')}</h3>
+                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.daySettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-week_start_day" className={labelCls}>{t('cafeteria.weekStartDay')}</label>
@@ -551,7 +553,7 @@ export default function CafeteriaSettingsIndex({
                         {tab === 'scan' && (
                             <>
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.scanSettings')}</h3>
+                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.scanSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-weekend_scan_mode" className={labelCls}>{t('cafeteria.weekendScanMode')}</label>
@@ -586,7 +588,7 @@ export default function CafeteriaSettingsIndex({
 
                             {/* Leave Access Control */}
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.leaveAccessControl')}</h3>
+                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.leaveAccessControl')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-block_cafeteria_during_employee_leave" className={labelCls}>{t('cafeteria.blockCafeteriaDuringLeave')}</label>
@@ -636,7 +638,7 @@ export default function CafeteriaSettingsIndex({
                         {/* Report Settings */}
                         {tab === 'reports' && (
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.reportSettings')}</h3>
+                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.reportSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-report_default_format" className={labelCls}>{t('cafeteria.reportType')}</label>
@@ -663,7 +665,7 @@ export default function CafeteriaSettingsIndex({
 
                         {can.update && tab !== 'reports' && (
                             <div className="flex justify-end">
-                                <button type="submit" disabled={saving} className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
+                                <button type="submit" disabled={saving} className={buttonClassName({ variant: 'primary' })}>
                                     {saving ? t('common.saving') : t('common.save')}
                                 </button>
                             </div>
@@ -674,7 +676,7 @@ export default function CafeteriaSettingsIndex({
                 {/* ── Working Day Rules tab ── */}
                 {tab === 'day-rules' && (
                     <div className="space-y-3">
-                        <p className="text-sm text-gray-500 dark:text-slate-400">{t('cafeteria.specialDayOverrideNote')}</p>
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.specialDayOverrideNote')}</p>
                         {dayRules.length === 0
                             ? <EmptyState title={t('cafeteria.noDayRulesConfigured')} description={t('cafeteria.noDayRulesConfiguredHint')} />
                             : dayRules.map(r => <DayRuleRow key={r.id} rule={r} canUpdate={can.updateDayRules} />)
@@ -687,10 +689,10 @@ export default function CafeteriaSettingsIndex({
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <label htmlFor="holidays-year" className="text-sm text-gray-500 dark:text-slate-400">{t('cafeteria.year')}</label>
+                                <label htmlFor="holidays-year" className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.year')}</label>
                                 <select
                                     id="holidays-year"
-                                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                                    className={selectClassName}
                                     value={String(currentHolidaysYear)}
                                     onChange={e => changeHolidaysYear(Number(e.target.value))}
                                 >
@@ -700,7 +702,7 @@ export default function CafeteriaSettingsIndex({
                                 </select>
                             </div>
                             {can.createHoliday && (
-                                <Link href={route('cafeteria.holidays.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                                <Link href={route('cafeteria.holidays.create')} className={buttonClassName({ variant: 'primary' })}>
                                     + {t('cafeteria.addHoliday')}
                                 </Link>
                             )}
@@ -708,27 +710,31 @@ export default function CafeteriaSettingsIndex({
                         <div className={tableCls}>
                             {holidays.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
+                                    <table className={tableClassName}>
+                                        <thead className={tableHeadClassName}>
+                                            <tr>
                                                 <th className={thCls}>{t('cafeteria.holidayDate')}</th>
                                                 <th className={thCls}>{t('cafeteria.nameEn')}</th>
                                                 <th className={thCls}>{t('cafeteria.nameAm')}</th>
-                                                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.isRecurring')}</th>
-                                                <th className="px-4 py-3" />
+                                                <th className={cx(tableHeaderCellClassName, 'text-center')}>{t('cafeteria.isRecurring')}</th>
+                                                <th className={cx(tableHeaderCellClassName, 'text-left')} />
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        <tbody className={tableBodyClassName}>
                                             {holidays.map(h => (
-                                                <tr key={h.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                                    <td className={`${tdCls} font-medium text-gray-900 dark:text-slate-100`}><LocalizedDateDisplay value={h.holiday_date} /></td>
+                                                <tr key={h.id} className={tableRowClassName}>
+                                                    <td className={`${tdCls} font-medium text-[color:var(--app-foreground)]`}><LocalizedDateDisplay value={h.holiday_date} /></td>
                                                     <td className={tdCls}>{h.name_en}</td>
                                                     <td className={tdCls}>{h.name_am ?? '—'}</td>
-                                                    <td className="px-4 py-3 text-center text-sm">{h.is_recurring ? '✓' : '—'}</td>
-                                                    <td className="px-4 py-3 text-right">
-                                                        <div className="flex justify-end gap-3">
-                                                            {h.can.update && <Link href={route('cafeteria.holidays.edit', h.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}
-                                                            {h.can.archive && !h.deleted_at && <button onClick={() => archiveHoliday(h.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
+                                                    <td className={cx(tableCellClassName, 'text-center')}>{h.is_recurring ? '✓' : '—'}</td>
+                                                    <td className={cx(tableCellClassName, 'text-right')}>
+                                                        <div className="flex justify-end">
+                                                            <AppActionMenu
+                                                                items={[
+                                                                    { label: t('common.edit'), href: route('cafeteria.holidays.edit', h.id), show: h.can.update },
+                                                                    { label: t('common.archive'), onClick: () => archiveHoliday(h.id), variant: 'danger', show: h.can.archive && !h.deleted_at },
+                                                                ]}
+                                                            />
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -746,7 +752,7 @@ export default function CafeteriaSettingsIndex({
                     <div className="space-y-4">
                         <div className="flex justify-end">
                             {can.createSubsidyRule && (
-                                <Link href={route('cafeteria.subsidy-rules.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                                <Link href={route('cafeteria.subsidy-rules.create')} className={buttonClassName({ variant: 'primary' })}>
                                     + {t('cafeteria.addSubsidyRule')}
                                 </Link>
                             )}
@@ -754,32 +760,36 @@ export default function CafeteriaSettingsIndex({
                         <div className={tableCls}>
                             {subsidyRules.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
+                                    <table className={tableClassName}>
+                                        <thead className={tableHeadClassName}>
+                                            <tr>
                                                 <th className={thCls}>{t('cafeteria.subsidyRule')}</th>
-                                                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.subsidyAmount')}</th>
+                                                <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('cafeteria.subsidyAmount')}</th>
                                                 <th className={thCls}>{t('cafeteria.effectiveFrom')}</th>
                                                 <th className={thCls}>{t('cafeteria.effectiveTo')}</th>
                                                 <th className={thCls}>{t('cafeteria.appliesTo')}</th>
-                                                <th className="px-4 py-3" />
+                                                <th className={cx(tableHeaderCellClassName, 'text-left')} />
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        <tbody className={tableBodyClassName}>
                                             {subsidyRules.map(rule => (
-                                                <tr key={rule.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                                    <td className="px-4 py-3">
-                                                        <div className="font-medium text-gray-900 dark:text-slate-100">{rule.name_en}</div>
-                                                        <div className="font-mono text-xs text-gray-500">{rule.code}</div>
+                                                <tr key={rule.id} className={tableRowClassName}>
+                                                    <td className={tableCellClassName}>
+                                                        <div className="font-medium text-[color:var(--app-foreground)]">{rule.name_en}</div>
+                                                        <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{rule.code}</div>
                                                     </td>
-                                                    <td className="px-4 py-3 text-right font-medium text-emerald-600">{rule.subsidy_amount.toFixed(2)} {rule.currency}</td>
+                                                    <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{rule.subsidy_amount.toFixed(2)} {rule.currency}</td>
                                                     <td className={tdCls}><LocalizedDateDisplay value={rule.effective_from} /></td>
                                                     <td className={tdCls}><LocalizedDateDisplay value={rule.effective_to} /></td>
                                                     <td className={tdCls}>{rule.applies_to}</td>
-                                                    <td className="px-4 py-3 text-right">
-                                                        <div className="flex justify-end gap-3">
-                                                            {rule.can.update && <Link href={route('cafeteria.subsidy-rules.edit', rule.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}
-                                                            {rule.can.archive && !rule.deleted_at && <button onClick={() => archiveSubsidyRule(rule.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
+                                                    <td className={cx(tableCellClassName, 'text-right')}>
+                                                        <div className="flex justify-end">
+                                                            <AppActionMenu
+                                                                items={[
+                                                                    { label: t('common.edit'), href: route('cafeteria.subsidy-rules.edit', rule.id), show: rule.can.update },
+                                                                    { label: t('common.archive'), onClick: () => archiveSubsidyRule(rule.id), variant: 'danger', show: rule.can.archive && !rule.deleted_at },
+                                                                ]}
+                                                            />
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -797,7 +807,7 @@ export default function CafeteriaSettingsIndex({
                         {can.manageProviderUsers && (
                             <form onSubmit={saveProviderUser} className={sectionCls}>
                                 {Object.keys(providerErrors).length > 0 && <div role="alert" className="text-sm text-red-700 dark:text-red-300">{Object.values(providerErrors).join(' ')}</div>}
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.addProviderUser')}</h3>
+                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.addProviderUser')}</h3>
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                     <div>
                                         <label className={labelCls}>{t('cafeteria.providerUser')}</label>
@@ -865,7 +875,7 @@ export default function CafeteriaSettingsIndex({
                                     </div>
                                 </div>
                                 <div className="flex justify-end">
-                                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                                    <button type="submit" className={buttonClassName({ variant: 'primary' })}>
                                         {t('common.save')}
                                     </button>
                                 </div>
@@ -876,7 +886,7 @@ export default function CafeteriaSettingsIndex({
                         <Modal show={viewingAssignment !== null} maxWidth="lg" onClose={() => setViewingAssignment(null)}>
                             {viewingAssignment && (
                                 <div className="p-6 space-y-5">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.providerUser')}</h3>
+                                    <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.providerUser')}</h3>
                                     <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         {[
                                             { label: t('cafeteria.providerUser'), value: viewingAssignment.user.name },
@@ -889,21 +899,21 @@ export default function CafeteriaSettingsIndex({
                                             { label: t('common.active'), value: viewingAssignment.is_active ? t('common.yes') : t('common.no') },
                                         ].map(({ label, value }) => (
                                             <div key={label}>
-                                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
-                                                <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-100">{value}</dd>
+                                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
+                                                <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">{value}</dd>
                                             </div>
                                         ))}
                                         <div>
-                                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.effectiveFrom')}</dt>
-                                            <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-100">
+                                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.effectiveFrom')}</dt>
+                                            <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">
                                                 {viewingAssignment.effective_from
                                                     ? <LocalizedDateDisplay value={viewingAssignment.effective_from} />
                                                     : '—'}
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.effectiveTo')}</dt>
-                                            <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-100">
+                                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.effectiveTo')}</dt>
+                                            <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">
                                                 {viewingAssignment.effective_to
                                                     ? <LocalizedDateDisplay value={viewingAssignment.effective_to} />
                                                     : '—'}
@@ -911,7 +921,7 @@ export default function CafeteriaSettingsIndex({
                                         </div>
                                     </dl>
                                     <div className="flex justify-end">
-                                        <button type="button" onClick={() => setViewingAssignment(null)} className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+                                        <button type="button" onClick={() => setViewingAssignment(null)} className={buttonClassName({ variant: 'outline' })}>
                                             {t('common.close')}
                                         </button>
                                     </div>
@@ -924,8 +934,8 @@ export default function CafeteriaSettingsIndex({
                             {editingAssignment && (
                                 <form onSubmit={submitEdit} className="p-6 space-y-5">
                                     {Object.keys(providerErrors).length > 0 && <div role="alert" className="text-sm text-red-700 dark:text-red-300">{Object.values(providerErrors).join(' ')}</div>}
-                                    <div className="border-b border-gray-100 pb-3 dark:border-slate-700">
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{t('common.edit')} — {t('cafeteria.providerUser')}</h3>
+                                    <div className="border-b border-[color:var(--app-border)] pb-3">
+                                        <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">{t('common.edit')} — {t('cafeteria.providerUser')}</h3>
                                     </div>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         {/* Provider User */}
@@ -994,7 +1004,7 @@ export default function CafeteriaSettingsIndex({
                                         </div>
                                         {/* Active */}
                                         <div className="flex items-end pb-1">
-                                            <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                                            <label className="flex cursor-pointer items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                                                 <input
                                                     type="checkbox"
                                                     className="h-4 w-4 rounded"
@@ -1025,11 +1035,11 @@ export default function CafeteriaSettingsIndex({
                                             />
                                         </div>
                                     </div>
-                                    <div className="flex justify-end gap-3 border-t border-gray-100 pt-4 dark:border-slate-700">
-                                        <button type="button" onClick={() => setEditingAssignment(null)} className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
+                                    <div className="flex justify-end gap-3 border-t border-[color:var(--app-border)] pt-4">
+                                        <button type="button" onClick={() => setEditingAssignment(null)} className={buttonClassName({ variant: 'outline' })}>
                                             {t('common.cancel')}
                                         </button>
-                                        <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                                        <button type="submit" className={buttonClassName({ variant: 'primary' })}>
                                             {t('common.save')}
                                         </button>
                                     </div>
@@ -1040,9 +1050,9 @@ export default function CafeteriaSettingsIndex({
                         <div className={tableCls}>
                             {providerUsers.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
+                                    <table className={tableClassName}>
+                                        <thead className={tableHeadClassName}>
+                                            <tr>
                                                 <th className={thCls}>{t('cafeteria.providerUser')}</th>
                                                 <th className={thCls}>{t('cafeteria.provider')}</th>
                                                 <th className={thCls}>{t('cafeteria.branches')}</th>
@@ -1050,55 +1060,55 @@ export default function CafeteriaSettingsIndex({
                                                 <th className={thCls}>{t('cafeteria.providerRole')}</th>
                                                 <th className={thCls}>{t('common.effectiveFrom')}</th>
                                                 <th className={thCls}>{t('common.effectiveTo')}</th>
-                                                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-slate-400">{t('common.active')}</th>
-                                                <th className="px-4 py-3" />
+                                                <th className={cx(tableHeaderCellClassName, 'text-center')}>{t('common.active')}</th>
+                                                <th className={cx(tableHeaderCellClassName, 'text-left')} />
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        <tbody className={tableBodyClassName}>
                                             {providerUsers.map(assignment => (
-                                                <tr key={assignment.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                                    <td className="px-4 py-3">
-                                                        <div className="font-medium text-gray-900 dark:text-slate-100">{assignment.user.name}</div>
-                                                        <div className="text-xs text-gray-500">{assignment.user.email}</div>
+                                                <tr key={assignment.id} className={tableRowClassName}>
+                                                    <td className={tableCellClassName}>
+                                                        <div className="font-medium text-[color:var(--app-foreground)]">{assignment.user.name}</div>
+                                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{assignment.user.email}</div>
                                                     </td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="font-medium text-gray-900 dark:text-slate-100">{assignment.provider.name_en}</div>
-                                                        <div className="font-mono text-xs text-gray-500">{assignment.provider.code}</div>
+                                                    <td className={tableCellClassName}>
+                                                        <div className="font-medium text-[color:var(--app-foreground)]">{assignment.provider.name_en}</div>
+                                                        <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.provider.code}</div>
                                                     </td>
-                                                    <td className="px-4 py-3">
+                                                    <td className={tableCellClassName}>
                                                         {assignment.branch ? (
                                                             <>
-                                                                <div className="font-medium text-gray-900 dark:text-slate-100">{assignment.branch.name_en}</div>
-                                                                <div className="font-mono text-xs text-gray-500">{assignment.branch.code}</div>
+                                                                <div className="font-medium text-[color:var(--app-foreground)]">{assignment.branch.name_en}</div>
+                                                                <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.branch.code}</div>
                                                             </>
                                                         ) : (
-                                                            <span className="text-xs text-gray-400 dark:text-slate-500">—</span>
+                                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">—</span>
                                                         )}
                                                     </td>
-                                                    <td className="px-4 py-3">
+                                                    <td className={tableCellClassName}>
                                                         {assignment.organization ? (
                                                             <>
-                                                                <div className="font-medium text-gray-900 dark:text-slate-100">{assignment.organization.name_en}</div>
-                                                                <div className="font-mono text-xs text-gray-500">{assignment.organization.code}</div>
+                                                                <div className="font-medium text-[color:var(--app-foreground)]">{assignment.organization.name_en}</div>
+                                                                <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.organization.code}</div>
                                                             </>
                                                         ) : (
-                                                            <span className="text-xs text-gray-400 dark:text-slate-500">{t('common.allOrganizations')}</span>
+                                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.allOrganizations')}</span>
                                                         )}
                                                     </td>
                                                     <td className={tdCls}>{assignment.provider_role ?? 'operator'}</td>
                                                     <td className={tdCls}>{assignment.effective_from ? <LocalizedDateDisplay value={assignment.effective_from} /> : '—'}</td>
                                                     <td className={tdCls}>{assignment.effective_to ? <LocalizedDateDisplay value={assignment.effective_to} /> : '—'}</td>
-                                                    <td className="px-4 py-3 text-center">
-                                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${assignment.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                                    <td className={cx(tableCellClassName, 'text-center')}>
+                                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${assignment.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
                                                             {assignment.is_active ? t('common.yes') : t('common.no')}
                                                         </span>
                                                     </td>
-                                                    <td className="px-4 py-3 text-right">
+                                                    <td className={cx(tableCellClassName, 'text-right')}>
                                                         <div className="flex items-center justify-end gap-2">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setViewingAssignment(assignment)}
-                                                                className="rounded px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-100"
+                                                                className="rounded px-2 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
                                                             >
                                                                 {t('common.view')}
                                                             </button>

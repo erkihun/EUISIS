@@ -7,6 +7,7 @@ import KpiCard from '@/Components/dashboard/KpiCard';
 import MetricGrid from '@/Components/dashboard/MetricGrid';
 import { ConfigurationHealthPanel, type Health } from '@/Components/Cafeteria/PolicyUi';
 
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type ProviderSummary = {
     provider_id: string;
     provider_name: string;
@@ -41,10 +42,8 @@ export default function CafeteriaDashboard({
         maximumFractionDigits: 2,
     });
 
-    const actionPrimaryCls =
-        'inline-flex h-9 items-center justify-center rounded-lg bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white transition hover:bg-[color:var(--color-primary-hover)]';
-    const actionSecondaryCls =
-        'inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-slate-700 dark:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800';
+    const actionPrimaryCls = buttonClassName({ variant: 'primary' });
+    const actionSecondaryCls = buttonClassName({ variant: 'outline' });
 
     return (
         <AuthenticatedLayout
@@ -113,29 +112,29 @@ export default function CafeteriaDashboard({
                 </DashboardSection>
 
                 <DashboardSection title={t('cafeteria.todayTransactions')}>
-                    <div className="overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] dark:border-slate-800/80 dark:bg-slate-900/95">
+                    <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)]/80 bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.provider')}</th>
-                                        <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.transactions')}</th>
-                                        <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.totalSubsidy')}</th>
-                                        <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.totalDeductions')}</th>
+                            <table className={tableClassName}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.provider')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('cafeteria.transactions')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('cafeteria.totalSubsidy')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('cafeteria.totalDeductions')}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {today_by_provider.map((row) => (
-                                        <tr key={row.provider_id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                            <td className="px-4 py-3 text-gray-900 dark:text-slate-100">{row.provider_name}</td>
-                                            <td className="px-4 py-3 text-right text-gray-700 dark:text-slate-300">{row.transaction_count}</td>
-                                            <td className="px-4 py-3 text-right font-medium text-emerald-600">{money.format(row.total_subsidy)}</td>
-                                            <td className="px-4 py-3 text-right font-medium text-orange-600">{money.format(row.total_deductions)}</td>
+                                        <tr key={row.provider_id} className={tableRowClassName}>
+                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{row.provider_name}</td>
+                                            <td className={cx(tableCellClassName, 'text-right text-[color:var(--app-foreground)]')}>{row.transaction_count}</td>
+                                            <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{money.format(row.total_subsidy)}</td>
+                                            <td className={cx(tableCellClassName, 'text-right font-medium text-orange-600')}>{money.format(row.total_deductions)}</td>
                                         </tr>
                                     ))}
                                     {today_by_provider.length === 0 && (
                                         <tr>
-                                            <td colSpan={4} className="px-4 py-10 text-center text-sm text-gray-500 dark:text-slate-400">
+                                            <td colSpan={4} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
                                                 {t('common.noRecords')}
                                             </td>
                                         </tr>

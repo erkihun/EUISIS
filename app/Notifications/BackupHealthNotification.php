@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Services\Branding\BrandingService;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -22,7 +23,7 @@ class BackupHealthNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject('EUISIS Backup & Recovery: '.$this->state)
+        return (new MailMessage)->subject(app(BrandingService::class)->brandName().' Backup & Recovery: '.$this->state)
             ->line('Review backup health.')->action('Backup & Recovery', url('/system/backup-recovery'));
     }
 }

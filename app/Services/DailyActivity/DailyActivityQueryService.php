@@ -141,6 +141,12 @@ class DailyActivityQueryService
             ->chunk($this->employeeChunkSize, fn (Collection $employees) => $callback($employees) === false ? false : null);
     }
 
+    /** @param  array<string, mixed>  $filters */
+    public function employeeCount(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters): int
+    {
+        return $coverage->isEmpty() ? 0 : $this->employeeQuery($coverage, $from, $to, $filters)->reorder()->count();
+    }
+
     /**
      * @param  array<string, mixed>  $filters
      * @return Builder<Employee>

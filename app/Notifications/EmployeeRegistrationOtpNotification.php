@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Models\EmployeeRegistrationOtp;
+use App\Services\Branding\BrandingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -35,6 +36,7 @@ class EmployeeRegistrationOtpNotification extends Notification
     public function toSmsText(): string
     {
         return __('auth.registration_otp_sms', [
+            'app' => app(BrandingService::class)->brandName(),
             'code' => $this->code,
             'minutes' => EmployeeRegistrationOtp::TTL_MINUTES,
         ]);

@@ -6,6 +6,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | National-ID lookup hash key (decision D-1)
+    |--------------------------------------------------------------------------
+    |
+    | Key of the HMAC that makes `national_id_hash` irreversible without it.
+    | Empty: derived from APP_KEY (App\Support\Security\NationalIdHash). If set,
+    | escrow it with APP_KEY (docs/key-recovery-runbook.md); after any change
+    | run `php artisan security:rehash-national-ids`.
+    |
+    */
+
+    'national_id_hash_key' => env('NATIONAL_ID_HASH_KEY'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Public self-service registration
     |--------------------------------------------------------------------------
     |
@@ -187,7 +201,7 @@ return [
         'personal_token_min_length' => (int) env('PASSWORD_PERSONAL_TOKEN_MIN_LENGTH', 4),
         'blocklist_path' => resource_path('security/common-passwords.txt'),
         'context_terms' => [
-            'euisis', 'addis', 'ababa', 'addisababa', 'aacity', 'ethiopia', 'habesha', 'bureau',
+            'euisis', 'addisone', 'addis1', 'aaiemss', 'iemss', 'addis', 'ababa', 'addisababa', 'aacity', 'ethiopia', 'habesha', 'bureau',
             'employee', 'admin', 'administrator', 'password', 'passw0rd', 'welcome', 'changeme',
             'change', 'letmein', 'qwerty', 'default', 'temporary', 'temp', 'secret', 'login',
             'user', 'test', 'guest', 'root', 'provider', 'cafeteria', 'transport', 'selam',

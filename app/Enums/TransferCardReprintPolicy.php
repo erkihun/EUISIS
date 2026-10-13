@@ -12,10 +12,6 @@ enum TransferCardReprintPolicy: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::NoReprint => 'No Reprint',
-            self::RequestReprint => 'Create Reprint Request',
-            self::AutoReprint => 'Auto Reprint',
-        };
+        return (string) __('enums.transfer_card_reprint_policy.'.$this->value);
     }
 }

@@ -11,6 +11,7 @@ import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary, OrganizationTreeNode, OrganizationUnitTreeNode } from '@/types/organizationUnit';
 import CopyStructureModal from './CopyStructureModal';
 
+import { buttonClassName } from '@/Components/ui';
 interface OrgOption {
     id: string;
     code: string;
@@ -97,7 +98,7 @@ export default function OrganizationUnitsIndex({
                             <button
                                 type="button"
                                 onClick={() => setShowCopyModal(true)}
-                                className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 {t('organizationUnits.copyStructure')}
                             </button>
@@ -135,7 +136,7 @@ export default function OrganizationUnitsIndex({
                     {displayOrg ? (
                         <div className="space-y-4">
                             {/* Selected org header card */}
-                            <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
                                 <div className="flex flex-wrap items-center gap-4">
                                     {displayOrg.has_logo && displayOrg.logo_url ? (
                                         <img
@@ -150,7 +151,7 @@ export default function OrganizationUnitsIndex({
                                     )}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
                                                 {displayOrgName}
                                             </h2>
                                             <StatusBadge
@@ -158,7 +159,7 @@ export default function OrganizationUnitsIndex({
                                                 label={t(`common.${displayOrg.status}`)}
                                             />
                                         </div>
-                                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-slate-400">
+                                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-[color:var(--app-muted-foreground)]">
                                             {displayOrg.type && (
                                                 <span>
                                                     {localizedName(
@@ -188,9 +189,9 @@ export default function OrganizationUnitsIndex({
                             />
                         </div>
                     ) : (
-                        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-panel border border-dashed border-gray-200 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900">
-                            <Building2 className="h-10 w-10 text-gray-300 dark:text-slate-600" />
-                            <p className="mt-3 text-sm font-medium text-gray-500 dark:text-slate-400">
+                        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-panel border border-dashed border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-16 text-center">
+                            <Building2 className="h-10 w-10 text-[color:var(--app-muted-foreground)]" />
+                            <p className="mt-3 text-sm font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('organizationUnits.selectOrganizationToViewUnits')}
                             </p>
                         </div>

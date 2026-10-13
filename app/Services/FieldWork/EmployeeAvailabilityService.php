@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  * Scoped operational availability (docs/employee-availability.md): workflow
  * status, deliberately not live location and not attendance.
  *
- * Only statuses that installed EUISIS data can substantiate:
+ * Only statuses that installed Addis One data can substantiate:
  *   OFFICIAL_FIELD_WORK      checked in to authorised field work, not yet out
  *   APPROVED_NOT_CHECKED_IN  approved field work covers the instant, no check-in
  *   UNKNOWN                  everything else — NOT "absent" or "in office":

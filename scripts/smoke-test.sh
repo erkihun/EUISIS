@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Post-deployment smoke test for EUISIS. Read-only: GET/HEAD requests only,
+# Post-deployment smoke test for Addis One (AA-IEMSS). Read-only: GET/HEAD requests only,
 # no credentials, no data written. Run from any machine that can reach the site.
 #
 #   scripts/smoke-test.sh https://euisis.example.gov.et
@@ -30,7 +30,7 @@ check_status() { # label expected url [curl args...]
     [ "$got" = "$expected" ] && pass "$label ($got)" || fail "$label" "expected $expected, got $got"
 }
 
-echo "EUISIS smoke test against $BASE"
+echo "Addis One smoke test against $BASE"
 
 check_status "Health check /up (database and cache answer)" 200 "$BASE/up"
 check_status "Staff sign-in page" 200 "$BASE/login"

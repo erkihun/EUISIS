@@ -13,6 +13,7 @@ import { captureFontOptions } from '@/lib/typography';
 import { useLocale } from '@/hooks/useLocale';
 import type { CardForExport } from '@/Components/IdCards/CardPrintExportModal';
 
+import { buttonClassName } from '@/Components/ui';
 // Portrait card: 54 × 85.6 mm = 540 × 856 px at 10 px/mm.
 // Capture at half size (270 × 428) then pixelRatio:2 → 540 × 856 output.
 
@@ -145,12 +146,12 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm no-print"
                 onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
             >
-                <div className="w-full max-w-lg rounded-panel bg-white shadow-2xl dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-slate-700">
+                <div className="w-full max-w-lg rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-[color:var(--app-border-strong)]">
 
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 pt-5 pb-3">
                         <div>
-                            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">
                                 {t('idCards.exportPng')}
                             </h3>
                             <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">Portrait design</p>
@@ -158,7 +159,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                            className="rounded-lg p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-muted-foreground)] dark:hover:text-[color:var(--app-muted-foreground)]"
                         >
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -172,7 +173,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                     </p>
 
                     {/* Tabs */}
-                    <div className="mx-6 mb-4 flex gap-1 rounded-card border border-gray-200 bg-gray-50 p-1 dark:border-slate-700 dark:bg-slate-800">
+                    <div className="mx-6 mb-4 flex gap-1 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-1">
                         {(['front', 'back', 'both'] as Tab[]).map((value) => (
                             <button
                                 key={value}
@@ -180,8 +181,8 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                                 onClick={() => setTab(value)}
                                 className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                     tab === value
-                                        ? 'bg-white shadow text-gray-900 dark:bg-slate-700 dark:text-slate-100'
-                                        : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
+                                        ? 'bg-[color:var(--app-surface)] shadow text-[color:var(--app-foreground)]'
+                                        : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'
                                 }`}
                             >
                                 {value === 'front' ? t('idCards.cardFront')
@@ -202,11 +203,11 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-2 rounded-b-panel border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
+                    <div className="flex justify-end gap-2 rounded-b-panel border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-6 py-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                            className={buttonClassName({ variant: 'outline' })}
                         >
                             {t('common.close')}
                         </button>
@@ -215,7 +216,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                                 type="button"
                                 onClick={handleExport}
                                 disabled={exporting}
-                                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 {exporting ? (
                                     <>

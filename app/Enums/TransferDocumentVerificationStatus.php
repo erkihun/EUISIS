@@ -12,10 +12,6 @@ enum TransferDocumentVerificationStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Pending => 'Pending',
-            self::Verified => 'Verified',
-            self::Rejected => 'Rejected',
-        };
+        return (string) __('enums.transfer_document_verification_status.'.$this->value);
     }
 }

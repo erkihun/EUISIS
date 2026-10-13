@@ -4,6 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName } from '@/Components/ui';
 export default function ServiceTypesShow({
     serviceType,
 }: {
@@ -31,17 +32,17 @@ export default function ServiceTypesShow({
                     actions={(
                         <div className="flex gap-3">
                             {serviceType.can.update && (
-                                <Link href={route('service-types.edit', serviceType.id)} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                                <Link href={route('service-types.edit', serviceType.id)} className={buttonClassName({ variant: 'primary' })}>
                                     {t('common.edit')}
                                 </Link>
                             )}
                             {serviceType.can.archive && serviceType.is_active && (
-                                <button type="button" onClick={() => router.delete(route('service-types.archive', serviceType.id))} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                                <button type="button" onClick={() => router.delete(route('service-types.archive', serviceType.id))} className={buttonClassName({ variant: 'destructive' })}>
                                     {t('common.delete')}
                                 </button>
                             )}
                             {serviceType.can.restore && !serviceType.is_active && (
-                                <button type="button" onClick={() => router.post(route('service-types.restore', serviceType.id))} className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
+                                <button type="button" onClick={() => router.post(route('service-types.restore', serviceType.id))} className={buttonClassName({ variant: 'primary' })}>
                                     {t('common.restore')}
                                 </button>
                             )}
@@ -53,45 +54,45 @@ export default function ServiceTypesShow({
             <Head title={serviceType.name_en} />
 
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-panel border border-gray-200 bg-white p-6 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 lg:col-span-2">
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
-                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('serviceTypes.code')}</p>
-                            <p className="mt-1 font-mono text-sm text-gray-900 dark:text-slate-100">{serviceType.code}</p>
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.code')}</p>
+                            <p className="mt-1 font-mono text-sm text-[color:var(--app-foreground)]">{serviceType.code}</p>
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.status')}</p>
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.status')}</p>
                             <div className="mt-1">
                                 <StatusBadge status={serviceType.is_active ? 'active' : 'inactive'} />
                             </div>
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('serviceTypes.englishName')}</p>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-slate-100">{serviceType.name_en}</p>
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.englishName')}</p>
+                            <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{serviceType.name_en}</p>
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('serviceTypes.amharicName')}</p>
-                            <p className="mt-1 text-sm text-gray-900 dark:text-slate-100">{serviceType.name_am ?? '—'}</p>
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.amharicName')}</p>
+                            <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{serviceType.name_am ?? '—'}</p>
                         </div>
                     </div>
                     <div className="mt-6">
-                        <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('serviceTypes.description')}</p>
-                        <p className="mt-1 text-sm leading-6 text-gray-700 dark:text-slate-300">{serviceType.description ?? '—'}</p>
+                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.description')}</p>
+                        <p className="mt-1 text-sm leading-6 text-[color:var(--app-foreground)]">{serviceType.description ?? '—'}</p>
                     </div>
                 </section>
 
                 <aside className="space-y-4">
-                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('serviceTypes.providersCount')}</p>
-                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">{serviceType.providers_count ?? 0}</p>
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.providersCount')}</p>
+                        <p className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{serviceType.providers_count ?? 0}</p>
                     </div>
-                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('serviceTypes.rulesCount')}</p>
-                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">{serviceType.rules_count ?? 0}</p>
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.rulesCount')}</p>
+                        <p className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{serviceType.rules_count ?? 0}</p>
                     </div>
-                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('serviceTypes.entitlementsCount')}</p>
-                        <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">{serviceType.entitlements_count ?? 0}</p>
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.entitlementsCount')}</p>
+                        <p className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{serviceType.entitlements_count ?? 0}</p>
                     </div>
                 </aside>
             </div>

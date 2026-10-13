@@ -12,6 +12,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { formatRelative } from '@/lib/relativeTime';
 import { Alert, Button, Card, EmptyState, SearchInput, cx } from '@euisis/ui';
 
+import { tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type ScopeOption = { value: string; label: string };
 
 type ApplicationRow = {
@@ -288,8 +289,8 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                     ) : (
                         <>
                             <div className="hidden overflow-x-auto md:block">
-                                <table className="w-full text-left text-sm">
-                                    <thead className="bg-[color:var(--app-surface-muted)] text-xs text-[color:var(--app-muted-foreground)]">
+                                <table className={cx(tableClassName, 'text-left')}>
+                                    <thead className={tableHeadClassName}>
                                         <tr>
                                             <th scope="col" className={cx(cell, 'pl-5 font-medium')}>{t('apiManagement.application')}</th>
                                             <th scope="col" className={cx(cell, 'font-medium')}>{t('common.status')}</th>
@@ -300,10 +301,10 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                                             <th scope="col" className={cx(cell, 'pr-5')}><span className="sr-only">{t('apiManagement.openApplication')}</span></th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-[color:var(--app-border)]">
+                                    <tbody className={tableBodyClassName}>
                                         {visible.map((application) => (
                                             // The name link is the keyboard path; the whole row is a larger mouse target.
-                                            <tr key={application.id} className="group cursor-pointer transition-colors hover:bg-[color:var(--app-surface-muted)]"
+                                            <tr key={application.id} className={cx(tableRowClassName, 'group cursor-pointer')}
                                                 onClick={() => router.visit(route('api-management.show', application.id))}>
                                                 <td className={cx(cell, 'pl-5')}>
                                                     <Link href={route('api-management.show', application.id)} onClick={(event) => event.stopPropagation()}

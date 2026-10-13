@@ -1,8 +1,8 @@
 import { useLocale } from '@/hooks/useLocale';
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
-const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
+import { cx, inputClassName } from '@/Components/ui';
+const inputCls = cx(inputClassName, 'w-full');
+const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
 interface FormData {
     code: string;
@@ -111,11 +111,11 @@ export default function OrganizationUnitTypeForm({ data, errors, onChange }: Pro
                 <input
                     id="is_active"
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
+                    className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                     checked={data.is_active}
                     onChange={(e) => onChange('is_active', e.target.checked)}
                 />
-                <label htmlFor="is_active" className="text-sm text-gray-700 dark:text-slate-300">
+                <label htmlFor="is_active" className="text-sm text-[color:var(--app-foreground)]">
                     {t('organizationUnitTypes.isActive')}
                 </label>
             </div>

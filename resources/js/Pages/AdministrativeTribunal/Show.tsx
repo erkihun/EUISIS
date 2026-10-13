@@ -5,6 +5,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type TribunalCase = {
     id: string; case_number: string; status: string;
     decision_summary: string | null; hearing_date: string | null; decision_date: string | null;
@@ -20,8 +21,8 @@ type TribunalCase = {
 
 type Props = { case: TribunalCase; can: { update: boolean } };
 
-const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
+const inputCls = cx(inputClassName, 'w-full');
+const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)] mb-1';
 
 export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
     const { locale, t } = useLocale();
@@ -39,35 +40,35 @@ export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
             <Head title={tc.case_number} />
 
             <div className="space-y-6">
-                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('grievances.caseNumber')}</dt>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('grievances.caseNumber')}</dt>
                             <dd className="mt-0.5 font-mono text-sm">{tc.case_number}</dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('grievances.status')}</dt>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('grievances.status')}</dt>
                             <dd className="mt-0.5"><StatusBadge status={tc.status} /></dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('grievances.organization')}</dt>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('grievances.organization')}</dt>
                             <dd className="mt-0.5 text-sm">{(am ? tc.grievance?.organization?.name_am : null) ?? tc.grievance?.organization?.name_en ?? '-'}</dd>
                         </div>
                     </dl>
                 </div>
 
                 {tc.grievance && (
-                    <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500 dark:text-slate-400">{t('grievances.grievance')}</h3>
-                        <p className="font-mono text-xs text-gray-400 mb-1">{tc.grievance.reference_number}</p>
-                        <p className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-2">{tc.grievance.subject}</p>
-                        <p className="whitespace-pre-wrap text-sm text-gray-600 dark:text-slate-300">{tc.grievance.description}</p>
+                    <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                        <h3 className="mb-4 text-sm font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t('grievances.grievance')}</h3>
+                        <p className="font-mono text-xs text-[color:var(--app-muted-foreground)] mb-1">{tc.grievance.reference_number}</p>
+                        <p className="text-sm font-medium text-[color:var(--app-foreground)] mb-2">{tc.grievance.subject}</p>
+                        <p className="whitespace-pre-wrap text-sm text-[color:var(--app-muted-foreground)]">{tc.grievance.description}</p>
                     </div>
                 )}
 
                 {can.update && (
-                    <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-slate-300">{t('common.update')}</h3>
+                    <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                        <h3 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">{t('common.update')}</h3>
                         <form onSubmit={e => { e.preventDefault(); patch(route('tribunal-cases.update', tc.id)); }} className="space-y-4">
                             <div>
                                 <label className={labelCls}>{t('grievances.status')}</label>
@@ -92,7 +93,7 @@ export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
                                 <textarea rows={4} className={inputCls} value={data.decision_summary} onChange={e => setData('decision_summary', e.target.value)} />
                             </div>
                             <div className="flex justify-end">
-                                <button type="submit" disabled={processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50">
+                                <button type="submit" disabled={processing} className={buttonClassName({ variant: 'primary' })}>
                                     {t('common.save')}
                                 </button>
                             </div>

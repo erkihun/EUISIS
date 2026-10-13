@@ -5,6 +5,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Provider = {
     id: string; code: string; name_en: string; name_am: string | null;
     contact_person: string | null; phone_number: string | null; email: string | null;
@@ -48,10 +50,10 @@ export default function ProviderShow({
 }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
-    const rowCls = 'flex justify-between border-b border-gray-100 py-3 text-sm last:border-0 dark:border-slate-800';
-    const thCls = 'px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400';
-    const tdCls = 'px-4 py-3 text-sm text-gray-700 dark:text-slate-300';
-    const cardCls = 'rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900';
+    const rowCls = 'flex justify-between border-b border-[color:var(--app-border)] py-3 text-sm last:border-0';
+    const thCls = 'px-4 py-3 text-left text-xs font-medium text-[color:var(--app-muted-foreground)]';
+    const tdCls = 'px-4 py-3 text-sm text-[color:var(--app-foreground)]';
+    const cardCls = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
 
     async function archiveBranch(branchId: string) {
         const { confirmed } = await confirm({
@@ -79,7 +81,7 @@ export default function ProviderShow({
                         can.update ? (
                             <Link
                                 href={route('cafeteria.providers.edit', provider.id)}
-                                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                             >
                                 {t('common.edit')}
                             </Link>
@@ -92,22 +94,22 @@ export default function ProviderShow({
 
                 {/* Provider details */}
                 <div className={`${cardCls} px-6`}>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.providerCode')}</span><span className="font-mono font-medium text-gray-900 dark:text-white">{provider.code}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.nameEn')}</span><span className="font-medium text-gray-900 dark:text-white">{provider.name_en}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.nameAm')}</span><span className="text-gray-700 dark:text-slate-300">{provider.name_am ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.contactPerson')}</span><span className="text-gray-700 dark:text-slate-300">{provider.contact_person ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.phoneNumber')}</span><span className="text-gray-700 dark:text-slate-300">{provider.phone_number ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.location')}</span><span className="text-gray-700 dark:text-slate-300">{provider.location ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.isActive')}</span><StatusBadge status={provider.is_active ? 'active' : 'inactive'} label={provider.is_active ? t('common.active') : t('common.inactive')} /></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.providerCode')}</span><span className="font-mono font-medium text-[color:var(--app-foreground)]">{provider.code}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.nameEn')}</span><span className="font-medium text-[color:var(--app-foreground)]">{provider.name_en}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.nameAm')}</span><span className="text-[color:var(--app-foreground)]">{provider.name_am ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.contactPerson')}</span><span className="text-[color:var(--app-foreground)]">{provider.contact_person ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.phoneNumber')}</span><span className="text-[color:var(--app-foreground)]">{provider.phone_number ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.location')}</span><span className="text-[color:var(--app-foreground)]">{provider.location ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.isActive')}</span><StatusBadge status={provider.is_active ? 'active' : 'inactive'} label={provider.is_active ? t('common.active') : t('common.inactive')} /></div>
                 </div>
 
                 {/* Branches */}
                 <div className={cardCls}>
-                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
-                        <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
+                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('cafeteria.branches')}
                             {branches.length > 0 && (
-                                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
+                                <span className={badgeClassName('info', 'ml-2')}>
                                     {branches.length}
                                 </span>
                             )}
@@ -115,7 +117,7 @@ export default function ProviderShow({
                         {can.update && (
                             <Link
                                 href={route('cafeteria.providers.branches.create', provider.id)}
-                                className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 + {t('cafeteria.addBranch')}
                             </Link>
@@ -123,55 +125,48 @@ export default function ProviderShow({
                     </div>
 
                     {branches.length === 0 ? (
-                        <p className="px-6 py-5 text-sm text-gray-400 dark:text-slate-500">
+                        <p className="px-6 py-5 text-sm text-[color:var(--app-muted-foreground)]">
                             {t('cafeteria.noBranches')}
                         </p>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="bg-gray-50 dark:bg-slate-800/50">
+                            <table className={tableClassName}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
                                         <th className={thCls}>{t('cafeteria.branchCode')}</th>
                                         <th className={thCls}>{t('cafeteria.nameEn')}</th>
                                         <th className={thCls}>{t('common.organization')}</th>
                                         <th className={thCls}>{t('cafeteria.location')}</th>
                                         <th className={`${thCls} text-center`}>{t('cafeteria.isActive')}</th>
-                                        <th className="px-4 py-3" />
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')} />
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {branches.map(b => (
-                                        <tr key={b.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                            <td className="px-4 py-3 font-mono text-xs text-gray-700 dark:text-slate-300">{b.code}</td>
-                                            <td className="px-4 py-3">
-                                                <div className="font-medium text-gray-900 dark:text-slate-100">{b.name_en}</div>
-                                                {b.name_am && <div className="text-xs text-gray-500">{b.name_am}</div>}
+                                        <tr key={b.id} className={tableRowClassName}>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{b.code}</td>
+                                            <td className={tableCellClassName}>
+                                                <div className="font-medium text-[color:var(--app-foreground)]">{b.name_en}</div>
+                                                {b.name_am && <div className="text-xs text-[color:var(--app-muted-foreground)]">{b.name_am}</div>}
                                             </td>
                                             <td className={tdCls}>
                                                 {b.organization ? (
-                                                    <span>{b.organization.name_en} <span className="font-mono text-xs text-gray-400">({b.organization.code})</span></span>
+                                                    <span>{b.organization.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({b.organization.code})</span></span>
                                                 ) : '—'}
                                             </td>
                                             <td className={tdCls}>{b.location ?? '—'}</td>
-                                            <td className="px-4 py-3 text-center">
+                                            <td className={cx(tableCellClassName, 'text-center')}>
                                                 <StatusBadge status={b.is_active ? 'active' : 'inactive'} label={b.is_active ? t('common.active') : t('common.inactive')} />
                                             </td>
-                                            <td className="px-4 py-3 text-right">
+                                            <td className={cx(tableCellClassName, 'text-right')}>
                                                 {can.update && (
-                                                    <div className="flex justify-end gap-3">
-                                                        <Link
-                                                            href={route('cafeteria.providers.branches.edit', { cafeteriaProvider: provider.id, branch: b.id })}
-                                                            className="text-xs text-[color:var(--color-primary)] hover:underline"
-                                                        >
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => archiveBranch(b.id)}
-                                                            className="text-xs text-red-600 hover:underline"
-                                                        >
-                                                            {t('common.archive')}
-                                                        </button>
+                                                    <div className="flex justify-end">
+                                                        <AppActionMenu
+                                                            items={[
+                                                                { label: t('common.edit'), href: route('cafeteria.providers.branches.edit', { cafeteriaProvider: provider.id, branch: b.id }) },
+                                                                { label: t('common.archive'), onClick: () => archiveBranch(b.id), variant: 'danger' },
+                                                            ]}
+                                                        />
                                                     </div>
                                                 )}
                                             </td>
@@ -185,14 +180,14 @@ export default function ProviderShow({
 
                 {/* Admin users — managed in Settings */}
                 <div className={cardCls}>
-                    <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
-                        <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
+                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('cafeteria.providerUsers')}
                         </h2>
                         {can.manageUsers && (
                             <Link
                                 href={route('cafeteria.settings.index') + '?tab=provider-users'}
-                                className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                className={actionLinkClassName()}
                             >
                                 {t('cafeteria.manageAdminUsers')} →
                             </Link>
@@ -200,14 +195,14 @@ export default function ProviderShow({
                     </div>
 
                     {adminUsers.length === 0 ? (
-                        <p className="px-6 py-5 text-sm text-gray-400 dark:text-slate-500">
+                        <p className="px-6 py-5 text-sm text-[color:var(--app-muted-foreground)]">
                             {t('cafeteria.noAdminUsers')}
                         </p>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="bg-gray-50 dark:bg-slate-800/50">
+                            <table className={tableClassName}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
                                         <th className={thCls}>{t('cafeteria.providerUser')}</th>
                                         <th className={thCls}>{t('cafeteria.branches')}</th>
                                         <th className={thCls}>{t('common.organization')}</th>
@@ -215,25 +210,25 @@ export default function ProviderShow({
                                         <th className={`${thCls} text-center`}>{t('common.active')}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {adminUsers.map(a => (
-                                        <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
+                                        <tr key={a.id} className={tableRowClassName}>
                                             <td className={tdCls}>
-                                                <div className="font-medium text-gray-900 dark:text-slate-100">{a.user.name}</div>
-                                                <div className="text-xs text-gray-500">{a.user.email}</div>
+                                                <div className="font-medium text-[color:var(--app-foreground)]">{a.user.name}</div>
+                                                <div className="text-xs text-[color:var(--app-muted-foreground)]">{a.user.email}</div>
                                             </td>
                                             <td className={tdCls}>
                                                 {a.branch ? (
-                                                    <span className="font-medium">{a.branch.name_en} <span className="font-mono text-xs text-gray-400">({a.branch.code})</span></span>
-                                                ) : <span className="text-gray-400">—</span>}
+                                                    <span className="font-medium">{a.branch.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({a.branch.code})</span></span>
+                                                ) : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
                                             </td>
                                             <td className={tdCls}>
                                                 {a.organization ? (
-                                                    <span>{a.organization.name_en} <span className="font-mono text-xs text-gray-400">({a.organization.code})</span></span>
-                                                ) : <span className="text-gray-400">—</span>}
+                                                    <span>{a.organization.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({a.organization.code})</span></span>
+                                                ) : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
                                             </td>
                                             <td className={tdCls}>{a.provider_role ?? 'operator'}</td>
-                                            <td className="px-4 py-3 text-center">
+                                            <td className={cx(tableCellClassName, 'text-center')}>
                                                 <StatusBadge
                                                     status={a.is_active ? 'active' : 'inactive'}
                                                     label={a.is_active ? t('common.active') : t('common.inactive')}

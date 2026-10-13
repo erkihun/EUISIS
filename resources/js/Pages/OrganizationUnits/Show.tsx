@@ -4,6 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import OrganizationUnitStatusBadge from '@/Components/organization-units/OrganizationUnitStatusBadge';
 import OrganizationUnitTypeBadge from '@/Components/organization-units/OrganizationUnitTypeBadge';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationUnit } from '@/types/organizationUnit';
 import RelationshipPanel, { type RelationshipRow } from '@/Components/relationships/RelationshipPanel';
@@ -11,6 +12,7 @@ import ReportingLinesPanel from '@/Components/relationships/ReportingLinesPanel'
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { localizedName } from '@/utils/localizedName';
 
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 type HostedOrgRef = { id: string; code: string; name_en: string; name_am: string | null };
 
 interface Props {
@@ -31,12 +33,13 @@ interface Props {
 
 export default function OrganizationUnitsShow({ unit, relationships, relationshipOptions, hostedContext = null, can }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const { post, processing } = useForm();
     const unitName = localizedName(unit.name_en, unit.name_am, locale);
     const description = localizedName(unit.description_en, unit.description_am, locale);
 
-    function handleArchive() {
-        if (!confirm(t('common.cannotUndo'))) return;
+    async function handleArchive() {
+        if (!(await confirm({ title: t('common.cannotUndo'), variant: 'danger' })).confirmed) return;
         post(route('organization-units.archive', unit.id));
     }
 
@@ -55,7 +58,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                             {unit.can.update && (
                                 <Link
                                     href={route('organization-units.edit', unit.id)}
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     {t('common.edit')}
                                 </Link>
@@ -65,7 +68,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                     type="button"
                                     onClick={handleArchive}
                                     disabled={processing}
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:bg-slate-900 dark:text-red-400"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     {t('common.delete')}
                                 </button>
@@ -75,7 +78,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                     type="button"
                                     onClick={handleRestore}
                                     disabled={processing}
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-sm font-medium text-emerald-600 hover:bg-emerald-50 dark:border-emerald-800 dark:bg-slate-900 dark:text-emerald-400"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     {t('common.restore')}
                                 </button>
@@ -90,7 +93,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
             <div className="mx-auto max-w-5xl space-y-6">
                 {/* Header badges */}
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-sm text-gray-500 dark:text-slate-400">{unit.code}</span>
+                    <span className="font-mono text-sm text-[color:var(--app-muted-foreground)]">{unit.code}</span>
                     <OrganizationUnitTypeBadge unitType={unit.unit_type} />
                     <OrganizationUnitStatusBadge status={unit.status} />
                 </div>
@@ -103,8 +106,8 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                 <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
                                     {t('organizationUnits.ownerOrganization')}
                                 </p>
-                                <p className="mt-1 font-medium text-gray-900 dark:text-slate-100">
-                                    <span className="font-mono text-xs text-gray-500 dark:text-slate-400">{hostedContext.owner_organization?.code}</span>
+                                <p className="mt-1 font-medium text-[color:var(--app-foreground)]">
+                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{hostedContext.owner_organization?.code}</span>
                                     {' — '}
                                     {hostedContext.owner_organization
                                         ? localizedName(hostedContext.owner_organization.name_en, hostedContext.owner_organization.name_am, locale)
@@ -115,8 +118,8 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                 <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
                                     {t('organizationUnits.operatingOrganization')}
                                 </p>
-                                <p className="mt-1 font-medium text-gray-900 dark:text-slate-100">
-                                    <span className="font-mono text-xs text-gray-500 dark:text-slate-400">{hostedContext.host_organization.code}</span>
+                                <p className="mt-1 font-medium text-[color:var(--app-foreground)]">
+                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{hostedContext.host_organization.code}</span>
                                     {' — '}
                                     {localizedName(hostedContext.host_organization.name_en, hostedContext.host_organization.name_am, locale)}
                                 </p>
@@ -129,14 +132,14 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                 )}
 
                 {/* Details Card */}
-                <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                    <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-slate-100">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                    <h2 className="mb-4 text-base font-semibold text-[color:var(--app-foreground)]">
                         {t('organizationUnits.organizationUnitDetails')}
                     </h2>
                     <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
                         <div>
-                            <dt className="text-gray-500 dark:text-slate-400">{t('organizationUnits.organization')}</dt>
-                            <dd className="font-medium text-gray-900 dark:text-slate-100">
+                            <dt className="text-[color:var(--app-muted-foreground)]">{t('organizationUnits.organization')}</dt>
+                            <dd className="font-medium text-[color:var(--app-foreground)]">
                                 {unit.organization ? (
                                     <Link
                                         href={route('organizations.show', unit.organization.id)}
@@ -148,10 +151,10 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-gray-500 dark:text-slate-400">
+                            <dt className="text-[color:var(--app-muted-foreground)]">
                                 {t('organizationUnits.parentUnit')}
                             </dt>
-                            <dd className="font-medium text-gray-900 dark:text-slate-100">
+                            <dd className="font-medium text-[color:var(--app-foreground)]">
                                 {unit.parent ? (
                                     <Link
                                         href={route('organization-units.show', unit.parent.id)}
@@ -164,30 +167,30 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                         </div>
                         {unit.effective_from && (
                             <div>
-                                <dt className="text-gray-500 dark:text-slate-400">
+                                <dt className="text-[color:var(--app-muted-foreground)]">
                                     {t('organizationUnits.effectiveFrom')}
                                 </dt>
-                                <dd className="font-medium text-gray-900 dark:text-slate-100">
+                                <dd className="font-medium text-[color:var(--app-foreground)]">
                                     <LocalizedDateDisplay value={unit.effective_from} />
                                 </dd>
                             </div>
                         )}
                         {unit.effective_to && (
                             <div>
-                                <dt className="text-gray-500 dark:text-slate-400">
+                                <dt className="text-[color:var(--app-muted-foreground)]">
                                     {t('organizationUnits.effectiveTo')}
                                 </dt>
-                                <dd className="font-medium text-gray-900 dark:text-slate-100">
+                                <dd className="font-medium text-[color:var(--app-foreground)]">
                                     <LocalizedDateDisplay value={unit.effective_to} />
                                 </dd>
                             </div>
                         )}
                         {description && (
                             <div className="col-span-2">
-                                <dt className="text-gray-500 dark:text-slate-400">
+                                <dt className="text-[color:var(--app-muted-foreground)]">
                                     {t('organizationUnits.description')}
                                 </dt>
-                                <dd className="font-medium text-gray-900 dark:text-slate-100">
+                                <dd className="font-medium text-[color:var(--app-foreground)]">
                                     {description}
                                 </dd>
                             </div>
@@ -197,21 +200,21 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
 
                 {/* Child Units */}
                 {(unit.children && unit.children.length > 0) && (
-                    <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-slate-100">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                        <h2 className="mb-4 text-base font-semibold text-[color:var(--app-foreground)]">
                             {t('organizationUnits.childUnits')} ({unit.children.length})
                         </h2>
-                        <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <ul className="divide-y divide-[color:var(--app-border)]">
                             {unit.children.map((child) => (
                                 <li key={child.id} className="flex items-center justify-between py-2">
                                     <div>
                                         <Link
                                             href={route('organization-units.show', child.id)}
-                                            className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                            className={actionLinkClassName({ size: 'sm' })}
                                         >
                                             {localizedName(child.name_en, child.name_am, locale)}
                                         </Link>
-                                        <span className="ml-2 font-mono text-xs text-gray-400">{child.code}</span>
+                                        <span className="ml-2 font-mono text-xs text-[color:var(--app-muted-foreground)]">{child.code}</span>
                                     </div>
                                     <div className="flex gap-2">
                                         <OrganizationUnitTypeBadge unitType={child.unit_type} />
@@ -239,7 +242,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                 <div className="flex gap-2">
                     <Link
                         href={route('organization-units.index')}
-                        className="text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                        className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}
                     >
                         {t('organizationUnits.backToList')}
                     </Link>

@@ -7,6 +7,7 @@ return [
     'portal_disabled' => 'Portal access is disabled for this account.',
     'provider_inactive' => 'The cafeteria provider associated with this account is inactive.',
     'not_assigned' => 'No cafeteria provider is linked to this account.',
+    'period_too_long' => 'Choose a period of at most :days days.',
     'login_failed' => 'These credentials do not match an active provider account.',
     'identifier_label' => 'Email or Username',
     'invalid_credentials' => 'Invalid credentials. Please try again.',
@@ -104,4 +105,5 @@ return [
         'operator' => 'Operator',
         'created_at' => 'Created At',
     ],
+    'service_access_denied' => 'Your account does not have access to this service.',
 ];

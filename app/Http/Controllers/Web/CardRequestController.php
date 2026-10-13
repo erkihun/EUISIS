@@ -54,12 +54,29 @@ class CardRequestController extends Controller
     {
         $this->authorize('create', CardRequest::class);
 
+        // Searched on the server and bounded (risk register SCL-10): the page
+        // used to ship every employee in scope, and all their cards.
+        $term = mb_substr(trim((string) request()->query('q', '')), 0, 60);
+        $limit = max(1, (int) config('id_cards.request_picker_limit', 1000));
+        $like = ci_like_operator();
+
         $employees = Employee::query()
             ->whereHas('currentAssignment', fn ($query) => $this->organizationScopeService->applyOrganizationScope($query, request()->user()))
             ->with('currentAssignment.organization')
             ->where('status', 'active')
+            ->when($term !== '', fn ($query) => $query->where(fn ($q) => $q
+                ->where('employee_number', $like, addcslashes($term, '%_\\').'%')
+                ->orWhere('full_name', $like, '%'.addcslashes($term, '%_\\').'%')
+                ->orWhere('name_en', $like, '%'.addcslashes($term, '%_\\').'%')
+                ->orWhereHas('currentAssignment.organization', fn ($org) => $org
+                    ->where('name_en', $like, '%'.addcslashes($term, '%_\\').'%')
+                    ->orWhere('name_am', $like, '%'.addcslashes($term, '%_\\').'%'))))
             ->orderBy('full_name')
+            ->orderBy('id')
+            ->limit($limit + 1)
             ->get(['id', 'employee_number', 'full_name', 'status', 'current_assignment_id']);
+        $truncated = $employees->count() > $limit;
+        $employees = $employees->take($limit)->values();
 
         $cards = IdCard::query()->whereIn('employee_id', $employees->modelKeys())->get()->groupBy('employee_id');
         $pending = CardRequest::query()->whereIn('employee_id', $employees->modelKeys())
@@ -73,6 +90,8 @@ class CardRequestController extends Controller
 
         return Inertia::render('CardRequests/Create', [
             'employees' => $employees,
+            'employeesTruncated' => $truncated,
+            'filters' => ['q' => $term],
             'requestTypes' => array_column(CardRequestType::cases(), 'value'),
         ]);
     }

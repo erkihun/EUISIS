@@ -1,11 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import InputLabel from '@/Components/InputLabel';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent, ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
+import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
 export default function SubsidyRulesCreate({ defaults }: { defaults?: { subsidy_amount: number; currency: string } }) {
     const { t } = useLocale();
     const form = useForm({
@@ -16,16 +16,16 @@ export default function SubsidyRulesCreate({ defaults }: { defaults?: { subsidy_
         is_active: true, exclude_weekends: true, notes: '',
     });
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = cx(inputClassName, 'w-full');
 
     function submit(e: FormEvent) { e.preventDefault(); form.post(route('cafeteria.subsidy-rules.store')); }
 
     return (
         <AuthenticatedLayout header={<PageHeader title={t('cafeteria.addSubsidyRule')} />}>
             <Head title={t('cafeteria.addSubsidyRule')} />
-            <form onSubmit={submit} className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                <div className="border-b border-gray-200 px-6 py-4 dark:border-slate-800">
-                    <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.subsidyRule')}</h2>
+            <form onSubmit={submit} className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className="border-b border-[color:var(--app-border)] px-6 py-4">
+                    <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.subsidyRule')}</h2>
                 </div>
                 <div className="grid gap-5 p-6 md:grid-cols-2">
                     <Field label={t('common.code')} error={form.errors.code}>
@@ -64,9 +64,9 @@ export default function SubsidyRulesCreate({ defaults }: { defaults?: { subsidy_
                         </Field>
                     </div>
                 </div>
-                <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-slate-800">
-                    <Link href={route('cafeteria.subsidy-rules.index')} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">{t('common.cancel')}</Link>
-                    <button type="submit" disabled={form.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">{t('common.save')}</button>
+                <div className="flex justify-end gap-3 border-t border-[color:var(--app-border)] px-6 py-4">
+                    <Link href={route('cafeteria.subsidy-rules.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">{t('common.cancel')}</Link>
+                    <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>{t('common.save')}</button>
                 </div>
             </form>
         </AuthenticatedLayout>
@@ -74,5 +74,5 @@ export default function SubsidyRulesCreate({ defaults }: { defaults?: { subsidy_
 }
 
 function Field({ children, error, label }: { children: ReactNode; error?: string; label: string }) {
-    return <div className="space-y-1.5"><InputLabel value={label} />{children}{error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}</div>;
+    return <div className="space-y-1.5"><FormLabel>{label}</FormLabel>{children}{error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}</div>;
 }

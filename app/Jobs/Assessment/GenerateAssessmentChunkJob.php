@@ -28,7 +28,10 @@ class GenerateAssessmentChunkJob implements ShouldQueue
     public int $timeout = 600;
 
     /** @param array<int, string> $eligibilityIds */
-    public function __construct(public string $cycleId, public array $eligibilityIds, public int $actorId) {}
+    public function __construct(public string $cycleId, public array $eligibilityIds, public int $actorId)
+    {
+        $this->onQueue('long');
+    }
 
     public function handle(AssessmentAssignmentService $assignments): void
     {

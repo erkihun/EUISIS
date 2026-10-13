@@ -105,11 +105,7 @@ class PublicTransferAnnouncementController extends Controller
                 'opening_date' => $announcement->opening_date?->toDateString(),
                 'closing_date' => $announcement->closing_date?->toDateString(),
                 'eligibility_rules' => $announcement->eligibility_rules,
-                'required_documents' => collect([
-                    ...(array) TransferSetting::current()->required_documents,
-                    ...(array) $announcement->required_documents,
-                ])->filter(fn (mixed $type): bool => is_string($type) && trim($type) !== '')
-                    ->map(fn (string $type): string => trim($type))->unique()->values()->all(),
+                'required_documents' => self::requiredDocuments($announcement),
                 'status' => $announcement->status->value,
                 'is_open' => $announcement->isAcceptingApplications(),
                 'published_at' => $announcement->published_at?->toDateString(),
@@ -161,10 +157,27 @@ class PublicTransferAnnouncementController extends Controller
                 'position_title_am' => $announcement->position?->title_am,
                 'grade_level' => $announcement->grade_level,
                 'closing_date' => $announcement->closing_date?->toDateString(),
-                'required_documents' => $announcement->required_documents,
+                'required_documents' => self::requiredDocuments($announcement),
             ],
             'show_url' => route('public.transfer-announcements.show', $announcement),
         ]);
+    }
+
+    /**
+     * Every document an applicant must attach: the transfer settings' list
+     * first, then the announcement's own, trimmed and de-duplicated. This is
+     * the exact order SubmitTransferApplicationAction reads uploads in, so the
+     * apply page can offer one labelled slot per document.
+     *
+     * @return list<string>
+     */
+    public static function requiredDocuments(TransferAnnouncement $announcement): array
+    {
+        return collect([
+            ...(array) TransferSetting::current()->required_documents,
+            ...(array) $announcement->required_documents,
+        ])->filter(fn (mixed $type): bool => is_string($type) && trim($type) !== '')
+            ->map(fn (string $type): string => trim($type))->unique()->values()->all();
     }
 
     public function storeApply(

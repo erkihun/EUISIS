@@ -3,7 +3,8 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { RecordStatus } from '@/Components/assessmentOversight/RecordStatus';
-import { AppFilterBar, Field, Section, Stat, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, formatScore, type Paginator } from '@/Components/performance/ui';
+import { AppFilterBar, Field, FilterField, Section, Stat, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, formatScore, type Paginator } from '@/Components/performance/ui';
+import { cx } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -72,8 +73,8 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                                 </select>
                             </Field>
                             <fieldset className="md:col-span-2">
-                                <legend className="mb-2 text-sm font-medium text-gray-700 dark:text-slate-300">{t('assessments.records.peers')}</legend>
-                                <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-gray-200 p-3 sm:grid-cols-2 dark:border-slate-700">
+                                <legend className="mb-2 text-sm font-medium text-[color:var(--app-foreground)]">{t('assessments.records.peers')}</legend>
+                                <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-[color:var(--app-border)] p-3 sm:grid-cols-2">
                                     {users.map((u) => (
                                         <label key={u.id} className="flex items-center gap-2 text-sm">
                                             <input type="checkbox" checked={form.data.evaluator_ids.includes(Number(u.id))}
@@ -93,12 +94,18 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                 )}
 
                 <AppFilterBar routeName="assessment-records.index" filters={filters} onBeforeSubmit={(params) => ({ ...params, period_start: period.start, period_end: period.end })}>
-                    <div className="w-44"><LocalizedDatePicker id="filter-start" className={filterInputCls} value={period.start} onChange={(value) => setPeriod({ ...period, start: value })} placeholder={t('assessments.records.periodStart')} /></div>
-                    <div className="w-44"><LocalizedDatePicker id="filter-end" className={filterInputCls} min={period.start} value={period.end} onChange={(value) => setPeriod({ ...period, end: value })} placeholder={t('assessments.records.periodEnd')} /></div>
-                    <select name="status" aria-label={t('assessments.records.status')} className={filterInputCls} defaultValue={filters.status ?? ''}>
-                        <option value="">{t('assessments.records.allStatuses')}</option>
-                        {STATUSES.map((status) => <option key={status} value={status}>{t(`assessmentOversight.recordStatuses.${status}`)}</option>)}
-                    </select>
+                    <FilterField label={t('assessments.records.periodStart')} htmlFor="filter-start">
+                        <LocalizedDatePicker id="filter-start" className={cx(filterInputCls, 'w-full')} value={period.start} onChange={(value) => setPeriod({ ...period, start: value })} />
+                    </FilterField>
+                    <FilterField label={t('assessments.records.periodEnd')} htmlFor="filter-end">
+                        <LocalizedDatePicker id="filter-end" className={cx(filterInputCls, 'w-full')} min={period.start} value={period.end} onChange={(value) => setPeriod({ ...period, end: value })} />
+                    </FilterField>
+                    <FilterField label={t('assessments.records.status')}>
+                        <select name="status" className={filterInputCls} defaultValue={filters.status ?? ''}>
+                            <option value="">{t('assessments.records.allStatuses')}</option>
+                            {STATUSES.map((status) => <option key={status} value={status}>{t(`assessmentOversight.recordStatuses.${status}`)}</option>)}
+                        </select>
+                    </FilterField>
                 </AppFilterBar>
 
                 {summary && (
@@ -126,11 +133,11 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                     </>}>
                         {records.data.map((r) => (
                             <tr key={r.id}>
-                                <td className={tdCls}>{r.employee_snapshot.name}<div className="text-xs text-gray-500">{r.employee_snapshot.number}</div></td>
-                                <td className={tdCls}>{nameOf(r.version, locale)} · v{r.version.version_no}<div className="text-xs text-gray-500"><LocalizedDateDisplay value={r.period_start} /> – <LocalizedDateDisplay value={r.period_end} /></div></td>
+                                <td className={tdCls}>{r.employee_snapshot.name}<div className="text-xs text-[color:var(--app-muted-foreground)]">{r.employee_snapshot.number}</div></td>
+                                <td className={tdCls}>{nameOf(r.version, locale)} · v{r.version.version_no}<div className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={r.period_start} /> – <LocalizedDateDisplay value={r.period_end} /></div></td>
                                 <td className={`${tdCls} tabular-nums`}>{r.evaluators ? `${r.evaluators.submitted}/${r.evaluators.total}` : '—'}</td>
                                 <td className={tdCls}><RecordStatus value={r.status} /></td>
-                                <td className={`${tdCls} tabular-nums`}>{r.percentage == null ? '—' : `${formatScore(r.percentage)}%`}{r.contribution != null && <div className="text-xs text-gray-500">{t('assessments.records.contribution')}: {formatScore(r.contribution)}</div>}</td>
+                                <td className={`${tdCls} tabular-nums`}>{r.percentage == null ? '—' : `${formatScore(r.percentage)}%`}{r.contribution != null && <div className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.records.contribution')}: {formatScore(r.contribution)}</div>}</td>
                                 <td className={`${tdCls} text-right`}><Link className={linkBtn} href={route('assessment-records.show', r.id)}>{t('assessments.records.open')}</Link></td>
                             </tr>
                         ))}

@@ -25,6 +25,8 @@ class GrievanceCommitteeMember extends Model
         'committee_id',
         'employee_id',
         'role',
+        'selection_source',
+        'term_number',
         'effective_from',
         'effective_to',
         'status',

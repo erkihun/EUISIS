@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSession;
+use App\Http\Middleware\BlockDisabledModules;
 use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnforceSessionIdleTimeout;
 use App\Http\Middleware\EnsureAdminAccess;
@@ -36,6 +37,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -49,6 +51,10 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // Liveness/readiness probes, outside the web group (no session per probe).
+        then: function (): void {
+            Route::group([], __DIR__.'/../routes/health.php');
+        },
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend(RequestCorrelationId::class);
@@ -66,6 +72,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: [SetClientLocale::COOKIE]);
 
         $middleware->web(append: [
+            // Modules outside the current production scope (config/features.php) answer 404.
+            BlockDisabledModules::class,
             SetClientLocale::class,
             EnforceSessionIdleTimeout::class,
             HandleInertiaRequests::class,

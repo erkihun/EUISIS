@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
+import { actionLinkClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 interface Endpoint {
     id: string;
     method: string;
@@ -50,8 +51,7 @@ const ERROR_CODES: { code: string; key: string }[] = [
     { code: '429', key: 'error429' },
 ];
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
+const inputCls = cx(inputClassName, 'w-full');
 
 export default function ApiManagementEndpointShow({
     endpoint,
@@ -80,13 +80,13 @@ export default function ApiManagementEndpointShow({
             <Head title={endpoint.uri} />
 
             <div className="mb-4">
-                <Link href={route('api-management.endpoints')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                <Link href={route('api-management.endpoints')} className={actionLinkClassName({ size: 'sm' })}>
                     &larr; {t('apiManagement.endpointCatalog')}
                 </Link>
             </div>
 
-            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.endpointSummary')}</h3>
+            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <h3 className="mb-3 font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.endpointSummary')}</h3>
                 <dl className="grid gap-3 text-sm sm:grid-cols-2">
                     <Field label={t('apiManagement.routeName')} value={endpoint.route_name} mono />
                     <Field label={t('apiManagement.controllerAction')} value={endpoint.controller_action} mono />
@@ -105,12 +105,12 @@ export default function ApiManagementEndpointShow({
                 </dl>
 
                 <div className="mt-4">
-                    <p className="mb-1 text-xs font-medium text-gray-500 dark:text-slate-400">{t('apiManagement.middleware')}</p>
+                    <p className="mb-1 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('apiManagement.middleware')}</p>
                     <div className="flex flex-wrap gap-1.5">
                         {endpoint.middleware.map((entry) => (
                             <code
                                 key={entry}
-                                className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-800 dark:bg-slate-800 dark:text-slate-200"
+                                className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-foreground)]"
                             >
                                 {entry}
                             </code>
@@ -119,28 +119,28 @@ export default function ApiManagementEndpointShow({
                 </div>
 
                 {endpoint.description && (
-                    <p className="mt-4 text-sm text-gray-600 dark:text-slate-400">{endpoint.description}</p>
+                    <p className="mt-4 text-sm text-[color:var(--app-muted-foreground)]">{endpoint.description}</p>
                 )}
             </section>
 
             <div className="mb-6 grid gap-6 lg:grid-cols-2">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.sampleRequest')}</h3>
-                    <pre className="overflow-x-auto rounded-lg bg-gray-50 p-3 text-xs leading-relaxed text-gray-800 dark:bg-slate-950 dark:text-slate-200">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h3 className="mb-3 font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.sampleRequest')}</h3>
+                    <pre className="overflow-x-auto rounded-lg bg-[color:var(--app-surface-muted)] p-3 text-xs leading-relaxed text-[color:var(--app-foreground)]">
                         {sampleRequest}
                     </pre>
-                    <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.sampleTokenNote')}</p>
+                    <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.sampleTokenNote')}</p>
                 </section>
 
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.commonErrors')}</h3>
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h3 className="mb-3 font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.commonErrors')}</h3>
                     <ul className="space-y-2">
                         {ERROR_CODES.map((error) => (
                             <li key={error.code} className="flex gap-3 text-sm">
                                 <code className="h-fit rounded bg-red-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-red-700 dark:bg-red-900/40 dark:text-red-300">
                                     {error.code}
                                 </code>
-                                <span className="text-gray-600 dark:text-slate-400">{t(`apiManagement.${error.key}`)}</span>
+                                <span className="text-[color:var(--app-muted-foreground)]">{t(`apiManagement.${error.key}`)}</span>
                             </li>
                         ))}
                     </ul>
@@ -148,14 +148,14 @@ export default function ApiManagementEndpointShow({
             </div>
 
             {can.update && (
-                <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="mb-1 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.updateEndpoint')}</h3>
-                    <p className="mb-4 text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.updateEndpointHint')}</p>
+                <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h3 className="mb-1 font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.updateEndpoint')}</h3>
+                    <p className="mb-4 text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.updateEndpointHint')}</p>
 
                     <form onSubmit={submit} className="space-y-3">
                         <div className="grid gap-3 sm:grid-cols-2">
                             <label className="block">
-                                <span className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                                <span className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                     {t('apiManagement.requiredScope')}
                                 </span>
                                 <select
@@ -173,7 +173,7 @@ export default function ApiManagementEndpointShow({
                             </label>
 
                             <label className="block">
-                                <span className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                                <span className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                     {t('common.status')}
                                 </span>
                                 <select
@@ -191,7 +191,7 @@ export default function ApiManagementEndpointShow({
                         </div>
 
                         <label className="block">
-                            <span className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                            <span className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('common.description')}
                             </span>
                             <textarea
@@ -202,12 +202,12 @@ export default function ApiManagementEndpointShow({
                             />
                         </label>
 
-                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                        <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                             <input
                                 type="checkbox"
                                 checked={form.data.is_public_documented}
                                 onChange={(event) => form.setData('is_public_documented', event.target.checked)}
-                                className="rounded border-gray-300 dark:border-slate-700"
+                                className="rounded border-[color:var(--app-border-strong)]"
                             />
                             {t('apiManagement.showInDocumentation')}
                         </label>
@@ -219,7 +219,7 @@ export default function ApiManagementEndpointShow({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {t('common.save')}
                         </button>
@@ -228,37 +228,37 @@ export default function ApiManagementEndpointShow({
             )}
 
             {can.viewLogs && (
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.recentLogs')}</h3>
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h3 className="mb-3 font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.recentLogs')}</h3>
 
                     {recentLogs.length === 0 ? (
-                        <p className="py-6 text-center text-sm text-gray-500 dark:text-slate-400">{t('apiManagement.noLogs')}</p>
+                        <p className="py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('apiManagement.noLogs')}</p>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-sm">
-                                <thead>
-                                    <tr className="border-b border-gray-200 dark:border-slate-800">
-                                        <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                             {t('apiManagement.application')}
                                         </th>
-                                        <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                             {t('apiManagement.statusCode')}
                                         </th>
-                                        <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                             {t('apiManagement.failureReason')}
                                         </th>
-                                        <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                             {t('apiManagement.requestedAt')}
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {recentLogs.map((log) => (
                                         <tr key={log.id}>
-                                            <td className="px-2 py-2 text-gray-700 dark:text-slate-300">
+                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                                 {log.application?.name ?? '—'}
                                             </td>
-                                            <td className="px-2 py-2">
+                                            <td className={tableCellClassName}>
                                                 <span
                                                     className={`font-mono text-xs font-semibold ${
                                                         log.success
@@ -269,10 +269,10 @@ export default function ApiManagementEndpointShow({
                                                     {log.status_code ?? '—'}
                                                 </span>
                                             </td>
-                                            <td className="px-2 py-2 text-xs text-gray-500 dark:text-slate-400">
+                                            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                                 {log.failure_reason ?? '—'}
                                             </td>
-                                            <td className="px-2 py-2 text-xs text-gray-500 dark:text-slate-400">
+                                            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                                 {log.requested_at ?? '—'}
                                             </td>
                                         </tr>
@@ -290,8 +290,8 @@ export default function ApiManagementEndpointShow({
 function Field({ label, value, mono = false }: { label: string; value: string | null; mono?: boolean }) {
     return (
         <div>
-            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
-            <dd className={`text-gray-900 dark:text-slate-100 ${mono ? 'font-mono text-xs' : 'text-sm'}`}>
+            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
+            <dd className={`text-[color:var(--app-foreground)] ${mono ? 'font-mono text-xs' : 'text-sm'}`}>
                 {value ?? '—'}
             </dd>
         </div>

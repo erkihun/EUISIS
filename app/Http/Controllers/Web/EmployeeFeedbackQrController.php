@@ -166,8 +166,13 @@ class EmployeeFeedbackQrController extends Controller
      */
     private function stats(Employee $employee): array
     {
+        if (Auth::user()?->employee_id === $employee->getKey()) {
+            return ['total' => 0, 'average' => 0.0, 'recent' => []];
+        }
+
         $base = EmployeeServiceFeedback::query()
             ->where('employee_id', $employee->getKey())
+            ->where('type', 'feedback')
             ->visible();
 
         $row = (clone $base)

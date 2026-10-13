@@ -35,10 +35,10 @@ export default function PerformanceSettings({ fields, scales, can }: Props) {
         if (f.type === 'boolean') {
             return (
                 <label htmlFor={id} className="flex min-h-10 cursor-pointer items-start gap-3">
-                    <input id={id} type="checkbox" disabled={disabled} aria-invalid={Boolean(errors[f.key])} aria-describedby={errors[f.key] ? `${id}-error` : undefined} className="mt-0.5 h-5 w-5 rounded border-gray-300" checked={Boolean(value)} onChange={(e) => form.setData(f.key, e.target.checked)} />
+                    <input id={id} type="checkbox" disabled={disabled} aria-invalid={Boolean(errors[f.key])} aria-describedby={errors[f.key] ? `${id}-error` : undefined} className="mt-0.5 h-5 w-5 rounded border-[color:var(--app-border-strong)]" checked={Boolean(value)} onChange={(e) => form.setData(f.key, e.target.checked)} />
                     <span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{text(f, 'label')}</span>
-                        {text(f, 'description') && <span className="block text-xs text-gray-500 dark:text-slate-400">{text(f, 'description')}</span>}
+                        <span className="text-sm font-medium text-[color:var(--app-foreground)]">{text(f, 'label')}</span>
+                        {text(f, 'description') && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{text(f, 'description')}</span>}
                     </span>
                 </label>
             );
@@ -71,7 +71,7 @@ export default function PerformanceSettings({ fields, scales, can }: Props) {
                                 </div>
                             ))}
                         </div>
-                        {can.update ? <div className="mt-4 flex items-center justify-end gap-3"><span role="status" className="text-sm text-emerald-700 dark:text-emerald-400">{form.recentlySuccessful ? t('performance.settings.saved') : ''}</span><button type="submit" className={primaryBtn} disabled={form.processing || !form.isDirty}>{t('performance.actions.save')}</button></div> : <p className="mt-4 text-sm text-gray-500">{t('performance.cycles.readOnly')}</p>}
+                        {can.update ? <div className="mt-4 flex items-center justify-end gap-3"><span role="status" className="text-sm text-emerald-700 dark:text-emerald-400">{form.recentlySuccessful ? t('performance.settings.saved') : ''}</span><button type="submit" className={primaryBtn} disabled={form.processing || !form.isDirty}>{t('performance.actions.save')}</button></div> : <p className="mt-4 text-sm text-[color:var(--app-muted-foreground)]">{t('performance.cycles.readOnly')}</p>}
                     </Section>
                 </form>
 
@@ -83,10 +83,10 @@ export default function PerformanceSettings({ fields, scales, can }: Props) {
                                 <div key={scale.id}>
                                     <h3 className="text-sm font-medium">
                                         {scale.code} — {(locale === 'am' && scale.name_am) || scale.name_en}{' '}
-                                        <span className="text-xs text-gray-500">({t(`performance.settings.scaleTypes.${scale.type}`)}{scale.is_default ? ` · ${t('performance.settings.defaultScale')}` : ''})</span>
+                                        <span className="text-xs text-[color:var(--app-muted-foreground)]">({t(`performance.settings.scaleTypes.${scale.type}`)}{scale.is_default ? ` · ${t('performance.settings.defaultScale')}` : ''})</span>
                                     </h3>
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{levels ? t('performance.settings.levelsHelp') : t('performance.settings.bandsHelp')}</p>
-                                    <div className={`mt-3 hidden gap-2 text-xs font-medium text-gray-500 dark:text-slate-400 sm:grid ${levels ? 'sm:grid-cols-[6rem_1fr_1fr_auto]' : 'sm:grid-cols-[6rem_6rem_1fr_1fr_auto]'}`} aria-hidden="true">
+                                    <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{levels ? t('performance.settings.levelsHelp') : t('performance.settings.bandsHelp')}</p>
+                                    <div className={`mt-3 hidden gap-2 text-xs font-medium text-[color:var(--app-muted-foreground)] sm:grid ${levels ? 'sm:grid-cols-[6rem_1fr_1fr_auto]' : 'sm:grid-cols-[6rem_6rem_1fr_1fr_auto]'}`} aria-hidden="true">
                                         {levels ? <span>{t('performance.settings.level')}</span> : <><span>{t('performance.settings.bandMin')}</span><span>{t('performance.settings.bandMax')}</span></>}
                                         <span>{t('performance.fields.nameEn')}</span>
                                         <span>{t('performance.fields.nameAm')}</span>
@@ -120,7 +120,7 @@ function BandRow({ band, canEdit }: { band: Band; canEdit: boolean }) {
             }}
                 className={`grid grid-cols-2 items-start gap-2 ${level ? 'sm:grid-cols-[6rem_1fr_1fr_auto]' : 'sm:grid-cols-[6rem_6rem_1fr_1fr_auto]'}`}>
                 {level ? (
-                    <span className="flex h-full items-center text-sm font-semibold tabular-nums text-gray-700 dark:text-slate-200">{band.level_value}</span>
+                    <span className="flex h-full items-center text-sm font-semibold tabular-nums text-[color:var(--app-foreground)]">{band.level_value}</span>
                 ) : (
                     <>
                         <input aria-label={t('performance.settings.bandMin')} className={cls} type="number" min="0" max="200" step="0.0001" inputMode="decimal" value={form.data.min_score} disabled={!canEdit || form.processing} onChange={(e) => form.setData('min_score', e.target.value)} placeholder="—" />

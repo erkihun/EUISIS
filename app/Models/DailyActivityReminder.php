@@ -14,13 +14,15 @@ class DailyActivityReminder extends Model
 
     public $timestamps = false;
 
-    protected $fillable = ['employee_id', 'activity_date', 'reminder_type', 'sent_at'];
+    protected $fillable = ['employee_id', 'activity_date', 'reminder_type', 'sent_at', 'skipped'];
 
     protected function casts(): array
     {
         return [
             'activity_date' => 'date:Y-m-d',
             'sent_at' => 'datetime',
+            // true = evaluated with no reminder due (no notification was sent).
+            'skipped' => 'boolean',
         ];
     }
 }

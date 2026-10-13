@@ -6,6 +6,7 @@ namespace App\Services\Cafeteria;
 
 use App\Models\CafeteriaProvider;
 use App\Models\User;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -66,7 +67,12 @@ class CafeteriaProviderAccessService
 
     public function canAccessAllProviders(User $user): bool
     {
-        // Unassigned oversight of every provider; others see their assigned providers only.
-        return $user->can('cafeteria_providers.viewAll');
+        // Unassigned oversight of every provider; others see their assigned
+        // providers only. `viewAll` is city-wide oversight, so it applies only
+        // to users whose organization scope is unrestricted: a holder limited
+        // to some organizations would otherwise see every other
+        // organization's meals and ledgers (risk register SEC-7 decision).
+        return $user->can('cafeteria_providers.viewAll')
+            && app(OrganizationScopeService::class)->isUnrestricted($user);
     }
 }

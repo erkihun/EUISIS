@@ -3,8 +3,10 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 type Establishment = {
     id: string;
     establishment_number: string;
@@ -27,6 +29,7 @@ type Establishment = {
 
 export default function PositionEstablishmentsShow({ establishment }: { establishment: Establishment }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
 
     return (
         <AuthenticatedLayout
@@ -38,7 +41,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                     actions={
                         <div className="flex gap-2">
                             {establishment.can.update && (
-                                <Link href={route('position-establishments.edit', establishment.id)} className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">
+                                <Link href={route('position-establishments.edit', establishment.id)} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
                                     {t('common.edit')}
                                 </Link>
                             )}
@@ -46,7 +49,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                                 <button
                                     type="button"
                                     onClick={() => router.post(route('position-establishments.approve', establishment.id))}
-                                    className="inline-flex items-center rounded-lg border border-emerald-300 px-3 py-1.5 text-sm font-medium text-emerald-600 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-400"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     {t('positionEstablishments.approve')}
                                 </button>
@@ -54,8 +57,8 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             {establishment.can.archive && (
                                 <button
                                     type="button"
-                                    onClick={() => { if (confirm(t('common.cannotUndo'))) router.delete(route('position-establishments.archive', establishment.id)); }}
-                                    className="inline-flex items-center rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400"
+                                    onClick={async () => { if ((await confirm({ title: t('common.cannotUndo'), variant: 'danger' })).confirmed) router.delete(route('position-establishments.archive', establishment.id)); }}
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     {t('common.archive')}
                                 </button>
@@ -68,7 +71,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
             <Head title={establishment.establishment_number} />
 
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                     <StatusBadge status={establishment.status} />
                     <dl className="mt-4 grid gap-4 sm:grid-cols-2 text-sm">
                         {[
@@ -81,64 +84,64 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             { label: t('positionEstablishments.approvedBy'), value: establishment.approved_by?.name ?? '—' },
                         ].map(({ label, value }) => (
                             <div key={label}>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
-                                <dd className="mt-1 text-gray-800 dark:text-slate-200">{value}</dd>
+                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
+                                <dd className="mt-1 text-[color:var(--app-foreground)]">{value}</dd>
                             </div>
                         ))}
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('positionEstablishments.effectiveFrom')}</dt>
-                            <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={establishment.effective_from} /></dd>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('positionEstablishments.effectiveFrom')}</dt>
+                            <dd className="mt-1 text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={establishment.effective_from} /></dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('positionEstablishments.effectiveTo')}</dt>
-                            <dd className="mt-1 text-gray-800 dark:text-slate-200">
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('positionEstablishments.effectiveTo')}</dt>
+                            <dd className="mt-1 text-[color:var(--app-foreground)]">
                                 {establishment.effective_to ? <LocalizedDateDisplay value={establishment.effective_to} /> : t('common.current')}
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('positionEstablishments.approvedAt')}</dt>
-                            <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={establishment.approved_at} /></dd>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('positionEstablishments.approvedAt')}</dt>
+                            <dd className="mt-1 text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={establishment.approved_at} /></dd>
                         </div>
                     </dl>
                     {establishment.notes && (
                         <div className="mt-4">
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('positionEstablishments.notes')}</dt>
-                            <dd className="mt-1 text-sm text-gray-800 dark:text-slate-200 whitespace-pre-line">{establishment.notes}</dd>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('positionEstablishments.notes')}</dt>
+                            <dd className="mt-1 text-sm text-[color:var(--app-foreground)] whitespace-pre-line">{establishment.notes}</dd>
                         </div>
                     )}
                 </section>
 
                 <div className="space-y-6">
-                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('positionEstablishments.activeOccupancies')}</h3>
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('positionEstablishments.activeOccupancies')}</h3>
                         {establishment.occupancies.filter(o => o.status === 'active').length === 0 ? (
-                            <p className="mt-3 text-sm text-gray-400">{t('common.none')}</p>
+                            <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('common.none')}</p>
                         ) : (
                             <ul className="mt-3 space-y-1 text-sm">
                                 {establishment.occupancies.filter(o => o.status === 'active').map(o => (
                                     <li key={o.id} className="flex justify-between">
                                         <span>{o.employee?.name_en ?? '—'}</span>
-                                        <span className="text-gray-400">{o.occupied_from}</span>
+                                        <span className="text-[color:var(--app-muted-foreground)]">{o.occupied_from}</span>
                                     </li>
                                 ))}
                             </ul>
                         )}
                     </section>
 
-                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                         <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('vacancies.announcements')}</h3>
+                            <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('vacancies.announcements')}</h3>
                             {establishment.status === 'approved' && (
                                 <Link
                                     href={route('vacancy-announcements.create') + `?establishment=${establishment.id}`}
-                                    className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                    className={actionLinkClassName()}
                                 >
                                     {t('vacancies.createAnnouncement')}
                                 </Link>
                             )}
                         </div>
                         {establishment.vacancy_announcements.length === 0 ? (
-                            <p className="mt-3 text-sm text-gray-400">{t('common.none')}</p>
+                            <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('common.none')}</p>
                         ) : (
                             <ul className="mt-3 space-y-1.5 text-sm">
                                 {establishment.vacancy_announcements.map(a => (

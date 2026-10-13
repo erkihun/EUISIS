@@ -53,7 +53,10 @@ class CafeteriaTransactionService
 
         try {
             return DB::transaction(function () use ($employee, $card, $scannedAt, $serviceDate, $resolution, $decision, $pricing, $usageMode, $actor, $references, $policy, $cafeteria): CafeteriaTransaction {
-                $number = 'CAF-'.$serviceDate->format('Ymd').'-'.Str::upper(Str::random(6));
+                // 12 random characters (~4.7e18 per day): at 3M scans a day a
+                // collision — which surfaces as a failed scan — is practically
+                // impossible; 6 characters gave ~2,000 a day (risk register DB-6).
+                $number = 'CAF-'.$serviceDate->format('Ymd').'-'.Str::upper(Str::random(12));
                 $dailySubsidy = $pricing->employeePaid ? 0 : CafeteriaPricing::toCents((string) $policy->daily_subsidy_amount);
                 $availableBefore = CafeteriaPricing::format($dailySubsidy * count($decision->availableDates));
 

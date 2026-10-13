@@ -4,6 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrgType = {
     id: string;
     code: string;
@@ -19,9 +20,8 @@ type OrgType = {
     parent_allowed_types: string[] | null;
 };
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
-const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
+const inputCls = cx(inputClassName, 'w-full');
+const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
 const CATEGORIES = [
     { value: 'root', labelKey: 'categoryRoot' },
@@ -47,7 +47,7 @@ function Field({
         <div>
             <label className={labelCls}>{label}</label>
             <div className="mt-1">{children}</div>
-            {help && <p className="mt-1 text-xs text-gray-500 dark:text-slate-500">{help}</p>}
+            {help && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{help}</p>}
             {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
         </div>
     );
@@ -115,7 +115,7 @@ export default function EditOrganizationType({
             <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="w-full rounded-panel border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
                 >
                     <div className="space-y-6">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -211,22 +211,22 @@ export default function EditOrganizationType({
                                 help={t('organizationTypes.parentAllowedTypesHelp')}
                                 error={form.errors.parent_allowed_types}
                             >
-                                <div className="mt-1 grid max-h-56 grid-cols-1 gap-1 overflow-y-auto rounded-lg border border-gray-200 p-2 md:grid-cols-2 xl:grid-cols-3 dark:border-slate-700">
+                                <div className="mt-1 grid max-h-56 grid-cols-1 gap-1 overflow-y-auto rounded-lg border border-[color:var(--app-border)] p-2 md:grid-cols-2 xl:grid-cols-3">
                                     {allTypes.map((ot) => (
                                         <label
                                             key={ot.code}
-                                            className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-gray-50 dark:hover:bg-slate-800"
+                                            className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-[color:var(--app-surface-muted)]"
                                         >
                                             <input
                                                 type="checkbox"
-                                                className="h-3.5 w-3.5 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
+                                                className="h-3.5 w-3.5 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                                                 checked={form.data.parent_allowed_types.includes(ot.code)}
                                                 onChange={() => toggleParentType(ot.code)}
                                             />
-                                            <span className="font-mono text-xs text-gray-500 dark:text-slate-400">
+                                            <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
                                                 {ot.code}
                                             </span>
-                                            <span className="text-xs text-gray-700 dark:text-slate-300">
+                                            <span className="text-xs text-[color:var(--app-foreground)]">
                                                 {ot.name_en}
                                             </span>
                                         </label>
@@ -260,30 +260,30 @@ export default function EditOrganizationType({
                             <input
                                 id="is_active"
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
+                                className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                                 checked={form.data.is_active}
                                 onChange={(e) => form.setData('is_active', e.target.checked)}
                             />
                             <label
                                 htmlFor="is_active"
-                                className="text-sm text-gray-700 dark:text-slate-300"
+                                className="text-sm text-[color:var(--app-foreground)]"
                             >
                                 {t('organizationTypes.isActive')}
                             </label>
                         </div>
                     </div>
 
-                    <div className="mt-8 flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
+                    <div className="mt-8 flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
                         <Link
                             href={route('organization-types.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                         >
                             {t('common.cancel')}
                         </Link>
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {form.processing ? t('common.saving') : t('organizationTypes.saveChanges')}
                         </button>

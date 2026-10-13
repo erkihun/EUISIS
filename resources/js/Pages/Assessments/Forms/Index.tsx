@@ -1,11 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { AppFilterBar, Field, Section, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, type Bilingual, type Paginator } from '@/Components/performance/ui';
+import { AppFilterBar, FilterField, Field, Section, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, type Bilingual, type Paginator } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
+import { tableRowClassName } from '@/Components/ui';
 type Row = {
     id: string;
     code: string;
@@ -65,11 +66,11 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                             ['configureTitle', 'configureHelp'],
                             ['publishTitle', 'publishHelp'],
                         ] as const).map(([title, help], index) => (
-                            <li key={title} className="flex gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+                            <li key={title} className="flex gap-3 rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-3">
                                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-xs font-semibold text-white">{index + 1}</span>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{t(`assessments.workflow.${title}`)}</p>
-                                    <p className="mt-0.5 text-xs leading-5 text-gray-600 dark:text-slate-400">{t(`assessments.workflow.${help}`)}</p>
+                                    <p className="text-sm font-medium text-[color:var(--app-foreground)]">{t(`assessments.workflow.${title}`)}</p>
+                                    <p className="mt-0.5 text-xs leading-5 text-[color:var(--app-muted-foreground)]">{t(`assessments.workflow.${help}`)}</p>
                                 </div>
                             </li>
                         ))}
@@ -111,21 +112,27 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                 )}
 
                 <AppFilterBar routeName="assessment-forms.index" filters={filters as Record<string, string>}>
-                    <input name="search" aria-label={t('assessments.search')} placeholder={t('assessments.search')} className={filterInputCls} defaultValue={filters.search ?? ''} />
-                    <select name="type" aria-label={t('assessments.fields.type')} className={filterInputCls} defaultValue={filters.type ?? ''}>
-                        <option value="">{t('assessments.allTypes')}</option>
-                        {types.map((type) => <option key={type.id} value={type.id}>{nameOf(type, locale)}</option>)}
-                    </select>
-                    <select name="status" aria-label={t('assessments.fields.status')} className={filterInputCls} defaultValue={filters.status ?? ''}>
-                        <option value="">{t('assessments.allStatuses')}</option>
-                        <option value="active">{t('assessments.formStatuses.active')}</option>
-                        <option value="archived">{t('assessments.formStatuses.archived')}</option>
-                    </select>
+                    <FilterField label={t('assessments.search')} wide>
+                        <input name="search" placeholder={t('assessments.search')} className={filterInputCls} defaultValue={filters.search ?? ''} />
+                    </FilterField>
+                    <FilterField label={t('assessments.fields.type')}>
+                        <select name="type" className={filterInputCls} defaultValue={filters.type ?? ''}>
+                            <option value="">{t('assessments.allTypes')}</option>
+                            {types.map((type) => <option key={type.id} value={type.id}>{nameOf(type, locale)}</option>)}
+                        </select>
+                    </FilterField>
+                    <FilterField label={t('assessments.fields.status')}>
+                        <select name="status" className={filterInputCls} defaultValue={filters.status ?? ''}>
+                            <option value="">{t('assessments.allStatuses')}</option>
+                            <option value="active">{t('assessments.formStatuses.active')}</option>
+                            <option value="archived">{t('assessments.formStatuses.archived')}</option>
+                        </select>
+                    </FilterField>
                 </AppFilterBar>
 
                 <div>
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('assessments.formsListTitle')}</h2>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('assessments.formsListHelp')}</p>
+                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('assessments.formsListTitle')}</h2>
+                    <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.formsListHelp')}</p>
                 </div>
 
                 <TablePanel page={forms} empty={t('assessments.empty')}>
@@ -141,18 +148,18 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                         <th className={thCls}><span className="sr-only">{t('assessments.actions.open')}</span></th>
                     </>}>
                         {forms.data.map((row) => (
-                            <tr key={row.id} className="border-t border-gray-100 dark:border-slate-800">
+                            <tr key={row.id} className={tableRowClassName}>
                                 <td className={`${tdCls} font-mono text-xs`}>{row.code}</td>
                                 <td className={tdCls}>
-                                    <p className="font-medium text-gray-900 dark:text-slate-100">{nameOf(row, locale)}</p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">{row.organization ? nameOf(row.organization, locale) : t('assessments.cityWide')}</p>
+                                    <p className="font-medium text-[color:var(--app-foreground)]">{nameOf(row, locale)}</p>
+                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{row.organization ? nameOf(row.organization, locale) : t('assessments.cityWide')}</p>
                                 </td>
                                 <td className={tdCls}>{row.type ? nameOf(row.type, locale) : '—'}</td>
                                 <td className={tdCls}>
-                                    <p className="font-medium text-gray-900 dark:text-slate-100">
+                                    <p className="font-medium text-[color:var(--app-foreground)]">
                                         {row.current_version ? `${t('assessments.versionStatuses.published')} v${row.current_version}` : t('assessments.notPublished')}
                                     </p>
-                                    <p className={row.has_draft ? 'mt-0.5 text-xs font-medium text-amber-700 dark:text-amber-300' : 'mt-0.5 text-xs text-gray-500 dark:text-slate-400'}>
+                                    <p className={row.has_draft ? 'mt-0.5 text-xs font-medium text-amber-700 dark:text-amber-300' : 'mt-0.5 text-xs text-[color:var(--app-muted-foreground)]'}>
                                         {row.has_draft ? t('assessments.draftReady') : row.current_version ? t('assessments.publishedReady') : '—'}
                                     </p>
                                 </td>

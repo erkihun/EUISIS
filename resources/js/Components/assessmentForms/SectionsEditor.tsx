@@ -6,6 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { StatusBadge } from '@euisis/ui';
 import { useState, type ReactNode } from 'react';
 
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 /*
  * "Sections and criteria" of a draft form version (docs/assessment-form-builder.md).
  * Sections and criteria collapse to a one-line summary (title, counts, maximum,
@@ -105,11 +106,11 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
     return (
         <div className="space-y-4">
             {sections.length > 0 && (
-                <nav aria-label={t('assessments.builder.outline')} className="rounded-card border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800/40">
+                <nav aria-label={t('assessments.builder.outline')} className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-3">
                     <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('assessments.builder.outline')}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t('assessments.builder.outline')}</p>
                         <div className="flex flex-wrap items-center gap-3 text-xs">
-                            <span className="text-gray-600 dark:text-slate-300">{t('assessments.formTotal')}: <b className="tabular-nums">{fmt(formTotal)}</b>{configuredTotal !== '' && <> / {t('assessments.configured')} <b className="tabular-nums">{configuredTotal}</b></>}</span>
+                            <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.formTotal')}: <b className="tabular-nums">{fmt(formTotal)}</b>{configuredTotal !== '' && <> / {t('assessments.configured')} <b className="tabular-nums">{configuredTotal}</b></>}</span>
                             {totalMismatch && <StatusBadge tone="danger">{t('assessments.builder.totalMismatch')}</StatusBadge>}
                             <button type="button" className="font-medium text-[color:var(--color-primary)] hover:underline" onClick={() => setOpen(new Set(allUids))}>{t('assessments.builder.expandAll')}</button>
                             <button type="button" className="font-medium text-[color:var(--color-primary)] hover:underline" onClick={() => setOpen(new Set())}>{t('assessments.builder.collapseAll')}</button>
@@ -121,10 +122,10 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                             return (
                                 <li key={s.uid}>
                                     <button type="button" onClick={() => jumpTo(s.uid)}
-                                        className={`inline-flex min-h-9 items-center gap-2 rounded-control border bg-white px-3 py-1.5 text-xs hover:border-[color:var(--color-primary)] dark:bg-slate-900 ${broken ? 'border-red-300 dark:border-red-800' : 'border-gray-200 dark:border-slate-700'}`}>
+                                        className={`inline-flex min-h-9 items-center gap-2 rounded-control border bg-[color:var(--app-surface)] px-3 py-1.5 text-xs hover:border-[color:var(--color-primary)] ${broken ? 'border-red-300 dark:border-red-800' : 'border-[color:var(--app-border)]'}`}>
                                         <span className="font-semibold">{si + 1}.</span>
                                         <span className="max-w-[14rem] truncate">{title(s, t('assessments.builder.untitledSection'))}</span>
-                                        <span className="text-gray-500 dark:text-slate-400">· {t('assessments.builder.criteriaCount').replace(':count', String(s.criteria.length))} · {fmt(sectionMax(s))}</span>
+                                        <span className="text-[color:var(--app-muted-foreground)]">· {t('assessments.builder.criteriaCount').replace(':count', String(s.criteria.length))} · {fmt(sectionMax(s))}</span>
                                     </button>
                                 </li>
                             );
@@ -133,7 +134,7 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                 </nav>
             )}
 
-            {sections.length === 0 && <p className="text-sm text-gray-500 dark:text-slate-400">{t('assessments.noSections')}</p>}
+            {sections.length === 0 && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessments.noSections')}</p>}
 
             {sections.map((section, si) => {
                 const computed = sectionMax(section);
@@ -144,13 +145,13 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                 const expanded = isOpen(section.uid);
                 return (
                     <section key={section.uid} id={`section-${section.uid}`} aria-label={`${t('assessments.section')} ${si + 1}`}
-                        className={`scroll-mt-24 rounded-card border bg-white dark:bg-slate-900 ${sectionErrors.length ? 'border-red-300 dark:border-red-800' : 'border-gray-200 dark:border-slate-700'}`}>
+                        className={`scroll-mt-24 rounded-card border bg-[color:var(--app-surface)] ${sectionErrors.length ? 'border-red-300 dark:border-red-800' : 'border-[color:var(--app-border)]'}`}>
                         <header className="flex flex-wrap items-center gap-2 px-4 py-3">
                             <button type="button" onClick={() => toggle(section.uid)} aria-expanded={expanded} aria-controls={`section-body-${section.uid}`}
                                 className="flex min-h-9 min-w-0 flex-1 items-center gap-2 text-left">
-                                {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-gray-500" aria-hidden /> : <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />}
-                                <span className="shrink-0 text-sm font-semibold text-gray-500 dark:text-slate-400">{t('assessments.section')} {si + 1}</span>
-                                <span className="min-w-0 truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{title(section, t('assessments.builder.untitledSection'))}</span>
+                                {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden /> : <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden />}
+                                <span className="shrink-0 text-sm font-semibold text-[color:var(--app-muted-foreground)]">{t('assessments.section')} {si + 1}</span>
+                                <span className="min-w-0 truncate text-sm font-semibold text-[color:var(--app-foreground)]">{title(section, t('assessments.builder.untitledSection'))}</span>
                             </button>
                             <div className="flex flex-wrap items-center gap-1.5">
                                 <StatusBadge tone="neutral">{t('assessments.builder.criteriaCount').replace(':count', String(section.criteria.length))}</StatusBadge>
@@ -167,7 +168,7 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                         </header>
 
                         {expanded && (
-                            <div id={`section-body-${section.uid}`} className="space-y-4 border-t border-gray-100 px-4 pb-4 pt-4 dark:border-slate-800">
+                            <div id={`section-body-${section.uid}`} className="space-y-4 border-t border-[color:var(--app-border)] px-4 pb-4 pt-4">
                                 <fieldset disabled={!editable} className="grid min-w-0 items-end gap-3 md:grid-cols-4">
                                     <Field label={t('assessments.fields.titleEn')} htmlFor={id('title-en')} error={err('title_en')} className="md:col-span-2"><input id={id('title-en')} className={inputCls} value={section.title_en} onChange={(e) => setSection(si, { title_en: e.target.value })} /></Field>
                                     <Field label={t('assessments.fields.titleAm')} htmlFor={id('title-am')} className="md:col-span-2"><input id={id('title-am')} className={inputCls} value={section.title_am} onChange={(e) => setSection(si, { title_am: e.target.value })} /></Field>
@@ -178,12 +179,12 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                                         <input id={id('max')} type="number" min={0} step="any" className={inputCls} value={section.max_score} placeholder={fmt(computed)} onChange={(e) => setSection(si, { max_score: e.target.value })} />
                                     </Field>
                                     {scoringMethod === 'weighted_score' && <Field label={t('assessments.fields.weight')} htmlFor={id('weight')} error={err('weight')}><input id={id('weight')} type="number" min={0} max={100} step="any" className={inputCls} value={section.weight} onChange={(e) => setSection(si, { weight: e.target.value })} /></Field>}
-                                    <label className="flex h-[42px] items-center gap-2 text-sm text-gray-700 dark:text-slate-300"><input type="checkbox" checked={section.is_required} onChange={(e) => setSection(si, { is_required: e.target.checked })} /> {t('assessments.fields.required')}</label>
+                                    <label className="flex h-[42px] items-center gap-2 text-sm text-[color:var(--app-foreground)]"><input type="checkbox" checked={section.is_required} onChange={(e) => setSection(si, { is_required: e.target.checked })} /> {t('assessments.fields.required')}</label>
                                 </fieldset>
 
                                 <div>
                                     <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                                        <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('assessments.builder.criteria')}</h4>
+                                        <h4 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t('assessments.builder.criteria')}</h4>
                                         {err('criteria') && <p className="text-xs text-red-600">{err('criteria')}</p>}
                                     </div>
                                     <div className="space-y-2">
@@ -234,12 +235,12 @@ function CriterionEditor({ si, ci, criterion, count, editable, scoringMethod, op
     const optionErrors = Object.entries(errors).filter(([k]) => k.startsWith(`${prefix}options`)).map(([, v]) => v).filter(Boolean) as string[];
 
     return (
-        <div className={`rounded-card border ${problems.length ? 'border-red-300 dark:border-red-800' : 'border-gray-200 dark:border-slate-700'} bg-gray-50/60 dark:bg-slate-800/40`}>
+        <div className={`rounded-card border ${problems.length ? 'border-red-300 dark:border-red-800' : 'border-[color:var(--app-border)]'} bg-gray-50/60 dark:bg-slate-800/40`}>
             <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                 <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex min-h-9 min-w-0 flex-1 items-center gap-2 text-left">
-                    {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-gray-500" aria-hidden /> : <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />}
-                    <span className="shrink-0 text-xs font-semibold tabular-nums text-gray-500 dark:text-slate-400">{si + 1}.{ci + 1}</span>
-                    <span className="min-w-0 truncate text-sm font-medium text-gray-900 dark:text-slate-100">{title}</span>
+                    {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden /> : <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden />}
+                    <span className="shrink-0 text-xs font-semibold tabular-nums text-[color:var(--app-muted-foreground)]">{si + 1}.{ci + 1}</span>
+                    <span className="min-w-0 truncate text-sm font-medium text-[color:var(--app-foreground)]">{title}</span>
                     {criterion.is_required && <span className="text-red-600" aria-label={t('assessments.fields.required')}>*</span>}
                 </button>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -252,7 +253,7 @@ function CriterionEditor({ si, ci, criterion, count, editable, scoringMethod, op
             </div>
 
             {expanded && (
-                <fieldset disabled={!editable} className="min-w-0 space-y-3 border-t border-gray-200 px-3 pb-3 pt-3 dark:border-slate-700">
+                <fieldset disabled={!editable} className="min-w-0 space-y-3 border-t border-[color:var(--app-border)] px-3 pb-3 pt-3">
                     <div className="grid gap-3 md:grid-cols-2">
                         <Field label={t('assessments.fields.titleEn')} htmlFor={id('title-en')} error={err('title_en')}><input id={id('title-en')} className={fieldCls} value={criterion.title_en} onChange={(e) => onChange({ title_en: e.target.value })} /></Field>
                         <Field label={t('assessments.fields.titleAm')} htmlFor={id('title-am')}><input id={id('title-am')} className={fieldCls} value={criterion.title_am} onChange={(e) => onChange({ title_am: e.target.value })} /></Field>
@@ -275,7 +276,7 @@ function CriterionEditor({ si, ci, criterion, count, editable, scoringMethod, op
                                 {options.input_modes.map((m) => <option key={m} value={m}>{t(`assessments.inputModes.${m}`)}</option>)}
                             </select>
                         </Field>
-                        <label className="flex h-[38px] items-center gap-2 text-sm text-gray-700 dark:text-slate-300"><input type="checkbox" checked={criterion.is_required} onChange={(e) => onChange({ is_required: e.target.checked })} /> {t('assessments.fields.required')}</label>
+                        <label className="flex h-[38px] items-center gap-2 text-sm text-[color:var(--app-foreground)]"><input type="checkbox" checked={criterion.is_required} onChange={(e) => onChange({ is_required: e.target.checked })} /> {t('assessments.fields.required')}</label>
                     </div>
                     <div className="md:max-w-xl">
                         <LookupPicker type="competency" label={t('assessments.fields.competency')} value={criterion.competency_id} valueLabel={criterion.competency_label ?? null} editable={editable}
@@ -284,7 +285,7 @@ function CriterionEditor({ si, ci, criterion, count, editable, scoringMethod, op
 
                     <div>
                         <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
-                            <h5 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('assessments.builder.ratings')}</h5>
+                            <h5 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t('assessments.builder.ratings')}</h5>
                             {editable && (
                                 <div className="flex flex-wrap gap-3 text-xs">
                                     <button type="button" className="font-medium text-[color:var(--color-primary)] hover:underline" onClick={() => onChange({ options: [...criterion.options].sort((a, b) => (num(b.score) || 0) - (num(a.score) || 0)) })}>{t('assessments.builder.sortRatings')}</button>
@@ -293,27 +294,27 @@ function CriterionEditor({ si, ci, criterion, count, editable, scoringMethod, op
                             )}
                         </div>
                         {optionErrors.length > 0 && <p className="mb-1 text-xs text-red-600">{optionErrors[0]}</p>}
-                        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-                            <table className="min-w-[720px] w-full text-sm">
-                                <thead className="bg-gray-50 text-left text-xs text-gray-500 dark:bg-slate-950 dark:text-slate-400">
+                        <div className="overflow-x-auto rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                            <table className={cx(tableClassName, 'min-w-[720px]')}>
+                                <thead className={cx(tableHeadClassName, 'text-left')}>
                                     <tr>
-                                        <th className="px-2 py-2 font-medium">{t('assessments.fields.optionLabelEn')}</th>
-                                        <th className="px-2 py-2 font-medium">{t('assessments.fields.optionLabelAm')}</th>
-                                        <th className="px-2 py-2 font-medium">{t('assessments.fields.optionDescriptionEn')}</th>
-                                        <th className="px-2 py-2 font-medium">{t('assessments.fields.optionDescriptionAm')}</th>
-                                        <th className="w-24 px-2 py-2 font-medium">{t('assessments.fields.score')}</th>
-                                        <th className="w-24 px-2 py-2"><span className="sr-only">{t('assessments.actions.remove')}</span></th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessments.fields.optionLabelEn')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessments.fields.optionLabelAm')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessments.fields.optionDescriptionEn')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessments.fields.optionDescriptionAm')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left w-24')}>{t('assessments.fields.score')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left w-24')}><span className="sr-only">{t('assessments.actions.remove')}</span></th>
                                     </tr>
                                 </thead>
-                                <tbody className="[&>tr]:border-t [&>tr]:border-gray-100 dark:[&>tr]:border-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {criterion.options.map((option, oi) => (
-                                        <tr key={oi} className="align-top">
-                                            <td className="px-2 py-1.5"><input aria-label={`${t('assessments.fields.optionLabelEn')} ${oi + 1}`} className={fieldCls} value={option.label_en} onChange={(e) => setOption(oi, { label_en: e.target.value })} /></td>
-                                            <td className="px-2 py-1.5"><input aria-label={`${t('assessments.fields.optionLabelAm')} ${oi + 1}`} className={fieldCls} value={option.label_am} onChange={(e) => setOption(oi, { label_am: e.target.value })} /></td>
-                                            <td className="px-2 py-1.5"><textarea rows={1} aria-label={`${t('assessments.fields.optionDescriptionEn')} ${oi + 1}`} className={fieldCls} value={option.description_en} onChange={(e) => setOption(oi, { description_en: e.target.value })} /></td>
-                                            <td className="px-2 py-1.5"><textarea rows={1} aria-label={`${t('assessments.fields.optionDescriptionAm')} ${oi + 1}`} className={fieldCls} value={option.description_am} onChange={(e) => setOption(oi, { description_am: e.target.value })} /></td>
-                                            <td className="px-2 py-1.5"><input type="number" min={0} step="any" aria-label={`${t('assessments.fields.score')} ${oi + 1}`} className={`${fieldCls} ${num(option.score) === best && best > 0 ? 'font-semibold' : ''}`} value={option.score} onChange={(e) => setOption(oi, { score: e.target.value })} /></td>
-                                            <td className="px-2 py-1.5">
+                                        <tr key={oi} className={tableRowClassName}>
+                                            <td className={tableCellClassName}><input aria-label={`${t('assessments.fields.optionLabelEn')} ${oi + 1}`} className={fieldCls} value={option.label_en} onChange={(e) => setOption(oi, { label_en: e.target.value })} /></td>
+                                            <td className={tableCellClassName}><input aria-label={`${t('assessments.fields.optionLabelAm')} ${oi + 1}`} className={fieldCls} value={option.label_am} onChange={(e) => setOption(oi, { label_am: e.target.value })} /></td>
+                                            <td className={tableCellClassName}><textarea rows={1} aria-label={`${t('assessments.fields.optionDescriptionEn')} ${oi + 1}`} className={fieldCls} value={option.description_en} onChange={(e) => setOption(oi, { description_en: e.target.value })} /></td>
+                                            <td className={tableCellClassName}><textarea rows={1} aria-label={`${t('assessments.fields.optionDescriptionAm')} ${oi + 1}`} className={fieldCls} value={option.description_am} onChange={(e) => setOption(oi, { description_am: e.target.value })} /></td>
+                                            <td className={tableCellClassName}><input type="number" min={0} step="any" aria-label={`${t('assessments.fields.score')} ${oi + 1}`} className={`${fieldCls} ${num(option.score) === best && best > 0 ? 'font-semibold' : ''}`} value={option.score} onChange={(e) => setOption(oi, { score: e.target.value })} /></td>
+                                            <td className={tableCellClassName}>
                                                 {editable && (
                                                     <span className="flex items-center justify-end gap-0.5">
                                                         <IconButton label={`${t('assessments.actions.moveUp')}: ${oi + 1}`} disabled={oi === 0} onClick={() => onChange({ options: move(criterion.options, oi, -1) })}><ChevronUp className="h-4 w-4" /></IconButton>
@@ -353,7 +354,7 @@ function ItemActions({ label, first, last, onMove, onDuplicate, onRemove }: { la
 function IconButton({ label, danger = false, disabled = false, onClick, children }: { label: string; danger?: boolean; disabled?: boolean; onClick: () => void; children: ReactNode }) {
     return (
         <button type="button" aria-label={label} title={label} disabled={disabled} onClick={onClick}
-            className={`inline-flex h-9 w-9 items-center justify-center rounded-control disabled:cursor-not-allowed disabled:opacity-30 ${danger ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'}`}>
+            className={`inline-flex h-9 w-9 items-center justify-center rounded-control disabled:cursor-not-allowed disabled:opacity-30 ${danger ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]'}`}>
             {children}
         </button>
     );

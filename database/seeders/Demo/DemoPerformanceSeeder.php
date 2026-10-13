@@ -40,7 +40,7 @@ class DemoPerformanceSeeder extends DemoSeeder
     private const GOALS = [
         'DEMO-SG-1' => ['30', 'Improve service turnaround time', 'የአገልግሎት አሰጣጥ ጊዜን ማሻሻል', ['PLAN' => '15', 'SVC' => '10', 'ICT' => '5']],
         'DEMO-SG-2' => ['40', 'Digitize archive records', 'የመዛግብት መረጃዎችን ዲጂታል ማድረግ', ['SVC' => '40']],
-        'DEMO-SG-3' => ['30', 'Strengthen staff capacity', 'የሰራተኞችን አቅም ማጠናከር', ['HR' => '30']],
+        'DEMO-SG-3' => ['30', 'Strengthen staff capacity', 'የሠራተኞችን አቅም ማጠናከር', ['HR' => '30']],
     ];
 
     public function run(PerformanceCycleService $cycles, StrategicPlanningService $planning): void

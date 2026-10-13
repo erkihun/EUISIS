@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 return [
-    'failed' => 'የገቡት መግቢያ መረጃዎች ከመዝገቦቻችን ጋር አይዛመዱም።',
-    'password' => 'የገቡት የይለፍ ቃል ትክክል አይደለም።',
+    'failed' => 'ያስገቡት ኢሜይል ወይም የይለፍ ቃል ትክክል አይደለም።',
+    'password' => 'ያስገቡት የይለፍ ቃል ትክክል አይደለም።',
     'throttle' => 'በጣም ብዙ የመግቢያ ሙከራ ተደርጓል። እባክዎ ከ :seconds ሰከንድ በኋላ እንደገና ይሞክሩ።',
     'sign_in' => 'ይግቡ',
     'sign_out' => 'ይውጡ',
@@ -12,9 +12,9 @@ return [
     'password_label' => 'የይለፍ ቃል',
     'remember_me' => 'አስታውሰኝ',
     'forgot_password' => 'የይለፍ ቃልዎን ረሱ?',
-    'reset_password' => 'የይለፍ ቃል ዳግም አስጀምር',
-    'confirm_password' => 'የይለፍ ቃል አረጋግጥ',
-    'send_reset_link' => 'የይለፍ ቃል ዳግም ማስጀመሪያ አገናኝ ላክ',
+    'reset_password' => 'የይለፍ ቃልን ዳግም ያስጀምሩ',
+    'confirm_password' => 'የይለፍ ቃልን ያረጋግጡ',
+    'send_reset_link' => 'የይለፍ ቃል ዳግም ማስጀመሪያ አገናኝን ይላኩ',
     'account_inactive' => 'መለያዎ ታግዷል። እባክዎ አስተዳዳሪዎን ያናግሩ።',
     'employee_not_found' => 'በዚህ የሠራተኛ ቁጥር ምንም ሠራተኛ አልተገኘም።',
     'employee_no_email' => 'ለዚህ ሠራተኛ የኢሜይል አድራሻ አልተመዘገበም። እባክዎ የሰው ሀብት ክፍልን ያነጋግሩ።',
@@ -34,7 +34,7 @@ return [
     'registration_otp_intro' => 'የሠራተኛ ፖርታል መለያዎን መፍጠር ለማጠናቀቅ ይህን የአንድ ጊዜ ኮድ ይጠቀሙ፦',
     'registration_otp_expiry' => 'የዚህ ኮድ ጊዜ በ:minutes ደቂቃዎች ውስጥ ያበቃል።',
     'registration_otp_ignore' => 'መለያ እንዲፈጠርልዎ ካልጠየቁ፣ ይህን መልዕክት ችላ ይበሉ እና አስተዳዳሪዎን ያነጋግሩ።',
-    'registration_otp_sms' => 'የEUISIS ምዝገባ ኮድ፦ :code። ጊዜው በ:minutes ደቂቃዎች ውስጥ ያበቃል። ይህን ኮድ ለማንም አያጋሩ።',
+    'registration_otp_sms' => 'የ:app ምዝገባ ኮድ፦ :code። ጊዜው በ:minutes ደቂቃዎች ውስጥ ያበቃል። ይህን ኮድ ለማንም አያጋሩ።',
 
     // Forced password change on first login
     'must_change_password' => 'ከመቀጠልዎ በፊት የይለፍ ቃልዎን መቀየር አለብዎት።',

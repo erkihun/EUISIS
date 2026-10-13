@@ -1,11 +1,11 @@
 const security = {
     sessionExpired: 'የክፍለ ጊዜዎ አብቅቷል። እባክዎ እንደገና ይግቡ።',
-    accessDenied: 'ፍቃድ የለም። ይህን ድርጊት ለማከናወን ፈቃድ የለዎትም።',
+    accessDenied: 'መዳረሻ ተከልክሏል። ይህን ድርጊት ለማከናወን መብት የለዎትም።',
     scopeDenied: 'የተቋም ወሰንዎ ይህን መዝገብ አይጨምርም።',
     tooManyAttempts: 'ብዙ ሙከራዎች። እባክዎ ጠብቀው እንደገና ይሞክሩ።',
     strongPasswordRequired: 'የሚስጥር ቃል ዝቅተኛ የደህንነት መስፈርቶችን ማሟላት አለበት።',
     securitySettingsUpdated: 'የደህንነት ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
-    auditLog: 'የኦዲት ምዝግብ ማስታወሻ',
+    auditLog: 'የኦዲት መዝገብ',
     incidentResponse: 'የአደጋ ምላሽ',
     vulnerabilityManagement: 'የተጋላጭነት አያያዝ',
 
@@ -25,7 +25,7 @@ const security = {
 
     // INSA-required የደህንነት መልዕክቶች
     uploadRejected: 'ፋይል መጫን ተከልክሏል።',
-    unsafeFileType: 'የፋይሉ አይነት አይፈቀድም። የተፈቀዱ አይነቶች ብቻ መጫን ይቻላል።',
+    unsafeFileType: 'የፋይሉ ዓይነት አይፈቀድም። የተፈቀዱ ዓይነቶች ብቻ መጫን ይቻላል።',
     rateLimitExceeded: 'የጥያቄ ገደቡ ተሻገረ። እባክዎ ጥቂት ጠብቀው እንደገና ይሞክሩ።',
     sensitiveInfoProtected: 'ሚስጥራዊ መረጃ ተጠብቋል እና ሊወጣ አይችልም።',
     orgScopeDenied: 'የተቋም ወሰንዎ ይህን መዝገብ አይጨምርም።',
@@ -33,10 +33,10 @@ const security = {
     securityHeadersEnabled: 'የደህንነት ራስጌዎች ነቅተዋል።',
     secureConfigRequired: 'ለዚህ አካባቢ ደህንነቱ የተጠበቀ ቅንብር ያስፈልጋል።',
     invalidRequest: 'ትክክል ያልሆነ ጥያቄ። እባክዎ ግቤቱን ያረጋግጡና እንደገና ይሞክሩ።',
-    unauthorized: 'ይህን ሀብት ለማግኘት ወደ ስርዓቱ መግባት አለቦት።',
-    forbidden: 'ይህን ድርጊት ለመፈጸም ፈቃድ የለዎትም።',
+    unauthorized: 'ይህን ሀብት ለማግኘት ወደ ሥርዓቱ መግባት አለቦት።',
+    forbidden: 'ይህን ድርጊት ለመፈጸም መብት የለዎትም።',
     securityPolicy: 'የደህንነት ፖሊሲ',
-    piiViewDenied: 'ሚስጥራዊ የግል መረጃ ለማየት ፈቃድ የለዎትም።',
+    piiViewDenied: 'ሚስጥራዊ የግል መረጃ ለማየት መብት የለዎትም።',
     securityAudit: 'የደህንነት ምርመራ',
 } as const;
 

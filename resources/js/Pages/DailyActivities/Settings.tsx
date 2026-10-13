@@ -85,10 +85,10 @@ export default function DailyActivitiesSettings({ fields, canUpdate, can }: Prop
         if (field.type === 'boolean') {
             return (
                 <label htmlFor={id} className="flex min-h-10 cursor-pointer items-start gap-3">
-                    <input id={id} type="checkbox" disabled={disabled} className="mt-0.5 h-5 w-5 rounded border-gray-300" checked={Boolean(value)} onChange={(e) => settingsForm.setData(field.key, e.target.checked)} />
+                    <input id={id} type="checkbox" disabled={disabled} className="mt-0.5 h-5 w-5 rounded border-[color:var(--app-border-strong)]" checked={Boolean(value)} onChange={(e) => settingsForm.setData(field.key, e.target.checked)} />
                     <span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{label(field)}</span>
-                        {description(field) && <span className="block text-xs text-gray-500 dark:text-slate-400">{description(field)}</span>}
+                        <span className="text-sm font-medium text-[color:var(--app-foreground)]">{label(field)}</span>
+                        {description(field) && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{description(field)}</span>}
                     </span>
                 </label>
             );
@@ -100,7 +100,7 @@ export default function DailyActivitiesSettings({ fields, canUpdate, can }: Prop
             control = (
                 <div className="flex flex-wrap gap-2" role="group" aria-labelledby={`${id}-label`}>
                     {(field.options ?? []).map((option) => (
-                        <label key={option} className="flex min-h-10 items-center gap-1.5 rounded-lg border border-gray-300 px-3 text-sm dark:border-slate-700">
+                        <label key={option} className="flex min-h-10 items-center gap-1.5 rounded-lg border border-[color:var(--app-border-strong)] px-3 text-sm">
                             <input
                                 type="checkbox"
                                 disabled={disabled}
@@ -134,7 +134,7 @@ export default function DailyActivitiesSettings({ fields, canUpdate, can }: Prop
             <div>
                 <label id={`${id}-label`} htmlFor={id} className={labelCls}>{label(field)}</label>
                 {control}
-                {description(field) && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{description(field)}</p>}
+                {description(field) && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{description(field)}</p>}
                 {parentHint}
             </div>
         );
@@ -146,12 +146,12 @@ export default function DailyActivitiesSettings({ fields, canUpdate, can }: Prop
             <div className="space-y-4">
                 <ManagementNav can={can} current="daily-activities.settings" />
                 <form onSubmit={saveSettings} className={`${panelCls} p-4`}>
-                    <h2 className="mb-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{t('dailyActivities.settings.rules')}</h2>
-                    {!canUpdate && <p className="mb-3 text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.settings.readOnly')}</p>}
-                    <div className="divide-y divide-gray-100 dark:divide-slate-800">
+                    <h2 className="mb-1 text-sm font-semibold text-[color:var(--app-foreground)]">{t('dailyActivities.settings.rules')}</h2>
+                    {!canUpdate && <p className="mb-3 text-xs text-[color:var(--app-muted-foreground)]">{t('dailyActivities.settings.readOnly')}</p>}
+                    <div className="divide-y divide-[color:var(--app-border)]">
                         {sections.map((section) => (
                             <fieldset key={section.key} className="py-4 first:pt-2 last:pb-0">
-                                <legend className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{t(`dailyActivities.settings.sections.${section.key}`)}</legend>
+                                <legend className="mb-3 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t(`dailyActivities.settings.sections.${section.key}`)}</legend>
                                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                                     {section.fields.map((field) => (
                                         <div key={field.key} className={field.type === 'multiselect' ? 'sm:col-span-2 xl:col-span-3' : ''}>
@@ -164,7 +164,7 @@ export default function DailyActivitiesSettings({ fields, canUpdate, can }: Prop
                         ))}
                     </div>
                     {canUpdate && (
-                        <div className="mt-4 flex justify-end border-t border-gray-100 pt-4 dark:border-slate-800">
+                        <div className="mt-4 flex justify-end border-t border-[color:var(--app-border)] pt-4">
                             <button type="submit" disabled={settingsForm.processing} className={`${primaryBtn} w-full sm:w-auto`}>{t('dailyActivities.actions.saveSettings')}</button>
                         </div>
                     )}

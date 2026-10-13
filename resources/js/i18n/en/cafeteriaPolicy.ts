@@ -226,6 +226,7 @@ const cafeteriaPolicy = {
     providerAmount: 'Provider Payable',
     finalize: 'Finalize',
     finalizeWarning: 'A finalized settlement cannot be changed, and its transactions can no longer be reversed.',
+    finalizeByAnother: 'You drafted this settlement, so another authorized person must finalize it.',
     cancelSettlement: 'Cancel Settlement',
     unattributed: 'Unattributed (legacy)',
     liabilityByOrganization: 'Organization Liability',

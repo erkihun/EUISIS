@@ -4,6 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 import OrganizationTreePreviewNode from '@/Components/organization-units/OrganizationTreePreviewNode';
 import type { OrganizationTreeNode } from '@/types/organizationUnit';
 
+import { cx, inputClassName, selectClassName } from '@/Components/ui';
 interface SelectedVersion {
     id: string;
     name: string;
@@ -154,24 +155,24 @@ export default function OrganizationTreePreview({
     }
 
     return (
-        <div className="flex h-full flex-col rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex h-full flex-col rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-slate-800">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+            <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-4 py-3">
+                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                     {t('organizationUnits.organizationTreePreview')}
                 </h2>
                 <div className="flex items-center gap-1">
                     <button
                         type="button"
                         onClick={expandAll}
-                        className="rounded px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                        className="rounded px-2 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
                     >
                         {t('organizationUnits.expandAll')}
                     </button>
                     <button
                         type="button"
                         onClick={collapseAll}
-                        className="rounded px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                        className="rounded px-2 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
                     >
                         {t('organizationUnits.collapseAll')}
                     </button>
@@ -198,7 +199,7 @@ export default function OrganizationTreePreview({
             {availableVersions.length > 1 && onVersionChange && (
                 <div className="px-3 pt-2">
                     <select
-                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 px-2 text-xs text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        className={cx(selectClassName, 'w-full')}
                         value={selectedVersion?.id ?? ''}
                         onChange={(e) => onVersionChange(e.target.value)}
                         aria-label={t('hierarchyVersions.selectedHierarchyVersion')}
@@ -216,10 +217,10 @@ export default function OrganizationTreePreview({
             {/* Search */}
             <div className="px-3 py-2">
                 <div className="relative">
-                    <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
+                    <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
                     <input
                         type="text"
-                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
+                        className={cx(inputClassName, 'w-full pl-8 pr-3')}
                         placeholder={t('organizationUnits.searchOrganizations')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -231,8 +232,8 @@ export default function OrganizationTreePreview({
             <div className="flex-1 overflow-y-auto px-2 pb-3" role="tree">
                 {filteredTree.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <Building2 className="h-8 w-8 text-gray-300 dark:text-slate-600" />
-                        <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+                        <Building2 className="h-8 w-8 text-[color:var(--app-muted-foreground)]" />
+                        <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">
                             {t('organizationUnits.noOrganizationsFound')}
                         </p>
                     </div>

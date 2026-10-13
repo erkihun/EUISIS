@@ -17,10 +17,10 @@ export default function ProgressMetric({ label, value, total, tone = 'blue' }: P
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="font-medium text-gray-700 dark:text-slate-200">{label}</span>
-                <span className="text-gray-500 dark:text-slate-400">{value} / {total}</span>
+                <span className="font-medium text-[color:var(--app-foreground)]">{label}</span>
+                <span className="text-[color:var(--app-muted-foreground)]">{value} / {total}</span>
             </div>
-            <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-800">
+            <div className="h-2 rounded-full bg-[color:var(--app-surface-muted)]">
                 <div
                     className={`h-2 rounded-full ${barTone[tone]}`}
                     style={{ width: `${percent}%` }}

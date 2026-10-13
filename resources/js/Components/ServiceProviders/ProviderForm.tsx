@@ -196,7 +196,7 @@ export default function ProviderForm({ form, serviceTypes, organizations, submit
                             data.is_demo ? 'bg-[color:var(--color-primary)]' : 'bg-[color:var(--app-border-strong)]',
                         )}
                     >
-                        <span className={cx('absolute top-[3px] h-[18px] w-[18px] rounded-full bg-white shadow transition-[left]', data.is_demo ? 'left-[23px]' : 'left-[3px]')} />
+                        <span className={cx('absolute top-[3px] h-[18px] w-[18px] rounded-full bg-[color:var(--app-surface)] shadow transition-[left]', data.is_demo ? 'left-[23px]' : 'left-[3px]')} />
                     </button>
                 </div>
 

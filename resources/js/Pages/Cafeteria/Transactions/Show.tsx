@@ -6,6 +6,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName } from '@/Components/ui';
 type Transaction = {
     id: string;
     transaction_number: string;
@@ -52,9 +53,9 @@ export default function TransactionShow({ transaction }: { transaction: Transact
         extra_scan: t('cafeteria.statusExtraScan'),
     } as Record<string, string>)[s] ?? s;
 
-    const rowCls = 'flex justify-between border-b border-gray-100 py-3 text-sm last:border-0 dark:border-slate-800';
-    const labelCls = 'text-gray-500 dark:text-slate-400';
-    const valueCls = 'font-medium text-gray-900 dark:text-slate-100';
+    const rowCls = 'flex justify-between border-b border-[color:var(--app-border)] py-3 text-sm last:border-0';
+    const labelCls = 'text-[color:var(--app-muted-foreground)]';
+    const valueCls = 'font-medium text-[color:var(--app-foreground)]';
 
     return (
         <AuthenticatedLayout
@@ -66,7 +67,7 @@ export default function TransactionShow({ transaction }: { transaction: Transact
                         transaction.can.reverse ? (
                             <button
                                 onClick={handleReverse}
-                                className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                                className={buttonClassName({ variant: 'outline' })}
                             >
                                 {t('cafeteria.reverseTransaction')}
                             </button>
@@ -78,7 +79,7 @@ export default function TransactionShow({ transaction }: { transaction: Transact
             <Head title={transaction.transaction_number} />
 
             <div className="mx-auto max-w-2xl space-y-4">
-                <div className="rounded-card border border-gray-200 bg-white px-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6">
                     <div className={rowCls}>
                         <span className={labelCls}>{t('cafeteria.transactionStatus')}</span>
                         <StatusBadge status={transaction.status} label={statusLabel(transaction.status)} />

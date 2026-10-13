@@ -16,6 +16,8 @@ use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\EmployeeServiceEligibilityService;
 use DomainException;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 
 readonly class RecordServiceTransactionAction
 {
@@ -47,34 +49,54 @@ readonly class RecordServiceTransactionAction
             throw new DomainException($eligibility['reason_code']);
         }
 
-        if (($metadata['reference'] ?? null) !== null) {
-            $duplicate = ServiceTransaction::query()
-                ->where('service_provider_id', $provider->id)
-                ->where('reference', $metadata['reference'])
-                ->exists();
+        $transaction = DB::transaction(function () use ($employee, $card, $serviceType, $provider, $entitlement, $status, $metadata): ServiceTransaction {
+            // The entitlement row lock serializes concurrent authorizations for
+            // the same quota, so the limit check below cannot be raced.
+            if ($entitlement !== null) {
+                $entitlement = Entitlement::query()->whereKey($entitlement->getKey())->lockForUpdate()->firstOrFail();
 
-            if ($duplicate) {
+                if ($status === 'authorized'
+                    && $entitlement->quota_limit !== null
+                    && $entitlement->quota_used >= $entitlement->quota_limit) {
+                    throw new DomainException('quota_exhausted');
+                }
+            }
+
+            if (($metadata['reference'] ?? null) !== null
+                && ServiceTransaction::query()
+                    ->where('service_provider_id', $provider->id)
+                    ->where('reference', $metadata['reference'])
+                    ->exists()) {
                 throw new DomainException('Duplicate provider transaction reference.');
             }
-        }
 
-        $transaction = ServiceTransaction::query()->create([
-            'employee_id' => $employee->id,
-            'id_card_id' => $card->id,
-            'service_type_id' => $serviceType->id,
-            'service_provider_id' => $provider->id,
-            'entitlement_id' => $entitlement?->id,
-            'status' => $status,
-            'occurred_at' => now(),
-            'reference' => $metadata['reference'] ?? null,
-            'amount' => $metadata['amount'] ?? null,
-            'metadata' => $metadata,
-        ]);
+            try {
+                // A savepoint, so a unique-key race on the provider reference
+                // (the DB backstop for the check above) leaves the outer
+                // transaction usable on PostgreSQL.
+                $transaction = DB::transaction(fn (): ServiceTransaction => ServiceTransaction::query()->create([
+                    'employee_id' => $employee->id,
+                    'id_card_id' => $card->id,
+                    'service_type_id' => $serviceType->id,
+                    'service_provider_id' => $provider->id,
+                    'entitlement_id' => $entitlement?->id,
+                    'status' => $status,
+                    'occurred_at' => now(),
+                    'reference' => $metadata['reference'] ?? null,
+                    'amount' => $metadata['amount'] ?? null,
+                    'metadata' => $metadata,
+                ]));
+            } catch (UniqueConstraintViolationException) {
+                throw new DomainException('Duplicate provider transaction reference.');
+            }
 
-        if ($entitlement !== null && $status === 'authorized') {
-            $entitlement->increment('quota_used');
-            $this->recalculateEntitlementsAction->execute($entitlement->fresh());
-        }
+            if ($entitlement !== null && $status === 'authorized') {
+                $entitlement->increment('quota_used');
+                $this->recalculateEntitlementsAction->execute($entitlement->fresh());
+            }
+
+            return $transaction;
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::ServiceTransactionRecorded,

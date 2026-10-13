@@ -13,7 +13,7 @@ th { background: #173b63; color: white; font-weight: normal; text-align: left; }
 th,td { padding: 5px 4px; border: 1px solid #d6dde6; word-wrap: break-word; vertical-align: top; }
 .note { font-size: 8.5px; color: #526176; line-height: 1.6; margin-top: 12px; }
 </style></head><body>
-<div class="header"><h1>{{ $title }}</h1>{{ config('app.name') }}</div>
+<div class="header"><h1>{{ $title }}</h1>{{ app(App\Services\Branding\BrandingService::class)->formalLine() }}</div>
 <div class="meta">{{ $period }}<br>{{ $generated }}</div>
 @if (! empty($truncated))<p class="note" style="color:#8a4b00;margin:0 0 8px">{{ __('daily-activities.reports.truncated', ['count' => count($rows)]) }}</p>@endif
 <table><thead><tr>@foreach ($headings as $heading)<th>{{ $heading }}</th>@endforeach</tr></thead><tbody>

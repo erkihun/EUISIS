@@ -104,6 +104,8 @@ class GrievanceCommitteeController extends Controller
                 'id' => $m->getKey(),
                 'employee' => $m->employee ? ['id' => $m->employee->getKey(), 'name' => $m->employee->full_name, 'name_en' => $m->employee->name_en ?: $m->employee->full_name, 'employee_number' => $m->employee->employee_number] : null,
                 'role' => $m->roleEnum()->value,
+                'selection_source' => $m->selection_source,
+                'term_number' => $m->term_number,
                 'effective_from' => $m->effective_from?->toDateString(),
                 'effective_to' => $m->effective_to?->toDateString(),
                 'status' => $m->status,
@@ -159,7 +161,11 @@ class GrievanceCommitteeController extends Controller
             'employee_id' => ['required', 'uuid', 'exists:employees,id'],
             'role' => ['required', Rule::in(GrievanceCommitteeRole::values())],
             'effective_from' => ['required', 'date'],
+            'effective_to' => ['nullable', 'date', 'after:effective_from'],
             'appointment_reference' => ['nullable', 'string', 'max:255'],
+            // Regulation 201/2018 Arts. 5, 30: how the member took the seat, and the term number (Art. 7).
+            'selection_source' => ['nullable', Rule::in(['appointed', 'elected', 'hr_representative'])],
+            'term_number' => ['nullable', 'integer', 'min:1', 'max:2'],
         ]);
         $this->committees->addMember($committee, $request->user(), $data);
 

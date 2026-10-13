@@ -15,7 +15,7 @@ use Illuminate\Support\Collection;
 /**
  * Who may review whose daily activity.
  *
- * EUISIS records no supervisor on positions or units, so review authority is
+ * Addis One records no supervisor on positions or units, so review authority is
  * never inferred from job titles ("Director", "Team Leader"). It comes only
  * from explicit reviewer assignments:
  *

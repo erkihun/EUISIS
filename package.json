@@ -3,7 +3,9 @@
     "type": "module",
     "scripts": {
         "build": "tsc && vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "i18n:audit": "node scripts/i18n-audit.mjs --strict",
+        "typecheck": "tsc --noEmit -p ."
     },
     "devDependencies": {
         "@headlessui/react": "^2.0.0",
@@ -30,6 +32,7 @@
         "@fontsource/inter": "^5.3.0",
         "@fontsource/noto-sans-ethiopic": "^5.3.0",
         "@hookform/resolvers": "^5.4.0",
+        "@solar-icons/react": "^2.3.2",
         "@tanstack/react-table": "^8.21.3",
         "cmdk": "^1.1.1",
         "html-to-image": "^1.11.13",

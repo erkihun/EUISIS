@@ -8,6 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 /*
  * Position Service (ዋና አገልግሎት) → Sub-Service (ንዑስ አገልግሎት) → Main Task
  * (ዋና ተግባር) → Task Standard / BPR plan (ስታንዳርድ መለኪያ / የBPR ዕቅድ).
@@ -60,17 +61,17 @@ type Editing =
     | { kind: 'standard'; task: Task; record?: Standard }
     | null;
 
-const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-const labelCls = 'mb-1 block text-xs font-medium text-gray-700 dark:text-slate-300';
-const primaryBtn = 'inline-flex min-h-9 items-center justify-center rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50';
-const secondaryBtn = 'inline-flex min-h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200';
+const inputCls = cx(inputClassName, 'w-full');
+const labelCls = 'mb-1 block text-xs font-medium text-[color:var(--app-foreground)]';
+const primaryBtn = buttonClassName({ variant: 'primary', size: 'sm' });
+const secondaryBtn = buttonClassName({ variant: 'outline', size: 'sm' });
 const linkBtn = 'text-xs font-medium text-[color:var(--color-primary)] hover:underline';
 const dangerLink = 'text-xs font-medium text-red-600 hover:underline dark:text-red-400';
 
 const STATUS_CLS: Record<Standard['status'], string> = {
     draft: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
     approved: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
-    retired: 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400',
+    retired: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
 };
 
 export default function Structure({ service, sub_services, quality_sources, can }: Props): JSX.Element {
@@ -96,7 +97,7 @@ export default function Structure({ service, sub_services, quality_sources, can 
         >
             <Head title={t('workStandards.title')} />
             <div className="space-y-4">
-                <p className="max-w-3xl text-sm text-gray-600 dark:text-slate-400">{t('workStandards.intro')}</p>
+                <p className="max-w-3xl text-sm text-[color:var(--app-muted-foreground)]">{t('workStandards.intro')}</p>
 
                 {can.manage && editing?.kind !== 'sub' && (
                     <button type="button" className={primaryBtn} onClick={() => setEditing({ kind: 'sub' })}>{t('workStandards.addSubService')}</button>
@@ -112,16 +113,16 @@ export default function Structure({ service, sub_services, quality_sources, can 
                 )}
 
                 {sub_services.length === 0 && (
-                    <p className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">{t('workStandards.noSubServices')}</p>
+                    <p className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] p-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('workStandards.noSubServices')}</p>
                 )}
 
                 {sub_services.map((sub) => (
-                    <section key={sub.id} className="rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-slate-800">
+                    <section key={sub.id} className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                        <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--app-border)] px-4 py-3">
                             <div className="min-w-0">
-                                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('workStandards.subService')} · {sub.code}</p>
-                                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">{name(sub)} {!sub.is_active && <InactiveBadge />}</h2>
-                                {sub.description && <p className="mt-1 text-sm text-gray-600 dark:text-slate-400">{sub.description}</p>}
+                                <p className="text-xs uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t('workStandards.subService')} · {sub.code}</p>
+                                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{name(sub)} {!sub.is_active && <InactiveBadge />}</h2>
+                                {sub.description && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{sub.description}</p>}
                             </div>
                             {can.manage && (
                                 <div className="flex flex-wrap items-center gap-3">
@@ -145,15 +146,15 @@ export default function Structure({ service, sub_services, quality_sources, can 
                         )}
 
                         {sub.tasks.length === 0 ? (
-                            <p className="px-4 py-4 text-sm text-gray-500 dark:text-slate-400">{t('workStandards.noTasks')}</p>
+                            <p className="px-4 py-4 text-sm text-[color:var(--app-muted-foreground)]">{t('workStandards.noTasks')}</p>
                         ) : (
-                            <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <ul className="divide-y divide-[color:var(--app-border)]">
                                 {sub.tasks.map((task) => (
                                     <li key={task.id} className="px-4 py-3">
                                         <div className="flex flex-wrap items-start justify-between gap-3">
                                             <div className="min-w-0">
-                                                <p className="text-xs text-gray-500 dark:text-slate-400">{t('workStandards.mainTask')} · {task.code}</p>
-                                                <p className="font-medium text-gray-900 dark:text-slate-100">{name(task)} {!task.is_active && <InactiveBadge />}</p>
+                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('workStandards.mainTask')} · {task.code}</p>
+                                                <p className="font-medium text-[color:var(--app-foreground)]">{name(task)} {!task.is_active && <InactiveBadge />}</p>
                                             </div>
                                             {can.manage && (
                                                 <div className="flex flex-wrap items-center gap-3">
@@ -180,30 +181,30 @@ export default function Structure({ service, sub_services, quality_sources, can 
                                             <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{t('workStandards.noStandard')}</p>
                                         ) : (
                                             <div className="mt-2 overflow-x-auto">
-                                                <table className="min-w-full text-sm">
-                                                    <thead>
-                                                        <tr className="text-left text-xs text-gray-500 dark:text-slate-400">
-                                                            <th className="py-1 pe-3 font-medium">{t('workStandards.version')}</th>
-                                                            <th className="py-1 pe-3 font-medium">{t('workStandards.plan')}</th>
-                                                            <th className="py-1 pe-3 font-medium">{t('workStandards.effective')}</th>
-                                                            <th className="py-1 pe-3 font-medium">{t('workStandards.status')}</th>
-                                                            <th className="py-1 font-medium"><span className="sr-only">{t('common.actions')}</span></th>
+                                                <table className={cx(tableClassName, 'min-w-full')}>
+                                                    <thead className={tableHeadClassName}>
+                                                        <tr className="text-left">
+                                                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('workStandards.version')}</th>
+                                                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('workStandards.plan')}</th>
+                                                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('workStandards.effective')}</th>
+                                                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('workStandards.status')}</th>
+                                                            <th className={cx(tableHeaderCellClassName, 'text-left')}><span className="sr-only">{t('common.actions')}</span></th>
                                                         </tr>
                                                     </thead>
-                                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                                    <tbody className={tableBodyClassName}>
                                                         {task.standards.map((standard) => (
-                                                            <tr key={standard.id} className="align-top">
-                                                                <td className="py-2 pe-3 tabular-nums">v{standard.version_no}</td>
-                                                                <td className="py-2 pe-3">
+                                                            <tr key={standard.id} className={tableRowClassName}>
+                                                                <td className={cx(tableCellClassName, 'tabular-nums')}>v{standard.version_no}</td>
+                                                                <td className={tableCellClassName}>
                                                                     <PlanSummary standard={standard} />
                                                                 </td>
-                                                                <td className="whitespace-nowrap py-2 pe-3 text-xs">
+                                                                <td className={cx(tableCellClassName, 'whitespace-nowrap text-xs')}>
                                                                     <LocalizedDateDisplay value={standard.effective_from} /> – {standard.effective_to ? <LocalizedDateDisplay value={standard.effective_to} /> : t('workStandards.openEnded')}
                                                                 </td>
-                                                                <td className="py-2 pe-3">
+                                                                <td className={tableCellClassName}>
                                                                     <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_CLS[standard.status]}`}>{t(`workStandards.statuses.${standard.status}`)}</span>
                                                                 </td>
-                                                                <td className="whitespace-nowrap py-2 text-right">
+                                                                <td className={cx(tableCellClassName, 'whitespace-nowrap text-right')}>
                                                                     {standard.status === 'draft' && can.manage && <>
                                                                         <button type="button" className={`${linkBtn} me-3`} onClick={() => setEditing({ kind: 'standard', task, record: standard })}>{t('common.edit')}</button>
                                                                         <button type="button" className={`${dangerLink} me-3`} onClick={() => act('delete', route('work-structure.standards.destroy', standard.id), t('common.delete'), t('workStandards.deleteDraftConfirm'))}>{t('common.delete')}</button>
@@ -234,7 +235,7 @@ export default function Structure({ service, sub_services, quality_sources, can 
 
 function InactiveBadge() {
     const { t } = useLocale();
-    return <span className="ms-1 rounded bg-gray-100 px-1.5 py-0.5 align-middle text-[11px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-400">{t('workStandards.inactive')}</span>;
+    return <span className="ms-1 rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 align-middle text-[11px] font-medium text-[color:var(--app-muted-foreground)]">{t('workStandards.inactive')}</span>;
 }
 
 function PlanSummary({ standard }: { standard: Standard }) {
@@ -247,12 +248,12 @@ function PlanSummary({ standard }: { standard: Standard }) {
 
     return (
         <div className="space-y-0.5">
-            <p className="text-gray-900 dark:text-slate-100">{parts.join(' · ')}</p>
-            {standard.standard_measure && <p className="text-xs text-gray-500 dark:text-slate-400">{standard.standard_measure}</p>}
+            <p className="text-[color:var(--app-foreground)]">{parts.join(' · ')}</p>
+            {standard.standard_measure && <p className="text-xs text-[color:var(--app-muted-foreground)]">{standard.standard_measure}</p>}
             {standard.planned_quality !== null && (
-                <p className="text-xs text-gray-500 dark:text-slate-400">{t(`workStandards.qualitySources.${standard.quality_source}`)}{standard.quality_measure ? ` · ${standard.quality_measure}` : ''}</p>
+                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t(`workStandards.qualitySources.${standard.quality_source}`)}{standard.quality_measure ? ` · ${standard.quality_measure}` : ''}</p>
             )}
-            {standard.bpr_reference && <p className="text-xs text-gray-500 dark:text-slate-400">BPR: {standard.bpr_reference}</p>}
+            {standard.bpr_reference && <p className="text-xs text-[color:var(--app-muted-foreground)]">BPR: {standard.bpr_reference}</p>}
         </div>
     );
 }
@@ -275,8 +276,8 @@ function NodeForm({ title, record, url, method, onDone }: { title: string; recor
     }
 
     return (
-        <form onSubmit={submit} className="space-y-3 rounded-xl border border-[color:var(--color-primary)]/30 bg-[color:var(--color-primary)]/5 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h3>
+        <form onSubmit={submit} className="space-y-3 rounded-panel border border-[color:var(--color-primary)]/30 bg-[color:var(--color-primary)]/5 p-4">
+            <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>
             <div className="grid gap-3 sm:grid-cols-[8rem_1fr_1fr]">
                 <Field label={t('workStandards.code')} error={errors.code}>
                     <input className={inputCls} value={form.data.code} maxLength={40} required onChange={(e) => form.setData('code', e.target.value)} />
@@ -292,11 +293,11 @@ function NodeForm({ title, record, url, method, onDone }: { title: string; recor
                 <textarea rows={2} className={inputCls} value={form.data.description} onChange={(e) => form.setData('description', e.target.value)} />
             </Field>
             <div className="flex flex-wrap items-center gap-4">
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
-                    <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
+                <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                    <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
                     {t('workStandards.active')}
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                     {t('workStandards.sortOrder')}
                     <input type="number" min={0} className={`${inputCls} w-24`} value={form.data.sort_order} onChange={(e) => form.setData('sort_order', Number(e.target.value))} />
                 </label>
@@ -334,10 +335,10 @@ function StandardForm({ record, qualitySources, url, method, onDone }: { record?
     }
 
     return (
-        <form onSubmit={submit} className="space-y-3 rounded-xl border border-[color:var(--color-primary)]/30 bg-[color:var(--color-primary)]/5 p-4">
+        <form onSubmit={submit} className="space-y-3 rounded-panel border border-[color:var(--color-primary)]/30 bg-[color:var(--color-primary)]/5 p-4">
             <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{record ? t('workStandards.editDraft') : t('workStandards.newVersion')}</h3>
-                <p className="mt-1 text-xs text-gray-600 dark:text-slate-400">{t('workStandards.standardHelp')}</p>
+                <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{record ? t('workStandards.editDraft') : t('workStandards.newVersion')}</h3>
+                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('workStandards.standardHelp')}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
                 <Field label={t('workStandards.standardMeasure')} error={errors.standard_measure}>
@@ -404,7 +405,7 @@ function Field({ label, error, help, children }: { label: string; error?: string
         <label className="block">
             <span className={labelCls}>{label}</span>
             {children}
-            {help && !error && <span className="mt-1 block text-xs text-gray-500 dark:text-slate-400">{help}</span>}
+            {help && !error && <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">{help}</span>}
             {error && <span role="alert" className="mt-1 block text-xs text-red-700 dark:text-red-400">{error}</span>}
         </label>
     );

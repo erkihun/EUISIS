@@ -14,4 +14,7 @@ return [
     'no_providers' => 'No providers found',
     'active_providers' => 'Active Providers',
     'provider_user_saved' => 'Provider user created successfully.',
+    'created' => 'Service provider created.',
+    'updated' => 'Service provider updated.',
+    'deleted' => 'Service provider deleted.',
 ];

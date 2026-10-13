@@ -55,6 +55,12 @@
     --color-primary-strong: #122170;
     --color-primary-soft:   #5d72bf;
     --color-primary:        var(--color-primary-strong);
+    /* Text on a primary fill, chosen per variant by AuthenticatedLayout
+       (readableForeground): a bright brand colour's lighter dark-theme
+       variant needs dark text. */
+    --color-on-primary-strong: #ffffff;
+    --color-on-primary-soft:   #ffffff;
+    --color-on-primary:        var(--color-on-primary-strong);
     /* Navy is already near-black, so hover LIGHTENS rather than darkens —
        darkening reads as "disabled" against a white surface. */
     --color-primary-hover:  #1d3084;
@@ -227,6 +233,7 @@
     /* On a dark surface the 700 navy has too little contrast to read as an
        action colour, so the interactive primary steps up the scale. */
     --color-primary:       var(--color-primary-soft);
+    --color-on-primary:    var(--color-on-primary-soft);
     --color-primary-hover: #8f9fd8;
     --color-primary-light: #1d3084;
     --color-accent:        var(--color-accent-soft);
@@ -306,7 +313,29 @@ html [data-sonner-toaster] {
 /* ── Sidebar scrollbar ──────────────────────────────────────── */
 .sidebar-scroll::-webkit-scrollbar       { width: 4px; }
 .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
-.sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+/* The thumb is mixed from the sidebar foreground, so it suits whatever sidebar colour is configured. */
+.sidebar-scroll::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--sidebar-fg) 28%, transparent); border-radius: 9999px; }
+
+/* ── Dot-matrix texture ─────────────────────────────────────
+ * A faint dot grid in the element's own text colour, drawn on a pseudo
+ * element behind the content and fading out towards the start edge, so it
+ * reads as texture beside a title rather than as a pattern under text. Used
+ * by the page heading band and the sidebar brand block. */
+.app-dot-grid {
+    position: relative;
+    isolation: isolate;
+}
+.app-dot-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, currentColor 16%, transparent) 1px, transparent 1.6px);
+    background-size: 16px 16px;
+    -webkit-mask-image: linear-gradient(to left, #000 15%, transparent 70%);
+    mask-image: linear-gradient(to left, #000 15%, transparent 70%);
+}
 
 /* ── Sticky table headers (controlled by setting) ───────────── */
 html[data-sticky-tables="true"] thead th {
@@ -328,6 +357,17 @@ html[data-animations="false"] *::before,
 html[data-animations="false"] *::after {
     transition-duration: 0ms !important;
     animation-duration: 0ms !important;
+}
+
+/* The operating-system preference is honoured the same way as the setting. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0ms !important;
+        animation-duration: 0ms !important;
+        scroll-behavior: auto !important;
+    }
 }
 
 /* ── Table density (controlled by setting) ──────────────────── */
@@ -540,3 +580,26 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
     .public-prose th, .public-prose td { border: 1px solid var(--app-border); padding: 0.5em 0.75em; text-align: start; }
     .public-prose th { background: var(--app-surface-muted); font-weight: 600; }
 }
+
+/* ── Sign-in motion (Pages/Auth/Login) ─────────────────────── */
+/* Transform and opacity only, so the page costs nothing to paint; the animations setting and the
+   reduced-motion preference above zero every duration, which leaves each element in its final state. */
+@keyframes login-drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(6%, -9%, 0) scale(1.18); }
+}
+@keyframes login-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-orbit {
+    to { transform: rotate(360deg); }
+}
+@keyframes login-sheen {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+.login-blob { animation: login-drift 22s ease-in-out infinite alternate; will-change: transform; }
+.login-rise { animation: login-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.login-orbit { animation: login-orbit 28s linear infinite; transform-origin: 200px 200px; transform-box: view-box; }
+.login-sheen { background-size: 200% 100%; animation: login-sheen 7s linear infinite; }

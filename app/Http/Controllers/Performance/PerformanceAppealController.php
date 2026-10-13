@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Appeal review queue: committee members see their committees' appeals; reviewers their scope. */
 class PerformanceAppealController extends PerformanceController
@@ -77,13 +77,14 @@ class PerformanceAppealController extends PerformanceController
         return $this->saved();
     }
 
-    public function attachment(Request $request, PerformanceAppeal $appeal): BinaryFileResponse
+    public function attachment(Request $request, PerformanceAppeal $appeal): StreamedResponse
     {
         $user = $request->user();
         $own = $this->access->employeeOf($user)?->getKey() === $appeal->employee_id;
         abort_unless($appeal->attachment_path !== null && ($own || $this->appeals->canDecide($user, $appeal) || $this->access->inScope($user, 'performance_appeals.review', $appeal->organization_id)), 403);
 
-        return response()->download(Storage::disk('local')->path($appeal->attachment_path), $appeal->attachment_name ?? 'attachment', ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store']);
+        // Streamed from the disk (local or shared object storage), never a node-local path.
+        return Storage::disk('local')->download($appeal->attachment_path, $appeal->attachment_name ?? 'attachment', ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store']);
     }
 
     /** @return array<string, mixed> */

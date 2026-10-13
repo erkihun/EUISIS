@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Security\Passwords\PasswordPolicy;
 use App\Services\Users\AssignableUserRoleService;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -25,7 +26,7 @@ class UserUpdateRequest extends FormRequest
             $nid = trim((string) $this->input('national_id', '')) ?: null;
             $this->merge([
                 'national_id' => $nid,
-                'national_id_hash' => $nid !== null ? hash('sha256', $nid) : null,
+                'national_id_hash' => $nid !== null ? NationalIdHash::of($nid) : null,
             ]);
         }
     }

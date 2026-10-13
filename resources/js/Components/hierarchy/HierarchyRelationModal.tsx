@@ -8,6 +8,7 @@ import { toDateInput } from '@/lib/dateUtils';
 import type { HierarchyEdge, OrganizationOption } from '@/Components/hierarchy/types';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
+import { buttonClassName, cx, selectClassName } from '@/Components/ui';
 type RelationFormData = {
     parent_organization_id: string;
     child_organization_id: string;
@@ -95,11 +96,11 @@ export default function HierarchyRelationModal({
 
     return (
         <Modal show={show} onClose={closeModal} maxWidth="2xl">
-            <div className="border-b border-gray-200 px-6 py-4 dark:border-slate-800">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+            <div className="border-b border-[color:var(--app-border)] px-6 py-4">
+                <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">
                     {mode === 'create' ? t('hierarchyVersions.addRelation') : t('hierarchyVersions.editRelation')}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
                     {t('hierarchyVersions.previewUpdatesBeforeSaving')}
                 </p>
             </div>
@@ -129,13 +130,13 @@ export default function HierarchyRelationModal({
 
                 <div className="grid gap-4 md:grid-cols-3">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-slate-300">
+                        <label className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
                             {t('hierarchyVersions.relationshipType')}
                         </label>
                         <select
                             value={form.data.relationship_type}
                             onChange={(event) => form.setData('relationship_type', event.target.value)}
-                            className="w-full rounded-card border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                            className={cx(selectClassName, 'w-full')}
                         >
                             {relationshipTypes.map((type) => (
                                 <option key={type} value={type}>
@@ -147,36 +148,36 @@ export default function HierarchyRelationModal({
                     </div>
 
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-slate-300">
+                        <label className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
                             {t('hierarchyVersions.effectiveFrom')}
                         </label>
                         <LocalizedDatePicker
                             value={form.data.effective_from}
                             onChange={(iso) => form.setData('effective_from', iso)}
-                            className="w-full rounded-card border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                            className="w-full rounded-card border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20"
                         />
                         {form.errors.effective_from && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{form.errors.effective_from}</p>}
                     </div>
 
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-slate-300">
+                        <label className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
                             {t('hierarchyVersions.effectiveTo')}
                         </label>
                         <LocalizedDatePicker
                             value={form.data.effective_to}
                             onChange={(iso) => form.setData('effective_to', iso)}
-                            className="w-full rounded-card border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                            className="w-full rounded-card border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20"
                         />
                         {form.errors.effective_to && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{form.errors.effective_to}</p>}
                     </div>
                 </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-slate-800">
+            <div className="flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] px-6 py-4">
                 <button
                     type="button"
                     onClick={closeModal}
-                    className="rounded-card border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className={buttonClassName({ variant: 'outline' })}
                 >
                     {t('common.cancel')}
                 </button>
@@ -184,7 +185,7 @@ export default function HierarchyRelationModal({
                     type="button"
                     onClick={submit}
                     disabled={form.processing}
-                    className="rounded-card bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                    className={buttonClassName({ variant: 'primary' })}
                 >
                     {form.processing ? t('common.saving') : t('hierarchyVersions.saveRelation')}
                 </button>

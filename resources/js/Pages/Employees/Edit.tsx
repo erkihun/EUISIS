@@ -20,6 +20,7 @@ import {
     labelCls,
 } from '@/Components/employees/EmployeeFormLayout';
 
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 /** Mirrors App\Enums\EmploymentType — how an employee is engaged. */
 const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation', 'daily_labor', 'intern', 'other'] as const;
 
@@ -280,12 +281,12 @@ export default function EmployeesEdit({
                                             <img
                                                 src={employee.photo_url}
                                                 alt=""
-                                                className="h-20 w-16 rounded-lg border border-gray-200 object-cover dark:border-slate-700"
+                                                className="h-20 w-16 rounded-lg border border-[color:var(--app-border)] object-cover"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={toggleRemovePhoto}
-                                                className="text-xs text-red-500 transition hover:text-red-700"
+                                                className={actionLinkClassName({ tone: 'danger' })}
                                             >
                                                 {t('common.remove')}
                                             </button>
@@ -302,13 +303,13 @@ export default function EmployeesEdit({
                                                 onClick={clearNewPhoto}
                                                 aria-label={t('employees.removePhoto')}
                                                 title={t('employees.removePhoto')}
-                                                className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white hover:bg-red-600"
+                                                className={buttonClassName({ variant: 'destructive', size: 'sm', className: 'absolute w-5' })}
                                             >
                                                 ×
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="flex h-20 w-16 items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 dark:border-slate-600 dark:text-slate-500">
+                                        <div className="flex h-20 w-16 items-center justify-center rounded-lg border-2 border-dashed border-[color:var(--app-border-strong)] text-[color:var(--app-muted-foreground)]">
                                             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
@@ -325,7 +326,7 @@ export default function EmployeesEdit({
                                             <button
                                                 type="button"
                                                 onClick={toggleRemovePhoto}
-                                                className="ml-auto text-xs text-red-500 transition hover:text-red-700"
+                                                className={actionLinkClassName({ tone: 'danger', className: 'ml-auto' })}
                                             >
                                                 {t('common.undo')}
                                             </button>
@@ -337,7 +338,7 @@ export default function EmployeesEdit({
                                             type="file"
                                             accept="image/jpeg,image/png,image/webp"
                                             onChange={handlePhotoChange}
-                                            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300"
+                                            className="w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm text-[color:var(--app-foreground)] file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
                                         />
                                     )}
                                     <p className={helpCls}>{t('employees.photoHint')}</p>
@@ -455,7 +456,7 @@ export default function EmployeesEdit({
                           * history and the position-occupancy rules intact.
                           */}
                         <div className="md:col-span-2">
-                            <div className="rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
+                            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4">
                                 <dl className="grid gap-4 sm:grid-cols-3">
                                     <ReadOnlyValue
                                         label={t('employees.currentOrganization')}

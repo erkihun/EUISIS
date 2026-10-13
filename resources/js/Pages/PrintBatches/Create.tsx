@@ -6,6 +6,7 @@ import { Head, useForm, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState, FormEvent } from 'react';
 
+import { buttonClassName } from '@/Components/ui';
 type CardRow = {
     id: string;
     card_number: string;
@@ -48,33 +49,33 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
 
             <div className="max-w-3xl">
                 {pendingCards.length === 0 ? (
-                    <div className="rounded-panel border border-gray-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-8">
                         <EmptyState title={idCards.noPendingPrintCards ?? 'No approved cards pending print'} />
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit}>
-                        <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                            <div className="border-b border-gray-100 p-4 dark:border-slate-800">
-                                <p className="text-sm text-gray-600 dark:text-slate-400">
+                        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                            <div className="border-b border-[color:var(--app-border)] p-4">
+                                <p className="text-sm text-[color:var(--app-muted-foreground)]">
                                     {idCards.selectCardsForBatch ?? 'Select approved cards to add to this print batch'}
                                     {' '}({selected.length} selected)
                                 </p>
                             </div>
-                            <div className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <div className="divide-y divide-[color:var(--app-border)]">
                                 {pendingCards.map((card) => (
                                     <label
                                         key={card.id}
-                                        className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800/50"
+                                        className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-[color:var(--app-surface-muted)]"
                                     >
                                         <input
                                             type="checkbox"
                                             checked={selected.includes(card.id)}
                                             onChange={() => toggleCard(card.id)}
-                                            className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                                            className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <p className="font-mono text-sm font-medium text-gray-900 dark:text-slate-100">{card.card_number}</p>
-                                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                                            <p className="font-mono text-sm font-medium text-[color:var(--app-foreground)]">{card.card_number}</p>
+                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                 {card.employee?.employee_number} · {card.employee?.full_name}
                                                 {card.employee?.current_assignment?.organization?.name_en
                                                     ? ` · ${card.employee.current_assignment.organization.name_en}`
@@ -94,14 +95,14 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
                         <div className="mt-4 flex justify-end gap-3">
                             <Link
                                 href={route('print-batches.index')}
-                                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300"
+                                className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                             >
                                 {t('common.cancel')}
                             </Link>
                             <button
                                 type="submit"
                                 disabled={selected.length === 0 || form.processing}
-                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 {form.processing ? t('common.saving') : `${idCards.createPrintBatch} (${selected.length})`}
                             </button>

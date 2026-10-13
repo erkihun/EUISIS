@@ -28,9 +28,34 @@ return [
     |
     */
 
+    /*
+    | Multi-node production: every app node must see the same files, so the
+    | `local` (private) and `public` disks can each be pointed at shared
+    | S3-compatible object storage without code changes:
+    |
+    |   STORAGE_PRIVATE_DRIVER=s3  STORAGE_PRIVATE_BUCKET=...  (private, never public URLs)
+    |   STORAGE_PUBLIC_DRIVER=s3   STORAGE_PUBLIC_BUCKET=...   STORAGE_PUBLIC_URL=...
+    |
+    | Credentials/endpoint come from the AWS_* variables (any S3-compatible
+    | service, e.g. MinIO, with AWS_ENDPOINT + AWS_USE_PATH_STYLE_ENDPOINT).
+    | Left unset, both stay on node-local disk (single-node / development).
+    | See docs/load-balancing.md and docs/production-runbook.md.
+    */
     'disks' => [
 
-        'local' => [
+        'local' => env('STORAGE_PRIVATE_DRIVER', 'local') === 's3' ? [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('STORAGE_PRIVATE_BUCKET', env('AWS_BUCKET')),
+            'root' => env('STORAGE_PRIVATE_ROOT', 'private'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ] : [
             'driver' => 'local',
             'root' => storage_path('app/private'),
             'serve' => true,
@@ -38,7 +63,20 @@ return [
             'report' => false,
         ],
 
-        'public' => [
+        'public' => env('STORAGE_PUBLIC_DRIVER', 'local') === 's3' ? [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('STORAGE_PUBLIC_BUCKET', env('AWS_BUCKET')),
+            'root' => env('STORAGE_PUBLIC_ROOT', 'public'),
+            'url' => env('STORAGE_PUBLIC_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'visibility' => 'public',
+            'throw' => true,
+            'report' => true,
+        ] : [
             'driver' => 'local',
             'root' => storage_path('app/public'),
             'url' => env('APP_URL').'/storage',

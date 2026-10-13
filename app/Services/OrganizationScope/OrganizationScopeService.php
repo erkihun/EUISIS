@@ -8,6 +8,7 @@ use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationClosurePath;
@@ -196,6 +197,28 @@ class OrganizationScopeService
         }
 
         return $query->whereIn($column, $this->allowedOrganizationIds($user));
+    }
+
+    /**
+     * Subquery of employee ids whose current assignment lies inside the
+     * user's scope, for `whereIn('employee_id', ...)` on employee-owned
+     * records. Null when the user is unrestricted (no filter needed). Kept as
+     * a subquery so a large scope never becomes a giant bound-parameter list.
+     *
+     * @return Builder<Employee>|null
+     */
+    public function employeeIdsInScope(User $user): ?Builder
+    {
+        if ($this->isUnrestricted($user)) {
+            return null;
+        }
+
+        return Employee::query()->select('employees.id')->whereIn(
+            'current_assignment_id',
+            EmployeeAssignment::query()->select('id')
+                ->where('is_current', true)
+                ->whereIn('organization_id', $this->allowedOrganizationIds($user)),
+        );
     }
 
     /**

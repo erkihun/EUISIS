@@ -180,6 +180,7 @@ const grievances = {
         information_target: { employee: 'Complainant', hr: 'Human resources', organization_unit: 'Organization unit', organization: 'Organization', external: 'Another institution' },
         information_status: { open: 'Open', responded: 'Responded', closed: 'Closed', cancelled: 'Cancelled' },
         committee_role: { chairperson: 'Chairperson', writer: 'Writer', member: 'Member' },
+        committee_source: { appointed: 'Appointed by the head', elected: 'Elected by employees', hr_representative: 'HR representative' },
         committee_type: {
             grievance: 'Grievance committee', disciplinary: 'Disciplinary committee', tribunal: 'Tribunal panel',
             performance_appeal: 'Performance appeal panel', performance_calibration: 'Performance calibration panel',

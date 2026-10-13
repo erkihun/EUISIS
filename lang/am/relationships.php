@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 return [
     'title' => 'ግንኙነቶች',
-    'reporting_lines' => 'የሪፖርት መስመሮች',
+    'reporting_lines' => 'የተጠሪነት መስመሮች',
     'target_types' => [
         'organization' => 'ተቋም',
-        'institution_office' => 'የተቋም ጽ/ቤት',
-        'organization_unit' => 'የተቋም መዋቅራዊ ክፍል',
+        'institution_office' => 'የተቋም ጽሕፈት ቤት',
+        'organization_unit' => 'የሥራ ክፍል',
     ],
     'types' => [
         'reports_to' => 'ሪፖርት ያቀርባል',
@@ -23,7 +23,7 @@ return [
         'service_delivery' => 'አገልግሎት አቅርቦት',
         'budget_reporting' => 'የበጀት ሪፖርት',
         'temporary_assignment' => 'ጊዜያዊ ምደባ',
-        'dotted_line_reporting' => 'ተጨማሪ የሪፖርት መስመር',
+        'dotted_line_reporting' => 'ተጨማሪ የተጠሪነት መስመር',
         'other' => 'ሌላ',
     ],
     'statuses' => [
@@ -41,10 +41,10 @@ return [
     'validation' => [
         'target_not_found' => 'የተመረጠው የግንኙነት መዳረሻ አልተገኘም።',
         'invalid_effective_dates' => 'የማብቂያ ቀን ከመጀመሪያ ቀን በኋላ ወይም እኩል መሆን አለበት።',
-        'only_one_primary_structural_parent' => 'አንድ ንቁ ዋና መዋቅራዊ ወላጅ ብቻ ይፈቀዳል።',
+        'only_one_primary_structural_parent' => 'አንድ ንቁ ዋና መዋቅራዊ የበላይ ብቻ ይፈቀዳል።',
         'structural_cycle' => 'መዋቅራዊ ግንኙነት ዑደት መፍጠር አይችልም።',
         'invalid_structural_target' => 'ይህን የመዳረሻ ዓይነት እንደ መዋቅራዊ የበላይ መጠቀም አይቻልም።',
-        'invalid_unit_relationship_target' => 'የተቋም መዋቅራዊ ክፍል ግንኙነት ወደ ተቋም ወይም ወደ ሌላ የተቋም መዋቅራዊ ክፍል ብቻ መሆን አለበት።',
+        'invalid_unit_relationship_target' => 'የሥራ ክፍል ግንኙነት ወደ ተቋም ወይም ወደ ሌላ የሥራ ክፍል ብቻ መሆን አለበት።',
         'duplicate_active_relationship' => 'ለዚህ ምንጭ፣ መዳረሻ እና የግንኙነት ዓይነት ንቁ ግንኙነት ቀድሞውኑ አለ።',
     ],
 ];

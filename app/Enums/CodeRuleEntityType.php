@@ -37,6 +37,16 @@ enum CodeRuleEntityType: string
     case TransferApplication = 'transfer_application';
     case InstitutionOffice = 'institution_office';
     case GrievanceCase = 'grievance_case';
+    case PublicServiceComplaint = 'public_service_complaint';
     case GrievanceDecision = 'grievance_decision';
     case GrievanceLetter = 'grievance_letter';
+    case DisciplinaryCase = 'disciplinary_case';
+    // Organization Design & Workforce Planning
+    case InstitutionMandate = 'institution_mandate';
+    case OrganizationPower = 'organization_power';
+    case OrganizationFunction = 'organization_function';
+    case Service = 'service';
+    case Process = 'process';
+    case ProcessActivity = 'process_activity';
+    case ProcessTask = 'process_task';
 }

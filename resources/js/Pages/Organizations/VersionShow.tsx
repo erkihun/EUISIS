@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import StatusBadge from '@/Components/StatusBadge';
 import PageHeader from '@/Components/PageHeader';
 
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type TreeNode = {
     id: string;
     code: string;
@@ -14,11 +15,11 @@ function renderTree(nodes: TreeNode[], depth = 0): JSX.Element[] {
     return nodes.flatMap((node) => [
         <div
             key={node.id}
-            className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+            className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-2 text-sm text-[color:var(--app-foreground)]"
             style={{ marginLeft: `${depth * 16}px` }}
         >
             {node.name_en}{' '}
-            <span className="text-gray-400 dark:text-slate-500">({node.code})</span>
+            <span className="text-[color:var(--app-muted-foreground)]">({node.code})</span>
         </div>,
         ...renderTree(node.children, depth + 1),
     ]);
@@ -54,22 +55,22 @@ export default function VersionShow({
             <Head title={version.version_name} />
 
             <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-xs font-medium text-gray-400 dark:text-slate-500">
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 Version
                             </p>
-                            <h3 className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+                            <h3 className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">
                                 {version.version_name}
                             </h3>
                         </div>
                         <StatusBadge status={version.status} />
                     </div>
 
-                    <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">
+                    <p className="mt-4 text-sm text-[color:var(--app-muted-foreground)]">
                         Approved by:{' '}
-                        <span className="text-gray-800 dark:text-slate-200">
+                        <span className="text-[color:var(--app-foreground)]">
                             {version.approver?.name ?? 'Not yet published'}
                         </span>
                     </p>
@@ -77,7 +78,7 @@ export default function VersionShow({
                     {version.status !== 'published' && (
                         <button
                             type="button"
-                            className="mt-6 rounded-card bg-amber-500 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="mt-6 rounded-card bg-amber-500 px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
                             onClick={() => form.post(route('hierarchy-versions.publish', { hierarchyVersion: version.id }))}
                         >
                             Publish Version
@@ -85,43 +86,43 @@ export default function VersionShow({
                     )}
                 </section>
 
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="font-semibold text-gray-900 dark:text-slate-100">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
                         Hierarchy Tree
                     </h3>
                     <div className="mt-4 space-y-2">{renderTree(tree)}</div>
                 </section>
             </div>
 
-            <section className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="font-semibold text-gray-900 dark:text-slate-100">Edges</h3>
-                <div className="mt-4 overflow-hidden rounded-card border border-gray-100 dark:border-slate-800">
-                    <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+            <section className="mt-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <h3 className="font-semibold text-[color:var(--app-foreground)]">Edges</h3>
+                <div className="mt-4 overflow-hidden rounded-card border border-[color:var(--app-border)]">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
                                 {['Parent', 'Child', 'Relationship'].map((h) => (
                                     <th
                                         key={h}
-                                        className="px-4 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400"
+                                        className={cx(tableHeaderCellClassName, 'text-left')}
                                     >
                                         {h}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className={tableBodyClassName}>
                             {edges.map((edge) => (
                                 <tr
                                     key={edge.id}
-                                    className="border-t border-gray-100 text-gray-700 dark:border-slate-800 dark:text-slate-200"
+                                    className={tableRowClassName}
                                 >
-                                    <td className="px-4 py-3">
+                                    <td className={tableCellClassName}>
                                         {edge.parent_organization?.name_en ?? '—'}
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className={tableCellClassName}>
                                         {edge.child_organization?.name_en ?? '—'}
                                     </td>
-                                    <td className="px-4 py-3">{edge.relationship_type}</td>
+                                    <td className={tableCellClassName}>{edge.relationship_type}</td>
                                 </tr>
                             ))}
                         </tbody>

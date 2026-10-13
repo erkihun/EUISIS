@@ -11,6 +11,7 @@ import NfcStatusBadge, {
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
 
+import { actionLinkClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type Props = {
     credential: {
         credential_id: string;
@@ -56,8 +57,8 @@ type Props = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs text-gray-500 dark:text-slate-400">{label}</dt>
-            <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-100">{children}</dd>
+            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
+            <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">{children}</dd>
         </div>
     );
 }
@@ -80,28 +81,27 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
     };
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('nfc.credential')} />
-
-            <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                 title={t('nfc.credential')}
                 description={employee?.full_name ?? card?.card_number}
                 backHref={route('nfc-management.credentials.index')}
-            />
+            />}>
+            <Head title={t('nfc.credential')} />
+
 
             <NfcSubNav can={can} current="credentials" />
 
             <div className="grid gap-4 lg:grid-cols-3">
                 {/* Credential summary */}
-                <section className="rounded-panel border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 lg:col-span-2">
                     <div className="mb-4 flex items-center justify-between gap-3">
-                        <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('nfc.credentialSummary')}
                         </h2>
                         <NfcStatusBadge status={credential.status} />
                     </div>
 
-                    <p className="mb-4 break-all rounded-lg bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700 dark:bg-slate-950 dark:text-slate-300">
+                    <p className="mb-4 break-all rounded-lg bg-[color:var(--app-surface-muted)] px-3 py-2 font-mono text-xs text-[color:var(--app-foreground)]">
                         {credential.credential_id}
                     </p>
 
@@ -126,7 +126,7 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
                             {credential.replaced_by ? (
                                 <Link
                                     href={route('nfc-management.credentials.show', credential.replaced_by)}
-                                    className="break-all font-mono text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                    className={actionLinkClassName({ className: 'break-all font-mono' })}
                                 >
                                     {credential.replaced_by.slice(0, 18)}…
                                 </Link>
@@ -139,8 +139,8 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
 
                 {/* Linked card + employee */}
                 <div className="space-y-4">
-                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <h2 className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('nfc.linkedIdCard')}
                         </h2>
                         {card ? (
@@ -164,15 +164,15 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
                                 </Field>
                             </dl>
                         ) : (
-                            <p className="text-sm text-gray-500 dark:text-slate-400">—</p>
+                            <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>
                         )}
                         <p className="mt-4 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
                             {t('nfc.qrUnaffectedNote')}
                         </p>
                     </section>
 
-                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <h2 className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('nfc.employee')}
                         </h2>
                         {employee ? (
@@ -186,34 +186,34 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
                                 <Field label={t('nfc.position')}>{positionTitle}</Field>
                             </dl>
                         ) : (
-                            <p className="text-sm text-gray-500 dark:text-slate-400">—</p>
+                            <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>
                         )}
                     </section>
                 </div>
             </div>
 
             {/* Lifecycle */}
-            <section className="mt-4 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+            <section className="mt-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                     {t('nfc.lifecycleHistory')}
                 </h2>
                 {lifecycle.length === 0 ? (
-                    <p className="text-sm text-gray-500 dark:text-slate-400">{t('nfc.noLifecycle')}</p>
+                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('nfc.noLifecycle')}</p>
                 ) : (
                     <ol className="space-y-3">
                         {lifecycle.map((entry, index) => (
                             <li key={`${entry.event}-${index}`} className="flex flex-wrap items-center gap-3 text-sm">
                                 <span className="h-2 w-2 shrink-0 rounded-full bg-blue-500" />
-                                <span className="font-medium text-gray-900 dark:text-slate-100">
+                                <span className="font-medium text-[color:var(--app-foreground)]">
                                     {eventLabel(entry.event)}
                                 </span>
                                 <LocalizedDateDisplay
                                     value={entry.at}
                                     withTime
-                                    className="text-gray-500 dark:text-slate-400"
+                                    className="text-[color:var(--app-muted-foreground)]"
                                 />
                                 {entry.actor && (
-                                    <span className="text-xs text-gray-400 dark:text-slate-500">{entry.actor}</span>
+                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">{entry.actor}</span>
                                 )}
                             </li>
                         ))}
@@ -222,44 +222,44 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
             </section>
 
             {/* Verification activity */}
-            <section className="mt-4 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <h2 className="mb-1 text-sm font-semibold text-gray-900 dark:text-slate-100">
+            <section className="mt-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <h2 className="mb-1 text-sm font-semibold text-[color:var(--app-foreground)]">
                     {t('nfc.recentActivity')}
                 </h2>
-                <p className="mb-4 text-xs text-gray-500 dark:text-slate-400">{t('nfc.logsPrivacyNote')}</p>
+                <p className="mb-4 text-xs text-[color:var(--app-muted-foreground)]">{t('nfc.logsPrivacyNote')}</p>
 
                 {activity.length === 0 ? (
-                    <p className="text-sm text-gray-500 dark:text-slate-400">{t('nfc.noActivity')}</p>
+                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('nfc.noActivity')}</p>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-800">
-                            <thead className="text-left text-xs text-gray-500 dark:text-slate-400">
+                        <table className={cx(tableClassName, 'min-w-full')}>
+                            <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
-                                    <th className="py-2 pr-4">{t('nfc.time')}</th>
-                                    <th className="py-2 pr-4">{t('nfc.terminal')}</th>
-                                    <th className="py-2 pr-4">{t('nfc.serviceType')}</th>
-                                    <th className="py-2 pr-4">{t('nfc.result')}</th>
-                                    <th className="py-2">{t('nfc.reasonCode')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.time')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.terminal')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.serviceType')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.result')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.reasonCode')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className={tableBodyClassName}>
                                 {activity.map((entry) => (
                                     <tr key={entry.id}>
-                                        <td className="py-2 pr-4 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             <LocalizedDateDisplay value={entry.occurred_at} withTime />
                                         </td>
-                                        <td className="py-2 pr-4 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {entry.terminal
                                                 ? `${entry.terminal.terminal_code} (${terminalTypeLabel(entry.terminal.terminal_type)})`
                                                 : '—'}
                                         </td>
-                                        <td className="py-2 pr-4 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {entry.terminal?.service_type ?? '—'}
                                         </td>
-                                        <td className="py-2 pr-4">
+                                        <td className={tableCellClassName}>
                                             <NfcResultBadge result={entry.result} />
                                         </td>
-                                        <td className="py-2 font-mono text-xs text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
                                             {entry.reason_code ?? '—'}
                                         </td>
                                     </tr>

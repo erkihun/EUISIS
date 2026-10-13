@@ -24,21 +24,26 @@ class PositionEstablishmentController extends Controller
     {
         $this->authorize('viewAny', PositionEstablishment::class);
 
+        // The same filter bar as every other list: search by number, status and organization, kept in the query string.
+        $statuses = array_column(EstablishmentStatus::cases(), 'value');
+        $status = $request->string('status')->toString();
+        $filters = [
+            'search' => $request->string('search')->trim()->toString(),
+            'status' => in_array($status, $statuses, true) ? $status : '',
+            'organization_id' => $request->string('organization_id')->toString(),
+        ];
+
         $query = PositionEstablishment::query()
             ->with(['organization', 'position', 'occupation', 'approvedBy'])
+            ->when($filters['search'] !== '', fn ($q) => $q->where('establishment_number', ci_like_operator(), '%'.$filters['search'].'%'))
+            ->when($filters['status'] !== '', fn ($q) => $q->where('status', $filters['status']))
+            ->when($filters['organization_id'] !== '', fn ($q) => $q->where('organization_id', $filters['organization_id']))
             ->latest();
-
-        if ($request->filled('organization_id')) {
-            $query->where('organization_id', $request->string('organization_id'));
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->string('status'));
-        }
 
         return Inertia::render('PositionEstablishments/Index', [
             'establishments' => $query->paginate(20)->withQueryString(),
-            'filters' => $request->only('organization_id', 'status'),
+            'filters' => $filters,
+            'filterOptions' => ['statuses' => $statuses],
         ]);
     }
 
@@ -50,7 +55,7 @@ class PositionEstablishmentController extends Controller
         $user = $request->user();
         $action->execute($request->validated(), $user);
 
-        return back()->with('flash', ['message' => __('positionEstablishments.created'), 'type' => 'success']);
+        return back()->with('flash', ['message' => __('position-establishments.created'), 'type' => 'success']);
     }
 
     public function show(PositionEstablishment $positionEstablishment): Response
@@ -88,7 +93,7 @@ class PositionEstablishmentController extends Controller
         $positionEstablishment->update($request->validated());
 
         return to_route('position-establishments.show', $positionEstablishment)
-            ->with('flash', ['message' => __('positionEstablishments.updated'), 'type' => 'success']);
+            ->with('flash', ['message' => __('position-establishments.updated'), 'type' => 'success']);
     }
 
     public function approve(
@@ -102,7 +107,7 @@ class PositionEstablishmentController extends Controller
 
         $action->execute($positionEstablishment, $user);
 
-        return back()->with('flash', ['message' => __('positionEstablishments.approved'), 'type' => 'success']);
+        return back()->with('flash', ['message' => __('position-establishments.approved'), 'type' => 'success']);
     }
 
     public function archive(PositionEstablishment $positionEstablishment): RedirectResponse
@@ -113,6 +118,6 @@ class PositionEstablishmentController extends Controller
         $positionEstablishment->delete();
 
         return to_route('position-establishments.index')
-            ->with('flash', ['message' => __('positionEstablishments.archived'), 'type' => 'success']);
+            ->with('flash', ['message' => __('position-establishments.archived'), 'type' => 'success']);
     }
 }

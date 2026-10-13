@@ -19,7 +19,7 @@ readonly class ApprovePositionEstablishmentAction
     {
         if ($establishment->status !== EstablishmentStatus::Draft) {
             throw ValidationException::withMessages([
-                'status' => __('positionEstablishments.alreadyApproved'),
+                'status' => __('position-establishments.alreadyApproved'),
             ]);
         }
 

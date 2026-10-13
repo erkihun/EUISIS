@@ -93,9 +93,9 @@ class EthiopianCalendarService
         $m = intdiv(5 * $e + 2, 153);
 
         return [
-            'year'  => 100 * $b + $d - 4800 + intdiv($m, 10),
+            'year' => 100 * $b + $d - 4800 + intdiv($m, 10),
             'month' => $m + 3 - 12 * intdiv($m, 10),
-            'day'   => $e - intdiv(153 * $m + 2, 5) + 1,
+            'day' => $e - intdiv(153 * $m + 2, 5) + 1,
         ];
     }
 
@@ -110,23 +110,23 @@ class EthiopianCalendarService
         if ($diff < 0) {
             // Shift into positive range using a multiple of 1461
             $cycles = (int) ceil(-$diff / 1461);
-            $diff  += $cycles * 1461;
+            $diff += $cycles * 1461;
             $baseYear = -4 * $cycles;
         } else {
             $baseYear = 0;
         }
 
         $cycle = intdiv($diff, 1461);
-        $r     = $diff % 1461;                             // 0 … 1460
+        $r = $diff % 1461;                             // 0 … 1460
 
         // year-in-cycle: 0..3  (year 4 is the leap year at r=1095..1460)
         $yearInCycle = intdiv($r, 365) - intdiv($r, 1460);
-        $dayOfYear   = $r - $yearInCycle * 365;            // 0 … 364 (or 365 on leap day)
+        $dayOfYear = $r - $yearInCycle * 365;            // 0 … 364 (or 365 on leap day)
 
         return [
-            'year'  => 4 * $cycle + $yearInCycle + 1 + $baseYear,
+            'year' => 4 * $cycle + $yearInCycle + 1 + $baseYear,
             'month' => intdiv($dayOfYear, 30) + 1,
-            'day'   => ($dayOfYear % 30) + 1,
+            'day' => ($dayOfYear % 30) + 1,
         ];
     }
 
@@ -198,23 +198,32 @@ class EthiopianCalendarService
         return $locale === 'am' ? self::WEEKDAY_NAMES_AM : self::WEEKDAY_NAMES_EN;
     }
 
-    public function formatEthiopianDate(int $year, int $month, int $day, string $locale = 'am'): string
-    {
+    public function formatEthiopianDate(
+        int $year,
+        int $month,
+        int $day,
+        string $locale = 'am',
+        bool $zeroPadDay = false,
+    ): string {
         $months = $this->ethiopianMonthNames($locale);
         $monthName = $months[$month] ?? (string) $month;
+        $dayDisplay = $zeroPadDay ? str_pad((string) $day, 2, '0', STR_PAD_LEFT) : (string) $day;
 
         if ($locale === 'am') {
-            return "{$monthName} {$day}, {$year}";
+            return "{$monthName} {$dayDisplay}, {$year}";
         }
 
-        return "{$monthName} {$day}, {$year} E.C.";
+        return "{$monthName} {$dayDisplay}, {$year} E.C.";
     }
 
-    public function formatGregorianDateAsEthiopian(Carbon $date, string $locale = 'am'): string
-    {
+    public function formatGregorianDateAsEthiopian(
+        Carbon $date,
+        string $locale = 'am',
+        bool $zeroPadDay = false,
+    ): string {
         $eth = $this->gregorianToEthiopian($date->year, $date->month, $date->day);
 
-        return $this->formatEthiopianDate($eth['year'], $eth['month'], $eth['day'], $locale);
+        return $this->formatEthiopianDate($eth['year'], $eth['month'], $eth['day'], $locale, $zeroPadDay);
     }
 
     // ─── Helper ─────────────────────────────────────────────────────────────

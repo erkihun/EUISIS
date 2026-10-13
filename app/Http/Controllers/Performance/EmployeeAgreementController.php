@@ -34,10 +34,11 @@ use App\Services\Performance\TargetAmendmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Manager/HR side of employee agreements. The employee side is MyPerformanceController. */
 class EmployeeAgreementController extends PerformanceController
@@ -233,11 +234,12 @@ class EmployeeAgreementController extends PerformanceController
         return $this->saved();
     }
 
-    public function downloadEvidence(Request $request, PerformanceEvidence $evidence): BinaryFileResponse
+    public function downloadEvidence(Request $request, PerformanceEvidence $evidence): StreamedResponse
     {
         abort_unless($this->evidence->canDownload($request->user(), $evidence), 403);
 
-        return response()->download($this->evidence->path($evidence), $evidence->original_name ?? 'evidence', [
+        // Streamed from the disk (local or shared object storage), never a node-local path.
+        return Storage::disk('local')->download($evidence->file_path, $evidence->original_name ?? 'evidence', [
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'private, no-store',
         ]);

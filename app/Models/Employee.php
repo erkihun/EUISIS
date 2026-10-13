@@ -10,6 +10,7 @@ use App\Enums\EmploymentType;
 use App\Enums\FeedbackTokenStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Observers\EmployeeCardImpactObserver;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -92,7 +93,7 @@ class Employee extends Model
     {
         $plain = ($value !== null && $value !== '') ? (string) $value : null;
         $this->attributes['national_id'] = $plain !== null ? encrypt($plain) : null;
-        $this->attributes['national_id_hash'] = $plain !== null ? hash('sha256', $plain) : null;
+        $this->attributes['national_id_hash'] = $plain !== null ? NationalIdHash::of($plain) : null;
     }
 
     public function getPhotoUrlAttribute(): ?string

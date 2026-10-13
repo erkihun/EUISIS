@@ -5,6 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 
+import { actionLinkClassName, badgeClassName, buttonClassName } from '@/Components/ui';
 interface TreeNode {
     id: string;
     office_code: string;
@@ -37,14 +38,14 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
     return (
         <li>
             <div
-                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-800"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-[color:var(--app-surface-muted)]"
                 style={{ paddingLeft: `${(depth * 20) + 12}px` }}
             >
                 {hasChildren ? (
                     <button
                         type="button"
                         onClick={() => setExpanded(!expanded)}
-                        className="flex h-5 w-5 items-center justify-center rounded text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                        className="flex h-5 w-5 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-muted-foreground)]"
                     >
                         {expanded ? '▾' : '▸'}
                     </button>
@@ -53,20 +54,20 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                 )}
 
                 <div className="flex flex-1 flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs text-gray-400 dark:text-slate-500">
+                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
                         {node.office_code}
                     </span>
                     <Link
                         href={route('institution-offices.show', node.id)}
-                        className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                        className={actionLinkClassName({ size: 'sm' })}
                     >
                         {node.name_en ?? node.office_code}
                     </Link>
-                    <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                    <span className={badgeClassName('info')}>
                         {node.office_level}
                     </span>
                     {node.is_head_office && (
-                        <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                        <span className={badgeClassName('warning')}>
                             {t('institutionOffices.headOffice')}
                         </span>
                     )}
@@ -76,13 +77,13 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                 <div className="flex items-center gap-1.5">
                     <Link
                         href={route('institution-offices.show', node.id)}
-                        className="text-xs text-gray-500 hover:text-[color:var(--color-primary)] dark:text-slate-400 dark:hover:text-blue-400"
+                        className={actionLinkClassName({ tone: 'neutral' })}
                     >
                         {t('common.view')}
                     </Link>
                     <Link
                         href={route('institution-offices.edit', node.id)}
-                        className="text-xs text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                        className={actionLinkClassName({ tone: 'neutral' })}
                     >
                         {t('common.edit')}
                     </Link>
@@ -113,7 +114,7 @@ export default function InstitutionOfficesTree({ institution, tree, can }: Props
                         can.create ? (
                             <Link
                                 href={`${route('institution-offices.create')}?institution_id=${institution.id}`}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 + {t('institutionOffices.addOffice')}
                             </Link>
@@ -124,9 +125,9 @@ export default function InstitutionOfficesTree({ institution, tree, can }: Props
         >
             <Head title={`${t('institutionOffices.treeView')} — ${institution.name_en}`} />
 
-            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                 {tree.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-gray-400 dark:text-slate-500">
+                    <p className="py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">
                         {t('institutionOffices.noOffices')}
                     </p>
                 ) : (

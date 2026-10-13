@@ -1,3 +1,4 @@
+import { FilterField } from '@/Components/ui';
 import { ExportButtons, Filters, OUTCOMES, OversightLayout, StatusBadge, named, pct, type ShellProps } from '@/Components/assessmentOversight/shell';
 import { Table, TablePanel, filterInputCls, inputCls, smallBtn, smallPrimaryBtn, tdCls, thCls, type Paginator } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
@@ -39,40 +40,54 @@ export default function OversightEmployees(props: Props) {
             active={unassessedView ? 'unassessed' : 'coverage'} shell={props}
             actions={cycle && can.export ? <ExportButtons report="unassessed" cycle={cycle} filters={{ ...filters, outcome: filters.outcome ?? 'unassessed' }} /> : undefined}>
             <Filters routeName="assessment-oversight.employees" cycle={cycle}>
-                <input name="search" aria-label={t('assessmentOversight.searchEmployee')} placeholder={t('assessmentOversight.searchEmployee')} className={filterInputCls} defaultValue={filters.search ?? ''} />
+                <FilterField label={t('assessmentOversight.searchEmployee')} wide>
+                    <input name="search" placeholder={t('assessmentOversight.searchEmployee')} className={filterInputCls} defaultValue={filters.search ?? ''} />
+                </FilterField>
                 {props.organizations.length > 1 && (
-                    <select name="organization_id" aria-label={t('assessmentOversight.institution')} className={filterInputCls} defaultValue={filters.organization_id ?? ''}>
-                        <option value="">{t('assessmentOversight.allInstitutions')}</option>
-                        {props.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-                    </select>
+                    <FilterField label={t('assessmentOversight.institution')}>
+                        <select name="organization_id" className={filterInputCls} defaultValue={filters.organization_id ?? ''}>
+                            <option value="">{t('assessmentOversight.allInstitutions')}</option>
+                            {props.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                        </select>
+                    </FilterField>
                 )}
                 {props.organizations.length <= 1 && filters.organization_id && <input type="hidden" name="organization_id" value={filters.organization_id} />}
                 {props.units.length > 0 && (
-                    <select name="organization_unit_id" aria-label={t('assessmentOversight.unit')} className={filterInputCls} defaultValue={filters.organization_unit_id ?? ''}>
-                        <option value="">{t('assessmentOversight.allUnits')}</option>
-                        {props.units.map((u) => <option key={u.id} value={u.id}>{named(u, locale)}</option>)}
-                    </select>
+                    <FilterField label={t('assessmentOversight.unit')}>
+                        <select name="organization_unit_id" className={filterInputCls} defaultValue={filters.organization_unit_id ?? ''}>
+                            <option value="">{t('assessmentOversight.allUnits')}</option>
+                            {props.units.map((u) => <option key={u.id} value={u.id}>{named(u, locale)}</option>)}
+                        </select>
+                    </FilterField>
                 )}
-                <select name="outcome" aria-label={t('assessmentOversight.outcome')} className={filterInputCls} defaultValue={filters.outcome ?? ''}>
-                    <option value="">{t('assessmentOversight.allOutcomes')}</option>
-                    <option value="unassessed">{t('assessmentOversight.unassessed')}</option>
-                    {OUTCOMES.map((o) => <option key={o} value={o}>{t(`assessmentOversight.outcomes.${o}`)}</option>)}
-                </select>
-                <select name="eligibility_status" aria-label={t('assessmentOversight.eligibility')} className={filterInputCls} defaultValue={filters.eligibility_status ?? ''}>
-                    <option value="">{t('assessmentOversight.allEligibility')}</option>
-                    <option value="eligible">{t('assessmentOversight.eligible')}</option>
-                    <option value="excluded">{t('assessmentOversight.excluded')}</option>
-                </select>
+                <FilterField label={t('assessmentOversight.outcome')}>
+                    <select name="outcome" className={filterInputCls} defaultValue={filters.outcome ?? ''}>
+                        <option value="">{t('assessmentOversight.allOutcomes')}</option>
+                        <option value="unassessed">{t('assessmentOversight.unassessed')}</option>
+                        {OUTCOMES.map((o) => <option key={o} value={o}>{t(`assessmentOversight.outcomes.${o}`)}</option>)}
+                    </select>
+                </FilterField>
+                <FilterField label={t('assessmentOversight.eligibility')}>
+                    <select name="eligibility_status" className={filterInputCls} defaultValue={filters.eligibility_status ?? ''}>
+                        <option value="">{t('assessmentOversight.allEligibility')}</option>
+                        <option value="eligible">{t('assessmentOversight.eligible')}</option>
+                        <option value="excluded">{t('assessmentOversight.excluded')}</option>
+                    </select>
+                </FilterField>
                 {can.demographics && (
-                    <select name="gender" aria-label={t('assessmentOversight.gender')} className={filterInputCls} defaultValue={filters.gender ?? ''}>
-                        <option value="">{t('assessmentOversight.allGenders')}</option>
-                        {['male', 'female', 'other', 'unknown'].map((g) => <option key={g} value={g}>{t(`assessmentOversight.genders.${g}`)}</option>)}
-                    </select>
+                    <FilterField label={t('assessmentOversight.gender')}>
+                        <select name="gender" className={filterInputCls} defaultValue={filters.gender ?? ''}>
+                            <option value="">{t('assessmentOversight.allGenders')}</option>
+                            {['male', 'female', 'other', 'unknown'].map((g) => <option key={g} value={g}>{t(`assessmentOversight.genders.${g}`)}</option>)}
+                        </select>
+                    </FilterField>
                 )}
-                <select name="reason_id" aria-label={t('assessmentOversight.reason')} className={filterInputCls} defaultValue={filters.reason_id ?? ''}>
-                    <option value="">{t('assessmentOversight.allReasons')}</option>
-                    {props.reasons.map((r) => <option key={r.id} value={r.id}>{named(r, locale)}</option>)}
-                </select>
+                <FilterField label={t('assessmentOversight.reason')}>
+                    <select name="reason_id" className={filterInputCls} defaultValue={filters.reason_id ?? ''}>
+                        <option value="">{t('assessmentOversight.allReasons')}</option>
+                        {props.reasons.map((r) => <option key={r.id} value={r.id}>{named(r, locale)}</option>)}
+                    </select>
+                </FilterField>
             </Filters>
 
             {excluding && cycle && <ExclusionForm row={excluding} cycleId={cycle.id} reasons={props.exceptionReasons} onDone={() => setExcluding(null)} />}
@@ -95,12 +110,12 @@ export default function OversightEmployees(props: Props) {
                         {rows.data.map((row) => (
                             <tr key={row.employee_id}>
                                 <td className={`${tdCls} tabular-nums`}>{row.employee_number}</td>
-                                <td className={tdCls}>{(locale === 'am' ? row.name : row.name_en) || row.name || row.name_en}<div className="text-xs text-gray-500">{named(row.organization, locale)}</div></td>
+                                <td className={tdCls}>{(locale === 'am' ? row.name : row.name_en) || row.name || row.name_en}<div className="text-xs text-[color:var(--app-muted-foreground)]">{named(row.organization, locale)}</div></td>
                                 {can.demographics && <td className={tdCls}>{t(`assessmentOversight.genders.${row.gender}`)}</td>}
                                 <td className={tdCls}>{(locale === 'am' && row.position.title_am) || row.position.title_en || '—'}</td>
                                 <td className={tdCls}>{row.unit.name_en ? named(row.unit, locale) : '—'}</td>
                                 <td className={tdCls}>
-                                    {row.form ? `${named(row.form, locale)} v${row.form.version_no}` : row.expected_form ? <span className="text-gray-500">{named(row.expected_form, locale)}</span> : <span className="text-red-600">{t(`assessmentOversight.resolution.${row.form_resolution}`)}</span>}
+                                    {row.form ? `${named(row.form, locale)} v${row.form.version_no}` : row.expected_form ? <span className="text-[color:var(--app-muted-foreground)]">{named(row.expected_form, locale)}</span> : <span className="text-red-600">{t(`assessmentOversight.resolution.${row.form_resolution}`)}</span>}
                                 </td>
                                 <td className={tdCls}><StatusBadge group="outcomes" value={row.outcome} /></td>
                                 <td className={`${tdCls} tabular-nums`}>{row.evaluators ? `${row.evaluators.submitted}/${row.evaluators.total}` : '—'}</td>
@@ -126,10 +141,10 @@ function ExclusionForm({ row, cycleId, reasons, onDone }: { row: Row; cycleId: s
     const { t, locale } = useLocale();
     const form = useForm({ eligibility_id: row.eligibility_id, reason_id: reasons[0]?.id ?? '', note: '' });
     return (
-        <form className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+        <form className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
             onSubmit={(e) => { e.preventDefault(); form.post(route('assessment-oversight.exclusions.store', cycleId), { preserveScroll: true, onSuccess: onDone }); }}>
             <h3 className="text-sm font-semibold">{t('assessmentOversight.actions.requestExclusion')}: {row.employee_number} · {(locale === 'am' ? row.name : row.name_en) || row.name}</h3>
-            <p className="mt-1 text-xs text-gray-500">{t('assessmentOversight.exclusionRequestHelp')}</p>
+            <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.exclusionRequestHelp')}</p>
             {reasons.length === 0 ? <p className="mt-2 text-sm text-amber-700">{t('assessmentOversight.noExceptionReasons')}</p> : (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <select aria-label={t('assessmentOversight.reason')} className={inputCls} value={form.data.reason_id} onChange={(e) => form.setData('reason_id', e.target.value)}>

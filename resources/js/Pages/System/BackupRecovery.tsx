@@ -31,12 +31,12 @@ export default function BackupRecovery({ status, history, requests, can, policy 
     const openRequests = requests.filter((request) => OPEN_STATUSES.includes(request.status)).length;
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<PageHeader title={t('backup.title')} description={t('backup.description')} actions={
+                    <Button variant="outline" size="sm" loading={refreshing} icon={<RefreshIcon className="h-4 w-4" />} onClick={refresh}>{t('backup.refresh')}</Button>
+                } />}>
             <Head title={t('backup.title')} />
             <div className="space-y-6">
-                <PageHeader title={t('backup.title')} description={t('backup.description')} actions={
-                    <Button variant="outline" size="sm" loading={refreshing} icon={<RefreshIcon className="h-4 w-4" />} onClick={refresh}>{t('backup.refresh')}</Button>
-                } />
+                
                 <HealthHero status={status} />
                 <ComponentGrid status={status} />
                 <Card>

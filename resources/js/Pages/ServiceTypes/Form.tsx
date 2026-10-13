@@ -4,6 +4,7 @@ import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 
+import { buttonClassName, cx, inputClassName as uiInputClassName } from '@/Components/ui';
 type ServiceTypeFormData = {
     code: string;
     name_en: string;
@@ -26,8 +27,7 @@ export default function ServiceTypeForm({
     existingCode?: string;
 }) {
     const { t } = useLocale();
-    const inputClassName =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputClassName = cx(uiInputClassName, 'w-full');
 
     function renderError(field: keyof ServiceTypeFormData) {
         const message = form.errors[field];
@@ -41,7 +41,7 @@ export default function ServiceTypeForm({
 
     return (
         <form
-            className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+            className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
             onSubmit={onSubmit}
         >
             <div className="grid gap-4 md:grid-cols-2">
@@ -59,10 +59,10 @@ export default function ServiceTypeForm({
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('common.status')}
                     </label>
-                    <label className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 dark:border-slate-700 dark:text-slate-300">
+                    <label className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm text-[color:var(--app-foreground)]">
                         <input
                             type="checkbox"
                             checked={form.data.is_active}
@@ -73,7 +73,7 @@ export default function ServiceTypeForm({
                     {renderError('is_active')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('serviceTypes.englishName')}
                     </label>
                     <input
@@ -84,7 +84,7 @@ export default function ServiceTypeForm({
                     {renderError('name_en')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('serviceTypes.amharicName')}
                     </label>
                     <input
@@ -97,7 +97,7 @@ export default function ServiceTypeForm({
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                     {t('serviceTypes.description')}
                 </label>
                 <textarea
@@ -111,14 +111,14 @@ export default function ServiceTypeForm({
             <div className="flex gap-3">
                 <button
                     type="submit"
-                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                    className={buttonClassName({ variant: 'primary' })}
                     disabled={form.processing}
                 >
                     {submitLabel}
                 </button>
                 <Link
                     href={cancelHref}
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200"
+                    className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
                 >
                     {t('common.cancel')}
                 </Link>

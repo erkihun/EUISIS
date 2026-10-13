@@ -8,7 +8,7 @@ use InvalidArgumentException;
 
 /**
  * The performance formulas of the Employee Daily Plan & Work Execution form
- * (የባለሞያ የእለት እቅድ ክንውን መመዝገቢያ), exactly as the form states them:
+ * (የባለሞያ የዕለት ዕቅድ ክንውን መመዝገቢያ), exactly as the form states them:
  *
  *   Quantity performance (የመጠን አፈጻጸም) = Actual / Plan × 100
  *   Time performance     (የጊዜ አፈጻጸም)  = Plan / Actual × 100

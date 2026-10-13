@@ -52,6 +52,18 @@ class DatabaseSeeder extends Seeder
 
     public function run(PublishHierarchyVersionAction $publishHierarchyVersionAction): void
     {
+        // This seeder builds demo organizations, employees and provider/user
+        // accounts and purges is_demo rows: never against production.
+        if (app()->environment('production')) {
+            throw new RuntimeException(
+                'DatabaseSeeder creates demo data and is disabled in production. Seed reference data with: '
+                .'PermissionSeeder, RoleSeeder, RolePermissionSeeder, SystemSettingsSeeder, CodeRuleSeeder, '
+                .'GrievanceDefaultsSeeder, FieldWorkTypeSeeder, OrganizationTypeSeeder, OrganizationUnitTypeSeeder, '
+                .'IsicActivitySeeder, OccupationSeeder, CafeteriaSettingsSeeder, CafeteriaDayRuleSeeder, '
+                .'PublicSiteDefaultsSeeder (php artisan db:seed --class=...).'
+            );
+        }
+
         $this->ensureRequiredTablesExist();
         $this->purgeDemoData();
 
@@ -62,6 +74,8 @@ class DatabaseSeeder extends Seeder
         $this->call(FieldWorkTypeSeeder::class);
         $this->call(OrganizationUnitTypeSeeder::class);
         $this->call(IsicActivitySeeder::class);
+        $this->call(LegalInstrumentTypeSeeder::class);
+        $this->call(OrganizationDesignCatalogSeeder::class);
         $this->call(OccupationSeeder::class);
 
         $organizationTypes = collect([
@@ -543,8 +557,8 @@ class DatabaseSeeder extends Seeder
         // Legacy/branding/ui defaults (kept for backward compatibility).
         $defaults = [
             // Branding
-            ['group' => 'branding', 'key' => 'app_name_en',   'value' => 'EUISIS',                                           'type' => 'string',  'label_en' => 'Application Name (English)',  'label_am' => 'የስርዓቱ ስም (እንግሊዝኛ)',  'is_public' => true,  'sort_order' => 1],
-            ['group' => 'branding', 'key' => 'app_name_am',   'value' => 'ኢዩሲሲስ',                                             'type' => 'string',  'label_en' => 'Application Name (Amharic)', 'label_am' => 'የስርዓቱ ስም (አማርኛ)',    'is_public' => true,  'sort_order' => 2],
+            ['group' => 'branding', 'key' => 'app_name_en',   'value' => 'Addis One',                                           'type' => 'string',  'label_en' => 'Application Name (English)',  'label_am' => 'የሥርዓቱ ስም (እንግሊዝኛ)',  'is_public' => true,  'sort_order' => 1],
+            ['group' => 'branding', 'key' => 'app_name_am',   'value' => 'Addis One',                                             'type' => 'string',  'label_en' => 'Application Name (Amharic)', 'label_am' => 'የሥርዓቱ ስም (አማርኛ)',    'is_public' => true,  'sort_order' => 2],
             ['group' => 'branding', 'key' => 'org_name_en',   'value' => 'Addis Ababa City Administration',                   'type' => 'string',  'label_en' => 'Organization Name (English)', 'label_am' => 'የድርጅቱ ስም (እንግሊዝኛ)', 'is_public' => true,  'sort_order' => 3],
             ['group' => 'branding', 'key' => 'org_name_am',   'value' => 'የአዲስ አበባ ከተማ አስተዳደር',                               'type' => 'string',  'label_en' => 'Organization Name (Amharic)', 'label_am' => 'የድርጅቱ ስም (አማርኛ)',   'is_public' => true,  'sort_order' => 4],
 

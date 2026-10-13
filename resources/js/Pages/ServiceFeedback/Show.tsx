@@ -8,7 +8,7 @@ import {
     type FeedbackSummary,
 } from '@/Components/ServiceFeedback/feedbackUi';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { ArrowLeftIcon, ChevronRight, EyeIcon, EyeOffIcon, TrashIcon } from '@/Components/Icons';
+import { ArrowLeftIcon, EyeIcon, EyeOffIcon, TrashIcon } from '@/Components/Icons';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -86,40 +86,32 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
     const serviceLabel = [feedback.service_no, label(feedback.service_type, '')].filter(Boolean).join(' · ') || '—';
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={
+                <div className="flex items-start gap-3">
+                    <Link
+                        href={route('service-feedback.admin.index')}
+                        aria-label={t('common.back')}
+                        className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                    >
+                        <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
+                    </Link>
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            <h1 className="break-words text-page-title text-[color:var(--app-foreground)]">{title}</h1>
+                            <FeedbackStatusBadge status={feedback.status} />
+                        </div>
+                        <p className="mt-1 text-[13px] text-[color:var(--app-muted-foreground)]">
+                            {label(feedback.service_type)} · {t('serviceFeedback.submittedDate')}{' '}
+                            <LocalizedDateDisplay value={feedback.created_at} withTime /> {t('serviceFeedback.viaQr')}
+                        </p>
+                    </div>
+                </div>
+            }
+        >
             <Head title={t('serviceFeedback.feedbackDetail')} />
 
             <div className="space-y-6">
-                {/* Header */}
-                <header className="space-y-3">
-                    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-[13px] text-[color:var(--app-muted-foreground)]">
-                        <Link href={route('service-feedback.admin.dashboard')} className="hover:text-[color:var(--app-foreground)]">{t('serviceFeedback.clientFeedback')}</Link>
-                        <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-                        <Link href={route('service-feedback.admin.index')} className="hover:text-[color:var(--app-foreground)]">{t('serviceFeedback.inbox')}</Link>
-                        <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-                        <span aria-current="page" className="font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.feedbackDetail')}</span>
-                    </nav>
-                    <div className="flex items-start gap-3">
-                        <Link
-                            href={route('service-feedback.admin.index')}
-                            aria-label={t('common.back')}
-                            className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
-                        >
-                            <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
-                        </Link>
-                        <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2.5">
-                                <h1 className="text-2xl font-bold leading-tight text-[color:var(--app-foreground)]">{title}</h1>
-                                <FeedbackStatusBadge status={feedback.status} />
-                            </div>
-                            <p className="mt-1 text-[13px] text-[color:var(--app-muted-foreground)]">
-                                {label(feedback.service_type)} · {t('serviceFeedback.submittedDate')}{' '}
-                                <LocalizedDateDisplay value={feedback.created_at} withTime /> {t('serviceFeedback.viaQr')}
-                            </p>
-                        </div>
-                    </div>
-                </header>
-
                 {isHidden && (
                     <div role="status" className="flex items-center gap-2.5 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-3 text-sm text-[color:var(--app-foreground)]">
                         <EyeOffIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" />
@@ -133,7 +125,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                         {/* What the client said */}
                         <section aria-labelledby="client-said" className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                             <div className="flex items-center gap-5 p-5 sm:p-6">
-                                <div className={cx('flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-xl sm:h-[88px] sm:w-[88px]', tone.soft)}>
+                                <div className={cx('flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-panel sm:h-[88px] sm:w-[88px]', tone.soft)}>
                                     <span className="text-4xl font-bold leading-none tabular-nums">{feedback.rating}</span>
                                     <span className="mt-1 text-xs font-semibold">{t('serviceFeedback.outOfFive')}</span>
                                 </div>
@@ -161,12 +153,12 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                             <dl className="flex flex-wrap gap-x-8 gap-y-3 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-5 py-3.5 text-[13px] sm:px-6">
                                 <div>
                                     <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.client')}</dt>
-                                    <dd className="font-medium text-[color:var(--app-foreground)]">{feedback.client_name ?? t('serviceFeedback.anonymousClient')}</dd>
+                                    <dd className="font-medium text-[color:var(--app-foreground)]">{feedback.identity_hidden ? t('serviceFeedback.identityHidden') : feedback.client_name ?? t('serviceFeedback.anonymousClient')}</dd>
                                 </div>
                                 <div className="min-w-0">
                                     <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.contact')}</dt>
                                     <dd className={cx('break-all', feedback.client_contact ? 'font-medium text-[color:var(--app-foreground)]' : 'text-[color:var(--app-muted-foreground)]')}>
-                                        {feedback.client_contact ?? t('serviceFeedback.notProvided')}
+                                        {feedback.identity_hidden ? t('serviceFeedback.identityHidden') : feedback.client_contact ?? t('serviceFeedback.notProvided')}
                                     </dd>
                                 </div>
                             </dl>

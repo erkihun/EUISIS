@@ -2,6 +2,7 @@ import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { formatEligibilityRule } from '@/Components/public/transferPresentation';
 import { localizedName } from '@/utils/localizedName';
 import type { PageProps } from '@/types';
 
@@ -143,7 +144,7 @@ export default function AnnouncementShow({ announcement, already_applied, has_em
                         <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {t('transfers.eligibilityRequirements')}
                         </h2>
-                        <ul className="mt-2 space-y-1 text-sm text-gray-700 dark:text-slate-300">{announcement.eligibility_rules.map((rule, index) => <li key={index}>• {rule.type.replaceAll('_', ' ')}: {rule.value}</li>)}</ul>
+                        <ul className="mt-2 space-y-1 text-sm text-gray-700 dark:text-slate-300">{announcement.eligibility_rules.map((rule, index) => <li key={index}>• {formatEligibilityRule(rule, t)}</li>)}</ul>
                     </div>
                 )}
 

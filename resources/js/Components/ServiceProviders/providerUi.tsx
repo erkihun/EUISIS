@@ -47,7 +47,7 @@ export function ProviderAvatar({ name, typeCode, size = 'md' }: { name: string |
             aria-hidden="true"
             className={cx(
                 'inline-flex shrink-0 items-center justify-center font-bold',
-                size === 'lg' ? 'h-[52px] w-[52px] rounded-xl text-lg' : 'h-9 w-9 rounded-lg text-[13px]',
+                size === 'lg' ? 'h-[52px] w-[52px] rounded-panel text-lg' : 'h-9 w-9 rounded-lg text-[13px]',
                 typeTint(typeCode),
             )}
         >

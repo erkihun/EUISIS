@@ -11,7 +11,7 @@ function badgeClass(type: string | null): string {
         case 'oversight':
             return 'bg-violet-100 text-violet-700 dark:bg-violet-950/40 dark:text-violet-200';
         default:
-            return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200';
+            return 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]';
     }
 }
 

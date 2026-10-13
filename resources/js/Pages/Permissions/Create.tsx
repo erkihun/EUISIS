@@ -3,13 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+import { buttonClassName, cx, inputClassName, textareaClassName } from '@/Components/ui';
+const inputCls = cx(inputClassName, 'w-full');
 
-const textareaCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+const textareaCls = cx(textareaClassName, 'w-full');
 
-const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
+const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
 export default function CreatePermission({ groups }: { groups: string[] }) {
     const { t } = useLocale();
@@ -50,8 +49,8 @@ export default function CreatePermission({ groups }: { groups: string[] }) {
 
             <div className="mx-auto max-w-2xl">
                 <form onSubmit={submit} className="space-y-5">
-                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                        <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('permissions.basicInformation')}
                         </h2>
                         <div className="space-y-4">
@@ -134,8 +133,8 @@ export default function CreatePermission({ groups }: { groups: string[] }) {
                         </div>
                     </div>
 
-                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                        <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('permissions.classification')}
                         </h2>
                         <div className="grid grid-cols-2 gap-4">
@@ -178,14 +177,14 @@ export default function CreatePermission({ groups }: { groups: string[] }) {
                     <div className="flex items-center justify-end gap-3">
                         <Link
                             href={route('permissions.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                         >
                             {t('common.cancel')}
                         </Link>
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {form.processing ? t('common.saving') : t('permissions.createPermission')}
                         </button>

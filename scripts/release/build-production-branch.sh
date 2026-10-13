@@ -34,6 +34,15 @@ EXCLUDE=(
     employeeId_db
     sec-routes.json
     sec-audit.json
+    # Agent and editor tooling, local scratch output and load-test scripts.
+    .codex
+    .mcp.json
+    .playwright-mcp
+    .serena
+    .superpowers
+    loadtest
+    cognee_stderr.txt
+    omniroute_stderr.txt
 )
 
 cd "$(git rev-parse --show-toplevel)"

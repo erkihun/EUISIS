@@ -9,15 +9,15 @@ import type { FormEvent, JSX } from 'react';
 import { useState } from 'react';
 import type { ChangeRequestDetail, FormOptions } from '@/Components/organizationalChange/types';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Props = {
     request?: ChangeRequestDetail;
     options: FormOptions;
     allowedTypes: string[];
 };
 
-const inputCls =
-    'w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-const labelCls = 'block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300';
+const inputCls = cx(inputClassName, 'w-full min-w-0');
+const labelCls = 'block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
 /**
  * Create or edit a change request.
@@ -97,7 +97,7 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
                     </p>
                 </section>
 
-                <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         <div>
                             <label className={labelCls}>
@@ -175,8 +175,8 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
                 </section>
 
                 {form.data.request_type && (
-                    <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                        <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('organizationalChangeRequests.compare.heading')}
                         </h2>
                         <RequestTypeFields
@@ -190,7 +190,7 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
                     </section>
                 )}
 
-                <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
                     <label className={labelCls}>
                         <span>{t('organizationalChangeRequests.fields.reason')}</span>
                         <textarea
@@ -206,14 +206,14 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
                 <div className="flex flex-wrap items-center justify-end gap-2">
                     <Link
                         href={route('organizational-change-requests.index')}
-                        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                     >
                         {t('common.cancel')}
                     </Link>
                     <button
                         type="submit"
                         disabled={form.processing}
-                        className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
+                        className={buttonClassName({ variant: 'primary' })}
                     >
                         {t('organizationalChangeRequests.actions.saveDraft')}
                     </button>

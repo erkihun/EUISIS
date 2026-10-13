@@ -44,6 +44,7 @@ return [
         'cycle_saved' => 'Assessment cycle saved.',
         'participation_saved' => 'Participating institutions updated.',
         'snapshot_created' => 'Eligibility snapshot created: :eligible eligible, :excluded excluded.',
+        'snapshot_queued' => 'The eligibility snapshot is being built in the background. The cycle shows it once it is complete.',
         'eligibility_finalized' => 'Eligibility finalized. The denominator now changes only through approved exclusions.',
         'eligibility_restored' => 'The approved exception was reversed; the employee is eligible again.',
         'exclusion_requested' => 'Exclusion request sent for approval.',

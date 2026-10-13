@@ -1,9 +1,10 @@
 import { getStatusStyle } from '@/lib/statusStyles';
+import { useTranslator } from '@/hooks/useLocale';
 import { StatusBadge as UiStatusBadge } from '@euisis/ui';
 
 interface Props {
     status: string;
-    /** Translated label. Falls back to the English label in the status map. */
+    /** Translated label. Without one, the badge shows `status.<code>` from the translations. */
     label?: string;
     className?: string;
 }
@@ -17,7 +18,12 @@ interface Props {
  * inputs and buttons around it reads as part of the same interface.
  */
 export default function StatusBadge({ status, label, className = '' }: Props) {
+    const { t } = useTranslator();
     const style = getStatusStyle(status);
+    // The status map's English label is the last resort, never the Amharic page's label.
+    const key = `status.${(status ?? '').toLowerCase().replace(/[\s-]+/g, '_')}`;
+    const translated = t(key);
+    const text = label ?? (translated && translated !== key ? translated : style.label);
 
-    return <UiStatusBadge tone={style.tone === 'danger' ? 'danger' : style.tone} className={`badge ${className}`}>{label ?? style.label}</UiStatusBadge>;
+    return <UiStatusBadge tone={style.tone === 'danger' ? 'danger' : style.tone} className={`badge ${className}`}>{text}</UiStatusBadge>;
 }

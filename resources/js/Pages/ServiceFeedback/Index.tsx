@@ -10,21 +10,15 @@ import {
 } from '@/Components/ServiceFeedback/feedbackUi';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronRight, DownloadIcon, EyeOffIcon, Inbox } from '@/Components/Icons';
-import PaginatorLinks, { type PaginatorLink } from '@/Components/PaginatorLinks';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import type { JSX } from 'react';
 
+import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, type LaravelPageMeta } from '@/Components/ui';
 type Props = {
-    feedback: {
-        data: FeedbackSummary[];
-        links: PaginatorLink[];
-        from: number | null;
-        to: number | null;
-        total: number;
-    };
+    feedback: LaravelPageMeta & { data: FeedbackSummary[] };
     statusCounts: Record<string, number>;
     filters: FeedbackFilters;
     filterOptions: FeedbackFilterOptions;
@@ -58,10 +52,8 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
     const showHref = (id: string) => route('service-feedback.admin.show', id);
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.inbox')} />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <FeedbackPageHeader
                     current="inbox"
                     title={t('serviceFeedback.inbox')}
@@ -74,7 +66,11 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                         </a>
                     ) : undefined}
                 />
+            }
+        >
+            <Head title={t('serviceFeedback.inbox')} />
 
+            <div className="space-y-6">
                 <section className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     <nav aria-label={t('serviceFeedback.filterStatus')} className="overflow-x-auto border-b border-[color:var(--app-border)] px-2 pt-1 [scrollbar-width:none] sm:px-3 [&::-webkit-scrollbar]:hidden">
                         <ul className="flex min-w-max gap-1">
@@ -136,19 +132,19 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                     ) : (
                         <>
                             {/* Wide screens: a scannable table. */}
-                            <table className="hidden w-full text-sm md:table">
-                                <thead className="bg-[color:var(--app-surface-muted)]">
-                                    <tr className="text-left text-xs font-semibold text-[color:var(--app-muted-foreground)]">
-                                        <th scope="col" className="w-20 px-4 py-2.5">{t('serviceFeedback.filterRating')}</th>
-                                        <th scope="col" className="px-3 py-2.5">{t('serviceFeedback.columnFeedback')}</th>
-                                        <th scope="col" className="w-44 px-3 py-2.5">{t('serviceFeedback.filterEmployee')}</th>
-                                        <th scope="col" className="hidden w-52 px-3 py-2.5 lg:table-cell">{t('serviceFeedback.serviceType')}</th>
-                                        <th scope="col" className="w-28 px-3 py-2.5">{t('serviceFeedback.filterStatus')}</th>
-                                        <th scope="col" className="w-32 px-3 py-2.5">{t('serviceFeedback.submittedDate')}</th>
-                                        <th scope="col" className="w-10 py-2.5 pr-4"><span className="sr-only">{t('serviceFeedback.openFeedback')}</span></th>
+                            <table className={cx(tableClassName, 'hidden')}>
+                                <thead className={tableHeadClassName}>
+                                    <tr className="text-left">
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-20')}>{t('serviceFeedback.filterRating')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.columnFeedback')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-44')}>{t('serviceFeedback.filterEmployee')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left hidden w-52')}>{t('serviceFeedback.serviceType')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-28')}>{t('serviceFeedback.filterStatus')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-32')}>{t('serviceFeedback.submittedDate')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-10')}><span className="sr-only">{t('serviceFeedback.openFeedback')}</span></th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-[color:var(--app-border)]">
+                                <tbody className={tableBodyClassName}>
                                     {rows.map((row) => {
                                         const hidden = row.status === 'hidden';
                                         return (
@@ -160,8 +156,8 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                                                 }}
                                                 className={cx('cursor-pointer align-top transition-colors hover:bg-[color:var(--app-surface-muted)]', hidden && 'opacity-60')}
                                             >
-                                                <td className="px-4 py-3.5"><RatingPill rating={row.rating} /></td>
-                                                <td className="px-3 py-3.5">
+                                                <td className={tableCellClassName}><RatingPill rating={row.rating} /></td>
+                                                <td className={tableCellClassName}>
                                                     <Link href={showHref(row.id)} className="group block focus-visible:outline-none">
                                                         <span className={cx(
                                                             'line-clamp-2 leading-relaxed group-hover:underline group-focus-visible:underline',
@@ -175,19 +171,19 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                                                         </span>
                                                     </Link>
                                                 </td>
-                                                <td className="px-3 py-3.5">
+                                                <td className={tableCellClassName}>
                                                     <div className="font-medium text-[color:var(--app-foreground)]">{row.employee?.name ?? '—'}</div>
                                                     <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee?.employee_number}</div>
                                                 </td>
-                                                <td className="hidden px-3 py-3.5 lg:table-cell">
+                                                <td className={cx(tableCellClassName, 'hidden')}>
                                                     <div className="text-[color:var(--app-foreground)]">{label(row.service_type)}</div>
                                                     <div className="max-w-[13rem] truncate text-xs text-[color:var(--app-muted-foreground)]">{label(row.organization)}</div>
                                                 </td>
-                                                <td className="px-3 py-3.5"><FeedbackStatusBadge status={row.status} /></td>
-                                                <td className="whitespace-nowrap px-3 py-3.5 text-[13px] text-[color:var(--app-muted-foreground)]">
+                                                <td className={tableCellClassName}><FeedbackStatusBadge status={row.status} /></td>
+                                                <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}>
                                                     <LocalizedDateDisplay value={row.created_at} />
                                                 </td>
-                                                <td className="py-3.5 pr-4 text-right">
+                                                <td className={cx(tableCellClassName, 'text-right')}>
                                                     <ChevronRight aria-hidden="true" className="ml-auto h-4 w-4 text-[color:var(--app-muted-foreground)]" />
                                                 </td>
                                             </tr>
@@ -221,17 +217,7 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                         </>
                     )}
 
-                    {feedback.total > 0 && (
-                        <div className="flex flex-col gap-3 border-t border-[color:var(--app-border)] px-4 py-3 text-[13px] text-[color:var(--app-muted-foreground)] sm:flex-row sm:items-center sm:justify-between">
-                            <span>
-                                {t('serviceFeedback.showingRange')
-                                    .replace(':from', String(feedback.from ?? 0))
-                                    .replace(':to', String(feedback.to ?? 0))
-                                    .replace(':total', feedback.total.toLocaleString())}
-                            </span>
-                            <PaginatorLinks links={feedback.links} label={t('serviceFeedback.pagination')} />
-                        </div>
-                    )}
+                    <ListPagination meta={feedback} label={t('serviceFeedback.pagination')} />
                 </section>
             </div>
         </AuthenticatedLayout>

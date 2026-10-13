@@ -261,8 +261,11 @@ class CafeteriaQrScanService
             }
         }
 
-        // (d) Legacy URL: trailing card UUID
-        if (preg_match('/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i', $qrToken, $m)) {
+        // (d) Legacy URL: trailing card primary key. It carries no secret (card
+        // ids appear in admin URLs), so it is refused unless an operator turns
+        // on id_cards.accept_legacy_qr for a supervised reprint (decision D-3).
+        if (config('id_cards.accept_legacy_qr', false)
+            && preg_match('/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i', $qrToken, $m)) {
             return IdCard::query()
                 ->with('employee.currentAssignment')
                 ->where('id', $m[1])

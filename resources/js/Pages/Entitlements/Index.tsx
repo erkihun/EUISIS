@@ -3,10 +3,12 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import { AlertTriangle } from '@/Components/Icons';
+import SearchPicker from '@/Components/fieldWork/SearchPicker';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { ListPagination, actionLinkClassName, buttonClassName, cx, inputClassName, type LaravelPageMeta } from '@/Components/ui';
 type EntitlementRow = {
     id: string;
     status: string;
@@ -38,11 +40,11 @@ function QuotaBar({ used, limit, usedLabel }: { used: number; limit: number | nu
         pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-orange-400' : 'bg-emerald-500';
     return (
         <div className="mt-2">
-            <div className="flex items-center justify-between text-xs text-gray-400 dark:text-slate-500">
+            <div className="flex items-center justify-between text-xs text-[color:var(--app-muted-foreground)]">
                 <span>{used} / {limit} {usedLabel}</span>
                 <span>{pct}%</span>
             </div>
-            <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200 dark:bg-slate-700">
+            <div className="mt-1 h-1.5 w-full rounded-full bg-[color:var(--app-surface-muted)]">
                 <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
             </div>
         </div>
@@ -51,28 +53,26 @@ function QuotaBar({ used, limit, usedLabel }: { used: number; limit: number | nu
 
 export default function EntitlementsIndex({
     entitlements,
-    employees,
     serviceTypes,
     providers,
     cafeteriaProviders,
 }: {
-    entitlements: EntitlementRow[];
-    employees: EmployeeOption[];
+    entitlements: LaravelPageMeta & { data: EntitlementRow[] };
     serviceTypes: ServiceTypeOption[];
     providers: ProviderOption[];
     cafeteriaProviders: CafeteriaProviderRow[];
 }) {
     const { t } = useLocale();
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeOption | null>(null);
 
     const form = useForm({
-        employee_id: employees[0]?.id ?? '',
+        employee_id: '',
         service_type_id: serviceTypes[0]?.id ?? '',
         service_provider_id: '',
         quota_limit: '30',
     });
 
-    const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = cx(inputClassName, 'w-full');
 
     return (
         <AuthenticatedLayout
@@ -81,13 +81,13 @@ export default function EntitlementsIndex({
             <Head title={t('entitlements.title')} />
 
             {/* Cafeteria Providers */}
-            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="font-semibold text-gray-900 dark:text-slate-100">
+            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <h3 className="font-semibold text-[color:var(--app-foreground)]">
                     {t('entitlements.cafeteriaProviders')}
                 </h3>
                 <div className="mt-4">
                     {cafeteriaProviders.length === 0 ? (
-                        <p className="text-sm text-gray-500 dark:text-slate-400">
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">
                             {t('entitlements.noCafeteriaProviders')}
                         </p>
                     ) : (
@@ -95,22 +95,22 @@ export default function EntitlementsIndex({
                             {cafeteriaProviders.map((cp) => (
                                 <div
                                     key={cp.id}
-                                    className="flex items-start justify-between gap-3 rounded-card border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950"
+                                    className="flex items-start justify-between gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4"
                                 >
                                     <div className="min-w-0">
-                                        <p className="truncate font-medium text-gray-900 dark:text-slate-100">
+                                        <p className="truncate font-medium text-[color:var(--app-foreground)]">
                                             {cp.name_en}
                                         </p>
-                                        <p className="mt-0.5 font-mono text-xs text-gray-400 dark:text-slate-500">
+                                        <p className="mt-0.5 font-mono text-xs text-[color:var(--app-muted-foreground)]">
                                             {t('entitlements.code')}: {cp.code}
                                         </p>
                                         {cp.organization && (
-                                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+                                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
                                                 {cp.organization.name_en}
                                             </p>
                                         )}
                                         {cp.location && (
-                                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+                                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
                                                 {t('entitlements.location')}: {cp.location}
                                             </p>
                                         )}
@@ -119,7 +119,7 @@ export default function EntitlementsIndex({
                                         className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
                                             cp.is_active
                                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                                : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'
+                                                : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'
                                         }`}
                                     >
                                         {cp.is_active ? t('entitlements.active') : t('entitlements.inactive')}
@@ -132,18 +132,18 @@ export default function EntitlementsIndex({
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="font-semibold text-gray-900 dark:text-slate-100">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
                         {t('entitlements.activeEntitlements')}
                     </h3>
                     <div className="mt-4 space-y-3">
-                        {entitlements.length === 0 ? (
+                        {entitlements.data.length === 0 ? (
                             <EmptyState
                                 title={t('entitlements.noEntitlements')}
                                 description={t('entitlements.grantFirst')}
                             />
                         ) : (
-                            entitlements.map((ent) => {
+                            entitlements.data.map((ent) => {
                                 const isWarn = WARN_STATUSES.has(ent.status);
                                 return (
                                     <div
@@ -151,15 +151,15 @@ export default function EntitlementsIndex({
                                         className={`rounded-card border p-4 ${
                                             isWarn
                                                 ? 'border-orange-200 bg-orange-50 dark:border-orange-900/40 dark:bg-orange-900/10'
-                                                : 'border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-950'
+                                                : 'border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)]'
                                         }`}
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <div>
-                                                <p className="font-medium text-gray-900 dark:text-slate-100">
+                                                <p className="font-medium text-[color:var(--app-foreground)]">
                                                     {ent.employee?.employee_number} · {ent.employee?.full_name}
                                                 </p>
-                                                <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">
+                                                <p className="mt-0.5 text-sm text-[color:var(--app-muted-foreground)]">
                                                     {ent.service_type?.name_en ?? t('entitlements.unknownService')}{' '}
                                                     · {ent.service_provider?.name ?? t('entitlements.globalScope')}
                                                 </p>
@@ -181,10 +181,11 @@ export default function EntitlementsIndex({
                             })
                         )}
                     </div>
+                    <ListPagination meta={entitlements} label={t('entitlements.activeEntitlements')} bare className="mt-4" />
                 </section>
 
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="font-semibold text-gray-900 dark:text-slate-100">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
                         {t('entitlements.grantEntitlement')}
                     </h3>
                     <form
@@ -195,23 +196,37 @@ export default function EntitlementsIndex({
                         }}
                     >
                         <div>
-                            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
-                                {t('entitlements.employee')}
-                            </label>
-                            <select
-                                className={inputCls}
-                                value={form.data.employee_id}
-                                onChange={(e) => form.setData('employee_id', e.target.value)}
-                            >
-                                {employees.map((emp) => (
-                                    <option key={emp.id} value={emp.id}>
-                                        {emp.employee_number} · {emp.full_name}
-                                    </option>
-                                ))}
-                            </select>
+                            {selectedEmployee ? (
+                                <div>
+                                    <span className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                        {t('entitlements.employee')}
+                                    </span>
+                                    <div className="flex items-center justify-between gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm">
+                                        <span>{selectedEmployee.employee_number} · {selectedEmployee.full_name}</span>
+                                        <button
+                                            type="button"
+                                            className={actionLinkClassName()}
+                                            onClick={() => { setSelectedEmployee(null); form.setData('employee_id', ''); }}
+                                        >
+                                            {t('common.change')}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <SearchPicker<EmployeeOption>
+                                    url={route('lookup.employees')}
+                                    label={t('entitlements.employee')}
+                                    placeholder={t('common.searchEmployee')}
+                                    render={(emp) => `${emp.employee_number} · ${emp.full_name}`}
+                                    onPick={(emp) => { setSelectedEmployee(emp); form.setData('employee_id', emp.id); }}
+                                />
+                            )}
+                            {form.errors.employee_id && (
+                                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.employee_id}</p>
+                            )}
                         </div>
                         <div>
-                            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                            <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('entitlements.serviceType')}
                             </label>
                             <select
@@ -225,7 +240,7 @@ export default function EntitlementsIndex({
                             </select>
                         </div>
                         <div>
-                            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                            <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('entitlements.providerOptional')}
                             </label>
                             <select
@@ -240,7 +255,7 @@ export default function EntitlementsIndex({
                             </select>
                         </div>
                         <div>
-                            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                            <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('entitlements.quotaLimit')}
                             </label>
                             <input
@@ -254,7 +269,7 @@ export default function EntitlementsIndex({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] disabled:opacity-60"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {form.processing ? t('common.saving') : t('entitlements.grant')}
                         </button>

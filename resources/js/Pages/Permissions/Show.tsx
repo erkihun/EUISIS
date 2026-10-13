@@ -4,6 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName } from '@/Components/ui';
 type Permission = {
     id: number;
     name: string;
@@ -46,7 +47,7 @@ export default function ShowPermission({
                         permission.can?.update ? (
                             <Link
                                 href={route('permissions.edit', permission.id)}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 {t('permissions.editPermission')}
                             </Link>
@@ -58,54 +59,54 @@ export default function ShowPermission({
             <Head title={label} />
 
             <div className="mx-auto max-w-2xl space-y-5">
-                <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                    <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                    <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                         {t('permissions.basicInformation')}
                     </h2>
                     <dl className="space-y-4 text-sm">
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.permissionKey')}</dt>
-                            <dd className="mt-1 font-mono text-gray-900 dark:text-slate-100">{permission.name}</dd>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.permissionKey')}</dt>
+                            <dd className="mt-1 font-mono text-[color:var(--app-foreground)]">{permission.name}</dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.labelEn')}</dt>
-                            <dd className="mt-1 text-gray-900 dark:text-slate-100">{permission.label_en ?? '—'}</dd>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.labelEn')}</dt>
+                            <dd className="mt-1 text-[color:var(--app-foreground)]">{permission.label_en ?? '—'}</dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.labelAm')}</dt>
-                            <dd className="mt-1 text-gray-900 dark:text-slate-100" dir="auto">{permission.label_am ?? '—'}</dd>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.labelAm')}</dt>
+                            <dd className="mt-1 text-[color:var(--app-foreground)]" dir="auto">{permission.label_am ?? '—'}</dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.descriptionEn')}</dt>
-                            <dd className="mt-1 text-gray-700 dark:text-slate-300">{permission.description_en ?? '—'}</dd>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.descriptionEn')}</dt>
+                            <dd className="mt-1 text-[color:var(--app-foreground)]">{permission.description_en ?? '—'}</dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.descriptionAm')}</dt>
-                            <dd className="mt-1 text-gray-700 dark:text-slate-300" dir="auto">{permission.description_am ?? '—'}</dd>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.descriptionAm')}</dt>
+                            <dd className="mt-1 text-[color:var(--app-foreground)]" dir="auto">{permission.description_am ?? '—'}</dd>
                         </div>
                         <div className="flex gap-8">
                             <div>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.permissionGroup')}</dt>
-                                <dd className="mt-1 text-gray-900 dark:text-slate-100">{permission.group ?? '—'}</dd>
+                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.permissionGroup')}</dt>
+                                <dd className="mt-1 text-[color:var(--app-foreground)]">{permission.group ?? '—'}</dd>
                             </div>
                             <div>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.guardName')}</dt>
-                                <dd className="mt-1 font-mono text-gray-900 dark:text-slate-100">{permission.guard_name}</dd>
+                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.guardName')}</dt>
+                                <dd className="mt-1 font-mono text-[color:var(--app-foreground)]">{permission.guard_name}</dd>
                             </div>
                             <div>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.sortOrder')}</dt>
-                                <dd className="mt-1 text-gray-900 dark:text-slate-100">{permission.sort_order}</dd>
+                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.sortOrder')}</dt>
+                                <dd className="mt-1 text-[color:var(--app-foreground)]">{permission.sort_order}</dd>
                             </div>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.systemPermission')}</dt>
+                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('permissions.systemPermission')}</dt>
                             <dd className="mt-1">
                                 {permission.is_system ? (
                                     <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
                                         {t('permissions.systemPermission')}
                                     </span>
                                 ) : (
-                                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
+                                    <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                         {t('permissions.customPermission')}
                                     </span>
                                 )}
@@ -113,14 +114,14 @@ export default function ShowPermission({
                         </div>
                         <div className="flex gap-8">
                             <div>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.createdAt')}</dt>
-                                <dd className="mt-1 text-gray-900 dark:text-slate-100">
+                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.createdAt')}</dt>
+                                <dd className="mt-1 text-[color:var(--app-foreground)]">
                                     <LocalizedDateDisplay value={permission.created_at} withTime />
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.updatedAt')}</dt>
-                                <dd className="mt-1 text-gray-900 dark:text-slate-100">
+                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.updatedAt')}</dt>
+                                <dd className="mt-1 text-[color:var(--app-foreground)]">
                                     <LocalizedDateDisplay value={permission.updated_at} withTime />
                                 </dd>
                             </div>
@@ -129,8 +130,8 @@ export default function ShowPermission({
                 </div>
 
                 {roles.length > 0 && (
-                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                        <h2 className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('permissions.usedByRoles')} ({roles.length})
                         </h2>
                         <ul className="flex flex-wrap gap-2">
@@ -151,7 +152,7 @@ export default function ShowPermission({
                 <div className="flex justify-start">
                     <Link
                         href={route('permissions.index')}
-                        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                     >
                         {t('common.cancel')}
                     </Link>

@@ -35,9 +35,12 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Performance\EpmsAccess;
 use App\Services\Performance\PerformanceCascadeService;
 use App\Services\Positions\ScopedPositionStructureService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,6 +48,63 @@ class PositionController extends Controller
 {
     /** Largest number of named slices a status breakdown chart shows before the tail rolls into "Other". */
     private const STATUS_BREAKDOWN_LIMIT = 8;
+
+    /**
+     * One row per matching position with its status numbers, as a subquery:
+     * total = approved establishment slots (1 when none); filled = active
+     * establishment occupancies, else current active assignments capped at
+     * total. Same rule the page has always shown, computed by the database.
+     *
+     * @param  Builder<Position>  $positions  filtered, scoped position query
+     * @param  list<string>|null  $allowedOrganizationIds  null when unrestricted
+     */
+    private function positionStatusRows(Builder $positions, ?array $allowedOrganizationIds): QueryBuilder
+    {
+        $occupied = DB::table('position_occupancies')
+            ->where('status', OccupancyStatus::Active->value)
+            ->groupBy('position_establishment_id')
+            ->select('position_establishment_id', DB::raw('COUNT(*) AS filled'));
+
+        // Both aggregates are limited to the positions being reported: without
+        // it PostgreSQL grouped every current assignment in the city before
+        // joining (load test 2026-10-11: ~80 ms per query at 220k employees,
+        // run four times per page).
+        $positionIds = (clone $positions)->reorder()->select('positions.id')->toBase();
+
+        $establishments = DB::table('position_establishments AS pe')
+            ->where('pe.status', EstablishmentStatus::Approved->value)
+            ->whereNull('pe.deleted_at')
+            ->whereIn('pe.position_id', $positionIds)
+            ->when($allowedOrganizationIds !== null, fn ($query) => $query->whereIn('pe.organization_id', $allowedOrganizationIds))
+            ->leftJoinSub($occupied, 'occ', 'occ.position_establishment_id', '=', 'pe.id')
+            ->groupBy('pe.position_id')
+            ->select('pe.position_id', DB::raw('SUM(pe.approved_slots) AS slots'), DB::raw('SUM(COALESCE(occ.filled, 0)) AS filled'));
+
+        $assigned = DB::table('employee_assignments')
+            ->where('is_current', true)
+            ->where('assignment_status', AssignmentStatus::Active->value)
+            ->whereIn('position_id', $positionIds)
+            ->groupBy('position_id')
+            ->select('position_id', DB::raw('COUNT(*) AS cnt'));
+
+        $total = 'CASE WHEN COALESCE(est.slots, 0) > 0 THEN est.slots ELSE 1 END';
+
+        return (clone $positions)->toBase()
+            ->leftJoinSub($establishments, 'est', 'est.position_id', '=', 'positions.id')
+            ->leftJoinSub($assigned, 'asg', 'asg.position_id', '=', 'positions.id')
+            ->select([
+                'positions.organization_id',
+                'positions.organization_unit_id',
+                'positions.grade_level',
+                'positions.job_family',
+                DB::raw("({$total}) AS total"),
+                DB::raw("(CASE WHEN COALESCE(est.filled, 0) > 0 THEN est.filled
+                    WHEN COALESCE(asg.cnt, 0) < ({$total}) THEN COALESCE(asg.cnt, 0)
+                    ELSE ({$total}) END) AS filled"),
+                // First-appearance order of the old in-memory grouping (org, unit, code).
+                DB::raw("(COALESCE(CAST(positions.organization_id AS VARCHAR(64)), '') || '|' || COALESCE(CAST(positions.organization_unit_id AS VARCHAR(64)), '') || '|' || COALESCE(positions.job_position_code, '')) AS sort_key"),
+            ]);
+    }
 
     public function status(Request $request, OrganizationScopeService $organizationScopeService): Response
     {
@@ -75,7 +135,13 @@ class PositionController extends Controller
             ->when($request->string('grade_level')->toString() !== '', fn ($query) => $query->where('grade_level', $request->string('grade_level')->toString()))
             ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', $request->boolean('is_active')));
 
-        $summaryPositions = (clone $baseQuery)
+        // Summary tiles and charts are computed in SQL over every matching
+        // position (production risk register SCL-1): one row per position with
+        // its approved slots and filled count, aggregated by the database —
+        // never a scope-wide collection loaded into PHP.
+        $statusRows = $this->positionStatusRows($baseQuery, $isAccessRestricted ? $accessibleOrganizationIds->all() : null);
+
+        $paginatedPositions = (clone $baseQuery)
             ->with([
                 'organization:id,name_en,name_am',
                 'organizationUnit:id,name_en,name_am',
@@ -88,10 +154,13 @@ class PositionController extends Controller
             ->orderBy('organization_id')
             ->orderBy('organization_unit_id')
             ->orderBy('job_position_code')
-            ->get();
+            ->paginate(min(max($request->integer('per_page', 15), 1), 100))
+            ->withQueryString();
 
+        // Establishments only for the positions on this page.
         $establishmentsByPosition = PositionEstablishment::query()
             ->where('status', EstablishmentStatus::Approved->value)
+            ->whereIn('position_id', $paginatedPositions->getCollection()->modelKeys())
             ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
             ->withCount([
                 'occupancies as filled_positions' => fn ($query) => $query->where('status', OccupancyStatus::Active->value),
@@ -109,24 +178,6 @@ class PositionController extends Controller
             $position->status_filled_positions = $establishmentFilled > 0 ? $establishmentFilled : min($activeAssignments, $position->status_total_positions);
             $position->status_establishment_number = $establishments->pluck('establishment_number')->filter()->implode(', ');
         };
-
-        $summaryPositions->each($attachStatus);
-
-        $paginatedPositions = (clone $baseQuery)
-            ->with([
-                'organization:id,name_en,name_am',
-                'organizationUnit:id,name_en,name_am',
-            ])
-            ->withCount([
-                'assignments as active_assignments_count' => fn ($query) => $query
-                    ->where('assignment_status', AssignmentStatus::Active->value)
-                    ->where('is_current', true),
-            ])
-            ->orderBy('organization_id')
-            ->orderBy('organization_unit_id')
-            ->orderBy('job_position_code')
-            ->paginate($request->integer('per_page', 15))
-            ->withQueryString();
 
         $paginatedPositions->getCollection()->each($attachStatus);
 
@@ -177,23 +228,34 @@ class PositionController extends Controller
             ->values()
             ->all();
 
-        $summaryTotal = (int) $summaryPositions->sum('status_total_positions');
-        $summaryFilled = (int) $summaryPositions->sum('status_filled_positions');
+        $totals = DB::query()->fromSub($statusRows, 'ps')
+            ->selectRaw('COALESCE(SUM(ps.total), 0) AS total, COALESCE(SUM(ps.filled), 0) AS filled')
+            ->first();
+        $summaryTotal = (int) $totals->total;
+        $summaryFilled = (int) $totals->filled;
         $summaryVacant = max(0, $summaryTotal - $summaryFilled);
 
-        // Breakdowns power the status charts. They are derived from the same
-        // unpaginated, filter-aware collection as the summary tiles so the
-        // charts always agree with the headline numbers.
-        $buildBreakdown = function (callable $keyFor, callable $labelsFor) use ($summaryPositions): array {
-            $groups = $summaryPositions
-                ->groupBy($keyFor)
-                ->map(function ($group, $key) use ($labelsFor): array {
-                    $total = (int) $group->sum('status_total_positions');
-                    $filled = (int) $group->sum('status_filled_positions');
-                    [$labelEn, $labelAm] = $labelsFor((string) $key, $group->first());
+        // Breakdowns power the status charts. They aggregate the same
+        // filter-aware rows as the summary tiles, so the charts always agree
+        // with the headline numbers.
+        $buildBreakdown = function (string $column, callable $labelsFor) use ($statusRows): array {
+            $key = "COALESCE(NULLIF(CAST(ps.{$column} AS VARCHAR(64)), ''), '__unassigned__')";
+            $rows = DB::query()->fromSub($statusRows, 'ps')
+                ->selectRaw("{$key} AS group_key, SUM(ps.total) AS total, SUM(ps.filled) AS filled, MIN(ps.sort_key) AS first_seen")
+                ->groupByRaw($key)
+                ->get();
+            $labels = $labelsFor($rows->pluck('group_key')->reject(fn ($k) => $k === '__unassigned__')->values()->all());
+
+            $groups = $rows
+                // Same order as before: largest first, ties in first-appearance order.
+                ->sortBy([['total', 'desc'], ['first_seen', 'asc']])
+                ->map(function ($row) use ($labels): array {
+                    $total = (int) $row->total;
+                    $filled = (int) $row->filled;
+                    [$labelEn, $labelAm] = $row->group_key === '__unassigned__' ? [null, null] : ($labels[$row->group_key] ?? [$row->group_key, $row->group_key]);
 
                     return [
-                        'key' => (string) $key,
+                        'key' => (string) $row->group_key,
                         'label_en' => $labelEn,
                         'label_am' => $labelAm,
                         'total' => $total,
@@ -201,7 +263,6 @@ class PositionController extends Controller
                         'vacant' => max(0, $total - $filled),
                     ];
                 })
-                ->sortByDesc('total')
                 ->values();
 
             if ($groups->count() <= self::STATUS_BREAKDOWN_LIMIT) {
@@ -223,26 +284,20 @@ class PositionController extends Controller
 
         $groupingKey = $isOrganizationScoped ? 'unit' : 'organization';
 
+        $namesFor = fn (string $modelClass) => fn (array $ids): array => $modelClass::query()
+            ->withTrashed()
+            ->whereIn('id', $ids)
+            ->get(['id', 'name_en', 'name_am'])
+            ->mapWithKeys(fn ($model) => [(string) $model->id => [$model->name_en, $model->name_am]])
+            ->all();
+
         $breakdowns = [
             'grouping' => $groupingKey,
-            'by_group' => $buildBreakdown(
-                fn (Position $position) => $groupingKey === 'unit'
-                    ? ($position->organization_unit_id ?? '__unassigned__')
-                    : ($position->organization_id ?? '__unassigned__'),
-                function (string $key, Position $position) use ($groupingKey): array {
-                    $related = $groupingKey === 'unit' ? $position->organizationUnit : $position->organization;
-
-                    return [$related?->name_en, $related?->name_am];
-                },
-            ),
-            'by_grade_level' => $buildBreakdown(
-                fn (Position $position) => $position->grade_level ?: '__unassigned__',
-                fn (string $key) => $key === '__unassigned__' ? [null, null] : [$key, $key],
-            ),
-            'by_job_family' => $buildBreakdown(
-                fn (Position $position) => $position->job_family ?: '__unassigned__',
-                fn (string $key) => $key === '__unassigned__' ? [null, null] : [$key, $key],
-            ),
+            'by_group' => $groupingKey === 'unit'
+                ? $buildBreakdown('organization_unit_id', $namesFor(OrganizationUnit::class))
+                : $buildBreakdown('organization_id', $namesFor(Organization::class)),
+            'by_grade_level' => $buildBreakdown('grade_level', fn (array $keys): array => []),
+            'by_job_family' => $buildBreakdown('job_family', fn (array $keys): array => []),
         ];
 
         return Inertia::render('Positions/Status', [
@@ -495,7 +550,8 @@ class PositionController extends Controller
             ->all();
 
         return Inertia::render('Positions/Index', [
-            'organizationStructure' => $scopedPositionStructureService->build($user),
+            // Units and positions are expanded for the selected organization only.
+            'organizationStructure' => $scopedPositionStructureService->build($user, $selectedOrganization?->id !== null ? (string) $selectedOrganization->id : null),
             'isOrganizationScoped' => $isOrganizationScoped,
             'organizationTree' => $organizationTree,
             'hasPublishedHierarchy' => $hasPublishedHierarchy,
@@ -806,14 +862,14 @@ class PositionController extends Controller
         }
 
         if ($establishment->status->value === EstablishmentStatus::Approved->value) {
-            return back()->with('flash', ['message' => __('positionEstablishments.alreadyApproved'), 'type' => 'info']);
+            return back()->with('flash', ['message' => __('position-establishments.alreadyApproved'), 'type' => 'info']);
         }
 
         $this->authorize('approve', $establishment);
 
         $action->execute($establishment, $actor);
 
-        return back()->with('flash', ['message' => __('positionEstablishments.approved'), 'type' => 'success']);
+        return back()->with('flash', ['message' => __('position-establishments.approved'), 'type' => 'success']);
     }
 
     public function restore(Request $request, string $position, RestorePositionAction $action): RedirectResponse

@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
  * The attendance-facing read model of Field Work: "was this employee on
  * authorised official field work during this interval, and on which request?"
  *
- * EUISIS has no attendance module yet (docs/field-work-attendance-integration.md).
+ * Addis One has no attendance module yet (docs/field-work-attendance-integration.md).
  * When one arrives it consumes these intervals to classify time as
  * OFFICIAL_FIELD_WORK instead of unexplained absence. This service:
  *

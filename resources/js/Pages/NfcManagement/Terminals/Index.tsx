@@ -4,9 +4,10 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useTerminalTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, filterInputCls } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, buttonClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type TerminalRow = {
     id: string;
@@ -42,132 +43,137 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
     const meta = terminals.meta;
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('nfc.terminals')} />
-
-            <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                 title={t('nfc.terminals')}
                 description={t('nfc.management')}
                 actions={
                     can.createTerminals && (
                         <Link
                             href={route('nfc-management.terminals.create')}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {t('nfc.registerTerminal')}
                         </Link>
                     )
                 }
-            />
+            />}>
+            <Head title={t('nfc.terminals')} />
+
 
             <NfcSubNav can={can} current="terminals" />
 
             <AppFilterBar routeName="nfc-management.terminals.index" filters={filters}>
-                <input
-                    name="search"
-                    defaultValue={filters.search ?? ''}
-                    placeholder={t('nfc.searchTerminalsPlaceholder')}
-                    className={`${filterInputCls} min-w-[15rem] flex-1`}
-                    aria-label={t('nfc.searchTerminalsPlaceholder')}
-                />
-                <select
-                    name="terminal_type"
-                    defaultValue={filters.terminal_type ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.terminalType')}
-                >
-                    <option value="">{t('nfc.allTypes')}</option>
-                    {types.map((type) => (
-                        <option key={type} value={type}>
-                            {terminalTypeLabel(type)}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    name="status"
-                    defaultValue={filters.status ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.status')}
-                >
-                    <option value="">{t('nfc.allStatuses')}</option>
-                    {statuses.map((status) => (
-                        <option key={status} value={status}>
-                            {status}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    name="organization_id"
-                    defaultValue={filters.organization_id ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.organization')}
-                >
-                    <option value="">{t('nfc.allOrganizations')}</option>
-                    {organizations.map((organization) => (
-                        <option key={organization.id} value={organization.id}>
-                            {localizedName(organization)}
-                        </option>
-                    ))}
-                </select>
+                <FilterField label={t('common.search')} wide>
+                    <input
+                        type="search"
+                        name="search"
+                        defaultValue={filters.search ?? ''}
+                        placeholder={t('nfc.searchTerminalsPlaceholder')}
+                        className={filterInputCls}
+                    />
+                </FilterField>
+                <FilterField label={t('nfc.terminalType')}>
+                    <select
+                        name="terminal_type"
+                        defaultValue={filters.terminal_type ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allTypes')}</option>
+                        {types.map((type) => (
+                            <option key={type} value={type}>
+                                {terminalTypeLabel(type)}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
+                <FilterField label={t('nfc.status')}>
+                    <select
+                        name="status"
+                        defaultValue={filters.status ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allStatuses')}</option>
+                        {statuses.map((status) => (
+                            <option key={status} value={status}>
+                                {status}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
+                <FilterField label={t('nfc.organization')}>
+                    <select
+                        name="organization_id"
+                        defaultValue={filters.organization_id ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allOrganizations')}</option>
+                        {organizations.map((organization) => (
+                            <option key={organization.id} value={organization.id}>
+                                {localizedName(organization)}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
             </AppFilterBar>
 
             {rows.length === 0 ? (
-                <p className="rounded-panel border border-dashed border-gray-300 bg-white py-12 text-center text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400">
+                <p className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">
                     {t('nfc.noTerminals')}
                 </p>
             ) : (
                 <>
-                    <div className="hidden overflow-x-auto rounded-panel border border-gray-200 bg-white md:block dark:border-slate-800 dark:bg-slate-900">
-                        <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-800">
-                            <thead className="bg-gray-50 text-left text-xs text-gray-500 dark:bg-slate-950 dark:text-slate-400">
+                    <div className="hidden overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] md:block">
+                        <table className={cx(tableClassName, 'min-w-full')}>
+                            <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
-                                    <th className="px-4 py-3">{t('nfc.terminalCode')}</th>
-                                    <th className="px-4 py-3">{t('nfc.terminalName')}</th>
-                                    <th className="px-4 py-3">{t('nfc.terminalType')}</th>
-                                    <th className="px-4 py-3">{t('nfc.provider')}</th>
-                                    <th className="px-4 py-3">{t('nfc.organization')}</th>
-                                    <th className="px-4 py-3">{t('nfc.externalApplication')}</th>
-                                    <th className="px-4 py-3">{t('nfc.status')}</th>
-                                    <th className="px-4 py-3">{t('nfc.lastSeen')}</th>
-                                    <th className="px-4 py-3" />
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.terminalCode')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.terminalName')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.terminalType')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.provider')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.organization')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.externalApplication')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.status')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('nfc.lastSeen')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')} />
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className={tableBodyClassName}>
                                 {rows.map((row) => (
-                                    <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                                        <td className="px-4 py-3 font-mono text-xs text-gray-700 dark:text-slate-300">
+                                    <tr key={row.id} className={tableRowClassName}>
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>
                                             {row.terminal_code}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-900 dark:text-slate-100">{row.name}</td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{row.name}</td>
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {terminalTypeLabel(row.terminal_type)}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {row.provider?.name ?? '—'}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {localizedName(row.organization) || '—'}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {row.external_application?.name ?? '—'}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <StatusBadge status={row.status} />
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             <LocalizedDateDisplay
                                                 value={row.last_seen_at}
                                                 withTime
                                                 fallback={t('nfc.neverSeen')}
                                             />
                                         </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <Link
-                                                href={route('nfc-management.terminals.show', row.id)}
-                                                className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
-                                            >
-                                                {t('nfc.view')}
-                                            </Link>
+                                        <td className={cx(tableCellClassName, 'text-right')}>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('nfc.view'), href: route('nfc-management.terminals.show', row.id) },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -180,20 +186,20 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
                             <Link
                                 key={row.id}
                                 href={route('nfc-management.terminals.show', row.id)}
-                                className="block rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+                                className="block rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="truncate font-medium text-gray-900 dark:text-slate-100">
+                                        <p className="truncate font-medium text-[color:var(--app-foreground)]">
                                             {row.name}
                                         </p>
-                                        <p className="truncate font-mono text-xs text-gray-500 dark:text-slate-400">
+                                        <p className="truncate font-mono text-xs text-[color:var(--app-muted-foreground)]">
                                             {row.terminal_code}
                                         </p>
                                     </div>
                                     <StatusBadge status={row.status} />
                                 </div>
-                                <p className="mt-2 text-xs text-gray-600 dark:text-slate-300">
+                                <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">
                                     {terminalTypeLabel(row.terminal_type)}
                                     {row.organization ? ` · ${localizedName(row.organization)}` : ''}
                                 </p>
@@ -203,37 +209,7 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
                 </>
             )}
 
-            {meta.last_page > 1 && (
-                <div className="mt-4 flex items-center justify-between text-sm">
-                    <p className="text-gray-500 dark:text-slate-400">
-                        {meta.current_page} / {meta.last_page} · {meta.total}
-                    </p>
-                    <div className="flex gap-2">
-                        {meta.current_page > 1 && (
-                            <Link
-                                href={route('nfc-management.terminals.index', {
-                                    ...filters,
-                                    page: meta.current_page - 1,
-                                })}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 dark:border-slate-700"
-                            >
-                                {t('common.previous')}
-                            </Link>
-                        )}
-                        {meta.current_page < meta.last_page && (
-                            <Link
-                                href={route('nfc-management.terminals.index', {
-                                    ...filters,
-                                    page: meta.current_page + 1,
-                                })}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 dark:border-slate-700"
-                            >
-                                {t('common.next')}
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            )}
+            <ListPagination meta={meta} bare className="mt-4" />
         </AuthenticatedLayout>
     );
 }

@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
@@ -7,6 +8,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type UnitType = {
     id: string;
     code: string;
@@ -20,15 +23,31 @@ type UnitType = {
     can: { update: boolean; archive: boolean; restore: boolean };
 };
 
+type Filters = { search: string; status: string };
+
 export default function OrganizationUnitTypesIndex({
     types,
+    filters,
     can,
 }: {
-    types: UnitType[];
+    types: { data: UnitType[] } & LaravelPageMeta;
+    filters: Filters;
     can: { create: boolean };
 }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
+
+    function submit() {
+        router.get(route('organization-unit-types.index'), { ...values, page: 1 }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { search: '', status: '' };
+        setValues(empty);
+        router.get(route('organization-unit-types.index'), empty, { preserveScroll: true, replace: true });
+    }
 
     async function archive(id: string) {
         const { confirmed } = await confirm({
@@ -64,7 +83,7 @@ export default function OrganizationUnitTypesIndex({
                         can.create ? (
                             <Link
                                 href={route('organization-unit-types.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {t('organizationUnitTypes.createOrganizationUnitType')}
@@ -76,98 +95,99 @@ export default function OrganizationUnitTypesIndex({
         >
             <Head title={t('organizationUnitTypes.organizationUnitTypes')} />
 
-            <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                {types.length === 0 ? (
-                    <div className="p-6">
-                        <EmptyState
-                            title={t('organizationUnitTypes.noOrganizationUnitTypesFound')}
-                            description=""
+            <div className="space-y-4">
+                <FilterPanel onSubmit={submit} onReset={resetFilters} hasActiveFilters={filtersActive}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input
+                            type="search"
+                            value={values.search}
+                            onChange={(event) => setValues({ ...values, search: event.target.value })}
+                            placeholder={t('organizations.searchByCodeOrName')}
                         />
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full text-left text-sm">
-                            <thead className="bg-gray-50 dark:bg-slate-950">
-                                <tr>
-                                    {[
-                                        t('common.code'),
-                                        t('organizationUnitTypes.prefix'),
-                                        t('common.name'),
-                                        t('organizationUnitTypes.sortOrder'),
-                                        t('common.status'),
-                                        '',
-                                    ].map((h) => (
-                                        <th
-                                            key={h}
-                                            className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
-                                        >
-                                            {h}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {types.map((type) => (
-                                    <tr
-                                        key={type.id}
-                                        className="border-t border-gray-100 text-gray-700 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800/50"
-                                    >
-                                        <td className="py-3 pl-5 pr-4 font-mono text-xs font-medium text-gray-500 dark:text-slate-400">
-                                            {type.code}
-                                        </td>
-                                        <td className="px-4 py-3 font-mono text-xs font-medium text-indigo-600 dark:text-indigo-400">
-                                            {type.prefix ?? '—'}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <p className="font-medium">{type.name_en}</p>
-                                            {type.name_am && (
-                                                <p className="text-xs text-gray-400 dark:text-slate-500">
-                                                    {type.name_am}
-                                                </p>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
-                                            {type.sort_order}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <StatusBadge status={type.is_active ? 'active' : 'archived'} />
-                                        </td>
-                                        <td className="py-3 pl-4 pr-5">
-                                            <div className="flex items-center justify-end gap-3">
-                                                {type.can.update && !type.deleted_at && (
-                                                    <Link
-                                                        href={route('organization-unit-types.edit', type.id)}
-                                                        className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
-                                                    >
-                                                        {t('common.edit')}
-                                                    </Link>
-                                                )}
-                                                {type.can.archive && type.is_active && !type.deleted_at && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => archive(type.id)}
-                                                        className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                                    >
-                                                        {t('common.delete')}
-                                                    </button>
-                                                )}
-                                                {type.can.restore && (type.deleted_at || !type.is_active) && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => restore(type.id)}
-                                                        className="text-xs font-medium text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
-                                                    >
-                                                        {t('common.restore')}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            <option value="active">{t('common.active')}</option>
+                            <option value="archived">{t('common.archived')}</option>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
+
+                <TableCard footer={<ListPagination meta={types} />}>
+                    {types.data.length === 0 ? (
+                        <div className="p-6">
+                            <EmptyState
+                                title={filtersActive ? t('common.noResults') : t('organizationUnitTypes.noOrganizationUnitTypesFound')}
+                                description=""
+                            />
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        {[
+                                            t('common.code'),
+                                            t('organizationUnitTypes.prefix'),
+                                            t('common.name'),
+                                            t('organizationUnitTypes.sortOrder'),
+                                            t('common.status'),
+                                            '',
+                                        ].map((h) => (
+                                            <th
+                                                key={h}
+                                                className={cx(tableHeaderCellClassName, 'text-left')}
+                                            >
+                                                {h}
+                                            </th>
+                                        ))}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody className={tableBodyClassName}>
+                                    {types.data.map((type) => (
+                                        <tr
+                                            key={type.id}
+                                            className={tableRowClassName}
+                                        >
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
+                                                {type.code}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-indigo-600 dark:text-indigo-400')}>
+                                                {type.prefix ?? '—'}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <p className="font-medium">{type.name_en}</p>
+                                                {type.name_am && (
+                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                        {type.name_am}
+                                                    </p>
+                                                )}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                                {type.sort_order}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <StatusBadge status={type.is_active && !type.deleted_at ? 'active' : 'archived'} />
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), href: route('organization-unit-types.edit', type.id), show: type.can.update && !type.deleted_at },
+                                                            { label: t('common.delete'), onClick: () => archive(type.id), variant: 'danger', show: type.can.archive && type.is_active && !type.deleted_at },
+                                                            { label: t('common.restore'), onClick: () => restore(type.id), show: !!(type.can.restore && (type.deleted_at || !type.is_active)) },
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Head } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
+import { useBranding } from '@/hooks/useBranding';
 
 const FEATURES = [
     { key: 'providerPortal.featureScan', icon: 'M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5ZM6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z' },
@@ -18,7 +19,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
     const { t, locale } = useLocale();
     const { getString } = useSystemSettings();
 
-    const systemName = getString('app.short_name', 'EUISIS');
+    const { brandName: systemName } = useBranding();
     const systemLogoUrl = getString('general.identity_system_logo_url', '');
     const orgName = locale === 'am'
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
@@ -56,7 +57,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                         <div className="space-y-3">
                             <h1 className="text-[2rem] font-bold leading-[1.2] text-white">{t('providerPortal.loginHeadline')}</h1>
-                            <p className="text-sm leading-relaxed text-slate-400">{t('providerPortal.loginDescription')}</p>
+                            <p className="text-sm leading-relaxed text-[color:var(--app-muted-foreground)]">{t('providerPortal.loginDescription')}</p>
                         </div>
 
                         <div className="grid w-full grid-cols-2 gap-2">
@@ -65,7 +66,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
                                     <svg className={`h-4 w-4 shrink-0 ${i % 2 === 0 ? 'text-orange-400' : 'text-sky-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
                                         <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
                                     </svg>
-                                    <span className="text-[12px] text-slate-300">{t(key)}</span>
+                                    <span className="text-[12px] text-[color:var(--app-muted-foreground)]">{t(key)}</span>
                                 </div>
                             ))}
                         </div>
@@ -73,14 +74,14 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                     <div className="flex w-full items-center gap-3">
                         <div className="h-px flex-1 bg-white/[0.06]" />
-                        <p className="text-[11px] text-slate-500">{t('auth.footerGov')} · {orgName}</p>
+                        <p className="text-[11px] text-[color:var(--app-muted-foreground)]">{t('auth.footerGov')} · {orgName}</p>
                         <div className="h-px flex-1 bg-white/[0.06]" />
                     </div>
                 </div>
             </div>
 
             {/* ── Right form panel ──────────────────────────────────────── */}
-            <div className="flex flex-1 flex-col bg-gray-50 dark:bg-[#0d0f14]">
+            <div className="flex flex-1 flex-col bg-[color:var(--app-surface-muted)] dark:bg-[#0d0f14]">
                 <div className="flex items-center justify-between gap-3 px-6 py-5">
                     <div className="flex items-center gap-2.5 lg:invisible">
                         {systemLogoUrl ? (
@@ -88,7 +89,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
                         ) : (
                             <ApplicationLogo className="h-8 w-auto max-w-[80px] fill-slate-800 dark:fill-white" />
                         )}
-                        <span className="text-sm font-bold text-slate-900 dark:text-white">{systemName}</span>
+                        <span className="text-sm font-bold text-[color:var(--app-foreground)]">{systemName}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <LanguageSwitcher />
@@ -98,11 +99,11 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                 <div className="flex flex-1 items-center justify-center px-6 pb-10">
                     <div className="w-full max-w-[400px]">
-                        <div className="rounded-panel border border-gray-200 bg-white px-8 py-8 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-8 py-8">
                             {children}
                         </div>
 
-                        <p className="mt-5 text-center text-[11px] text-gray-400 dark:text-slate-500">
+                        <p className="mt-5 text-center text-[11px] text-[color:var(--app-muted-foreground)]">
                             {t('providerPortal.portalName')} · {t('providerPortal.authorizedOnly')}
                         </p>
                     </div>

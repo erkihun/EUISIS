@@ -4,6 +4,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { useLocale } from '@/hooks/useLocale';
 import { useState, type ReactNode } from 'react';
 
+import { actionLinkClassName, cx, inputClassName } from '@/Components/ui';
 /**
  * A workflow action (approve, end, cancel, finalize…) behind a confirmation
  * dialog, optionally asking for a date (dual calendar) or a reason.
@@ -73,7 +74,7 @@ export type NamePair = { id: string; code?: string | null; name_en?: string | nu
 
 export type Meta = { currentPage: number; lastPage: number; total: number; perPage: number };
 
-export const inputCls = 'w-full rounded-[var(--radius-control)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:opacity-60';
+export const inputCls = cx(inputClassName, 'w-full');
 
 export function useNames() {
     const { locale, t } = useLocale();
@@ -143,7 +144,7 @@ export function ConfigurationHealthPanel({ health }: { health: Health }) {
             <ul className="mt-1 list-inside list-disc text-sm">
                 {items.slice(0, 5).map((item) => <li key={item.id}>{render(item)}</li>)}
             </ul>
-            <Link href={href} className="mt-1 inline-block text-xs font-medium text-[color:var(--color-primary)] hover:underline">{t('cafeteriaPolicy.view')} →</Link>
+            <Link href={href} className={actionLinkClassName({ className: 'mt-1 inline-block' })}>{t('cafeteriaPolicy.view')} →</Link>
         </div>
     );
 

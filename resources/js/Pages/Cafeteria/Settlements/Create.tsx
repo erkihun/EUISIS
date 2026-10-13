@@ -8,6 +8,7 @@ import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, Money, SelectOptions, useNames, type NamePair } from '@/Components/Cafeteria/PolicyUi';
 
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Line = { employee_organization: NamePair; cafeteria: NamePair; transaction_count: number; subsidy_amount: string; employee_amount: string; provider_amount: string };
 type Preview = { lines: Line[]; totals: { transaction_count: number; total_subsidy_amount: string; total_employee_amount: string; total_provider_amount: string; currency_code: string } };
 
@@ -69,37 +70,37 @@ export default function SettlementCreate({ providers, filters, preview }: {
 
                 {preview && (
                     <div className="overflow-x-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)]">
-                        <table className="w-full text-sm">
-                            <thead className="bg-[color:var(--app-surface-muted)] text-xs">
+                        <table className={tableClassName}>
+                            <thead className={tableHeadClassName}>
                                 <tr>
-                                    <th className="px-3 py-2 text-start">{tt('employeeOrganization')}</th>
-                                    <th className="px-3 py-2 text-start">{tt('serviceLocation')}</th>
-                                    <th className="px-3 py-2 text-end">{tt('transactions')}</th>
-                                    <th className="px-3 py-2 text-end">{tt('subsidyAmount')}</th>
-                                    <th className="px-3 py-2 text-end">{tt('employeeAmount')}</th>
-                                    <th className="px-3 py-2 text-end">{tt('providerAmount')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('employeeOrganization')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('serviceLocation')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('transactions')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('subsidyAmount')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('employeeAmount')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('providerAmount')}</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {preview.lines.length === 0 && <tr><td colSpan={6} className="px-3 py-4 text-center text-[color:var(--app-muted-foreground)]">{tt('noResults')}</td></tr>}
+                            <tbody className={tableBodyClassName}>
+                                {preview.lines.length === 0 && <tr><td colSpan={6} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>{tt('noResults')}</td></tr>}
                                 {preview.lines.map((line, index) => (
-                                    <tr key={index} className="border-t border-[color:var(--app-border)]">
-                                        <td className="px-3 py-2">{label(line.employee_organization, tt('unattributed'))}</td>
-                                        <td className="px-3 py-2">{label(line.cafeteria)}</td>
-                                        <td className="px-3 py-2 text-end">{line.transaction_count}</td>
-                                        <td className="px-3 py-2 text-end"><Money value={line.subsidy_amount} currency={currency} /></td>
-                                        <td className="px-3 py-2 text-end"><Money value={line.employee_amount} currency={currency} /></td>
-                                        <td className="px-3 py-2 text-end font-medium"><Money value={line.provider_amount} currency={currency} /></td>
+                                    <tr key={index} className={tableRowClassName}>
+                                        <td className={tableCellClassName}>{label(line.employee_organization, tt('unattributed'))}</td>
+                                        <td className={tableCellClassName}>{label(line.cafeteria)}</td>
+                                        <td className={tableCellClassName}>{line.transaction_count}</td>
+                                        <td className={tableCellClassName}><Money value={line.subsidy_amount} currency={currency} /></td>
+                                        <td className={tableCellClassName}><Money value={line.employee_amount} currency={currency} /></td>
+                                        <td className={cx(tableCellClassName, 'font-medium')}><Money value={line.provider_amount} currency={currency} /></td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot className="border-t border-[color:var(--app-border)] font-semibold">
                                 <tr>
-                                    <td className="px-3 py-2" colSpan={2}>{tt('total')}</td>
-                                    <td className="px-3 py-2 text-end">{preview.totals.transaction_count}</td>
-                                    <td className="px-3 py-2 text-end"><Money value={preview.totals.total_subsidy_amount} currency={currency} /></td>
-                                    <td className="px-3 py-2 text-end"><Money value={preview.totals.total_employee_amount} currency={currency} /></td>
-                                    <td className="px-3 py-2 text-end"><Money value={preview.totals.total_provider_amount} currency={currency} /></td>
+                                    <td className={tableCellClassName} colSpan={2}>{tt('total')}</td>
+                                    <td className={tableCellClassName}>{preview.totals.transaction_count}</td>
+                                    <td className={tableCellClassName}><Money value={preview.totals.total_subsidy_amount} currency={currency} /></td>
+                                    <td className={tableCellClassName}><Money value={preview.totals.total_employee_amount} currency={currency} /></td>
+                                    <td className={tableCellClassName}><Money value={preview.totals.total_provider_amount} currency={currency} /></td>
                                 </tr>
                             </tfoot>
                         </table>

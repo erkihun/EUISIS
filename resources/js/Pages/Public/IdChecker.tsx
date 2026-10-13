@@ -1,6 +1,7 @@
-import { FormEvent, Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { FormEvent, ReactNode, Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { router } from '@inertiajs/react';
 import { Input } from '@euisis/ui';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PublicLayout from '@/Layouts/PublicLayout';
 import OtpInput from '@/Components/public/OtpInput';
 import ScannerBoundary from '@/Components/public/ScannerBoundary';
@@ -422,18 +423,21 @@ export default function IdChecker({ cardUuid, card, autoSend = false, sections =
                             </h2>
 
                             <dl className="divide-y divide-gray-100 dark:divide-slate-800">
-                                {[
-                                    [t('idChecker.fullName'), employee.full_name],
-                                    [t('idChecker.employeeNumber'), employee.employee_number],
-                                    [t('idChecker.organization'), employee.organization],
-                                    [t('idChecker.organizationUnit'), employee.organization_unit],
-                                    [t('idChecker.position'), employee.position],
-                                    [t('idChecker.cardNumber'), employee.card_number],
-                                    [t('idChecker.cardStatus'), t(`idChecker.status_${employee.card_status}`)],
-                                    [t('idChecker.issuedAt'), employee.issued_at],
-                                    [t('idChecker.expiresAt'), employee.expires_at],
-                                    [t('idChecker.verifiedAt'), employee.verified_at],
-                                ].map(([label, value]) => (
+                                {(
+                                    [
+                                        [t('idChecker.fullName'), employee.full_name],
+                                        [t('idChecker.employeeNumber'), employee.employee_number],
+                                        [t('idChecker.organization'), employee.organization],
+                                        [t('idChecker.organizationUnit'), employee.organization_unit],
+                                        [t('idChecker.position'), employee.position],
+                                        [t('idChecker.cardNumber'), employee.card_number],
+                                        [t('idChecker.cardStatus'), t(`idChecker.status_${employee.card_status}`)],
+                                        // Dates follow the visitor's calendar, as on every other public page.
+                                        [t('idChecker.issuedAt'), <LocalizedDateDisplay value={employee.issued_at} />],
+                                        [t('idChecker.expiresAt'), <LocalizedDateDisplay value={employee.expires_at} />],
+                                        [t('idChecker.verifiedAt'), <LocalizedDateDisplay value={employee.verified_at} withTime />],
+                                    ] as Array<[string, ReactNode]>
+                                ).map(([label, value]) => (
                                     // Stacked on a phone, two columns from `sm`.
                                     <div key={label} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:justify-between sm:gap-4">
                                         <dt className="text-xs text-slate-500 dark:text-slate-400 sm:text-sm">{label}</dt>

@@ -121,38 +121,42 @@ export function ServiceItem({ item }: { item: ServiceSummary }) {
     const name = pick(item, 'name');
     const description = pick(item, 'short_description');
 
+    // The card is a column so "View details" sits on the same baseline in
+    // every card of a row, whatever the length of the description above it.
     const body = (
         <>
             <PublicCardDecor />
-            <div className="relative flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                    <h3 className="text-sm font-semibold leading-snug text-gray-900 [overflow-wrap:anywhere] dark:text-slate-100">
-                        {name}
-                    </h3>
-                    {description && (
-                        <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{description}</p>
-                    )}
-                    {item.has_details && (
-                        <span className="mt-3 inline-block text-sm font-semibold text-[color:var(--color-primary)]">
-                            {t('publicSite.viewDetails')}
-                            <span className="sr-only">: {name}</span>
-                        </span>
-                    )}
+            <div className="relative flex flex-1 flex-col">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                        <h3 className="text-sm font-semibold leading-snug text-gray-900 [overflow-wrap:anywhere] dark:text-slate-100">
+                            {name}
+                        </h3>
+                        {description && (
+                            <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{description}</p>
+                        )}
+                    </div>
+                    <span className={publicIconTileClass}>
+                        <ServiceIcon name={item.icon} className="h-5 w-5" />
+                    </span>
                 </div>
-                <span className={publicIconTileClass}>
-                    <ServiceIcon name={item.icon} className="h-5 w-5" />
-                </span>
+                {item.has_details && (
+                    <span className="mt-auto pt-3 text-sm font-semibold text-[color:var(--color-primary)]">
+                        {t('publicSite.viewDetails')}
+                        <span className="sr-only">: {name}</span>
+                    </span>
+                )}
             </div>
         </>
     );
 
     // A service with nothing more to say is not a link to an empty page.
     return item.has_details ? (
-        <Link href={route('public.services.show', item.slug)} className={`${publicCardInteractiveClass} block h-full`}>
+        <Link href={route('public.services.show', item.slug)} className={`${publicCardInteractiveClass} flex h-full flex-col`}>
             {body}
         </Link>
     ) : (
-        <div className={`${publicCardClass} h-full`}>{body}</div>
+        <div className={`${publicCardClass} flex h-full flex-col`}>{body}</div>
     );
 }
 

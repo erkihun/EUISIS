@@ -115,12 +115,12 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
             <div className={pageCls}>
                 {cloning && <CloneForm formId={record.id} onClose={() => setCloning(false)} />}
 
-                <div className="flex flex-wrap items-center gap-3 rounded-panel border border-gray-200 bg-white px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex flex-wrap items-center gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm">
                     <span className="font-semibold">{t('assessments.version')} {version.version_no}</span>
                     <StatusBadge status={version.status} />
-                    {version.published_at && <span className="text-gray-500 dark:text-slate-400">{t('assessments.publishedOn')} <LocalizedDateDisplay value={version.published_at} /></span>}
-                    {!editable && version.status === 'draft' && <span className="text-gray-500">{t('assessments.readOnly')}</span>}
-                    {version.status !== 'draft' && <span className="text-gray-500 dark:text-slate-400">{t('assessments.immutableNote')}</span>}
+                    {version.published_at && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.publishedOn')} <LocalizedDateDisplay value={version.published_at} /></span>}
+                    {!editable && version.status === 'draft' && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.readOnly')}</span>}
+                    {version.status !== 'draft' && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.immutableNote')}</span>}
                     <Link href={route('assessment-forms.versions.preview', version.id)} className={`${linkBtn} ms-auto`}>{t('assessments.actions.preview')}</Link>
                 </div>
 
@@ -197,8 +197,8 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                     </fieldset>
 
                     {editable && (
-                        <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 rounded-panel border border-gray-200 bg-white/95 px-4 py-3 shadow-lg backdrop-blur dark:border-slate-700 dark:bg-slate-950/95">
-                            <p className="me-auto text-sm text-gray-500 dark:text-slate-400">{dirty ? t('assessments.unsaved') : t('assessments.saved')}</p>
+                        <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur">
+                            <p className="me-auto text-sm text-[color:var(--app-muted-foreground)]">{dirty ? t('assessments.unsaved') : t('assessments.saved')}</p>
                             {can.discard && <button type="button" className={secondaryBtn} onClick={() => act(t('assessments.actions.discard'), t('assessments.confirm.discard'), () => router.delete(route('assessment-forms.versions.discard', version.id)))}>{t('assessments.actions.discard')}</button>}
                             <button type="button" className={secondaryBtn} disabled={dirty || form.processing} title={dirty ? t('assessments.saveFirst') : undefined} onClick={() => router.post(route('assessment-forms.versions.validate', version.id), {}, { preserveScroll: true })}>{t('assessments.actions.validate')}</button>
                             <button type="submit" className={secondaryBtn} disabled={form.processing || !dirty}>{t('assessments.actions.saveDraft')}</button>
@@ -208,12 +208,12 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                 </form>
 
                 <Section title={t('assessments.sections.versions')}>
-                    <ul className="divide-y divide-gray-100 text-sm dark:divide-slate-800">
+                    <ul className="divide-y divide-[color:var(--app-border)] text-sm">
                         {versions.map((v) => (
                             <li key={v.id} className="flex flex-wrap items-center gap-3 py-2">
                                 <span className="font-medium">v{v.version_no}</span>
                                 <StatusBadge status={v.status} />
-                                {v.published_at && <span className="text-xs text-gray-500"><LocalizedDateDisplay value={v.published_at} /></span>}
+                                {v.published_at && <span className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={v.published_at} /></span>}
                                 {v.id === record.current_version_id && <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">{t('assessments.current')}</span>}
                                 <span className="ms-auto flex gap-3">
                                     {v.id !== version.id && <Link href={route('assessment-forms.show', { form: record.id, version: v.id })} className={linkBtn}>{t('assessments.actions.view')}</Link>}
@@ -233,12 +233,12 @@ function TargetRules({ rules, editable, options, organizationId, errors, onChang
     const update = (i: number, patch: Partial<Rule>) => onChange(rules.map((r, n) => (n === i ? { ...r, ...patch } : r)));
     const idTypes = ['position', 'occupation', 'organization', 'organization_unit'];
 
-    if (rules.length === 0) return <p className="text-sm text-gray-500 dark:text-slate-400">{t('assessments.noRules')}</p>;
+    if (rules.length === 0) return <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessments.noRules')}</p>;
 
     return (
         <div className="space-y-2">
             {rules.map((rule, i) => (
-                <div key={i} className="grid items-end gap-2 rounded-lg bg-gray-50 p-3 sm:grid-cols-2 lg:grid-cols-[9rem_11rem_minmax(0,1fr)_6rem_auto] dark:bg-slate-800/50">
+                <div key={i} className="grid items-end gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-2 lg:grid-cols-[9rem_11rem_minmax(0,1fr)_6rem_auto]">
                     <Field label={t('assessments.fields.effect')} htmlFor={`r${i}-effect`}>
                         <select id={`r${i}-effect`} className={compactInputCls} value={rule.effect} onChange={(e) => update(i, { effect: e.target.value })}>
                             <option value="include">{t('assessments.effects.include')}</option>
@@ -269,7 +269,7 @@ function TargetRules({ rules, editable, options, organizationId, errors, onChang
                                 <datalist id={`r${i}-families`}>{options.job_families.map((f) => <option key={f} value={f} />)}</datalist>
                             </Field>
                         )}
-                        {rule.target_type === 'everyone' && <p className="pb-1.5 text-sm text-gray-600 dark:text-slate-300">{t('assessments.everyoneNote')}</p>}
+                        {rule.target_type === 'everyone' && <p className="pb-1.5 text-sm text-[color:var(--app-muted-foreground)]">{t('assessments.everyoneNote')}</p>}
                         {rule.target_type === 'organization_unit' && (
                             <label className="mt-1 flex items-center gap-2 text-xs"><input type="checkbox" checked={rule.include_descendants} onChange={(e) => update(i, { include_descendants: e.target.checked })} /> {t('assessments.fields.includeSubUnits')}</label>
                         )}
@@ -290,12 +290,12 @@ function Evaluators({ evaluators, editable, options, onChange }: { evaluators: E
     const update = (i: number, patch: Partial<Evaluator>) => onChange(evaluators.map((e, n) => (n === i ? { ...e, ...patch } : e)));
     const total = evaluators.reduce((sum, e) => sum + (Number.isNaN(num(e.contribution_weight)) ? 0 : num(e.contribution_weight)), 0);
 
-    if (evaluators.length === 0) return <p className="text-sm text-gray-500 dark:text-slate-400">{t('assessments.noEvaluators')}</p>;
+    if (evaluators.length === 0) return <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessments.noEvaluators')}</p>;
 
     return (
         <div className="space-y-2">
             {evaluators.map((evaluator, i) => (
-                <div key={i} className="grid items-end gap-2 rounded-lg bg-gray-50 p-3 sm:grid-cols-3 lg:grid-cols-[minmax(0,1fr)_6rem_7rem_minmax(0,1fr)_auto_auto] dark:bg-slate-800/50">
+                <div key={i} className="grid items-end gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-3 lg:grid-cols-[minmax(0,1fr)_6rem_7rem_minmax(0,1fr)_auto_auto]">
                     <Field label={t('assessments.fields.evaluatorType')} htmlFor={`e${i}-type`}>
                         <select id={`e${i}-type`} className={compactInputCls} value={evaluator.evaluator_type} onChange={(e) => update(i, { evaluator_type: e.target.value })}>
                             {options.evaluator_types.map((type) => <option key={type} value={type} disabled={type !== evaluator.evaluator_type && evaluators.some((x) => x.evaluator_type === type)}>{t(`assessments.evaluatorTypes.${type}`)}</option>)}
@@ -315,7 +315,7 @@ function Evaluators({ evaluators, editable, options, onChange }: { evaluators: E
                     {editable && <button type="button" className={`${dangerLinkBtn} pb-2`} onClick={() => onChange(evaluators.filter((_, n) => n !== i))}>{t('assessments.actions.remove')}</button>}
                 </div>
             ))}
-            {evaluators.length > 1 && <p className={`text-xs ${total === 100 ? 'text-gray-500 dark:text-slate-400' : 'font-medium text-red-700 dark:text-red-400'}`}>{t('assessments.weightTotal')}: {fmt(total)}%</p>}
+            {evaluators.length > 1 && <p className={`text-xs ${total === 100 ? 'text-[color:var(--app-muted-foreground)]' : 'font-medium text-red-700 dark:text-red-400'}`}>{t('assessments.weightTotal')}: {fmt(total)}%</p>}
         </div>
     );
 }
@@ -335,9 +335,9 @@ function AssignmentPreview({ formId }: { formId: string }) {
     }
 
     return (
-        <div className="mt-4 rounded-lg border border-dashed border-gray-300 p-3 dark:border-slate-700">
-            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('assessments.preview.title')}</p>
-            <p className="mb-2 text-xs text-gray-500 dark:text-slate-400">{t('assessments.preview.help')}</p>
+        <div className="mt-4 rounded-lg border border-dashed border-[color:var(--app-border-strong)] p-3">
+            <p className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('assessments.preview.title')}</p>
+            <p className="mb-2 text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.preview.help')}</p>
             <div className="flex flex-wrap items-end gap-2">
                 <div className="w-48"><LocalizedDatePicker value={date} onChange={setDate} /></div>
                 <button type="button" className={smallBtn} disabled={loading} onClick={() => void run()}>{loading ? t('assessments.preview.running') : t('assessments.preview.run')}</button>
@@ -355,12 +355,12 @@ function AssignmentPreview({ formId }: { formId: string }) {
 }
 
 function Stat({ label, value, hint, tone }: { label: string; value: number; hint?: ReactNode; tone?: 'warn' | 'bad' }) {
-    const color = tone === 'bad' ? 'text-red-700 dark:text-red-400' : tone === 'warn' ? 'text-amber-700 dark:text-amber-400' : 'text-gray-900 dark:text-slate-100';
+    const color = tone === 'bad' ? 'text-red-700 dark:text-red-400' : tone === 'warn' ? 'text-amber-700 dark:text-amber-400' : 'text-[color:var(--app-foreground)]';
     return (
-        <div className="rounded-lg bg-gray-50 px-3 py-2 dark:bg-slate-800/60">
-            <dt className="text-xs text-gray-500 dark:text-slate-400">{label}</dt>
+        <div className="rounded-lg bg-[color:var(--app-surface-muted)] px-3 py-2">
+            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
             <dd className={`text-lg font-semibold tabular-nums ${color}`}>{value.toLocaleString()}</dd>
-            {hint && <dd className="truncate text-xs text-gray-500 dark:text-slate-400">{hint}</dd>}
+            {hint && <dd className="truncate text-xs text-[color:var(--app-muted-foreground)]">{hint}</dd>}
         </div>
     );
 }

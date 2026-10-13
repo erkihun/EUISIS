@@ -5,7 +5,10 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+@php($branding = app(App\Services\Branding\BrandingService::class))
+        <title inertia>{{ $branding->brandName() }}</title>
+        <meta name="application-name" content="{{ $branding->brandName() }}">
+        <link rel="icon" href="{{ $branding->faviconUrl() ?? asset('favicon.ico') }}">
 
         <!-- Inline theme + initial loader — runs before any JS, prevents flash -->
         <style>
@@ -89,7 +92,7 @@
         <!-- Native loader: visible immediately, before any JS executes -->
         <div id="app-initial-loader" aria-label="Loading" role="status">
             <div class="app-loader-ring"></div>
-            <span class="app-loader-name">{{ config('app.name', 'EUISIS') }}</span>
+            <span class="app-loader-name">{{ $branding->brandName() }}</span>
         </div>
 
         @inertia

@@ -7,10 +7,10 @@ const home = {
     closeMenu: 'Close menu',
 
     // Page metadata
-    metaDescription: 'EUISIS connects government employees, institution structure, positions, performance, a unified employee ID and employee services for the Addis Ababa City Administration.',
+    metaDescription: '{brand} connects government employees, institution structure, positions, performance, a unified employee ID and employee services for the Addis Ababa City Administration.',
 
     // Hero
-    heroTitle: 'Unified Employee ID & Service Integration System',
+    heroTitle: '{officialName}',
     heroSubtitle: 'A unified digital platform connecting government employees, institutional structure, performance, identity and employee services.',
     heroCtaLogin: 'Sign In to System',
     heroCtaDashboard: 'Go to Dashboard',
@@ -29,7 +29,7 @@ const home = {
     tileGrievances: 'Grievances',
     tileReports: 'Reports',
 
-    // What EUISIS manages
+    // What the system manages
     manageSectionTitle: 'More Than an ID Card System',
     manageSectionSubtitle: 'One city-wide platform keeps institution structure, positions and employee records consistent, so every service and report starts from the same trusted source.',
     manageOrgTitle: 'Organization Structure',
@@ -44,7 +44,7 @@ const home = {
     // One ID — multiple services
     servicesSectionTitle: 'One ID — Multiple Services',
     servicesSectionSubtitle: 'One verified Employee Identity can support multiple authorized services.',
-    serviceCardTitle: 'Unified Employee ID Card',
+    serviceCardTitle: 'Employee ID Card',
     serviceCardDesc: 'QR-verified ID with optional NFC, managed from request to renewal or revocation.',
     serviceCafeteriaTitle: 'Cafeteria',
     serviceCafeteriaDesc: 'Subsidized meals at authorized cafeterias, verified by card or QR, with usage limits.',
@@ -117,17 +117,17 @@ const home = {
     verifySectionBody: 'Check whether an Employee ID Card is valid through the authorized verification process. You will see whether the card is active. The holder’s details appear only after a one-time code sent to the holder, and private information such as national ID, phone number or employment history is never shown.',
     faqTitle: 'Frequently Asked Questions',
     faqMore: 'More help and contact information',
-    faq1Q: 'What is EUISIS?',
-    faq1A: 'The Unified Employee ID & Service Integration System of the Addis Ababa City Administration. It connects institution structure, positions, employee records, employee identity, performance and employee services in one platform.',
-    faq2Q: 'Is EUISIS only an Employee ID Card system?',
-    faq2A: 'No. The ID card is one part. EUISIS also manages institution structure, positions, the employee registry, daily activity, performance, service feedback, grievances and employee services.',
+    faq1Q: 'What is {brand}?',
+    faq1A: '{brand} is the {officialName} ({shortName}) of the Addis Ababa City Administration. It connects institution structure, positions, employee records, employee identity, performance and employee services in one platform.',
+    faq2Q: 'Is {brand} only an Employee ID Card system?',
+    faq2A: 'No. The ID card is one part. {brand} also manages institution structure, positions, the employee registry, daily activity, performance, service feedback, grievances and employee services.',
     faq3Q: 'What services can the Employee ID Card support?',
-    faq3A: 'Cafeteria and transport services are supported through authorized providers. Consumer association, health, welfare and insurance-related verification are planned integrations.',
+    faq3A: 'Cafeteria services are supported through authorized providers. Transport, consumer association, health, welfare and insurance-related verification are planned integrations.',
     faq4Q: 'Does every employee automatically receive every service?',
     faq4A: 'No. Eligibility depends on approved policy, employment status, institution, service rules and the service provider’s authorization.',
     faq5Q: 'What happens when an employee transfers to another institution?',
     faq5A: 'The employee keeps the same identity and employee number. The new assignment is added to their history, and earlier records stay with the earlier assignment.',
-    faq6Q: 'Can external government systems integrate with EUISIS?',
+    faq6Q: 'Can external government systems integrate with {brand}?',
     faq6A: 'Yes. Authorized systems can connect through controlled APIs to verify employees and eligibility instead of keeping their own employee registry. Access is granted to each system by the administration.',
     faq7Q: 'How is employee information protected?',
     faq7A: 'Through role- and institution-based access, secure sign-in, audit trails, private document storage, and showing only the minimum information on public pages.',
@@ -138,7 +138,7 @@ const home = {
     footerCopyright: 'Addis Ababa City Administration',
     footerRights: 'All rights reserved.',
     footerSupport: 'Support:',
-    footerSystem: 'Employee Unified ID & Service Integration System',
+    footerSystem: '{officialName}',
 
     // Public pages
     announcementsPageTitle: 'Transfer Announcements',

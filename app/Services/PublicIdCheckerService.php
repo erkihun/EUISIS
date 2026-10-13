@@ -224,15 +224,36 @@ class PublicIdCheckerService
         return [
             'full_name' => $employee?->full_name,
             'employee_number' => $employee?->employee_number,
-            'organization' => $assignment?->organization?->name_en,
-            'organization_unit' => $assignment?->organizationUnit?->name_en,
-            'position' => $assignment?->position?->title_en,
+            'organization' => $this->localizedName($assignment?->organization, 'name'),
+            'organization_unit' => $this->localizedName($assignment?->organizationUnit, 'name'),
+            'position' => $this->localizedName($assignment?->position, 'title'),
             'card_number' => $card->card_number,
             'card_status' => $this->statusCode($card),
             'issued_at' => $card->issued_at?->toDateString(),
             'expires_at' => $card->expires_at?->toDateString(),
             'verified_at' => now()->toDateTimeString(),
         ];
+    }
+
+    /**
+     * The name in the visitor's language: the Amharic column when the request
+     * locale is Amharic and one is recorded, the English column otherwise.
+     */
+    private function localizedName(?object $model, string $attribute): ?string
+    {
+        if ($model === null) {
+            return null;
+        }
+
+        if (app()->getLocale() === 'am') {
+            $amharic = $model->{$attribute.'_am'} ?? null;
+
+            if (is_string($amharic) && trim($amharic) !== '') {
+                return $amharic;
+            }
+        }
+
+        return $model->{$attribute.'_en'} ?? null;
     }
 
     /** Card number with only the last four characters legible. */

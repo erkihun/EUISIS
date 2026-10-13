@@ -237,7 +237,7 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                             </>
                         ) : (
                             <>
-                                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 text-white/70"><QrCodeIcon className="h-8 w-8" aria-hidden="true" /></span>
+                                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--app-surface)_10%,transparent)] text-white/70"><QrCodeIcon className="h-8 w-8" aria-hidden="true" /></span>
                                 <p className="max-w-xs text-sm leading-6 text-white/80">{providers.length ? t('cafeteria.cameraReady') : t('cafeteria.noProvidersAvailable')}</p>
                             </>
                         )}
@@ -303,14 +303,14 @@ function ResultPanel({ result, tone, countdown }: { result: ScanResult; tone: Ou
 
     return (
         <div role="status" aria-live="assertive" className={cx('absolute inset-0 flex flex-col items-center justify-center gap-5 overflow-y-auto px-6 py-8 text-center text-white', TONE_SURFACE[tone])}>
-            <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white/15"><Icon className="h-11 w-11" aria-hidden="true" /></span>
+            <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--app-surface)_15%,transparent)]"><Icon className="h-11 w-11" aria-hidden="true" /></span>
             <div>
                 <p className="text-3xl font-bold tracking-tight">{headline}</p>
                 <p className="mx-auto mt-2 max-w-sm text-base leading-6 text-white/90">{detail}</p>
             </div>
             {employee && (
-                <div className="flex w-full max-w-sm items-center gap-3 rounded-2xl bg-black/20 p-3 text-left">
-                    <UserAvatar src={employee.photo_url} name={employee.full_name} size={56} className="shrink-0 !bg-white/20 !text-white" />
+                <div className="flex w-full max-w-sm items-center gap-3 rounded-panel bg-black/20 p-3 text-left">
+                    <UserAvatar src={employee.photo_url} name={employee.full_name} size={56} className="shrink-0 !bg-[color:color-mix(in_srgb,var(--app-surface)_20%,transparent)] !text-white" />
                     <div className="min-w-0 flex-1">
                         <p className="break-words font-semibold leading-snug">{employee.full_name}</p>
                         <p className="mt-0.5 break-words text-sm text-white/75">{[employee.employee_number, employee.position].filter(Boolean).join(' · ')}</p>

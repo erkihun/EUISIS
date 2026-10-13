@@ -16,6 +16,8 @@ use App\Models\EmploymentStatusHistory;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
+use App\Services\Vacancy\PositionCapacityService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -39,13 +41,9 @@ readonly class RegisterEmployeeAction
                     ->lockForUpdate()
                     ->first();
 
-                $occupied = EmployeeAssignment::query()
-                    ->where('position_id', $positionId)
-                    ->where('is_current', true)
-                    ->where('assignment_status', AssignmentStatus::Active)
-                    ->exists();
-
-                if ($occupied) {
+                // Checked under the position lock: approved establishment
+                // slots, or one person (CON-5).
+                if (! app(PositionCapacityService::class)->hasFreeSlot((string) $positionId)) {
                     throw ValidationException::withMessages([
                         'position_id' => __('validation.position_already_occupied'),
                     ]);
@@ -66,9 +64,19 @@ readonly class RegisterEmployeeAction
                 expectedGeneratedCode: is_string($expectedGeneratedCode) ? $expectedGeneratedCode : null,
             );
 
-            $employee = Employee::query()->create($employeeAttributes + [
-                'status' => $employeeAttributes['status'] ?? EmployeeStatus::Active,
-            ]);
+            try {
+                $employee = Employee::query()->create($employeeAttributes + [
+                    'status' => $employeeAttributes['status'] ?? EmployeeStatus::Active,
+                ]);
+            } catch (UniqueConstraintViolationException $e) {
+                // A simultaneous registration with the same national ID passed
+                // validation first; the unique index decides (CON-10).
+                if (str_contains($e->getMessage(), 'national_id_hash')) {
+                    throw ValidationException::withMessages(['national_id' => __('validation.unique', ['attribute' => 'national id'])]);
+                }
+
+                throw $e;
+            }
 
             $assignment = EmployeeAssignment::query()->create($assignmentAttributes + [
                 'employee_id' => $employee->id,

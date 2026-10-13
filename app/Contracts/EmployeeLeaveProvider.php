@@ -9,7 +9,7 @@ use Illuminate\Support\Carbon;
 /**
  * Source of approved employee leave.
  *
- * EUISIS has no leave module yet. Daily Activity depends on this contract
+ * Addis One has no leave module yet. Daily Activity depends on this contract
  * instead of inventing its own leave table, so when a leave module arrives it
  * binds a real implementation and every calendar, missing-activity report and
  * reminder starts honouring leave with no change to the activity code.

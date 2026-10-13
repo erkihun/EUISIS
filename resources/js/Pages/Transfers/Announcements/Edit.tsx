@@ -5,6 +5,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { FormEventHandler } from 'react';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Org = { id: string; name_en: string; name_am: string | null };
 type Pos = {
     id: string;
@@ -45,6 +46,7 @@ type Props = {
     announcement: Announcement;
     organizations: Org[];
     positions: Pos[];
+    positionsTruncated?: boolean;
 };
 
 type PositionRow = {
@@ -76,7 +78,7 @@ const emptyRow = (): PositionRow => ({
     vacancy_count:   1,
 });
 
-export default function TransferAnnouncementEdit({ announcement, organizations, positions }: Props) {
+export default function TransferAnnouncementEdit({ announcement, organizations, positions, positionsTruncated = false }: Props) {
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
 
@@ -114,8 +116,8 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
         patch(route('transfer-announcements.update', announcement.id));
     };
 
-    const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300';
-    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50';
+    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const inputCls = cx(inputClassName, 'mt-1 block w-full');
     const errorCls = 'mt-1 text-xs text-red-500';
 
     return (
@@ -130,18 +132,19 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
             <Head title={t('transfers.editAnnouncement')} />
 
             <div className="mx-auto max-w-5xl">
-                <form onSubmit={submit} className="space-y-6 rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <form onSubmit={submit} className="space-y-6 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
 
                     {/* ── Positions ── */}
                     <section className="space-y-4">
+                        {positionsTruncated && <p role="status" className="text-xs text-amber-700 dark:text-amber-300">{t('transfers.positionsTruncated').replace(':count', String(positions.length))}</p>}
                         <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">
                                 {t('transfers.includedPositions')}
                             </h3>
                             <button
                                 type="button"
                                 onClick={addRow}
-                                className="inline-flex items-center justify-center rounded-lg border border-blue-300 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950"
+                                className={buttonClassName({ variant: 'outline' })}
                             >
                                 + {t('transfers.addPosition')}
                             </button>
@@ -153,9 +156,9 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                                 : positions;
 
                             return (
-                                <div key={index} className="rounded-lg border border-gray-200 p-4 dark:border-slate-700">
+                                <div key={index} className="rounded-lg border border-[color:var(--app-border)] p-4">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-gray-800 dark:text-slate-200">
+                                        <span className="text-sm font-semibold text-[color:var(--app-foreground)]">
                                             {t('transfers.positionLine')} {index + 1}
                                         </span>
                                         {data.positions.length > 1 && (
@@ -217,7 +220,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                                             <label className={labelCls}>{t('transfers.gradeLevel')}</label>
                                             <input
                                                 type="text"
-                                                className={`${inputCls} bg-gray-50 dark:bg-slate-900`}
+                                                className={`${inputCls} bg-[color:var(--app-surface-muted)]`}
                                                 value={row.grade_level}
                                                 readOnly
                                                 placeholder="—"
@@ -308,7 +311,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                                 <button
                                     type="button"
                                     onClick={() => setData('eligibility_rules', data.eligibility_rules.filter((_, j) => j !== i))}
-                                    className="rounded-lg border border-red-200 px-3 text-sm text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                                    className={buttonClassName({ variant: 'outline' })}
                                 >
                                     {t('common.remove')}
                                 </button>
@@ -343,7 +346,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                                 <button
                                     type="button"
                                     onClick={() => setData('required_documents', data.required_documents.filter((_, j) => j !== i))}
-                                    className="rounded-lg border border-red-200 px-3 text-sm text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                                    className={buttonClassName({ variant: 'outline' })}
                                 >
                                     {t('common.remove')}
                                 </button>
@@ -352,17 +355,17 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                     </section>
 
                     {/* ── Actions ── */}
-                    <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+                    <div className="flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-4">
                         <a
                             href={route('transfer-announcements.show', announcement.id)}
-                            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                         >
                             {t('common.cancel')}
                         </a>
                         <button
                             type="submit"
                             disabled={processing || data.positions.some((r) => !r.organization_id || !r.position_id)}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {processing ? t('common.saving') : t('common.save')}
                         </button>
