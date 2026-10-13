@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Support\Images\ImageKind;
+use App\Support\Images\ImageUploads;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -15,6 +17,7 @@ use Illuminate\Support\Str;
  * employee-photos/{uuid}.{ext} and are only served through authorized
  * routes (employees.private-photo, employee.photo). The file name is random
  * and the extension comes from the sniffed MIME type, never the client name.
+ * Photos are shrunk to at most 1024 px and re-encoded on the way in.
  *
  * Older photos may still sit on the public disk until
  * `php artisan employees:privatize-photos` has been run; delete() handles
@@ -28,7 +31,7 @@ final class EmployeePhotoStorage
 
     public static function store(UploadedFile $photo): string|false
     {
-        return $photo->storeAs(rtrim(self::PREFIX, '/'), Str::uuid().'.'.$photo->extension(), self::PRIVATE_DISK);
+        return ImageUploads::store($photo, ImageKind::Photo, rtrim(self::PREFIX, '/'), self::PRIVATE_DISK, (string) Str::uuid());
     }
 
     public static function isPrivate(?string $path): bool

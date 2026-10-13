@@ -200,7 +200,9 @@ class AppServiceProvider extends ServiceProvider
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);
         $this->configureViteAssetMode();
-        Vite::prefetch(concurrency: 3);
+        // No Vite::prefetch(): with 500+ page chunks it downloaded the whole 8 MB
+        // bundle on every full page load, which is what made phones crawl. Pages
+        // load their own chunk on demand (a few KB each, cached for a year).
         $this->applyRuntimeSystemSettings();
 
         // GET /up is the load balancer health check. It also proves the database

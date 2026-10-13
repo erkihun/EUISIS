@@ -42,7 +42,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
                 <div className="relative z-10 flex h-full flex-col items-center justify-between px-10 py-10 text-center">
                     <div className="flex flex-col items-center gap-3">
                         {systemLogoUrl ? (
-                            <img src={systemLogoUrl} alt={systemName} className="h-16 w-auto max-w-[180px] object-contain drop-shadow-lg" />
+                            <img src={systemLogoUrl} alt={systemName} width={180} height={64} decoding="async" className="h-16 w-auto max-w-[180px] object-contain drop-shadow-lg" />
                         ) : (
                             <ApplicationLogo className="h-16 w-auto max-w-[180px] fill-white drop-shadow-lg" />
                         )}
@@ -85,7 +85,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
                 <div className="flex items-center justify-between gap-3 px-6 py-5">
                     <div className="flex items-center gap-2.5 lg:invisible">
                         {systemLogoUrl ? (
-                            <img src={systemLogoUrl} alt={systemName} className="h-8 w-auto max-w-[80px] object-contain" />
+                            <img src={systemLogoUrl} alt={systemName} width={80} height={32} decoding="async" className="h-8 w-auto max-w-[80px] object-contain" />
                         ) : (
                             <ApplicationLogo className="h-8 w-auto max-w-[80px] fill-slate-800 dark:fill-white" />
                         )}

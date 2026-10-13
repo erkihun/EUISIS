@@ -24,6 +24,9 @@ export default function UserAvatar({ src, name = 'U', size = 32, className = '' 
             <img
                 src={src}
                 alt={name}
+                width={size}
+                height={size}
+                decoding="async"
                 style={style}
                 className={`rounded-full object-cover ${className}`}
                 onError={() => setImgError(true)}

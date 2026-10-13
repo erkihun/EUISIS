@@ -13,7 +13,8 @@ use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationNameHistory;
 use App\Models\User;
-use App\Support\Storage\PublicImageExtension;
+use App\Support\Images\ImageKind;
+use App\Support\Images\ImageUploads;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -60,13 +61,9 @@ readonly class CreateOrganizationAction
             $organization = Organization::query()->create($attributes);
 
             if ($logoFile !== null) {
-                // From the detected content, never the uploader's file name (SEC-10).
-                $ext = PublicImageExtension::for($logoFile);
-                $path = $logoFile->storeAs(
-                    "organizations/logos/{$organization->id}",
-                    Str::uuid().'.'.$ext,
-                    'public',
-                );
+                // Shrunk and re-encoded for the web; the name comes from the detected
+                // content, never the uploader's file name (SEC-10).
+                $path = ImageUploads::store($logoFile, ImageKind::Logo, "organizations/logos/{$organization->id}", 'public', (string) Str::uuid());
                 $organization->update(['logo_path' => $path]);
 
                 $this->writeAuditLogAction->execute(

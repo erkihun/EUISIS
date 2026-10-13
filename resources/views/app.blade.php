@@ -5,7 +5,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-@php($branding = app(App\Services\Branding\BrandingService::class))
+@php
+    $branding = app(App\Services\Branding\BrandingService::class);
+    // The language the client will render first (its cookie mirrors localStorage; 'am' is the client default).
+    $initialLocale = in_array(request()->cookie(App\Http\Middleware\SetClientLocale::COOKIE), ['en', 'am'], true)
+        ? request()->cookie(App\Http\Middleware\SetClientLocale::COOKIE)
+        : 'am';
+    // First-paint fonts, fetched in parallel with the CSS instead of after it. Ethiopic only when it leads.
+    $preloadFonts = [
+        'node_modules/@fontsource/inter/files/inter-latin-400-normal.woff2',
+        'node_modules/@fontsource/inter/files/inter-latin-600-normal.woff2',
+    ];
+    if ($initialLocale === 'am') {
+        $preloadFonts[] = 'node_modules/@fontsource/abyssinica-sil/files/abyssinica-sil-ethiopic-400-normal.woff2';
+    }
+    $preloadFonts = array_filter(array_map(fn (string $font) => rescue(fn () => Illuminate\Support\Facades\Vite::asset($font), null, false), $preloadFonts));
+    // The active language's dictionary is a separate chunk; preloading it removes a request round trip before first render.
+    $localeChunk = rescue(fn () => Illuminate\Support\Facades\Vite::asset('resources/js/i18n/bundles/'.$initialLocale.'.ts'), null, false);
+@endphp
         <title inertia>{{ $branding->brandName() }}</title>
         <meta name="application-name" content="{{ $branding->brandName() }}">
         <link rel="icon" href="{{ $branding->faviconUrl() ?? asset('favicon.ico') }}">
@@ -82,8 +99,14 @@
             })();
         </script>
 
-        <!-- Scripts -->
-        @routes
+        @foreach ($preloadFonts as $fontUrl)
+        <link rel="preload" as="font" type="font/woff2" crossorigin href="{{ $fontUrl }}">
+        @endforeach
+        @if ($localeChunk)
+        <link rel="modulepreload" href="{{ $localeChunk }}">
+        @endif
+
+        <!-- Scripts. Routes are a cached asset (resources/js/ziggy.js), not inlined here. -->
         @viteReactRefresh
         @vite('resources/js/app.tsx')
         @inertiaHead

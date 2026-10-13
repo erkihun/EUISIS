@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 
-import { buttonClassName, cx, inputClassName, textareaClassName } from '@/Components/ui';
+// Straight from the kit: this dialog is in the chunk every page loads, and the
+// app barrel would drag the table, command palette and toaster along with it.
+import { buttonClassName, cx, inputClassName, textareaClassName } from '@euisis/ui';
 export type ConfirmVariant = 'default' | 'warning' | 'danger' | 'success';
 
 export interface ConfirmationDialogProps {
