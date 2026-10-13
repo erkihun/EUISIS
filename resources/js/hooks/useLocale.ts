@@ -123,6 +123,8 @@ import enGrievanceAdmin from '@/i18n/en/grievanceAdmin';
 import amGrievanceAdmin from '@/i18n/am/grievanceAdmin';
 import enCourtCases from '@/i18n/en/courtCases';
 import amCourtCases from '@/i18n/am/courtCases';
+import enDiscipline from '@/i18n/en/discipline';
+import amDiscipline from '@/i18n/am/discipline';
 import enWorkStandards from '@/i18n/en/workStandards';
 import amWorkStandards from '@/i18n/am/workStandards';
 import enAssessments from '@/i18n/en/assessments';
@@ -196,6 +198,7 @@ const translations: Record<Locale, TranslationTree> = {
         grievanceWork: enGrievanceWork,
         grievanceAdmin: enGrievanceAdmin,
         courtCases: enCourtCases,
+        discipline: enDiscipline,
         workStandards: enWorkStandards,
         assessments: enAssessments,
         assessmentOversight: enAssessmentOversight,
@@ -263,6 +266,7 @@ const translations: Record<Locale, TranslationTree> = {
         grievanceWork: amGrievanceWork,
         grievanceAdmin: amGrievanceAdmin,
         courtCases: amCourtCases,
+        discipline: amDiscipline,
         workStandards: amWorkStandards,
         assessments: amAssessments,
         assessmentOversight: amAssessmentOversight,

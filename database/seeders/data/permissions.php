@@ -1473,6 +1473,9 @@ return [
     // Court Cases — planned standalone module; entry permission only (docs/court-cases.md).
     ...require database_path('seeders/data/court-case-permissions.php'),
 
+    // Employee Discipline — Regulation 201/2018 (docs/employee-discipline.md).
+    ...require database_path('seeders/data/discipline-permissions.php'),
+
     // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
     ...require database_path('seeders/data/organization-design-permissions.php'),
 

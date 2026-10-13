@@ -5,8 +5,8 @@ declare(strict_types=1);
 return [
     'isic_activities' => 'የኢኮኖሚ እንቅስቃሴ ምደባዎች',
     'isic_activity' => 'የISIC Rev.4 ምደባ',
-    'create' => 'የISIC ምደባ ፍጠር',
-    'edit' => 'የISIC ምደባ አርትዕ',
+    'create' => 'አዲስ የISIC ምደባ ይመዝግቡ',
+    'edit' => 'የISIC ምደባውን ያርትዑ',
     'details' => 'የISIC ምደባ ዝርዝር',
     'isic_code' => 'የISIC ኮድ',
     'section_code' => 'የክፍል ኮድ',

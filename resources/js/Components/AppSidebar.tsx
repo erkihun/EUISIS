@@ -177,6 +177,7 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 items: [
                     { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: ClipboardCheckIcon },
                     { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: ScrollText, permission: 'grievances.view_own', listedInAdmin: true },
+                    { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: ScaleIcon, permission: 'discipline.view_own', listedInAdmin: true },
                     { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: MessageSquareIcon },
                 ],
             },
@@ -423,30 +424,43 @@ const navGroups: NavGroup[] = [
             { routeName: 'grievances.sla.index', labelKey: 'nav.grievanceSla', icon: ClockIcon, permission: 'grievance_sla.view' },
             { routeName: 'grievances.reports.index', labelKey: 'nav.grievanceReports', icon: FileChartIcon, permission: 'grievance_reports.view' },
             { routeName: 'grievances.settings.index', labelKey: 'nav.grievanceSettings', icon: SettingsIcon, permission: 'grievance_settings.view' },
-            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: ShieldCheck, permission: 'grievances.tribunal' },
         ],
     },
     {
         /*
-         * Court Cases is its own domain, not part of Grievance Management
-         * (docs/court-cases.md). One entry until the module is designed.
+         * Employee Discipline (Regulation 201/2018) is its own domain: never
+         * part of Grievance Management or of public service complaints.
          */
-        key: 'courtCases',
-        labelKey: 'nav.groupCourtCases',
+        key: 'discipline',
+        labelKey: 'nav.groupDiscipline',
         icon: ScaleIcon,
         items: [
+            { routeName: 'discipline.cases.index', labelKey: 'nav.disciplineCases', icon: ClipboardListIcon, anyPermission: ['discipline.view', 'discipline.investigate', 'discipline.decide'] },
+            { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: Inbox, permission: 'discipline.view_own' },
+        ],
+    },
+    {
+        /*
+         * Tribunal Court: external adjudication of administrative cases. Holds
+         * the Administrative Tribunal cases (grievance appeals routed to it) and
+         * the planned Court Cases module (docs/court-cases.md). Neither is part
+         * of Grievance Management's internal review workflow.
+         */
+        key: 'tribunalCourt',
+        labelKey: 'nav.groupTribunalCourt',
+        icon: ScaleIcon,
+        items: [
+            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: ShieldCheck, permission: 'grievances.tribunal' },
             { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: ScaleIcon, permission: 'court_cases.view' },
         ],
     },
     {
         /*
-         * Client-facing service delivery: what a position offers, and what
-         * citizens said about it. The entitlements catalog sits here too, as
-         * the other half of what "service" means in this system.
+         * Client-facing service definitions and the entitlements catalog.
          */
         key: 'serviceManagement',
         labelKey: 'nav.groupServiceManagement',
-        icon: MessageSquareIcon,
+        icon: Layers,
         items: [
             { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', icon: Layers,            permission: 'service-types.viewAny' },
             { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: BadgeCheckIcon,    permission: 'entitlements.view' },
@@ -575,13 +589,13 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 /**
  * A section without its own labelKey is a standalone category headed by its
  * single group's label; the group itself renders as the usual collapsible
- * button with its submenu (docs/field-work-navigation.md).
+ * button with its submenu.
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
-    { keys: ['fieldWork'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'serviceFeedback', 'cafeteria', 'transport', 'grievances'] },
-    { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
+    { keys: ['myWork'] },
 ];
 
 interface Props {

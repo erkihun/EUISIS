@@ -5,6 +5,7 @@ namespace Tests;
 use App\Services\Security\SessionActivityService;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\ParallelTesting;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -13,9 +14,18 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         if (config('database.default') === 'pgsql') {
+            $baseDatabase = (string) env('DB_TEST_DATABASE', '');
             $database = (string) config('database.connections.pgsql.database');
-            if (! str_ends_with($database, '_test')) {
-                throw new \RuntimeException('PostgreSQL tests require DB_TEST_DATABASE to name a dedicated database ending in _test.');
+            $token = ParallelTesting::token();
+            // Unit tests without a database trait stay on the base name in parallel workers.
+            $allowedDatabases = [$baseDatabase];
+
+            if ($token) {
+                $allowedDatabases[] = "{$baseDatabase}_test_{$token}";
+            }
+
+            if (! str_ends_with($baseDatabase, '_test') || ! in_array($database, $allowedDatabases, true)) {
+                throw new \RuntimeException('PostgreSQL tests require DB_TEST_DATABASE to name a dedicated database ending in _test (or its matching parallel worker database).');
             }
         }
     }

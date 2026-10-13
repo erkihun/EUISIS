@@ -1397,6 +1397,7 @@ require __DIR__.'/assessments.php';
 require __DIR__.'/grievances.php';
 
 // Employee Discipline — Regulation 201/2018, separate from grievances and public complaints.
+require __DIR__.'/discipline.php';
 
 // Field Work Management (docs/field-work-management.md).
 require __DIR__.'/field-work.php';

@@ -1,0 +1,52 @@
+- generic [ref=e1]:
+  - status "Loading" [ref=e2]:
+    - generic [ref=e4]: Addis One
+  - generic [ref=e6]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - img "Addis One" [ref=e11]
+        - generic [ref=e12]:
+          - paragraph [ref=e13]: Addis One
+          - paragraph [ref=e14]: Addis Ababa Integrated Employee Management & Service System
+          - paragraph [ref=e15]: Public Service & HRD Bureau
+      - generic [ref=e16]:
+        - generic [ref=e17]: Secure Government Portal
+        - generic [ref=e20]:
+          - heading "Integrated Employee Management & Services" [level=1] [ref=e21]: Integrated EmployeeManagement & Services
+          - paragraph [ref=e22]: A centralized platform for managing employee identification records, digital ID cards, and workforce data across all city administration organizations.
+        - generic [ref=e24]:
+          - paragraph [ref=e25]: Addis One A centralized platform for managing employee identification records, digital ID cards, and workforce data across all city administration organizations.
+          - paragraph [ref=e26]: The system enforces fine-grained role-based permissions, logs every action in a tamper-evident audit trail, and integrates with occupational classification standards to ensure data quality at scale.
+        - generic [ref=e27]:
+          - generic [ref=e28]: Role-Based Access
+          - generic [ref=e32]: ID Card Lifecycle
+          - generic [ref=e36]: Audit Logging
+          - generic [ref=e40]: Multi-Organization
+          - generic [ref=e44]: Workforce Registry
+          - generic [ref=e48]: Code Generation
+      - paragraph [ref=e54]: Government of Ethiopia · Addis Ababa City Administration
+    - generic [ref=e58]:
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - heading "Welcome back" [level=2] [ref=e64]
+          - paragraph [ref=e65]: Sign in to access your dashboard
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - generic [ref=e68]: Email address
+            - textbox "Email address" [active] [ref=e70]:
+              - /placeholder: you@example.com
+          - generic [ref=e71]:
+            - generic [ref=e72]:
+              - generic [ref=e73]: Password
+              - link "Forgot your password?" [ref=e74] [cursor=pointer]:
+                - /url: http://127.0.0.1:8000/forgot-password
+            - generic [ref=e75]:
+              - textbox "Password" [ref=e76]:
+                - /placeholder: ••••••••
+              - button "Show password" [ref=e77] [cursor=pointer]
+          - button "Sign in" [ref=e81] [cursor=pointer]
+        - generic [ref=e84]:
+          - paragraph [ref=e85]: Don't have an account?
+          - link "Create employee account" [ref=e86] [cursor=pointer]:
+            - /url: http://127.0.0.1:8000/register
+      - paragraph [ref=e89]: © 2026 Addis Ababa City Administration · Government of Ethiopia

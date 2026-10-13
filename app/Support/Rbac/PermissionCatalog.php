@@ -36,6 +36,8 @@ final class PermissionCatalog
             'grievances', 'grievance_committees', 'grievance_committee_members', 'grievance_routes', 'grievance_sla',
             'grievance_decisions', 'grievance_hearings', 'grievance_correspondence', 'grievance_reports', 'grievance_settings',
         ],
+        // Regulation 201/2018 discipline: a separate domain from grievances and public complaints.
+        'Employee Discipline' => ['discipline'],
         // A separate domain from grievances (docs/court-cases.md).
         'Court Cases' => ['court_cases'],
         // Legal mandate → functions → services → … → job descriptions (docs/organization-design-workforce-planning-plan.md).

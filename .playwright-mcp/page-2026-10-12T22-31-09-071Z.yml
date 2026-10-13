@@ -1,0 +1,316 @@
+- generic [active] [ref=e1]:
+  - status "Loading" [ref=e2]:
+    - generic [ref=e4]: Addis One
+  - generic [ref=e6]:
+    - link "ወደ ዋናው ይዘት ይዝለሉ" [ref=e7] [cursor=pointer]:
+      - /url: "#main-content"
+    - region "Notifications alt+T"
+    - generic [ref=e9]:
+      - link "Addis One" [ref=e12] [cursor=pointer]:
+        - /url: http://127.0.0.1:8126/dashboard
+        - generic [ref=e14]:
+          - paragraph [ref=e15]: Addis One
+          - paragraph [ref=e16]: AA-IEMSS
+          - paragraph [ref=e17]: አዲስ አበባ ከተማ አስተዳደር
+      - generic [ref=e19]:
+        - searchbox "ምናሌውን ያጣሩ…" [ref=e23]
+        - generic [aria-hidden] [ref=e24]: /
+      - navigation "ዋና አሰሳ" [ref=e25]:
+        - list [ref=e26]:
+          - listitem [ref=e27]:
+            - link "ዳሽቦርድ" [ref=e28] [cursor=pointer]:
+              - /url: http://127.0.0.1:8126/dashboard
+        - generic [ref=e35]:
+          - paragraph [ref=e36]: የሰው ኃይል እና ተቋም
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - button "የተቋም መዋቅር" [expanded] [ref=e39] [cursor=pointer]
+              - list [ref=e49]:
+                - listitem [ref=e50]:
+                  - link "ተቋማት" [ref=e51] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/organizations
+                - listitem [ref=e53]:
+                  - link "የተቋም ዓይነቶች" [ref=e54] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/organization-types
+                - listitem [ref=e56]:
+                  - link "የሥራ ክፍሎች" [ref=e57] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/organization-units
+                - listitem [ref=e59]:
+                  - link "የሥራ ክፍል ዓይነቶች" [ref=e60] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/organization-unit-types
+                - listitem [ref=e62]:
+                  - link "የመዋቅር ስሪቶች" [ref=e63] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/hierarchy-versions
+                - listitem [ref=e65]:
+                  - link "የእኔ የለውጥ ጥያቄዎች" [ref=e66] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/organizational-change-requests
+                - listitem [ref=e68]:
+                  - link "የለውጥ ጥያቄ ግምገማ" [ref=e69] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/organizational-change-requests/review-queue
+                - listitem [ref=e71]:
+                  - link "ለትግበራ የጸደቁ ለውጦች" [ref=e72] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/organizational-change-requests/pending-implementation
+                - listitem [ref=e74]:
+                  - link "የተጠናቀቁ የለውጥ ጥያቄዎች" [ref=e75] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/organizational-change-requests/completed
+                - listitem [ref=e77]:
+                  - link "የተጠሪነት መስመሮች" [ref=e78] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/reporting-lines
+            - generic [ref=e80]:
+              - button "የሰው ኃይል መሠረታዊ መረጃ" [expanded] [ref=e81] [cursor=pointer]
+              - list [ref=e91]:
+                - listitem [ref=e92]:
+                  - link "የሥራ መደቦች" [ref=e93] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/positions
+                - listitem [ref=e95]:
+                  - link "የሥራ መደቦች ሁኔታ" [ref=e96] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/positions/status
+                - listitem [ref=e98]:
+                  - link "የጸደቁ የሥራ መደቦች" [ref=e99] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/position-establishments
+                - listitem [ref=e101]:
+                  - link "የሥራ መደብ አገልግሎቶች" [ref=e102] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/position-services
+                - listitem [ref=e104]:
+                  - link "የሥራ ደረጃዎች" [ref=e105] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/grade-levels
+                - listitem [ref=e107]:
+                  - link "የሙያ ምድቦች (ISCO)" [ref=e108] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/occupations
+                - listitem [ref=e110]:
+                  - link "የኢኮኖሚ ዘርፍ ምደባ" [ref=e111] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/isic-activities
+            - button "የሠራተኛ አስተዳደር" [ref=e114] [cursor=pointer]
+            - button "መታወቂያ ካርዶች" [ref=e124] [cursor=pointer]
+            - button "የዝውውር አስተዳደር" [ref=e131] [cursor=pointer]
+            - button "ዕለታዊ የሥራ እንቅስቃሴ" [ref=e139] [cursor=pointer]
+            - button "የመስክ ሥራ አስተዳደር" [ref=e147] [cursor=pointer]
+            - button "የአፈጻጸም አስተዳደር" [ref=e155] [cursor=pointer]
+            - button "የምዘና አስተዳደር" [ref=e163] [cursor=pointer]
+            - button "የተቋም አደረጃጀትና የሰው ኃይል ዕቅድ" [ref=e171] [cursor=pointer]
+        - generic [ref=e179]:
+          - paragraph [ref=e180]: የአገልግሎት አሰጣጥ
+          - generic [ref=e181]:
+            - button "የአገልግሎት አስተዳደር" [ref=e183] [cursor=pointer]
+            - generic [ref=e191]:
+              - button "የተገልጋይ አስተያየት አስተዳደር" [expanded] [ref=e192] [cursor=pointer]
+              - list [ref=e200]:
+                - listitem [ref=e201]:
+                  - link "የአስተያየት ዳሽቦርድ" [ref=e202] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/feedback-admin/dashboard
+                - listitem [ref=e204]:
+                  - link "የተገልጋይ አስተያየቶች" [ref=e205] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/feedback-admin
+                - listitem [ref=e207]:
+                  - link "ጥቆማዎች" [ref=e208] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/service-suggestions
+                - listitem [ref=e210]:
+                  - link "የተገልጋይ ቅሬታዎች" [ref=e211] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/service-complaints
+                - listitem [ref=e213]:
+                  - link "ምድቦች" [ref=e214] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/feedback-admin/categories
+                - listitem [ref=e216]:
+                  - link "የማስተላለፊያ ደንቦች" [ref=e217] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/feedback-admin/routing-rules
+                - listitem [ref=e219]:
+                  - link "የተቋም QR ኮዶች" [ref=e220] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/feedback-admin/organization-qr
+                - listitem [ref=e222]:
+                  - link "የአስተያየት ሪፖርቶች" [ref=e223] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/feedback-admin/reports
+                - listitem [ref=e225]:
+                  - link "የቀረቡ ጉዳዮች ሪፖርቶች" [ref=e226] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/feedback-admin/submission-reports
+                - listitem [ref=e228]:
+                  - link "ቅንብሮች" [ref=e229] [cursor=pointer]:
+                    - /url: http://127.0.0.1:8126/feedback-admin/settings
+            - button "አቅራቢዎችና ውህደቶች" [ref=e232] [cursor=pointer]
+            - button "ካፌቴሪያ" [ref=e241] [cursor=pointer]
+        - generic [ref=e255]:
+          - paragraph [ref=e256]: አስተዳደር እና ሥርዓት
+          - generic [ref=e257]:
+            - button "የሠራተኛ ቅሬታ አስተዳደር" [ref=e259] [cursor=pointer]
+            - button "የሠራተኞች ዲሲፕሊን" [ref=e266] [cursor=pointer]
+            - list [ref=e274]:
+              - listitem [ref=e275]:
+                - link "የአስተዳደር ፍርድ ቤት ጉዳዮች" [ref=e276] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8126/tribunal-cases
+            - list [ref=e281]:
+              - listitem [ref=e282]:
+                - link "የኦዲት መዝገቦች" [ref=e283] [cursor=pointer]:
+                  - /url: http://127.0.0.1:8126/audit-logs
+            - generic [ref=e287]:
+              - button "አስተዳደር" [expanded] [ref=e288] [cursor=pointer]
+              - generic [ref=e296]:
+                - generic [ref=e297]:
+                  - paragraph [ref=e298]: የመዳረሻ ቁጥጥር
+                  - list [ref=e299]:
+                    - listitem [ref=e300]:
+                      - link "ተጠቃሚዎች" [ref=e301] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/users
+                    - listitem [ref=e303]:
+                      - link "የአቅራቢ ተጠቃሚዎች" [ref=e304] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/provider-users
+                    - listitem [ref=e306]:
+                      - link "ሚናዎች" [ref=e307] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/roles
+                    - listitem [ref=e309]:
+                      - link "የመዳረሻ መብቶች" [ref=e310] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/permissions
+                - generic [ref=e312]:
+                  - paragraph [ref=e313]: ሥርዓት
+                  - list [ref=e314]:
+                    - listitem [ref=e315]:
+                      - link "የኮድ ደንቦች" [ref=e316] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/code-rules
+                    - listitem [ref=e318]:
+                      - link "የተሰረዙ መዝገቦች" [ref=e319] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/recycle-bin
+                    - listitem [ref=e321]:
+                      - link "የሥርዓት ቅንብሮች" [ref=e322] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/system-settings
+                    - listitem [ref=e324]:
+                      - link "ምትኬ እና መልሶ ማግኛ" [ref=e325] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/system/backup-recovery
+                    - listitem [ref=e327]:
+                      - link "የሕዝብ ድረ-ገጽ አስተዳደር" [ref=e328] [cursor=pointer]:
+                        - /url: http://127.0.0.1:8126/public-site-management
+      - button "ዝርዝሩን ያሳንሱ" [ref=e331] [cursor=pointer]
+    - generic [ref=e335]:
+      - banner [ref=e336]:
+        - generic [ref=e337]:
+          - button "ዝርዝሩን ያሳንሱ" [expanded] [ref=e338] [cursor=pointer]
+          - button "ትዕዛዝ ምናሌ" [ref=e341] [cursor=pointer]:
+            - generic [ref=e345]: ገጽ ይፈልጉ…
+            - generic [aria-hidden] [ref=e346]: Ctrl K
+        - generic [ref=e347]:
+          - group "ቋንቋ" [ref=e348]:
+            - button "Amharic" [pressed] [ref=e349] [cursor=pointer]: አማ
+            - button "English" [ref=e350] [cursor=pointer]: EN
+          - 'button "የገጽታ ሁኔታ: ሥርዓት" [ref=e351] [cursor=pointer]'
+          - button "ማሳወቂያዎች" [ref=e355] [cursor=pointer]
+          - 'button "የመለያ ዝርዝር: Super Admin" [ref=e360] [cursor=pointer]':
+            - generic "Super Admin" [ref=e361]: SA
+            - generic [ref=e362]:
+              - generic [ref=e363]: Super Admin
+              - generic [ref=e364]: Super Admin
+      - heading "የፕሮፋይል ቅንብሮች" [level=1] [ref=e371]
+      - main [ref=e372]:
+        - generic [ref=e373]:
+          - generic [ref=e375]:
+            - generic [ref=e376]:
+              - generic "Super Admin" [ref=e378]: SA
+              - generic "ፎቶ ይቀይሩ" [ref=e379] [cursor=pointer]:
+                - button "ፎቶ ይቀይሩ" [ref=e389]
+            - generic [ref=e390]:
+              - heading "Super Admin" [level=2] [ref=e391]
+              - paragraph [ref=e392]: super.admin@demo.local
+              - generic [ref=e393]: Super Admin
+            - generic [ref=e395]: ንቁ
+          - generic [ref=e397]:
+            - generic [ref=e398]:
+              - generic [ref=e399]:
+                - heading "የመለያ ማጠቃለያ" [level=3] [ref=e400]
+                - list [ref=e401]:
+                  - listitem [ref=e402]:
+                    - generic [ref=e403]: ሁኔታ
+                    - generic [ref=e406]: ንቁ
+                  - listitem [ref=e407]:
+                    - generic [ref=e408]: የመጨረሻ ግቢ
+                    - generic "10/12/2026, 7:15:18 PM" [ref=e411]: ከ6 ሰዓቶች በፊት
+              - generic [ref=e416]:
+                - paragraph [ref=e417]: የመለያ ስረዛ ተሰናክሏል
+                - paragraph [ref=e418]: ከፕሮፋይል ቅንብሮች የራስዎን መለያ መሰረዝ ወይም ማቦዘን አይችሉም።
+            - generic [ref=e419]:
+              - generic [ref=e420]:
+                - generic [ref=e426]:
+                  - heading "የግል መረጃ" [level=2] [ref=e427]
+                  - paragraph [ref=e428]: የግል የመገኛ እና የመታወቂያ መረጃዎን ያዘምኑ።
+                - generic [ref=e429]:
+                  - generic [ref=e430]:
+                    - generic [ref=e431]:
+                      - generic [ref=e432]: ስም
+                      - textbox [ref=e434]: Super Admin
+                    - generic [ref=e435]:
+                      - generic [ref=e436]: ኢሜይል
+                      - textbox [ref=e438]: super.admin@demo.local
+                    - generic [ref=e439]:
+                      - generic [ref=e440]: ስልክ ቁጥር
+                      - generic [ref=e441]:
+                        - combobox "የአገር ኮድ" [ref=e442]:
+                          - option "+251 ET" [selected]
+                          - option "+1 US"
+                          - option "+44 GB"
+                          - option "+971 AE"
+                          - option "+966 SA"
+                          - option "+254 KE"
+                          - option "+255 TZ"
+                          - option "+256 UG"
+                          - option "+20 EG"
+                          - option "+27 ZA"
+                          - option "+49 DE"
+                          - option "+33 FR"
+                          - option "+86 CN"
+                          - option "+91 IN"
+                        - textbox "9xxxxxxxx" [ref=e444]
+                    - generic [ref=e445]:
+                      - generic [ref=e446]: ፆታ
+                      - combobox [ref=e448]:
+                        - option "ፆታ ይምረጡ" [selected]
+                        - option "ወንድ"
+                        - option "ሴት"
+                    - generic [ref=e450]:
+                      - generic [ref=e451]: ብሔራዊ መታወቂያ
+                      - textbox "XXXX XXXX XXXX XXXX" [ref=e453]
+                      - paragraph [ref=e454]: ባለ 16 አሃዝ ብሔራዊ መታወቂያ ቁጥር
+                  - generic [ref=e455]:
+                    - link "ይቅር" [ref=e456] [cursor=pointer]:
+                      - /url: http://127.0.0.1:8126/dashboard
+                    - button "ፕሮፋይል ያዘምኑ" [ref=e457] [cursor=pointer]
+              - generic [ref=e458]:
+                - generic [ref=e464]:
+                  - heading "የደህንነት የይለፍ ቃል" [level=2] [ref=e465]
+                  - paragraph [ref=e466]: ለዚህ መለያ ረጅም እና ልዩ የይለፍ ቃል ይጠቀሙ።
+                - generic [ref=e469]:
+                  - generic [ref=e470]:
+                    - generic [ref=e471]: የአሁኑ የይለፍ ቃል
+                    - textbox "የአሁኑ የይለፍ ቃል" [ref=e472]
+                  - generic [ref=e473]:
+                    - generic [ref=e474]:
+                      - generic [ref=e475]: አዲስ የይለፍ ቃል
+                      - textbox "አዲስ የይለፍ ቃል" [ref=e476]
+                    - generic [ref=e477]:
+                      - generic [ref=e478]: የይለፍ ቃል ያረጋግጡ
+                      - textbox "የይለፍ ቃል ያረጋግጡ" [ref=e479]
+                  - generic [ref=e480]:
+                    - paragraph [ref=e481]: ረጅም እና ልዩ የይለፍ ቃል ወይም ሐረግ ይጠቀሙ። ክፍተቶች እና ማንኛውም ቁምፊ ይፈቀዳሉ፤ ስምዎን፣ የሠራተኛ ቁጥርዎን፣ ኢሜይልዎን ወይም ቀድሞ የተጠቀሙበትን የይለፍ ቃል አይጠቀሙ።
+                    - list [ref=e482]:
+                      - listitem [ref=e483]:
+                        - generic [aria-hidden] [ref=e484]: ○
+                        - generic [ref=e485]:
+                          - text: 8–128 ቁምፊዎች
+                          - generic [ref=e486]: (ገና አልተሟላም)
+                      - listitem [ref=e487]:
+                        - generic [aria-hidden] [ref=e488]: ○
+                        - generic [ref=e489]:
+                          - text: ስምዎን፣ የተጠቃሚ ስምዎን፣ ኢሜይልዎን፣ የሠራተኛ ቁጥርዎን ወይም ስልክዎን አያካትትም
+                          - generic [ref=e490]: (ገና አልተሟላም)
+                      - listitem [ref=e491]:
+                        - generic [aria-hidden] [ref=e492]: •
+                        - generic [ref=e493]:
+                          - text: የተለመደ፣ የሚገመት ወይም የተጋለጠ የይለፍ ቃል አይደለም
+                          - generic [ref=e494]: — ሲያስቀምጡ ይረጋገጣል
+                          - generic [ref=e495]: (በአገልጋዩ ይረጋገጣል)
+                      - listitem [ref=e496]:
+                        - generic [aria-hidden] [ref=e497]: •
+                        - generic [ref=e498]:
+                          - text: የአሁኑ ወይም ካለፉት 5 የይለፍ ቃላትዎ አንዱ አይደለም
+                          - generic [ref=e499]: — ሲያስቀምጡ ይረጋገጣል
+                          - generic [ref=e500]: (በአገልጋዩ ይረጋገጣል)
+                      - listitem [ref=e501]:
+                        - generic [aria-hidden] [ref=e502]: ○
+                        - generic [ref=e503]:
+                          - text: ከማረጋገጫው ጋር ይዛመዳል
+                          - generic [ref=e504]: (ገና አልተሟላም)
+                  - button "የይለፍ ቃል ያዘምኑ" [ref=e506] [cursor=pointer]

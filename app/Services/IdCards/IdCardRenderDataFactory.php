@@ -7,8 +7,8 @@ namespace App\Services\IdCards;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Services\Calendar\EthiopianCalendarService;
-use App\Services\SystemSettings\SystemSettingsService;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
+use App\Services\SystemSettings\SystemSettingsService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -184,6 +184,7 @@ final readonly class IdCardRenderDataFactory
             }
             $rows = array_values(array_filter($rows, fn ($row) => in_array($row[4], $configured, true)));
         }
+
         return $rows;
     }
 
@@ -243,7 +244,7 @@ final readonly class IdCardRenderDataFactory
         }
 
         return ($locale ?? app()->getLocale()) === 'am'
-            ? $this->ethiopianCalendar->formatGregorianDateAsEthiopian(Carbon::instance($date), 'am')
+            ? $this->ethiopianCalendar->formatGregorianDateAsEthiopian(Carbon::instance($date), 'am', true)
             : $date->format('d M Y');
     }
 }

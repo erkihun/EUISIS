@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\Grievance\GrievanceSignatureMethod;
+use App\Models\AdministrativeTribunalCase;
 use App\Models\Grievance;
 use App\Models\GrievanceEvidence;
+use App\Models\GrievanceExternalAuthority;
 use App\Models\GrievanceRoute;
 use App\Models\PublicHoliday;
 use App\Models\User;
@@ -12,7 +14,10 @@ use App\Services\Calendar\WorkingDayCalculator;
 use App\Services\Grievances\GrievanceCaseService;
 use App\Services\Grievances\GrievanceCorrespondenceService;
 use App\Services\Grievances\GrievanceDecisionService;
+use App\Services\Grievances\GrievanceEscalationService;
 use App\Services\Grievances\GrievanceReportService;
+use App\Services\Grievances\GrievanceSettings;
+use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\DailyActivity\DailyActivityRoles;
 use App\Support\Grievances\GrievanceRoles;
 use Database\Seeders\PermissionSeeder;
@@ -93,6 +98,42 @@ it('hides a case from users with permissions but no relationship to it', functio
     $this->actingAs($this->s->outsider)->get(route('grievances.cases.show', $g))->assertNotFound();
     $this->actingAs($this->s->outsider)->get(route('grievances.cases.index', ['tab' => 'authorized']))->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page->where('grievances.total', 0));
+});
+
+it('keeps tribunal cases inside the tribunal officer organization scope', function (): void {
+    $g = httpFile($this);
+    $tribunal = GrievanceExternalAuthority::query()->create([
+        'code' => 'TRB-'.str()->upper(str()->random(6)),
+        'name_en' => 'Test Administrative Tribunal',
+        'organization_id' => $this->s->bureau->id,
+        'is_administrative_tribunal' => true,
+        'is_active' => true,
+    ]);
+    $route = GrievanceScenario::route('committee', $this->s->committee->id, 'external_authority', $tribunal->id, 'referred');
+    app(GrievanceEscalationService::class)->refer($g, $this->s->chair, 'Tribunal referral.', $route->id);
+    $case = AdministrativeTribunalCase::query()->where('grievance_id', $g->id)->sole();
+
+    $officer = GrievanceScenario::user(
+        GrievanceScenario::employee($this->s->bureau, null),
+        GrievanceRoles::TRIBUNAL_PERMISSIONS,
+    );
+    GrievanceScenario::scope($officer, $this->s->bureau);
+
+    $this->actingAs($officer)->get(route('tribunal-cases.index'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('cases.total', 0));
+    $this->actingAs($officer)->get(route('tribunal-cases.show', $case))->assertForbidden();
+    $this->actingAs($officer)->patch(route('tribunal-cases.update', $case), ['status' => 'decided'])->assertForbidden();
+
+    $authorizedOfficer = GrievanceScenario::user(
+        GrievanceScenario::employee($this->s->woreda, null),
+        GrievanceRoles::TRIBUNAL_PERMISSIONS,
+    );
+    GrievanceScenario::scope($authorizedOfficer, $this->s->woreda);
+    $this->actingAs($authorizedOfficer)->get(route('tribunal-cases.show', $case))->assertOk();
+    $this->actingAs($authorizedOfficer)->patch(route('tribunal-cases.update', $case), ['status' => 'hearing'])
+        ->assertRedirect(route('tribunal-cases.show', $case));
+    expect($case->refresh()->status)->toBe('hearing');
 });
 
 it('authorizes every evidence download at request time', function (): void {
@@ -253,7 +294,7 @@ it('renders every grievance page for an authorized user', function (): void {
 
 it('saves the policy settings exactly as the settings page submits them', function (): void {
     $admin = GrievanceScenario::user(GrievanceScenario::employee($this->s->woreda, null), GrievanceRoles::ADMINISTRATOR_PERMISSIONS);
-    $payload = collect(app(\App\Services\SystemSettings\SystemSettingsService::class)->getGroupForAdmin('grievances'))
+    $payload = collect(app(SystemSettingsService::class)->getGroupForAdmin('grievances'))
         ->mapWithKeys(fn (array $f) => [$f['key'] => $f['value']])->all();
     $payload['work_week_days'] = ['1', '2', '3', '4', '5', '6'];
     $payload['committee_max_members'] = 7;
@@ -261,8 +302,8 @@ it('saves the policy settings exactly as the settings page submits them', functi
 
     $this->actingAs($admin)->put(route('grievances.settings.policy.update'), $payload)->assertSessionHasNoErrors();
 
-    $settings = app(\App\Services\Grievances\GrievanceSettings::class);
-    app(\App\Services\SystemSettings\SystemSettingsService::class)->clearCache();
+    $settings = app(GrievanceSettings::class);
+    app(SystemSettingsService::class)->clearCache();
     expect($settings->workWeekDays())->toBe([1, 2, 3, 4, 5, 6])
         ->and($settings->committeeMaxMembers())->toBe(7)
         ->and($settings->votingEnabled())->toBeTrue();

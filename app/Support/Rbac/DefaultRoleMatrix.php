@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Rbac;
 
 use App\Support\DailyActivity\DailyActivityRoles;
+use App\Support\Discipline\DisciplineRoles;
 use App\Support\FieldWork\FieldWorkRoles;
 use App\Support\Grievances\GrievanceRoles;
 use App\Support\Performance\PerformanceRoles;
@@ -120,7 +121,7 @@ final class DefaultRoleMatrix
     private static function build(bool $validate = true): array
     {
         $all = PermissionCatalog::names();
-        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
+        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
 
         $roles = [
             // ── Administration ────────────────────────────────────────────────
@@ -304,6 +305,7 @@ final class DefaultRoleMatrix
             'Report Viewer' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'reports.view', 'daily_activities.view_reports', 'performance_reports.view',
                 ...GrievanceRoles::REPORT_VIEWER_PERMISSIONS,
+                ...DisciplineRoles::REPORT_VIEWER_PERMISSIONS,
             ], 'Views non-sensitive reports within scope. No exports.',
                 'በወሰኑ ውስጥ ስሱ ያልሆኑ ሪፖርቶችን ይመለከታል። ወደ ውጭ መላክ የለም።'),
             'Public Site Manager' => self::role(self::SCOPE_GLOBAL, PermissionCatalog::matching(...self::PUBLIC_SITE_MODULES),
@@ -311,7 +313,7 @@ final class DefaultRoleMatrix
                 'የሕዝብ ድረ-ገጽ ይዘትን ያስተካክላል። የመታወቂያ ማረጋገጫን፣ OTPን፣ የፍጥነት ገደቦችን፣ የሠራተኛ መረጃን ወይም የማረጋገጫ ፖሊሲን መቀየር አይችልም።'),
 
             // ── Employee self-service, teams and performance ─────────────────
-            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
+            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
                 'Self-service for the signed-in employee only: own daily activity, own field work requests and GPS check-in/out, own performance agreement, reviews and appeals. My Portal pages are tied to the linked employee record, not to extra permissions.',
                 'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የመስክ ሥራ ጥያቄ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች።'),
             DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::REVIEWER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS],
@@ -369,6 +371,19 @@ final class DefaultRoleMatrix
             GrievanceRoles::TRIBUNAL_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::TRIBUNAL_PERMISSIONS,
                 'Handles grievances routed to the Administrative Tribunal.',
                 'ወደ አስተዳደር ፍርድ ቤት የተላለፉ ቅሬታዎችን ያስተናግዳል።'),
+
+            // ── Employee Discipline (Regulation 201/2018) ─────────────────────
+            // Roles make a user eligible; case work still needs a seat on the
+            // case or organization scope (DisciplinaryCaseAccess).
+            DisciplineRoles::CASE_OFFICER_ROLE => self::role(self::SCOPE_SCOPED, DisciplineRoles::CASE_OFFICER_PERMISSIONS,
+                'HR discipline officer: opens cases, records charges, assigns the committee or investigator, files and serves charges, records decision delivery. Never decides.',
+                'የሰው ሀብት የዲሲፕሊን ባለሙያ፡ ጉዳይ ይከፍታል፣ ክስ ይመዘግባል፣ ኮሚቴ ወይም አጣሪ ይመድባል፣ ክስ ያቀርባል፣ መጥሪያ ይልካል፣ የውሳኔ መድረስን ይመዘግባል። አይወስንም።'),
+            DisciplineRoles::COMMITTEE_MEMBER_ROLE => self::role(self::SCOPE_SCOPED, DisciplineRoles::COMMITTEE_MEMBER_PERMISSIONS,
+                'Disciplinary committee member or appointed investigator: works only the cases the user is seated on.',
+                'የዲሲፕሊን ኮሚቴ አባል ወይም የተመደበ አጣሪ፡ የተመደበባቸውን ጉዳዮች ብቻ ይሠራል።'),
+            DisciplineRoles::DECISION_AUTHORITY_ROLE => self::role(self::SCOPE_SCOPED, DisciplineRoles::DECISION_AUTHORITY_PERMISSIONS,
+                'Head of institution (or delegate): decides on submitted disciplinary recommendations in scope.',
+                'የተቋሙ የበላይ ኃላፊ (ወይም ወኪል)፡ በወሰኑ ውስጥ በቀረቡ የዲሲፕሊን የውሳኔ ሀሳቦች ላይ ይወስናል።'),
 
             // ── Services and providers (admin side; provider portals use their own roles) ─
             'Cafeteria Admin' => self::role(self::SCOPE_SCOPED, [

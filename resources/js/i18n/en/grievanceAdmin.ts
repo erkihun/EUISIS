@@ -123,7 +123,7 @@ const grievanceAdmin = {
         name: 'Name', name_en: 'Name (English)', name_am: 'Name (Amharic)', description_en: 'Description (English)', description_am: 'Description (Amharic)',
         organization: 'Organization', organization_id: 'Organization', organization_unit_id: 'Unit', committee_type: 'Type', status: 'Status', members: 'Members',
         openCases: 'Open cases', effective_from: 'Effective from', effective_to: 'Effective to', employee_id: 'Employee', role: 'Committee role',
-        appointment_reference: 'Appointment reference', actions: 'Actions', source: 'From', target: 'To', movement_type: 'Movement', priority: 'Priority',
+        appointment_reference: 'Appointment reference', selection_source: 'Selected as', term_number: 'Term', actions: 'Actions', source: 'From', target: 'To', movement_type: 'Movement', priority: 'Priority',
         source_handler_type: 'Source type', target_handler_type: 'Target type', state: 'State', include_descendants: 'Also for sub-organizations',
         purpose: 'Purpose', handler_type: 'Handler', handler_id: 'Handler', lookup_organization_id: 'Organization', resolution_days: 'Days', day_type: 'Day type',
         start_point: 'Clock starts', warning_percent: 'Warn at % of time used', warning_days_remaining: 'Warn with days remaining', warning_due_today: 'Warn on the due day',

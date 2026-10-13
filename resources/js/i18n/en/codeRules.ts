@@ -88,6 +88,8 @@ const codeRules = {
         grievance_case: 'Grievance Case Number',
         grievance_decision: 'Grievance Decision Number',
         grievance_letter: 'Grievance Letter Reference Number',
+        public_service_complaint: 'Public Service Complaint Reference',
+        disciplinary_case: 'Disciplinary Case Number',
         organization_unit: 'Organization Unit Code',
     },
     scopeTypes: {

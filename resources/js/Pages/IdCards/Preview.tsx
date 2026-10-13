@@ -9,7 +9,6 @@ import LandscapeBack from '@/Components/IdCards/IdCardBack';
 import CardDataChecklist from '@/Components/IdCards/CardDataChecklist';
 import CardStatusBadge from '@/Components/IdCards/CardStatusBadge';
 import { formatDateDisplay } from '@/lib/calendar/dateFormat';
-import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { Head } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -54,7 +53,6 @@ type PageProps = {
 
 export default function IdCardPreview({ card, can }: PageProps) {
     const { t, locale } = useLocale();
-    const calendarSystem = useCalendarSystem();
     const portrait = useIdCardTemplate()?.orientation === 'portrait';
     const IdCardFront = portrait ? PortraitFront : LandscapeFront;
     const IdCardBack = portrait ? PortraitBack : LandscapeBack;
@@ -89,10 +87,10 @@ export default function IdCardPreview({ card, can }: PageProps) {
                                 positionTitleAm={card.employee?.current_assignment?.position?.title_am}
                                 positionCode={card.employee?.current_assignment?.position?.job_position_code}
                                 jobGrade={card.employee?.current_assignment?.position?.grade_level}
-                                issueDate={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), calendarSystem, locale) || card.issued_at.slice(0, 10)) : undefined}
-                                expiryDate={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), calendarSystem, locale) || card.expires_at.slice(0, 10)) : undefined}
-                                issueDateAm={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined}
-                                expiryDateAm={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined}
+                                issueDate={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), 'gregorian', 'en') || card.issued_at.slice(0, 10)) : undefined}
+                                expiryDate={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), 'gregorian', 'en') || card.expires_at.slice(0, 10)) : undefined}
+                                issueDateAm={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), 'ethiopian', 'am', { zeroPadDay: true }) || undefined) : undefined}
+                                expiryDateAm={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), 'ethiopian', 'am', { zeroPadDay: true }) || undefined) : undefined}
                             />
                         </div>
                     </div>
