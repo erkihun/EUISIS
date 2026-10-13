@@ -4,7 +4,8 @@ import { PublicPageHeader, publicButtonPrimary } from '@/Components/public/Publi
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import MultiFileUpload from '@/Components/public/MultiFileUpload';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
+import PublicFlash, { type SharedFlash } from '@/Components/public/PublicFlash';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -309,7 +310,13 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
 
     return (
         <form onSubmit={submit} className={`mt-4 space-y-5 ${cardClass}`}>
-            {errors.form_token && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{errors.form_token}</p>}
+            {/* A refused rating (storage trouble, a replayed form) must say so: the rating form has no
+                "message" field of its own, so the server's general error would otherwise go unseen. */}
+            {(errors.form_token || (errors as Record<string, string | undefined>).message) && (
+                <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                    {errors.form_token ?? (errors as Record<string, string | undefined>).message}
+                </p>
+            )}
             {target.target_type === 'employee' && (
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={false} />
             )}
@@ -358,10 +365,14 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
 
 function Shell({ children }: { children: React.ReactNode }) {
     const { t } = useLocale();
+    // An expired form (419) or a throttled submission sends the visitor back here with a notice;
+    // without this it was invisible, and the form just seemed to do nothing.
+    const flash = (usePage().props as { flash?: SharedFlash }).flash ?? null;
 
     return (
         <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
             <PublicPageHeader title={t('serviceFeedback.publicTitle')} compact />
+            <PublicFlash flash={flash} className="mt-4" />
             {children}
         </PublicLayout>
     );
