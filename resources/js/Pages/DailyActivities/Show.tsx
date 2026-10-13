@@ -67,7 +67,7 @@ export default function DailyActivitiesShow({ log, can }: Props): JSX.Element {
     return (
         <AuthenticatedLayout header={<PageHeader title={t('dailyActivities.show.title')} backHref={route('daily-activities.index')} />}>
             <Head title={t('dailyActivities.show.title')} />
-            <div className="mx-auto max-w-4xl space-y-4">
+            <div className="space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
                     <LocalizedDateDisplay value={log.activity_date} className="text-base font-semibold text-[color:var(--app-foreground)]" />
                     <LogStatusBadge status={log.status} />

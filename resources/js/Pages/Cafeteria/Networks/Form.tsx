@@ -39,7 +39,7 @@ export default function NetworkForm({ network, providers, defaults }: {
     const title = network ? tt('editNetwork') : tt('createNetwork');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={title} description={tt('networksDescription')} backHref={network ? route('cafeteria.networks.show', network.id) : route('cafeteria.networks.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={tt('networksDescription')} backHref={network ? route('cafeteria.networks.show', network.id) : route('cafeteria.networks.index')} />}>
             <Head title={title} />
             <form onSubmit={submit} className="space-y-6">
                 <FormSection title={tt('network')}>

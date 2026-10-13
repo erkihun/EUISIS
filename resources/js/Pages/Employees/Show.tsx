@@ -150,7 +150,7 @@ export default function EmployeesShow({
         >
             <Head title={employee.full_name} />
 
-            <div className="mx-auto max-w-7xl space-y-5">
+            <div className="space-y-5">
 
                 {/* ── Profile card ─────────────────────────────────────── */}
                 <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">

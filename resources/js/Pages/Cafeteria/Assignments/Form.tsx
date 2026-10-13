@@ -51,7 +51,7 @@ export default function AssignmentForm({ assignment, organizations, providers, n
     const title = assignment ? tt('editAssignment') : tt('createAssignment');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={title} description={tt('assignmentsDescription')} backHref={route('cafeteria.assignments.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={tt('assignmentsDescription')} backHref={route('cafeteria.assignments.index')} />}>
             <Head title={title} />
             <form onSubmit={submit} className="space-y-6">
                 <FormSection title={tt('scope')}>

@@ -64,6 +64,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/services/{service}/cancel', [ServiceController::class, 'cancel'])->whereUuid('service')->name('services.cancel');
 
         Route::get('/classifications', [ClassificationController::class, 'index'])->name('classifications.index');
+        Route::get('/classifications/create', [ClassificationController::class, 'create'])->name('classifications.create');
+        Route::get('/classifications/{classification}/edit', [ClassificationController::class, 'edit'])->whereUuid('classification')->name('classifications.edit');
         Route::post('/classifications', [ClassificationController::class, 'store'])->name('classifications.store');
         Route::put('/classifications/{classification}', [ClassificationController::class, 'update'])->whereUuid('classification')->name('classifications.update');
         Route::post('/classifications/import', [ClassificationController::class, 'import'])->middleware('throttle:10,1')->name('classifications.import');

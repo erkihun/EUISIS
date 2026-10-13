@@ -1310,6 +1310,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 
     // Public feedback categories: before the {serviceFeedback} wildcard below.
     Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');
+    Route::get('/feedback-admin/categories/create', [PublicFeedbackCategoryController::class, 'create'])->name('service-feedback.categories.create');
+    Route::get('/feedback-admin/categories/{category}/edit', [PublicFeedbackCategoryController::class, 'edit'])->whereUuid('category')->name('service-feedback.categories.edit');
     Route::post('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'store'])->name('service-feedback.categories.store');
     Route::put('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'update'])->whereUuid('category')->name('service-feedback.categories.update');
     Route::delete('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'destroy'])->whereUuid('category')->name('service-feedback.categories.destroy');
@@ -1321,6 +1323,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::put('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'update'])->name('service-feedback.settings.update');
     Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');
     Route::get('/feedback-admin/routing-rules/handlers', [PublicFeedbackRoutingRuleController::class, 'handlers'])->name('service-feedback.routing-rules.handlers');
+    Route::get('/feedback-admin/routing-rules/create', [PublicFeedbackRoutingRuleController::class, 'create'])->name('service-feedback.routing-rules.create');
+    Route::get('/feedback-admin/routing-rules/{rule}/edit', [PublicFeedbackRoutingRuleController::class, 'edit'])->whereUuid('rule')->name('service-feedback.routing-rules.edit');
     Route::post('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'store'])->name('service-feedback.routing-rules.store');
     Route::put('/feedback-admin/routing-rules/{rule}', [PublicFeedbackRoutingRuleController::class, 'update'])->whereUuid('rule')->name('service-feedback.routing-rules.update');
     Route::delete('/feedback-admin/routing-rules/{rule}', [PublicFeedbackRoutingRuleController::class, 'destroy'])->whereUuid('rule')->name('service-feedback.routing-rules.destroy');

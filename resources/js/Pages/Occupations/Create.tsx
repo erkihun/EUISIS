@@ -31,7 +31,7 @@ export default function OccupationsCreate() {
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('occupations.createOccupation')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('occupations.createOccupation')} />}>
             <Head title={t('occupations.createOccupation')} />
 
             <form

@@ -45,10 +45,10 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityModes
     const errors = form.errors as Record<string, string | undefined>;
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('serviceFeedback.settingsTitle')} description={t('serviceFeedback.settingsIntro')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('serviceFeedback.settingsTitle')} description={t('serviceFeedback.settingsIntro')} />}>
             <Head title={t('serviceFeedback.settingsTitle')} />
 
-            <form onSubmit={submit} className="mx-auto max-w-3xl space-y-5">
+            <form onSubmit={submit} className="space-y-5">
                 <Alert tone="info">{t('serviceFeedback.settingsCityWideNote')}</Alert>
 
                 <Card className="space-y-5 p-5">

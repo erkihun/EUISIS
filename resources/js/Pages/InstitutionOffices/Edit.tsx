@@ -97,7 +97,7 @@ export default function InstitutionOfficesEdit({
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('institutionOffices.edit')}
@@ -107,7 +107,7 @@ export default function InstitutionOfficesEdit({
         >
             <Head title={t('institutionOffices.edit')} />
 
-            <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">
                         {t('institutionOffices.institution')}

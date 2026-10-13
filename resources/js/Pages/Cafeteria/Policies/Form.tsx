@@ -81,7 +81,7 @@ export default function PolicyForm({ policy, assignments, cafeterias, defaults }
     );
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={title} description={tt('policiesDescription')} backHref={policy ? route('cafeteria.policies.show', policy.id) : route('cafeteria.policies.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={tt('policiesDescription')} backHref={policy ? route('cafeteria.policies.show', policy.id) : route('cafeteria.policies.index')} />}>
             <Head title={title} />
             <form onSubmit={submit} className="space-y-6">
                 <FormSection title={tt('sectionScope')}>

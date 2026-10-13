@@ -133,7 +133,7 @@ export default function CreateOrganization({
     const secondary = form.data.branding_secondary_color;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('organizations.index')}

@@ -56,7 +56,7 @@ export default function AccessForm({ access, organizations, networks, cafeterias
     const title = access ? tt('editAccess') : tt('grantAccess');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={title} description={tt('accessDescription')} backHref={route('cafeteria.access.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={tt('accessDescription')} backHref={route('cafeteria.access.index')} />}>
             <Head title={title} />
             <form onSubmit={submit} className="space-y-6">
                 <FormSection title={tt('scope')}>

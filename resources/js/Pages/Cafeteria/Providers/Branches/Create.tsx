@@ -35,7 +35,7 @@ export default function CreateBranch({
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('cafeteria.addBranch')}
@@ -44,7 +44,7 @@ export default function CreateBranch({
                 />
             }
         >
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <form onSubmit={submit} className="space-y-5">
                     <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 space-y-4">
 

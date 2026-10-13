@@ -46,7 +46,7 @@ export default function PayeeForm({ provider }: { provider: Payee | null }) {
     );
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={title} backHref={route('cafeteria.payees.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} backHref={route('cafeteria.payees.index')} />}>
             <Head title={title} />
             <form onSubmit={submit} className="space-y-6">
                 <FormSection title={tt('provider')}>

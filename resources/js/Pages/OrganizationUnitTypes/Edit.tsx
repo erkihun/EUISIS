@@ -57,7 +57,7 @@ export default function OrganizationUnitTypesEdit({ type }: { type: OrgUnitType 
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={`${t('organizationUnitTypes.editOrganizationUnitType')}: ${type.name_en}`}
@@ -67,7 +67,7 @@ export default function OrganizationUnitTypesEdit({ type }: { type: OrgUnitType 
         >
             <Head title={t('organizationUnitTypes.editOrganizationUnitType')} />
 
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <form
                     onSubmit={submit}
                     className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"

@@ -35,7 +35,7 @@ export default function PositionEstablishmentsEdit({ establishment }: { establis
     const errorCls = 'mt-1 text-xs text-red-500';
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('position-establishments.show', establishment.id)}
@@ -46,7 +46,7 @@ export default function PositionEstablishmentsEdit({ establishment }: { establis
         >
             <Head title={t('positionEstablishments.edit')} />
 
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <form onSubmit={submit} className="space-y-5 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <div>
                         <label className={labelCls}>{t('positionEstablishments.approvedSlots')}</label>

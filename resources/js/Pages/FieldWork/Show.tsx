@@ -35,7 +35,7 @@ export default function FieldWorkShow({ fieldWork, can }: Props): JSX.Element {
     return (
         <AuthenticatedLayout header={<PageHeader title={t('fieldWork.show.title')} backHref={route(can.requests ? 'field-work.requests.index' : 'field-work.dashboard')} />}>
             <Head title={`${t('fieldWork.show.title')} ${fieldWork.reference_number}`} />
-            <div className="mx-auto max-w-4xl space-y-4">
+            <div className="space-y-4">
                 <ManagementNav can={can} current="field-work.requests.index" />
                 <DetailSections fieldWork={fieldWork} />
 

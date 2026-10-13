@@ -30,7 +30,7 @@ export default function EntitlementRulesCreate({
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('entitlementRules.createTitle')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('entitlementRules.createTitle')} />}>
             <Head title={t('entitlementRules.createTitle')} />
             <EntitlementRuleForm
                 form={form}

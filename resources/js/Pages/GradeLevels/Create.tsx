@@ -20,7 +20,7 @@ export default function GradeLevelsCreate() {
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('gradeLevels.createGradeLevel')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('gradeLevels.createGradeLevel')} />}>
             <Head title={t('gradeLevels.createGradeLevel')} />
             <form
                 className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"

@@ -46,7 +46,7 @@ export default function OrganizationUnitTypesCreate() {
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('organizationUnitTypes.createOrganizationUnitType')}
@@ -56,7 +56,7 @@ export default function OrganizationUnitTypesCreate() {
         >
             <Head title={t('organizationUnitTypes.createOrganizationUnitType')} />
 
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <form
                     onSubmit={submit}
                     className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"

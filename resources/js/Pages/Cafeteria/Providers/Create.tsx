@@ -47,7 +47,7 @@ export default function ProvidersCreate({ organizations, payees, networks, paren
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteriaPolicy.addCafeteria')} description={t('cafeteriaPolicy.cafeteriasDescription')} backHref={route('cafeteria.providers.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteriaPolicy.addCafeteria')} description={t('cafeteriaPolicy.cafeteriasDescription')} backHref={route('cafeteria.providers.index')} />}>
             <Head title={t('cafeteriaPolicy.addCafeteria')} />
             <CafeteriaForm form={form} mode="create" organizations={organizations} payees={payees} networks={networks} parents={parents}
                 onSubmit={submit} cancelHref={route('cafeteria.providers.index')} />

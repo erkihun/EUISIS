@@ -58,7 +58,7 @@ export default function PerformanceSettings({ fields, scales, can }: Props) {
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('performance.settings.title')} description={t('performance.settings.description')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('performance.settings.title')} description={t('performance.settings.description')} />}>
             <Head title={t('performance.settings.title')} />
             <div className={pageCls}>
                 <form onSubmit={submit}>

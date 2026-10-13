@@ -20,7 +20,7 @@ export default function ServiceProvidersCreate({ serviceTypes, organizations }: 
     });
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('providers.createProvider')}

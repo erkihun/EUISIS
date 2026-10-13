@@ -24,7 +24,7 @@ export default function GradeLevelsEdit({ gradeLevel }: Props) {
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('gradeLevels.editGradeLevel')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('gradeLevels.editGradeLevel')} />}>
             <Head title={t('gradeLevels.editGradeLevel')} />
             <form
                 className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"

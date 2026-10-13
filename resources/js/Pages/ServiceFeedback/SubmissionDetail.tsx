@@ -55,7 +55,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
 
     return <AuthenticatedLayout header={<PageHeader title={title} backHref={route(type === 'complaint' ? 'service-submissions.complaints' : 'service-submissions.suggestions')} />}>
         <Head title={entry.reference ? `${title} ${entry.reference}` : title} />
-        <div className="mx-auto max-w-5xl space-y-5">
+        <div className="space-y-5">
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <p className="text-sm text-[color:var(--app-muted-foreground)]">{t(entry.target_type === 'organization' ? 'serviceFeedback.submissionsAboutInstitution' : 'serviceFeedback.serviceProvidedBy')}</p>

@@ -91,7 +91,7 @@ export default function NfcTerminalForm({
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader
                 title={isEdit ? t('nfc.editTerminal') : t('nfc.registerTerminal')}
                 description={t('nfc.terminals')}
                 backHref={route('nfc-management.terminals.index')}

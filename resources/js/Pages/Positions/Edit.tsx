@@ -50,7 +50,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('positions.editPosition')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('positions.editPosition')} />}>
             <Head title={t('positions.editPosition')} />
             <form
                 className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"

@@ -4,14 +4,13 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Alert, Button, Card, CardHeader, CardTitle, FieldError, FileUpload, FilterField, FilterPanel, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Alert, Button, Card, CardHeader, CardTitle, FileUpload, FilterField, FilterPanel, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Row = {
     id: string; code: string; level: number | string; name_en: string; name_am: string | null; is_active: boolean; parent_code: string | null;
-    parent_id?: string | null; description_en?: string | null; description_am?: string | null; sort_order?: number;
 };
 type Batch = {
     id: string; revision: string; file_name: string; dry_run: boolean; total_rows: number; created_rows: number; updated_rows: number; unchanged_rows: number; failed_rows: number;
@@ -33,7 +32,6 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
     const { t, locale, tt } = useDesignText();
     const [draft, setDraft] = useState({ scheme, revision, search: filters.search ?? '' });
     const [importing, setImporting] = useState(false);
-    const [editing, setEditing] = useState<Row | 'new' | null>(null);
     const [report, setReport] = useState<Batch | null>(null);
     const hasActiveFilters = Boolean(filters.search);
     // ISIC and ISCO are official datasets: imported, never typed in.
@@ -45,7 +43,7 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
         <AuthenticatedLayout header={<PageHeader title={tt('classifications.title')} description={tt('classifications.description')}
             actions={can.manage && (
                 <div className="flex flex-wrap gap-2">
-                    {editable && <Button variant="outline" onClick={() => setEditing('new')}>{tt('classifications.add')}</Button>}
+                    {editable && <Button as={Link} href={route('organization-design.classifications.create', { scheme, revision })} variant="outline">{tt('classifications.add')}</Button>}
                     <Button variant="primary" onClick={() => setImporting(true)}>{tt('classifications.import')}</Button>
                 </div>
             )} />}>
@@ -90,7 +88,7 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
                                 {rows.data.map((r) => (
                                     <Tr key={r.id}>
                                         <Td className="font-mono text-xs">{r.code}</Td>
-                                        <Td>{nameOf(r, locale)}</Td>
+                                        <Td>{can.manage && editable ? <Link href={route('organization-design.classifications.edit', r.id)} className="hover:underline">{nameOf(r, locale)}</Link> : nameOf(r, locale)}</Td>
                                         <Td muted>{r.level}</Td>
                                         <Td muted className="font-mono text-xs">{r.parent_code ?? '—'}</Td>
                                         <Td><StatusPill status={r.is_active ? 'active' : 'inactive'} /></Td>
@@ -98,7 +96,7 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
                                             <div className="flex justify-end">
                                                 <AppActionMenu
                                                     items={[
-                                                        { label: t('common.edit'), onClick: () => setEditing(r) },
+                                                        { label: t('common.edit'), href: route('organization-design.classifications.edit', r.id) },
                                                     ]}
                                                 />
                                             </div>
@@ -134,7 +132,6 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
             </div>
 
             {importing && <ImportForm scheme={scheme} revision={revision} onClose={() => setImporting(false)} />}
-            {editing && <EntryForm scheme={scheme} revision={revision} row={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
             {report && (
                 <Modal show onClose={() => setReport(null)} maxWidth="2xl">
                     <div className="p-6">
@@ -152,6 +149,7 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
     );
 }
 
+/** The CSV importer is an action on the list, not a record, so it stays a dialog. */
 function ImportForm({ scheme, revision, onClose }: { scheme: string; revision: string; onClose: () => void }) {
     const { tt } = useDesignText();
     const form = useForm<{ scheme: string; revision: string; file: File | null; dry_run: boolean }>({ scheme, revision, file: null, dry_run: true });
@@ -183,55 +181,6 @@ function ImportForm({ scheme, revision, onClose }: { scheme: string; revision: s
                 <div className="mt-6 flex justify-end gap-2">
                     <Button type="button" variant="outline" onClick={onClose}>{tt('actions.cancel')}</Button>
                     <Button type="submit" variant="primary" loading={form.processing} disabled={!form.data.file}>{tt('classifications.runImport')}</Button>
-                </div>
-            </form>
-        </Modal>
-    );
-}
-
-function EntryForm({ scheme, revision, row, onClose }: { scheme: string; revision: string; row: Row | null; onClose: () => void }) {
-    const { tt } = useDesignText();
-    const form = useForm({
-        scheme, revision: row ? revision : revision, code: row?.code ?? '', parent_id: row?.parent_id ?? '', level: String(row?.level ?? 1),
-        name_en: row?.name_en ?? '', name_am: row?.name_am ?? '', description_en: row?.description_en ?? '', description_am: row?.description_am ?? '',
-        is_active: row?.is_active ?? true, sort_order: String(row?.sort_order ?? 0),
-    });
-    const errors = form.errors as Record<string, string | undefined>;
-
-    function submit(event: React.FormEvent) {
-        event.preventDefault();
-        form.transform((data) => {
-            const clean: Record<string, unknown> = Object.fromEntries(Object.entries(data).map(([k, v]) => [k, v === '' ? null : v]));
-            if (row) { delete clean.scheme; delete clean.revision; }
-            return clean;
-        });
-        const options = { preserveScroll: true, onSuccess: onClose };
-        if (row) form.put(route('organization-design.classifications.update', row.id), options);
-        else form.post(route('organization-design.classifications.store'), options);
-    }
-
-    return (
-        <Modal show onClose={onClose} maxWidth="2xl">
-            <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{row ? tt('classifications.edit') : tt('classifications.add')} · {tt(`classifications.schemes.${scheme}`)}</h2>
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                    {!row && (
-                        <FormField id="cl-revision" label={tt('classifications.revision')} required error={errors.revision}>{({ id }) => <Input id={id} value={form.data.revision} maxLength={20} onChange={(e) => form.setData('revision', e.target.value)} />}</FormField>
-                    )}
-                    <FormField id="cl-code" label={tt('fields.code')} required error={errors.code}>{({ id }) => <Input id={id} value={form.data.code} maxLength={40} onChange={(e) => form.setData('code', e.target.value)} />}</FormField>
-                    <FormField id="cl-level" label={tt('fields.level')} error={errors.level}>{({ id }) => <Input id={id} type="number" min={1} max={10} value={form.data.level} onChange={(e) => form.setData('level', e.target.value)} />}</FormField>
-                    <FormField id="cl-sort" label={tt('fields.sortOrder')} error={errors.sort_order}>{({ id }) => <Input id={id} type="number" min={0} value={form.data.sort_order} onChange={(e) => form.setData('sort_order', e.target.value)} />}</FormField>
-                    <FormField id="cl-name-en" label={tt('fields.nameEn')} required error={errors.name_en}>{({ id }) => <Input id={id} value={form.data.name_en} onChange={(e) => form.setData('name_en', e.target.value)} />}</FormField>
-                    <FormField id="cl-name-am" label={tt('fields.nameAm')} error={errors.name_am}>{({ id }) => <Input id={id} value={form.data.name_am} onChange={(e) => form.setData('name_am', e.target.value)} />}</FormField>
-                    <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                        <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
-                        <span>{tt('fields.isActive')}</span>
-                    </label>
-                </div>
-                <FieldError>{errors.parent_id}</FieldError>
-                <div className="mt-6 flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={onClose}>{tt('actions.cancel')}</Button>
-                    <Button type="submit" variant="primary" loading={form.processing}>{tt('actions.save')}</Button>
                 </div>
             </form>
         </Modal>

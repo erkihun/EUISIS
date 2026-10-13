@@ -175,7 +175,7 @@ export default function EditUser({
     const currentPhoto = photoPreview ?? user.profile_photo_url;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('users.index')}

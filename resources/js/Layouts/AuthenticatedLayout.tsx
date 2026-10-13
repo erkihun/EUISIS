@@ -16,12 +16,18 @@ const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 // Page chrome and content share one measure, so titles line up with the content below them
 // and very wide screens keep a readable line length.
 const CONTENT_WIDTH = 'mx-auto w-full max-w-[1600px]';
+// Create and edit forms share one measure too (docs/admin-ui-consistency.md "Page width"):
+// left-aligned under the title, never centred, so every form starts at the same edge.
+const FORM_WIDTH = 'w-full max-w-4xl';
+
+export type ContentWidth = 'full' | 'form';
 
 export default function Authenticated({
     header,
     children,
     variant = 'default',
-}: PropsWithChildren<{ header?: ReactNode; variant?: 'default' | 'portal' }>) {
+    contentWidth = 'full',
+}: PropsWithChildren<{ header?: ReactNode; variant?: 'default' | 'portal'; contentWidth?: ContentWidth }>) {
     const { locale, t } = useLocale();
     const { getBoolean, getString } = useSystemSettings();
     const { url: pageUrl } = usePage();
@@ -193,7 +199,7 @@ export default function Authenticated({
                     <div className={CONTENT_WIDTH}>
                         {!header && showBreadcrumbs && <Breadcrumbs className="mb-4" />}
                         <TemporaryPasswordNotice />
-                        {children}
+                        {contentWidth === 'form' ? <div className={FORM_WIDTH}>{children}</div> : children}
                     </div>
                 </main>
             </div>

@@ -34,9 +34,9 @@ export default function SpecialDayCreate({ day_types }: { day_types: DayTypeOpti
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteria.addSpecialDay')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.addSpecialDay')} />}>
             <Head title={t('cafeteria.addSpecialDay')} />
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <form onSubmit={submit} className="space-y-5">
                         <div className="grid grid-cols-2 gap-4">

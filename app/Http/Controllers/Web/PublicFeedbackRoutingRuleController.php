@@ -24,7 +24,8 @@ use Inertia\Response;
 /**
  * Routing rules for public suggestions and complaints (brief §45–47). A
  * scoped administrator manages the rules of their own institutions; city-wide
- * rules take a city-level account.
+ * rules take a city-level account. A rule is created and edited on its own
+ * page, like every other record.
  */
 class PublicFeedbackRoutingRuleController extends Controller
 {
@@ -39,11 +40,6 @@ class PublicFeedbackRoutingRuleController extends Controller
         $user = $this->user();
         abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
 
-        $scoped = $this->scope->isScopedOrganizationalAdmin($user);
-        $organizationIds = $scoped ? $this->scope->allowedOrganizationIds($user) : null;
-        $organizations = $scoped
-            ? Organization::query()->whereIn('id', $organizationIds)
-            : Organization::query()->where('status', 'active');
         $names = [];
 
         // The same filter bar as every other list: status and organization, kept in the query string.
@@ -61,43 +57,36 @@ class PublicFeedbackRoutingRuleController extends Controller
                 ->orderByRaw('CASE WHEN organization_id IS NULL THEN 0 ELSE 1 END')
                 ->orderBy('priority')->orderBy('created_at')
                 ->get()
-                ->map(function (PublicFeedbackRoutingRule $rule) use (&$names, $user): array {
-                    $key = $rule->handler_type->value.':'.$rule->handler_id;
-                    $names[$key] ??= $rule->handler_type->names($rule->handler_id);
-
-                    return [
-                        'id' => $rule->id,
-                        'organization_id' => $rule->organization_id,
-                        'organization' => $rule->organization === null ? null : ['en' => $rule->organization->name_en, 'am' => $rule->organization->name_am],
-                        'target_type' => $rule->target_type,
-                        'submission_type' => $rule->submission_type,
-                        'category_id' => $rule->category_id,
-                        'category' => $rule->category === null ? null : ['en' => $rule->category->name_en, 'am' => $rule->category->name_am],
-                        'handler_type' => $rule->handler_type->value,
-                        'handler_id' => $rule->handler_id,
-                        'handler_name' => $names[$key]['en'] ?? null,
-                        'handler_name_am' => $names[$key]['am'] ?? null,
-                        'priority' => $rule->priority,
-                        'effective_from' => $rule->effective_from?->toDateString(),
-                        'effective_to' => $rule->effective_to?->toDateString(),
-                        'is_active' => $rule->is_active,
-                        'referenced' => $rule->isReferenced(),
-                        'can_manage' => $this->routing->canManage($user, $rule->organization_id),
-                    ];
-                })->values()->all(),
-            'organizations' => $organizations->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am'])->all(),
-            'categories' => PublicFeedbackCategory::query()->active()
-                ->when($organizationIds !== null, fn ($q) => $q->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $organizationIds)))
-                ->orderBy('sort_order')->orderBy('name_en')
-                ->get(['id', 'organization_id', 'name_en', 'name_am'])
-                ->map(fn (PublicFeedbackCategory $category): array => [
-                    'id' => $category->id, 'organization_id' => $category->organization_id, 'name_en' => $category->name_en, 'name_am' => $category->name_am,
-                ])->all(),
-            'canManageCityWide' => $this->routing->canManage($user, null),
+                ->map(fn (PublicFeedbackRoutingRule $rule): array => $this->present($rule, $user, $names))->values()->all(),
+            ...$this->formOptions($user),
         ]);
     }
 
-    /** Handler choices for one organization (or city-wide when none), for the rule and assignment dialogs. */
+    public function create(): Response
+    {
+        $user = $this->user();
+        abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
+
+        $options = $this->formOptions($user);
+        abort_unless($options['canManageCityWide'] || $options['organizations'] !== [], 403);
+
+        return Inertia::render('ServiceFeedback/RoutingRules/Create', $options);
+    }
+
+    public function edit(PublicFeedbackRoutingRule $rule): Response
+    {
+        $user = $this->user();
+        abort_unless($this->routing->canManage($user, $rule->organization_id), 403);
+
+        $names = [];
+
+        return Inertia::render('ServiceFeedback/RoutingRules/Edit', [
+            'rule' => $this->present($rule, $user, $names),
+            ...$this->formOptions($user),
+        ]);
+    }
+
+    /** Handler choices for one organization (or city-wide when none), for the rule form and the assignment dialog. */
     public function handlers(Request $request): JsonResponse
     {
         $user = $this->user();
@@ -153,6 +142,62 @@ class PublicFeedbackRoutingRuleController extends Controller
 
         return redirect()->route('service-feedback.routing-rules.index')
             ->with('success', __($outcome === 'retired' ? 'service-feedback.rule_retired' : 'service-feedback.rule_deleted'));
+    }
+
+    /**
+     * @param  array<string, array{en: ?string, am: ?string}>  $names  handler names already resolved on this request
+     * @return array<string, mixed>
+     */
+    private function present(PublicFeedbackRoutingRule $rule, User $user, array &$names): array
+    {
+        $key = $rule->handler_type->value.':'.$rule->handler_id;
+        $names[$key] ??= $rule->handler_type->names($rule->handler_id);
+
+        return [
+            'id' => $rule->id,
+            'organization_id' => $rule->organization_id,
+            'organization' => $rule->organization === null ? null : ['en' => $rule->organization->name_en, 'am' => $rule->organization->name_am],
+            'target_type' => $rule->target_type,
+            'submission_type' => $rule->submission_type,
+            'category_id' => $rule->category_id,
+            'category' => $rule->category === null ? null : ['en' => $rule->category->name_en, 'am' => $rule->category->name_am],
+            'handler_type' => $rule->handler_type->value,
+            'handler_id' => $rule->handler_id,
+            'handler_name' => $names[$key]['en'] ?? null,
+            'handler_name_am' => $names[$key]['am'] ?? null,
+            'priority' => $rule->priority,
+            'effective_from' => $rule->effective_from?->toDateString(),
+            'effective_to' => $rule->effective_to?->toDateString(),
+            'is_active' => $rule->is_active,
+            'referenced' => $rule->isReferenced(),
+            'can_manage' => $this->routing->canManage($user, $rule->organization_id),
+        ];
+    }
+
+    /**
+     * The scopes and categories a user may build a rule from.
+     *
+     * @return array{organizations: list<array<string, mixed>>, categories: list<array<string, mixed>>, canManageCityWide: bool}
+     */
+    private function formOptions(User $user): array
+    {
+        $scoped = $this->scope->isScopedOrganizationalAdmin($user);
+        $organizationIds = $scoped ? $this->scope->allowedOrganizationIds($user) : null;
+        $organizations = $scoped
+            ? Organization::query()->whereIn('id', $organizationIds)
+            : Organization::query()->where('status', 'active');
+
+        return [
+            'organizations' => $organizations->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am'])->toArray(),
+            'categories' => PublicFeedbackCategory::query()->active()
+                ->when($organizationIds !== null, fn ($q) => $q->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $organizationIds)))
+                ->orderBy('sort_order')->orderBy('name_en')
+                ->get(['id', 'organization_id', 'name_en', 'name_am'])
+                ->map(fn (PublicFeedbackCategory $category): array => [
+                    'id' => $category->id, 'organization_id' => $category->organization_id, 'name_en' => $category->name_en, 'name_am' => $category->name_am,
+                ])->all(),
+            'canManageCityWide' => $this->routing->canManage($user, null),
+        ];
     }
 
     private function user(): User

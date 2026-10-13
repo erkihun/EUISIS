@@ -25,7 +25,7 @@ export default function EditHierarchyVersion({
     const readonly = !can.update;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('hierarchyVersions.editHierarchyVersion')}
@@ -35,7 +35,7 @@ export default function EditHierarchyVersion({
         >
             <Head title={t('hierarchyVersions.editHierarchyVersion')} />
 
-            <div className="mx-auto max-w-4xl space-y-4">
+            <div className="space-y-4">
                 {readonly && (
                     <div className="rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-200">
                         {version.status === 'published'

@@ -174,7 +174,7 @@ export default function CreateRole({
         : permissions;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={<PageHeader title={t('roles.createTitle')} description={t('roles.createDescription')} />}
         >
             <Head title={t('roles.createTitle')} />

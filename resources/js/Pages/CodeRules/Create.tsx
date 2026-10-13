@@ -54,7 +54,7 @@ export default function CodeRulesCreate({
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('codeRules.createTitle')} description={t('codeRules.description')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('codeRules.createTitle')} description={t('codeRules.description')} />}>
             <Head title={t('codeRules.createTitle')} />
             <CodeRuleForm
                 form={form}

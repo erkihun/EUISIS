@@ -66,7 +66,7 @@ export default function ProvidersEdit({ provider, organizations, payees, network
     const parentOptions = parents.filter((p) => p.id !== provider.id);
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteriaPolicy.editCafeteria')} backHref={route('cafeteria.providers.show', provider.id)} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteriaPolicy.editCafeteria')} backHref={route('cafeteria.providers.show', provider.id)} />}>
             <Head title={t('cafeteriaPolicy.editCafeteria')} />
             <CafeteriaForm form={form} mode="edit" organizations={organizations} payees={payees} networks={networks} parents={parentOptions}
                 lockedProvider={provider.provider_id ? provider.provider : undefined}

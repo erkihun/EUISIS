@@ -8,7 +8,7 @@ export default function CreateHierarchyVersion() {
     const { t } = useLocale();
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('hierarchyVersions.createHierarchyVersion')}
@@ -18,7 +18,7 @@ export default function CreateHierarchyVersion() {
         >
             <Head title={t('hierarchyVersions.createHierarchyVersion')} />
 
-            <div className="mx-auto max-w-4xl">
+            <div>
                 <HierarchyVersionForm
                     mode="create"
                     submitRoute={route('hierarchy-versions.store')}

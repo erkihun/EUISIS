@@ -178,7 +178,7 @@ export default function EditRole({
         : permissions;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('roles.editTitle')}

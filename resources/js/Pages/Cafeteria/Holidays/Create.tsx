@@ -19,7 +19,7 @@ export default function HolidaysCreate() {
     function submit(e: FormEvent) { e.preventDefault(); form.post(route('cafeteria.holidays.store')); }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteria.addHoliday')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.addHoliday')} />}>
             <Head title={t('cafeteria.addHoliday')} />
             <form onSubmit={submit} className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <div className="border-b border-[color:var(--app-border)] px-6 py-4">
