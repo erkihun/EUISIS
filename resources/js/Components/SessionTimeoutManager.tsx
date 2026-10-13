@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslator } from '@/hooks/useLocale';
 
-import { buttonClassName } from '@/Components/ui';
+import { buttonClassName } from '@euisis/ui'; // kit, not the app barrel: this is in the always-loaded chunk
 export type SessionPolicy = {
     idle_timeout_seconds: number;
     warning_seconds: number;

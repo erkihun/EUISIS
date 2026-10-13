@@ -123,7 +123,7 @@ export default function ProfileSection({ profile, policy, l, pick }: {
             {/* Who this is: always the signed-in employee, never chosen by URL. */}
             <div className="flex items-center gap-3">
                 {typeof profile.photo_url === 'string'
-                    ? <img src={profile.photo_url} alt="" className="h-14 w-14 rounded-full object-cover ring-1 ring-[color:var(--app-border-strong)]" />
+                    ? <img src={profile.photo_url} alt="" width={56} height={56} decoding="async" className="h-14 w-14 rounded-full object-cover ring-1 ring-[color:var(--app-border-strong)]" />
                     : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--app-surface-muted)] text-lg font-semibold text-[color:var(--app-muted-foreground)]">{initials || '—'}</span>}
                 <div className="min-w-0">
                     <p className="truncate text-base font-semibold text-[color:var(--app-foreground)]">{text(profile.full_name)}</p>
@@ -139,7 +139,7 @@ export default function ProfileSection({ profile, policy, l, pick }: {
                         {/* Photo */}
                         <div className="flex flex-wrap items-center gap-4">
                             {photoSrc
-                                ? <img src={photoSrc} alt={l('fields.photo')} className="h-24 w-20 rounded-lg object-cover ring-1 ring-[color:var(--app-border-strong)]" />
+                                ? <img src={photoSrc} alt={l('fields.photo')} width={80} height={96} decoding="async" className="h-24 w-20 rounded-lg object-cover ring-1 ring-[color:var(--app-border-strong)]" />
                                 : <span className="flex h-24 w-20 items-center justify-center rounded-lg bg-[color:var(--app-surface-muted)] text-xs text-[color:var(--app-muted-foreground)]">{l('not_set')}</span>}
                             <div className="min-w-0 flex-1 space-y-1.5">
                                 <p className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">

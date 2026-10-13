@@ -10,7 +10,8 @@ use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
-use App\Support\Storage\PublicImageExtension;
+use App\Support\Images\ImageKind;
+use App\Support\Images\ImageUploads;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -36,12 +37,14 @@ class UploadSystemAssetAction
         ]);
 
         $oldPath = $existing->value;
-        // From the detected content, never the uploader's file name (SEC-10).
-        $extension = PublicImageExtension::for($file);
-        $path = $file->storeAs(
+        // Shrunk and re-encoded for the web; the name comes from the detected
+        // content, never the uploader's file name (SEC-10).
+        $path = ImageUploads::store(
+            $file,
+            $key === 'favicon' ? ImageKind::Favicon : ImageKind::Logo,
             'system-assets/'.SystemSettingsRegistry::GROUP_GENERAL,
-            sprintf('%s-%s.%s', $key, Str::uuid7(), strtolower($extension)),
             'public',
+            sprintf('%s-%s', $key, Str::uuid7()),
         );
 
         if (is_string($oldPath) && $oldPath !== '' && Storage::disk('public')->exists($oldPath)) {

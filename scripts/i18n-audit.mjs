@@ -36,9 +36,11 @@ const strict = args.includes('--strict');
 // ---------------------------------------------------------------- load trees
 async function loadFrontend() {
     const esbuild = createRequire(path.join(root, 'package.json'))('esbuild');
-    const source = fs.readFileSync(path.join(root, 'resources/js/hooks/useLocale.ts'), 'utf8') + '\nexport { translations };\n';
+    // The dictionaries are one chunk per language (resources/js/i18n/bundles); the
+    // audit merges them exactly as the registry serves them to useLocale.
+    const source = "import en from './bundles/en';\nimport am from './bundles/am';\nexport const translations = { en, am };\n";
     const out = await esbuild.build({
-        stdin: { contents: source, resolveDir: path.join(root, 'resources/js/hooks'), loader: 'ts', sourcefile: 'useLocale.ts' },
+        stdin: { contents: source, resolveDir: path.join(root, 'resources/js/i18n'), loader: 'ts', sourcefile: 'i18n-audit-entry.ts' },
         bundle: true, format: 'esm', platform: 'node', write: false, logLevel: 'silent',
         external: ['react', 'react-dom', '@inertiajs/react'],
         plugins: [{

@@ -17,8 +17,7 @@ import { type AlertItem, type QueueItem } from '@/Components/dashboard/Attention
 import DashboardTabs, { useDashboardTab, type DashboardTab } from '@/Components/dashboard/DashboardTabs';
 import ProviderRanking from '@/Components/dashboard/ProviderRanking';
 import CardLifecycleFunnel from '@/Components/dashboard/CardLifecycleFunnel';
-import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { useChartColors } from '@/hooks/useChartColors';
+import { SimpleBarChart, SimpleLineChart } from '@/Components/dashboard/charts/SimpleCharts';
 import DashboardOverview from '@/Components/dashboard/DashboardOverview';
 
 export interface KpiItem {
@@ -89,55 +88,6 @@ function keyLabel(t: (key: string) => string, prefix: string) {
         const translated = t(`${prefix}.${key}`);
         return translated === `${prefix}.${key}` ? key.replace(/_/g, ' ') : translated;
     };
-}
-
-function SimpleBarChart({ data, labelFor, emptyTitle }: { data: KeyValueDatum[]; labelFor: (key: string) => string; emptyTitle?: string }) {
-    const colors = useChartColors();
-
-    if (data.length === 0) {
-        return <EmptyDashboardState compact title={emptyTitle} />;
-    }
-
-    return (
-        <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
-                <XAxis dataKey="key" tickFormatter={labelFor} tick={{ fontSize: 12 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={36} />
-                <Tooltip
-                    contentStyle={{ background: 'var(--app-surface)', borderColor: 'var(--app-border)', color: 'var(--app-foreground)', borderRadius: 8 }}
-                    labelStyle={{ color: 'var(--app-foreground)' }}
-                    itemStyle={{ color: 'var(--app-foreground)' }}
-                    formatter={(value, name) => [Number(value ?? 0), labelFor(String(name))]}
-                    labelFormatter={(label) => labelFor(String(label))}
-                />
-                {/* Square-ish caps: a 8px radius on a 20px bar reads as a pill. */}
-                <Bar dataKey="value" fill={colors.primary} radius={[2, 2, 0, 0]}>
-                    {data.map((item, index) => <Cell key={item.key} fill={colors.series[index % colors.series.length]} />)}
-                </Bar>
-            </BarChart>
-        </ResponsiveContainer>
-    );
-}
-
-function SimpleLineChart({ data, emptyTitle }: { data: LabelValueDatum[]; emptyTitle?: string }) {
-    const colors = useChartColors();
-
-    if (data.length === 0) {
-        return <EmptyDashboardState compact title={emptyTitle} />;
-    }
-
-    return (
-        <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={36} />
-                <Tooltip contentStyle={{ background: 'var(--app-surface)', borderColor: 'var(--app-border)', color: 'var(--app-foreground)', borderRadius: 8 }} labelStyle={{ color: 'var(--app-foreground)' }} itemStyle={{ color: 'var(--app-foreground)' }} />
-                <Line type="monotone" dataKey="value" stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ fill: colors.accent, stroke: colors.accent }} />
-            </LineChart>
-        </ResponsiveContainer>
-    );
 }
 
 export default function Dashboard({

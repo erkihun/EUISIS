@@ -1,7 +1,7 @@
 import type { ComponentType, ErrorInfo, ReactNode } from 'react';
 import { Component } from 'react';
 
-import { buttonClassName } from '@/Components/ui';
+import { buttonClassName } from '@euisis/ui'; // kit, not the app barrel: this is in the always-loaded chunk
 type AppErrorBoundaryProps = {
     children: ReactNode;
 };

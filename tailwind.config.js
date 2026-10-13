@@ -5,7 +5,7 @@ export default {
     darkMode: 'class',
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
-        './storage/framework/views/*.php',
+        // Compiled view cache is deliberately not scanned: its stale copies only add dead CSS.
         './resources/views/**/*.blade.php',
         './resources/js/**/*.{ts,tsx}',
         './packages/euisis-ui/src/**/*.{ts,tsx}',

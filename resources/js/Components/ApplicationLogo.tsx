@@ -13,6 +13,7 @@ export default function ApplicationLogo({ className = 'h-8 w-8' }: Props) {
             <img
                 src={logoUrl}
                 alt=""
+                decoding="async"
                 className={className}
                 style={{ objectFit: 'contain', objectPosition: 'center' }}
             />

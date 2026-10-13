@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
@@ -27,6 +28,12 @@ export default defineConfig({
             clientPort: devServerPort,
         },
     },
+    resolve: {
+        alias: {
+            // Ziggy's route() helper ships with the Composer package; no npm copy to keep in sync.
+            'ziggy-js': path.resolve('vendor/tightenco/ziggy'),
+        },
+    },
     plugins: [
         laravel({
             input: 'resources/js/app.tsx',
@@ -39,6 +46,14 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks(id) {
+                    const file = id.replace(/\\/g, '/');
+
+                    // The generated route list changes only when routes do; its own
+                    // chunk keeps it cached across application releases.
+                    if (file.endsWith('/resources/js/ziggy.js')) {
+                        return 'ziggy';
+                    }
+
                     // Force all React context providers into one shared chunk.
                     // Without this, Vite may inline a provider into whichever
                     // layout chunk first imports it, then duplicate createContext()

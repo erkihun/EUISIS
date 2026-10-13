@@ -9,7 +9,8 @@ use App\Enums\AuditEventType;
 use App\Models\Organization;
 use App\Models\OrganizationNameHistory;
 use App\Models\User;
-use App\Support\Storage\PublicImageExtension;
+use App\Support\Images\ImageKind;
+use App\Support\Images\ImageUploads;
 use DateTimeInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -41,14 +42,9 @@ readonly class UpdateOrganizationAction
                 if ($organization->logo_path) {
                     Storage::disk('public')->delete($organization->logo_path);
                 }
-                // From the detected content, never the uploader's file name (SEC-10).
-                $ext = PublicImageExtension::for($logoFile);
-                $path = $logoFile->storeAs(
-                    "organizations/logos/{$organization->id}",
-                    Str::uuid().'.'.$ext,
-                    'public',
-                );
-                $attributes['logo_path'] = $path;
+                // Shrunk and re-encoded for the web; the name comes from the detected
+                // content, never the uploader's file name (SEC-10).
+                $attributes['logo_path'] = ImageUploads::store($logoFile, ImageKind::Logo, "organizations/logos/{$organization->id}", 'public', (string) Str::uuid());
             } elseif ($removeLogo && $organization->logo_path) {
                 Storage::disk('public')->delete($organization->logo_path);
                 $attributes['logo_path'] = null;

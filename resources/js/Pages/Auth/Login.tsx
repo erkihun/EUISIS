@@ -70,7 +70,7 @@ export default function Login({
         <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-control bg-white/10 ring-1 ring-white/15 backdrop-blur">
                 {systemLogoUrl ? (
-                    <img src={systemLogoUrl} alt={systemName} className="h-8 w-8 object-contain" />
+                    <img src={systemLogoUrl} alt={systemName} width={32} height={32} decoding="async" className="h-8 w-8 object-contain" />
                 ) : (
                     <ApplicationLogo className="h-7 w-7 fill-white" />
                 )}

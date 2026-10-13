@@ -39,6 +39,10 @@ function NodeAvatar({ code, logoUrl, nodeType }: { code: string; logoUrl: string
             <img
                 src={logoUrl}
                 alt=""
+                width={32}
+                height={32}
+                loading="lazy"
+                decoding="async"
                 className="h-8 w-8 shrink-0 rounded-card object-cover ring-1 ring-black/5 dark:ring-white/10"
             />
         );

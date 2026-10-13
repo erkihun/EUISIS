@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { ensureLocale } from '@/i18n/registry';
 
 type Locale = 'en' | 'am';
 
@@ -22,7 +23,12 @@ type LocaleContextValue = {
 
 const STORAGE_KEY = 'euisis_locale';
 
-function getInitialLocale(): Locale {
+/**
+ * The language the app renders first: the visitor's stored choice, else Amharic.
+ * app.tsx loads this language's dictionary before mounting, so the provider's
+ * initial state must come from the same rule.
+ */
+export function resolveInitialLocale(): Locale {
     try {
         const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
         if (stored === 'en' || stored === 'am') return stored;
@@ -43,18 +49,24 @@ type LocaleProviderProps = {
 };
 
 export function LocaleProvider({ children, defaultLocale = 'am' }: LocaleProviderProps) {
-    const [locale, setLocaleState] = useState<Locale>(() => getInitialLocale() ?? defaultLocale);
+    const [locale, setLocaleState] = useState<Locale>(() => resolveInitialLocale() ?? defaultLocale);
 
     const current = useRef(locale);
     useEffect(() => { current.current = locale; }, [locale]);
 
     const setLocale = useCallback((next: Locale) => {
-        const changed = next !== current.current;
-        try { localStorage.setItem(STORAGE_KEY, next); } catch { /* ignore */ }
-        shareWithServer(next);
-        setLocaleState(next);
-        // Refetch the page's server-written text (problems, messages) in the new language.
-        if (changed) router.reload();
+        // The other language's dictionary is fetched on first use; the switch
+        // happens once it is in memory so no screen ever shows raw keys.
+        void ensureLocale(next)
+            .catch((error: unknown) => console.error('Translations failed to load', error))
+            .then(() => {
+                const changed = next !== current.current;
+                try { localStorage.setItem(STORAGE_KEY, next); } catch { /* ignore */ }
+                shareWithServer(next);
+                setLocaleState(next);
+                // Refetch the page's server-written text (problems, messages) in the new language.
+                if (changed) router.reload();
+            });
     }, []);
 
     useEffect(() => {

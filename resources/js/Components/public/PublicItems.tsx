@@ -86,7 +86,10 @@ export function AnnouncementItem({ item }: { item: AnnouncementSummary }) {
                     <img
                         src={item.image_url}
                         alt=""
+                        width={640}
+                        height={360}
                         loading="lazy"
+                        decoding="async"
                         className="aspect-video w-full rounded-card border border-gray-200 object-cover dark:border-slate-800"
                     />
                 )}

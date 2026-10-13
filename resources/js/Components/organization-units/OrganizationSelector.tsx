@@ -82,6 +82,10 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
                                                 <img
                                                     src={org.logo_url}
                                                     alt=""
+                                                    width={28}
+                                                    height={28}
+                                                    loading="lazy"
+                                                    decoding="async"
                                                     className="h-7 w-7 rounded-full object-cover"
                                                 />
                                             ) : (

@@ -112,7 +112,7 @@ export default function PublicHeader() {
                     className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-control focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
                 >
                     {logoUrl ? (
-                        <img src={logoUrl} alt="" className="h-9 w-auto max-w-[88px] shrink-0 object-contain" />
+                        <img src={logoUrl} alt="" width={88} height={36} decoding="async" className="h-9 w-auto max-w-[88px] shrink-0 object-contain" />
                     ) : null}
                     <span className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{appName}</span>
                 </Link>
