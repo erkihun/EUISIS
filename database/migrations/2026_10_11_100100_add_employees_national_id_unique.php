@@ -32,11 +32,15 @@ return new class extends Migration
         }
 
         $concurrently = DB::getDriverName() === 'pgsql' ? 'CONCURRENTLY ' : '';
-        DB::statement('CREATE UNIQUE INDEX '.$concurrently.self::NAME.' ON employees (national_id_hash) WHERE national_id_hash IS NOT NULL');
+        // MySQL has no partial indexes; a NULL hash never collides in its unique indexes, which is the same rule.
+        $where = in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) ? '' : ' WHERE national_id_hash IS NOT NULL';
+        DB::statement('CREATE UNIQUE INDEX '.$concurrently.self::NAME.' ON employees (national_id_hash)'.$where);
     }
 
     public function down(): void
     {
-        DB::statement('DROP INDEX IF EXISTS '.self::NAME);
+        if (Schema::hasIndex('employees', self::NAME)) {
+            Schema::table('employees', fn ($table) => $table->dropIndex(self::NAME));
+        }
     }
 };

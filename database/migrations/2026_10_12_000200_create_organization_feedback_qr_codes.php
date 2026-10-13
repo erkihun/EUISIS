@@ -48,9 +48,15 @@ return new class extends Migration
         });
 
         // One active code per organization (brief §10), enforced by the database.
-        DB::statement(
-            "CREATE UNIQUE INDEX org_feedback_qr_one_active ON organization_feedback_qr_codes (organization_id) WHERE status = 'active'"
-        );
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            // No partial indexes on MySQL: a stored column carries the organization of active rows only, and the unique index sits on it.
+            DB::statement("ALTER TABLE organization_feedback_qr_codes ADD COLUMN active_organization_id CHAR(36) GENERATED ALWAYS AS (CASE WHEN status = 'active' THEN organization_id ELSE NULL END) STORED");
+            DB::statement('CREATE UNIQUE INDEX org_feedback_qr_one_active ON organization_feedback_qr_codes (active_organization_id)');
+        } else {
+            DB::statement(
+                "CREATE UNIQUE INDEX org_feedback_qr_one_active ON organization_feedback_qr_codes (organization_id) WHERE status = 'active'"
+            );
+        }
 
         if (DB::pretending()) {
             return;

@@ -36,12 +36,16 @@ return new class extends Migration
         }
 
         $concurrently = DB::getDriverName() === 'pgsql' ? 'CONCURRENTLY ' : '';
+        // MySQL has no partial indexes; a NULL reference never collides in its unique indexes, which is the same rule.
+        $where = in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) ? '' : ' WHERE reference IS NOT NULL';
         DB::statement('CREATE UNIQUE INDEX '.$concurrently.self::INDEX
-            .' ON service_transactions (service_provider_id, reference) WHERE reference IS NOT NULL');
+            .' ON service_transactions (service_provider_id, reference)'.$where);
     }
 
     public function down(): void
     {
-        DB::statement('DROP INDEX IF EXISTS '.self::INDEX);
+        if (Schema::hasTable('service_transactions') && Schema::hasIndex('service_transactions', self::INDEX)) {
+            Schema::table('service_transactions', fn ($table) => $table->dropIndex(self::INDEX));
+        }
     }
 };

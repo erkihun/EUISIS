@@ -20,7 +20,7 @@ return new class extends Migration
 {
     public $withinTransaction = false;
 
-    /** @return list<array{0: string, 1: string, 2: string, 3?: string}> table, name, columns, partial-where */
+    /** @return list<array{0: string, 1: string, 2: string, 3?: string, 4?: string}> table, name, columns, partial-where, columns on MySQL (no partial indexes) */
     private function indexes(): array
     {
         $true = DB::getDriverName() === 'pgsql' ? 'true' : '1';
@@ -35,7 +35,7 @@ return new class extends Migration
             ['positions', 'positions_organization_unit_idx', 'organization_unit_id'],
             ['card_verifications', 'card_verifications_created_idx', 'created_at'],
             ['notifications', 'notifications_notifiable_created_idx', 'notifiable_type, notifiable_id, created_at'],
-            ['notifications', 'notifications_unread_idx', 'notifiable_type, notifiable_id', 'read_at IS NULL'],
+            ['notifications', 'notifications_unread_idx', 'notifiable_type, notifiable_id', 'read_at IS NULL', 'notifiable_type, notifiable_id, read_at'],
             ['audit_logs', 'audit_logs_organization_created_idx', 'organization_id, created_at'],
             ['audit_logs', 'audit_logs_actor_idx', 'actor_user_id'],
             ['daily_activity_reminders', 'dar_date_type_employee_idx', 'activity_date, reminder_type, employee_id'],
@@ -51,10 +51,15 @@ return new class extends Migration
     public function up(): void
     {
         $pgsql = DB::getDriverName() === 'pgsql';
+        // MySQL and MariaDB have no partial indexes: the condition column joins the index instead.
+        $partial = ! in_array(DB::getDriverName(), ['mysql', 'mariadb'], true);
 
         foreach ($this->indexes() as $index) {
             [$table, $name, $columns] = $index;
-            $where = $index[3] ?? null;
+            $where = $partial ? ($index[3] ?? null) : null;
+            if (! $partial && isset($index[4])) {
+                $columns = $index[4];
+            }
 
             if (! Schema::hasTable($table) || Schema::hasIndex($table, $name) || ! $this->hasColumns($table, $columns)) {
                 continue;
@@ -113,11 +118,13 @@ return new class extends Migration
     {
         foreach ($this->indexes() as [$table, $name]) {
             if (Schema::hasTable($table) && Schema::hasIndex($table, $name)) {
-                DB::statement("DROP INDEX IF EXISTS {$name}");
+                Schema::table($table, fn ($blueprint) => $blueprint->dropIndex($name));
             }
         }
-        foreach (['full_name', 'name_en', 'employee_number'] as $column) {
-            DB::statement("DROP INDEX IF EXISTS employees_{$column}_trgm_idx");
+        if (DB::getDriverName() === 'pgsql') {
+            foreach (['full_name', 'name_en', 'employee_number'] as $column) {
+                DB::statement("DROP INDEX IF EXISTS employees_{$column}_trgm_idx");
+            }
         }
     }
 };

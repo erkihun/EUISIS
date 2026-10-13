@@ -32,6 +32,8 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::statement('DROP INDEX IF EXISTS '.self::NAME);
+        if (Schema::hasIndex('positions', self::NAME)) {
+            Schema::table('positions', fn ($table) => $table->dropIndex(self::NAME));
+        }
     }
 };

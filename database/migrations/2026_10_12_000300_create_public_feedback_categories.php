@@ -35,11 +35,18 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['organization_id', 'code']);
-            $table->index(['organization_id', 'is_active', 'sort_order']);
+            // Named: the generated name is 69 characters, over MySQL's 64-character limit for identifiers.
+            $table->index(['organization_id', 'is_active', 'sort_order'], 'pfc_org_active_sort_idx');
         });
 
         // A unique pair with a NULL organization does not constrain city-wide codes; this does.
-        DB::statement('CREATE UNIQUE INDEX pfc_city_wide_code_unique ON public_feedback_categories (code) WHERE organization_id IS NULL');
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            // No partial indexes on MySQL: a stored column carries the code of city-wide rows only, and the unique index sits on it.
+            DB::statement('ALTER TABLE public_feedback_categories ADD COLUMN city_wide_code VARCHAR(40) GENERATED ALWAYS AS (CASE WHEN organization_id IS NULL THEN code ELSE NULL END) STORED');
+            DB::statement('CREATE UNIQUE INDEX pfc_city_wide_code_unique ON public_feedback_categories (city_wide_code)');
+        } else {
+            DB::statement('CREATE UNIQUE INDEX pfc_city_wide_code_unique ON public_feedback_categories (code) WHERE organization_id IS NULL');
+        }
 
         if (DB::getDriverName() !== 'sqlite') {
             // On SQLite adding a foreign key rebuilds the table; the model and

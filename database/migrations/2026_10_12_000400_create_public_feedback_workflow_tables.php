@@ -66,7 +66,13 @@ return new class extends Migration
         });
 
         // At most one open assignment per submission, on every driver.
-        DB::statement('CREATE UNIQUE INDEX pfa_one_open_per_submission ON public_feedback_assignments (submission_id) WHERE ended_at IS NULL');
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            // No partial indexes on MySQL: a stored column carries the submission of open rows only, and the unique index sits on it.
+            DB::statement('ALTER TABLE public_feedback_assignments ADD COLUMN open_submission_id CHAR(36) GENERATED ALWAYS AS (CASE WHEN ended_at IS NULL THEN submission_id ELSE NULL END) STORED');
+            DB::statement('CREATE UNIQUE INDEX pfa_one_open_per_submission ON public_feedback_assignments (open_submission_id)');
+        } else {
+            DB::statement('CREATE UNIQUE INDEX pfa_one_open_per_submission ON public_feedback_assignments (submission_id) WHERE ended_at IS NULL');
+        }
 
         Schema::create('public_feedback_status_history', function (Blueprint $table): void {
             $table->uuid('id')->primary();

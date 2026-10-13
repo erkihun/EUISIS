@@ -26,7 +26,8 @@ return new class extends Migration
 
         Schema::create('employee_service_feedback_attachments', function (Blueprint $table): void {
             $table->uuid('id')->primary();
-            $table->foreignUuid('employee_service_feedback_id')->constrained('employee_service_feedback')->cascadeOnDelete();
+            // Named: the generated name is 74 characters, over MySQL's 64-character limit for identifiers.
+            $table->foreignUuid('employee_service_feedback_id')->constrained('employee_service_feedback', indexName: 'esfa_feedback_foreign')->cascadeOnDelete();
             $table->string('disk', 32);
             $table->string('path');
             $table->string('original_name', 255);
