@@ -1,12 +1,13 @@
-import { FormEvent, RefObject, useEffect, useRef, useState } from 'react';
+import { FormEvent, ReactNode, RefObject, useEffect, useRef, useState } from 'react';
 import { controlClassName } from '@euisis/ui';
 import type { Page, VisitOptions } from '@inertiajs/core';
-import { PublicPageHeader, publicButtonPrimary } from '@/Components/public/PublicPage';
+import { publicButtonPrimary, publicButtonSecondary } from '@/Components/public/PublicPage';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import MultiFileUpload from '@/Components/public/MultiFileUpload';
+import { AlertTriangle, Building2, ChevronRight, MessageSquareIcon, StarIcon as StarOutlineIcon, UserIcon } from '@/Components/NavIcons';
 import { Link, router, useForm } from '@inertiajs/react';
-import PublicLayout from '@/Layouts/PublicLayout';
+import FeedbackAppLayout, { FeedbackActionBar } from '@/Layouts/FeedbackAppLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
 
@@ -14,8 +15,10 @@ import { toast } from '@/lib/toast';
  * Public Feedback, Suggestion and Complaint.
  *
  * Reached by scanning an employee's feedback QR or an institution's feedback
- * QR with any phone camera, so the page is mobile-first and needs no login,
- * no app and no camera permission.
+ * QR with any phone camera, so the page is built as the screens of a phone app
+ * (FeedbackAppLayout): choose what to send, fill one short form with the Send
+ * button under the thumb, get a receipt. It needs no login, no app and no
+ * camera permission.
  *
  * The page never decides WHO a submission is about. The server resolved the
  * scanned token to a target and sends only what a visitor may see of it: a
@@ -87,9 +90,49 @@ interface Props {
 }
 
 type IdentityMode = Props['identityMode'];
+type SubmissionKind = 'feedback' | 'suggestion' | 'complaint';
 
-const errorClass = 'mt-1.5 text-sm text-red-600 dark:text-red-400';
-const cardClass = 'rounded-card border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900';
+// ── Look ────────────────────────────────────────────────────────────────────
+// Grouped cards on a soft background, 16px type in every control (no zoom on
+// focus in iOS Safari), 48px+ touch targets.
+
+const errorClass = 'mt-2 text-sm text-red-600 dark:text-red-400';
+const cardClass = 'rounded-2xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4';
+const labelClass = 'block text-sm font-semibold text-[color:var(--app-foreground)]';
+const optionalClass = 'ml-1 font-normal text-[color:var(--app-muted-foreground)]';
+const mutedClass = 'text-[color:var(--app-muted-foreground)]';
+// min-h, not h: the shared control sets its own height and would win over a plain h-12.
+const fieldClass = `${controlClassName} mt-2 min-h-12 w-full rounded-xl text-base`;
+const areaClass = `${controlClassName} mt-2 h-auto w-full rounded-xl py-3 text-base leading-relaxed`;
+const sendButtonClass = `${publicButtonPrimary} min-h-[52px] w-full rounded-xl text-base`;
+
+/** What each kind of submission looks like on the choice screen and in the top bar. */
+const KINDS: Record<SubmissionKind, { label: string; hint: string; submitted: string; detail: string; tone: string; Icon: typeof StarOutlineIcon }> = {
+    feedback: {
+        label: 'serviceFeedback.typeFeedback',
+        hint: 'serviceFeedback.typeFeedbackHint',
+        submitted: 'serviceFeedback.feedbackSubmitted',
+        detail: 'serviceFeedback.feedbackSubmittedDetail',
+        tone: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
+        Icon: StarOutlineIcon,
+    },
+    suggestion: {
+        label: 'serviceFeedback.typeSuggestion',
+        hint: 'serviceFeedback.typeSuggestionHint',
+        submitted: 'serviceFeedback.suggestionSubmitted',
+        detail: 'serviceFeedback.suggestionSubmittedDetail',
+        tone: 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300',
+        Icon: MessageSquareIcon,
+    },
+    complaint: {
+        label: 'serviceFeedback.typeComplaint',
+        hint: 'serviceFeedback.typeComplaintHint',
+        submitted: 'serviceFeedback.complaintSubmitted',
+        detail: 'serviceFeedback.complaintSubmittedDetail',
+        tone: 'bg-rose-100 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300',
+        Icon: AlertTriangle,
+    },
+};
 
 /** Office · unit, without repeating the role the heading already names. */
 function contextLine(target: TargetDisplay): string {
@@ -98,27 +141,36 @@ function contextLine(target: TargetDisplay): string {
         .join(' · ');
 }
 
-/** The target as the visitor may see it: a desk, or an institution with its logo. */
-function TargetCard({ target, intro, heading }: { target: TargetDisplay; intro?: string; heading?: boolean }) {
-    const Title = heading ? 'h2' : 'p';
+/** The institution's logo, or a building or person mark for a desk. */
+function TargetMark({ target, size }: { target: TargetDisplay; size: 'md' | 'lg' }) {
+    const box = size === 'lg' ? 'h-14 w-14 rounded-2xl' : 'h-11 w-11 rounded-xl';
+
+    if (target.target_type === 'organization' && target.logo_url) {
+        return <img src={target.logo_url} alt="" className={`${box} shrink-0 border border-[color:var(--app-border)] bg-white object-contain p-1`} />;
+    }
+    const Icon = target.target_type === 'organization' ? Building2 : UserIcon;
+
+    return (
+        <span className={`${box} flex shrink-0 items-center justify-center bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]`} aria-hidden="true">
+            <Icon className={size === 'lg' ? 'h-7 w-7' : 'h-6 w-6'} />
+        </span>
+    );
+}
+
+/** Who the visitor is writing about, as they may see it. */
+function TargetCard({ target, intro }: { target: TargetDisplay; intro?: string }) {
+    const detail = target.target_type === 'employee' ? contextLine(target) : target.short_name ?? '';
 
     return (
         <div className={cardClass}>
-            <div className="flex items-center gap-4">
-                {target.target_type === 'organization' && target.logo_url && (
-                    <img src={target.logo_url} alt="" className="h-14 w-14 shrink-0 rounded-lg border border-slate-200 bg-white object-contain p-1 dark:border-slate-700" />
-                )}
+            <div className="flex items-center gap-3">
+                <TargetMark target={target} size={intro ? 'lg' : 'md'} />
                 <div className="min-w-0">
-                    <Title className="font-semibold text-slate-900 [overflow-wrap:anywhere] dark:text-slate-100">{target.display_name}</Title>
-                    {target.target_type === 'employee' && contextLine(target) !== '' && (
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{contextLine(target)}</p>
-                    )}
-                    {target.target_type === 'organization' && target.short_name && (
-                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{target.short_name}</p>
-                    )}
+                    <p className="font-semibold leading-snug text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{target.display_name}</p>
+                    {detail !== '' && <p className={`mt-0.5 text-sm leading-snug ${mutedClass}`}>{detail}</p>}
                 </div>
             </div>
-            {intro && <p className="mt-3 border-t border-slate-100 pt-3 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-400">{intro}</p>}
+            {intro && <p className={`mt-3 border-t border-[color:var(--app-border)] pt-3 text-sm ${mutedClass}`}>{intro}</p>}
         </div>
     );
 }
@@ -133,17 +185,17 @@ function ServiceSelect({ serviceTypes, value, onChange, error, optional }: {
     const { t } = useLocale();
 
     return (
-        <div>
-            <label htmlFor="position_service_id" className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+        <div className={cardClass} data-field>
+            <label htmlFor="position_service_id" className={labelClass}>
                 {t('serviceFeedback.serviceTypeOrId')}
-                {optional && <span className="ml-1 font-normal text-slate-400">({t('serviceFeedback.clientNameHint')})</span>}
+                {optional && <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>}
             </label>
             {serviceTypes.length === 0 && (
-                <p className="mt-1.5 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
                     {t('serviceFeedback.noServiceTypesConfigured')}
                 </p>
             )}
-            <select id="position_service_id" value={value} onChange={(e) => onChange(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`}>
+            <select id="position_service_id" value={value} onChange={(e) => onChange(e.target.value)} className={fieldClass}>
                 <option value="">{t('serviceFeedback.serviceTypePlaceholder')}</option>
                 {serviceTypes.map((service) => (
                     <option key={service.id} value={service.id}>{service.service_no ? `${service.service_no} — ${service.name}` : service.name}</option>
@@ -154,32 +206,47 @@ function ServiceSelect({ serviceTypes, value, onChange, error, optional }: {
     );
 }
 
-function CategorySelect({ categories, value, onChange, error }: { categories: CategoryOption[]; value: string; onChange: (value: string) => void; error?: string }) {
+/** Categories as tap-to-pick chips; tapping the chosen one again clears it (the choice is optional). */
+function CategoryChips({ categories, value, onChange, error }: { categories: CategoryOption[]; value: string; onChange: (value: string) => void; error?: string }) {
     const { t } = useLocale();
 
     if (categories.length === 0) return null;
 
     return (
-        <div>
-            <label htmlFor="category_id" className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+        <div className={cardClass} data-field>
+            <span id="category-label" className={labelClass}>
                 {t('serviceFeedback.category')}
-                <span className="ml-1 font-normal text-slate-400">({t('serviceFeedback.clientNameHint')})</span>
-            </label>
-            <select id="category_id" value={value} onChange={(e) => onChange(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`}>
-                <option value="">{t('serviceFeedback.categoryPlaceholder')}</option>
-                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-            </select>
+                <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>
+            </span>
+            <div role="radiogroup" aria-labelledby="category-label" className="mt-3 flex flex-wrap gap-2">
+                {categories.map((category) => {
+                    const chosen = value === category.id;
+
+                    return (
+                        <button
+                            key={category.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={chosen}
+                            onClick={() => onChange(chosen ? '' : category.id)}
+                            className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] ${chosen
+                                ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white'
+                                : 'border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}
+                        >
+                            {category.name}
+                        </button>
+                    );
+                })}
+            </div>
             {error && <p role="alert" className={errorClass}>{error}</p>}
         </div>
     );
 }
 
-type SubmissionKind = 'feedback' | 'suggestion' | 'complaint';
-
 const SUBMITTED_KEY: Record<SubmissionKind, string> = {
-    feedback: 'serviceFeedback.feedbackSubmitted',
-    suggestion: 'serviceFeedback.suggestionSubmitted',
-    complaint: 'serviceFeedback.complaintSubmitted',
+    feedback: KINDS.feedback.submitted,
+    suggestion: KINDS.suggestion.submitted,
+    complaint: KINDS.complaint.submitted,
 };
 
 /** Long enough to read an Amharic sentence on a phone before the popup goes. */
@@ -188,7 +255,8 @@ const ERROR_TOAST_MS = 9000;
 /**
  * Scroll the first error into the middle of the screen and put the cursor in
  * its field. On a phone the form is longer than the screen, so a field error
- * rendered above the Send button was otherwise never seen.
+ * rendered above the Send button was otherwise never seen. Each field's card
+ * carries `data-field`; a form-wide message has no field to focus.
  */
 function revealFirstError(form: HTMLFormElement | null): void {
     if (!form) return;
@@ -197,10 +265,9 @@ function revealFirstError(form: HTMLFormElement | null): void {
         const alert = form.querySelector<HTMLElement>('[role="alert"]');
         if (!alert) return;
         alert.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        const group = alert.parentElement;
-        if (group && group !== form) {
-            group.querySelector<HTMLElement>('input:not([type="hidden"]), select, textarea, [role="radio"]')?.focus({ preventScroll: true });
-        }
+        alert.closest<HTMLElement>('[data-field]')
+            ?.querySelector<HTMLElement>('input:not([type="hidden"]), select, textarea, [role="radio"]')
+            ?.focus({ preventScroll: true });
     });
 }
 
@@ -216,7 +283,7 @@ function revealFirstError(form: HTMLFormElement | null): void {
  *   too large, a 429, a 5xx from the web server): an error popup instead of
  *   silence or Inertia's raw error window.
  */
-function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormElement | null>) {
+function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormElement>) {
     const { t } = useLocale();
     const listeners = useRef<Array<() => void>>([]);
     const stopListening = () => {
@@ -268,7 +335,7 @@ function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormE
     });
 }
 
-/** The footer promise must match what the form asks for (brief §34). */
+/** The privacy promise must match what the form asks for (brief §34). */
 function privacyNoteKey(mode: IdentityMode): string {
     return mode === 'identified' ? 'serviceFeedback.publicPrivacyNoteIdentified' : mode === 'anonymous' ? 'serviceFeedback.publicPrivacyNoteAnonymous' : 'serviceFeedback.publicPrivacyNote';
 }
@@ -285,30 +352,68 @@ function ClientFields({ name, contact, onName, onContact, errors, mode }: {
 
     // Anonymous: nothing is asked and nothing is kept (brief §34).
     if (mode === 'anonymous') {
-        return <p className="border-t border-slate-100 pt-4 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-400">{t('serviceFeedback.anonymousNotice')}</p>;
+        return <p className={`${cardClass} text-sm ${mutedClass}`}>{t('serviceFeedback.anonymousNotice')}</p>;
     }
     const required = mode === 'identified';
     const hint = required ? t('serviceFeedback.requiredHint') : t('serviceFeedback.clientNameHint');
 
     return (
-        <div className="grid gap-4 border-t border-slate-100 pt-4 dark:border-slate-800">
-            <div>
-                <label htmlFor="client_name" className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+        <div role="group" aria-labelledby="about-you-title" className={`${cardClass} space-y-4`}>
+            <p id="about-you-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.sectionAboutYou')}</p>
+            <div data-field>
+                <label htmlFor="client_name" className={labelClass}>
                     {t('serviceFeedback.clientName')}
-                    <span className="ml-1 font-normal text-slate-400">({hint})</span>
+                    <span className={optionalClass}>({hint})</span>
                 </label>
-                <input id="client_name" type="text" maxLength={120} required={required} value={name} onChange={(e) => onName(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
+                <input id="client_name" type="text" autoComplete="name" maxLength={120} required={required} value={name} onChange={(e) => onName(e.target.value)} className={fieldClass} />
                 {errors.client_name && <p role="alert" className={errorClass}>{errors.client_name}</p>}
             </div>
-            <div>
-                <label htmlFor="client_contact" className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+            <div data-field>
+                <label htmlFor="client_contact" className={labelClass}>
                     {t('serviceFeedback.clientContact')}
-                    <span className="ml-1 font-normal text-slate-400">({required ? t('serviceFeedback.requiredHint') : t('serviceFeedback.clientContactHint')})</span>
+                    <span className={optionalClass}>({required ? t('serviceFeedback.requiredHint') : t('serviceFeedback.clientContactHint')})</span>
                 </label>
-                <input id="client_contact" type="text" maxLength={120} required={required} value={contact} onChange={(e) => onContact(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
+                <input id="client_contact" type="text" inputMode="email" autoComplete="tel" maxLength={120} required={required} value={contact} onChange={(e) => onContact(e.target.value)} className={fieldClass} />
                 {errors.client_contact && <p role="alert" className={errorClass}>{errors.client_contact}</p>}
             </div>
         </div>
+    );
+}
+
+/** A refusal that belongs to no field (a replayed form, storage trouble), shown at the top of the form. */
+function FormNotice({ message }: { message?: string }) {
+    if (!message) return null;
+
+    return (
+        <p role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300">
+            {message}
+        </p>
+    );
+}
+
+/** One form screen: the fields scroll, the Send button stays at the bottom edge. */
+function FormScreen({ formRef, onSubmit, identityMode, processing, submitLabel, children }: {
+    formRef: RefObject<HTMLFormElement>;
+    onSubmit: (event: FormEvent) => void;
+    identityMode: IdentityMode;
+    processing: boolean;
+    submitLabel: string;
+    children: ReactNode;
+}) {
+    const { t } = useLocale();
+
+    return (
+        <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-1 flex-col">
+            <div className="space-y-4 px-4 pb-6 pt-4">
+                {children}
+                <p className={`px-1 text-center text-xs leading-relaxed ${mutedClass}`}>{t(privacyNoteKey(identityMode))}</p>
+            </div>
+            <FeedbackActionBar>
+                <button type="submit" disabled={processing} className={sendButtonClass}>
+                    {processing ? t('serviceFeedback.submitting') : submitLabel}
+                </button>
+            </FeedbackActionBar>
+        </form>
     );
 }
 
@@ -337,36 +442,61 @@ function ServiceEntryForm({ type, target, serviceTypes, categories, links, formT
     };
 
     return (
-        <form ref={formRef} onSubmit={submit} noValidate className={`mt-4 space-y-5 ${cardClass}`}>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t(type === 'suggestion' ? 'serviceFeedback.typeSuggestion' : 'serviceFeedback.typeComplaint')}</h2>
-            {errors.form_token && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{errors.form_token}</p>}
+        <FormScreen
+            formRef={formRef}
+            onSubmit={submit}
+            identityMode={identityMode}
+            processing={processing}
+            submitLabel={t(type === 'complaint' ? 'serviceFeedback.submitComplaint' : 'serviceFeedback.submitSuggestion')}
+        >
+            <FormNotice message={errors.form_token} />
+            <TargetCard target={target} />
+
+            {/* The message is the point of this screen, so it comes first and is the biggest field. */}
+            <div className={cardClass} data-field>
+                <label htmlFor="entry-message" className={labelClass}>
+                    {t(type === 'complaint' ? 'serviceFeedback.complaintDescription' : 'serviceFeedback.suggestionText')}
+                </label>
+                <textarea id="entry-message" required maxLength={5000} rows={7} value={data.message} onChange={(event) => setData('message', event.target.value)} className={areaClass} />
+                {errors.message && <p role="alert" className={errorClass}>{errors.message}</p>}
+            </div>
+
+            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
+
             {target.target_type === 'employee' && (
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional />
             )}
-            <CategorySelect categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
-            <div>
-                <label htmlFor="entry-message" className="block text-sm font-medium">{t(type === 'complaint' ? 'serviceFeedback.complaintDescription' : 'serviceFeedback.suggestionText')}</label>
-                <textarea id="entry-message" required maxLength={5000} rows={6} value={data.message} onChange={(event) => setData('message', event.target.value)} className={`${controlClassName} mt-1.5 h-auto min-h-32 py-2 text-base`} />
-                {errors.message && <p role="alert" className={errorClass}>{errors.message}</p>}
-            </div>
-            {type === 'complaint' && <>
-                <div><label htmlFor="incident-date" className="block text-sm font-medium">{t('serviceFeedback.incidentDate')} ({t('serviceFeedback.clientNameHint')})</label>
-                    <div className="mt-1.5"><LocalizedDatePicker id="incident-date" value={data.incident_date} onChange={(iso) => setData('incident_date', iso)} /></div>
-                    {errors.incident_date && <p role="alert" className={errorClass}>{errors.incident_date}</p>}</div>
-                <div><label htmlFor="incident-location" className="block text-sm font-medium">{t('serviceFeedback.incidentLocation')} ({t('serviceFeedback.clientNameHint')})</label>
-                    <input id="incident-location" maxLength={255} value={data.incident_location} onChange={(event) => setData('incident_location', event.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
-                    {errors.incident_location && <p role="alert" className={errorClass}>{errors.incident_location}</p>}</div>
-                {allowAttachments && <div><label htmlFor="complaint-attachments" className="block text-sm font-medium">{t('serviceFeedback.attachments')} ({t('serviceFeedback.clientNameHint')})</label>
-                    <p id="attachment-hint" className="mt-1 text-xs text-slate-600 dark:text-slate-400">{t('serviceFeedback.attachmentHint')}</p>
-                    <div className="mt-2"><MultiFileUpload id="complaint-attachments" files={data.attachments} onChange={(files) => setData('attachments', files)} accept=".pdf,.jpg,.jpeg,.png" max={3} chooseLabel={t('serviceFeedback.chooseFiles')} removeLabel={t('serviceFeedback.removeFile')} describedBy="attachment-hint" /></div>
-                    {errors.attachments && <p role="alert" className={errorClass}>{errors.attachments}</p>}</div>}
-            </>}
+
+            {type === 'complaint' && (
+                <div role="group" aria-labelledby="when-where-title" className={`${cardClass} space-y-4`}>
+                    <p id="when-where-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.sectionWhenWhere')}</p>
+                    <div data-field>
+                        <label htmlFor="incident-date" className={labelClass}>{t('serviceFeedback.incidentDate')}</label>
+                        <div className="mt-2"><LocalizedDatePicker id="incident-date" value={data.incident_date} onChange={(iso) => setData('incident_date', iso)} className="min-h-12 rounded-xl text-base" /></div>
+                        {errors.incident_date && <p role="alert" className={errorClass}>{errors.incident_date}</p>}
+                    </div>
+                    <div data-field>
+                        <label htmlFor="incident-location" className={labelClass}>{t('serviceFeedback.incidentLocation')}</label>
+                        <input id="incident-location" maxLength={255} value={data.incident_location} onChange={(event) => setData('incident_location', event.target.value)} className={fieldClass} />
+                        {errors.incident_location && <p role="alert" className={errorClass}>{errors.incident_location}</p>}
+                    </div>
+                </div>
+            )}
+
+            {type === 'complaint' && allowAttachments && (
+                <div className={cardClass} data-field>
+                    <label htmlFor="complaint-attachments" className={labelClass}>
+                        {t('serviceFeedback.attachments')}
+                        <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>
+                    </label>
+                    <p id="attachment-hint" className={`mt-1 text-xs ${mutedClass}`}>{t('serviceFeedback.attachmentHint')}</p>
+                    <div className="mt-3 [&>div>button:first-child]:min-h-12 [&>div>button:first-child]:rounded-xl"><MultiFileUpload id="complaint-attachments" files={data.attachments} onChange={(files) => setData('attachments', files)} accept=".pdf,.jpg,.jpeg,.png" max={3} chooseLabel={t('serviceFeedback.chooseFiles')} removeLabel={t('serviceFeedback.removeFile')} describedBy="attachment-hint" /></div>
+                    {errors.attachments && <p role="alert" className={errorClass}>{errors.attachments}</p>}
+                </div>
+            )}
+
             <ClientFields name={data.client_name} contact={data.client_contact} onName={(v) => setData('client_name', v)} onContact={(v) => setData('client_contact', v)} errors={errors} mode={identityMode} />
-            <button type="submit" disabled={processing} className={`${publicButtonPrimary} min-h-[48px] w-full text-base`}>
-                {processing ? t('serviceFeedback.submitting') : t(type === 'complaint' ? 'serviceFeedback.submitComplaint' : 'serviceFeedback.submitSuggestion')}
-            </button>
-            <p className="text-center text-xs text-slate-500 dark:text-slate-400">{t(privacyNoteKey(identityMode))}</p>
-        </form>
+        </FormScreen>
     );
 }
 
@@ -374,7 +504,7 @@ const RATING_VALUES = [1, 2, 3, 4, 5] as const;
 
 function StarIcon({ filled }: { filled: boolean }) {
     return (
-        <svg viewBox="0 0 24 24" aria-hidden="true" className={`h-10 w-10 transition-colors sm:h-9 sm:w-9 ${filled ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'}`} fill="currentColor">
+        <svg viewBox="0 0 24 24" aria-hidden="true" className={`h-11 w-11 transition-colors ${filled ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'}`} fill="currentColor">
             <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
         </svg>
     );
@@ -406,25 +536,19 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
     };
 
     const activeRating = hoveredRating ?? data.rating;
+    // A refused rating (storage trouble, a replayed form) must say so: the rating form has no
+    // "message" field of its own, so the server's general error would otherwise go unseen.
+    const formError = errors.form_token ?? (errors as Record<string, string | undefined>).message;
 
     return (
-        <form ref={formRef} onSubmit={submit} noValidate className={`mt-4 space-y-5 ${cardClass}`}>
-            {/* A refused rating (storage trouble, a replayed form) must say so: the rating form has no
-                "message" field of its own, so the server's general error would otherwise go unseen. */}
-            {(errors.form_token || (errors as Record<string, string | undefined>).message) && (
-                <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">
-                    {errors.form_token ?? (errors as Record<string, string | undefined>).message}
-                </p>
-            )}
-            {target.target_type === 'employee' && (
-                <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={false} />
-            )}
-            <CategorySelect categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
+        <FormScreen formRef={formRef} onSubmit={submit} identityMode={identityMode} processing={processing} submitLabel={t('serviceFeedback.submitFeedback')}>
+            <FormNotice message={formError} />
+            <TargetCard target={target} />
 
-            {/* Star rating — large touch targets for phone use. */}
-            <div>
-                <span className="block text-sm font-medium text-slate-900 dark:text-slate-100">{t('serviceFeedback.satisfactionRating')}</span>
-                <div className="mt-2 flex items-center gap-1" role="radiogroup" aria-label={t('serviceFeedback.satisfactionRating')} onMouseLeave={() => setHoveredRating(null)}>
+            {/* The rating is the whole point here: one large, centred question with big stars. */}
+            <div className={`${cardClass} px-2 py-6 text-center`} data-field>
+                <h2 className="text-lg font-bold text-[color:var(--app-foreground)]">{t('serviceFeedback.feedbackQuestion')}</h2>
+                <div className="mt-4 flex items-center justify-center gap-1" role="radiogroup" aria-label={t('serviceFeedback.satisfactionRating')} onMouseLeave={() => setHoveredRating(null)}>
                     {RATING_VALUES.map((value) => (
                         <button
                             key={value}
@@ -438,44 +562,163 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
                                 clearErrors('rating');
                             }}
                             onMouseEnter={() => setHoveredRating(value)}
-                            className="rounded-md p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                            className="rounded-xl p-1 transition-transform active:scale-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
                         >
                             <StarIcon filled={value <= activeRating} />
                         </button>
                     ))}
                 </div>
-                <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
-                    {data.rating > 0 ? t(`serviceFeedback.rating${data.rating}`) : t('serviceFeedback.ratingHint')}
+                <p className={`mt-2 min-h-5 text-sm font-medium ${data.rating > 0 ? 'text-amber-700 dark:text-amber-300' : mutedClass}`} aria-live="polite">
+                    {activeRating > 0 ? t(`serviceFeedback.rating${activeRating}`) : t('serviceFeedback.ratingHint')}
                 </p>
                 {errors.rating && <p role="alert" className={errorClass}>{errors.rating}</p>}
             </div>
 
-            <div>
-                <label htmlFor="comment" className="block text-sm font-medium text-slate-900 dark:text-slate-100">{t('serviceFeedback.comment')}</label>
-                <textarea id="comment" rows={4} maxLength={2000} value={data.comment} onChange={(e) => setData('comment', e.target.value)} placeholder={t('serviceFeedback.commentPlaceholder')} className={`${controlClassName} mt-1.5 h-auto min-h-28 py-2 text-base`} />
+            {target.target_type === 'employee' && (
+                <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={false} />
+            )}
+
+            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
+
+            <div className={cardClass} data-field>
+                <label htmlFor="comment" className={labelClass}>
+                    {t('serviceFeedback.comment')}
+                    <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>
+                </label>
+                <textarea id="comment" rows={4} maxLength={2000} value={data.comment} onChange={(e) => setData('comment', e.target.value)} placeholder={t('serviceFeedback.commentPlaceholder')} className={areaClass} />
                 {errors.comment && <p role="alert" className={errorClass}>{errors.comment}</p>}
             </div>
 
             <ClientFields name={data.client_name} contact={data.client_contact} onName={(v) => setData('client_name', v)} onContact={(v) => setData('client_contact', v)} errors={errors} mode={identityMode} />
-
-            <button type="submit" disabled={processing} className={`${publicButtonPrimary} min-h-[48px] w-full text-base`}>
-                {processing ? t('serviceFeedback.submitting') : t('serviceFeedback.submitFeedback')}
-            </button>
-            <p className="text-center text-xs text-slate-500 dark:text-slate-400">{t(privacyNoteKey(identityMode))}</p>
-        </form>
+        </FormScreen>
     );
 }
 
-function Shell({ children }: { children: React.ReactNode }) {
+/** The reference number with a copy button, where the browser allows copying. */
+function ReferenceCard({ reference }: { reference: string }) {
+    const { t } = useLocale();
+    const [copied, setCopied] = useState(false);
+    const canCopy = typeof navigator !== 'undefined' && Boolean(navigator.clipboard);
+
+    const copy = () => {
+        navigator.clipboard.writeText(reference).then(() => {
+            setCopied(true);
+            toast.success(t('serviceFeedback.referenceCopied'));
+        }).catch(() => undefined);
+    };
+
+    return (
+        <div className={`${cardClass} w-full text-left`}>
+            <p className={`text-xs font-medium ${mutedClass}`}>{t('serviceFeedback.referenceNumber')}</p>
+            <div className="mt-1 flex items-center justify-between gap-3">
+                <span className="font-mono text-lg font-bold tracking-wide text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{reference}</span>
+                {canCopy && (
+                    <button type="button" onClick={copy} className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-[color:var(--app-border-strong)] px-4 text-sm font-semibold text-[color:var(--app-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)]">
+                        {copied ? t('common.copied') : t('common.copy')}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function ReceiptScreen({ kind, receipt, links }: { kind: SubmissionKind; receipt: Receipt | null; links: Links }) {
     const { t } = useLocale();
 
-    // An expired form (419) sends the visitor back here with a notice. The layout shows it as a
-    // popup, which is seen wherever the page is scrolled; a banner at the top was not, on a phone.
     return (
-        <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
-            <PublicPageHeader title={t('serviceFeedback.publicTitle')} compact />
-            {children}
-        </PublicLayout>
+        <FeedbackAppLayout title={t('serviceFeedback.publicTitle')} subtitle={receipt?.target_name} backHref={links.landing} backLabel={t('serviceFeedback.backToOptions')}>
+            <div className="flex flex-1 flex-col items-center px-5 pb-6 pt-10 text-center">
+                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/15" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" className="h-10 w-10 text-emerald-600 dark:text-emerald-300" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </span>
+                <h2 className="mt-5 text-xl font-bold text-[color:var(--app-foreground)]">{t(KINDS[kind].submitted)}</h2>
+                <p className={`mt-2 max-w-xs text-sm leading-relaxed ${mutedClass}`}>{t(KINDS[kind].detail)}</p>
+
+                <div className="mt-8 w-full space-y-3">
+                    {receipt?.reference && <ReferenceCard reference={receipt.reference} />}
+                    {/* The receipt (brief §42): what, about whom, the reference, and when. */}
+                    <dl className={`${cardClass} space-y-3 text-left text-sm`}>
+                        {receipt?.target_name && (
+                            <div className="flex justify-between gap-4">
+                                <dt className={`shrink-0 ${mutedClass}`}>{t('serviceFeedback.receiptAbout')}</dt>
+                                <dd className="text-right font-medium text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{receipt.target_name}</dd>
+                            </div>
+                        )}
+                        {receipt?.submitted_at && (
+                            <div className="flex justify-between gap-4">
+                                <dt className={`shrink-0 ${mutedClass}`}>{t('serviceFeedback.receiptSubmittedAt')}</dt>
+                                <dd className="text-right font-medium text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={receipt.submitted_at} withTime /></dd>
+                            </div>
+                        )}
+                    </dl>
+                </div>
+            </div>
+            <FeedbackActionBar>
+                <Link href={links.landing} className={`${publicButtonSecondary} min-h-[52px] w-full rounded-xl text-base`}>{t('serviceFeedback.submitAnother')}</Link>
+            </FeedbackActionBar>
+        </FeedbackAppLayout>
+    );
+}
+
+function UnavailableScreen() {
+    const { t } = useLocale();
+
+    return (
+        <FeedbackAppLayout title={t('serviceFeedback.publicTitle')}>
+            <div className="flex flex-1 flex-col items-center justify-center px-8 py-16 text-center">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" aria-hidden="true">
+                    <AlertTriangle className="h-8 w-8" />
+                </span>
+                <h2 className="mt-5 text-lg font-bold text-[color:var(--app-foreground)]">{t('serviceFeedback.linkUnavailable')}</h2>
+                <p className={`mt-2 max-w-xs text-sm leading-relaxed ${mutedClass}`}>{t('serviceFeedback.linkUnavailableDetail')}</p>
+            </div>
+        </FeedbackAppLayout>
+    );
+}
+
+function ChoiceScreen({ target, links, enabledTypes, identityMode }: { target: TargetDisplay; links: Links; enabledTypes: Props['enabledTypes']; identityMode: IdentityMode }) {
+    const { t } = useLocale();
+    const organization = target.target_type === 'organization';
+    const hrefs: Record<SubmissionKind, string> = { feedback: links.feedback, suggestion: links.suggestion, complaint: links.complaint };
+    const offered = (['feedback', 'suggestion', 'complaint'] as const).filter((kind) => enabledTypes.includes(kind));
+
+    return (
+        <FeedbackAppLayout title={t(organization ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}>
+            <div className="flex flex-1 flex-col gap-6 px-4 pb-8 pt-5">
+                <TargetCard target={target} intro={t(organization ? 'serviceFeedback.aboutInstitution' : 'serviceFeedback.publicIntro')} />
+
+                <section aria-labelledby="choose-type">
+                    <h2 id="choose-type" className="px-1 text-base font-bold text-[color:var(--app-foreground)]">{t('serviceFeedback.chooseType')}</h2>
+                    <ul className="mt-3 space-y-3">
+                        {offered.map((kind) => {
+                            const { Icon, label, hint, tone } = KINDS[kind];
+
+                            return (
+                                <li key={kind}>
+                                    <Link
+                                        href={hrefs[kind]}
+                                        className="flex min-h-[84px] items-center gap-4 rounded-2xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 shadow-sm transition active:scale-[0.99] hover:border-[color:var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)]"
+                                    >
+                                        <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${tone}`} aria-hidden="true">
+                                            <Icon className="h-6 w-6" />
+                                        </span>
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block text-base font-semibold text-[color:var(--app-foreground)]">{t(label)}</span>
+                                            <span className={`mt-0.5 block text-sm leading-snug ${mutedClass}`}>{t(hint)}</span>
+                                        </span>
+                                        <ChevronRight className={`h-5 w-5 shrink-0 ${mutedClass}`} aria-hidden="true" />
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </section>
+
+                <p className={`mt-auto px-2 text-center text-xs leading-relaxed ${mutedClass}`}>{t(privacyNoteKey(identityMode))}</p>
+            </div>
+        </FeedbackAppLayout>
     );
 }
 
@@ -483,94 +726,27 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
     const { t } = useLocale();
 
     /*
-     * One page renders four states — unavailable, receipt, landing and a form.
+     * One page renders four screens — unavailable, receipt, choice and a form.
      * An unknown, suspended, revoked or disabled token lands here identically,
      * so a visitor cannot learn which tokens exist by comparing responses.
      */
     if (!available || target === null) {
-        return (
-            <Shell>
-                <div className="mx-auto max-w-md px-4 py-12">
-                    <div className={`${cardClass} text-center`}>
-                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t('serviceFeedback.linkUnavailable')}</h2>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{t('serviceFeedback.linkUnavailableDetail')}</p>
-                    </div>
-                </div>
-            </Shell>
-        );
+        return <UnavailableScreen />;
     }
 
     if (submitted) {
-        const kind = receipt?.type ?? type ?? 'feedback';
-
-        return (
-            <Shell>
-                <div className="mx-auto max-w-md px-4 py-12">
-                    <div className="rounded-card border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-900 dark:bg-emerald-950/40">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900">
-                            <svg viewBox="0 0 24 24" className="h-6 w-6 text-emerald-700 dark:text-emerald-300" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
-                                <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </div>
-                        <h2 className="mt-4 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
-                            {t(kind === 'complaint' ? 'serviceFeedback.complaintSubmitted' : kind === 'suggestion' ? 'serviceFeedback.suggestionSubmitted' : 'serviceFeedback.feedbackSubmitted')}
-                        </h2>
-                        <p className="mt-2 text-sm text-emerald-800 dark:text-emerald-200">
-                            {t(kind === 'complaint' ? 'serviceFeedback.complaintSubmittedDetail' : kind === 'suggestion' ? 'serviceFeedback.suggestionSubmittedDetail' : 'serviceFeedback.feedbackSubmittedDetail')}
-                        </p>
-                        {/* The receipt (brief §42): what, about whom, the reference, and when. */}
-                        <dl className="mt-4 space-y-1 border-t border-emerald-200 pt-3 text-left text-sm dark:border-emerald-900">
-                            {receipt?.target_name && (
-                                <div className="flex justify-between gap-3"><dt className="shrink-0 text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.receiptAbout')}</dt><dd className="text-right font-medium text-emerald-900 dark:text-emerald-100">{receipt.target_name}</dd></div>
-                            )}
-                            {receipt?.reference && (
-                                <div className="flex justify-between gap-3"><dt className="shrink-0 text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.referenceNumber')}</dt><dd className="text-right font-mono font-semibold text-emerald-900 dark:text-emerald-100">{receipt.reference}</dd></div>
-                            )}
-                            {receipt?.submitted_at && (
-                                <div className="flex justify-between gap-3"><dt className="shrink-0 text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.receiptSubmittedAt')}</dt><dd className="text-right font-medium text-emerald-900 dark:text-emerald-100"><LocalizedDateDisplay value={receipt.submitted_at} withTime /></dd></div>
-                            )}
-                        </dl>
-                        <Link href={links.landing} className="mt-5 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4 focus-visible:outline-2 dark:text-emerald-300">{t('serviceFeedback.submitAnother')}</Link>
-                    </div>
-                </div>
-            </Shell>
-        );
+        return <ReceiptScreen kind={receipt?.type ?? type ?? 'feedback'} receipt={receipt} links={links} />;
     }
 
     if (type === null) {
-        const options = [
-            { id: 'feedback', label: 'typeFeedback', href: links.feedback },
-            { id: 'suggestion', label: 'typeSuggestion', href: links.suggestion },
-            { id: 'complaint', label: 'typeComplaint', href: links.complaint },
-        ] as const;
-        const offered = options.filter((option) => enabledTypes.includes(option.id));
-
-        return (
-            <Shell>
-                <div className="mx-auto max-w-lg px-4 py-8">
-                    <h2 className="sr-only">{t(target.target_type === 'organization' ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}</h2>
-                    <TargetCard target={target} heading intro={t(target.target_type === 'organization' ? 'serviceFeedback.aboutInstitution' : 'serviceFeedback.publicIntro')} />
-                    <nav aria-label={t('serviceFeedback.chooseType')} className="mt-5 grid gap-3">
-                        {offered.map((option) => (
-                            <Link key={option.id} href={option.href} className="flex min-h-20 items-center justify-between rounded-card border-2 border-slate-200 bg-white px-5 text-lg font-semibold text-slate-900 transition-colors hover:border-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
-                                {t(`serviceFeedback.${option.label}`)} <span aria-hidden="true">→</span>
-                            </Link>
-                        ))}
-                    </nav>
-                </div>
-            </Shell>
-        );
+        return <ChoiceScreen target={target} links={links} enabledTypes={enabledTypes} identityMode={identityMode} />;
     }
 
     return (
-        <Shell>
-            <div className="mx-auto max-w-md px-4 py-8">
-                <Link href={links.landing} className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline underline-offset-4 dark:text-emerald-300">{t('serviceFeedback.backToOptions')}</Link>
-                <TargetCard target={target} />
-                {type === 'feedback'
-                    ? <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} />
-                    : <ServiceEntryForm type={type} target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} allowAttachments={allowAttachments} />}
-            </div>
-        </Shell>
+        <FeedbackAppLayout title={t(KINDS[type].label)} subtitle={target.display_name} backHref={links.landing} backLabel={t('serviceFeedback.backToOptions')}>
+            {type === 'feedback'
+                ? <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} />
+                : <ServiceEntryForm type={type} target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} allowAttachments={allowAttachments} />}
+        </FeedbackAppLayout>
     );
 }

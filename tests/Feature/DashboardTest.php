@@ -24,6 +24,29 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 
+
+/**
+ * A fixed global dashboard scope.
+ *
+ * `DashboardScopeService::resolve()` derives organization ids from hierarchy
+ * versions and user membership — state other tests in the suite change. Tests
+ * that are about the counting logic, not about scope resolution, use this so
+ * they assert the same thing whatever ran before them.
+ *
+ * @return array<string, mixed>
+ */
+function globalEmployeeScope(): array
+{
+    return [
+        'global_access' => true,
+        'provider_only' => false,
+        'organization_ids' => [],
+        'provider_ids' => [],
+        'service_type_ids' => [],
+        'top_limit' => 10,
+    ];
+}
+
 beforeEach(function (): void {
     $this->seed(DatabaseSeeder::class);
 });
@@ -375,9 +398,13 @@ test('grouped status counts match per-status counts exactly', function (): void 
 });
 
 test('grouped employee counts match per-status counts and one scan serves both KPIs', function (): void {
-    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
     $metrics = app(DashboardMetricService::class);
-    $scope = app(DashboardScopeService::class)->resolve($user, []);
+
+    // A fixed global scope rather than one resolved from the seeded user: the
+    // resolver reads hierarchy versions and organization membership, which
+    // other tests in the suite mutate, and that made this assertion depend on
+    // suite ordering rather than on the thing it is testing.
+    $scope = globalEmployeeScope();
 
     foreach (['active', 'inactive', 'suspended'] as $status) {
         expect($metrics->employeeStatusCount($scope, $status))
@@ -397,9 +424,8 @@ test('the employee status buckets are fetched once per scope', function (): void
     // Before they shared a source they cost a full scan each, which on a
     // 3M-row table is ~400 ms apiece. Proven here by query count, not by
     // timing: two reads of the buckets must issue one query.
-    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
     $metrics = app(DashboardMetricService::class);
-    $scope = app(DashboardScopeService::class)->resolve($user, []);
+    $scope = globalEmployeeScope();
 
     DB::enableQueryLog();
     DB::flushQueryLog();
@@ -445,13 +471,15 @@ test('employee status buckets are keyed by scope and never leak across organizat
     $scopes = app(DashboardScopeService::class);
 
     // Warm with the widest scope first — the ordering that would leak.
+    $scopedScope = $scopes->resolve($scoped, []);
     $globalTotal = $metrics->employeeTotalCount($scopes->resolve($user, []));
-    $scopedTotal = $metrics->employeeTotalCount($scopes->resolve($scoped, []));
+    $scopedTotal = $metrics->employeeTotalCount($scopedScope);
 
     expect($scopedTotal)->toBeLessThanOrEqual($globalTotal);
-    expect($scopedTotal)->toBe(
-        $metrics->employeeQuery($scopes->resolve($scoped, []))->count()
-    );
+
+    // Same scope instance on both sides: a scope re-resolved between the two
+    // reads can legitimately differ, which is not what this test is about.
+    expect($scopedTotal)->toBe($metrics->employeeQuery($scopedScope)->count());
 });
 
 test('memoised status counts are keyed by scope and never leak across organizations', function (): void {
