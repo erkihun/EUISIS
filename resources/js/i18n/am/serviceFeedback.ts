@@ -125,6 +125,12 @@ export default {
     suggestionSubmittedDetail: 'እናመሰግናለን። ጥቆማዎ ለግምገማ ተልኳል።',
     complaintSubmitted: 'ቅሬታዎ ደርሶናል',
     complaintSubmittedDetail: 'ቅሬታዎ ለአገልግሎት ጥራት ቡድን ተልኳል። መለያ ቁጥሩን ይያዙ።',
+    // መልዕክቱ ሳይላክ ሲቀር የሚታዩ ብቅ-ባይ መልዕክቶች።
+    checkHighlightedFields: 'መልዕክትዎ አልተላከም። እባክዎ ምልክት የተደረገባቸውን መስኮች ያስተካክሉ።',
+    sendFailedOffline: 'መልዕክትዎ አልተላከም። የኢንተርኔት ግንኙነትዎን አረጋግጠው እንደገና ይሞክሩ።',
+    sendFailedServer: 'በእኛ በኩል በተፈጠረ ችግር መልዕክትዎ አልተላከም። እባክዎ እንደገና ይሞክሩ።',
+    sendFailedTooLarge: 'የተያያዙት ፋይሎች በጣም ትልቅ ስለሆኑ መልዕክትዎ አልተላከም። የተወሰኑትን ያስወግዱ ወይም ያነሱ ፋይሎችን ይምረጡ።',
+    sendFailedTooMany: 'ከዚህ መሣሪያ ብዙ መልዕክቶች ተልከዋል። እባክዎ ጥቂት ደቂቃዎች ጠብቀው እንደገና ይሞክሩ።',
     submitAnother: 'ሌላ አስተያየት ይስጡ',
     linkUnavailable: 'ይህ የአስተያየት አገናኝ አይገኝም',
     linkUnavailableDetail:

@@ -130,6 +130,12 @@ export default {
     suggestionSubmittedDetail: 'Thank you. Your suggestion has been sent for review.',
     complaintSubmitted: 'Complaint submitted',
     complaintSubmittedDetail: 'Your complaint has been sent to the service-quality team. Keep the reference number for your records.',
+    // Popup messages when a submission did not go through.
+    checkHighlightedFields: 'Your message was not sent. Please check the highlighted fields.',
+    sendFailedOffline: 'Your message was not sent. Check your internet connection and try again.',
+    sendFailedServer: 'Your message was not sent because of a problem on our side. Please try again.',
+    sendFailedTooLarge: 'Your message was not sent because the attached files are too large. Remove some or choose smaller files.',
+    sendFailedTooMany: 'Too many messages were sent from this device. Please wait a few minutes and try again.',
     submitAnother: 'Submit another response',
     linkUnavailable: 'This feedback link is not available',
     linkUnavailableDetail:

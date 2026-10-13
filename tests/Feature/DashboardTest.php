@@ -416,6 +416,28 @@ test('the employee status buckets are fetched once per scope', function (): void
     expect($queries)->toHaveCount(1);
 });
 
+test('a partial scope without provider_only still resolves employee buckets', function (): void {
+    /*
+     * `DashboardScopeService` always supplies `provider_only`, but callers that
+     * build a scope by hand (chart-level tests, and any future internal caller)
+     * may not. The memo key treats an absent flag as false, matching the query
+     * builders, which consult it only to add a restriction. Without this, a
+     * partial scope fatals on an undefined key instead of returning counts.
+     */
+    $metrics = app(DashboardMetricService::class);
+
+    $partial = [
+        'global_access' => true,
+        'organization_ids' => [],
+        'top_limit' => 10,
+    ];
+
+    $counts = $metrics->employeeStatusCounts($partial);
+
+    expect($counts)->toBeArray();
+    expect($metrics->employeeTotalCount($partial))->toBe(array_sum($counts));
+});
+
 test('employee status buckets are keyed by scope and never leak across organizations', function (): void {
     $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
     $scoped = User::where('email', 'hr.officer@demo.local')->firstOrFail();

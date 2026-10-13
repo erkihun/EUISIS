@@ -1,13 +1,14 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, RefObject, useEffect, useRef, useState } from 'react';
 import { controlClassName } from '@euisis/ui';
+import type { Page, VisitOptions } from '@inertiajs/core';
 import { PublicPageHeader, publicButtonPrimary } from '@/Components/public/PublicPage';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import MultiFileUpload from '@/Components/public/MultiFileUpload';
-import { Link, useForm, usePage } from '@inertiajs/react';
-import PublicFlash, { type SharedFlash } from '@/Components/public/PublicFlash';
+import { Link, router, useForm } from '@inertiajs/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { useLocale } from '@/hooks/useLocale';
+import { toast } from '@/lib/toast';
 
 /**
  * Public Feedback, Suggestion and Complaint.
@@ -173,6 +174,100 @@ function CategorySelect({ categories, value, onChange, error }: { categories: Ca
     );
 }
 
+type SubmissionKind = 'feedback' | 'suggestion' | 'complaint';
+
+const SUBMITTED_KEY: Record<SubmissionKind, string> = {
+    feedback: 'serviceFeedback.feedbackSubmitted',
+    suggestion: 'serviceFeedback.suggestionSubmitted',
+    complaint: 'serviceFeedback.complaintSubmitted',
+};
+
+/** Long enough to read an Amharic sentence on a phone before the popup goes. */
+const ERROR_TOAST_MS = 9000;
+
+/**
+ * Scroll the first error into the middle of the screen and put the cursor in
+ * its field. On a phone the form is longer than the screen, so a field error
+ * rendered above the Send button was otherwise never seen.
+ */
+function revealFirstError(form: HTMLFormElement | null): void {
+    if (!form) return;
+    // Wait for React to paint the errors that came back with the response.
+    window.requestAnimationFrame(() => {
+        const alert = form.querySelector<HTMLElement>('[role="alert"]');
+        if (!alert) return;
+        alert.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        const group = alert.parentElement;
+        if (group && group !== form) {
+            group.querySelector<HTMLElement>('input:not([type="hidden"]), select, textarea, [role="radio"]')?.focus({ preventScroll: true });
+        }
+    });
+}
+
+/**
+ * What the visitor is told after pressing Send, on any device, as a popup:
+ *
+ * - sent: a success popup (with the reference for a complaint), and the page
+ *   opens at the top where the receipt is, instead of keeping the long form's
+ *   scroll position, which left the receipt above the screen on a phone;
+ * - refused or incomplete: an error popup naming the problem, and the first
+ *   field error scrolled into view;
+ * - no connection, or an error page instead of an answer (a 413 for photos
+ *   too large, a 429, a 5xx from the web server): an error popup instead of
+ *   silence or Inertia's raw error window.
+ */
+function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormElement | null>) {
+    const { t } = useLocale();
+    const listeners = useRef<Array<() => void>>([]);
+    const stopListening = () => {
+        listeners.current.forEach((off) => off());
+        listeners.current = [];
+    };
+
+    // Leaving the page mid-submission must not leave the listeners behind.
+    useEffect(() => stopListening, []);
+
+    return (onSent?: () => void): Partial<VisitOptions> => ({
+        preserveScroll: 'errors',
+        onStart: () => {
+            stopListening();
+            listeners.current = [
+                router.on('exception', () => {
+                    toast.error(t('serviceFeedback.sendFailedOffline'), { duration: ERROR_TOAST_MS });
+                    return false;
+                }),
+                router.on('invalid', (event) => {
+                    const status = event.detail.response.status;
+                    const key = status === 413 ? 'sendFailedTooLarge' : status === 429 ? 'sendFailedTooMany' : 'sendFailedServer';
+                    toast.error(t(`serviceFeedback.${key}`), { duration: ERROR_TOAST_MS });
+                    return false;
+                }),
+            ];
+        },
+        onFinish: stopListening,
+        onSuccess: (page: Page) => {
+            const props = page.props as { submitted?: boolean; receipt?: Receipt | null };
+            // A redirect without a receipt (an expired form, a closed link) is not a success;
+            // its own notice arrives as a flash popup from the layout.
+            if (!props.submitted) return;
+            const reference = props.receipt?.reference;
+            toast.success(t(SUBMITTED_KEY[kind]), {
+                description: reference ? `${t('serviceFeedback.referenceNumber')}: ${reference}` : undefined,
+                duration: reference ? ERROR_TOAST_MS : 6000,
+            });
+            onSent?.();
+        },
+        onError: (errors: Record<string, string>) => {
+            const messages = Object.values(errors).filter(Boolean);
+            if (messages.length === 0) return;
+            // One problem: say it. Several: point at the highlighted fields and name the first.
+            if (messages.length === 1) toast.error(messages[0], { duration: ERROR_TOAST_MS });
+            else toast.error(t('serviceFeedback.checkHighlightedFields'), { description: messages[0], duration: ERROR_TOAST_MS });
+            revealFirstError(formRef.current);
+        },
+    });
+}
+
 /** The footer promise must match what the form asks for (brief §34). */
 function privacyNoteKey(mode: IdentityMode): string {
     return mode === 'identified' ? 'serviceFeedback.publicPrivacyNoteIdentified' : mode === 'anonymous' ? 'serviceFeedback.publicPrivacyNoteAnonymous' : 'serviceFeedback.publicPrivacyNote';
@@ -228,6 +323,8 @@ function ServiceEntryForm({ type, target, serviceTypes, categories, links, formT
     allowAttachments: boolean;
 }) {
     const { t } = useLocale();
+    const formRef = useRef<HTMLFormElement>(null);
+    const outcome = useSubmissionOutcome(type, formRef);
     const { data, setData, post, processing, errors } = useForm({
         form_token: formToken ?? '',
         position_service_id: '', category_id: '', message: '', client_name: '', client_contact: '',
@@ -236,11 +333,11 @@ function ServiceEntryForm({ type, target, serviceTypes, categories, links, formT
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        post(type === 'complaint' ? links.submitComplaint : links.submitSuggestion, { forceFormData: true, preserveScroll: true });
+        post(type === 'complaint' ? links.submitComplaint : links.submitSuggestion, { forceFormData: true, ...outcome() });
     };
 
     return (
-        <form onSubmit={submit} className={`mt-4 space-y-5 ${cardClass}`}>
+        <form ref={formRef} onSubmit={submit} noValidate className={`mt-4 space-y-5 ${cardClass}`}>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t(type === 'suggestion' ? 'serviceFeedback.typeSuggestion' : 'serviceFeedback.typeComplaint')}</h2>
             {errors.form_token && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300">{errors.form_token}</p>}
             {target.target_type === 'employee' && (
@@ -291,7 +388,9 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
      * Touch devices never set this, so they see only the committed state.
      */
     const [hoveredRating, setHoveredRating] = useState<number | null>(null);
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const formRef = useRef<HTMLFormElement>(null);
+    const outcome = useSubmissionOutcome('feedback', formRef);
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         form_token: formToken ?? '',
         position_service_id: '',
         category_id: '',
@@ -303,13 +402,13 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        post(links.submitFeedback, { preserveScroll: true, onSuccess: () => reset() });
+        post(links.submitFeedback, outcome(() => reset()));
     };
 
     const activeRating = hoveredRating ?? data.rating;
 
     return (
-        <form onSubmit={submit} className={`mt-4 space-y-5 ${cardClass}`}>
+        <form ref={formRef} onSubmit={submit} noValidate className={`mt-4 space-y-5 ${cardClass}`}>
             {/* A refused rating (storage trouble, a replayed form) must say so: the rating form has no
                 "message" field of its own, so the server's general error would otherwise go unseen. */}
             {(errors.form_token || (errors as Record<string, string | undefined>).message) && (
@@ -333,7 +432,11 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
                             role="radio"
                             aria-checked={data.rating === value}
                             aria-label={t(`serviceFeedback.rating${value}`)}
-                            onClick={() => setData('rating', value)}
+                            onClick={() => {
+                                setData('rating', value);
+                                // The "choose a rating" error is answered the moment a star is picked.
+                                clearErrors('rating');
+                            }}
                             onMouseEnter={() => setHoveredRating(value)}
                             className="rounded-md p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
                         >
@@ -365,14 +468,12 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
 
 function Shell({ children }: { children: React.ReactNode }) {
     const { t } = useLocale();
-    // An expired form (419) or a throttled submission sends the visitor back here with a notice;
-    // without this it was invisible, and the form just seemed to do nothing.
-    const flash = (usePage().props as { flash?: SharedFlash }).flash ?? null;
 
+    // An expired form (419) sends the visitor back here with a notice. The layout shows it as a
+    // popup, which is seen wherever the page is scrolled; a banner at the top was not, on a phone.
     return (
         <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
             <PublicPageHeader title={t('serviceFeedback.publicTitle')} compact />
-            <PublicFlash flash={flash} className="mt-4" />
             {children}
         </PublicLayout>
     );
@@ -420,13 +521,13 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
                         {/* The receipt (brief §42): what, about whom, the reference, and when. */}
                         <dl className="mt-4 space-y-1 border-t border-emerald-200 pt-3 text-left text-sm dark:border-emerald-900">
                             {receipt?.target_name && (
-                                <div className="flex justify-between gap-3"><dt className="text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.receiptAbout')}</dt><dd className="text-right font-medium text-emerald-900 dark:text-emerald-100">{receipt.target_name}</dd></div>
+                                <div className="flex justify-between gap-3"><dt className="shrink-0 text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.receiptAbout')}</dt><dd className="text-right font-medium text-emerald-900 dark:text-emerald-100">{receipt.target_name}</dd></div>
                             )}
                             {receipt?.reference && (
-                                <div className="flex justify-between gap-3"><dt className="text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.referenceNumber')}</dt><dd className="text-right font-mono font-semibold text-emerald-900 dark:text-emerald-100">{receipt.reference}</dd></div>
+                                <div className="flex justify-between gap-3"><dt className="shrink-0 text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.referenceNumber')}</dt><dd className="text-right font-mono font-semibold text-emerald-900 dark:text-emerald-100">{receipt.reference}</dd></div>
                             )}
                             {receipt?.submitted_at && (
-                                <div className="flex justify-between gap-3"><dt className="text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.receiptSubmittedAt')}</dt><dd className="text-right font-medium text-emerald-900 dark:text-emerald-100"><LocalizedDateDisplay value={receipt.submitted_at} withTime /></dd></div>
+                                <div className="flex justify-between gap-3"><dt className="shrink-0 text-emerald-800 dark:text-emerald-300">{t('serviceFeedback.receiptSubmittedAt')}</dt><dd className="text-right font-medium text-emerald-900 dark:text-emerald-100"><LocalizedDateDisplay value={receipt.submitted_at} withTime /></dd></div>
                             )}
                         </dl>
                         <Link href={links.landing} className="mt-5 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4 focus-visible:outline-2 dark:text-emerald-300">{t('serviceFeedback.submitAnother')}</Link>

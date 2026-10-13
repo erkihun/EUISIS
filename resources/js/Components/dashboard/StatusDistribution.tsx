@@ -28,7 +28,15 @@ export default function StatusDistribution({ data, labelFor, emptyTitle }: Props
 
     return (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
-            <div className="h-64 min-w-0">
+            {/*
+              * `w-full` is load-bearing, not decorative. Recharts'
+              * ResponsiveContainer measures its parent; a grid child with only
+              * `min-w-0` can collapse to its content's intrinsic width, and the
+              * donut then drew at ~106px inside a 310px column on a 375px
+              * viewport. An explicit width gives the container a definite basis
+              * to measure against.
+              */}
+            <div className="h-64 w-full min-w-0">
                 <Suspense fallback={<ChartPlaceholder height={256} />}>
                     <StatusDistributionPie data={data} colors={colors} labelFor={labelFor} />
                 </Suspense>

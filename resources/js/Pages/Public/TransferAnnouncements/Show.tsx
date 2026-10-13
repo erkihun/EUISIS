@@ -91,7 +91,8 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
     const pageTitle = posTitle + ' — ' + orgName;
 
     return (
-        <PublicLayout title={pageTitle}>
+        // This page shows the outcome of an apply attempt inline (below), so no popup copy of it.
+        <PublicLayout title={pageTitle} flashToasts={false}>
             <PublicPageHeader
                 title={posTitle}
                 description={orgName}

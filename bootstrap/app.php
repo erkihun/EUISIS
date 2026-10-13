@@ -247,6 +247,20 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $apiError(__('errors.too_many_requests'), 429);
             }
 
+            // A visitor sending feedback, a suggestion or a complaint from a QR page keeps the form
+            // and what they typed: the refusal comes back to the same page as a popup message,
+            // instead of an error page that replaced the form. A plain (non-Inertia) POST still
+            // gets the 429.
+            if ($request->isMethod('post') && $request->header('X-Inertia') && $request->routeIs(
+                'service-feedback.store',
+                'service-feedback.feedback.store',
+                'service-feedback.entry.store',
+                'public-feedback.organization.feedback.store',
+                'public-feedback.organization.entry.store',
+            )) {
+                return back()->with('flash', ['message' => __('service-feedback.too_many_submissions'), 'type' => 'error']);
+            }
+
             return $inertiaError($request, 429, 'too_many_requests');
         });
 

@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
+import AppToaster from '@/Components/ui/AppToaster';
 import PublicHeader from '@/Components/public/PublicHeader';
 import PublicFooter from '@/Components/public/PublicFooter';
 import { useBilingual } from '@/Components/public/bilingual';
@@ -30,6 +31,11 @@ interface Props {
      * never appear in search results whatever the SEO settings say.
      */
     noindex?: boolean;
+    /**
+     * Show the server's flash messages as popup toasts (default). A page that
+     * already shows its flash inline turns this off so a message is not shown twice.
+     */
+    flashToasts?: boolean;
     children: ReactNode;
 }
 
@@ -40,7 +46,7 @@ interface Props {
  * Management. The layout owns no content of its own — changing a menu label
  * or a page description never needs a code change.
  */
-export default function PublicLayout({ title, description, meta, noindex = false, children }: Props) {
+export default function PublicLayout({ title, description, meta, noindex = false, flashToasts = true, children }: Props) {
     const { t } = useLocale();
     const { getBoolean } = useSystemSettings();
     const pick = useBilingual();
@@ -82,6 +88,10 @@ export default function PublicLayout({ title, description, meta, noindex = false
 
                 <PublicFooter />
             </div>
+
+            {/* Popup messages for every public page: a submission's outcome must be
+                visible wherever the visitor has scrolled, on a phone as on a desktop. */}
+            <AppToaster flashToasts={flashToasts} />
         </LocalizedUiProvider>
     );
 }

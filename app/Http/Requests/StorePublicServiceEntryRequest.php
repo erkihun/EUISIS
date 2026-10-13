@@ -31,8 +31,11 @@ class StorePublicServiceEntryRequest extends FormRequest
                 : ['prohibited'],
             'message' => ['required', 'string', 'max:5000'],
             ...$this->submitterRules(),
-            'incident_date' => [$complaint ? 'nullable' : 'prohibited', 'date', 'before_or_equal:today'],
-            'incident_location' => [$complaint ? 'nullable' : 'prohibited', 'string', 'max:255'],
+            // A suggestion carries no incident. The browser form still sends both keys empty, which
+            // `prohibited` accepts; the date and string rules must not run on them, or every
+            // suggestion failed with "not a valid date" on a field the suggestion form never shows.
+            'incident_date' => $complaint ? ['nullable', 'date', 'before_or_equal:today'] : ['prohibited'],
+            'incident_location' => $complaint ? ['nullable', 'string', 'max:255'] : ['prohibited'],
             'attachments' => $this->attachmentsRule($complaint),
             'attachments.*' => ['file', new SafeUploadName, 'max:5120', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'mimetypes:application/pdf,image/jpeg,image/png'],
         ];
