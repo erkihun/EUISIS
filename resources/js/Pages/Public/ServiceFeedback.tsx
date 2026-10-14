@@ -685,11 +685,53 @@ function ReferenceCard({ reference }: { reference: string }) {
     );
 }
 
-function ReceiptScreen({ kind, receipt, links }: { kind: SubmissionKind; receipt: Receipt | null; links: Links }) {
+/** The submission kinds the policy allows right now, in the order every screen lists them. */
+function offeredKinds(enabledTypes: Props['enabledTypes']): SubmissionKind[] {
+    return (['feedback', 'suggestion', 'complaint'] as const).filter((kind) => enabledTypes.includes(kind));
+}
+
+/**
+ * The bottom navigation every screen of the flow carries, so the submissions
+ * and Call stay under the thumb wherever the visitor is — a visitor who opened
+ * the wrong form switches with one tap instead of going back first. The layout
+ * fixes it to the bottom edge; on a form screen it marks the open form.
+ */
+function SubmissionDock({ links, enabledTypes, call, target, active }: {
+    links: Links;
+    enabledTypes: Props['enabledTypes'];
+    call: PublicQrCall | null;
+    target: TargetDisplay['target_type'];
+    active?: SubmissionKind;
+}) {
+    return (
+        <PublicQrActionDock
+            hrefs={{ feedback: links.feedback, suggestion: links.suggestion, complaint: links.complaint }}
+            offered={offeredKinds(enabledTypes)}
+            call={call}
+            target={target}
+            active={active}
+        />
+    );
+}
+
+function ReceiptScreen({ kind, receipt, links, target, enabledTypes, call }: {
+    kind: SubmissionKind;
+    receipt: Receipt | null;
+    links: Links;
+    target: TargetDisplay;
+    enabledTypes: Props['enabledTypes'];
+    call: PublicQrCall | null;
+}) {
     const { t } = useLocale();
 
     return (
-        <FeedbackAppLayout title={t('serviceFeedback.publicTitle')} subtitle={receipt?.target_name} backHref={links.landing} backLabel={t('serviceFeedback.backToOptions')}>
+        <FeedbackAppLayout
+            title={t('serviceFeedback.publicTitle')}
+            subtitle={receipt?.target_name}
+            backHref={links.landing}
+            backLabel={t('serviceFeedback.backToOptions')}
+            dock={<SubmissionDock links={links} enabledTypes={enabledTypes} call={call} target={target.target_type} />}
+        >
             <div className="flex flex-1 flex-col items-center px-5 pb-6 pt-10 text-center">
                 <span className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/15" aria-hidden="true">
                     <svg viewBox="0 0 24 24" className="h-10 w-10 text-emerald-600 dark:text-emerald-300" fill="none" stroke="currentColor" strokeWidth={2.5}>
@@ -745,13 +787,14 @@ function ChoiceScreen({ target, links, enabledTypes, identityMode, call }: { tar
     const { t } = useLocale();
     const organization = target.target_type === 'organization';
     const hrefs: Record<SubmissionKind, string> = { feedback: links.feedback, suggestion: links.suggestion, complaint: links.complaint };
-    const offered = (['feedback', 'suggestion', 'complaint'] as const).filter((kind) => enabledTypes.includes(kind));
-    const hasDock = offered.length > 0 || call !== null;
+    const offered = offeredKinds(enabledTypes);
 
     return (
-        <FeedbackAppLayout title={t(organization ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}>
-            {/* Below md the action dock is fixed to the bottom edge; the extra bottom padding keeps it off the last line. */}
-            <div className={`flex flex-1 flex-col gap-6 px-4 pb-8 pt-5 ${hasDock ? 'max-md:pb-[calc(6rem+env(safe-area-inset-bottom))]' : ''}`}>
+        <FeedbackAppLayout
+            title={t(organization ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}
+            dock={<SubmissionDock links={links} enabledTypes={enabledTypes} call={call} target={target.target_type} />}
+        >
+            <div className="flex flex-1 flex-col gap-6 px-4 pb-8 pt-5">
                 {organization
                     ? <TargetCard target={target} intro={t('serviceFeedback.aboutInstitution')} />
                     : <EmployeeIdentityCard target={target} />}
@@ -787,7 +830,6 @@ function ChoiceScreen({ target, links, enabledTypes, identityMode, call }: { tar
 
                 <p className={`mt-auto px-2 text-center text-xs leading-relaxed ${mutedClass}`}>{t(privacyNoteKey(identityMode))}</p>
             </div>
-            <PublicQrActionDock hrefs={hrefs} offered={offered} call={call} target={target.target_type} />
         </FeedbackAppLayout>
     );
 }
@@ -805,7 +847,7 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
     }
 
     if (submitted) {
-        return <ReceiptScreen kind={receipt?.type ?? type ?? 'feedback'} receipt={receipt} links={links} />;
+        return <ReceiptScreen kind={receipt?.type ?? type ?? 'feedback'} receipt={receipt} links={links} target={target} enabledTypes={enabledTypes} call={call} />;
     }
 
     if (type === null) {
@@ -813,7 +855,13 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
     }
 
     return (
-        <FeedbackAppLayout title={t(KINDS[type].label)} subtitle={target.display_name} backHref={links.landing} backLabel={t('serviceFeedback.backToOptions')}>
+        <FeedbackAppLayout
+            title={t(KINDS[type].label)}
+            subtitle={target.display_name}
+            backHref={links.landing}
+            backLabel={t('serviceFeedback.backToOptions')}
+            dock={<SubmissionDock links={links} enabledTypes={enabledTypes} call={call} target={target.target_type} active={type} />}
+        >
             {type === 'feedback'
                 ? <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} />
                 : <ServiceEntryForm type={type} target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} allowAttachments={allowAttachments} />}
