@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Models\Employee;
 use App\Services\Backup\BackupStatusService;
 use App\Services\Branding\BrandingService;
+use App\Services\IdCards\IdCardPngExporter;
 use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Support\Security\NationalIdHash;
@@ -104,7 +105,7 @@ class ProductionReadiness extends Command
         }
         $usesRedis = collect([config('cache.default'), config('queue.default'), config('session.driver')])->contains('redis');
         $this->check('redis extension (phpredis)', ! $usesRedis || config('database.redis.client') !== 'phpredis' || extension_loaded('redis'), $production, 'Cache, queue or session use Redis through phpredis.');
-        $this->check('imagick (card PNG export)', extension_loaded('imagick'), false, 'Without it PNG card export is refused; SVG and PDF still work.');
+        $this->check('imagick with SVG support (card PNG export)', app(IdCardPngExporter::class)->isAvailable(), false, 'Without Imagick and its SVG coder (librsvg) PNG card export is refused; SVG and PDF still work.');
 
         $this->section('Branding (docs/branding.md)');
         try {
