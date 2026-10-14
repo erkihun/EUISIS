@@ -88,6 +88,7 @@ class TransportPassController extends Controller
     private function formPayload(): array
     {
         return [
+            'today' => today()->toDateString(),
             'providers' => Provider::query()
                 ->whereHas('services.serviceType', fn ($query) => $query->where('code', 'transport'))
                 ->orderBy('name_en')

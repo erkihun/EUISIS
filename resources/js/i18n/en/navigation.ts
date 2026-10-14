@@ -172,6 +172,7 @@ const navigation = {
     transportVehicles: 'Vehicles',
     transportDrivers: 'Drivers',
     transportPasses: 'Passes',
+    transportTransactions: 'Boardings',
     transportReports: 'Reports',
     transportSettings: 'Transport Settings',
     // My Portal sidebar categories

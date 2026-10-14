@@ -77,6 +77,8 @@ class TransportTripController extends Controller
         $provider = $this->provider($request, $context);
 
         return [
+            // The city's date, not the device's: a phone set to UTC would plan "today" on the wrong day.
+            'today' => today()->toDateString(),
             'routes' => TransportRouteResource::collection(TransportRoute::query()->where('provider_id', $provider->id)->orderBy('name_en')->get())->resolve(),
             'vehicles' => TransportVehicleResource::collection(TransportVehicle::query()->where('provider_id', $provider->id)->orderBy('vehicle_code')->get())->resolve(),
             'drivers' => TransportDriverResource::collection(TransportDriver::query()->where('provider_id', $provider->id)->orderBy('full_name')->get())->resolve(),

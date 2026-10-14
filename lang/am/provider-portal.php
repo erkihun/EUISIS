@@ -106,5 +106,5 @@ return [
         'created_at' => 'የተፈጠረበት ጊዜ',
     ],
     'service_access_denied' => 'መለያዎ ይህን አገልግሎት የመጠቀም መብት የለውም።',
-    'permission_denied' => 'መለያዎ ይህን ገጽ የመጠቀም ፈቃድ የለውም።',
+    'permission_denied' => 'መለያዎ ይህን ገጽ የመክፈት መብት የለውም።',
 ];

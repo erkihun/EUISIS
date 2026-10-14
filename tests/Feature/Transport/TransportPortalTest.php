@@ -7,6 +7,7 @@ use App\Models\TransportTransaction;
 use App\Models\TransportTrip;
 use App\Models\TransportVehicle;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\TransportScenario;
 
@@ -153,4 +154,22 @@ it('lists and exports only its own transactions, filtered by date', function ():
 
     $this->actingAs($this->manager, 'provider')->get(route('provider.portal.transport.reports.index', ['date_from' => '2026-10-01', 'date_to' => '2026-10-14']))
         ->assertInertia(fn (Assert $page) => $page->where('report.summary.total', 2)->where('report.summary.riders', 1));
+});
+
+it('lets a new transport-only account replace its one-time password and reach the dashboard', function (): void {
+    $owner = $this->s->portalUser($this->mine, 'owner');
+    $owner->forceFill(['must_change_password' => true, 'password' => Hash::make('Temp#Pass-2026')])->save();
+
+    // Every transport page sends the user to the profile first, and the profile opens.
+    $this->actingAs($owner, 'provider')->get(route('provider.portal.transport.dashboard'))->assertRedirect(route('provider.portal.profile.show'));
+    $this->actingAs($owner, 'provider')->get(route('provider.portal.profile.show'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('ProviderPortal/Transport/Profile'));
+
+    $this->actingAs($owner, 'provider')->patch(route('provider.portal.profile.password'), [
+        'current_password' => 'Temp#Pass-2026', 'password' => 'Blue-Line#Route-2026', 'password_confirmation' => 'Blue-Line#Route-2026',
+    ])->assertSessionHasNoErrors()->assertRedirect(route('provider.portal.transport.dashboard'));
+
+    expect($owner->fresh()->must_change_password)->toBeFalse();
+    $this->actingAs($owner->fresh(), 'provider')->get(route('provider.portal.transport.dashboard'))->assertOk();
 });

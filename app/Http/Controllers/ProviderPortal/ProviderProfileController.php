@@ -7,6 +7,7 @@ namespace App\Http\Controllers\ProviderPortal;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
+use App\Models\ProviderUser;
 use App\Security\Passwords\PasswordLifecycle;
 use App\Security\Passwords\PasswordPolicy;
 use App\Services\ProviderPortal\ProviderPortalContext;
@@ -29,30 +30,44 @@ class ProviderProfileController extends Controller
 
     public function show(Request $request, ProviderPortalContext $context): Response
     {
-        $provider = $context->selectedProvider($request);
-        abort_if($provider === null, 403, __('provider-portal.not_assigned'));
-
         $providerUser = $context->providerUser($request);
         abort_if($providerUser === null, 403, __('provider-portal.access_denied'));
+
+        $provider = $context->selectedProvider($request);
+
+        // A transport-only provider has no cafeteria location to frame the
+        // page; its users still need their own account (and a forced password
+        // change lands here before anything else opens).
+        if ($provider === null && $providerUser->hasService('transport')) {
+            return Inertia::render('ProviderPortal/Transport/Profile', [
+                'user' => $this->userPayload($providerUser),
+            ]);
+        }
+
+        abort_if($provider === null, 403, __('provider-portal.not_assigned'));
 
         return Inertia::render('Cafeteria/Portal/Profile', [
             ...$this->portalPayload($request, $context, $provider),
             'provider' => $this->providerOption($provider),
-            'user' => [
-                'id' => $providerUser->id,
-                'name' => $providerUser->name,
-                'email' => $providerUser->email,
-                'username' => $providerUser->username,
-                'phone_number' => $providerUser->phone_number,
-            ],
+            'user' => $this->userPayload($providerUser),
         ]);
+    }
+
+    /** @return array<string, mixed> */
+    private function userPayload(ProviderUser $providerUser): array
+    {
+        return [
+            'id' => $providerUser->id,
+            'name' => $providerUser->name,
+            'email' => $providerUser->email,
+            'username' => $providerUser->username,
+            'phone_number' => $providerUser->phone_number,
+        ];
     }
 
     public function update(Request $request, ProviderPortalContext $context): RedirectResponse
     {
-        $provider = $context->selectedProvider($request);
-        abort_if($provider === null, 403, __('provider-portal.not_assigned'));
-
+        // The user's own account: no cafeteria location is needed to change it.
         $providerUser = $context->providerUser($request);
         abort_if($providerUser === null, 403, __('provider-portal.access_denied'));
 
@@ -73,9 +88,7 @@ class ProviderProfileController extends Controller
 
     public function updatePassword(Request $request, ProviderPortalContext $context): RedirectResponse
     {
-        $provider = $context->selectedProvider($request);
-        abort_if($provider === null, 403, __('provider-portal.not_assigned'));
-
+        // The user's own account: no cafeteria location is needed to change it.
         $providerUser = $context->providerUser($request);
         abort_if($providerUser === null, 403, __('provider-portal.access_denied'));
 
@@ -95,8 +108,14 @@ class ProviderProfileController extends Controller
             'password' => app(PasswordPolicy::class)->rules($providerUser),
         ]);
 
+        $wasForced = (bool) $providerUser->must_change_password;
         app(PasswordLifecycle::class)->change($providerUser, $validated['password'], AuditEventType::UserPasswordChanged, reason: 'provider_changed_own_password');
         $request->session()->regenerate();
+
+        if ($wasForced) {
+            // The portal opens now: send the user to their home page.
+            return redirect()->to($context->homeUrl($providerUser->fresh()))->with('flash', ['message' => __('provider-portal.password_updated'), 'type' => 'success']);
+        }
 
         return back()->with('flash', ['message' => __('provider-portal.password_updated'), 'type' => 'success']);
     }

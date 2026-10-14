@@ -1,3 +1,14 @@
 import TransportProviderLayout from '@/Layouts/TransportProviderLayout';
-import TransportVehicleForm from '@/Components/transport/TransportVehicleForm';
-export default function Edit({ vehicle, routes = [] }: { vehicle: any; routes: any[] }) { return <TransportProviderLayout title="Edit Vehicle"><TransportVehicleForm vehicle={vehicle} routes={routes} /></TransportProviderLayout>; }
+import { VehicleForm } from '@/Components/transport/TransportForms';
+import { useLocale } from '@/hooks/useLocale';
+import type { TransportRoute, TransportVehicle } from '@/types/transport';
+
+export default function Edit({ vehicle, routes }: { vehicle: TransportVehicle; routes: TransportRoute[] }) {
+    const { t } = useLocale();
+
+    return (
+        <TransportProviderLayout title={t('transport.editVehicle')}>
+            <VehicleForm mode="portal" vehicle={vehicle} routes={routes} />
+        </TransportProviderLayout>
+    );
+}

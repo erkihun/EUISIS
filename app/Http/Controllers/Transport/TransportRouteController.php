@@ -25,7 +25,7 @@ class TransportRouteController extends Controller
         abort_unless($user?->can('transport-routes.viewAny'), 403);
 
         $routes = TransportRoute::query()
-            ->with('provider')
+            ->with(['provider', 'assignedOrganization'])
             ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('name_en', ci_like_operator(), "%{$s}%")->orWhere('route_code', ci_like_operator(), "%{$s}%")))
             ->when($request->is_active !== null && $request->is_active !== '', fn ($q) => $q->where('is_active', (bool) $request->is_active))
             ->latest()
@@ -66,7 +66,7 @@ class TransportRouteController extends Controller
         abort_unless($request->user()?->can('transport-routes.update'), 403);
 
         return Inertia::render('Transport/Routes/Edit', [
-            'route' => (new TransportRouteResource($route))->resolve(),
+            'route' => (new TransportRouteResource($route->load('assignedOrganization')))->resolve(),
             ...$this->formPayload(),
         ]);
     }

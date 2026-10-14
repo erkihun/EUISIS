@@ -1,11 +1,25 @@
+import { StatusBadge } from '@euisis/ui';
 import TransportProviderLayout from '@/Layouts/TransportProviderLayout';
-import { Link } from '@inertiajs/react';
+import PortalList from '@/Components/transport/PortalList';
+import { useTransportLabels } from '@/Components/transport/labels';
+import type { TransportRoute } from '@/types/transport';
 
-export default function Index({ routes = [] }: { routes: any[] }) {
+export default function Index({ routes }: { routes: TransportRoute[] }) {
+    const { t, name, label } = useTransportLabels();
+
     return (
-        <TransportProviderLayout title="Transport Routes">
-            <div className="mb-4"><Link href={route('provider.portal.transport.routes.create')} className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">New Route</Link></div>
-            <div className="rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">{routes.map((item) => <Link key={item.id} href={route('provider.portal.transport.routes.edit', item.id)} className="block border-b border-slate-100 px-4 py-3 text-sm last:border-0 dark:border-slate-800">{item.route_code} - {item.name_en}</Link>)}</div>
+        <TransportProviderLayout title={t('transport.routes')}>
+            <PortalList
+                rows={routes}
+                createHref={route('provider.portal.transport.routes.create')}
+                createLabel={t('transport.newRoute')}
+                editHref={(r) => route('provider.portal.transport.routes.edit', r.id)}
+                columns={[
+                    { header: t('transport.routeCode'), cell: (r) => <span className="font-medium">{r.route_code}</span> },
+                    { header: t('transport.route'), cell: (r) => <><div>{name(r)}</div><div className="text-xs text-[color:var(--app-muted-foreground)]">{r.origin_en} → {r.destination_en}</div></> },
+                    { header: t('transport.status'), cell: (r) => <StatusBadge tone={r.is_active ? 'success' : 'neutral'}>{label('statuses', r.is_active ? 'active' : 'inactive')}</StatusBadge> },
+                ]}
+            />
         </TransportProviderLayout>
     );
 }

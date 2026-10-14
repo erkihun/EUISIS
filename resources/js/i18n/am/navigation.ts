@@ -172,6 +172,7 @@ const navigation = {
     transportVehicles: 'ተሽከርካሪዎች',
     transportDrivers: 'አሽከርካሪዎች',
     transportPasses: 'ፓሶች',
+    transportTransactions: 'የመሳፈሪያ መዝገቦች',
     transportReports: 'ሪፖርቶች',
     transportSettings: 'የትራንስፖርት ቅንብሮች',
     // የእኔ ፖርታል የጎን ምናሌ ምድቦች
