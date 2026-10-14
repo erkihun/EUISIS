@@ -19,7 +19,9 @@ it('stores a profile photo named .html under its real image extension', function
 
     $path = app(UploadUserProfilePhotoAction::class)->execute($user, UploadedFile::fake()->image('payload.html', 10, 10));
 
-    expect($path)->toEndWith('.jpg')->not->toContain('.html');
+    // Re-encoded for the web (WebP where GD supports it, JPEG otherwise); either
+    // way the extension names the stored image, never the uploader's file name.
+    expect($path)->toMatch('/\.(webp|jpg)$/')->not->toContain('.html');
 });
 
 it('derives the public extension from the content type', function (): void {
