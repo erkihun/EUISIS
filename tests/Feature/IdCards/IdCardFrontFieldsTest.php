@@ -46,7 +46,7 @@ it('shows an amharic row above an english row for every field', function (string
 })->with([
     'name' => ['ስም', 'Front Employee', 'Name', 'Front Employee'],
     'sex' => ['ጾታ', 'ወንድ', 'Sex', 'Male'],
-    'date of birth' => ['የትውልድ ቀን', 'መጋቢት 6, 1982', 'Date of Birth', '15 Mar 1990'],
+    'date of birth' => ['የትውልድ ቀን', 'መጋቢት 06, 1982', 'Date of Birth', '15 Mar 1990'],
     'nationality' => ['ዜግነት', 'ኢትዮጵያዊ', 'Nationality', 'Ethiopian'],
     'employment status' => ['የቅጥር ሁኔታ', 'ቋሚ', 'Employment Status', 'Permanent'],
 ]);
@@ -128,7 +128,7 @@ it('formats dates per locale and never as a raw ISO string', function (): void {
     expect(renderFrontSvg($card))->toContain('15 Mar 1990')->and(renderFrontSvg($card))->not->toContain('1990-03-15');
 
     app()->setLocale('am');
-    expect(renderFrontSvg($card))->toContain('መጋቢት 6, 1982')->and(renderFrontSvg($card))->not->toContain('1990-03-15');
+    expect(renderFrontSvg($card))->toContain('መጋቢት 06, 1982')->and(renderFrontSvg($card))->not->toContain('1990-03-15');
 });
 
 it('serves preview and export from the same front layout', function (): void {
