@@ -4,9 +4,9 @@
  * Covers both the anonymous public form a client reaches by scanning an
  * employee's feedback QR, and the administrative review screens.
  *
- * The public strings never name the employee — the page identifies the desk by
- * office, unit and role only — so wording here talks about "the service you
- * received" rather than about a person.
+ * The public page confirms the scanned employee by photo and full name only
+ * (no number, contact, office or role), so the wording talks about "this
+ * employee" and "the service you received".
  */
 export default {
     // Module + navigation
@@ -18,6 +18,8 @@ export default {
     publicTitle: 'Feedback and Suggestion',
     publicLandingTitle: 'Employee Service Feedback',
     chooseType: 'Choose a response type',
+    employeeChoosePrompt: 'What would you like to submit for this employee?',
+    employeePhotoAlt: 'Employee profile photo',
     // QR pages, app-style screens
     typeFeedbackHint: 'Rate the service you received',
     typeSuggestionHint: 'Share an idea to make the service better',
@@ -73,7 +75,6 @@ export default {
     submissionDetails: 'Submission details',
     reviewSubmission: 'Review submission',
     saveReview: 'Save review',
-    publicIntro: 'You are giving feedback for the service provided at this desk.',
     publicPrivacyNote: 'Name and contact details are optional. Technical submission data is retained for abuse prevention.',
     publicPrivacyNoteIdentified: 'Your name and contact are required so the institution can follow up. Technical submission data is retained for abuse prevention.',
     publicPrivacyNoteAnonymous: 'No name or contact is collected. Technical submission data is retained for abuse prevention.',

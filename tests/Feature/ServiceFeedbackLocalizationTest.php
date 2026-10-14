@@ -14,6 +14,7 @@ use App\Models\Position;
 use App\Models\PositionService;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Facades\RateLimiter;
+use Tests\Support\PublicFeedbackScenario;
 
 /*
  * The anonymous feedback form speaks the visitor's language: every refusal a
@@ -66,6 +67,7 @@ beforeEach(function (): void {
     ]);
 
     $employee->forceFill(['current_assignment_id' => $assignment->id])->save();
+    PublicFeedbackScenario::activeCard($employee);
 
     $this->token = app(EmployeeFeedbackTokenService::class)->ensureActiveToken($employee);
 

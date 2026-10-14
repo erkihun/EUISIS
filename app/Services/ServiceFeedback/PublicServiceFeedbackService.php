@@ -17,15 +17,17 @@ use Illuminate\Support\Collection;
 /**
  * The employee side of the anonymous public feedback flow.
  *
- * The governing rule is that NOTHING identifying about the employee crosses
- * this boundary. A scanned QR tells the client which office and role served
- * them — enough to be sure they are rating the right desk — and nothing more.
- * The employee's name, phone, email, national ID, salary and address never
- * enter a payload built here.
+ * The governing rule is minimal disclosure. A scanned QR of an employee with
+ * an active ID card shows the visitor the employee's photo and full name —
+ * enough to be sure they are writing about the person who served them — and
+ * nothing more (PublicEmployeeFeedbackIdentity). The employee's number,
+ * phone, email, national ID, salary, address and HR history never enter a
+ * payload built here.
  *
- * This is a deliberate contrast with the ID Checker, which reveals identity
- * only after the holder relays an OTP. Feedback has no such consent step, so
- * it compensates by revealing no person at all.
+ * This is a deliberate contrast with the ID Checker, which reveals the card
+ * holder's details only after the holder relays an OTP. Feedback has no such
+ * consent step, so it shows only what the card itself shows to anyone facing
+ * the holder: the photo and the name.
  *
  * Submissions themselves are written by PublicFeedbackSubmissionService for
  * every target type; the methods here keep the employee token entry points.
@@ -37,34 +39,6 @@ class PublicServiceFeedbackService
         private readonly PublicFeedbackTargetResolver $resolver,
         private readonly PublicFeedbackSubmissionService $submissions,
     ) {}
-
-    /**
-     * Build the safe, public-facing context for a scanned token.
-     *
-     * @return array{
-     *     display_name: string,
-     *     organization: string|null,
-     *     organization_unit: string|null,
-     *     position: string|null
-     * }
-     */
-    public function publicContext(EmployeeFeedbackToken $token, string $locale = 'en'): array
-    {
-        $context = $this->resolver->resolveEmployeeToken($token->token);
-
-        if ($context === null) {
-            return ['display_name' => $locale === 'am' ? 'የአገልግሎት ሰጪ' : 'Service Officer', 'organization' => null, 'organization_unit' => null, 'position' => null];
-        }
-
-        $display = $context->publicDisplay($locale);
-
-        return [
-            'display_name' => (string) $display['display_name'],
-            'organization' => $display['organization'],
-            'organization_unit' => $display['organization_unit'],
-            'position' => $display['position'],
-        ];
-    }
 
     /**
      * Services offered in the public dropdown for one position.

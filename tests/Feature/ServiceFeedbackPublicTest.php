@@ -24,6 +24,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Support\PublicFeedbackScenario;
 
 beforeEach(function (): void {
     $type = OrganizationType::query()->create(['code' => 'SF-TYPE', 'name_en' => 'Feedback Type']);
@@ -99,6 +100,9 @@ beforeEach(function (): void {
         'sort_order' => 0,
     ]);
 
+    // No employee service without an active ID card.
+    PublicFeedbackScenario::activeCard($this->employee);
+
     $this->token = app(EmployeeFeedbackTokenService::class)->ensureActiveToken($this->employee);
 
     RateLimiter::clear('sf-submit:'.$this->token->token.'|127.0.0.1');
@@ -111,9 +115,7 @@ it('opens the public feedback page with a valid token', function (): void {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Public/ServiceFeedback')
             ->where('available', true)
-            ->where('target.organization', 'Feedback Organization')
-            ->where('target.organization_unit', 'Licensing Unit')
-            ->where('target.position', 'Licensing Officer')
+            ->where('target', ['target_type' => 'employee', 'display_name' => 'Hanna Girma', 'photo_url' => null])
         );
 });
 
@@ -173,10 +175,9 @@ it('never exposes sensitive employee data on the public page', function (): void
 
     $body = $response->getContent();
 
-    // The employee's real identity and contact details must not appear
-    // anywhere in the rendered payload — not in props, not in markup.
-    expect($body)->not->toContain('Hanna')
-        ->and($body)->not->toContain('Girma')
+    // The full name is shown so the visitor can confirm the person; nothing
+    // else about them may appear anywhere — not in props, not in markup.
+    expect($body)->toContain('Hanna Girma')
         ->and($body)->not->toContain('1122334455667788')
         ->and($body)->not->toContain('0912345678')
         ->and($body)->not->toContain('hanna.girma@example.test')
@@ -184,11 +185,11 @@ it('never exposes sensitive employee data on the public page', function (): void
         ->and($body)->not->toContain($this->employee->id);
 });
 
-it('shows the position as the masked display name rather than the employee name', function (): void {
+it('shows the employee full name as the display name', function (): void {
     $this->get('/service-feedback/'.$this->token->token)
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('target.display_name', 'Licensing Officer')
+            ->where('target.display_name', 'Hanna Girma')
         );
 });
 
@@ -440,15 +441,14 @@ it('does not route a scanned feedback qr to the id checker', function (): void {
     expect($response->getContent())->not->toContain('Public/IdChecker');
 });
 
-it('shows the office context a client needs to confirm the right desk', function (): void {
+it('confirms the person by photo and name only, without the office or role', function (): void {
     $this->get('/service-feedback/'.$this->token->token)
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('target.organization', 'Feedback Organization')
-            ->where('target.organization_unit', 'Licensing Unit')
-            ->where('target.position', 'Licensing Officer')
-            // Masked by design: the desk is identified, the person is not.
-            ->where('target.display_name', 'Licensing Officer')
+            ->where('target.display_name', 'Hanna Girma')
+            ->missing('target.organization')
+            ->missing('target.organization_unit')
+            ->missing('target.position')
         );
 });
 

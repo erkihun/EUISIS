@@ -66,8 +66,8 @@ final readonly class IdCardRenderDataFactory
             status: $card->status->value,
 
             employeeNumber: $employee?->employee_number,
-            fullNameEn: $employee?->name_en ?: ($employee?->metadata['name_en'] ?? $employee?->full_name),
-            fullNameAm: $employee?->metadata['name_am'] ?? ($employee?->full_name ?: $employee?->name_en),
+            fullNameEn: $employee?->fullNameEn(),
+            fullNameAm: $employee?->fullNameAm(),
             gender: $employee?->gender,
             employmentStatus: $employee?->employment_type?->label(),
             dateOfBirthFormatted: $this->formatCardDate($employee?->date_of_birth),

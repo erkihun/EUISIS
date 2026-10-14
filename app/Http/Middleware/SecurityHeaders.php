@@ -24,7 +24,11 @@ class SecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
 
         // ── Referrer control ─────────────────────────────────────────────────
-        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        // A stricter policy set by a route (no-referrer on QR token pages,
+        // PrivateQrPageHeaders) is kept.
+        if (! $response->headers->has('Referrer-Policy')) {
+            $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        }
 
         // ── Browser feature restrictions ─────────────────────────────────────
         // geolocation=(self): Field Work GPS check-in/out reads the position

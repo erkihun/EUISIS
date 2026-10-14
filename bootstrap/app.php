@@ -17,6 +17,7 @@ use App\Http\Middleware\EnsurePublicSiteEnabled;
 use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PrivateQrPageHeaders;
 use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
@@ -98,6 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'force.password' => ForcePasswordChange::class,
             'mfa.setup' => EnsureMfaNotRequired::class,
             'public.site' => EnsurePublicSiteEnabled::class,
+            'qr.private' => PrivateQrPageHeaders::class,
         ]);
 
         /*

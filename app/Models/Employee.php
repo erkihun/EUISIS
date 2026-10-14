@@ -105,6 +105,21 @@ class Employee extends Model
         return $this->photo_path ? '/storage/'.$this->photo_path : null;
     }
 
+    /**
+     * The full name as the ID card prints it in English: the English name
+     * column, then the imported English name, then the primary name.
+     */
+    public function fullNameEn(): ?string
+    {
+        return $this->name_en ?: ($this->metadata['name_en'] ?? $this->full_name);
+    }
+
+    /** The full name as the ID card prints it in Amharic. */
+    public function fullNameAm(): ?string
+    {
+        return $this->metadata['name_am'] ?? ($this->full_name ?: $this->name_en);
+    }
+
     public function assignments(): HasMany
     {
         return $this->hasMany(EmployeeAssignment::class);

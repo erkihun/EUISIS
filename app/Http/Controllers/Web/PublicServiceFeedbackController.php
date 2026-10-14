@@ -12,6 +12,7 @@ use App\Http\Requests\StoreServiceFeedbackRequest;
 use App\Models\EmployeeServiceFeedback;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
+use App\Services\ServiceFeedback\PublicEmployeeFeedbackIdentity;
 use App\Services\ServiceFeedback\PublicFeedbackCategoryService;
 use App\Services\ServiceFeedback\PublicFeedbackFormToken;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
@@ -37,9 +38,11 @@ use Throwable;
  * resolver turns it into the target server-side and nothing the browser
  * posts can replace it (brief §14, 17).
  *
- * Unknown, suspended, revoked and disabled tokens, and inactive
- * organizations, all produce the SAME "unavailable" page. Distinguishing them
- * would let anyone with a token list learn which targets exist.
+ * Unknown, suspended, revoked and disabled tokens, employees without an active
+ * ID card, and inactive organizations, all produce the SAME "unavailable" page.
+ * Distinguishing them would let anyone with a token list learn which targets
+ * exist. Every submission resolves the token again, so a card revoked while
+ * the form was open blocks the send.
  */
 class PublicServiceFeedbackController extends Controller
 {
@@ -147,7 +150,10 @@ class PublicServiceFeedbackController extends Controller
         return Inertia::render('Public/ServiceFeedback', [
             'available' => true,
             'token' => $token,
-            'target' => $context->publicDisplay($locale),
+            // Employee: photo and full name only (PublicEmployeeFeedbackIdentity). Organization: unchanged.
+            'target' => $context->targetType === PublicFeedbackTargetType::Employee
+                ? PublicEmployeeFeedbackIdentity::fromContext($context, $token, $locale)->toArray()
+                : $context->publicDisplay($locale),
             'links' => $links,
             'serviceTypes' => $context->targetType === PublicFeedbackTargetType::Employee
                 ? $this->feedback->serviceOptions($context->contextPositionId, $locale)

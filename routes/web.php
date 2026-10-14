@@ -76,13 +76,6 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
-use App\Http\Controllers\Web\OrganizationFeedbackQrController;
-use App\Http\Controllers\Web\PublicFeedbackCategoryController;
-use App\Http\Controllers\Web\PublicFeedbackReferralController;
-use App\Http\Controllers\Web\PublicFeedbackReportController;
-use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
-use App\Http\Controllers\Web\PublicFeedbackSettingsController;
-use App\Http\Controllers\Web\PublicFeedbackSubjectController;
 use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
@@ -101,6 +94,7 @@ use App\Http\Controllers\Web\OccupationController;
 use App\Http\Controllers\Web\OrganizationalChangeRequestController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationEdgeController;
+use App\Http\Controllers\Web\OrganizationFeedbackQrController;
 use App\Http\Controllers\Web\OrganizationStructureImportController;
 use App\Http\Controllers\Web\OrganizationTypeController;
 use App\Http\Controllers\Web\OrganizationUnitController;
@@ -111,6 +105,13 @@ use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
 use App\Http\Controllers\Web\ProviderUserController;
+use App\Http\Controllers\Web\PublicFeedbackCategoryController;
+use App\Http\Controllers\Web\PublicFeedbackEmployeePhotoController;
+use App\Http\Controllers\Web\PublicFeedbackReferralController;
+use App\Http\Controllers\Web\PublicFeedbackReportController;
+use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
+use App\Http\Controllers\Web\PublicFeedbackSettingsController;
+use App\Http\Controllers\Web\PublicFeedbackSubjectController;
 use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
 use App\Http\Controllers\Web\PublicServiceFeedbackController;
@@ -456,35 +457,42 @@ Route::post('/id-checker/{cardUuid}/verify-otp', [PublicIdCheckerController::cla
 /*
  * Public Client Service Feedback — anonymous, no login.
  *
- * A separate QR from the ID card. Scanning opens a rating form for the service
- * an employee provided; the page shows the office, unit and role but never the
- * employee's name or any contact detail, so a leaked QR cannot be used to look
- * a person up.
+ * The feedback QR on the back of the ID card, separate from the OTP-gated ID
+ * Checker QR on the front. Scanning shows the employee's photo and full name
+ * — only while the employee holds an active ID card — and nothing else: no
+ * number, contact, office or role. The token is the only way in; there is no
+ * search or list, and `qr.private` keeps the pages out of search engines,
+ * Referer headers and shared caches.
  *
  * Rate limits: viewing is generous enough for a busy service desk, submitting
  * is tight and keyed on both token and IP so neither one client nor one desk
  * can be flooded with fabricated ratings.
  */
 Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'show'])
-    ->middleware('throttle:30,1')
+    ->middleware(['qr.private', 'throttle:30,1'])
     ->name('service-feedback.show');
 
 Route::post('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'store'])
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('service-feedback.store');
+
+// The employee's photo, through the signed short-lived link the page carries.
+Route::get('/service-feedback/{token}/photo', PublicFeedbackEmployeePhotoController::class)
+    ->middleware(['qr.private', 'signed:relative', 'throttle:service-feedback-photo'])
+    ->name('service-feedback.photo');
 
 Route::get('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'form'])
     ->where('type', 'feedback|suggestion|complaint')
-    ->middleware('throttle:30,1')
+    ->middleware(['qr.private', 'throttle:30,1'])
     ->name('service-feedback.form');
 
 Route::post('/service-feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeTypedFeedback'])
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('service-feedback.feedback.store');
 
 Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeEntry'])
     ->where('type', 'suggestion|complaint')
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('service-feedback.entry.store');
 
 /*
@@ -493,21 +501,21 @@ Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController
  * sheet (OrganizationFeedbackQrCode::publicUrl()).
  */
 Route::get('/feedback/{token}', [PublicServiceFeedbackController::class, 'showOrganization'])
-    ->middleware('throttle:30,1')
+    ->middleware(['qr.private', 'throttle:30,1'])
     ->name('public-feedback.organization.show');
 
 Route::get('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'formOrganization'])
     ->where('type', 'feedback|suggestion|complaint')
-    ->middleware('throttle:30,1')
+    ->middleware(['qr.private', 'throttle:30,1'])
     ->name('public-feedback.organization.form');
 
 Route::post('/feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeOrganizationFeedback'])
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('public-feedback.organization.feedback.store');
 
 Route::post('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeOrganizationEntry'])
     ->where('type', 'suggestion|complaint')
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('public-feedback.organization.entry.store');
 
 /*

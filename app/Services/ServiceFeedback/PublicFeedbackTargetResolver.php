@@ -4,17 +4,21 @@ declare(strict_types=1);
 
 namespace App\Services\ServiceFeedback;
 
+use App\Enums\EmployeeStatus;
 use App\Enums\PublicFeedbackSourceType;
 use App\Enums\PublicFeedbackTargetType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\EmployeeFeedbackToken;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * The one place a scanned QR becomes a submission target.
  *
  * Employee QR → the employee's own feedback token (unchanged, never rotated
- * by this feature) → the employee plus their current assignment, snapshotted
- * so a later transfer cannot move the submission. Organization QR → the
+ * by this feature) → the employee, only while active and holding an active ID
+ * card, plus their current assignment, snapshotted so a later transfer cannot
+ * move the submission. Organization QR → the
  * organization's feedback QR row (Phase 2). Both lookups are direct indexed
  * reads: nothing here scales with the number of employees (brief §98, 102).
  */
@@ -27,11 +31,13 @@ class PublicFeedbackTargetResolver
 
     public function resolveEmployeeToken(string $token): ?TargetContext
     {
-        $record = $this->tokens->resolveForPublic($token);
+        $record = $this->employeeTokenForPublic($token);
 
         if ($record === null) {
             return null;
         }
+
+        $employee = $record->employee;
 
         $assignment = EmployeeAssignment::query()
             ->with([
@@ -44,9 +50,11 @@ class PublicFeedbackTargetResolver
             ->latest('effective_from')
             ->first();
 
-        $employeeNumber = $record->employee?->employee_number ?? Employee::query()->whereKey($record->employee_id)->value('employee_number');
+        $employeeNumber = $employee->employee_number;
 
         $names = [
+            // The ID card's own name rule, so the page shows the name printed on the card.
+            'employee' => ['en' => $employee->fullNameEn(), 'am' => $employee->fullNameAm()],
             'organization' => ['en' => $assignment?->organization?->name_en, 'am' => $assignment?->organization?->name_am],
             'organization_unit' => ['en' => $assignment?->organizationUnit?->name_en, 'am' => $assignment?->organizationUnit?->name_am],
             'position' => ['en' => $assignment?->position?->title_en, 'am' => $assignment?->position?->title_am],
@@ -66,7 +74,39 @@ class PublicFeedbackTargetResolver
             targetNameSnapshot: self::firstFilled($names['position']['en'], $names['organization_unit']['en'], 'Service Officer'),
             targetCodeSnapshot: $employeeNumber !== null ? (string) $employeeNumber : null,
             names: $names,
+            extras: [
+                // Changes when the photo is replaced, so the page asks for the new one; reveals nothing of the path.
+                'photo_version' => $employee->photo_path ? substr(hash('sha256', (string) $employee->photo_path), 0, 16) : null,
+            ],
         );
+    }
+
+    /**
+     * A scanned employee token that may serve the public right now: the token
+     * accepts feedback, the employee is active, and the employee holds an
+     * ACTIVE ID card — no employee service while the card is not active.
+     *
+     * Checked on every page view, photo request and submission, so a card
+     * revoked while a visitor fills in the form blocks the send. Unknown,
+     * revoked, inactive and card-less cases all return null alike.
+     */
+    public function employeeTokenForPublic(string $token): ?EmployeeFeedbackToken
+    {
+        $record = $this->tokens->resolveForPublic($token);
+
+        if ($record === null || $record->employee->status !== EmployeeStatus::Active || ! $this->holdsActiveCard($record->employee)) {
+            return null;
+        }
+
+        return $record;
+    }
+
+    /** One indexed lookup on the employee's cards, with the service-eligibility meaning of "active". */
+    private function holdsActiveCard(Employee $employee): bool
+    {
+        return $employee->activeIdCard()
+            ->where(fn (Builder $query) => $query->whereNull('qr_status')->orWhere('qr_status', '!=', 'revoked'))
+            ->exists();
     }
 
     private static function firstFilled(?string ...$candidates): string

@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Tests\Support\PublicFeedbackScenario;
 
 /** Build an organization with one employee and a feedback token. */
 function feedbackOrg(string $prefix): array
@@ -654,6 +655,7 @@ it('does not shadow the public feedback route with the admin routes', function (
     $this->actingAs($this->superAdmin)->post(route('employees.feedback-qr.generate', $employee->id));
 
     $token = EmployeeFeedbackToken::query()->where('employee_id', $employee->id)->firstOrFail();
+    PublicFeedbackScenario::activeCard($employee);
 
     // The public page must still resolve for an anonymous visitor.
     auth()->logout();
@@ -773,6 +775,7 @@ it('makes an auto-provisioned token immediately scannable by the public', functi
     $this->actingAs($this->superAdmin)->get(route('employees.feedback-qr.show', $employee->id))->assertOk();
 
     $token = EmployeeFeedbackToken::query()->where('employee_id', $employee->id)->firstOrFail();
+    PublicFeedbackScenario::activeCard($employee);
 
     // The service must be attached to this employee's position before a client
     // can rate it — services belong to the role that performs them.

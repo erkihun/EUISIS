@@ -8,12 +8,53 @@ and its OTP flow. Neither QR is rotated by this feature. The 64-character random
 feedback token resolves the target employee on the server; the browser never
 selects or submits `employee_id`.
 
-Scanning opens a mobile-first landing page with exactly three options:
-Feedback (አስተያየት), Suggestion (ጥቆማ), and Complaint (ቅሬታ). Each typed form
-re-resolves the same active token on submission. Unknown, revoked and suspended
-tokens show one generic unavailable state. Public pages show only the office,
-unit and role label already allowed by the feedback QR policy. They do not show
-the employee's name, photo, number, phone or other HR data.
+Scanning opens a mobile-first landing page that shows the employee's **photo
+and full name** and then exactly three options: Feedback (አስተያየት), Suggestion
+(ጥቆማ), and Complaint (ቅሬታ), under the prompt "ለዚህ ሠራተኛ ምን ማቅረብ ይፈልጋሉ? /
+What would you like to submit for this employee?". Each typed form re-resolves
+the same token on submission.
+
+The token resolves only while the employee is active **and holds an ACTIVE ID
+card** (`Employee::activeIdCard`: status active, not revoked, not expired, QR
+reference not revoked) — no employee service while the card is not active.
+Unknown, revoked and suspended tokens, inactive employees and employees whose
+card is inactive, suspended, lost, revoked, expired or missing all show one
+generic unavailable state with no name or photo. The check runs on every page
+view, photo request and submission, so a card revoked while the form is open
+blocks the send.
+
+## Identity confirmation: photo and name only
+
+The employee page receives `PublicEmployeeFeedbackIdentity` —
+`{target_type, display_name, photo_url}` — and nothing else: no employee number,
+national ID, phone, e-mail, date of birth, address, office, unit, position, HR
+history or internal id. `display_name` follows the ID card's own name rule
+(`Employee::fullNameAm()` / `fullNameEn()`) in the visitor's language. The
+organization QR page is unchanged.
+
+The photo stays on the private disk. `photo_url` is a relative signed link,
+`/service-feedback/{token}/photo?expires=…&v=…&signature=…`, valid for 10–15
+minutes (the expiry is rounded to a five-minute window so every screen of a
+visit reuses one URL). The token in the path decides whose photo it is — there
+is no employee id to change — and the route re-checks token, employee and card
+on each request, so revoking the card ends the photo at once. It serves a
+384 px derived copy (`EmployeePhotoStorage::thumbnail`, made once on first
+request under `employee-photo-thumbnails/` on the private disk, removed with the
+photo; the original is never altered), only as JPEG/PNG/WebP after MIME
+sniffing, under the fixed name `photo.{ext}`, with `Cache-Control: private,
+max-age=300`. A missing photo, an inactive card and an invalid link all answer
+404 and the page shows a neutral avatar; the name and choices remain.
+
+All `/service-feedback/*` and `/feedback/*` responses carry `X-Robots-Tag:
+noindex, nofollow, noarchive`, `Referrer-Policy: no-referrer` and (pages)
+`Cache-Control: no-store, private` (`PrivateQrPageHeaders`, alias
+`qr.private`); the layout repeats the robots and referrer meta tags. The site
+has no sitemap and the CSP admits no third-party script or image. These
+controls deter indexing and bulk scraping; they cannot stop someone who holds
+a valid code from viewing or photographing what the page shows.
+
+The OTP-gated ID Checker (`/id-checker/{card}`) is unchanged and shares no
+response with this page.
 
 Feedback keeps the existing required 1–5 rating and optional comment. Suggestion
 requires text and has no rating. Complaint requires a description, may include
@@ -33,7 +74,9 @@ is encrypted at rest; only `service_feedback.view_submitter_identity` shows
 it. IP address and user agent are retained for abuse investigation but
 excluded from Inertia payloads. Submission routes use CSRF, a one-time form
 token, a duplicate guard and the token/IP rate limiter whose thresholds come
-from the policy (`rate_limit_per_source`, `rate_limit_per_ip`) and which runs
+from the policy (`rate_limit_per_source`, `rate_limit_per_ip`); the photo route
+has its own `service-feedback-photo` limiter (30/min per token and address,
+120/min per address). All limiters run
 on the configured cache limiter store. The server validates any selected
 position service against the target employee's current position, regardless
 of what the browser posts. There is no employee search or target switch.

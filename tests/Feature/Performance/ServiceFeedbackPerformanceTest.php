@@ -27,6 +27,7 @@ use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Tests\Support\PublicFeedbackScenario;
 
 /*
  * Client feedback → position service → position plan item → agreement item → KPI actual.
@@ -46,6 +47,7 @@ beforeEach(function (): void {
     $this->employee = Employee::query()->create(['employee_number' => 'FB-E', 'first_name' => 'Test', 'last_name' => 'Officer', 'full_name' => 'Test Officer', 'status' => EmployeeStatus::Active->value]);
     $assignment = EmployeeAssignment::query()->create(['employee_id' => $this->employee->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'position_id' => $this->position->id, 'is_current' => true, 'assignment_status' => AssignmentStatus::Active->value, 'effective_from' => '2026-01-01']);
     $this->employee->forceFill(['current_assignment_id' => $assignment->id])->save();
+    PublicFeedbackScenario::activeCard($this->employee);
     $this->token = app(EmployeeFeedbackTokenService::class)->ensureActiveTokenFor($this->employee);
 
     $cycle = PerformanceCycle::query()->create(['code' => 'FB-FY', 'name_en' => 'FY 2026', 'organization_id' => $this->org->id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);

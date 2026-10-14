@@ -25,6 +25,7 @@ use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Tests\Support\PublicFeedbackScenario;
 
 /** An organization with one position and an employee assigned to it. */
 function positionOrg(string $prefix): array
@@ -76,6 +77,7 @@ function positionOrg(string $prefix): array
     ]);
 
     $employee->forceFill(['current_assignment_id' => $assignment->id])->save();
+    PublicFeedbackScenario::activeCard($employee);
 
     $token = app(EmployeeFeedbackTokenService::class)->ensureActiveTokenFor($employee);
 

@@ -62,19 +62,18 @@ final readonly class TargetContext
     }
 
     /**
-     * The safe public confirmation of the target (brief §18, 20): office, unit
-     * and masked role for an employee; name, short name and logo for an
-     * organization. Never a person's name, number or contact.
+     * The safe public confirmation of the target (brief §18, 20): the
+     * employee's full name only — the page adds the photo through
+     * PublicEmployeeFeedbackIdentity; name, short name and logo for an
+     * organization. Never an employee's number, contact, office or role.
      *
      * @return array<string, string|null>
      */
     public function publicDisplay(string $locale = 'en'): array
     {
-        $organization = $this->localized('organization', $locale);
-        $unit = $this->localized('organization_unit', $locale);
-        $position = $this->localized('position', $locale);
-
         if ($this->targetType === PublicFeedbackTargetType::Organization) {
+            $organization = $this->localized('organization', $locale);
+
             return [
                 'target_type' => $this->targetType->value,
                 'display_name' => $organization ?? '',
@@ -88,10 +87,7 @@ final readonly class TargetContext
 
         return [
             'target_type' => $this->targetType->value,
-            'display_name' => $position ?? $unit ?? ($locale === 'am' ? 'የአገልግሎት ሰጪ' : 'Service Officer'),
-            'organization' => $organization,
-            'organization_unit' => $unit,
-            'position' => $position,
+            'display_name' => $this->localized('employee', $locale) ?? ($locale === 'am' ? 'ሠራተኛ' : 'Employee'),
         ];
     }
 

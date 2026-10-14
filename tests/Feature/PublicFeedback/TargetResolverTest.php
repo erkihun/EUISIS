@@ -35,13 +35,13 @@ it('resolves an active employee feedback token to an employee target with its se
         ->and($context->targetCodeSnapshot)->toBe('TRS-EMP-1');
 });
 
-it('shows only the office, unit and masked role for an employee target', function (): void {
+it('shows only the full name for an employee target, never the number, office or role', function (): void {
     $display = $this->resolver->resolveEmployeeToken($this->scenario->token->token)->publicDisplay('am');
 
-    expect($display)->toHaveKeys(['target_type', 'display_name', 'organization', 'organization_unit', 'position'])
+    expect(array_keys($display))->toBe(['target_type', 'display_name'])
         ->and($display['target_type'])->toBe('employee')
-        ->and($display['display_name'])->toBe('የፈቃድ ባለሙያ')
-        ->and(json_encode($display))->not->toContain('Hanna')->not->toContain('TRS-EMP-1');
+        ->and($display['display_name'])->toBe('Hanna Girma')
+        ->and(json_encode($display, JSON_UNESCAPED_UNICODE))->not->toContain('TRS-EMP-1')->not->toContain('የፈቃድ ባለሙያ')->not->toContain('Licensing');
 });
 
 it('resolves nothing for an unknown, suspended or revoked employee token', function (): void {

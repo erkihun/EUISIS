@@ -21,10 +21,11 @@ import { toast } from '@/lib/toast';
  * camera permission.
  *
  * The page never decides WHO a submission is about. The server resolved the
- * scanned token to a target and sends only what a visitor may see of it: a
- * masked role, office and unit for an employee; name and logo for an
- * institution. Every URL comes from the server too (`links`), so the page
- * assembles none and cannot point a form at a different target.
+ * scanned token to a target and sends only what a visitor may see of it: the
+ * photo and full name of an employee with an active ID card, so the visitor can
+ * confirm they reached the person who served them; name and logo for an
+ * institution. Every URL comes from the server too (`links`, the signed photo
+ * link), so the page assembles none and cannot point a form at another target.
  */
 
 interface ServiceTypeOption {
@@ -37,10 +38,11 @@ interface ServiceTypeOption {
 /** Everything the public page is permitted to know about the target. */
 interface TargetDisplay {
     target_type: 'employee' | 'organization';
+    /** The employee's full name, or the institution's name. */
     display_name: string;
-    organization: string | null;
-    organization_unit: string | null;
-    position: string | null;
+    /** Employee: a short-lived signed link to the photo; null when there is none. */
+    photo_url?: string | null;
+    /** Institution only. */
     logo_url?: string | null;
     short_name?: string | null;
 }
@@ -134,32 +136,90 @@ const KINDS: Record<SubmissionKind, { label: string; hint: string; submitted: st
     },
 };
 
-/** Office · unit, without repeating the role the heading already names. */
-function contextLine(target: TargetDisplay): string {
-    return [target.organization, target.organization_unit, target.position]
-        .filter((part): part is string => Boolean(part) && part !== target.display_name)
-        .join(' · ');
+/** Photo frames: a portrait on the choice screen, a small round avatar beside the name on a form. */
+const PHOTO_FRAMES = {
+    lg: { box: 'h-40 w-32 rounded-3xl', width: 128, height: 160, icon: 'h-16 w-16' },
+    md: { box: 'h-11 w-11 rounded-full', width: 44, height: 44, icon: 'h-6 w-6' },
+} as const;
+
+/**
+ * The scanned employee's photo, so the visitor can see they reached the right
+ * person. The frame has a fixed size, so nothing shifts while it loads under a
+ * soft placeholder. No photo, or one that fails to load, shows a neutral
+ * silhouette — never a broken image — and the name and the choices stay.
+ * Callers key it by URL, so another employee's page never shows this photo.
+ */
+function EmployeePhoto({ url, size }: { url: string | null | undefined; size: keyof typeof PHOTO_FRAMES }) {
+    const { t } = useLocale();
+    const frame = PHOTO_FRAMES[size];
+    const imageRef = useRef<HTMLImageElement>(null);
+    const [state, setState] = useState<'loading' | 'loaded' | 'failed'>(url ? 'loading' : 'failed');
+
+    // A photo the browser already holds can finish loading before React listens for it.
+    useEffect(() => {
+        const image = imageRef.current;
+        if (image?.complete) setState(image.naturalWidth > 0 ? 'loaded' : 'failed');
+    }, []);
+
+    return (
+        <span className={`relative block shrink-0 overflow-hidden bg-[color:var(--app-surface-muted)] ring-1 ring-[color:var(--app-border)] ${frame.box}`}>
+            {url && state !== 'failed' ? (
+                <>
+                    <img
+                        ref={imageRef}
+                        src={url}
+                        // The name is printed right beside the small avatar; only the large photo needs a description.
+                        alt={size === 'lg' ? t('serviceFeedback.employeePhotoAlt') : ''}
+                        width={frame.width}
+                        height={frame.height}
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        onLoad={() => setState('loaded')}
+                        onError={() => setState('failed')}
+                        className={`h-full w-full object-cover object-[50%_25%] transition-opacity duration-200 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+                    />
+                    {state === 'loading' && <span className="absolute inset-0 animate-pulse bg-[color:var(--app-border)] opacity-60" aria-hidden="true" />}
+                </>
+            ) : (
+                <span className="flex h-full w-full items-center justify-center text-[color:var(--app-muted-foreground)]" aria-hidden="true">
+                    <UserIcon className={frame.icon} />
+                </span>
+            )}
+        </span>
+    );
 }
 
-/** The institution's logo, or a building or person mark for a desk. */
+/** The employee's photo, or the institution's logo or a building mark. */
 function TargetMark({ target, size }: { target: TargetDisplay; size: 'md' | 'lg' }) {
+    if (target.target_type === 'employee') {
+        return <EmployeePhoto key={target.photo_url ?? 'none'} url={target.photo_url} size="md" />;
+    }
     const box = size === 'lg' ? 'h-14 w-14 rounded-2xl' : 'h-11 w-11 rounded-xl';
 
-    if (target.target_type === 'organization' && target.logo_url) {
+    if (target.logo_url) {
         return <img src={target.logo_url} alt="" className={`${box} shrink-0 border border-[color:var(--app-border)] bg-white object-contain p-1`} />;
     }
-    const Icon = target.target_type === 'organization' ? Building2 : UserIcon;
 
     return (
         <span className={`${box} flex shrink-0 items-center justify-center bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]`} aria-hidden="true">
-            <Icon className={size === 'lg' ? 'h-7 w-7' : 'h-6 w-6'} />
+            <Building2 className={size === 'lg' ? 'h-7 w-7' : 'h-6 w-6'} />
         </span>
+    );
+}
+
+/** The scanned employee as the choice screen confirms them: photo and full name, nothing else. */
+function EmployeeIdentityCard({ target }: { target: TargetDisplay }) {
+    return (
+        <div className={`${cardClass} flex flex-col items-center px-5 pb-5 pt-6 text-center`}>
+            <EmployeePhoto key={target.photo_url ?? 'none'} url={target.photo_url} size="lg" />
+            <h2 className="mt-4 text-xl font-bold leading-snug text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{target.display_name}</h2>
+        </div>
     );
 }
 
 /** Who the visitor is writing about, as they may see it. */
 function TargetCard({ target, intro }: { target: TargetDisplay; intro?: string }) {
-    const detail = target.target_type === 'employee' ? contextLine(target) : target.short_name ?? '';
+    const detail = target.target_type === 'organization' ? target.short_name ?? '' : '';
 
     return (
         <div className={cardClass}>
@@ -687,10 +747,14 @@ function ChoiceScreen({ target, links, enabledTypes, identityMode }: { target: T
     return (
         <FeedbackAppLayout title={t(organization ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}>
             <div className="flex flex-1 flex-col gap-6 px-4 pb-8 pt-5">
-                <TargetCard target={target} intro={t(organization ? 'serviceFeedback.aboutInstitution' : 'serviceFeedback.publicIntro')} />
+                {organization
+                    ? <TargetCard target={target} intro={t('serviceFeedback.aboutInstitution')} />
+                    : <EmployeeIdentityCard target={target} />}
 
                 <section aria-labelledby="choose-type">
-                    <h2 id="choose-type" className="px-1 text-base font-bold text-[color:var(--app-foreground)]">{t('serviceFeedback.chooseType')}</h2>
+                    <h2 id="choose-type" className={`px-1 text-base font-bold text-[color:var(--app-foreground)] ${organization ? '' : 'text-center'}`}>
+                        {t(organization ? 'serviceFeedback.chooseType' : 'serviceFeedback.employeeChoosePrompt')}
+                    </h2>
                     <ul className="mt-3 space-y-3">
                         {offered.map((kind) => {
                             const { Icon, label, hint, tone } = KINDS[kind];

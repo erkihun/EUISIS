@@ -30,35 +30,34 @@ use App\Models\EntitlementRule;
 use App\Models\FieldWorkRequest;
 use App\Models\GradeLevel;
 use App\Models\IdCard;
-use App\Models\IsicActivity;
 use App\Models\InstitutionMandate;
-use App\Models\Occupation;
-use App\Models\OrganizationFunction;
-use App\Models\OrganizationPower;
+use App\Models\IsicActivity;
 use App\Models\JobDescription;
 use App\Models\ManpowerPlan;
-use App\Models\OrganizationDesignReportExport;
-use App\Models\PublicFeedbackReportExport;
-use App\Models\PositionProfile;
-use App\Models\OrganizationDesignStudy;
-use App\Models\WorkforcePlanningMethodology;
-use App\Models\Process;
-use App\Models\Service;
-use App\Models\ServiceClassification;
+use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\OrganizationalChangeRequest;
+use App\Models\OrganizationDesignReportExport;
+use App\Models\OrganizationDesignStudy;
 use App\Models\OrganizationEdge;
+use App\Models\OrganizationFunction;
+use App\Models\OrganizationPower;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Permission;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
+use App\Models\PositionProfile;
 use App\Models\PositionService;
+use App\Models\Process;
 use App\Models\ProviderUser;
+use App\Models\PublicFeedbackReportExport;
 use App\Models\PublicHoliday;
-use App\Models\Role; // alias to avoid clash with Illuminate\Support\ServiceProvider
-use App\Models\ServiceProvider as ServiceProviderModel;
+use App\Models\Role;
+use App\Models\Service;
+use App\Models\ServiceClassification;
+use App\Models\ServiceProvider as ServiceProviderModel; // alias to avoid clash with Illuminate\Support\ServiceProvider
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
@@ -69,6 +68,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
+use App\Models\WorkforcePlanningMethodology;
 use App\Observers\EmployeeAssignmentCardImpactObserver;
 use App\Policies\AssessmentFormPolicy;
 use App\Policies\AuditLogPolicy;
@@ -93,32 +93,31 @@ use App\Policies\EntitlementRulePolicy;
 use App\Policies\FieldWorkRequestPolicy;
 use App\Policies\GradeLevelPolicy;
 use App\Policies\IdCardPolicy;
-use App\Policies\IsicActivityPolicy;
 use App\Policies\InstitutionMandatePolicy;
-use App\Policies\OccupationPolicy;
-use App\Policies\OrganizationFunctionPolicy;
+use App\Policies\IsicActivityPolicy;
 use App\Policies\ManpowerPlanPolicy;
-use App\Policies\OrganizationDesignReportExportPolicy;
-use App\Policies\PublicFeedbackReportExportPolicy;
-use App\Policies\PositionDesignPolicy;
-use App\Policies\OrganizationDesignStudyPolicy;
-use App\Policies\WorkforcePlanningMethodologyPolicy;
-use App\Policies\ProcessPolicy;
-use App\Policies\ServiceClassificationPolicy;
-use App\Policies\ServicePolicy;
+use App\Policies\OccupationPolicy;
 use App\Policies\OrganizationalChangeRequestPolicy;
+use App\Policies\OrganizationDesignReportExportPolicy;
+use App\Policies\OrganizationDesignStudyPolicy;
 use App\Policies\OrganizationEdgePolicy;
+use App\Policies\OrganizationFunctionPolicy;
 use App\Policies\OrganizationPolicy;
 use App\Policies\OrganizationTypePolicy;
 use App\Policies\OrganizationUnitPolicy;
 use App\Policies\OrganizationUnitTypePolicy;
 use App\Policies\PermissionPolicy;
+use App\Policies\PositionDesignPolicy;
 use App\Policies\PositionEstablishmentPolicy;
 use App\Policies\PositionPolicy;
 use App\Policies\PositionServicePolicy;
+use App\Policies\ProcessPolicy;
 use App\Policies\ProviderUserPolicy;
+use App\Policies\PublicFeedbackReportExportPolicy;
 use App\Policies\PublicHolidayPolicy;
 use App\Policies\RolePolicy;
+use App\Policies\ServiceClassificationPolicy;
+use App\Policies\ServicePolicy;
 use App\Policies\ServiceProviderPolicy;
 use App\Policies\ServiceTransactionPolicy;
 use App\Policies\ServiceTypePolicy;
@@ -130,6 +129,7 @@ use App\Policies\UserOrganizationScopePolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VacancyAnnouncementPolicy;
 use App\Policies\VacancyApplicationPolicy;
+use App\Policies\WorkforcePlanningMethodologyPolicy;
 use App\Security\Hashing\MigratingArgon2IdHasher;
 use App\Security\Passwords\CompromisedPasswordChecker;
 use App\Security\Passwords\HibpCompromisedPasswordChecker;
@@ -142,8 +142,8 @@ use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
 use App\Services\Security\SessionActivityService;
-use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
+use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
@@ -330,7 +330,7 @@ class AppServiceProvider extends ServiceProvider
                     $perSource = $policy->rateLimitPerSource();
                     $perIp = $policy->rateLimitPerIp();
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Defaults stand while the database is unavailable.
             }
 
@@ -339,6 +339,17 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinutes(10, $perIp)->by('sf-submit-ip:'.$request->ip()),
             ];
         });
+
+        /*
+         * The photo on the employee feedback page: about one request per screen
+         * of a visit, and the browser reuses it, so this only stops a script
+         * pulling photos in bulk. The per-IP ceiling stays generous because a
+         * whole service hall can share one mobile carrier address.
+         */
+        RateLimiter::for('service-feedback-photo', fn (Request $request): array => [
+            Limit::perMinute(30)->by('sf-photo:'.$request->route('token').'|'.$request->ip()),
+            Limit::perMinute(120)->by('sf-photo-ip:'.$request->ip()),
+        ]);
 
         RateLimiter::for('api', function (Request $request): array {
             $perMinute = 120;

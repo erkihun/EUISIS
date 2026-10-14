@@ -13,6 +13,8 @@ export default {
     publicTitle: 'አስተያየትና ጥቆማ',
     publicLandingTitle: 'የሠራተኛ አገልግሎት አስተያየት',
     chooseType: 'ምን ማቅረብ ይፈልጋሉ?',
+    employeeChoosePrompt: 'ለዚህ ሠራተኛ ምን ማቅረብ ይፈልጋሉ?',
+    employeePhotoAlt: 'የሠራተኛው መገለጫ ፎቶ',
     // የQR ገጾች፣ እንደ ሞባይል መተግበሪያ ማያዎች
     typeFeedbackHint: 'ያገኙትን አገልግሎት በኮከብ ይመዝኑ',
     typeSuggestionHint: 'አገልግሎቱን ለማሻሻል ሀሳብዎን ያካፍሉ',
@@ -68,7 +70,6 @@ export default {
     submissionDetails: 'የጉዳዩ ዝርዝር',
     reviewSubmission: 'ጉዳዩን ይገምግሙ',
     saveReview: 'ግምገማውን ያስቀምጡ',
-    publicIntro: 'በዚህ የአገልግሎት መስጫ ስለተሰጠዎት አገልግሎት አስተያየት እየሰጡ ነው።',
     publicPrivacyNote: 'ስምና የመገናኛ መረጃ መስጠት አማራጭ ነው። ያለአግባብ መጠቀምን ለመከላከል ስለ አላላኩ የቴክኒክ መረጃ ይያዛል።',
     publicPrivacyNoteIdentified: 'ተቋሙ ክትትል እንዲያደርግ ስምዎና የመገናኛ መረጃዎ ያስፈልጋሉ። ያለአግባብ መጠቀምን ለመከላከል ስለ አላላኩ የቴክኒክ መረጃ ይያዛል።',
     publicPrivacyNoteAnonymous: 'ስም ወይም የመገናኛ መረጃ አይሰበሰብም። ያለአግባብ መጠቀምን ለመከላከል ስለ አላላኩ የቴክኒክ መረጃ ይያዛል።',

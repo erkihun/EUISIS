@@ -32,8 +32,9 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
     return (
         <LocalizedUiProvider>
             <Head title={title}>
-                {/* Scanned-code pages carry a private token: never indexed. */}
-                <meta head-key="robots" name="robots" content="noindex, nofollow" />
+                {/* Scanned-code pages carry a private token: never indexed, never sent on as a Referer. */}
+                <meta head-key="robots" name="robots" content="noindex, nofollow, noarchive" />
+                <meta head-key="referrer" name="referrer" content="no-referrer" />
             </Head>
 
             <div className="min-h-dvh bg-slate-100 dark:bg-slate-950">
