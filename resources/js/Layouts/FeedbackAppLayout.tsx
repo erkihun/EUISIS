@@ -81,11 +81,18 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
  * The bottom action bar of a form screen: the Send button stays under the
  * thumb while the visitor scrolls the form, and clears the home indicator.
  * Rendered as the last child of the <form>, so its button submits the form.
+ * Below md it is fixed to the bottom of the screen (sticky positioning was
+ * not reliable in every phone browser); from md up it stays sticky in the
+ * column as before.
  */
 export function FeedbackActionBar({ children }: { children: ReactNode }) {
     return (
-        <div className="sticky bottom-0 z-20 mt-auto border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3">
-            {children}
-        </div>
+        <>
+            {/* Phones: the bar is fixed to the screen, so this spacer keeps the last field clear of it. */}
+            <div className="mt-auto h-[calc(4.25rem+max(12px,env(safe-area-inset-bottom)))] shrink-0 md:hidden" aria-hidden="true" />
+            <div className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 shadow-[0_-1px_8px_rgba(15,23,42,0.06)] sm:border-x md:sticky md:mt-auto md:shadow-none">
+                {children}
+            </div>
+        </>
     );
 }
