@@ -566,6 +566,17 @@ enum AuditEventType: string
     case ServiceFeedbackReferralDecided = 'service_feedback.referral_decided';
 
     /*
+     * Executive Situation Room: management actions, exports and drill-downs
+     * that open submission text. Counts and identifiers are recorded; never
+     * the submission text itself.
+     */
+    case SituationRoomActionCreated = 'situation_room.action_created';
+    case SituationRoomActionAssigned = 'situation_room.action_assigned';
+    case SituationRoomActionStatusChanged = 'situation_room.action_status_changed';
+    case SituationRoomExportRequested = 'situation_room.export_requested';
+    case SituationRoomDetailViewed = 'situation_room.detail_viewed';
+
+    /*
      * Public Site Management. Changed field NAMES are recorded, never uploaded
      * file content or rendered HTML.
      */

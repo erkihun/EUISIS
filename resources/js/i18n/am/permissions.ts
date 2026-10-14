@@ -158,6 +158,7 @@ const permissions = {
         'service-transactions': 'የአገልግሎት ግብይቶች',
         'service-types': 'የአገልግሎት ዓይነቶች',
         'service_feedback': 'የሕዝብ አስተያየት',
+        'situation_room': 'የአመራር ሁኔታ መከታተያ ማዕከል',
         'strategic_goals': 'ስትራቴጂያዊ ግቦች',
         'structural-offices': 'መዋቅራዊ ጽሕፈት ቤቶች',
         'system-settings': 'የሥርዓት ቅንብሮች',

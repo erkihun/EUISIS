@@ -158,6 +158,7 @@ const permissions = {
         'service-transactions': 'Service Transactions',
         'service-types': 'Service Types',
         'service_feedback': 'Public feedback',
+        'situation_room': 'Executive Situation Room',
         'strategic_goals': 'Strategic goals',
         'structural-offices': 'Structural Offices',
         'system-settings': 'System Settings',

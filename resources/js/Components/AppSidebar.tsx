@@ -213,6 +213,16 @@ const navGroups: NavGroup[] = [
         items: selfServiceNav,
     },
     {
+        key: 'situationRoom',
+        labelKey: 'nav.groupSituationRoom',
+        icon: FileChartIcon,
+        items: [
+            { routeName: 'situation-room.index', labelKey: 'nav.situationRoom', icon: FileChartIcon, permission: 'situation_room.view' },
+            { routeName: 'situation-room.wall', labelKey: 'nav.situationRoomWall', icon: ActivityIcon, permission: 'situation_room.wall_mode' },
+            { routeName: 'situation-room.actions.index', labelKey: 'nav.situationRoomActions', icon: ClipboardCheckIcon, permission: 'situation_room.view' },
+        ],
+    },
+    {
         key: 'organization',
         labelKey: 'nav.groupOrganization',
         icon: Building2,

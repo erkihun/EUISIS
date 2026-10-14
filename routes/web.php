@@ -123,6 +123,8 @@ use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceSubmissionController;
 use App\Http\Controllers\Web\ServiceTypeController;
+use App\Http\Controllers\Web\SituationRoomActionController;
+use App\Http\Controllers\Web\SituationRoomController;
 use App\Http\Controllers\Web\SystemSettingController;
 use App\Http\Controllers\Web\TypographyTestController;
 use App\Http\Controllers\Web\UserController;
@@ -1315,6 +1317,27 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::delete('/work-structure/standards/{standard}', [WorkStructureController::class, 'destroyStandard'])->whereUuid('standard')->name('work-structure.standards.destroy');
     Route::post('/work-structure/standards/{standard}/approve', [WorkStructureController::class, 'approveStandard'])->whereUuid('standard')->name('work-structure.standards.approve');
     Route::post('/work-structure/standards/{standard}/retire', [WorkStructureController::class, 'retireStandard'])->whereUuid('standard')->name('work-structure.standards.retire');
+
+    /*
+     * Executive Situation Room (docs/executive-situation-room.md): aggregate
+     * community voice per institution in the user's scope. Each action checks
+     * its situation_room.* permission and the institution server-side.
+     */
+    Route::prefix('situation-room')->name('situation-room.')->group(function (): void {
+        Route::get('/', [SituationRoomController::class, 'index'])->name('index');
+        Route::get('/organizations/{organization}', [SituationRoomController::class, 'organization'])->whereUuid('organization')->name('organization');
+        Route::get('/wall', [SituationRoomController::class, 'wall'])->name('wall');
+        Route::post('/refresh', [SituationRoomController::class, 'refresh'])->middleware('throttle:30,1')->name('refresh');
+        Route::get('/organization-options', [SituationRoomController::class, 'organizationOptions'])->middleware('throttle:120,1')->name('organization-options');
+        Route::get('/targeted-employees', [SituationRoomController::class, 'targetedEmployees'])->name('employees');
+        Route::get('/targeted-employees/{employee}', [SituationRoomController::class, 'targetedEmployee'])->whereUuid('employee')->name('employee');
+        Route::post('/exports', [SituationRoomController::class, 'export'])->middleware('throttle:10,1')->name('exports.store');
+        Route::get('/exports/{export}', [SituationRoomController::class, 'download'])->whereUuid('export')->name('exports.download');
+        Route::get('/actions', [SituationRoomActionController::class, 'index'])->name('actions.index');
+        Route::get('/actions/owners', [SituationRoomActionController::class, 'owners'])->middleware('throttle:120,1')->name('actions.owners');
+        Route::post('/actions', [SituationRoomActionController::class, 'store'])->name('actions.store');
+        Route::patch('/actions/{action}', [SituationRoomActionController::class, 'update'])->whereUuid('action')->name('actions.update');
+    });
 
     // Public feedback categories: before the {serviceFeedback} wildcard below.
     Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');

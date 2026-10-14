@@ -46,6 +46,7 @@ class PublicFeedbackReportController extends Controller
             'filterOptions' => $this->metrics->filterOptions($user),
             'exports' => PublicFeedbackReportExport::query()
                 ->where('requested_by', $user->getKey())
+                ->where('report', 'submissions')
                 ->latest('created_at')
                 ->limit(10)
                 ->get()
