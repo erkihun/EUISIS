@@ -86,7 +86,7 @@ class ProductionReadiness extends Command
         $this->check("Queue retry_after ({$retryAfter}s) exceeds the longest job timeout ({$longestTimeout}s)", config('queue.default') === 'sync' || $retryAfter > $longestTimeout, $production, 'A job still running at retry_after is handed to a second worker and runs twice.');
         $notOnOneServer = collect($schedule->events())->reject(fn ($event) => $event->onOneServer)->map(fn ($event) => (string) ($event->command ?? $event->description))->values()->all();
         $this->check('Every scheduled task runs on one server', $notOnOneServer === [], $production, 'Duplicates on a multi-node scheduler: '.implode(', ', $notOnOneServer));
-        $this->check('Transport Management is disabled (out of current scope)', ! (bool) config('features.transport'), false, 'FEATURE_TRANSPORT is on; Transport is a future phase and not part of this release.');
+        $this->check('Transport Management is enabled', (bool) config('features.transport'), false, 'FEATURE_TRANSPORT is off: transport routes answer 404 and providers cannot scan.');
         $this->check('Legacy card QR (card id only) is refused at the counter', ! (bool) config('id_cards.accept_legacy_qr'), false, 'ID_CARD_ACCEPT_LEGACY_QR is on: anyone who knows a card id can present it (decision D-3). Turn it off once the reprint is done.');
         $this->check('National-ID lookup hashes are keyed', $this->nationalIdHashesKeyed(), $production, 'Stored hashes do not match the keyed hash (decision D-1): run php artisan security:rehash-national-ids.');
         if (config('database.default') === 'pgsql') {

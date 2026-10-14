@@ -13,11 +13,12 @@ return [
     | its navigation and provider-portal entries are hidden and no provider is
     | treated as offering the service. Code, tables and data are kept intact.
     |
-    | transport   — Transport Management: FUTURE PHASE / out of current
-    |               production scope (docs/production-golden-path.md).
+    | transport   — Transport Management: live (docs/transport-provider-module.md).
+    |               FEATURE_TRANSPORT=false switches it off again without
+    |               touching its data.
     | court_cases — Court Cases: planned module, placeholder page only.
     */
-    'transport' => (bool) env('FEATURE_TRANSPORT', false),
+    'transport' => (bool) env('FEATURE_TRANSPORT', true),
     'court_cases' => (bool) env('FEATURE_COURT_CASES', false),
 
     /*

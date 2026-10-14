@@ -8,6 +8,6 @@ class UpdateTransportPassRequest extends StoreTransportPassRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('transport-passes.update') ?? false;
+        return auth('web')->user()?->can('transport-passes.update') ?? false;
     }
 }

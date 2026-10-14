@@ -8,6 +8,6 @@ class UpdateTransportRouteRequest extends StoreTransportRouteRequest
 {
     public function authorize(): bool
     {
-        return ($this->user()?->can('transport-routes.update') ?? false) || (auth('provider')->user()?->canUseServicePermission('provider.transport.routes.manage') ?? false);
+        return $this->authorizeTransport('transport-routes.update', 'provider.transport.routes.manage');
     }
 }

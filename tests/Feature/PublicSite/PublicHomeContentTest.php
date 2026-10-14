@@ -110,11 +110,10 @@ it('keeps both languages complete and free of encoding damage', function (): voi
 
 it('marks services that are not yet integrated as planned', function (): void {
     $source = welcomeSource();
-    // Transport Management is a future phase (config/features.php).
-    foreach (['serviceConsumer', 'serviceHealth', 'serviceWelfare', 'serviceTransport'] as $planned) {
+    foreach (['serviceConsumer', 'serviceHealth', 'serviceWelfare'] as $planned) {
         expect($source)->toMatch("/key: '{$planned}'[^}]*status: 'planned'/");
     }
-    foreach (['serviceCafeteria'] as $available) {
+    foreach (['serviceCafeteria', 'serviceTransport'] as $available) {
         expect($source)->toMatch("/key: '{$available}'[^}]*status: 'available'/");
     }
     expect(homeCopy('en')['statusPlanned'])->toBe('Planned / Future Integration');

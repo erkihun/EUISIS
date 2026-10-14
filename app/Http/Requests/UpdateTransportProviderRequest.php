@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Rules\OrganizationInScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -31,7 +32,7 @@ class UpdateTransportProviderRequest extends FormRequest
             'provider_code' => ['required', 'string', 'max:50', Rule::unique('providers', 'provider_code')->ignore($providerId)],
             'name_en' => ['required', 'string', 'max:255'],
             'name_am' => ['nullable', 'string', 'max:255'],
-            'assigned_organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
+            'assigned_organization_id' => ['nullable', 'uuid', 'exists:organizations,id', 'required_unless:assigned_scope_type,citywide', new OrganizationInScope(auth('web')->user())],
             'assigned_scope_type' => ['required', Rule::in(['self', 'subtree', 'citywide'])],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'phone_number' => ['nullable', 'string', 'max:50'],

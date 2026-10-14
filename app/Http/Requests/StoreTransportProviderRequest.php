@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Rules\OrganizationInScope;
 use App\Security\Passwords\PasswordPolicy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -29,7 +30,7 @@ class StoreTransportProviderRequest extends FormRequest
             'provider_code' => ['required', 'string', 'max:50', 'unique:providers,provider_code'],
             'name_en' => ['required', 'string', 'max:255'],
             'name_am' => ['nullable', 'string', 'max:255'],
-            'assigned_organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
+            'assigned_organization_id' => ['nullable', 'uuid', 'exists:organizations,id', 'required_unless:assigned_scope_type,citywide', new OrganizationInScope(auth('web')->user())],
             'assigned_scope_type' => ['required', Rule::in(['self', 'subtree', 'citywide'])],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'phone_number' => ['nullable', 'string', 'max:50'],
@@ -41,8 +42,9 @@ class StoreTransportProviderRequest extends FormRequest
             'service_area_description_am' => ['nullable', 'string'],
             'status' => ['required', Rule::in(['active', 'inactive', 'suspended'])],
             'create_provider_user' => ['sometimes', 'boolean'],
-            'user_name' => ['nullable', 'string', 'max:255'],
-            'user_email' => ['nullable', 'email', 'max:255', 'unique:provider_users,email'],
+            // A portal account needs a name and a way to sign in (e-mail or username).
+            'user_name' => ['nullable', 'required_if_accepted:create_provider_user', 'string', 'max:255'],
+            'user_email' => ['nullable', Rule::requiredIf(fn (): bool => $this->boolean('create_provider_user') && blank($this->input('username'))), 'email', 'max:255', 'unique:provider_users,email'],
             'username' => ['nullable', 'string', 'max:100', 'alpha_dash', 'unique:provider_users,username'],
             // Blank: a generated one-time password. Typed: the central policy.
             'user_password' => $this->filled('user_password')

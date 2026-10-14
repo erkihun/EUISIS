@@ -17,11 +17,11 @@ class TransportReportController extends Controller
     {
         $provider = $context->provider($request);
         abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
-        $validated = $request->validated();
+        $filters = $reports->normaliseFilters($request->validated());
 
         return Inertia::render('ProviderPortal/Transport/Reports/Index', [
-            'filters' => $validated,
-            'summary' => $reports->transactionSummary($provider, $validated['date_from'] ?? null, $validated['date_to'] ?? null),
+            'filters' => $filters,
+            'report' => $reports->report($reports->forProvider($provider, $filters), byProvider: false),
         ]);
     }
 }

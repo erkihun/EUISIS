@@ -77,7 +77,7 @@ it('checks the multi-node and scale requirements', function (): void {
     $this->artisan('production:readiness')
         ->expectsOutputToContain('Multi-node and scale')
         ->expectsOutputToContain('Every scheduled task runs on one server')
-        ->expectsOutputToContain('Transport Management is disabled')
+        ->expectsOutputToContain('Transport Management is enabled')
         ->expectsOutputToContain('Private files on shared storage');
 });
 

@@ -15,9 +15,17 @@ class TransportEligibilityService
 {
     public function __construct(
         private readonly TransportRouteAccessService $routeAccess,
+        private readonly TransportSettings $settings,
     ) {}
 
-    /** @return array{eligible: bool, reason: string|null, pass: TransportPass|null} */
+    /**
+     * Whether the employee may board with this provider (and route) on $date.
+     * A missing pass is refused unless the settings allow boarding without
+     * one; such a boarding is accepted with its own reason so reports can
+     * tell it apart (pay_as_you_go is billable, pass_not_required is not).
+     *
+     * @return array{eligible: bool, reason: string|null, pass: TransportPass|null}
+     */
     public function check(Employee $employee, IdCard $card, Provider $provider, ?TransportRoute $route = null, ?Carbon $date = null): array
     {
         $date ??= Carbon::today();
@@ -28,6 +36,10 @@ class TransportEligibilityService
 
         if ($employee->currentAssignment === null) {
             return $this->deny('employee_assignment_missing');
+        }
+
+        if ($route !== null && ! $route->is_active) {
+            return $this->deny('route_inactive');
         }
 
         if ($route !== null && ! $this->routeAccess->employeeCanUseRoute($employee, $route)) {
@@ -47,11 +59,19 @@ class TransportEligibilityService
             })
             ->first();
 
-        if ($pass === null) {
-            return $this->deny('active_transport_pass_missing');
+        if ($pass !== null) {
+            return ['eligible' => true, 'reason' => null, 'pass' => $pass];
         }
 
-        return ['eligible' => true, 'reason' => null, 'pass' => $pass];
+        if ($this->settings->allowPayAsYouGo()) {
+            return ['eligible' => true, 'reason' => 'pay_as_you_go', 'pass' => null];
+        }
+
+        if (! $this->settings->requirePass()) {
+            return ['eligible' => true, 'reason' => 'pass_not_required', 'pass' => null];
+        }
+
+        return $this->deny('active_transport_pass_missing');
     }
 
     /** @return array{eligible: false, reason: string, pass: null} */

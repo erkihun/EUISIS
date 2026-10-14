@@ -156,15 +156,23 @@ class ProviderPortalContext
                 'cafeteriaMenusManage' => $providerUser?->hasService('cafeteria') ?? false,
                 'cafeteriaOrdersManage' => $providerUser?->hasService('cafeteria') ?? false,
                 'transportDashboardView' => $providerUser?->hasService('transport') ?? false,
-                'transportScan' => $providerUser?->hasService('transport') ?? false,
-                'transportTransactionsView' => $providerUser?->hasService('transport') ?? false,
-                'transportRoutesManage' => $providerUser?->hasService('transport') ?? false,
-                'transportVehiclesManage' => $providerUser?->hasService('transport') ?? false,
-                'transportDriversManage' => $providerUser?->hasService('transport') ?? false,
-                'transportTripsManage' => $providerUser?->hasService('transport') ?? false,
-                'transportReportsView' => $providerUser?->hasService('transport') ?? false,
+                'transportScan' => $this->transportCan($providerUser, 'provider.transport.scan'),
+                'transportTransactionsView' => $this->transportCan($providerUser, 'provider.transport.reports.view'),
+                'transportRoutesManage' => $this->transportCan($providerUser, 'provider.transport.routes.manage'),
+                'transportVehiclesManage' => $this->transportCan($providerUser, 'provider.transport.vehicles.manage'),
+                'transportDriversManage' => $this->transportCan($providerUser, 'provider.transport.drivers.manage'),
+                'transportTripsManage' => $this->transportCan($providerUser, 'provider.transport.trips.manage'),
+                'transportReportsView' => $this->transportCan($providerUser, 'provider.transport.reports.view'),
                 'reportsView' => $providerUser?->hasService('cafeteria') ?? false,
             ],
         ];
+    }
+
+    /** The page links a transport provider user may follow (mirrors the route middleware). */
+    private function transportCan(?ProviderUser $providerUser, string $permissionKey): bool
+    {
+        return $providerUser !== null
+            && $providerUser->hasService('transport')
+            && $providerUser->canUseServicePermission($permissionKey);
     }
 }

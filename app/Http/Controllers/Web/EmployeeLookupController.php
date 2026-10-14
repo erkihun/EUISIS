@@ -33,6 +33,8 @@ class EmployeeLookupController extends Controller
         'cafeteria_ledger.view',
         'id-cards.submitRequest',
         'cards.manage',
+        'transport-passes.create',
+        'transport-passes.update',
     ];
 
     public function __invoke(Request $request, OrganizationScopeService $scope): JsonResponse

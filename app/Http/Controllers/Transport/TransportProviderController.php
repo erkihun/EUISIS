@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTransportProviderRequest;
 use App\Http\Requests\UpdateTransportProviderRequest;
 use App\Http\Resources\TransportProviderResource;
-use App\Models\Organization;
 use App\Models\Provider;
 use App\Security\Passwords\PasswordPolicy;
 use App\Services\Transport\TransportProviderService;
@@ -27,10 +26,13 @@ class TransportProviderController extends Controller
         $providers = Provider::query()
             ->with(['transportProfile', 'assignedOrganization', 'providerType'])
             ->whereHas('services.serviceType', fn ($query) => $query->where('code', 'transport'))
-            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('name_en', ci_like_operator(), "%{$s}%")->orWhere('provider_code', ci_like_operator(), "%{$s}%")))
-            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
+            ->when($request->string('search')->trim()->toString(), fn ($q, string $s) => $q->where(fn ($q) => $q
+                ->where('name_en', ci_like_operator(), '%'.addcslashes($s, '%_\\').'%')
+                ->orWhere('provider_code', ci_like_operator(), addcslashes($s, '%_\\').'%')))
+            ->when($request->string('status')->toString(), fn ($q, string $s) => $q->where('status', $s))
             ->latest()
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('Transport/Providers/Index', [
             'providers' => TransportProviderResource::collection($providers)->response()->getData(true),
@@ -48,7 +50,6 @@ class TransportProviderController extends Controller
         abort_unless($request->user()?->can('transport-providers.create'), 403);
 
         return Inertia::render('Transport/Providers/Create', [
-            'organizations' => Organization::query()->orderBy('name_en')->limit(500)->get(['id', 'name_en', 'name_am']),
         ]);
     }
 
@@ -96,28 +97,26 @@ class TransportProviderController extends Controller
 
         return Inertia::render('Transport/Providers/Edit', [
             'provider' => (new TransportProviderResource($provider->load(['transportProfile', 'assignedOrganization'])))->resolve(),
-            'organizations' => Organization::query()->orderBy('name_en')->limit(500)->get(['id', 'name_en', 'name_am']),
         ]);
     }
 
     public function update(UpdateTransportProviderRequest $request, Provider $provider): RedirectResponse
     {
         $this->assertTransportProvider($provider);
-        $data = $request->validated();
+        // Only what the form sent: a field it leaves out keeps its stored value.
+        $data = collect($request->validated())->only(array_keys($request->all()));
 
-        if (($data['assigned_scope_type'] ?? 'self') === 'citywide') {
-            $data['assigned_organization_id'] = null;
+        if ($data->get('assigned_scope_type') === 'citywide') {
+            $data->put('assigned_organization_id', null);
         }
 
-        $provider->update(collect($data)->except(['license_number', 'registration_number', 'service_area_description_en', 'service_area_description_am'])->all() + ['updated_by' => $request->user()?->id]);
+        $profileKeys = ['license_number', 'registration_number', 'service_area_description_en', 'service_area_description_am'];
+
+        $provider->update($data->except($profileKeys)->all() + ['updated_by' => $request->user()?->id]);
         $provider->transportProfile()->updateOrCreate(
             ['provider_id' => $provider->id],
-            [
-                'license_number' => $data['license_number'] ?? null,
-                'registration_number' => $data['registration_number'] ?? null,
-                'service_area_description_en' => $data['service_area_description_en'] ?? null,
-                'service_area_description_am' => $data['service_area_description_am'] ?? null,
-                'status' => $data['status'] ?? 'active',
+            $data->only($profileKeys)->all() + [
+                'status' => $data->get('status', $provider->transportProfile?->status ?? 'active'),
                 'updated_by' => $request->user()?->id,
             ],
         );
@@ -129,6 +128,14 @@ class TransportProviderController extends Controller
     {
         abort_unless($request->user()?->can('transport-providers.delete'), 403);
         $this->assertTransportProvider($provider);
+
+        // A provider that also runs another service (a cafeteria) is not
+        // transport's to delete: that would lock its other portal users out.
+        $otherServices = $provider->services()->whereHas('serviceType', fn ($query) => $query->where('code', '!=', 'transport'))->where('status', 'active')->exists();
+        if ($otherServices) {
+            return back()->with('flash', ['type' => 'error', 'message' => __('transport.provider_shared')]);
+        }
+
         $provider->delete();
 
         return to_route('transport.providers.index')->with('flash', ['type' => 'success', 'message' => __('transport.provider_deleted')]);

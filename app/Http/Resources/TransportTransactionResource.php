@@ -29,10 +29,18 @@ class TransportTransactionResource extends JsonResource
                 'employee_number' => $this->employee?->employee_number,
                 'full_name' => $this->employee?->full_name,
                 'organization' => $this->employee?->currentAssignment?->organization?->name_en,
+                'organization_am' => $this->employee?->currentAssignment?->organization?->name_am,
             ]),
+            'provider' => $this->whenLoaded('provider', fn () => $this->provider ? [
+                'id' => $this->provider->id,
+                'provider_code' => $this->provider->provider_code,
+                'name_en' => $this->provider->name_en,
+                'name_am' => $this->provider->name_am,
+            ] : null),
             'route' => $this->whenLoaded('route', fn () => $this->route ? [
                 'id' => $this->route->id,
                 'name_en' => $this->route->name_en,
+                'name_am' => $this->route->name_am,
                 'route_code' => $this->route->route_code,
             ] : null),
             'trip' => $this->whenLoaded('trip', fn () => $this->trip ? [
