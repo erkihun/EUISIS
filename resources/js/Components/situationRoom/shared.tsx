@@ -2,9 +2,9 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { formatDateDisplay, formatDateTimeDisplay } from '@/lib/calendar/dateFormat';
 import { useLocale } from '@/hooks/useLocale';
-import { Button, Card, FilterField, SearchableSelect, Select, cx, type SearchableOption } from '@euisis/ui';
+import { Card, FilterField, FilterPanel, SearchableSelect, Select, cx, type SearchableOption } from '@euisis/ui';
 import { Link, router } from '@inertiajs/react';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 export type Name = { name_en: string | null; name_am: string | null };
 export type Counts = {
@@ -156,8 +156,7 @@ export function FilterBar({ scope, filters, options, routeName = 'situation-room
         return rows.map((row) => ({ value: row.id, label: name(row), description: row.code ?? undefined }));
     }
 
-    function apply(event: FormEvent) {
-        event.preventDefault();
+    function apply() {
         const query = Object.fromEntries(Object.entries({
             ...draft,
             from: draft.period === 'custom' ? draft.from : '',
@@ -167,10 +166,15 @@ export function FilterBar({ scope, filters, options, routeName = 'situation-room
     }
 
     return (
-        <form onSubmit={apply} aria-label={t('common.filters')}>
-            <Card className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-                <FilterField label={t('situationRoom.scopeLabel')} htmlFor="sr-scope" className="sm:col-span-2">
-                    <SearchableSelect id="sr-scope" label={t('situationRoom.scopeLabel')} value={draft.organization} options={draft.organization === scope.node?.id ? nodeOption : undefined} loadOptions={searchInstitutions} onChange={(value) => set('organization')(value)} placeholder={t('situationRoom.cityWide')} searchPlaceholder={t('situationRoom.searchInstitutions')} emptyText={t('situationRoom.noInstitutionsFound')} />
+        <FilterPanel
+            onSubmit={apply}
+            onReset={() => router.get(route(routeName), {}, { preserveScroll: true })}
+            hasActiveFilters={Boolean(scope.node || filters.type || filters.target || filters.category_id || filters.status || filters.period !== '30d')}
+            label={t('common.filters')}
+            submitLabel={t('situationRoom.apply')}
+        >
+                <FilterField label={t('situationRoom.scopeLabel')} htmlFor="sr-scope" wide>
+                    <SearchableSelect className="w-full" id="sr-scope" label={t('situationRoom.scopeLabel')} value={draft.organization} options={draft.organization === scope.node?.id ? nodeOption : undefined} loadOptions={searchInstitutions} onChange={(value) => set('organization')(value)} placeholder={t('situationRoom.cityWide')} searchPlaceholder={t('situationRoom.searchInstitutions')} emptyText={t('situationRoom.noInstitutionsFound')} />
                 </FilterField>
                 <FilterField label={t('situationRoom.periodLabel')} htmlFor="sr-period">
                     <Select id="sr-period" value={draft.period} onChange={(e) => set('period')(e.target.value)}>
@@ -216,11 +220,7 @@ export function FilterBar({ scope, filters, options, routeName = 'situation-room
                         {options.statuses.map((status) => <option key={status} value={status}>{t(`situationRoom.status_${status}`)}</option>)}
                     </Select>
                 </FilterField>
-                <div className="flex items-end gap-2">
-                    <Button type="submit" variant="primary">{t('situationRoom.apply')}</Button>
-                </div>
-            </Card>
-        </form>
+        </FilterPanel>
     );
 }
 
@@ -259,7 +259,7 @@ export function SectionSkeleton({ rows = 3, className }: { rows?: number; classN
 
 /** A thin proportional bar under a label, for small ranked lists. */
 export function MeterRow({ label, value, max, hint, href }: { label: string; value: number; max: number; hint?: string; href?: string }) {
-    const width = max > 0 ? Math.max(2, Math.round((value / max) * 100)) : 0;
+    const width = max > 0 && value > 0 ? Math.max(2, Math.round((value / max) * 100)) : 0;
     const text = href ? <Link href={href} className="truncate font-medium underline-offset-4 hover:underline">{label}</Link> : <span className="truncate font-medium">{label}</span>;
 
     return (

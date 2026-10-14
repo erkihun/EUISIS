@@ -54,7 +54,7 @@ export function MultiSeriesLineChartImpl({ data, xKey, series, xLabel, colors, h
                 <Tooltip {...tooltipStyle} labelFormatter={(label) => (xLabel ? xLabel(String(label)) : String(label))} />
                 <Legend wrapperStyle={{ fontSize: 12, color: colors.axisText }} />
                 {series.map((s, index) => (
-                    <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={colors.series[index % colors.series.length]} strokeWidth={2} dot={false} strokeDasharray={index === 2 ? '6 3' : undefined} />
+                    <Line key={s.key} type="monotone" dataKey={s.key} name={s.label} stroke={colors.series[index % colors.series.length]} strokeWidth={2} dot={false} strokeDasharray={index === 2 ? '6 3' : undefined} isAnimationActive={false} />
                 ))}
             </LineChart>
         </ResponsiveContainer>
@@ -74,7 +74,7 @@ export function StackedBarChartImpl({ data, labelKey, series, colors }: WithColo
                 <Tooltip {...tooltipStyle} />
                 <Legend wrapperStyle={{ fontSize: 12, color: colors.axisText }} />
                 {series.map((s, index) => (
-                    <Bar key={s.key} dataKey={s.key} name={s.label} stackId="types" fill={colors.series[index % colors.series.length]} />
+                    <Bar key={s.key} dataKey={s.key} name={s.label} stackId="types" fill={colors.series[index % colors.series.length]} isAnimationActive={false} />
                 ))}
             </BarChart>
         </ResponsiveContainer>
