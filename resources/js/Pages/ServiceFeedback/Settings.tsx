@@ -1,15 +1,13 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Alert, Button, Card, FormField, Input, Select } from '@euisis/ui';
+import { Alert, Button, Card, FormField, Input } from '@euisis/ui';
 import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { FormEvent } from 'react';
-
-type IdentityMode = 'anonymous' | 'identified' | 'optional';
+import type { SubmissionRequirements } from '@/types/publicSubmissions';
 
 type Settings = {
     enabled: boolean;
-    identity_mode: IdentityMode;
     allow_attachments: boolean;
     feedback_enabled: boolean;
     suggestion_enabled: boolean;
@@ -19,7 +17,9 @@ type Settings = {
     rate_limit_per_ip: number;
 };
 
-type Props = { feedbackSettings: Settings; identityModes: IdentityMode[] };
+type Props = { feedbackSettings: Settings; identityPolicy: SubmissionRequirements[] };
+
+const TYPE_LABEL = { feedback: 'typeFeedback', suggestion: 'typeSuggestion', complaint: 'typeComplaint' } as const;
 
 const SWITCHES: Array<{ key: keyof Pick<Settings, 'enabled' | 'feedback_enabled' | 'suggestion_enabled' | 'complaint_enabled' | 'allow_attachments'>; label: string; hint: string }> = [
     { key: 'enabled', label: 'settingEnabled', hint: 'settingEnabledHint' },
@@ -33,7 +33,7 @@ const SWITCHES: Array<{ key: keyof Pick<Settings, 'enabled' | 'feedback_enabled'
  * The city-wide public feedback policy (brief §93). One editor for one
  * value: the group is kept out of the general System Settings page.
  */
-export default function PublicFeedbackSettings({ feedbackSettings, identityModes }: Props) {
+export default function PublicFeedbackSettings({ feedbackSettings, identityPolicy }: Props) {
     const { t } = useLocale();
     const form = useForm<Settings>({ ...feedbackSettings });
 
@@ -69,13 +69,18 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityModes
 
                 <Card className="space-y-4 p-5">
                     <h2 className="font-semibold">{t('serviceFeedback.settingsIdentity')}</h2>
-                    <FormField id="setting-identity-mode" label={t('serviceFeedback.settingIdentityMode')} description={t('serviceFeedback.settingIdentityModeHint')} error={errors.identity_mode} required>
-                        {({ id, describedBy, invalid }) => (
-                            <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.identity_mode} onChange={(e) => form.setData('identity_mode', e.target.value as IdentityMode)}>
-                                {identityModes.map((mode) => <option key={mode} value={mode}>{t(`serviceFeedback.identityMode_${mode}`)}</option>)}
-                            </Select>
-                        )}
-                    </FormField>
+                    {/* Fixed business policy (PublicSubmissionPolicy), shown so administrators know what the public is asked. */}
+                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingIdentityMatrixHint')}</p>
+                    <ul className="divide-y divide-[color:var(--app-border)] rounded-lg border border-[color:var(--app-border)]">
+                        {identityPolicy.map((policy) => (
+                            <li key={policy.type} className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
+                                <span className="font-medium text-[color:var(--app-foreground)]">{t(`serviceFeedback.${TYPE_LABEL[policy.type]}`)}</span>
+                                <span className="text-right text-[color:var(--app-muted-foreground)]">
+                                    {t(policy.anonymous_allowed ? 'serviceFeedback.identityRuleOptional' : 'serviceFeedback.identityRuleRequired')}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
                     <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingIdentityPrivacyNote')}</p>
                     <label htmlFor="setting-acknowledgement" className="flex items-start justify-between gap-4 border-t border-[color:var(--app-border)] pt-4 text-sm">
                         <span>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\PublicFeedbackHandlerType;
+use App\Enums\PublicTipType;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -13,8 +14,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Where a new suggestion or complaint goes (brief §45). A rule matches on
- * organization, target type, submission type and category — each either a
- * value or "any" — and names one handler. The most specific rule in effect
+ * organization, target type, submission type, Tip-off type and category —
+ * each either a value or "any" — and names one handler. A corruption Tip-off
+ * is matched only by a rule naming that tip type (PublicFeedbackRoutingService). The most specific rule in effect
  * wins; ties go to the lowest priority number. A rule that routed something
  * is retired, never deleted, so assignment history keeps its reference.
  */
@@ -26,6 +28,7 @@ class PublicFeedbackRoutingRule extends Model
         'organization_id',
         'target_type',
         'submission_type',
+        'tip_type',
         'category_id',
         'handler_type',
         'handler_id',
@@ -41,6 +44,7 @@ class PublicFeedbackRoutingRule extends Model
     {
         return [
             'handler_type' => PublicFeedbackHandlerType::class,
+            'tip_type' => PublicTipType::class,
             'priority' => 'integer',
             'is_active' => 'boolean',
             'effective_from' => 'datetime',

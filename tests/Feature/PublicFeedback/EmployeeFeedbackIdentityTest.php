@@ -84,13 +84,14 @@ beforeEach(function (): void {
 
 // ── 1–3: what a valid scan shows ─────────────────────────────────────────────
 
-it('shows the full name and a photo link, and nothing else, for an active employee', function (): void {
+it('shows the full name, the current job designation and a photo link, and nothing else, for an active employee', function (): void {
     $response = $this->get($this->pageA)->assertOk();
     $target = efiProps($response)['target'];
 
-    expect(array_keys($target))->toBe(['target_type', 'display_name', 'photo_url'])
+    expect(array_keys($target))->toBe(['target_type', 'display_name', 'position_title', 'photo_url'])
         ->and($target['target_type'])->toBe('employee')
         ->and($target['display_name'])->toBe('Hanna Girma')
+        ->and($target['position_title'])->toBe('Licensing Officer')
         ->and($target['photo_url'])->toStartWith('/service-feedback/'.$this->a->token->token.'/photo?');
 });
 
@@ -166,7 +167,7 @@ it('keeps the page, name, photo and choices whatever the state of the ID card', 
         ->and($props['enabledTypes'])->toBe(['feedback', 'suggestion', 'complaint']);
     $this->get($props['target']['photo_url'])->assertOk();
 
-    $this->post($this->pageA.'/suggestion', ['message' => 'Card state must not matter.'])->assertRedirect($this->pageA.'/suggestion');
+    $this->post($this->pageA.'/suggestion', pfComplete('suggestion', ['message' => 'Card state must not matter.']))->assertRedirect($this->pageA.'/suggestion');
     expect(EmployeeServiceFeedback::query()->where('employee_id', $this->a->employee->id)->count())->toBe(1);
 })->with(['revoked', 'suspended', 'lost', 'pending print', 'expired', 'qr revoked', 'no card']);
 
@@ -252,14 +253,14 @@ it('gives every screen of one visit the same photo link, so the photo downloads 
 // ── 8–10, 15, 19–20: the browser never chooses the target ────────────────────
 
 it('ignores employee B\'s ids, a forged target type and a forged assignment in a submission on A\'s code', function (): void {
-    $this->post($this->pageA.'/suggestion', [
+    $this->post($this->pageA.'/suggestion', pfComplete('suggestion', [
         'message' => 'Please open the second window earlier.',
         'employee_id' => $this->b->employee->id,
         'target_employee_id' => $this->b->employee->id,
         'employee_assignment_id' => $this->b->assignment->id,
         'target_type' => 'organization',
         'organization_target_id' => $this->b->organization->id,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
     expect($row->employee_id)->toBe($this->a->employee->id)
@@ -281,7 +282,7 @@ it('checks the employee again at submission: leaving service while the form was 
 
     $this->a->employee->forceFill(['status' => EmployeeStatus::Terminated])->save();
 
-    $this->post($this->pageA.'/complaint', ['form_token' => $formToken, 'message' => 'Rude treatment at the desk.'])
+    $this->post($this->pageA.'/complaint', pfComplete('complaint', ['form_token' => $formToken, 'message' => 'Rude treatment at the desk.']))
         ->assertRedirect($this->pageA);
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
@@ -292,7 +293,7 @@ it('does not block a submission when the ID card is revoked while the form is op
 
     $this->cardA->forceFill(['status' => CardStatus::Revoked, 'revoked_at' => now()])->save();
 
-    $this->post($this->pageA.'/complaint', ['form_token' => $formToken, 'message' => 'Rude treatment at the desk.'])
+    $this->post($this->pageA.'/complaint', pfComplete('complaint', ['form_token' => $formToken, 'message' => 'Rude treatment at the desk.']))
         ->assertRedirect($this->pageA.'/complaint');
 
     expect(EmployeeServiceFeedback::query()->sole()->employee_id)->toBe($this->a->employee->id);
@@ -301,7 +302,7 @@ it('does not block a submission when the ID card is revoked while the form is op
 it('receipts a complaint against the scanned employee by name, keeping the masked snapshots', function (): void {
     $formToken = app(PublicFeedbackFormToken::class)->issue();
 
-    $this->post($this->pageA.'/complaint', ['form_token' => $formToken, 'message' => 'Asked for an unofficial fee.'])
+    $this->post($this->pageA.'/complaint', pfComplete('complaint', ['form_token' => $formToken, 'message' => 'Asked for an unofficial fee.']))
         ->assertRedirect($this->pageA.'/complaint')
         ->assertSessionHas('feedback_receipt.target_name', 'Hanna Girma');
 
@@ -333,8 +334,10 @@ it('sends no protected personal data, HR data or internal ids anywhere in the pa
         '9988776655443322', '0911223344', 'hanna.private@example.test', '1990-04-17', 'Bole Sub-City', 'Selam Emergency', '0955667788',
         'EFA-EMP-1', 'EFA-CARD-1',
         $this->a->employee->id, $this->a->assignment->id, $this->cardA->id, $this->cardA->public_card_uuid, $this->a->token->id,
+        $this->a->position->id, $this->a->position->job_position_code,
         $this->photoA, pathinfo($this->photoA, PATHINFO_FILENAME),
-        'Licensing Officer', 'Licensing Unit', 'Feedback Organization',
+        // The job designation (position title) is public by design; the unit and institution are not.
+        'Licensing Unit', 'Feedback Organization',
     ] as $private) {
         expect($body)->not->toContain($private);
     }
@@ -384,7 +387,7 @@ it('keeps the same token and card reference when the photo changes, and shows th
 });
 
 it('keeps the same token after a name correction, shows the corrected name and leaves earlier snapshots alone', function (): void {
-    $this->post($this->pageA.'/suggestion', ['message' => 'Before the correction.'])->assertRedirect();
+    $this->post($this->pageA.'/suggestion', pfComplete('suggestion', ['message' => 'Before the correction.']))->assertRedirect();
     $earlier = EmployeeServiceFeedback::query()->sole();
     $token = $this->a->token->token;
 

@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { AppDialog, Alert, Button, Card, FormField, Select, Textarea } from '@euisis/ui';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
+import type { TipType } from '@/types/publicSubmissions';
 
 type Entry = {
     id: string; reference: string | null; status: string; message: string; subject: string | null;
@@ -14,12 +15,18 @@ type Entry = {
     created_at: string | null; submitted_at: string | null; employee: string | null; employee_number: string | null;
     organization: string | null; organization_unit: string | null; position: string | null; category: string | null;
     client_name: string | null; client_contact: string | null; identity_hidden: boolean;
+    client_email: string | null; submitter_organization: string | null;
+    submitter_address: Partial<Record<'city' | 'sub_city' | 'woreda' | 'detail', string>> | null;
+    tip_type: TipType | null; involved_parties: string | null; intake_channel: string | null;
     attachment_count: number; attachments_hidden: boolean;
     incident_date: string | null; incident_location: string | null;
     review_note: string | null;
     acknowledged_at: string | null; assigned_at: string | null; resolved_at: string | null; closed_at: string | null;
-    attachments: { id: string; name: string; size: number }[];
+    attachments: { id: string; name: string; size: number; kind: 'photo' | 'video' | 'audio' | 'document' | null; scan_status: string }[];
 };
+
+const TIP_TYPE_LABEL: Record<TipType, string> = { CORRUPTION: 'serviceFeedback.tipTypeCorruption', IMPROPER_PRACTICE: 'serviceFeedback.tipTypeImproperPractice' };
+const EVIDENCE_LABEL = { photo: 'serviceFeedback.evidencePhoto', video: 'serviceFeedback.evidenceVideo', audio: 'serviceFeedback.evidenceAudio', document: 'serviceFeedback.evidenceDocument' } as const;
 type HistoryRow = { id: string; from_status: string | null; to_status: string; actor: string | null; reason: string | null; transitioned_at: string | null };
 type AssignmentRow = { id: string; handler_type: 'user' | 'organization_unit' | 'role'; handler: string; assigned_by: string | null; via_rule: boolean; reason: string | null; assigned_at: string | null; ended_at: string | null };
 type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[] };
@@ -73,6 +80,10 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                         <h2 className="text-lg font-semibold">{t('serviceFeedback.submissionDetails')}</h2>
                         <dl className="grid gap-3 text-sm sm:grid-cols-2">
                             <Field label={t('serviceFeedback.submittedDate')}><LocalizedDateDisplay value={entry.submitted_at ?? entry.created_at} withTime /></Field>
+                            {type === 'suggestion' && (
+                                <Field label={t('serviceFeedback.tipTypeLabel')}>{entry.tip_type ? t(TIP_TYPE_LABEL[entry.tip_type]) : t('serviceFeedback.tipTypeUnclassified')}</Field>
+                            )}
+                            {entry.intake_channel && <Field label={t('serviceFeedback.intakeChannel')}>{t(`serviceFeedback.intakeChannel_${entry.intake_channel}`)}</Field>}
                             <Field label={t('serviceFeedback.filterOrganization')}>{entry.organization ?? '—'}</Field>
                             {entry.target_type === 'employee' && <>
                                 <Field label={t('serviceFeedback.serviceUnit')}>{entry.organization_unit ?? '—'}</Field>
@@ -81,15 +92,24 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                             <Field label={t('serviceFeedback.category')}>{entry.category ?? '—'}</Field>
                             <Field label={t('serviceFeedback.client')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_name ?? t('serviceFeedback.anonymousClient')}</Field>
                             <Field label={t('serviceFeedback.contact')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_contact ?? t('serviceFeedback.notProvided')}</Field>
-                            {type === 'complaint' && <>
-                                <Field label={t('serviceFeedback.incidentDate')}><LocalizedDateDisplay value={entry.incident_date} /></Field>
-                                <Field label={t('serviceFeedback.incidentLocation')}>{entry.incident_location ?? '—'}</Field>
-                            </>}
+                            {!entry.identity_hidden && entry.client_email && <Field label={t('serviceFeedback.clientEmail')}>{entry.client_email}</Field>}
+                            {!entry.identity_hidden && entry.submitter_organization && <Field label={t('serviceFeedback.submitterOrganization')}>{entry.submitter_organization}</Field>}
+                            {!entry.identity_hidden && entry.submitter_address && (
+                                <Field label={t('serviceFeedback.submitterAddress')}>{Object.values(entry.submitter_address).filter(Boolean).join(', ')}</Field>
+                            )}
+                            <Field label={t('serviceFeedback.incidentDate')}><LocalizedDateDisplay value={entry.incident_date} /></Field>
+                            <Field label={t('serviceFeedback.incidentLocation')}>{entry.incident_location ?? '—'}</Field>
                         </dl>
                         <div className="border-t border-[color:var(--app-border)] pt-4">
                             <h3 className="text-sm font-semibold">{entry.subject ?? t(type === 'complaint' ? 'serviceFeedback.complaintDescription' : 'serviceFeedback.suggestionText')}</h3>
                             <p className="mt-2 whitespace-pre-wrap break-words text-sm">{entry.message}</p>
                         </div>
+                        {entry.involved_parties && (
+                            <div className="border-t border-[color:var(--app-border)] pt-4">
+                                <h3 className="text-sm font-semibold">{t('serviceFeedback.involvedParties')}</h3>
+                                <p className="mt-2 whitespace-pre-wrap break-words text-sm">{entry.involved_parties}</p>
+                            </div>
+                        )}
                     </section>
 
                     {entry.attachments_hidden && entry.attachment_count > 0 && <section className={PANEL}>
@@ -97,8 +117,17 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                         <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.attachmentsHidden').replace(':count', String(entry.attachment_count))}</p>
                     </section>}
                     {entry.attachments.length > 0 && <section className={PANEL}>
-                        <h2 className="font-semibold">{t('serviceFeedback.attachments')}</h2>
-                        <ul className="space-y-2">{entry.attachments.map((file) => <li key={file.id}><a href={route('service-submissions.attachments.download', { type, submission: entry.id, attachment: file.id })} className="text-sm font-medium text-[color:var(--color-primary)] underline underline-offset-4">{file.name} ({Math.ceil(file.size / 1024)} KB)</a></li>)}</ul>
+                        {/* Submitted evidence: what the citizen sent, not verified proof. Each download is audited. */}
+                        <h2 className="font-semibold">{t('serviceFeedback.submittedEvidence')}</h2>
+                        <ul className="space-y-2">{entry.attachments.map((file) => (
+                            <li key={file.id} className="text-sm">
+                                <a href={route('service-submissions.attachments.download', { type, submission: entry.id, attachment: file.id })} className="font-medium text-[color:var(--color-primary)] underline underline-offset-4">{file.name}</a>
+                                <span className="ml-2 text-[color:var(--app-muted-foreground)]">
+                                    {file.kind ? t(EVIDENCE_LABEL[file.kind]) : ''} · {Math.ceil(file.size / 1024)} KB
+                                    {file.scan_status === 'not_scanned' && <> · {t('serviceFeedback.evidenceNotScanned')}</>}
+                                </span>
+                            </li>
+                        ))}</ul>
                     </section>}
 
                     <section className={PANEL}>

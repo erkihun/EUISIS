@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Enums\PublicFeedbackTargetType;
+use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePublicServiceEntryRequest;
@@ -13,12 +14,14 @@ use App\Models\EmployeeServiceFeedback;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use App\Services\ServiceFeedback\PublicEmployeeFeedbackIdentity;
+use App\Services\ServiceFeedback\PublicEvidencePolicy;
 use App\Services\ServiceFeedback\PublicFeedbackCategoryService;
 use App\Services\ServiceFeedback\PublicFeedbackFormToken;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\ServiceFeedback\PublicFeedbackSubmissionService;
 use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
 use App\Services\ServiceFeedback\PublicServiceFeedbackService;
+use App\Services\ServiceFeedback\PublicSubmissionPolicy;
 use App\Services\ServiceFeedback\TargetContext;
 use App\Support\Phone\PublicContactPhone;
 use Illuminate\Database\QueryException;
@@ -31,7 +34,8 @@ use Inertia\Response;
 use Throwable;
 
 /**
- * Public Feedback, Suggestion and Complaint — no authentication.
+ * Public Feedback, Tip-off (internal type `suggestion`) and Complaint — no
+ * authentication.
  *
  * One experience for both QR kinds: the employee feedback QR
  * (/service-feedback/{token}) and the organization feedback QR
@@ -57,6 +61,7 @@ class PublicServiceFeedbackController extends Controller
         private readonly PublicFeedbackFormToken $formTokens,
         private readonly PublicFeedbackCategoryService $categories,
         private readonly PublicFeedbackSettings $settings,
+        private readonly PublicSubmissionPolicy $policy,
     ) {}
 
     // ── Employee feedback QR ─────────────────────────────────────────────
@@ -139,8 +144,7 @@ class PublicServiceFeedbackController extends Controller
                 'receipt' => null,
                 'formToken' => null,
                 'enabledTypes' => $this->settings->enabledTypes(),
-                'identityMode' => $this->settings->identityMode()->value,
-                'allowAttachments' => $this->settings->allowAttachments(),
+                ...$this->formContract(),
                 'call' => null,
             ]);
         }
@@ -174,8 +178,7 @@ class PublicServiceFeedbackController extends Controller
             'receipt' => $receipt,
             'formToken' => $type === null ? null : $this->formTokens->issue(),
             'enabledTypes' => $this->settings->enabledTypes(),
-            'identityMode' => $this->settings->identityMode()->value,
-            'allowAttachments' => $this->settings->allowAttachments(),
+            ...$this->formContract(),
             /*
              * The Call action: the institution's validated public number as a
              * tel: link and a readable form — the scanned institution, or the
@@ -260,6 +263,26 @@ class PublicServiceFeedbackController extends Controller
             ->with('feedback_receipt_context', $this->receiptContext($kind, $token));
     }
 
+    /**
+     * What each form asks, from the one policy matrix, and what evidence it
+     * takes. The page renders from this; validation enforces the same object.
+     *
+     * @return array{requirements: array<string, array<string, bool|string>>, evidence: array<string, mixed>, tipTypes: list<string>}
+     */
+    private function formContract(): array
+    {
+        $requirements = [];
+        foreach (ServiceFeedbackType::cases() as $type) {
+            $requirements[$type->value] = $this->policy->for($type, $this->settings->allowAttachments())->toPublicArray();
+        }
+
+        return [
+            'requirements' => $requirements,
+            'evidence' => PublicEvidencePolicy::toPublicArray(),
+            'tipTypes' => PublicTipType::values(),
+        ];
+    }
+
     private function receiptContext(PublicFeedbackTargetType $kind, string $token): string
     {
         return hash('sha256', $kind->value."\0".$token);
@@ -340,6 +363,7 @@ class PublicServiceFeedbackController extends Controller
             'target_type' => $context->targetType->value,
             'target_name' => (string) $context->publicDisplay(app()->getLocale())['display_name'],
             'reference' => $entry->reference_number,
+            'tip_type' => $entry->tip_type?->value,
             'submitted_at' => $entry->submitted_at?->toIso8601String(),
         ];
     }

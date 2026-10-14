@@ -98,7 +98,7 @@ it('explains a missing service and rating in the visitor language', function ():
 });
 
 it('keeps the English wording for an English visitor', function (): void {
-    $this->post('/service-feedback/'.$this->token->token, ['rating' => 9])
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', ['rating' => 9]))
         ->assertSessionHasErrors([
             'position_service_id' => 'Please choose the service you received.',
             'rating' => 'Please choose a rating between 1 and 5 stars.',
@@ -118,7 +118,7 @@ it('explains a service another officer provides in the visitor language', functi
     $expected = __('service-feedback.service_not_provided', [], 'am');
 
     $this->withHeader('X-Locale', 'am')
-        ->post('/service-feedback/'.$this->token->token, ['position_service_id' => $foreign->id, 'rating' => 4])
+        ->post('/service-feedback/'.$this->token->token, pfComplete('feedback', ['position_service_id' => $foreign->id, 'rating' => 4]))
         ->assertSessionHasErrors(['position_service_id' => $expected]);
 
     expect($expected)->not->toContain('service-feedback.')

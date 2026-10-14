@@ -1362,7 +1362,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/service-submissions/{type}/{submission}/referrals/{referral}', [PublicFeedbackReferralController::class, 'update'])
         ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'referral'])->name('service-submissions.referrals.update');
     Route::get('/service-submissions/{type}/{submission}/attachments/{attachment}', [ServiceSubmissionController::class, 'download'])
-        ->where('type', 'complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
+        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
 
     // Per-employee feedback QR management.
     Route::get('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'show'])->name('employees.feedback-qr.show');

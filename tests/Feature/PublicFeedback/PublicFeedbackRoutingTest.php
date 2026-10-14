@@ -97,7 +97,7 @@ function rtRule(array $overrides = []): PublicFeedbackRoutingRule
 it('assigns a new complaint to the handler of the matching rule and records the assignment', function (): void {
     $rule = rtRule(['submission_type' => 'complaint']);
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'The counter closed early.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'The counter closed early.']))->assertRedirect();
 
     $complaint = EmployeeServiceFeedback::query()->sole();
     $assignment = PublicFeedbackAssignment::query()->where('submission_id', $complaint->id)->sole();
@@ -146,7 +146,7 @@ it('marks a submission unrouted when no rule matches and alerts routing administ
     $targetUser = User::factory()->create(['employee_id' => $this->a->employee->id]);
     $targetUser->assignRole('Super Admin');
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'No one answers the phone.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'No one answers the phone.']))->assertRedirect();
 
     $complaint = EmployeeServiceFeedback::query()->sole();
     expect($complaint->status)->toBe(ServiceFeedbackStatus::Unrouted)
@@ -163,9 +163,9 @@ it('marks a submission unrouted when no rule matches and alerts routing administ
 it('does not route rating feedback', function (): void {
     rtRule();
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/feedback', [
+    $this->post('/service-feedback/'.$this->a->token->token.'/feedback', pfComplete('feedback', [
         'position_service_id' => $this->a->positionService->id, 'rating' => 4, 'comment' => 'Fine.',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $feedback = EmployeeServiceFeedback::query()->sole();
     expect($feedback->status)->toBe(ServiceFeedbackStatus::Pending)
@@ -252,7 +252,7 @@ it('lets a scoped admin manage rules only inside their scope and city rules only
 
 it('retires a rule that routed submissions instead of deleting it', function (): void {
     $rule = rtRule(['submission_type' => 'complaint']);
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Routed once.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Routed once.']))->assertRedirect();
 
     $this->actingAs($this->superAdmin)->delete(route('service-feedback.routing-rules.destroy', $rule))->assertRedirect();
     expect($rule->fresh())->not->toBeNull()->and($rule->fresh()->is_active)->toBeFalse();
@@ -264,7 +264,7 @@ it('retires a rule that routed submissions instead of deleting it', function ():
 
 it('shows the assigned handler in the inbox and filters to my queue', function (): void {
     rtRule(['submission_type' => 'complaint']);
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Routed to the officer.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Routed to the officer.']))->assertRedirect();
     EmployeeServiceFeedback::query()->create([
         'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'type' => ServiceFeedbackType::Complaint,
         'comment' => 'Nobody yet', 'status' => ServiceFeedbackStatus::Unrouted, 'submitted_at' => now(),
@@ -287,7 +287,7 @@ it('stores a complaint as unrouted when the matching rule names a handler that n
     rtRule(['handler_id' => (string) $ghost->id, 'priority' => 1]);
     $ghost->forceDelete();
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'The counter closed early.'])
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'The counter closed early.']))
         ->assertSessionHasNoErrors()
         ->assertRedirect();
 
@@ -304,7 +304,7 @@ it('falls through to the next usable rule when the most specific one cannot be u
     $ghost->forceDelete();
     rtRule(['priority' => 50]);
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'The counter closed early.'])->assertSessionHasNoErrors();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'The counter closed early.']))->assertSessionHasNoErrors();
 
     $complaint = EmployeeServiceFeedback::query()->sole();
     expect($complaint->status)->toBe(ServiceFeedbackStatus::Assigned)

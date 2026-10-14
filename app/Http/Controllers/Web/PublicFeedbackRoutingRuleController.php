@@ -159,6 +159,7 @@ class PublicFeedbackRoutingRuleController extends Controller
             'organization' => $rule->organization === null ? null : ['en' => $rule->organization->name_en, 'am' => $rule->organization->name_am],
             'target_type' => $rule->target_type,
             'submission_type' => $rule->submission_type,
+            'tip_type' => $rule->tip_type?->value,
             'category_id' => $rule->category_id,
             'category' => $rule->category === null ? null : ['en' => $rule->category->name_en, 'am' => $rule->category->name_am],
             'handler_type' => $rule->handler_type->value,

@@ -8,7 +8,6 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\SystemSettings\UpdateSystemSettingsGroupAction;
 use App\Enums\AuditEventType;
 use App\Enums\ServiceFeedbackType;
-use App\Enums\SubmitterIdentityMode;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
@@ -17,8 +16,11 @@ use Illuminate\Http\Request;
 
 /**
  * The city-wide public feedback policy (brief §93): whether the public pages
- * are on, which of the three types may be submitted, whether complaints may
- * carry files, and what identity is asked of the submitter. Stored in the
+ * are on, which of the three types may be submitted, and whether Tip-offs and
+ * Complaints may carry evidence. What identity each type asks of the
+ * submitter is fixed business policy, not a setting: see
+ * PublicSubmissionPolicy. (The retired `identity_mode` value may still be
+ * stored; nothing reads it.) Stored in the
  * `service_feedback` system-settings group; per-institution overrides are a
  * NEEDS_DECISION and are not modelled (§94).
  */
@@ -28,7 +30,7 @@ final class PublicFeedbackSettings
 
     public const PERMISSION = 'service_feedback.settings.manage';
 
-    public const KEYS = ['enabled', 'identity_mode', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled', 'acknowledgement_enabled', 'rate_limit_per_source', 'rate_limit_per_ip'];
+    public const KEYS = ['enabled', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled', 'acknowledgement_enabled', 'rate_limit_per_source', 'rate_limit_per_ip'];
 
     public function __construct(
         private readonly SystemSettingsService $settings,
@@ -40,12 +42,6 @@ final class PublicFeedbackSettings
     public function enabled(): bool
     {
         return (bool) $this->settings->get(self::GROUP, 'enabled', true);
-    }
-
-    public function identityMode(): SubmitterIdentityMode
-    {
-        return SubmitterIdentityMode::tryFrom((string) $this->settings->get(self::GROUP, 'identity_mode', 'optional'))
-            ?? SubmitterIdentityMode::Optional;
     }
 
     public function allowAttachments(): bool
@@ -90,7 +86,6 @@ final class PublicFeedbackSettings
     {
         return [
             'enabled' => $this->enabled(),
-            'identity_mode' => $this->identityMode()->value,
             'allow_attachments' => $this->allowAttachments(),
             'feedback_enabled' => $this->typeEnabled(ServiceFeedbackType::Feedback),
             'suggestion_enabled' => $this->typeEnabled(ServiceFeedbackType::Suggestion),

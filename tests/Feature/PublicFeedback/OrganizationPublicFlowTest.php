@@ -67,11 +67,11 @@ it('opens the organization landing with the institution identity, three options 
 });
 
 it('records a rating about the organization, attached to the organization and the QR that produced it', function (): void {
-    $this->post('/feedback/'.$this->token.'/feedback', [
+    $this->post('/feedback/'.$this->token.'/feedback', pfComplete('feedback', [
         'rating' => 2,
         'comment' => 'Long queue at the registry.',
         'client_name' => 'Abebe',
-    ])->assertRedirect('/feedback/'.$this->token.'/feedback');
+    ]))->assertRedirect('/feedback/'.$this->token.'/feedback');
 
     $row = EmployeeServiceFeedback::query()->sole();
 
@@ -98,14 +98,14 @@ it('records a rating about the organization, attached to the organization and th
 });
 
 it('records a suggestion and a complaint with its reference and attachment about the organization', function (): void {
-    $this->post('/feedback/'.$this->token.'/suggestion', ['message' => 'Publish the required documents online.'])
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', ['message' => 'Publish the required documents online.']))
         ->assertRedirect('/feedback/'.$this->token.'/suggestion');
 
-    $this->post('/feedback/'.$this->token.'/complaint', [
+    $this->post('/feedback/'.$this->token.'/complaint', pfComplete('complaint', [
         'message' => 'I was sent between three windows for one form.',
         'incident_date' => now()->subDay()->toDateString(),
         'attachments' => [UploadedFile::fake()->image('queue.png', 80, 80)],
-    ])->assertRedirect('/feedback/'.$this->token.'/complaint');
+    ]))->assertRedirect('/feedback/'.$this->token.'/complaint');
 
     $rows = EmployeeServiceFeedback::query()->orderBy('created_at')->get();
 
@@ -122,7 +122,7 @@ it('records a suggestion and a complaint with its reference and attachment about
 });
 
 it('ignores any target or type the browser tries to supply', function (): void {
-    $this->post('/feedback/'.$this->token.'/suggestion', [
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', [
         'message' => 'Forged fields must not matter.',
         'employee_id' => $this->scenario->employee->id,
         'employee_target_id' => $this->scenario->employee->id,
@@ -132,7 +132,7 @@ it('ignores any target or type the browser tries to supply', function (): void {
         'type' => 'complaint',
         'status' => 'resolved',
         'reference_number' => 'PSC-2026-999999',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
 
@@ -142,14 +142,15 @@ it('ignores any target or type the browser tries to supply', function (): void {
         ->and($row->employee_id)->toBeNull()
         // No routing rule exists here, so the row is unrouted — never the forged 'resolved'.
         ->and($row->status->value)->toBe('unrouted')
-        ->and($row->reference_number)->toBeNull();
+        // The server issues the Tip-off reference; a forged one is ignored.
+        ->and($row->reference_number)->toStartWith('PTO-');
 });
 
 it('does not accept a position service for an organization target', function (): void {
-    $this->post('/feedback/'.$this->token.'/feedback', [
+    $this->post('/feedback/'.$this->token.'/feedback', pfComplete('feedback', [
         'rating' => 5,
         'position_service_id' => $this->scenario->positionService->id,
-    ])->assertSessionHasErrors('position_service_id');
+    ]))->assertSessionHasErrors('position_service_id');
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
@@ -162,12 +163,12 @@ it('shows the generic unavailable page and stores nothing for an unknown, revoke
 
     $service->disable($this->qr, $this->admin);
     $this->get(opfLanding($this->token))->assertOk()->assertInertia(fn (Assert $page) => $page->where('available', false));
-    $this->post('/feedback/'.$this->token.'/suggestion', ['message' => 'Still here?'])->assertRedirect(opfLanding($this->token));
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', ['message' => 'Still here?']))->assertRedirect(opfLanding($this->token));
 
     $service->enable($this->qr->fresh(), $this->admin);
     $service->revoke($this->qr->fresh(), 'test', $this->admin);
     $this->get(opfLanding($this->token).'/complaint')->assertOk()->assertInertia(fn (Assert $page) => $page->where('available', false));
-    $this->post('/feedback/'.$this->token.'/complaint', ['message' => 'Still here?'])->assertRedirect(opfLanding($this->token));
+    $this->post('/feedback/'.$this->token.'/complaint', pfComplete('complaint', ['message' => 'Still here?']))->assertRedirect(opfLanding($this->token));
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
@@ -177,7 +178,7 @@ it('shows the generic unavailable page for an inactive organization', function (
 
     $this->get(opfLanding($this->token))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('available', false));
-    $this->post('/feedback/'.$this->token.'/feedback', ['rating' => 4])->assertRedirect(opfLanding($this->token));
+    $this->post('/feedback/'.$this->token.'/feedback', pfComplete('feedback', ['rating' => 4]))->assertRedirect(opfLanding($this->token));
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
@@ -185,15 +186,15 @@ it('shows the generic unavailable page for an inactive organization', function (
 it('stores an accidental double submit once', function (): void {
     $payload = ['message' => 'The same suggestion, sent twice by a double tap.'];
 
-    $this->post('/feedback/'.$this->token.'/suggestion', $payload)->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', $payload))->assertRedirect();
     // Feature requests do not carry cookies automatically; mimic one browser session.
     $this->withCookie(config('session.cookie'), session()->getId());
-    $this->post('/feedback/'.$this->token.'/suggestion', $payload)->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', $payload))->assertRedirect();
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 
     // A different message is a new submission, not a duplicate.
-    $this->post('/feedback/'.$this->token.'/suggestion', ['message' => 'A second, different suggestion.'])->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', ['message' => 'A second, different suggestion.']))->assertRedirect();
     expect(EmployeeServiceFeedback::query()->count())->toBe(2);
 });
 
@@ -201,12 +202,12 @@ it('returns the original complaint receipt when a duplicate follows another comp
     $first = ['message' => 'First complaint for duplicate receipt test.'];
     $second = ['message' => 'Another complaint between retries.'];
 
-    $this->post('/feedback/'.$this->token.'/complaint', $first)->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/complaint', pfComplete('complaint', $first))->assertRedirect();
     $firstReference = EmployeeServiceFeedback::query()->where('comment', $first['message'])->firstOrFail()->reference_number;
 
     $this->withCookie(config('session.cookie'), session()->getId());
-    $this->post('/feedback/'.$this->token.'/complaint', $second)->assertRedirect();
-    $this->post('/feedback/'.$this->token.'/complaint', $first)
+    $this->post('/feedback/'.$this->token.'/complaint', pfComplete('complaint', $second))->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/complaint', pfComplete('complaint', $first))
         ->assertRedirect()
         ->assertSessionHas('feedback_receipt.reference', $firstReference);
 
@@ -216,15 +217,15 @@ it('returns the original complaint receipt when a duplicate follows another comp
 it('keeps matching feedback from different visitor sessions as separate submissions', function (): void {
     $payload = ['rating' => 4];
 
-    $this->post('/feedback/'.$this->token.'/feedback', $payload)->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/feedback', pfComplete('feedback', $payload))->assertRedirect();
     session()->regenerate();
-    $this->post('/feedback/'.$this->token.'/feedback', $payload)->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/feedback', pfComplete('feedback', $payload))->assertRedirect();
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(2);
 });
 
 it('does not show an organization receipt on an employee form in the same session', function (): void {
-    $this->post('/feedback/'.$this->token.'/suggestion', ['message' => 'Organization suggestion.'])->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', ['message' => 'Organization suggestion.']))->assertRedirect();
 
     $this->get('/service-feedback/'.$this->scenario->token->token.'/feedback')
         ->assertOk()
@@ -237,7 +238,7 @@ it('does not show an organization receipt on an employee form in the same sessio
 });
 
 it('does not show a complaint receipt on another form type for the same QR', function (): void {
-    $this->post('/feedback/'.$this->token.'/complaint', ['message' => 'Organization complaint.'])->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/complaint', pfComplete('complaint', ['message' => 'Organization complaint.']))->assertRedirect();
 
     $this->get('/feedback/'.$this->token.'/suggestion')
         ->assertOk()
@@ -254,16 +255,16 @@ it('lets a visitor correct an inapplicable category without refreshing the form'
         ->assertOk()
         ->inertiaProps()['formToken'];
 
-    $this->post('/feedback/'.$this->token.'/suggestion', [
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', [
         'message' => 'A suggestion with a category to correct.',
         'category_id' => (string) Str::uuid(),
         'form_token' => $formToken,
-    ])->assertSessionHasErrors('category_id');
+    ]))->assertSessionHasErrors('category_id');
 
-    $this->post('/feedback/'.$this->token.'/suggestion', [
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', [
         'message' => 'A suggestion with a category to correct.',
         'form_token' => $formToken,
-    ])->assertRedirect()->assertSessionHasNoErrors();
+    ]))->assertRedirect()->assertSessionHasNoErrors();
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
@@ -276,19 +277,19 @@ it('consumes a one-time form token so a replayed form is refused', function (): 
 
     expect($formToken)->toMatch('/^[0-9a-f]{32}$/');
 
-    $this->post('/feedback/'.$this->token.'/suggestion', ['message' => 'First use.', 'form_token' => $formToken])->assertRedirect();
-    $this->post('/feedback/'.$this->token.'/suggestion', ['message' => 'Replay with the same token.', 'form_token' => $formToken])
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', ['message' => 'First use.', 'form_token' => $formToken]))->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', ['message' => 'Replay with the same token.', 'form_token' => $formToken]))
         ->assertSessionHasErrors('form_token');
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
 
 it('keeps the employee flow attached to the scanned employee when an organization target is forged', function (): void {
-    $this->post('/service-feedback/'.$this->scenario->token->token.'/suggestion', [
+    $this->post('/service-feedback/'.$this->scenario->token->token.'/suggestion', pfComplete('suggestion', [
         'message' => 'Forged organization target on an employee QR.',
         'organization_target_id' => $this->organization->id,
         'target_type' => 'organization',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
 

@@ -73,7 +73,7 @@ class PublicFeedbackDoctor extends Command
         $this->add('Public feedback enabled', $settings->enabled() ? 'OK' : 'FAIL', $settings->enabled() ? 'System Settings › Public feedback › Enabled' : 'Switched off in System Settings › Public feedback: every link shows "not available"');
         $types = $settings->enabledTypes();
         $this->add('Submission types', $types === [] ? 'FAIL' : 'OK', $types === [] ? 'No type is enabled' : implode(', ', $types));
-        $this->add('Identity policy', 'OK', $settings->identityMode()->value.'; attachments '.($settings->allowAttachments() ? 'allowed' : 'off').'; acknowledgement '.($settings->acknowledgementEnabled() ? 'on' : 'off'));
+        $this->add('Identity policy', 'OK', 'feedback & complaint named; tip-off optional; evidence '.($settings->allowAttachments() ? 'allowed' : 'off').'; acknowledgement '.($settings->acknowledgementEnabled() ? 'on' : 'off'));
         $this->add('Rate limits', 'OK', sprintf('%d per QR and %d per address, each per 10 minutes', $settings->rateLimitPerSource(), $settings->rateLimitPerIp()));
     }
 

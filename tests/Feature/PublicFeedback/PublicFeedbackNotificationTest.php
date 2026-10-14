@@ -148,15 +148,14 @@ it('keeps the narrative out of the mail and uses the configured channels', funct
     });
 });
 
-it('acknowledges an identified submitter by e-mail only when the policy allows, and never by phone', function (): void {
-    ntfSetting('identity_mode', 'identified');
+it('acknowledges a submitter by e-mail only when the policy allows, and never by phone', function (): void {
     Notification::fake();
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Quiet.', 'client_name' => 'Abebe', 'client_contact' => 'abebe@example.com'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Quiet.', 'client_name' => 'Abebe', 'client_contact' => '0911223344', 'client_email' => 'abebe@example.com']))->assertRedirect();
     Notification::assertSentOnDemandTimes(PublicFeedbackAcknowledgement::class, 0);
 
     ntfSetting('acknowledgement_enabled', true);
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Acknowledged.', 'client_name' => 'Abebe', 'client_contact' => 'abebe@example.com'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Acknowledged.', 'client_name' => 'Abebe', 'client_contact' => '0911223344', 'client_email' => 'abebe@example.com']))->assertRedirect();
     Notification::assertSentOnDemand(PublicFeedbackAcknowledgement::class, function (PublicFeedbackAcknowledgement $n, array $channels, AnonymousNotifiable $notifiable): bool {
         $text = json_encode($n->toMail($notifiable)->toArray(), JSON_UNESCAPED_UNICODE);
 
@@ -166,6 +165,6 @@ it('acknowledges an identified submitter by e-mail only when the policy allows, 
             && ! str_contains($text, 'Acknowledged.');
     });
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'By phone.', 'client_name' => 'Abebe', 'client_contact' => '0911223344'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'By phone.', 'client_name' => 'Abebe', 'client_contact' => '0911223344']))->assertRedirect();
     Notification::assertSentOnDemandTimes(PublicFeedbackAcknowledgement::class, 1);
 });

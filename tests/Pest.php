@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\PublicSubmissionPayload;
 use Tests\TestCase;
 
 /*
@@ -47,4 +48,17 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Add what PublicSubmissionPolicy requires of a public form where the test
+ * payload does not set it. See Tests\Support\PublicSubmissionPayload.
+ *
+ * @param  'feedback'|'suggestion'|'complaint'  $type
+ * @param  array<string, mixed>  $payload
+ * @return array<string, mixed>
+ */
+function pfComplete(string $type, array $payload = []): array
+{
+    return PublicSubmissionPayload::complete($type, $payload);
 }

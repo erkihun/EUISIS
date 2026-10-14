@@ -66,7 +66,7 @@ function clientRates($test, PositionService $service, int $rating): void
     // Named limiters store md5(limiter name . limit key), not the raw key.
     RateLimiter::clear(md5('service-feedback-submit'.'sf-submit:'.$test->token->token.'|127.0.0.1'));
     RateLimiter::clear(md5('service-feedback-submit'.'sf-submit-ip:127.0.0.1'));
-    $test->post('/service-feedback/'.$test->token->token, ['position_service_id' => $service->id, 'rating' => $rating])->assertSessionHasNoErrors();
+    $test->post('/service-feedback/'.$test->token->token, pfComplete('feedback', ['position_service_id' => $service->id, 'rating' => $rating]))->assertSessionHasNoErrors();
 }
 
 function storedFeedback($test, PositionService $service, int $rating, string $at, ?Position $position = null): EmployeeServiceFeedback

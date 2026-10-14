@@ -69,7 +69,7 @@ class ServiceFeedbackQueryService
      * @param  Builder<EmployeeServiceFeedback>  $query
      * @return Builder<EmployeeServiceFeedback>
      */
-    public function applyFilters(Builder $query, array $filters): Builder
+    public function applyFilters(Builder $query, array $filters, ?User $user = null): Builder
     {
         return $query
             ->when($this->filled($filters, 'organization_id'), fn (Builder $q): Builder => $q->where('organization_id', $filters['organization_id']))
@@ -82,7 +82,7 @@ class ServiceFeedbackQueryService
             // Dates arrive as Y-m-d; `date_to` is inclusive of the whole day.
             ->when($this->filled($filters, 'date_from'), fn (Builder $q): Builder => $q->whereDate('created_at', '>=', $filters['date_from']))
             ->when($this->filled($filters, 'date_to'), fn (Builder $q): Builder => $q->whereDate('created_at', '<=', $filters['date_to']))
-            ->when($this->filled($filters, 'q'), fn (Builder $q): Builder => $this->applySearch($q, (string) $filters['q']));
+            ->when($this->filled($filters, 'q'), fn (Builder $q): Builder => $this->applySearch($q, (string) $filters['q'], $user !== null && $this->visibility->canSeeIdentity($user)));
     }
 
     /**
@@ -92,7 +92,7 @@ class ServiceFeedbackQueryService
      * @param  Builder<EmployeeServiceFeedback>  $query
      * @return Builder<EmployeeServiceFeedback>
      */
-    private function applySearch(Builder $query, string $term): Builder
+    private function applySearch(Builder $query, string $term, bool $searchSubmitter): Builder
     {
         // Capped so a pasted essay cannot become a pathological LIKE pattern.
         $term = mb_substr(trim($term), 0, 100);
@@ -101,9 +101,11 @@ class ServiceFeedbackQueryService
             return $query;
         }
 
-        return $query->where(function (Builder $nested) use ($term): void {
+        return $query->where(function (Builder $nested) use ($term, $searchSubmitter): void {
             $nested->whereLike('comment', "%{$term}%", caseSensitive: false)
-                ->orWhereLike('client_name', "%{$term}%", caseSensitive: false)
+                // Searching by the submitter's name would reveal who sent what to anyone who can search;
+                // only a holder of the identity grant may match on it.
+                ->when($searchSubmitter, fn (Builder $q): Builder => $q->orWhereLike('client_name', "%{$term}%", caseSensitive: false))
                 ->orWhereHas('employee', fn (Builder $employee): Builder => $employee
                     ->whereLike('full_name', "%{$term}%", caseSensitive: false)
                     ->orWhereLike('employee_number', "%{$term}%", caseSensitive: false));

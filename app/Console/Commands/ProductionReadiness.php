@@ -144,7 +144,7 @@ class ProductionReadiness extends Command
                 $settings = app(PublicFeedbackSettings::class);
                 $types = array_map(fn ($type): string => $type instanceof \BackedEnum ? (string) $type->value : (string) $type, $settings->enabledTypes());
                 $this->info_('Public feedback enabled / types', ($settings->enabled() ? 'yes' : 'no').' / '.($types === [] ? 'none' : implode(', ', $types)));
-                $this->info_('Submitter identity policy', $settings->identityMode()->value.' (attachments '.($settings->allowAttachments() ? 'allowed' : 'off').')');
+                $this->info_('Submitter identity policy', 'feedback & complaint named, tip-off optional (evidence '.($settings->allowAttachments() ? 'allowed' : 'off').')');
                 $this->check('Attachment disk (local) is writable', is_writable(Storage::disk('local')->path('')), $production, 'Attachments are stored on the private local disk; the web user must be able to write there.');
 
                 $assignGranted = DB::table('role_has_permissions')

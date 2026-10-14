@@ -551,6 +551,18 @@ export default function Dashboard({
                             />
                         )}
 
+                        {/* Tip-offs are reports received, not findings: counts only, safe on a wall display. */}
+                        {can.serviceFeedback && cards.tipOffs && (
+                            <StatTileGroup
+                                stats={[
+                                    { key: 'tipOffTotal', label: t('dashboard.tipOffs.total'), value: numberOrNull(cards.tipOffs.total), tone: 'neutral', href: route('service-submissions.suggestions') },
+                                    { key: 'tipOffCorruption', label: t('dashboard.tipOffs.corruption'), value: numberOrNull(cards.tipOffs.corruption), tone: 'neutral', href: route('service-submissions.suggestions', { tip_type: 'CORRUPTION' }) },
+                                    { key: 'tipOffImproper', label: t('dashboard.tipOffs.improperPractice'), value: numberOrNull(cards.tipOffs.improperPractice), tone: 'neutral', href: route('service-submissions.suggestions', { tip_type: 'IMPROPER_PRACTICE' }) },
+                                    { key: 'tipOffUnrouted', label: t('dashboard.tipOffs.awaitingRouting'), value: numberOrNull(cards.tipOffs.awaitingRouting), tone: Number(cards.tipOffs.awaitingRouting ?? 0) > 0 ? 'warning' : 'neutral', href: route('service-submissions.suggestions', { status: 'unrouted' }) },
+                                ] satisfies Stat[]}
+                            />
+                        )}
+
                         <ChartRow>
                             {can.entitlements && (
                                 <ChartCard title={t('dashboard.sections.serviceEntitlements')}>

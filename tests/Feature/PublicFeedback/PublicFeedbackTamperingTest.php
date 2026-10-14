@@ -58,7 +58,7 @@ beforeEach(function (): void {
 });
 
 it('ignores every forged target, type, source and workflow field on the employee flow', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'Forged employee flow.'] + PF_FORGED)->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'Forged employee flow.']) + PF_FORGED)->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
     expect($row->type->value)->toBe('suggestion')
@@ -73,13 +73,14 @@ it('ignores every forged target, type, source and workflow field on the employee
         ->and($row->closed_at)->toBeNull()
         ->and($row->reviewed_by)->toBeNull()
         ->and($row->review_note)->toBeNull()
-        ->and($row->reference_number)->toBeNull()
+        // A Tip-off gets the server's own reference; the forged one is ignored.
+        ->and($row->reference_number)->toStartWith('PTO-')->not->toBe('PSC-2020-000001')
         ->and($row->submitter_identity_mode->value)->toBe('optional')
         ->and($row->ip_address)->toBe('127.0.0.1');
 });
 
 it('ignores every forged target, type, source and workflow field on the institution flow', function (): void {
-    $this->post('/feedback/'.$this->orgToken.'/complaint', ['message' => 'Forged institution flow.'] + PF_FORGED + ['target_type' => 'employee', 'source_type' => 'employee_card_qr', 'employee_id' => $this->a->employee->id])->assertRedirect();
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'Forged institution flow.']) + PF_FORGED + ['target_type' => 'employee', 'source_type' => 'employee_card_qr', 'employee_id' => $this->a->employee->id])->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
     expect($row->type->value)->toBe('complaint')
@@ -96,17 +97,17 @@ it('ignores every forged target, type, source and workflow field on the institut
 it('cannot replay a one-time form token against another target, and a double POST stores once', function (): void {
     $formToken = app(PublicFeedbackFormToken::class)->issue();
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'First target.', 'form_token' => $formToken])->assertRedirect();
-    $this->post('/feedback/'.$this->orgTokenB.'/suggestion', ['message' => 'Replayed elsewhere.', 'form_token' => $formToken])->assertSessionHasErrors('form_token');
-    $this->post('/service-feedback/'.$this->b->token->token.'/suggestion', ['message' => 'Replayed elsewhere.', 'form_token' => $formToken])->assertSessionHasErrors('form_token');
+    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'First target.', 'form_token' => $formToken]))->assertRedirect();
+    $this->post('/feedback/'.$this->orgTokenB.'/suggestion', pfComplete('suggestion', ['message' => 'Replayed elsewhere.', 'form_token' => $formToken]))->assertSessionHasErrors('form_token');
+    $this->post('/service-feedback/'.$this->b->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'Replayed elsewhere.', 'form_token' => $formToken]))->assertSessionHasErrors('form_token');
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(1)
         ->and(EmployeeServiceFeedback::query()->sole()->employee_id)->toBe($this->a->employee->id);
 
     // Same payload twice within the window (double click, network retry): one row.
-    $this->post('/service-feedback/'.$this->b->token->token.'/complaint', ['message' => 'Double click.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->b->token->token.'/complaint', pfComplete('complaint', ['message' => 'Double click.']))->assertRedirect();
     $this->withCookie(config('session.cookie'), session()->getId());
-    $this->post('/service-feedback/'.$this->b->token->token.'/complaint', ['message' => 'Double click.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->b->token->token.'/complaint', pfComplete('complaint', ['message' => 'Double click.']))->assertRedirect();
     expect(EmployeeServiceFeedback::query()->where('employee_id', $this->b->employee->id)->count())->toBe(1);
 });
 

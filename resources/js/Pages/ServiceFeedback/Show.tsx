@@ -161,6 +161,18 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                                         {feedback.identity_hidden ? t('serviceFeedback.identityHidden') : feedback.client_contact ?? t('serviceFeedback.notProvided')}
                                     </dd>
                                 </div>
+                                {!feedback.identity_hidden && feedback.client_email && (
+                                    <div className="min-w-0">
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.clientEmail')}</dt>
+                                        <dd className="break-all font-medium text-[color:var(--app-foreground)]">{feedback.client_email}</dd>
+                                    </div>
+                                )}
+                                {!feedback.identity_hidden && feedback.submitter_organization && (
+                                    <div className="min-w-0">
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.submitterOrganization')}</dt>
+                                        <dd className="font-medium text-[color:var(--app-foreground)]">{feedback.submitter_organization}</dd>
+                                    </div>
+                                )}
                             </dl>
                         </section>
 

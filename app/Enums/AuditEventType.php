@@ -520,6 +520,9 @@ enum AuditEventType: string
     case ServiceSuggestionSubmitted = 'service_feedback.suggestion_submitted';
     case ServiceComplaintSubmitted = 'service_feedback.complaint_submitted';
     case ServiceComplaintAttachmentDownloaded = 'service_feedback.complaint_attachment_downloaded';
+    // Tip-off evidence and any submitter's identity are confidential: each opening is recorded.
+    case ServiceTipOffAttachmentDownloaded = 'service_feedback.tip_off_attachment_downloaded';
+    case PublicSubmitterIdentityViewed = 'service_feedback.submitter_identity_viewed';
     case ServiceFeedbackBlocked = 'service_feedback.blocked';
     case ServiceFeedbackReviewed = 'service_feedback.reviewed';
     case ServiceFeedbackResolved = 'service_feedback.resolved';

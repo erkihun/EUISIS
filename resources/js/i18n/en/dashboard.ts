@@ -269,6 +269,12 @@ const dashboard = {
         lowRatingPending: 'Low Rating Pending',
         pendingReview: 'Pending Review',
     },
+    tipOffs: {
+        total: 'Tip-offs Received',
+        corruption: 'Corruption Tip-offs',
+        improperPractice: 'Improper Practice Tip-offs',
+        awaitingRouting: 'Tip-offs Awaiting Routing',
+    },
 } as const;
 
 export default dashboard;

@@ -796,11 +796,11 @@ it('makes an auto-provisioned token immediately scannable by the public', functi
             ->where('available', true)
         );
 
-    $this->post('/service-feedback/'.$token->token, [
+    $this->post('/service-feedback/'.$token->token, pfComplete('feedback', [
         'position_service_id' => $positionService->id,
         'rating' => 5,
         'comment' => 'Auto-provisioned QR works.',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     expect(EmployeeServiceFeedback::query()->where('employee_id', $employee->id)->count())->toBe(1);
 });

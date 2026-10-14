@@ -13,6 +13,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
+use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
@@ -62,15 +63,16 @@ function pfSetting(string $key, mixed $value): void
     app(SystemSettingsService::class)->clearCache();
 }
 
-it('ships with every type enabled, optional identity and attachments allowed', function (): void {
+it('ships with every type enabled and evidence allowed, with no identity switch left to set', function (): void {
     $settings = app(SystemSettingsService::class);
 
     expect($settings->get('service_feedback', 'enabled'))->toBeTrue()
-        ->and($settings->get('service_feedback', 'identity_mode'))->toBe('optional')
         ->and($settings->get('service_feedback', 'allow_attachments'))->toBeTrue()
         ->and($settings->get('service_feedback', 'feedback_enabled'))->toBeTrue()
         ->and($settings->get('service_feedback', 'suggestion_enabled'))->toBeTrue()
-        ->and($settings->get('service_feedback', 'complaint_enabled'))->toBeTrue();
+        ->and($settings->get('service_feedback', 'complaint_enabled'))->toBeTrue()
+        // Who must give a name is business policy (PublicSubmissionPolicy), not a setting.
+        ->and(PublicFeedbackSettings::KEYS)->not->toContain('identity_mode');
 });
 
 it('hides a disabled submission type from the public landing and refuses its form and store', function (): void {
@@ -80,13 +82,13 @@ it('hides a disabled submission type from the public landing and refuses its for
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('enabledTypes', ['feedback', 'suggestion']));
     $this->get('/service-feedback/'.$this->a->token->token.'/complaint')->assertNotFound();
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Still trying.'])->assertNotFound();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Still trying.']))->assertNotFound();
 
     $this->get('/feedback/'.$this->orgToken.'/complaint')->assertNotFound();
-    $this->post('/feedback/'.$this->orgToken.'/complaint', ['message' => 'Still trying.'])->assertNotFound();
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'Still trying.']))->assertNotFound();
 
     // The other types keep working.
-    $this->post('/feedback/'.$this->orgToken.'/suggestion', ['message' => 'Open earlier.'])->assertRedirect();
+    $this->post('/feedback/'.$this->orgToken.'/suggestion', pfComplete('suggestion', ['message' => 'Open earlier.']))->assertRedirect();
     expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
 
@@ -98,67 +100,64 @@ it('turns the public pages off with the master switch', function (): void {
         ->assertInertia(fn (Assert $page) => $page->where('available', false));
     $this->get('/feedback/'.$this->orgToken)
         ->assertInertia(fn (Assert $page) => $page->where('available', false));
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'x'])->assertRedirect('/service-feedback/'.$this->a->token->token);
+    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'x']))->assertRedirect('/service-feedback/'.$this->a->token->token);
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
 
-it('refuses complaint attachments when they are not allowed', function (): void {
+it('refuses Tip-off and complaint evidence when it is not allowed', function (): void {
     pfSetting('allow_attachments', false);
 
     $this->get('/service-feedback/'.$this->a->token->token.'/complaint')
-        ->assertInertia(fn (Assert $page) => $page->where('allowAttachments', false));
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('requirements.complaint.evidence_allowed', false)
+            ->where('requirements.suggestion.evidence_allowed', false));
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', [
-        'message' => 'With a file.',
-        'attachments' => [UploadedFile::fake()->create('evidence.pdf', 10, 'application/pdf')],
-    ])->assertSessionHasErrors('attachments');
+    foreach (['complaint', 'suggestion'] as $type) {
+        $this->post('/service-feedback/'.$this->a->token->token.'/'.$type, pfComplete($type, [
+            'message' => 'With a file.',
+            'attachments' => [UploadedFile::fake()->createWithContent('evidence.pdf', "%PDF-1.4\n%fake\n")],
+        ]))->assertSessionHasErrors('attachments');
+    }
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
 
-it('collects no identity in anonymous mode and records the mode on the row', function (): void {
-    pfSetting('identity_mode', 'anonymous');
-
-    $this->get('/service-feedback/'.$this->a->token->token.'/suggestion')
-        ->assertInertia(fn (Assert $page) => $page->where('identityMode', 'anonymous'));
-
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', [
-        'message' => 'Anonymous suggestion.', 'client_name' => 'Abebe', 'client_contact' => '0911000000',
-    ])->assertRedirect();
-
-    $row = EmployeeServiceFeedback::query()->sole();
-    expect($row->client_name)->toBeNull()
-        ->and($row->client_contact)->toBeNull()
-        ->and($row->submitter_identity_mode)->toBe(SubmitterIdentityMode::Anonymous);
-});
-
-it('requires a name and a valid phone or email in identified mode', function (): void {
-    pfSetting('identity_mode', 'identified');
-
+it('requires a name and a phone on every Feedback and Complaint: neither is ever anonymous', function (): void {
     $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'No identity.'])
         ->assertSessionHasErrors(['client_name', 'client_contact']);
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Bad contact.', 'client_name' => 'Abebe', 'client_contact' => 'not-a-contact'])
+    $this->post('/service-feedback/'.$this->a->token->token.'/feedback', ['rating' => 4, 'comment' => 'Fine.', 'position_service_id' => $this->a->positionService->id])
+        ->assertSessionHasErrors(['client_name', 'client_contact']);
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Bad phone.', 'client_name' => 'Abebe', 'client_contact' => 'not-a-phone'])
         ->assertSessionHasErrors('client_contact');
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Phone.', 'client_name' => 'Abebe', 'client_contact' => '+251 911 000000'])
-        ->assertRedirect();
-    // The throttle counts every POST to one code, failed ones included; the e-mail case uses the institution's code.
-    $this->post('/feedback/'.$this->orgToken.'/complaint', ['message' => 'Email.', 'client_name' => 'Abebe', 'client_contact' => 'abebe@example.com'])
-        ->assertRedirect();
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 
-    $rows = EmployeeServiceFeedback::query()->orderBy('submitted_at')->get();
-    expect($rows)->toHaveCount(2)
-        ->and($rows[0]->submitter_identity_mode)->toBe(SubmitterIdentityMode::Identified)
-        ->and($rows[0]->client_contact)->toBe('+251 911 000000');
+    // The throttle counts every POST to one code, failed ones included; the accepted case uses the institution's code.
+    $this->post('/feedback/'.$this->orgToken.'/complaint', [
+        'message' => 'Named.', 'client_name' => 'Abebe', 'client_contact' => '+251 911 000000', 'client_email' => 'abebe@example.com', 'submitter_organization' => 'Bole Traders',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $row = EmployeeServiceFeedback::query()->sole();
+    expect($row->submitter_identity_mode)->toBe(SubmitterIdentityMode::Identified)
+        ->and($row->client_name)->toBe('Abebe')
+        ->and($row->client_contact)->toBe('+251 911 000000')
+        ->and($row->client_email)->toBe('abebe@example.com')
+        ->and($row->submitter_organization)->toBe('Bole Traders');
 });
 
-it('validates a contact when one is offered in optional mode', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'Bad contact.', 'client_contact' => '??'])
+it('accepts a Tip-off with no tipster details, and validates the details a tipster does offer', function (): void {
+    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'Bad phone.', 'tip_type' => 'CORRUPTION', 'client_contact' => '??'])
         ->assertSessionHasErrors('client_contact');
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'No contact at all.'])
-        ->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'Bad e-mail.', 'tip_type' => 'CORRUPTION', 'client_email' => 'nope'])
+        ->assertSessionHasErrors('client_email');
+    $this->post('/feedback/'.$this->orgToken.'/suggestion', ['message' => 'No details at all.', 'tip_type' => 'CORRUPTION'])
+        ->assertRedirect()->assertSessionHasNoErrors();
 
-    expect(EmployeeServiceFeedback::query()->sole()->submitter_identity_mode)->toBe(SubmitterIdentityMode::Optional);
+    $row = EmployeeServiceFeedback::query()->sole();
+    expect($row->submitter_identity_mode)->toBe(SubmitterIdentityMode::Optional)
+        ->and($row->client_name)->toBeNull()
+        ->and($row->client_contact)->toBeNull()
+        ->and($row->client_email)->toBeNull();
 });
 
 it('lets a city-level account with the settings permission update the policy and audits it', function (): void {
@@ -167,27 +166,36 @@ it('lets a city-level account with the settings permission update the policy and
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/Settings')
-            ->where('feedbackSettings.identity_mode', 'optional')
-            ->where('feedbackSettings.complaint_enabled', true));
+            ->where('feedbackSettings.complaint_enabled', true)
+            ->missing('feedbackSettings.identity_mode')
+            // The fixed identity matrix is shown read-only.
+            ->where('identityPolicy.0.type', 'feedback')
+            ->where('identityPolicy.0.anonymous_allowed', false)
+            ->where('identityPolicy.1.type', 'suggestion')
+            ->where('identityPolicy.1.anonymous_allowed', true)
+            ->where('identityPolicy.2.type', 'complaint')
+            ->where('identityPolicy.2.anonymous_allowed', false));
 
     $this->actingAs($this->superAdmin)
         ->put(route('service-feedback.settings.update'), [
-            'enabled' => true, 'identity_mode' => 'identified', 'allow_attachments' => false,
+            'enabled' => true, 'allow_attachments' => false,
             'feedback_enabled' => true, 'suggestion_enabled' => false, 'complaint_enabled' => true,
         ])->assertRedirect();
 
     $settings = app(SystemSettingsService::class);
-    expect($settings->get('service_feedback', 'identity_mode'))->toBe('identified')
-        ->and($settings->get('service_feedback', 'allow_attachments'))->toBeFalse()
+    expect($settings->get('service_feedback', 'allow_attachments'))->toBeFalse()
         ->and($settings->get('service_feedback', 'suggestion_enabled'))->toBeFalse()
         ->and(AuditLog::query()->where('event_type', AuditEventType::ServiceFeedbackSettingsUpdated->value)->exists())->toBeTrue();
 
+    // An identity mode can no longer be set: a posted value changes nothing, and anonymous complaints stay refused.
     $this->actingAs($this->superAdmin)
-        ->put(route('service-feedback.settings.update'), ['identity_mode' => 'secret'])
-        ->assertSessionHasErrors('identity_mode');
+        ->put(route('service-feedback.settings.update'), ['identity_mode' => 'anonymous'])
+        ->assertRedirect();
+    $this->post('/feedback/'.$this->orgToken.'/complaint', ['message' => 'Still anonymous?'])
+        ->assertSessionHasErrors(['client_name', 'client_contact']);
 
     // The policy is city-wide: a scoped administrator holding the permission does not edit it.
     $this->actingAs($this->orgAdmin)->get(route('service-feedback.settings.index'))->assertForbidden();
-    $this->actingAs($this->orgAdmin)->put(route('service-feedback.settings.update'), ['identity_mode' => 'anonymous'])->assertForbidden();
-    expect($settings->get('service_feedback', 'identity_mode'))->toBe('identified');
+    $this->actingAs($this->orgAdmin)->put(route('service-feedback.settings.update'), ['allow_attachments' => true])->assertForbidden();
+    expect($settings->get('service_feedback', 'allow_attachments'))->toBeFalse();
 });
