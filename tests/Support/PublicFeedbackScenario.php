@@ -23,8 +23,8 @@ use Illuminate\Support\Str;
 /**
  * One scanned-employee scenario for the public feedback tests: an active
  * organization with a unit, a position that delivers one service, an active
- * employee holding that position and an active ID card, and the employee's
- * active feedback token.
+ * employee holding that position, and the employee's active feedback token.
+ * No ID card: the feedback QR does not depend on one.
  */
 final class PublicFeedbackScenario
 {
@@ -41,8 +41,6 @@ final class PublicFeedbackScenario
     public EmployeeAssignment $assignment;
 
     public EmployeeFeedbackToken $token;
-
-    public IdCard $card;
 
     private function __construct() {}
 
@@ -108,9 +106,6 @@ final class PublicFeedbackScenario
             'sort_order' => 0,
         ]);
 
-        // No employee service without an active ID card: the scanned employee holds one.
-        $scenario->card = self::activeCard($scenario->employee, $prefix.'-CARD-1');
-
         $scenario->token = app(EmployeeFeedbackTokenService::class)->ensureActiveToken($scenario->employee);
 
         RateLimiter::clear('sf-submit:'.$scenario->token->token.'|127.0.0.1');
@@ -119,7 +114,7 @@ final class PublicFeedbackScenario
         return $scenario;
     }
 
-    /** An ACTIVE, current, unexpired ID card — what the public feedback QR requires of an employee. */
+    /** An ACTIVE, current, unexpired ID card, for tests that need the employee to hold one. */
     public static function activeCard(Employee $employee, ?string $cardNumber = null): IdCard
     {
         return IdCard::query()->create([

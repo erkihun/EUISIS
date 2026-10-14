@@ -10,6 +10,7 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\IdCard;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use App\Services\ServiceFeedback\PublicFeedbackFormToken;
 use App\Support\EmployeePhotoStorage;
@@ -21,10 +22,10 @@ use Tests\Support\PublicFeedbackScenario;
 
 /*
  * The employee feedback QR (the existing token on the card back) confirms the
- * scanned person by photo and full name — and only while the employee holds an
- * ACTIVE ID card. Nothing else about the employee reaches the page, the photo
- * comes only through a short-lived signed link bound to the scanned token, and
- * the browser can never change whom a submission is about.
+ * scanned person by photo and full name while the employee is active — the ID
+ * card's status plays no part. Nothing else about the employee reaches the
+ * page, the photo comes only through a short-lived signed link bound to the
+ * scanned token, and the browser can never change whom a submission is about.
  */
 
 /** A real 1×1 PNG of one colour, so storage, MIME sniffing and image decoding all see a genuine image. */
@@ -76,11 +77,14 @@ beforeEach(function (): void {
     $this->photoA = efiGivePhoto($this->a, efiPng(200, 30, 30));
     $this->photoB = efiGivePhoto($this->b, efiPng(30, 30, 200));
     $this->pageA = '/service-feedback/'.$this->a->token->token;
+
+    // Employee A also holds an ID card, so tests can show its state does not matter.
+    $this->cardA = PublicFeedbackScenario::activeCard($this->a->employee, 'EFA-CARD-1');
 });
 
 // ── 1–3: what a valid scan shows ─────────────────────────────────────────────
 
-it('shows the full name and a photo link, and nothing else, for an active card', function (): void {
+it('shows the full name and a photo link, and nothing else, for an active employee', function (): void {
     $response = $this->get($this->pageA)->assertOk();
     $target = efiProps($response)['target'];
 
@@ -141,7 +145,32 @@ it('serves a small derived copy made once, leaving the stored photo untouched, a
     expect(Storage::disk('local')->exists($first['path']))->toBeFalse();
 })->skip(! function_exists('imagecreatetruecolor'), 'GD is not installed in this PHP.');
 
-// ── 4–6, 41: invalid and inactive cards reveal no one ────────────────────────
+// ── The feedback QR follows the employee, not the ID card ───────────────────
+
+it('keeps the page, name, photo and choices whatever the state of the ID card', function (string $case): void {
+    $card = $this->cardA;
+    match ($case) {
+        'revoked' => $card->forceFill(['status' => CardStatus::Revoked, 'revoked_at' => now()])->save(),
+        'suspended' => $card->forceFill(['status' => CardStatus::Suspended])->save(),
+        'lost' => $card->forceFill(['status' => CardStatus::Lost])->save(),
+        'pending print' => $card->forceFill(['status' => CardStatus::PendingPrint])->save(),
+        'expired' => $card->forceFill(['expires_at' => now()->subDay()])->save(),
+        'qr revoked' => $card->forceFill(['qr_status' => 'revoked'])->save(),
+        'no card' => $card->delete(),
+    };
+
+    $props = efiProps($this->get($this->pageA)->assertOk());
+
+    expect($props['available'])->toBeTrue()
+        ->and($props['target']['display_name'])->toBe('Hanna Girma')
+        ->and($props['enabledTypes'])->toBe(['feedback', 'suggestion', 'complaint']);
+    $this->get($props['target']['photo_url'])->assertOk();
+
+    $this->post($this->pageA.'/suggestion', ['message' => 'Card state must not matter.'])->assertRedirect($this->pageA.'/suggestion');
+    expect(EmployeeServiceFeedback::query()->where('employee_id', $this->a->employee->id)->count())->toBe(1);
+})->with(['revoked', 'suspended', 'lost', 'pending print', 'expired', 'qr revoked', 'no card']);
+
+// ── 4–6, 41: unknown tokens and inactive employees reveal no one ─────────────
 
 it('shows no name or photo for an unknown token', function (): void {
     $response = $this->get('/service-feedback/'.str_repeat('f', 64))->assertOk();
@@ -152,17 +181,11 @@ it('shows no name or photo for an unknown token', function (): void {
         ->and($response->getContent())->not->toContain('Hanna')->not->toContain('Dawit');
 });
 
-it('shows the same unavailable page, with no name or photo, when the card is not active', function (string $case): void {
-    $card = $this->a->card;
+it('shows the same unavailable page, with no name or photo, once the employee is not active or the token is off', function (string $case): void {
     match ($case) {
-        'revoked' => $card->forceFill(['status' => CardStatus::Revoked, 'revoked_at' => now()])->save(),
-        'suspended' => $card->forceFill(['status' => CardStatus::Suspended])->save(),
-        'lost' => $card->forceFill(['status' => CardStatus::Lost])->save(),
-        'pending print' => $card->forceFill(['status' => CardStatus::PendingPrint])->save(),
-        'expired' => $card->forceFill(['expires_at' => now()->subDay()])->save(),
-        'qr revoked' => $card->forceFill(['qr_status' => 'revoked'])->save(),
-        'no card' => $card->delete(),
-        'employee inactive' => $this->a->employee->forceFill(['status' => EmployeeStatus::Terminated])->save(),
+        'token revoked' => app(EmployeeFeedbackTokenService::class)->revoke($this->a->token),
+        'token suspended' => app(EmployeeFeedbackTokenService::class)->suspend($this->a->token),
+        default => $this->a->employee->forceFill(['status' => EmployeeStatus::from($case)])->save(),
     };
 
     $response = $this->get($this->pageA)->assertOk();
@@ -171,13 +194,13 @@ it('shows the same unavailable page, with no name or photo, when the card is not
     expect($props['available'])->toBeFalse()
         ->and($props['target'])->toBeNull()
         ->and($response->getContent())->not->toContain('Hanna')->not->toContain('/photo?');
-})->with(['revoked', 'suspended', 'lost', 'pending print', 'expired', 'qr revoked', 'no card', 'employee inactive']);
+})->with(['draft', 'suspended', 'transferred', 'retired', 'terminated', 'deceased', 'token revoked', 'token suspended']);
 
-it('stops serving the photo the moment the card is revoked, even through a link still within its life', function (): void {
+it('stops serving the photo the moment the employee leaves service, even through a link still within its life', function (): void {
     $link = efiPhotoUrl($this->get($this->pageA));
     $this->get($link)->assertOk();
 
-    $this->a->card->forceFill(['status' => CardStatus::Revoked, 'revoked_at' => now()])->save();
+    $this->a->employee->forceFill(['status' => EmployeeStatus::Terminated])->save();
 
     $this->get($link)->assertNotFound();
 });
@@ -246,22 +269,33 @@ it('ignores employee B\'s ids, a forged target type and a forged assignment in a
 });
 
 it('does not accept a raw employee id, card id or card uuid in place of the token', function (): void {
-    foreach ([$this->a->employee->id, $this->a->card->id, $this->a->card->public_card_uuid, $this->a->employee->employee_number] as $guess) {
+    foreach ([$this->a->employee->id, $this->cardA->id, $this->cardA->public_card_uuid, $this->a->employee->employee_number] as $guess) {
         expect(efiProps($this->get('/service-feedback/'.$guess))['available'])->toBeFalse();
         $this->get('/service-feedback/'.$guess.'/photo')->assertForbidden();
     }
 });
 
-it('checks the card again at submission: a card revoked while the form was open blocks the send', function (): void {
+it('checks the employee again at submission: leaving service while the form was open blocks the send', function (): void {
     $formToken = efiProps($this->get($this->pageA.'/complaint'))['formToken'];
     expect($formToken)->not->toBeNull();
 
-    $this->a->card->forceFill(['status' => CardStatus::Revoked, 'revoked_at' => now()])->save();
+    $this->a->employee->forceFill(['status' => EmployeeStatus::Terminated])->save();
 
     $this->post($this->pageA.'/complaint', ['form_token' => $formToken, 'message' => 'Rude treatment at the desk.'])
         ->assertRedirect($this->pageA);
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+});
+
+it('does not block a submission when the ID card is revoked while the form is open', function (): void {
+    $formToken = efiProps($this->get($this->pageA.'/complaint'))['formToken'];
+
+    $this->cardA->forceFill(['status' => CardStatus::Revoked, 'revoked_at' => now()])->save();
+
+    $this->post($this->pageA.'/complaint', ['form_token' => $formToken, 'message' => 'Rude treatment at the desk.'])
+        ->assertRedirect($this->pageA.'/complaint');
+
+    expect(EmployeeServiceFeedback::query()->sole()->employee_id)->toBe($this->a->employee->id);
 });
 
 it('receipts a complaint against the scanned employee by name, keeping the masked snapshots', function (): void {
@@ -298,7 +332,7 @@ it('sends no protected personal data, HR data or internal ids anywhere in the pa
     foreach ([
         '9988776655443322', '0911223344', 'hanna.private@example.test', '1990-04-17', 'Bole Sub-City', 'Selam Emergency', '0955667788',
         'EFA-EMP-1', 'EFA-CARD-1',
-        $this->a->employee->id, $this->a->assignment->id, $this->a->card->id, $this->a->card->public_card_uuid, $this->a->token->id,
+        $this->a->employee->id, $this->a->assignment->id, $this->cardA->id, $this->cardA->public_card_uuid, $this->a->token->id,
         $this->photoA, pathinfo($this->photoA, PATHINFO_FILENAME),
         'Licensing Officer', 'Licensing Unit', 'Feedback Organization',
     ] as $private) {
@@ -335,14 +369,14 @@ it('leaves the referrer policy of ordinary pages as it was', function (): void {
 
 it('keeps the same token and card reference when the photo changes, and shows the new photo', function (): void {
     $token = $this->a->token->token;
-    $cardUuid = $this->a->card->public_card_uuid;
+    $cardUuid = $this->cardA->public_card_uuid;
     $before = efiPhotoUrl($this->get($this->pageA));
 
     $newPhoto = efiGivePhoto($this->a, efiPng(30, 200, 30));
     $after = efiPhotoUrl($this->get($this->pageA));
 
     expect($this->a->token->refresh()->token)->toBe($token)
-        ->and($this->a->card->refresh()->public_card_uuid)->toBe($cardUuid)
+        ->and($this->cardA->refresh()->public_card_uuid)->toBe($cardUuid)
         ->and($after)->not->toBe($before);
 
     $served = EmployeePhotoStorage::thumbnail($newPhoto);
@@ -376,7 +410,7 @@ it('keeps the same token through a transfer and a card reprint', function (): vo
     $this->a->employee->forceFill(['current_assignment_id' => $transfer->id])->save();
 
     // Reprint: the old card is replaced by a new active one.
-    $this->a->card->forceFill(['status' => CardStatus::Replaced, 'is_current' => false])->save();
+    $this->cardA->forceFill(['status' => CardStatus::Replaced, 'is_current' => false])->save();
     $reprint = PublicFeedbackScenario::activeCard($this->a->employee, 'EFA-CARD-2');
 
     expect(efiProps($this->get($this->pageA))['available'])->toBeTrue()
@@ -387,7 +421,7 @@ it('keeps the same token through a transfer and a card reprint', function (): vo
 // ── 20, 34: the OTP-gated ID Checker is untouched ────────────────────────────
 
 it('keeps the ID Checker free of the name and photo before an OTP is verified', function (): void {
-    $response = $this->get('/id-checker/'.$this->a->card->public_card_uuid)->assertOk();
+    $response = $this->get('/id-checker/'.$this->cardA->public_card_uuid)->assertOk();
 
     $response->assertInertia(fn (Assert $page) => $page->component('Public/IdChecker')->missing('employee'));
     expect((string) $response->getContent())->not->toContain('Hanna')->not->toContain('/photo?');

@@ -22,7 +22,7 @@ import { toast } from '@/lib/toast';
  *
  * The page never decides WHO a submission is about. The server resolved the
  * scanned token to a target and sends only what a visitor may see of it: the
- * photo and full name of an employee with an active ID card, so the visitor can
+ * photo and full name of an active employee, so the visitor can
  * confirm they reached the person who served them; name and logo for an
  * institution. Every URL comes from the server too (`links`, the signed photo
  * link), so the page assembles none and cannot point a form at another target.

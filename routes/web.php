@@ -459,7 +459,7 @@ Route::post('/id-checker/{cardUuid}/verify-otp', [PublicIdCheckerController::cla
  *
  * The feedback QR on the back of the ID card, separate from the OTP-gated ID
  * Checker QR on the front. Scanning shows the employee's photo and full name
- * — only while the employee holds an active ID card — and nothing else: no
+ * — while the employee is active, whatever the card's status — and nothing else: no
  * number, contact, office or role. The token is the only way in; there is no
  * search or list, and `qr.private` keeps the pages out of search engines,
  * Referer headers and shared caches.

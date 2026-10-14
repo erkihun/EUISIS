@@ -38,11 +38,12 @@ use Throwable;
  * resolver turns it into the target server-side and nothing the browser
  * posts can replace it (brief §14, 17).
  *
- * Unknown, suspended, revoked and disabled tokens, employees without an active
- * ID card, and inactive organizations, all produce the SAME "unavailable" page.
+ * Unknown, suspended, revoked and disabled tokens, inactive employees and
+ * inactive organizations all produce the SAME "unavailable" page.
  * Distinguishing them would let anyone with a token list learn which targets
- * exist. Every submission resolves the token again, so a card revoked while
- * the form was open blocks the send.
+ * exist. Every submission resolves the token again, so a token revoked or an
+ * employee leaving service while the form was open blocks the send. The
+ * employee QR does not depend on the ID card's status.
  */
 class PublicServiceFeedbackController extends Controller
 {

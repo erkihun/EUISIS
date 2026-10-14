@@ -18,10 +18,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * Reached only through the signed, short-lived link that
  * PublicEmployeeFeedbackIdentity puts on the page. The scanned token in the
  * path decides whose photo this is — there is no employee id to change — and
- * the token, the employee and the ID card are checked again on every request,
- * so a revoked or inactive card ends the photo immediately. An invalid link,
- * an inactive card and a missing photo all answer the same 404, and the page
- * falls back to its neutral avatar.
+ * the token and the employee are checked again on every request, so a revoked
+ * token or an employee leaving service ends the photo immediately. An invalid
+ * link, an unavailable token and a missing photo all answer the same 404, and
+ * the page falls back to its neutral avatar.
  *
  * What is served is a small derived copy (EmployeePhotoStorage::thumbnail),
  * under a fixed file name and only as JPEG, PNG or WebP. The storage path

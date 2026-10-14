@@ -17,8 +17,8 @@ use Illuminate\Support\Collection;
 /**
  * The employee side of the anonymous public feedback flow.
  *
- * The governing rule is minimal disclosure. A scanned QR of an employee with
- * an active ID card shows the visitor the employee's photo and full name —
+ * The governing rule is minimal disclosure. A scanned QR of an active
+ * employee shows the visitor the employee's photo and full name —
  * enough to be sure they are writing about the person who served them — and
  * nothing more (PublicEmployeeFeedbackIdentity). The employee's number,
  * phone, email, national ID, salary, address and HR history never enter a

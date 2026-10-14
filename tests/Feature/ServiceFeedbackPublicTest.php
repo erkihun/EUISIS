@@ -24,7 +24,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
-use Tests\Support\PublicFeedbackScenario;
 
 beforeEach(function (): void {
     $type = OrganizationType::query()->create(['code' => 'SF-TYPE', 'name_en' => 'Feedback Type']);
@@ -99,9 +98,6 @@ beforeEach(function (): void {
         'is_performance_evaluation_enabled' => true,
         'sort_order' => 0,
     ]);
-
-    // No employee service without an active ID card.
-    PublicFeedbackScenario::activeCard($this->employee);
 
     $this->token = app(EmployeeFeedbackTokenService::class)->ensureActiveToken($this->employee);
 

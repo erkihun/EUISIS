@@ -7,18 +7,16 @@ namespace App\Services\ServiceFeedback;
 use App\Enums\EmployeeStatus;
 use App\Enums\PublicFeedbackSourceType;
 use App\Enums\PublicFeedbackTargetType;
-use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeFeedbackToken;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * The one place a scanned QR becomes a submission target.
  *
  * Employee QR → the employee's own feedback token (unchanged, never rotated
- * by this feature) → the employee, only while active and holding an active ID
- * card, plus their current assignment, snapshotted so a later transfer cannot
- * move the submission. Organization QR → the
+ * by this feature) → the employee, only while active (whatever the state of
+ * their ID card), plus their current assignment, snapshotted so a later
+ * transfer cannot move the submission. Organization QR → the
  * organization's feedback QR row (Phase 2). Both lookups are direct indexed
  * reads: nothing here scales with the number of employees (brief §98, 102).
  */
@@ -83,30 +81,22 @@ class PublicFeedbackTargetResolver
 
     /**
      * A scanned employee token that may serve the public right now: the token
-     * accepts feedback, the employee is active, and the employee holds an
-     * ACTIVE ID card — no employee service while the card is not active.
+     * accepts feedback and the employee is active. The ID card's status plays
+     * no part — the feedback QR follows the employee, not the card.
      *
-     * Checked on every page view, photo request and submission, so a card
-     * revoked while a visitor fills in the form blocks the send. Unknown,
-     * revoked, inactive and card-less cases all return null alike.
+     * Checked on every page view, photo request and submission, so an
+     * employee who leaves service while a visitor fills in the form blocks the
+     * send. Unknown, revoked, suspended and inactive cases all return null alike.
      */
     public function employeeTokenForPublic(string $token): ?EmployeeFeedbackToken
     {
         $record = $this->tokens->resolveForPublic($token);
 
-        if ($record === null || $record->employee->status !== EmployeeStatus::Active || ! $this->holdsActiveCard($record->employee)) {
+        if ($record === null || $record->employee->status !== EmployeeStatus::Active) {
             return null;
         }
 
         return $record;
-    }
-
-    /** One indexed lookup on the employee's cards, with the service-eligibility meaning of "active". */
-    private function holdsActiveCard(Employee $employee): bool
-    {
-        return $employee->activeIdCard()
-            ->where(fn (Builder $query) => $query->whereNull('qr_status')->orWhere('qr_status', '!=', 'revoked'))
-            ->exists();
     }
 
     private static function firstFilled(?string ...$candidates): string

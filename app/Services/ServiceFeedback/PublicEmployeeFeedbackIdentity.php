@@ -17,9 +17,9 @@ use InvalidArgumentException;
  *
  * The photo link is a signed URL on the scanned token itself
  * (service-feedback.photo). The token decides whose photo it is, so no link
- * can be bent towards another employee, and the route checks the token, the
- * employee and the ID card again on every request, so a revoked card ends the
- * photo at once. The expiry is rounded up to a five-minute window, so every
+ * can be bent towards another employee, and the route checks the token and the
+ * employee again on every request, so a revoked token or an employee leaving
+ * service ends the photo at once. The expiry is rounded up to a five-minute window, so every
  * screen of one visit asks for the same URL and the photo downloads once.
  */
 final readonly class PublicEmployeeFeedbackIdentity

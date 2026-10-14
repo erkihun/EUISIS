@@ -14,14 +14,14 @@ and full name** and then exactly three options: Feedback (አስተያየት), S
 What would you like to submit for this employee?". Each typed form re-resolves
 the same token on submission.
 
-The token resolves only while the employee is active **and holds an ACTIVE ID
-card** (`Employee::activeIdCard`: status active, not revoked, not expired, QR
-reference not revoked) — no employee service while the card is not active.
-Unknown, revoked and suspended tokens, inactive employees and employees whose
-card is inactive, suspended, lost, revoked, expired or missing all show one
-generic unavailable state with no name or photo. The check runs on every page
-view, photo request and submission, so a card revoked while the form is open
-blocks the send.
+The token resolves while it is active and **the employee is active**. The ID
+card's status plays no part: a card that is pending, suspended, lost, revoked,
+expired or missing does not affect the feedback QR. Unknown, revoked and
+suspended tokens and inactive employees (draft, suspended, transferred,
+retired, terminated, deceased) all show one generic unavailable state with no
+name or photo. The check runs on every page view, photo request and
+submission, so an employee leaving service while the form is open blocks the
+send. An administrator's deliberate revoke or suspend of a token still applies.
 
 ## Identity confirmation: photo and name only
 
@@ -36,13 +36,14 @@ The photo stays on the private disk. `photo_url` is a relative signed link,
 `/service-feedback/{token}/photo?expires=…&v=…&signature=…`, valid for 10–15
 minutes (the expiry is rounded to a five-minute window so every screen of a
 visit reuses one URL). The token in the path decides whose photo it is — there
-is no employee id to change — and the route re-checks token, employee and card
-on each request, so revoking the card ends the photo at once. It serves a
+is no employee id to change — and the route re-checks the token and the
+employee on each request, so revoking the token or the employee leaving
+service ends the photo at once. It serves a
 384 px derived copy (`EmployeePhotoStorage::thumbnail`, made once on first
 request under `employee-photo-thumbnails/` on the private disk, removed with the
 photo; the original is never altered), only as JPEG/PNG/WebP after MIME
 sniffing, under the fixed name `photo.{ext}`, with `Cache-Control: private,
-max-age=300`. A missing photo, an inactive card and an invalid link all answer
+max-age=300`. A missing photo, an unavailable token and an invalid link all answer
 404 and the page shows a neutral avatar; the name and choices remain.
 
 All `/service-feedback/*` and `/feedback/*` responses carry `X-Robots-Tag:
