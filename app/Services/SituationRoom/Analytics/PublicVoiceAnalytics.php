@@ -32,8 +32,9 @@ use Illuminate\Support\Facades\DB;
  *
  * Never in a payload: the submitter's name, contact, address or narrative,
  * or any evidence. Employee names appear only in the employee breakdown, and
- * only with situation_room.employee_breakdown.view, inside one focused
- * organization, in name order.
+ * only with situation_room.view_employee_targeted and
+ * service_feedback.view_employee_target, inside one focused organization, in
+ * name order.
  */
 abstract class PublicVoiceAnalytics extends SituationAnalytics
 {
@@ -280,7 +281,7 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
     {
         $key = "{$this->prefix()}_employees";
 
-        if (! $context->can(SituationPermissions::EMPLOYEE_BREAKDOWN)) {
+        if (! $context->can(SituationPermissions::EMPLOYEE_BREAKDOWN) || ! $context->can(SituationPermissions::EMPLOYEE_TARGET)) {
             return $this->notice($key, self::SOURCE, 'NO_PERMISSION', 2);
         }
         if ($context->scope->focusOrganizationId === null) {

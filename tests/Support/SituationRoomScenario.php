@@ -69,7 +69,7 @@ final class SituationRoomScenario
     public static function build(): self
     {
         Cache::flush();
-        foreach (SituationPermissions::all() as $permission) {
+        foreach ([...SituationPermissions::all(), SituationPermissions::EMPLOYEE_TARGET] as $permission) {
             Permission::findOrCreate($permission, 'web');
         }
 

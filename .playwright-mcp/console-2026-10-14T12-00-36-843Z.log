@@ -28,3 +28,5 @@
 [ 2590899ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://ems.pshrdb.gov.et/dashboard:0
 [ 5638126ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/dashboard:9
 [ 5638176ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/dashboard:0
+[ 6298483ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://ems.pshrdb.gov.et/dashboard:0
+[ 6298487ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://ems.pshrdb.gov.et/notifications/feed?page=1&locale=am:0

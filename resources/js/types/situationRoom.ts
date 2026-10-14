@@ -108,8 +108,8 @@ export interface SrLabels {
 export interface SrCan {
     wall: boolean;
     reports: boolean;
-    actions_view: boolean;
     actions_manage: boolean;
+    community_voice: boolean;
 }
 
 export interface SrFrameProps {

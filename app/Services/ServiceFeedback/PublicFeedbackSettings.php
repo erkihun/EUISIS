@@ -30,7 +30,10 @@ final class PublicFeedbackSettings
 
     public const PERMISSION = 'service_feedback.settings.manage';
 
-    public const KEYS = ['enabled', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled', 'acknowledgement_enabled', 'rate_limit_per_source', 'rate_limit_per_ip'];
+    public const KEYS = ['enabled', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled', 'acknowledgement_enabled', 'rate_limit_per_source', 'rate_limit_per_ip', ...self::SITUATION_ROOM_KEYS];
+
+    /** Executive Situation Room community-voice rules; null = the rule is off (NEEDS_DECISION until set). */
+    public const SITUATION_ROOM_KEYS = ['sla_days_feedback', 'sla_days_suggestion', 'sla_days_complaint', 'spike_threshold_percent', 'spike_minimum_count', 'repeat_threshold_count'];
 
     public function __construct(
         private readonly SystemSettingsService $settings,
@@ -81,6 +84,22 @@ final class PublicFeedbackSettings
         ));
     }
 
+    /**
+     * The Situation Room rules as configured; a null entry means the rule is off.
+     *
+     * @return array<string, int|null>
+     */
+    public function situationRoomRules(): array
+    {
+        $rules = [];
+        foreach (self::SITUATION_ROOM_KEYS as $key) {
+            $value = $this->settings->get(self::GROUP, $key);
+            $rules[$key] = $value === null || $value === '' ? null : max(1, (int) $value);
+        }
+
+        return $rules;
+    }
+
     /** @return array<string, mixed> */
     public function toArray(): array
     {
@@ -93,6 +112,7 @@ final class PublicFeedbackSettings
             'acknowledgement_enabled' => $this->acknowledgementEnabled(),
             'rate_limit_per_source' => $this->rateLimitPerSource(),
             'rate_limit_per_ip' => $this->rateLimitPerIp(),
+            ...$this->situationRoomRules(),
         ];
     }
 

@@ -15,7 +15,18 @@ type Settings = {
     acknowledgement_enabled: boolean;
     rate_limit_per_source: number;
     rate_limit_per_ip: number;
-};
+} & Record<RuleKey, number | null>;
+
+/** Executive Situation Room rules: empty keeps a rule off, so nothing is called overdue or rising on an invented number. */
+const RULES = [
+    { key: 'sla_days_feedback', min: 1, max: 365 },
+    { key: 'sla_days_suggestion', min: 1, max: 365 },
+    { key: 'sla_days_complaint', min: 1, max: 365 },
+    { key: 'spike_threshold_percent', min: 1, max: 1000 },
+    { key: 'spike_minimum_count', min: 1, max: 10000 },
+    { key: 'repeat_threshold_count', min: 2, max: 10000 },
+] as const;
+type RuleKey = (typeof RULES)[number]['key'];
 
 type Props = { feedbackSettings: Settings; identityPolicy: SubmissionRequirements[] };
 
@@ -102,6 +113,18 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityPolic
                         <FormField id="setting-rate-ip" label={t('serviceFeedback.settingRatePerIp')} error={errors.rate_limit_per_ip} required>
                             {({ id, describedBy, invalid }) => <Input id={id} type="number" min={1} max={500} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.rate_limit_per_ip} onChange={(e) => form.setData('rate_limit_per_ip', Number(e.target.value))} />}
                         </FormField>
+                    </div>
+                </Card>
+
+                <Card className="space-y-4 p-5">
+                    <h2 className="font-semibold">{t('situationRoom.rulesTitle')}</h2>
+                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.rulesIntro')}</p>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        {RULES.map((rule) => (
+                            <FormField key={rule.key} id={`setting-${rule.key}`} label={t(`situationRoom.rule_${rule.key}`)} description={t('situationRoom.ruleOffHint')} error={errors[rule.key]}>
+                                {({ id, describedBy, invalid }) => <Input id={id} type="number" min={rule.min} max={rule.max} inputMode="numeric" aria-describedby={describedBy} aria-invalid={invalid} value={form.data[rule.key] ?? ''} onChange={(e) => form.setData(rule.key, e.target.value === '' ? null : Number(e.target.value))} />}
+                            </FormField>
+                        ))}
                     </div>
                 </Card>
 

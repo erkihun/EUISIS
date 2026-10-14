@@ -22,6 +22,7 @@ return [
     ],
 
     'categories' => [
+        'community_voice' => ['title' => 'Community Voice by Institution', 'description' => 'Institution view of feedback, Tip-offs and complaints, with attention rules, targeted-employee drill-down and queued exports.'],
         'overview' => ['title' => 'Executive Overview', 'description' => 'One headline per area, each linked to its detail.'],
         'workforce' => ['title' => 'Workforce Composition & Staffing', 'description' => 'Headcount, capacity, vacancy, gender, age, employment type and occupations.'],
         'structure' => ['title' => 'Organization Structure', 'description' => 'Organizations, units, positions and establishment in scope.'],
@@ -288,6 +289,7 @@ return [
         'reference' => 'Reference',
         'title' => 'Action',
         'priority' => 'Priority',
+        'owner' => 'Owner',
         'due_date' => 'Due',
     ],
 
@@ -356,8 +358,7 @@ return [
         'cafeteria_status' => ['accepted' => 'Accepted', 'rejected' => 'Refused', 'reversed' => 'Reversed', 'pending_review' => 'Awaiting review'],
         'grievance_stage' => ['intake' => 'Intake', 'in_progress' => 'Being handled', 'decided' => 'Decision issued', 'concluded' => 'Concluded'],
         'discipline_status' => ['charged' => 'Charged', 'under_investigation' => 'Under investigation', 'report_submitted' => 'Report submitted', 'decided' => 'Decided', 'decision_delivered' => 'Decision delivered', 'closed' => 'Closed', 'discontinued' => 'Discontinued', 'terminated' => 'Terminated'],
-        'priority' => ['low' => 'Low', 'normal' => 'Normal', 'high' => 'High', 'urgent' => 'Urgent'],
-        'action_status' => ['open' => 'Open', 'in_progress' => 'In progress', 'done' => 'Done', 'cancelled' => 'Cancelled'],
+        'priority' => ['low' => 'Low', 'normal' => 'Normal', 'high' => 'High'],
     ],
 
     'quality' => [
@@ -408,6 +409,7 @@ return [
     ],
 
     'ui' => [
+        'community_voice' => 'Community Voice',
         'launcher_intro' => 'Choose an area. Every figure is confined to the organizations you may see, and each organization includes the ones below it.',
         'open' => 'Open',
         'back' => 'Situation Room',
@@ -484,37 +486,4 @@ return [
         'languages' => ['en' => 'English (Gregorian)', 'am' => 'Amharic (Ethiopian calendar)'],
     ],
 
-    'actions' => [
-        'title' => 'Executive Action Register',
-        'intro' => 'Decisions and instructions recorded while reading the Situation Room. Recording an action never changes the records it is about.',
-        'new' => 'Record an action',
-        'edit' => 'Update action',
-        'empty' => 'No actions recorded in your scope yet.',
-        'created' => 'Action recorded.',
-        'updated' => 'Action updated.',
-        'overdue' => 'Overdue',
-        'search' => 'Search title or reference',
-        'all_statuses' => 'All statuses',
-        'save' => 'Save',
-        'cancel' => 'Cancel',
-        'created_by' => 'Recorded by',
-        'updated_by' => 'Last updated by',
-        'completed_at' => 'Concluded',
-        'fields' => [
-            'organization_id' => 'Organization',
-            'category' => 'Situation Room category',
-            'panel_key' => 'Prompted by',
-            'title' => 'Action',
-            'description' => 'Instruction or decision',
-            'priority' => 'Priority',
-            'responsible_office' => 'Responsible office',
-            'due_date' => 'Due date',
-            'status' => 'Status',
-            'outcome_note' => 'Outcome',
-        ],
-        'hints' => [
-            'organization_id' => 'Only organizations in your scope.',
-            'outcome_note' => 'Required when the action is done or cancelled.',
-        ],
-    ],
 ];

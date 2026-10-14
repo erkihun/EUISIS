@@ -4,97 +4,71 @@ declare(strict_types=1);
 
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
-use App\Models\SituationAction;
+use App\Models\SituationRoomAction;
 use App\Services\SituationRoom\SituationPermissions;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\SituationRoomScenario;
 
 /*
- * Executive Action Register: scoped, audited, never touching source records.
- * Exports: same scope as the screen, no names, audited. Wall: aggregates only.
+ * The category views' links into the one Action Register, exports (same scope
+ * as the screen, no names, audited) and the wall (aggregates only).
  */
 
 beforeEach(function (): void {
     app()->setLocale('en');
     $this->s = SituationRoomScenario::build();
-    $this->manager = $this->s->viewer([SituationPermissions::ACTIONS_VIEW, SituationPermissions::ACTIONS_MANAGE], 'subcity_a');
 });
 
-function srAction(array $overrides = []): array
-{
-    return $overrides + ['category' => 'complaints', 'panel_key' => 'complaints_by_organization', 'title' => 'Review the front desk', 'priority' => 'high', 'due_date' => now()->addWeek()->toDateString()];
-}
+it('records an action from a category panel in the one Action Register', function (): void {
+    $manager = $this->s->viewer([SituationPermissions::ACTIONS_MANAGE, SituationPermissions::PUBLIC_VOICE], 'subcity_a');
 
-it('records an action for an organization in scope, with an audit entry', function (): void {
-    $this->actingAs($this->manager)->post(route('situation-room.actions.store'), srAction(['organization_id' => $this->s->org['woreda_a1']->id]))
-        ->assertRedirect(route('situation-room.actions.index'))->assertSessionHasNoErrors();
+    $this->actingAs($manager)->post(route('situation-room.actions.store'), [
+        'organization_id' => $this->s->org['woreda_a1']->id,
+        'source_type' => 'panel',
+        'source_reference' => 'complaints:complaints_by_organization',
+        'title' => 'Review the front desk',
+    ])->assertRedirect()->assertSessionHasNoErrors();
 
-    $action = SituationAction::query()->sole();
-    expect($action->reference_number)->toStartWith('SRA-')
-        ->and($action->status->value)->toBe('open')
-        ->and(AuditLog::query()->where('event_type', AuditEventType::SituationActionCreated->value)->where('auditable_id', $action->id)->exists())->toBeTrue();
+    $action = SituationRoomAction::query()->sole();
+    expect($action->source_type)->toBe('panel')
+        ->and($action->source_reference)->toBe('complaints:complaints_by_organization');
+
+    // A sibling's institution is refused.
+    $this->actingAs($manager)->post(route('situation-room.actions.store'), ['organization_id' => $this->s->org['woreda_b1']->id, 'title' => 'x'])->assertForbidden();
 });
 
-it('refuses an action for an organization outside the scope', function (): void {
-    $this->actingAs($this->manager)->post(route('situation-room.actions.store'), srAction(['organization_id' => $this->s->org['woreda_b1']->id]))
-        ->assertSessionHasErrors('organization_id');
+it('shows open actions of the scope on the Executive Overview, never a sibling\'s', function (): void {
+    $creator = $this->s->viewer([], 'bureau');
+    SituationRoomAction::query()->create(['organization_id' => $this->s->org['woreda_a1']->id, 'title' => 'Inside A', 'status' => 'open', 'priority' => 'high', 'created_by' => $creator->id]);
+    SituationRoomAction::query()->create(['organization_id' => $this->s->org['woreda_b1']->id, 'title' => 'Inside B', 'status' => 'open', 'priority' => 'normal', 'created_by' => $creator->id]);
+    $viewer = $this->s->viewer([], 'subcity_a');
 
-    expect(SituationAction::query()->count())->toBe(0);
-});
+    $result = null;
+    $this->actingAs($viewer)->get(route('situation-room.index'))->assertOk()
+        ->assertInertia(function (Assert $page) use (&$result): void {
+            $page->loadDeferredProps(function (Assert $reload) use (&$result): void {
+                $result = $reload->toArray()['props']['result'];
+            });
+        });
+    $json = json_encode($result);
 
-it('hides another scope\'s action and refuses to edit it (IDOR)', function (): void {
-    $foreign = $this->s->viewer([SituationPermissions::ACTIONS_VIEW, SituationPermissions::ACTIONS_MANAGE], 'subcity_b');
-    $this->actingAs($foreign)->post(route('situation-room.actions.store'), srAction(['organization_id' => $this->s->org['woreda_b1']->id]))->assertSessionHasNoErrors();
-    $action = SituationAction::query()->sole();
-
-    $this->actingAs($this->manager)->get(route('situation-room.actions.edit', $action))->assertNotFound();
-    $this->actingAs($this->manager)->put(route('situation-room.actions.update', $action), srAction(['status' => 'done', 'outcome_note' => 'x']))->assertForbidden();
-    $this->actingAs($this->manager)->get(route('situation-room.actions.index'))->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('actions.total', 0));
-
-    expect($action->fresh()->status->value)->toBe('open');
-});
-
-it('needs an outcome to close an action, stamps completion and audits the change', function (): void {
-    $this->actingAs($this->manager)->post(route('situation-room.actions.store'), srAction(['organization_id' => $this->s->org['woreda_a2']->id]));
-    $action = SituationAction::query()->sole();
-
-    $this->actingAs($this->manager)->put(route('situation-room.actions.update', $action), srAction(['status' => 'done']))->assertSessionHasErrors('outcome_note');
-    $this->actingAs($this->manager)->put(route('situation-room.actions.update', $action), srAction(['status' => 'done', 'outcome_note' => 'Desk staffed']))->assertSessionHasNoErrors();
-    $this->actingAs($this->manager)->put(route('situation-room.actions.update', $action), srAction(['status' => 'done', 'outcome_note' => 'Desk staffed', 'organization_id' => $this->s->org['woreda_b1']->id]))
-        ->assertSessionHasErrors('organization_id');
-
-    $action->refresh();
-    expect($action->status->value)->toBe('done')
-        ->and($action->completed_at)->not->toBeNull()
-        ->and($action->organization_id)->toBe($this->s->org['woreda_a2']->id)
-        ->and(AuditLog::query()->where('event_type', AuditEventType::SituationActionUpdated->value)->count())->toBe(1);
-});
-
-it('lets a viewer without the manage grant read but not write', function (): void {
-    $reader = $this->s->viewer([SituationPermissions::ACTIONS_VIEW], 'subcity_a');
-
-    $this->actingAs($reader)->get(route('situation-room.actions.index'))->assertOk();
-    $this->actingAs($reader)->get(route('situation-room.actions.create'))->assertForbidden();
-    $this->actingAs($reader)->post(route('situation-room.actions.store'), srAction(['organization_id' => $this->s->org['woreda_a1']->id]))->assertForbidden();
+    expect($json)->toContain('Inside A')->not->toContain('Inside B');
 });
 
 it('exports a category in the viewer\'s scope, without names, and audits it', function (string $format): void {
-    $viewer = $this->s->viewer([SituationPermissions::REPORTS, SituationPermissions::PUBLIC_VOICE, SituationPermissions::EMPLOYEE_BREAKDOWN], 'subcity_a');
+    $viewer = $this->s->viewer([SituationPermissions::REPORTS, SituationPermissions::PUBLIC_VOICE, SituationPermissions::EMPLOYEE_BREAKDOWN, SituationPermissions::EMPLOYEE_TARGET], 'subcity_a');
 
     $response = $this->actingAs($viewer)->get(route('situation-room.reports.export', ['category' => 'complaints', 'format' => $format, 'locale' => 'en', 'organization_id' => $this->s->org['woreda_a1']->id]));
     $response->assertOk();
 
-    if ($format !== 'pdf') {
+    if ($format === 'csv') {
         $content = $response->streamedContent() ?: $response->getContent();
-        if ($format === 'csv') {
-            expect($content)->toContain('Complaints received')->not->toContain('Person ')->not->toContain('Private Submitter')->not->toContain('Subcity B');
-        }
+        expect($content)->toContain('Complaints received')->not->toContain('Person ')->not->toContain('Private Submitter')->not->toContain('Subcity B');
     }
     expect(AuditLog::query()->where('event_type', AuditEventType::SituationRoomExported->value)->count())->toBe(1);
 })->with(['csv', 'xlsx', 'pdf']);
 
-it('refuses exports without the reports grant or outside the scope', function (): void {
+it('refuses exports without the export grant or outside the scope', function (): void {
     $noReports = $this->s->viewer([SituationPermissions::PUBLIC_VOICE], 'subcity_a');
     $reports = $this->s->viewer([SituationPermissions::REPORTS, SituationPermissions::PUBLIC_VOICE], 'subcity_a');
 
@@ -104,7 +78,7 @@ it('refuses exports without the reports grant or outside the scope', function ()
 });
 
 it('puts only aggregates on the wall, even for a viewer allowed to see names', function (): void {
-    $wall = $this->s->viewer([SituationPermissions::WALL, SituationPermissions::PUBLIC_VOICE, SituationPermissions::WORKFORCE, SituationPermissions::EMPLOYEE_BREAKDOWN], 'bureau');
+    $wall = $this->s->viewer([SituationPermissions::WALL, SituationPermissions::PUBLIC_VOICE, SituationPermissions::WORKFORCE, SituationPermissions::EMPLOYEE_BREAKDOWN, SituationPermissions::EMPLOYEE_TARGET], 'bureau');
     $result = null;
     $this->actingAs($wall)->get(route('situation-room.wall', ['organization_id' => $this->s->org['woreda_a1']->id]))->assertOk()
         ->assertInertia(function (Assert $page) use (&$result): void {
@@ -118,12 +92,31 @@ it('puts only aggregates on the wall, even for a viewer allowed to see names', f
         ->and(json_encode($result))->not->toContain('Person ')->not->toContain('Private Submitter')->not->toContain('_employees');
 });
 
-it('records an audit entry when an employee-level breakdown is shown', function (): void {
-    $viewer = $this->s->viewer([SituationPermissions::PUBLIC_VOICE, SituationPermissions::EMPLOYEE_BREAKDOWN], 'subcity_a');
+it('names employees only with both grants, and audits it', function (): void {
     $this->s->submission($this->s->org['woreda_a1'], 'complaint', ['target_type' => 'employee', 'source_type' => 'employee_card_qr', 'organization_target_id' => null, 'employee_id' => $this->s->people['woreda_a1'][0]->id]);
+    $url = route('situation-room.category', ['category' => 'complaints', 'organization_id' => $this->s->org['woreda_a1']->id]);
+    $panelType = function ($user) use ($url): string {
+        $type = '';
+        $this->actingAs($user)->get($url)->assertInertia(function (Assert $page) use (&$type): void {
+            $page->loadDeferredProps(function (Assert $reload) use (&$type): void {
+                $type = collect($reload->toArray()['props']['result']['payload']['panels'])->firstWhere('key', 'complaints_employees')['type'];
+            });
+        });
 
-    $this->actingAs($viewer)->get(route('situation-room.category', ['category' => 'complaints', 'organization_id' => $this->s->org['woreda_a1']->id]))
-        ->assertInertia(fn (Assert $page) => $page->loadDeferredProps(fn (Assert $reload) => $reload->where('result.payload.panels', fn ($panels) => collect($panels)->firstWhere('key', 'complaints_employees')['type'] === 'table')));
+        return $type;
+    };
 
-    expect(AuditLog::query()->where('event_type', AuditEventType::SituationRoomEmployeeBreakdownViewed->value)->count())->toBe(1);
+    expect($panelType($this->s->viewer([SituationPermissions::PUBLIC_VOICE, SituationPermissions::EMPLOYEE_BREAKDOWN], 'subcity_a')))->toBe('notice')
+        ->and(AuditLog::query()->where('event_type', AuditEventType::SituationRoomEmployeeBreakdownViewed->value)->count())->toBe(0)
+        ->and($panelType($this->s->viewer([SituationPermissions::PUBLIC_VOICE, SituationPermissions::EMPLOYEE_BREAKDOWN, SituationPermissions::EMPLOYEE_TARGET], 'subcity_a')))->toBe('table')
+        ->and(AuditLog::query()->where('event_type', AuditEventType::SituationRoomEmployeeBreakdownViewed->value)->count())->toBe(1);
+});
+
+it('opens Community Voice by Institution only with the public-voice grant', function (): void {
+    $without = $this->s->viewer([], 'bureau');
+    $with = $this->s->viewer([SituationPermissions::PUBLIC_VOICE], 'bureau');
+
+    $this->actingAs($without)->get(route('situation-room.community-voice'))->assertForbidden();
+    $this->actingAs($with)->get(route('situation-room.community-voice'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('SituationRoom/CommunityVoice'));
 });

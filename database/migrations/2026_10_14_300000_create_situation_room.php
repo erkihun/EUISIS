@@ -3,18 +3,20 @@
 declare(strict_types=1);
 
 use App\Models\Permission;
+use App\Services\SituationRoom\SituationPermissions;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Executive Situation Room (docs/situation-room-architecture.md). Additive
- * only: registers the situation_room.* permissions, creates the Executive
- * Action Register and adds one index the public-voice aggregates use. No
- * existing row is changed.
+ * Executive Situation Room categories (docs/situation-room-architecture.md).
+ * Additive only. Registers the per-domain grants (the core situation_room.*
+ * grants and the Action Register come from 2026_10_14_130000/130100), keeps
+ * every existing holder of situation_room.view able to open Community Voice,
+ * gives the city-wide admin roles the whole room, and adds one index the
+ * public-voice aggregates use. No existing row is changed.
  */
 return new class extends Migration
 {
@@ -26,41 +28,23 @@ return new class extends Migration
         foreach ($catalog as $entry) {
             Permission::query()->updateOrCreate(['name' => $entry['name'], 'guard_name' => 'web'], array_diff_key($entry, ['name' => true]));
         }
+        // The core grants may not exist yet on a database that skipped their migration.
+        foreach (SituationPermissions::all() as $name) {
+            Permission::findOrCreate($name, 'web');
+        }
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        // City-wide administrators get the room; everyone else is granted it deliberately.
+        // Community Voice now also needs public_voice.view: whoever could open it keeps it.
+        Role::query()->where('guard_name', 'web')
+            ->whereHas('permissions', fn ($q) => $q->where('name', SituationPermissions::VIEW))
+            ->get()
+            ->each(fn (Role $role) => $role->givePermissionTo(SituationPermissions::PUBLIC_VOICE));
+
         foreach (self::ADMIN_ROLES as $roleName) {
-            Role::query()->where('name', $roleName)->where('guard_name', 'web')->first()?->givePermissionTo(array_column($catalog, 'name'));
+            Role::query()->where('name', $roleName)->where('guard_name', 'web')->first()
+                ?->givePermissionTo([...SituationPermissions::all(), 'system-settings.manageSituationRoom']);
         }
-
-        if (! Schema::hasTable('situation_actions')) {
-            Schema::create('situation_actions', function (Blueprint $table): void {
-                $table->uuid('id')->primary();
-                $table->string('reference_number', 32)->unique();
-                $table->foreignUuid('organization_id')->constrained('organizations')->restrictOnDelete();
-                $table->string('category', 40);
-                $table->string('panel_key', 80)->nullable();
-                $table->string('title', 200);
-                $table->text('description')->nullable();
-                $table->string('priority', 16)->default('normal');
-                $table->string('status', 16)->default('open');
-                $table->string('responsible_office', 200)->nullable();
-                $table->date('due_date')->nullable();
-                $table->text('outcome_note')->nullable();
-                $table->timestamp('completed_at')->nullable();
-                $table->foreignId('created_by')->constrained('users')->restrictOnDelete();
-                $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
-                $table->timestamps();
-
-                $table->index(['organization_id', 'status'], 'sa_org_status_idx');
-                $table->index(['status', 'due_date'], 'sa_status_due_idx');
-            });
-
-            if (DB::connection()->getDriverName() === 'pgsql') {
-                DB::statement("ALTER TABLE situation_actions ADD CONSTRAINT sa_status_chk CHECK (status IN ('open', 'in_progress', 'done', 'cancelled'))");
-                DB::statement("ALTER TABLE situation_actions ADD CONSTRAINT sa_priority_chk CHECK (priority IN ('low', 'normal', 'high', 'urgent'))");
-            }
-        }
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // Scope-first public-voice aggregates: organization, then type, then the period column.
         if (! $this->hasIndex('employee_service_feedback', 'esf_org_type_submitted_idx')) {
@@ -76,12 +60,9 @@ return new class extends Migration
             Schema::table('employee_service_feedback', fn (Blueprint $table) => $table->dropIndex('esf_org_type_submitted_idx'));
         }
 
-        // The register holds executive decisions: never dropped while it has rows.
-        if (Schema::hasTable('situation_actions') && ! DB::table('situation_actions')->exists()) {
-            Schema::drop('situation_actions');
-        }
-
-        Permission::query()->where('group', 'situation_room')->orWhere('name', 'system-settings.manageSituationRoom')->get()->each(fn (Permission $p) => $p->delete());
+        // Only what this migration registered; the core grants belong to their own migration.
+        $names = array_column(require database_path('seeders/data/situation-room-permissions.php'), 'name');
+        Permission::query()->whereIn('name', $names)->get()->each(fn (Permission $p) => $p->delete());
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 

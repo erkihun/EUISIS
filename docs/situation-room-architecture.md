@@ -2,8 +2,19 @@
 
 The Executive Situation Room (የአመራር ሁኔታ መከታተያ ማዕከል) gives leadership live
 aggregates across the application, confined to each viewer's organization
-scope. It reads; it never writes to a source record. The only table it owns
-is the Executive Action Register (`situation_actions`).
+scope. It reads; it never writes to a source record. The only tables it writes are the
+Action Register's (`situation_room_actions`, `situation_room_action_events`).
+
+## One room, three parts
+
+| Part | Routes | Code |
+| --- | --- | --- |
+| Category launcher, 16 categories, Executive Reports, Wall Mode | `/situation-room`, `/situation-room/{category}`, `/situation-room/reports`, `/situation-room/wall` | `Web\SituationRoom\SituationRoomController`, `SituationReportController`, `Services\SituationRoom\SituationRoomService` + `Analytics/*` |
+| Community Voice by Institution (overview, targeted employees, queued export, refresh) | `/situation-room/community-voice[/organizations/{org}]`, `/situation-room/targeted-employees[/{employee}]`, `/situation-room/exports`, `/situation-room/refresh` | `Web\CommunityVoiceRoomController`, `CommunityVoiceRoomService`, `CommunityVoiceQuery`, `AttentionCenter` (see executive-situation-room.md) |
+| Action Register | `/situation-room/actions` | `Web\SituationRoomActionController`, `SituationRoomActionService` |
+
+One permission set (situation-room-access-control.md), one sidebar group, one
+wall.
 
 ## Request flow
 
@@ -61,7 +72,10 @@ their own. See `situation-room-metrics-catalog.md` for every figure.
 
 ## Data changes
 
-`2026_10_14_300000_create_situation_room.php` (additive only): registers the
-`situation_room.*` permissions and grants them to the four city-wide admin
-roles; creates `situation_actions` (guarded `down()`: never dropped while it
-has rows); adds index `esf_org_type_submitted_idx`. No existing row changes.
+`2026_10_14_130000_register_situation_room_permissions` and
+`2026_10_14_130100_create_situation_room_actions_tables` (Community Voice and
+the Action Register) and `2026_10_14_300000_create_situation_room` (additive
+only): registers the per-domain grants, keeps Community Voice open to every
+role that already had `situation_room.view`, grants the whole room to the four
+city-wide admin roles and adds index `esf_org_type_submitted_idx`. No existing
+row changes.

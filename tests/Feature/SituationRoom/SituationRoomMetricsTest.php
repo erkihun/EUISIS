@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\SituationAction;
+use App\Models\SituationRoomAction;
 use App\Models\SystemSetting;
 use App\Services\SituationRoom\SituationCategory;
 use App\Services\SituationRoom\SituationPermissions;
@@ -160,5 +160,5 @@ it('never writes to a source record while reading', function (): void {
         DB::table('employee_service_feedback')->orderBy('id')->get()->toJson(),
         DB::table('employees')->orderBy('id')->get()->toJson(),
         DB::table('employee_assignments')->orderBy('id')->get()->toJson(),
-    ])->toBe($before)->and(SituationAction::query()->count())->toBe(0);
+    ])->toBe($before)->and(SituationRoomAction::query()->count())->toBe(0);
 });

@@ -48,6 +48,7 @@ import enRecycleBin from '@/i18n/en/recycleBin';
 import enBackup from '@/i18n/en/backup';
 import enServiceTypes from '@/i18n/en/serviceTypes';
 import enServiceFeedback from '@/i18n/en/serviceFeedback';
+import enSituationRoom from '@/i18n/en/situationRoom';
 import enSettings from '@/i18n/en/settings';
 import enTransfers from '@/i18n/en/transfers';
 import enTransport from '@/i18n/en/transport';
@@ -112,6 +113,7 @@ const tree: TranslationTree = {
     backup: enBackup,
     serviceTypes: enServiceTypes,
     serviceFeedback: enServiceFeedback,
+    situationRoom: enSituationRoom,
     entitlementRules: enEntitlementRules,
     cafeteria: { ...((en.cafeteria as TranslationTree | undefined) ?? {}), ...enCafeteria },
     codeRules: enCodeRules,

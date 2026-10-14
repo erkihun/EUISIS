@@ -1,7 +1,7 @@
 # Executive Situation Room — Wall Mode
 
 A full-screen display for an operations room (`/situation-room/wall`,
-grant `situation_room.wall.view` + `situation_room.view`).
+grant `situation_room.wall_mode` + `situation_room.view`).
 
 * **Aggregates only.** The server builds the wall from wall-eligible
   categories (Overview, Workforce, Complaints, Feedback, Tip-offs, Daily
@@ -23,8 +23,17 @@ grant `situation_room.wall.view` + `situation_room.view`).
 
 ## Kiosk setup
 
-1. Create a user with `situation_room.view` + `situation_room.wall.view` and the
+1. Create a user with `situation_room.view` + `situation_room.wall_mode` and the
    category grants to display, scoped to the organization the room covers.
 2. Sign in on the display, open Wall Mode, press **Full screen**.
 3. Session timeouts follow the security settings; plan re-authentication for
    long-running displays.
+
+## Open points
+
+- **D8: kiosk session.** The user session times out as it does everywhere.
+  A display account with a longer session, or a signed display link, needs a
+  decision. Neither is built.
+- The Community Voice view no longer has a wall of its own: its KPIs, trend
+  and breakdowns appear on this wall through the Public Complaints, Public
+  Feedback and Tip-offs screens, so there is one wall to configure and audit.

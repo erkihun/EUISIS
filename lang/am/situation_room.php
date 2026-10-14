@@ -21,6 +21,7 @@ return [
     ],
 
     'categories' => [
+        'community_voice' => ['title' => 'የሕዝብ ድምፅ በተቋም', 'description' => 'የአስተያየት፣ የጥቆማ እና የቅሬታ የተቋም እይታ ከትኩረት ደንቦች፣ በሠራተኛ ደረጃ ዝርዝር እና ወረፋ ካለው ሪፖርት ጋር።'],
         'overview' => ['title' => 'የአመራር አጠቃላይ እይታ', 'description' => 'ለእያንዳንዱ ዘርፍ አንድ ዋና ቁጥር፣ ከዝርዝሩ ጋር የተያያዘ።'],
         'workforce' => ['title' => 'የሰው ኃይል ስብጥር እና ምደባ', 'description' => 'የሠራተኛ ብዛት፣ አቅም፣ ክፍት ቦታ፣ ጾታ፣ ዕድሜ፣ የቅጥር ዓይነት እና ሙያዎች።'],
         'structure' => ['title' => 'የተቋም መዋቅር', 'description' => 'በወሰን ውስጥ ያሉ ተቋማት፣ የሥራ ክፍሎች፣ የሥራ መደቦች እና የጸደቁ የሥራ መደቦች።'],
@@ -287,6 +288,7 @@ return [
         'reference' => 'መለያ ቁጥር',
         'title' => 'እርምጃ',
         'priority' => 'ቅድሚያ',
+        'owner' => 'ባለቤት',
         'due_date' => 'የመጨረሻ ቀን',
     ],
 
@@ -355,8 +357,7 @@ return [
         'cafeteria_status' => ['accepted' => 'ተቀባይነት ያገኘ', 'rejected' => 'ውድቅ ተደርጓል', 'reversed' => 'የተቀለበሰ', 'pending_review' => 'ግምገማ የሚጠባበቅ'],
         'grievance_stage' => ['intake' => 'መቀበያ', 'in_progress' => 'በመታየት ላይ', 'decided' => 'ውሳኔ የተሰጠበት', 'concluded' => 'የተቋጨ'],
         'discipline_status' => ['charged' => 'ክስ የተመሠረተበት', 'under_investigation' => 'በምርመራ ላይ', 'report_submitted' => 'ሪፖርት የቀረበበት', 'decided' => 'ውሳኔ የተሰጠበት', 'decision_delivered' => 'ውሳኔ የደረሰው', 'closed' => 'የተዘጋ', 'discontinued' => 'የተቋረጠ', 'terminated' => 'የተቋረጠ (በሕግ)'],
-        'priority' => ['low' => 'ዝቅተኛ', 'normal' => 'መደበኛ', 'high' => 'ከፍተኛ', 'urgent' => 'አስቸኳይ'],
-        'action_status' => ['open' => 'ክፍት', 'in_progress' => 'በሂደት ላይ', 'done' => 'የተፈጸመ', 'cancelled' => 'የተሰረዘ'],
+        'priority' => ['low' => 'ዝቅተኛ', 'normal' => 'መደበኛ', 'high' => 'ከፍተኛ'],
     ],
 
     'quality' => [
@@ -407,6 +408,7 @@ return [
     ],
 
     'ui' => [
+        'community_voice' => 'የሕዝብ ድምፅ',
         'launcher_intro' => 'ዘርፍ ይምረጡ። እያንዳንዱ ቁጥር ሊያዩዋቸው በሚችሏቸው ተቋማት የተወሰነ ነው፤ እያንዳንዱ ተቋም ከሥሩ ያሉትን ያካትታል።',
         'open' => 'ክፈት',
         'back' => 'የሁኔታ መከታተያ',
@@ -483,37 +485,4 @@ return [
         'languages' => ['en' => 'እንግሊዝኛ (ጎርጎርዮሳዊ)', 'am' => 'አማርኛ (የኢትዮጵያ ቀን አቆጣጠር)'],
     ],
 
-    'actions' => [
-        'title' => 'የአመራር እርምጃ መዝገብ',
-        'intro' => 'የሁኔታ መከታተያውን እያነበቡ የተመዘገቡ ውሳኔዎች እና መመሪያዎች። እርምጃ መመዝገብ የሚመለከታቸውን መዛግብት ፈጽሞ አይለውጥም።',
-        'new' => 'እርምጃ ይመዝግቡ',
-        'edit' => 'እርምጃውን ያሻሽሉ',
-        'empty' => 'በወሰንዎ ውስጥ እስካሁን የተመዘገበ እርምጃ የለም።',
-        'created' => 'እርምጃው ተመዝግቧል።',
-        'updated' => 'እርምጃው ተሻሽሏል።',
-        'overdue' => 'ጊዜው ያለፈ',
-        'search' => 'ርዕስ ወይም መለያ ቁጥር ይፈልጉ',
-        'all_statuses' => 'ሁሉም ሁኔታዎች',
-        'save' => 'አስቀምጥ',
-        'cancel' => 'ተው',
-        'created_by' => 'የመዘገበው',
-        'updated_by' => 'በመጨረሻ ያሻሻለው',
-        'completed_at' => 'የተቋጨበት',
-        'fields' => [
-            'organization_id' => 'ተቋም',
-            'category' => 'የሁኔታ መከታተያ ዘርፍ',
-            'panel_key' => 'ያነሳሳው',
-            'title' => 'እርምጃ',
-            'description' => 'መመሪያ ወይም ውሳኔ',
-            'priority' => 'ቅድሚያ',
-            'responsible_office' => 'ኃላፊነት የተሰጠው ጽሕፈት ቤት',
-            'due_date' => 'የመጨረሻ ቀን',
-            'status' => 'ሁኔታ',
-            'outcome_note' => 'ውጤት',
-        ],
-        'hints' => [
-            'organization_id' => 'በወሰንዎ ውስጥ ያሉ ተቋማት ብቻ።',
-            'outcome_note' => 'እርምጃው ሲፈጸም ወይም ሲሰረዝ ያስፈልጋል።',
-        ],
-    ],
 ];

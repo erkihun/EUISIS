@@ -122,8 +122,8 @@ final class SituationRoomController extends Controller
             'can' => [
                 'wall' => $user->can(SituationPermissions::WALL),
                 'reports' => $user->can(SituationPermissions::REPORTS),
-                'actions_view' => $user->can(SituationPermissions::ACTIONS_VIEW),
                 'actions_manage' => $user->can(SituationPermissions::ACTIONS_MANAGE),
+                'community_voice' => $user->can(SituationPermissions::PUBLIC_VOICE),
             ],
         ];
     }

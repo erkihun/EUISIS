@@ -29,7 +29,7 @@ language switched to Amharic.
 ## D. Privacy
 
 14. No page, wall or export shows a submitter's name, phone, address, message or evidence.
-15. Employee table (Complaints › focus one woreda) appears only with `employee_breakdown.view`; it is in name order, excludes the viewer, and an audit entry *employee breakdown viewed* is recorded.
+15. Employee table (Complaints › focus one woreda) appears only with `view_employee_targeted` and `service_feedback.view_employee_target`; it is in name order, excludes the viewer, and an audit entry *employee breakdown viewed* is recorded.
 16. Grievance, Discipline & Appeal shows counts only; small counts show "fewer than 5".
 
 ## E. Critical Attention and settings
@@ -39,9 +39,10 @@ language switched to Amharic.
 
 ## F. Action Register
 
-19. From a panel, *Record an action* opens the form pre-filled with category and panel; the organization list contains only organizations in scope.
-20. Save; the action appears with an `SRA-` reference. Mark it *Done* without an outcome → validation error; with an outcome → saved, *Concluded* stamped. Audit shows created/updated.
-21. A user of another subcity cannot see or open the action (404).
+19. Focus a category on one woreda; *Record an action* on a panel opens the Action Register with the institution and the panel (source *panel*) pre-filled.
+20. Save with an owner and due date; the action appears in the register and on the Executive Overview's open actions. Change its status; the history lists each change with its author. Audit shows created / assigned / status changed.
+21. A user of another subcity does not see the action and cannot change it (403).
+21a. Community Voice by Institution (`/situation-room/community-voice`) opens from the launcher and the header; its targeted-employee pages and queued export work as documented in executive-situation-room.md.
 
 ## G. Reports
 

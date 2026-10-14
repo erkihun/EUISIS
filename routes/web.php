@@ -68,6 +68,7 @@ use App\Http\Controllers\Web\CafeteriaTransactionController;
 use App\Http\Controllers\Web\CardPrintBatchController;
 use App\Http\Controllers\Web\CardRequestController;
 use App\Http\Controllers\Web\CodeRuleController;
+use App\Http\Controllers\Web\CommunityVoiceRoomController;
 use App\Http\Controllers\Web\DailyActivityAttachmentController;
 use App\Http\Controllers\Web\DailyActivityController;
 use App\Http\Controllers\Web\DailyActivityReviewerController;
@@ -123,9 +124,9 @@ use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceSubmissionController;
 use App\Http\Controllers\Web\ServiceTypeController;
-use App\Http\Controllers\Web\SituationRoom\SituationActionController;
 use App\Http\Controllers\Web\SituationRoom\SituationReportController;
 use App\Http\Controllers\Web\SituationRoom\SituationRoomController;
+use App\Http\Controllers\Web\SituationRoomActionController;
 use App\Http\Controllers\Web\SystemSettingController;
 use App\Http\Controllers\Web\TypographyTestController;
 use App\Http\Controllers\Web\UserController;
@@ -1321,6 +1322,39 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/work-structure/standards/{standard}/approve', [WorkStructureController::class, 'approveStandard'])->whereUuid('standard')->name('work-structure.standards.approve');
     Route::post('/work-structure/standards/{standard}/retire', [WorkStructureController::class, 'retireStandard'])->whereUuid('standard')->name('work-structure.standards.retire');
 
+    /*
+     * Executive Situation Room (docs/situation-room-architecture.md). One room:
+     * the category launcher and its categories (SituationRoomController), the
+     * Community Voice institution view with its targeted-employee pages and
+     * queued exports (CommunityVoiceRoomController), one wall, one Action
+     * Register (SituationRoomActionController). Routes gate the grant; every
+     * controller resolves the organization scope (403 outside it) before
+     * counting. Literal paths come before the {category} wildcard.
+     */
+    Route::prefix('situation-room')->name('situation-room.')->group(function (): void {
+        Route::get('/', [SituationRoomController::class, 'index'])->middleware('can:situation_room.view')->name('index');
+        Route::get('/wall', [SituationRoomController::class, 'wall'])->middleware(['can:situation_room.view', 'can:situation_room.wall_mode'])->name('wall');
+        Route::get('/reports', [SituationReportController::class, 'index'])->middleware(['can:situation_room.view', 'can:situation_room.export'])->name('reports');
+        Route::get('/reports/export', [SituationReportController::class, 'export'])->middleware(['can:situation_room.view', 'throttle:20,1'])->name('reports.export');
+
+        Route::get('/community-voice', [CommunityVoiceRoomController::class, 'index'])->name('community-voice');
+        Route::get('/community-voice/organizations/{organization}', [CommunityVoiceRoomController::class, 'organization'])->whereUuid('organization')->name('organization');
+        Route::post('/refresh', [CommunityVoiceRoomController::class, 'refresh'])->middleware('throttle:30,1')->name('refresh');
+        Route::get('/organization-options', [CommunityVoiceRoomController::class, 'organizationOptions'])->middleware('throttle:120,1')->name('organization-options');
+        Route::get('/targeted-employees', [CommunityVoiceRoomController::class, 'targetedEmployees'])->name('employees');
+        Route::get('/targeted-employees/{employee}', [CommunityVoiceRoomController::class, 'targetedEmployee'])->whereUuid('employee')->name('employee');
+        Route::post('/exports', [CommunityVoiceRoomController::class, 'export'])->middleware('throttle:10,1')->name('exports.store');
+        Route::get('/exports/{export}', [CommunityVoiceRoomController::class, 'download'])->whereUuid('export')->name('exports.download');
+
+        Route::get('/actions', [SituationRoomActionController::class, 'index'])->name('actions.index');
+        Route::get('/actions/owners', [SituationRoomActionController::class, 'owners'])->middleware('throttle:120,1')->name('actions.owners');
+        Route::post('/actions', [SituationRoomActionController::class, 'store'])->name('actions.store');
+        Route::patch('/actions/{action}', [SituationRoomActionController::class, 'update'])->whereUuid('action')->name('actions.update');
+
+        Route::get('/{category}', [SituationRoomController::class, 'category'])->middleware('can:situation_room.view')
+            ->whereIn('category', array_column(SituationCategory::cases(), 'value'))->name('category');
+    });
+
     // Public feedback categories: before the {serviceFeedback} wildcard below.
     Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');
     Route::get('/feedback-admin/categories/create', [PublicFeedbackCategoryController::class, 'create'])->name('service-feedback.categories.create');
@@ -1349,26 +1383,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/{serviceFeedback}/review', [ServiceFeedbackController::class, 'review'])->name('service-feedback.admin.review');
     Route::post('/feedback-admin/{serviceFeedback}/hide', [ServiceFeedbackController::class, 'hide'])->name('service-feedback.admin.hide');
     Route::delete('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'destroy'])->name('service-feedback.admin.destroy');
-
-    /*
-     * Executive Situation Room (docs/situation-room-architecture.md). The route
-     * gates the grant; the controller resolves the organization scope (403 for
-     * a focus outside it) before anything is counted. Categories come from the
-     * SituationCategory registry; Transport is not one of them.
-     */
-    Route::prefix('situation-room')->name('situation-room.')->group(function (): void {
-        Route::get('/', [SituationRoomController::class, 'index'])->middleware('can:situation_room.view')->name('index');
-        Route::get('/wall', [SituationRoomController::class, 'wall'])->middleware(['can:situation_room.view', 'can:situation_room.wall.view'])->name('wall');
-        Route::get('/reports', [SituationReportController::class, 'index'])->middleware(['can:situation_room.view', 'can:situation_room.reports.view'])->name('reports');
-        Route::get('/reports/export', [SituationReportController::class, 'export'])->middleware(['can:situation_room.view', 'throttle:20,1'])->name('reports.export');
-        Route::get('/actions', [SituationActionController::class, 'index'])->middleware('can:situation_room.view')->name('actions.index');
-        Route::get('/actions/create', [SituationActionController::class, 'create'])->middleware('can:situation_room.view')->name('actions.create');
-        Route::post('/actions', [SituationActionController::class, 'store'])->middleware('can:situation_room.view')->name('actions.store');
-        Route::get('/actions/{action}/edit', [SituationActionController::class, 'edit'])->middleware('can:situation_room.view')->whereUuid('action')->name('actions.edit');
-        Route::put('/actions/{action}', [SituationActionController::class, 'update'])->middleware('can:situation_room.view')->whereUuid('action')->name('actions.update');
-        Route::get('/{category}', [SituationRoomController::class, 'category'])->middleware('can:situation_room.view')
-            ->whereIn('category', array_column(SituationCategory::cases(), 'value'))->name('category');
-    });
 
     Route::get('/service-suggestions', [ServiceSubmissionController::class, 'suggestions'])->name('service-submissions.suggestions');
     Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');

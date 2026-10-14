@@ -43,6 +43,7 @@ cannot name a service. When nothing in a slice names one the panel reports
 ## Employee breakdown
 
 `*_employees` tables list employees with the number of submissions about them
-— only with `situation_room.employee_breakdown.view`, only inside one focused
+— only with `situation_room.view_employee_targeted` and
+`service_feedback.view_employee_target`, only inside one focused
 organization, in name order, 25 per page, the viewer's own record excluded,
 each view audited, never on the wall or in an export.

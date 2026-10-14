@@ -20,8 +20,9 @@ type Props = SrFrameProps & { category: SrCategory; options: FilterOptions; resu
 export default function SituationRoomCategory({ categories, category, filters, query, scope, can, options, result, privacy }: Props) {
     const { sr } = useSituationLabels();
     const url = route('situation-room.category', category.key);
-    const actionHref = can.actions_manage
-        ? (panelKey: string) => route('situation-room.actions.create', { category: category.key, panel_key: panelKey, ...(scope.focus ? { organization_id: scope.focus } : {}) })
+    // Actions are recorded against one institution, so the link appears once the view is focused on one.
+    const actionHref = can.actions_manage && scope.focus
+        ? (panelKey: string) => route('situation-room.actions.index', { organization: scope.focus, new: 1, source_type: 'panel', source_reference: `${category.key}:${panelKey}` })
         : undefined;
 
     return (

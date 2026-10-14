@@ -22,10 +22,8 @@ it('lists every admin group once in workflow order', function (): void {
     }, $sectionMatches[1]);
 
     expect($groups)->toBe([
-        // The Executive Situation Room is leadership's own category, first.
-        ['situationRoom'],
         ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'],
-        ['serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'],
+        ['situationRoom', 'serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'],
         ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'],
         ['myWork'],
     ]);

@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Services\SituationRoom\Analytics;
 
 use App\Enums\FieldWorkStatus;
-use App\Enums\SituationActionStatus;
-use App\Models\SituationAction;
+use App\Models\SituationRoomAction;
 use App\Services\SituationRoom\OrganizationRollup;
 use App\Services\SituationRoom\SituationCategory;
 use App\Services\SituationRoom\SituationContext;
@@ -44,7 +43,7 @@ final class OverviewAnalytics extends SituationAnalytics
         if ($context->can(SituationPermissions::WORKFORCE)) {
             $panels['overview_headcount'] = fn (): SituationPanel => $this->headcount($context);
         }
-        if ($context->can(SituationPermissions::ACTIONS_VIEW)) {
+        if ($context->can(SituationPermissions::VIEW)) {
             $panels['overview_actions'] = fn (): SituationPanel => $this->actions($context);
         }
 
@@ -90,8 +89,8 @@ final class OverviewAnalytics extends SituationAnalytics
             'href' => $link(SituationCategory::CriticalAttention),
         ]);
 
-        if ($context->can(SituationPermissions::ACTIONS_VIEW)) {
-            $items[] = $this->kpi('actions_open', $this->actionQuery($context)->whereIn('status', SituationActionStatus::openValues())->count(), ['href' => route('situation-room.actions.index')]);
+        if ($context->can(SituationPermissions::VIEW)) {
+            $items[] = $this->kpi('actions_open', $this->actionQuery($context)->whereNotIn('status', SituationRoomAction::CLOSED_STATUSES)->count(), ['href' => route('situation-room.actions.index')]);
         }
 
         return SituationPanel::kpis('overview_kpis', $this->title('overview_kpis'), 'situationRoom.sources.overview', $items);
@@ -123,32 +122,32 @@ final class OverviewAnalytics extends SituationAnalytics
     private function actions(SituationContext $context): SituationPanel
     {
         $rows = $this->actionQuery($context)
-            ->with('organization:id,name_en,name_am')
-            ->whereIn('status', SituationActionStatus::openValues())
+            ->with(['organization:id,name_en,name_am', 'ownerUser:id,name'])
+            ->whereNotIn('status', SituationRoomAction::CLOSED_STATUSES)
             ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('due_date')
             ->limit(8)
             ->get();
 
         return SituationPanel::table('overview_actions', $this->title('overview_actions'), $this->hint('overview_actions'), 'situationRoom.sources.actions', [
-            ['key' => 'reference_number', 'label' => SituationLabel::key('situationRoom.columns.reference'), 'type' => 'text'],
             ['key' => 'title', 'label' => SituationLabel::key('situationRoom.columns.title'), 'type' => 'text'],
             ['key' => 'organization', 'label' => SituationLabel::key('situationRoom.columns.organization'), 'type' => 'label'],
             ['key' => 'priority', 'label' => SituationLabel::key('situationRoom.columns.priority'), 'type' => 'label'],
             ['key' => 'due_date', 'label' => SituationLabel::key('situationRoom.columns.due_date'), 'type' => 'date'],
-        ], $rows->map(fn (SituationAction $a): array => [
-            'reference_number' => $a->reference_number,
+            ['key' => 'owner', 'label' => SituationLabel::key('situationRoom.columns.owner'), 'type' => 'text'],
+        ], $rows->map(fn (SituationRoomAction $a): array => [
             'title' => $a->title,
             'organization' => SituationLabel::names($a->organization?->name_en, $a->organization?->name_am),
-            'priority' => SituationLabel::key('situationRoom.values.priority.'.$a->priority->value),
+            'priority' => SituationLabel::key('situationRoom.values.priority.'.$a->priority),
             'due_date' => $a->due_date?->toDateString(),
+            'owner' => $a->ownerUser?->name ?? '',
         ])->all(), href: route('situation-room.actions.index'), span: 1);
     }
 
-    /** @return Builder<SituationAction> */
+    /** @return Builder<SituationRoomAction> */
     private function actionQuery(SituationContext $context): Builder
     {
-        $query = SituationAction::query();
+        $query = SituationRoomAction::query();
         $context->scope->apply($query, 'organization_id');
 
         return $query;

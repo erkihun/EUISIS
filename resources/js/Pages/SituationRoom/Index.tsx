@@ -47,7 +47,11 @@ export default function SituationRoomIndex({ categories, filters, query, scope, 
                 {categories.length === 0 && <Alert tone="info">{sr('ui.nothing_available')}</Alert>}
 
                 {SECTIONS.map((section) => {
-                    const items = categories.filter((c) => c.section === section);
+                    const items: SrCategory[] = categories.filter((c) => c.section === section);
+                    // The institution-level Community Voice view sits with the community-voice categories.
+                    if (section === 'public_voice' && can.community_voice) {
+                        items.unshift({ key: 'community_voice', section, icon: 'MessageSquareIcon', wall: false, href: route('situation-room.community-voice') });
+                    }
                     if (items.length === 0) return null;
                     return (
                         <section key={section} aria-labelledby={`sr-section-${section}`} className="space-y-3">
