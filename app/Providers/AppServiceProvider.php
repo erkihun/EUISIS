@@ -60,6 +60,7 @@ use App\Models\ServiceClassification;
 use App\Models\ServiceProvider as ServiceProviderModel; // alias to avoid clash with Illuminate\Support\ServiceProvider
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
+use App\Models\SituationAction;
 use App\Models\SystemSetting;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
@@ -121,6 +122,7 @@ use App\Policies\ServicePolicy;
 use App\Policies\ServiceProviderPolicy;
 use App\Policies\ServiceTransactionPolicy;
 use App\Policies\ServiceTypePolicy;
+use App\Policies\SituationActionPolicy;
 use App\Policies\SystemSettingPolicy;
 use App\Policies\TransferAnnouncementPolicy;
 use App\Policies\TransferApplicationPolicy;
@@ -218,6 +220,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);
         Gate::policy(Employee::class, EmployeePolicy::class);
         Gate::policy(EmployeeServiceFeedback::class, EmployeeServiceFeedbackPolicy::class);
+        Gate::policy(SituationAction::class, SituationActionPolicy::class);
         Gate::policy(PositionService::class, PositionServicePolicy::class);
         Gate::policy(EmployeeTransfer::class, EmployeeTransferPolicy::class);
         Gate::policy(FieldWorkRequest::class, FieldWorkRequestPolicy::class);

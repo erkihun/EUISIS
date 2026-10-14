@@ -780,4 +780,15 @@ enum AuditEventType: string
     case OccupationLinked = 'organization_design.occupation_linked';
     case CompetencyLinked = 'organization_design.competency_linked';
     case PositionServiceLinked = 'organization_design.position_service_linked';
+
+    /*
+     * Executive Situation Room. Aggregates are not audited per view; what is
+     * audited is what reaches beyond aggregates (an employee-level breakdown),
+     * what leaves the system (an export) and every change to the action
+     * register.
+     */
+    case SituationRoomEmployeeBreakdownViewed = 'situation_room.employee_breakdown_viewed';
+    case SituationRoomExported = 'situation_room.exported';
+    case SituationActionCreated = 'situation_room.action_created';
+    case SituationActionUpdated = 'situation_room.action_updated';
 }

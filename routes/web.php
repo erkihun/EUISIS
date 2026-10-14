@@ -123,6 +123,9 @@ use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceSubmissionController;
 use App\Http\Controllers\Web\ServiceTypeController;
+use App\Http\Controllers\Web\SituationRoom\SituationActionController;
+use App\Http\Controllers\Web\SituationRoom\SituationReportController;
+use App\Http\Controllers\Web\SituationRoom\SituationRoomController;
 use App\Http\Controllers\Web\SystemSettingController;
 use App\Http\Controllers\Web\TypographyTestController;
 use App\Http\Controllers\Web\UserController;
@@ -131,6 +134,7 @@ use App\Http\Controllers\Web\VacancyAnnouncementController;
 use App\Http\Controllers\Web\VacancyApplicationController;
 use App\Http\Controllers\Web\WorkStructureController;
 use App\Models\IdCard;
+use App\Services\SituationRoom\SituationCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -1344,6 +1348,26 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/{serviceFeedback}/review', [ServiceFeedbackController::class, 'review'])->name('service-feedback.admin.review');
     Route::post('/feedback-admin/{serviceFeedback}/hide', [ServiceFeedbackController::class, 'hide'])->name('service-feedback.admin.hide');
     Route::delete('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'destroy'])->name('service-feedback.admin.destroy');
+
+    /*
+     * Executive Situation Room (docs/situation-room-architecture.md). The route
+     * gates the grant; the controller resolves the organization scope (403 for
+     * a focus outside it) before anything is counted. Categories come from the
+     * SituationCategory registry; Transport is not one of them.
+     */
+    Route::prefix('situation-room')->name('situation-room.')->group(function (): void {
+        Route::get('/', [SituationRoomController::class, 'index'])->middleware('can:situation_room.view')->name('index');
+        Route::get('/wall', [SituationRoomController::class, 'wall'])->middleware(['can:situation_room.view', 'can:situation_room.wall.view'])->name('wall');
+        Route::get('/reports', [SituationReportController::class, 'index'])->middleware(['can:situation_room.view', 'can:situation_room.reports.view'])->name('reports');
+        Route::get('/reports/export', [SituationReportController::class, 'export'])->middleware(['can:situation_room.view', 'throttle:20,1'])->name('reports.export');
+        Route::get('/actions', [SituationActionController::class, 'index'])->middleware('can:situation_room.view')->name('actions.index');
+        Route::get('/actions/create', [SituationActionController::class, 'create'])->middleware('can:situation_room.view')->name('actions.create');
+        Route::post('/actions', [SituationActionController::class, 'store'])->middleware('can:situation_room.view')->name('actions.store');
+        Route::get('/actions/{action}/edit', [SituationActionController::class, 'edit'])->middleware('can:situation_room.view')->whereUuid('action')->name('actions.edit');
+        Route::put('/actions/{action}', [SituationActionController::class, 'update'])->middleware('can:situation_room.view')->whereUuid('action')->name('actions.update');
+        Route::get('/{category}', [SituationRoomController::class, 'category'])->middleware('can:situation_room.view')
+            ->whereIn('category', array_column(SituationCategory::cases(), 'value'))->name('category');
+    });
 
     Route::get('/service-suggestions', [ServiceSubmissionController::class, 'suggestions'])->name('service-submissions.suggestions');
     Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');

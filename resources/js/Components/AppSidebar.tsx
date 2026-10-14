@@ -213,6 +213,21 @@ const navGroups: NavGroup[] = [
         items: selfServiceNav,
     },
     {
+        /*
+         * Executive Situation Room: leadership aggregates inside the viewer's
+         * organization scope. Its categories are listed on the launcher page
+         * (SituationCategory registry), so only the three entry points live here.
+         */
+        key: 'situationRoom',
+        labelKey: 'nav.groupSituationRoom',
+        icon: ActivityIcon,
+        items: [
+            { routeName: 'situation-room.index', labelKey: 'nav.situationRoom', icon: LayoutDashboard, permission: 'situation_room.view' },
+            { routeName: 'situation-room.wall', labelKey: 'nav.situationRoomWall', icon: ActivityIcon, permission: 'situation_room.wall.view' },
+            { routeName: 'situation-room.reports', labelKey: 'nav.situationRoomReports', icon: FileChartIcon, permission: 'situation_room.reports.view' },
+        ],
+    },
+    {
         key: 'organization',
         labelKey: 'nav.groupOrganization',
         icon: Building2,
@@ -592,6 +607,8 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  * button with its submenu.
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
+    // Leadership's own category, first: headed by its group label (Situation Room).
+    { keys: ['situationRoom'] },
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },

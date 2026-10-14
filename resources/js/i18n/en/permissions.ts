@@ -87,6 +87,7 @@ const permissions = {
         'employees': 'Employees',
         'entitlement-rules': 'Entitlement Rules',
         'entitlements': 'Entitlements',
+        'situation_room': 'Situation Room',
         'field_work': 'Field work',
         'functional-reporting': 'Functional Reporting',
         'grade-levels': 'Grade Levels',

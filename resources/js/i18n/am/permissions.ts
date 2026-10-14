@@ -87,6 +87,7 @@ const permissions = {
         'employees': 'ሠራተኞች',
         'entitlement-rules': 'የጥቅማ ጥቅም ደንቦች',
         'entitlements': 'ጥቅማ ጥቅሞች',
+        'situation_room': 'የሁኔታ መከታተያ',
         'field_work': 'የመስክ ሥራ',
         'functional-reporting': 'የተግባር ተጠሪነት',
         'grade-levels': 'የሥራ ደረጃዎች',
