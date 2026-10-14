@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -31,7 +31,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('workforce_planning_methodologies', function (Blueprint $table): void {
+        SchemaResume::create('workforce_planning_methodologies', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->uuid('lineage_key');
             $table->unsignedInteger('version_no')->default(1);
@@ -58,7 +58,7 @@ return new class extends Migration
             $table->index(['calculation_type', 'status'], 'wpm_type_status_idx');
         });
 
-        Schema::create('manpower_plans', function (Blueprint $table): void {
+        SchemaResume::create('manpower_plans', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('reference_number', 32)->unique();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -87,7 +87,7 @@ return new class extends Migration
             $table->index(['organization_id', 'status'], 'manpower_plans_org_status_idx');
         });
 
-        Schema::create('manpower_plan_lines', function (Blueprint $table): void {
+        SchemaResume::create('manpower_plan_lines', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('plan_id')->constrained('manpower_plans')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -118,7 +118,7 @@ return new class extends Migration
             $table->index(['occupation_id'], 'mpl_occupation_idx');
         });
 
-        Schema::create('position_requirements', function (Blueprint $table): void {
+        SchemaResume::create('position_requirements', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('plan_id')->constrained('manpower_plans')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -142,17 +142,16 @@ return new class extends Migration
             $table->index(['plan_id', 'status'], 'position_requirements_plan_status_idx');
             $table->index(['organization_unit_id', 'occupation_id'], 'position_requirements_unit_occ_idx');
         });
-        Schema::table('manpower_plan_lines', function (Blueprint $table): void {
+        SchemaResume::table('manpower_plan_lines', function (Blueprint $table): void {
             $table->foreign('position_requirement_id')->references('id')->on('position_requirements')->nullOnDelete();
         });
 
-        if (DB::getDriverName() === 'pgsql') {
-            DB::statement("ALTER TABLE workforce_planning_methodologies ADD CONSTRAINT wpm_type_chk CHECK (calculation_type IN ('WORKLOAD_STANDARD_TIME', 'RATIO', 'FIXED_MINIMUM', 'SPAN_OF_CONTROL'))");
-            DB::statement("ALTER TABLE workforce_planning_methodologies ADD CONSTRAINT wpm_rounding_chk CHECK (rounding_rule IS NULL OR rounding_rule IN ('ceil', 'floor', 'half_up', 'manual'))");
-            DB::statement('ALTER TABLE manpower_plans ADD CONSTRAINT manpower_plans_period_chk CHECK (planning_period_end >= planning_period_start)');
-            DB::statement('ALTER TABLE manpower_plan_lines ADD CONSTRAINT mpl_one_subject_chk CHECK ((organization_unit_id IS NOT NULL)::int + (unit_design_proposal_id IS NOT NULL)::int = 1)');
-            DB::statement('ALTER TABLE position_requirements ADD CONSTRAINT position_requirements_one_subject_chk CHECK ((organization_unit_id IS NOT NULL)::int + (unit_design_proposal_id IS NOT NULL)::int >= 1)');
-        }
+        // PostgreSQL only, each once (SchemaResume::check).
+        SchemaResume::check('workforce_planning_methodologies', 'wpm_type_chk', "calculation_type IN ('WORKLOAD_STANDARD_TIME', 'RATIO', 'FIXED_MINIMUM', 'SPAN_OF_CONTROL')");
+        SchemaResume::check('workforce_planning_methodologies', 'wpm_rounding_chk', "rounding_rule IS NULL OR rounding_rule IN ('ceil', 'floor', 'half_up', 'manual')");
+        SchemaResume::check('manpower_plans', 'manpower_plans_period_chk', 'planning_period_end >= planning_period_start');
+        SchemaResume::check('manpower_plan_lines', 'mpl_one_subject_chk', '(organization_unit_id IS NOT NULL)::int + (unit_design_proposal_id IS NOT NULL)::int = 1');
+        SchemaResume::check('position_requirements', 'position_requirements_one_subject_chk', '(organization_unit_id IS NOT NULL)::int + (unit_design_proposal_id IS NOT NULL)::int >= 1');
     }
 
     public function down(): void

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,7 +17,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('organization_design_report_exports', function (Blueprint $table): void {
+        SchemaResume::create('organization_design_report_exports', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->nullable()->constrained('organizations')->cascadeOnDelete();
             $table->string('report', 40);

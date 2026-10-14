@@ -1,0 +1,16 @@
+- generic [ref=e5]:
+  - generic [ref=e7]:
+    - banner [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e11]:
+          - heading "አስተያየትና ጥቆማ" [level=1] [ref=e12]
+          - paragraph [ref=e13]: Addis One
+        - group "ቋንቋ" [ref=e14]:
+          - button "Amharic" [pressed] [ref=e15] [cursor=pointer]: አማ
+          - button "English" [ref=e16] [cursor=pointer]: EN
+        - 'button "የገጽታ ሁኔታ: ሥርዓት" [ref=e17] [cursor=pointer]'
+    - main [ref=e20]:
+      - generic [ref=e21]:
+        - heading "ይህ የአስተያየት አገናኝ አይገኝም" [level=2] [ref=e25]
+        - paragraph [ref=e26]: አገናኙ ጊዜው አልፎበት ወይም ተተክቶ ሊሆን ይችላል። እባክዎ በአገልግሎት መስጫው ወቅታዊውን የአስተያየት QR ኮድ ይጠይቁ።
+  - region "Notifications alt+T"

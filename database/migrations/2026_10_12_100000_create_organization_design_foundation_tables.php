@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -19,12 +20,17 @@ use Illuminate\Support\Facades\Schema;
  *   Function             — a tree (parent_function_id, materialised path)
  *   Status history       — immutable record of every lifecycle transition in
  *                          this domain, shared by later phases
+ *
+ * Resumable (SchemaResume): the 11 October deploy to the live MySQL server
+ * created the first tables and stopped at the organization_functions path
+ * key, which exceeds MySQL's 3072-byte key limit. Each step now adds only
+ * what is missing, and that key covers a 700-character prefix on MySQL.
  */
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('legal_instrument_types', function (Blueprint $table): void {
+        SchemaResume::create('legal_instrument_types', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('code', 40)->unique();
             $table->string('name_en');
@@ -34,7 +40,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('institution_mandates', function (Blueprint $table): void {
+        SchemaResume::create('institution_mandates', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->uuid('lineage_key');
@@ -65,7 +71,7 @@ return new class extends Migration
             $table->index(['organization_id', 'effective_from'], 'institution_mandates_org_effective_idx');
         });
 
-        Schema::create('organization_powers', function (Blueprint $table): void {
+        SchemaResume::create('organization_powers', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('mandate_id')->constrained('institution_mandates')->cascadeOnDelete();
@@ -88,7 +94,7 @@ return new class extends Migration
             $table->index(['organization_id', 'status'], 'organization_powers_org_status_idx');
         });
 
-        Schema::create('organization_functions', function (Blueprint $table): void {
+        SchemaResume::create('organization_functions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('mandate_id')->constrained('institution_mandates')->cascadeOnDelete();
@@ -116,15 +122,20 @@ return new class extends Migration
             $table->unique(['organization_id', 'code'], 'organization_functions_org_code_unique');
             $table->index(['organization_id', 'parent_function_id', 'sequence'], 'organization_functions_org_parent_idx');
             $table->index(['mandate_id'], 'organization_functions_mandate_idx');
-            $table->index('path', 'organization_functions_path_idx');
+            // MySQL/MariaDB cap an index key at 3072 bytes; the 1200-character utf8mb4 path
+            // exceeds that, so the key covers a 700-character prefix of the path there.
+            $table->index(
+                [in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) ? DB::raw('`path`(700)') : 'path'],
+                'organization_functions_path_idx',
+            );
         });
 
         // The self-reference is added once the primary key exists (PostgreSQL rejects it inline).
-        Schema::table('organization_functions', function (Blueprint $table): void {
+        SchemaResume::table('organization_functions', function (Blueprint $table): void {
             $table->foreign('parent_function_id')->references('id')->on('organization_functions')->restrictOnDelete();
         });
 
-        Schema::create('organization_design_status_history', function (Blueprint $table): void {
+        SchemaResume::create('organization_design_status_history', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('entity_type', 80);
             $table->uuid('entity_id');
@@ -137,12 +148,11 @@ return new class extends Migration
             $table->index(['entity_type', 'entity_id', 'created_at'], 'od_status_history_entity_idx');
         });
 
-        if (DB::getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE institution_mandates ADD CONSTRAINT institution_mandates_dates_chk CHECK (effective_to IS NULL OR effective_to >= effective_from)');
-            DB::statement('ALTER TABLE organization_powers ADD CONSTRAINT organization_powers_dates_chk CHECK (effective_to IS NULL OR effective_from IS NULL OR effective_to >= effective_from)');
-            DB::statement('ALTER TABLE organization_functions ADD CONSTRAINT organization_functions_dates_chk CHECK (effective_to IS NULL OR effective_from IS NULL OR effective_to >= effective_from)');
-            DB::statement('ALTER TABLE organization_functions ADD CONSTRAINT organization_functions_not_own_parent_chk CHECK (parent_function_id IS NULL OR parent_function_id <> id)');
-        }
+        // PostgreSQL only, each once (SchemaResume::check).
+        SchemaResume::check('institution_mandates', 'institution_mandates_dates_chk', 'effective_to IS NULL OR effective_to >= effective_from');
+        SchemaResume::check('organization_powers', 'organization_powers_dates_chk', 'effective_to IS NULL OR effective_from IS NULL OR effective_to >= effective_from');
+        SchemaResume::check('organization_functions', 'organization_functions_dates_chk', 'effective_to IS NULL OR effective_from IS NULL OR effective_to >= effective_from');
+        SchemaResume::check('organization_functions', 'organization_functions_not_own_parent_chk', 'parent_function_id IS NULL OR parent_function_id <> id');
     }
 
     public function down(): void

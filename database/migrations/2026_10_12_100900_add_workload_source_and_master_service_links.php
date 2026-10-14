@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -24,11 +25,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('manpower_plan_lines', function (Blueprint $table): void {
+        SchemaResume::table('manpower_plan_lines', function (Blueprint $table): void {
             $table->string('workload_source_type', 40)->nullable();
             $table->string('workload_source_reference', 255)->nullable();
         });
-        Schema::table('position_services', function (Blueprint $table): void {
+        SchemaResume::table('position_services', function (Blueprint $table): void {
             $table->uuid('master_service_id')->nullable()->index('position_services_master_service_idx');
             if (DB::getDriverName() !== 'sqlite') {
                 $table->foreign('master_service_id')->references('id')->on('services')->nullOnDelete();

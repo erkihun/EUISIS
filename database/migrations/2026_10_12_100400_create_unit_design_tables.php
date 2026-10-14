@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -28,7 +28,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('organization_design_studies', function (Blueprint $table): void {
+        SchemaResume::create('organization_design_studies', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->string('reference_number', 32)->unique();
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->index(['organization_id', 'status'], 'ods_org_status_idx');
         });
 
-        Schema::create('unit_design_proposals', function (Blueprint $table): void {
+        SchemaResume::create('unit_design_proposals', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('study_id')->constrained('organization_design_studies')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -84,11 +84,11 @@ return new class extends Migration
             $table->index(['study_id', 'parent_proposed_unit_id', 'sequence'], 'udp_study_parent_idx');
             $table->index(['existing_unit_id'], 'udp_existing_unit_idx');
         });
-        Schema::table('unit_design_proposals', function (Blueprint $table): void {
+        SchemaResume::table('unit_design_proposals', function (Blueprint $table): void {
             $table->foreign('parent_proposed_unit_id')->references('id')->on('unit_design_proposals')->restrictOnDelete();
         });
 
-        Schema::create('responsibility_types', function (Blueprint $table): void {
+        SchemaResume::create('responsibility_types', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('code', 40)->unique();
             $table->string('name_en');
@@ -104,7 +104,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('unit_responsibilities', function (Blueprint $table): void {
+        SchemaResume::create('unit_responsibilities', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('organization_unit_id')->nullable()->constrained('organization_units')->cascadeOnDelete();
@@ -123,13 +123,12 @@ return new class extends Migration
             $table->index(['organization_id', 'object_type', 'object_id'], 'unit_responsibilities_object_idx');
         });
 
-        if (DB::getDriverName() === 'pgsql') {
-            DB::statement("ALTER TABLE organization_design_studies ADD CONSTRAINT ods_type_chk CHECK (study_type IN ('initial_structure', 'restructure', 'review'))");
-            DB::statement("ALTER TABLE unit_design_proposals ADD CONSTRAINT udp_type_chk CHECK (proposal_type IN ('create', 'update', 'move', 'deactivate'))");
-            DB::statement('ALTER TABLE unit_design_proposals ADD CONSTRAINT udp_parent_chk CHECK (parent_proposed_unit_id IS NULL OR parent_proposed_unit_id <> id)');
-            DB::statement('ALTER TABLE unit_responsibilities ADD CONSTRAINT unit_responsibilities_one_subject_chk CHECK ((organization_unit_id IS NOT NULL)::int + (unit_design_proposal_id IS NOT NULL)::int = 1)');
-            DB::statement("ALTER TABLE unit_responsibilities ADD CONSTRAINT unit_responsibilities_object_chk CHECK (object_type IN ('function', 'service', 'process', 'activity'))");
-        }
+        // PostgreSQL only, each once (SchemaResume::check).
+        SchemaResume::check('organization_design_studies', 'ods_type_chk', "study_type IN ('initial_structure', 'restructure', 'review')");
+        SchemaResume::check('unit_design_proposals', 'udp_type_chk', "proposal_type IN ('create', 'update', 'move', 'deactivate')");
+        SchemaResume::check('unit_design_proposals', 'udp_parent_chk', 'parent_proposed_unit_id IS NULL OR parent_proposed_unit_id <> id');
+        SchemaResume::check('unit_responsibilities', 'unit_responsibilities_one_subject_chk', '(organization_unit_id IS NOT NULL)::int + (unit_design_proposal_id IS NOT NULL)::int = 1');
+        SchemaResume::check('unit_responsibilities', 'unit_responsibilities_object_chk', "object_type IN ('function', 'service', 'process', 'activity')");
     }
 
     public function down(): void

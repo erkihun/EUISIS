@@ -1,0 +1,30 @@
+[  871230ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8000/feedback/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:0
+[  871231ms] AxiosError: Network Error
+    at m.onerror (http://127.0.0.1:8000/build/assets/app-BLJqAAK-.js:4:19927)
+[ 1023896ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8000/build/assets/en-Dga7I3fl.js:0
+[ 1023896ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8000/build/assets/employees-BgSeyMW4.js:0
+[ 1023896ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8000/build/assets/settings-BPR-CGX3.js:0
+[ 1023896ms] [ERROR] Translations failed to load TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:8000/build/assets/en-Dga7I3fl.js @ http://127.0.0.1:8000/build/assets/app-BLJqAAK-.js:85
+[ 1023899ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8000/feedback/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/suggestion:0
+[ 1023901ms] AxiosError: Network Error
+    at m.onerror (http://127.0.0.1:8000/build/assets/app-BLJqAAK-.js:4:19927)
+[ 1031480ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8000/feedback/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:0
+[ 1031480ms] AxiosError: Network Error
+    at m.onerror (http://127.0.0.1:8000/build/assets/app-BLJqAAK-.js:4:19927)
+[ 1036657ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8000/feedback/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:0
+[ 1036657ms] AxiosError: Network Error
+    at m.onerror (http://127.0.0.1:8000/build/assets/app-BLJqAAK-.js:4:19927)
+[ 2414286ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/:9
+[ 2414835ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/:0
+[ 2422475ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/register:0
+[ 2424227ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/:0
+[ 2426373ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/login:0
+[ 2446583ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/dashboard:0
+[ 2453406ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/employees:0
+[ 2462428ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/employees?direction=asc&employment_type=&organization_id=&organization_unit_id=&position_id=&search=erki&sort=full_name&status=:0
+[ 2462694ms] [ERROR] Failed to load resource: the server responded with a status of 403 () @ https://ems.pshrdb.gov.et/storage/employee-photos/28604096-77a2-4395-80a0-3c38daf541b8.webp:0
+[ 2465282ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/employees/01a0d825-ac6e-715c-8f01-ddb1fd4279ac:0
+[ 2530668ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/dashboard:0
+[ 2590899ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://ems.pshrdb.gov.et/dashboard:0
+[ 5638126ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/dashboard:9
+[ 5638176ms] [ERROR] Loading the image 'https://www.ems.pshrdb.gov.et/storage/system-assets/general/favicon-01a03ec2-313e-73df-8dd1-f176786a1379.png' violates the following Content Security Policy directive: "img-src 'self' data: blob:". The action has been blocked. @ https://ems.pshrdb.gov.et/dashboard:0

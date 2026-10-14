@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -33,7 +33,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('isco_groups', function (Blueprint $table): void {
+        SchemaResume::create('isco_groups', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('revision', 20);
             $table->string('code', 10);
@@ -49,15 +49,15 @@ return new class extends Migration
             $table->index(['revision', 'parent_id'], 'isco_groups_parent_idx');
             $table->index(['revision', 'level'], 'isco_groups_level_idx');
         });
-        Schema::table('isco_groups', function (Blueprint $table): void {
+        SchemaResume::table('isco_groups', function (Blueprint $table): void {
             $table->foreign('parent_id')->references('id')->on('isco_groups')->nullOnDelete();
         });
 
-        Schema::table('occupations', function (Blueprint $table): void {
+        SchemaResume::table('occupations', function (Blueprint $table): void {
             $table->foreignUuid('isco_group_id')->nullable()->after('isco_code')->constrained('isco_groups')->nullOnDelete();
         });
 
-        Schema::create('professions', function (Blueprint $table): void {
+        SchemaResume::create('professions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('occupation_id')->constrained('occupations')->restrictOnDelete();
             $table->string('code', 40)->unique();
@@ -74,7 +74,7 @@ return new class extends Migration
             $table->index(['occupation_id', 'is_active'], 'professions_occupation_active_idx');
         });
 
-        Schema::create('specializations', function (Blueprint $table): void {
+        SchemaResume::create('specializations', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('profession_id')->constrained('professions')->restrictOnDelete();
             $table->string('code', 40);
@@ -89,7 +89,7 @@ return new class extends Migration
             $table->unique(['profession_id', 'code'], 'specializations_profession_code_unique');
         });
 
-        Schema::create('competency_types', function (Blueprint $table): void {
+        SchemaResume::create('competency_types', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('code', 40)->unique();
             $table->string('name_en');
@@ -101,11 +101,11 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::table('competencies', function (Blueprint $table): void {
+        SchemaResume::table('competencies', function (Blueprint $table): void {
             $table->foreignUuid('competency_type_id')->nullable()->after('framework_id')->constrained('competency_types')->restrictOnDelete();
         });
 
-        Schema::create('competency_levels', function (Blueprint $table): void {
+        SchemaResume::create('competency_levels', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('code', 40)->unique();
             $table->string('name_en');
@@ -118,7 +118,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('education_levels', function (Blueprint $table): void {
+        SchemaResume::create('education_levels', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('code', 40)->unique();
             $table->string('name_en');
@@ -128,7 +128,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('work_occupation_requirements', function (Blueprint $table): void {
+        SchemaResume::create('work_occupation_requirements', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('activity_id')->nullable()->constrained('process_activities')->cascadeOnDelete();
@@ -145,7 +145,7 @@ return new class extends Migration
             $table->index(['occupation_id'], 'wor_occupation_idx');
         });
 
-        Schema::create('work_competency_requirements', function (Blueprint $table): void {
+        SchemaResume::create('work_competency_requirements', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('activity_id')->nullable()->constrained('process_activities')->cascadeOnDelete();
@@ -161,7 +161,7 @@ return new class extends Migration
             $table->index(['competency_id'], 'wcr_competency_idx');
         });
 
-        Schema::create('work_qualification_requirements', function (Blueprint $table): void {
+        SchemaResume::create('work_qualification_requirements', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('activity_id')->nullable()->constrained('process_activities')->cascadeOnDelete();
@@ -179,12 +179,11 @@ return new class extends Migration
             $table->index(['task_id'], 'wqr_task_idx');
         });
 
-        if (DB::getDriverName() === 'pgsql') {
-            foreach (['work_occupation_requirements' => 'wor', 'work_competency_requirements' => 'wcr', 'work_qualification_requirements' => 'wqr'] as $tableName => $prefix) {
-                DB::statement("ALTER TABLE {$tableName} ADD CONSTRAINT {$prefix}_one_subject_chk CHECK ((activity_id IS NOT NULL)::int + (task_id IS NOT NULL)::int = 1)");
-            }
-            DB::statement("ALTER TABLE isco_groups ADD CONSTRAINT isco_groups_level_chk CHECK (level IN ('major', 'sub_major', 'minor', 'unit'))");
+        // PostgreSQL only, each once (SchemaResume::check).
+        foreach (['work_occupation_requirements' => 'wor', 'work_competency_requirements' => 'wcr', 'work_qualification_requirements' => 'wqr'] as $tableName => $prefix) {
+            SchemaResume::check($tableName, "{$prefix}_one_subject_chk", '(activity_id IS NOT NULL)::int + (task_id IS NOT NULL)::int = 1');
         }
+        SchemaResume::check('isco_groups', 'isco_groups_level_chk', "level IN ('major', 'sub_major', 'minor', 'unit')");
     }
 
     public function down(): void
