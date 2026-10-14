@@ -47,6 +47,14 @@ class PublicFeedbackFormToken
         });
     }
 
+    /** Allow the same form to be retried when its submission did not commit. */
+    public function restore(string $token): void
+    {
+        if (preg_match('/^[0-9a-f]{32}$/', $token) === 1) {
+            Cache::put($this->key($token), 1, now()->addMinutes(self::TTL_MINUTES));
+        }
+    }
+
     private function key(string $token): string
     {
         return 'public-feedback:form-token:'.$token;

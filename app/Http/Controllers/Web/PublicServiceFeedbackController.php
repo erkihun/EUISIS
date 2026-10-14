@@ -149,6 +149,12 @@ class PublicServiceFeedbackController extends Controller
 
         $locale = app()->getLocale();
         $receipt = $request->session()->get('feedback_receipt');
+        $receiptContext = $request->session()->get('feedback_receipt_context');
+        $receiptMatches = is_array($receipt)
+            && is_string($receiptContext)
+            && hash_equals($this->receiptContext($kind, $token), $receiptContext)
+            && ($type === null || ($receipt['type'] ?? null) === $type->value);
+        $receipt = $receiptMatches ? $receipt : null;
 
         return Inertia::render('Public/ServiceFeedback', [
             'available' => true,
@@ -162,7 +168,7 @@ class PublicServiceFeedbackController extends Controller
                 ? $this->feedback->serviceOptions($context->contextPositionId, $locale)
                 : [],
             'categories' => $type === null ? [] : $this->categories->optionsFor($context, $type, $locale),
-            'submitted' => (bool) $request->session()->get('feedback_submitted', false),
+            'submitted' => $receiptMatches && (bool) $request->session()->get('feedback_submitted', false),
             'type' => $type?->value,
             'reference' => $receipt['reference'] ?? null,
             'receipt' => $receipt,
@@ -204,10 +210,6 @@ class PublicServiceFeedbackController extends Controller
         /** @var array<string, mixed> $validated */
         $validated = $request->validated();
 
-        if (isset($validated['form_token']) && ! $this->formTokens->consume((string) $validated['form_token'])) {
-            return back()->withErrors(['form_token' => __('service-feedback.form_replayed')]);
-        }
-
         // A category is accepted only if this visitor could have been offered it.
         if (! empty($validated['category_id']) && ! $this->categories->isApplicable((string) $validated['category_id'], $context, $type)) {
             return back()->withErrors(['category_id' => __('service-feedback.category_not_applicable')]);
@@ -225,11 +227,21 @@ class PublicServiceFeedbackController extends Controller
             return back()->withErrors(['position_service_id' => __('service-feedback.service_not_provided')]);
         }
 
+        $formToken = isset($validated['form_token']) ? (string) $validated['form_token'] : null;
+
+        if ($formToken !== null && ! $this->formTokens->consume($formToken)) {
+            return back()->withErrors(['form_token' => __('service-feedback.form_replayed')]);
+        }
+
         try {
             $entry = $this->submissions->submit($context, $type, $validated, $request);
         } catch (ValidationException $exception) {
+            $this->restoreFormToken($formToken);
+
             throw $exception;
         } catch (Throwable $exception) {
+            $this->restoreFormToken($formToken);
+
             // Brief §76–78: storage or database trouble rolls the submission back (nothing is kept) and the
             // citizen is told to try again. A query exception embeds the bound values, so it is logged by class
             // and SQLSTATE only; the citizen's words never reach the log.
@@ -244,7 +256,26 @@ class PublicServiceFeedbackController extends Controller
 
         return redirect()->to($legacyRedirect ? $links['landing'] : $links[$type->value])
             ->with('feedback_submitted', true)
-            ->with('feedback_receipt', $this->receipt($entry, $context));
+            ->with('feedback_receipt', $this->receipt($entry, $context))
+            ->with('feedback_receipt_context', $this->receiptContext($kind, $token));
+    }
+
+    private function receiptContext(PublicFeedbackTargetType $kind, string $token): string
+    {
+        return hash('sha256', $kind->value."\0".$token);
+    }
+
+    private function restoreFormToken(?string $token): void
+    {
+        if ($token === null) {
+            return;
+        }
+
+        try {
+            $this->formTokens->restore($token);
+        } catch (Throwable $exception) {
+            Log::warning('Public feedback form token could not be restored', ['exception' => $exception::class]);
+        }
     }
 
     private function resolve(PublicFeedbackTargetType $kind, string $token): ?TargetContext

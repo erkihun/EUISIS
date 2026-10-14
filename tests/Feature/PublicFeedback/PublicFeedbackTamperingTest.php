@@ -105,6 +105,7 @@ it('cannot replay a one-time form token against another target, and a double POS
 
     // Same payload twice within the window (double click, network retry): one row.
     $this->post('/service-feedback/'.$this->b->token->token.'/complaint', ['message' => 'Double click.'])->assertRedirect();
+    $this->withCookie(config('session.cookie'), session()->getId());
     $this->post('/service-feedback/'.$this->b->token->token.'/complaint', ['message' => 'Double click.'])->assertRedirect();
     expect(EmployeeServiceFeedback::query()->where('employee_id', $this->b->employee->id)->count())->toBe(1);
 });

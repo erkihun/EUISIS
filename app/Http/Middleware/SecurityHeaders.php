@@ -60,7 +60,7 @@ class SecurityHeaders
         //   form-action 'self'     — prevents cross-origin form submission
         //
         // In local development the Vite dev server runs on a separate origin
-        // (typically http://[::1]:5173 or http://localhost:5173). Scripts and
+        // (typically http://127.0.0.1:5173 or http://localhost:5173). Scripts and
         // WebSocket HMR connections from that origin are explicitly allowed here so
         // the browser does not block hot-module replacement.
         //
@@ -72,10 +72,12 @@ class SecurityHeaders
         // LAN testing against http://<ip>:8000 can still reach the Vite dev
         // server. A fixed localhost list only works when the browser and the
         // server are the same machine — a phone scanning a QR is not.
-        $devHosts = ['localhost', '127.0.0.1', '[::1]'];
+        $devHosts = ['localhost', '127.0.0.1'];
 
-        if ($isLocal && ! in_array($request->getHost(), $devHosts, true)) {
-            $devHosts[] = $request->getHost();
+        $requestHost = $request->getHost();
+
+        if ($isLocal && filter_var($requestHost, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false && ! in_array($requestHost, $devHosts, true)) {
+            $devHosts[] = $requestHost;
         }
 
         $viteHttp = implode(' ', array_map(static fn (string $host): string => "http://{$host}:5173", $devHosts));

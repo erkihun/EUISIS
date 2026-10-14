@@ -52,7 +52,7 @@ test('Content-Security-Policy header is present', function (): void {
         ->and($csp)->toContain("form-action 'self'");
 });
 
-test('local Content-Security-Policy permits the IPv6 Vite development server', function (): void {
+test('local Content-Security-Policy permits Vite without invalid IPv6 sources', function (): void {
     $originalEnvironment = app()->environment();
     app()->detectEnvironment(fn (): string => 'local');
 
@@ -61,8 +61,24 @@ test('local Content-Security-Policy permits the IPv6 Vite development server', f
         $csp = $response->headers->get('Content-Security-Policy');
 
         expect($csp)
-            ->toContain('http://[::1]:5173')
-            ->toContain('ws://[::1]:5173');
+            ->toContain('http://127.0.0.1:5173')
+            ->toContain('ws://127.0.0.1:5173')
+            ->not->toContain('[::1]');
+    } finally {
+        app()->detectEnvironment(fn (): string => $originalEnvironment);
+    }
+});
+
+test('local Content-Security-Policy does not add an invalid IPv6 request host', function (): void {
+    $originalEnvironment = app()->environment();
+    app()->detectEnvironment(fn (): string => 'local');
+
+    try {
+        $csp = $this->withServerVariables(['HTTP_HOST' => '[::1]:8000'])
+            ->get('/login')
+            ->headers->get('Content-Security-Policy');
+
+        expect($csp)->not->toContain('[::1]')->not->toContain('http://::1');
     } finally {
         app()->detectEnvironment(fn (): string => $originalEnvironment);
     }

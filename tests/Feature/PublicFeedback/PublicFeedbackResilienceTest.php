@@ -63,6 +63,9 @@ beforeEach(function (): void {
 });
 
 it('rolls the whole submission back when an attachment cannot be stored and tells the citizen, leaving no file and no receipt', function (): void {
+    $formToken = $this->get('/service-feedback/'.$this->a->token->token.'/complaint')
+        ->assertOk()
+        ->inertiaProps()['formToken'];
     $disk = Storage::fake('local');
     $failing = Mockery::mock($disk)->makePartial();
     $failing->shouldReceive('putFileAs')->once()->passthru();
@@ -76,6 +79,7 @@ it('rolls the whole submission back when an attachment cannot be stored and tell
     $response = $this->from('/service-feedback/'.$this->a->token->token.'/complaint')
         ->post('/service-feedback/'.$this->a->token->token.'/complaint', [
             'message' => RES_NARRATIVE,
+            'form_token' => $formToken,
             'attachments' => [UploadedFile::fake()->image('first.jpg', 40, 40), UploadedFile::fake()->image('second.jpg', 40, 40)],
         ]);
 
@@ -89,6 +93,14 @@ it('rolls the whole submission back when an attachment cannot be stored and tell
         ->and(DB::table('audit_logs')->where('event_type', 'like', '%submitted%')->count())->toBe(0)
         ->and($disk->allFiles('service-feedback'))->toBe([])
         ->and(collect($captured)->filter(fn (string $line): bool => str_contains($line, RES_NARRATIVE) || str_contains($line, $this->a->token->token))->all())->toBe([]);
+
+    Storage::set('local', $disk);
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', [
+        'message' => RES_NARRATIVE,
+        'form_token' => $formToken,
+    ])->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('feedback_receipt');
+
+    expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
 
 it('keeps the submission and the receipt when the notification provider throws, and logs no narrative', function (): void {

@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -49,12 +50,33 @@ class PublicFeedbackSubmissionService
      */
     public function submit(TargetContext $target, ServiceFeedbackType $type, array $data, Request $request): EmployeeServiceFeedback
     {
-        $existing = $this->duplicateOf($target, $type, $data);
+        $fingerprint = $this->fingerprint($target, $type, $data, $request);
 
-        if ($existing !== null) {
-            return $existing;
-        }
+        return Cache::lock('public-feedback:submit:'.$fingerprint, self::DUPLICATE_WINDOW_SECONDS)
+            ->block(10, function () use ($target, $type, $data, $request, $fingerprint): EmployeeServiceFeedback {
+                $existing = $this->duplicateOf($fingerprint);
 
+                if ($existing !== null) {
+                    return $existing;
+                }
+
+                $entry = $this->submitNew($target, $type, $data, $request);
+
+                try {
+                    Cache::put('public-feedback:dup:'.$fingerprint, (string) $entry->getKey(), now()->addSeconds(self::DUPLICATE_WINDOW_SECONDS));
+                } catch (\Throwable $exception) {
+                    // The database commit is already complete. Cache trouble must not turn a saved
+                    // submission into a false failure or prompt the visitor to send it again.
+                    Log::warning('Public feedback duplicate marker could not be stored', ['exception' => $exception::class]);
+                }
+
+                return $entry;
+            });
+    }
+
+    /** @param array<string, mixed> $data */
+    private function submitNew(TargetContext $target, ServiceFeedbackType $type, array $data, Request $request): EmployeeServiceFeedback
+    {
         $service = $target->targetType === PublicFeedbackTargetType::Employee && ! empty($data['position_service_id'])
             ? PositionService::query()->find($data['position_service_id'])
             : null;
@@ -153,35 +175,37 @@ class PublicFeedbackSubmissionService
         }
     }
 
-    /**
-     * The row an identical submission created moments ago, if any. The
-     * fingerprint covers the source, the type and the content, so two
-     * different messages from one visitor are two submissions.
-     */
-    private function duplicateOf(TargetContext $target, ServiceFeedbackType $type, array $data): ?EmployeeServiceFeedback
+    /** @param array<string, mixed> $data */
+    private function fingerprint(TargetContext $target, ServiceFeedbackType $type, array $data, Request $request): string
     {
-        $fingerprint = hash('sha256', implode('|', [
+        $attachments = array_map(static fn (UploadedFile $file): array => [
+            $file->getClientOriginalName(),
+            $file->getSize(),
+            hash_file('sha256', $file->getPathname()),
+        ], $data['attachments'] ?? []);
+
+        return hash('sha256', serialize([
+            $request->session()->getId(),
+            $target->targetType->value,
             $target->sourceId,
             $type->value,
             trim((string) ($data['message'] ?? $data['comment'] ?? '')),
             (string) ($data['rating'] ?? ''),
+            (string) ($data['position_service_id'] ?? ''),
+            (string) ($data['category_id'] ?? ''),
+            trim((string) ($data['client_name'] ?? '')),
             trim((string) ($data['client_contact'] ?? '')),
+            (string) ($data['incident_date'] ?? ''),
+            trim((string) ($data['incident_location'] ?? '')),
+            $attachments,
         ]));
+    }
 
-        if (Cache::add('public-feedback:dup:'.$fingerprint, 1, now()->addSeconds(self::DUPLICATE_WINDOW_SECONDS))) {
-            return null;
-        }
+    private function duplicateOf(string $fingerprint): ?EmployeeServiceFeedback
+    {
+        $id = Cache::get('public-feedback:dup:'.$fingerprint);
 
-        $query = EmployeeServiceFeedback::query()
-            ->where('type', $type->value)
-            ->where('created_at', '>=', now()->subSeconds(self::DUPLICATE_WINDOW_SECONDS))
-            ->latest('created_at');
-
-        $query = $target->targetType === PublicFeedbackTargetType::Employee
-            ? $query->where('employee_feedback_token_id', $target->sourceId)
-            : $query->where('source_organization_qr_id', $target->sourceId);
-
-        return $query->first();
+        return $id === null ? null : EmployeeServiceFeedback::query()->find((string) $id);
     }
 
     private function storeAttachment(EmployeeServiceFeedback $entry, UploadedFile $file): string

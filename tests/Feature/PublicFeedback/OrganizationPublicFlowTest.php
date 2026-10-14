@@ -13,6 +13,7 @@ use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\PublicFeedbackScenario;
 
@@ -185,6 +186,8 @@ it('stores an accidental double submit once', function (): void {
     $payload = ['message' => 'The same suggestion, sent twice by a double tap.'];
 
     $this->post('/feedback/'.$this->token.'/suggestion', $payload)->assertRedirect();
+    // Feature requests do not carry cookies automatically; mimic one browser session.
+    $this->withCookie(config('session.cookie'), session()->getId());
     $this->post('/feedback/'.$this->token.'/suggestion', $payload)->assertRedirect();
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(1);
@@ -192,6 +195,77 @@ it('stores an accidental double submit once', function (): void {
     // A different message is a new submission, not a duplicate.
     $this->post('/feedback/'.$this->token.'/suggestion', ['message' => 'A second, different suggestion.'])->assertRedirect();
     expect(EmployeeServiceFeedback::query()->count())->toBe(2);
+});
+
+it('returns the original complaint receipt when a duplicate follows another complaint', function (): void {
+    $first = ['message' => 'First complaint for duplicate receipt test.'];
+    $second = ['message' => 'Another complaint between retries.'];
+
+    $this->post('/feedback/'.$this->token.'/complaint', $first)->assertRedirect();
+    $firstReference = EmployeeServiceFeedback::query()->where('comment', $first['message'])->firstOrFail()->reference_number;
+
+    $this->withCookie(config('session.cookie'), session()->getId());
+    $this->post('/feedback/'.$this->token.'/complaint', $second)->assertRedirect();
+    $this->post('/feedback/'.$this->token.'/complaint', $first)
+        ->assertRedirect()
+        ->assertSessionHas('feedback_receipt.reference', $firstReference);
+
+    expect(EmployeeServiceFeedback::query()->count())->toBe(2);
+});
+
+it('keeps matching feedback from different visitor sessions as separate submissions', function (): void {
+    $payload = ['rating' => 4];
+
+    $this->post('/feedback/'.$this->token.'/feedback', $payload)->assertRedirect();
+    session()->regenerate();
+    $this->post('/feedback/'.$this->token.'/feedback', $payload)->assertRedirect();
+
+    expect(EmployeeServiceFeedback::query()->count())->toBe(2);
+});
+
+it('does not show an organization receipt on an employee form in the same session', function (): void {
+    $this->post('/feedback/'.$this->token.'/suggestion', ['message' => 'Organization suggestion.'])->assertRedirect();
+
+    $this->get('/service-feedback/'.$this->scenario->token->token.'/feedback')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Public/ServiceFeedback')
+            ->where('available', true)
+            ->where('submitted', false)
+            ->where('receipt', null)
+            ->where('target.target_type', 'employee'));
+});
+
+it('does not show a complaint receipt on another form type for the same QR', function (): void {
+    $this->post('/feedback/'.$this->token.'/complaint', ['message' => 'Organization complaint.'])->assertRedirect();
+
+    $this->get('/feedback/'.$this->token.'/suggestion')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Public/ServiceFeedback')
+            ->where('available', true)
+            ->where('submitted', false)
+            ->where('receipt', null)
+            ->where('type', 'suggestion'));
+});
+
+it('lets a visitor correct an inapplicable category without refreshing the form', function (): void {
+    $formToken = $this->get('/feedback/'.$this->token.'/suggestion')
+        ->assertOk()
+        ->inertiaProps()['formToken'];
+
+    $this->post('/feedback/'.$this->token.'/suggestion', [
+        'message' => 'A suggestion with a category to correct.',
+        'category_id' => (string) Str::uuid(),
+        'form_token' => $formToken,
+    ])->assertSessionHasErrors('category_id');
+
+    $this->post('/feedback/'.$this->token.'/suggestion', [
+        'message' => 'A suggestion with a category to correct.',
+        'form_token' => $formToken,
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
 
 it('consumes a one-time form token so a replayed form is refused', function (): void {
