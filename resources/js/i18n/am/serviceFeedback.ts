@@ -15,6 +15,14 @@ export default {
     chooseType: 'ምን ማቅረብ ይፈልጋሉ?',
     employeeChoosePrompt: 'ለዚህ ሠራተኛ ምን ማቅረብ ይፈልጋሉ?',
     employeePhotoAlt: 'የሠራተኛው መገለጫ ፎቶ',
+    // በስልክ ላይ የታችኛው የተግባር አሞሌ
+    dockLabel: 'ፈጣን አማራጮች',
+    dockFeedback: 'አስተያየት',
+    dockSuggestion: 'ጥቆማ',
+    dockComplaint: 'ቅሬታ',
+    dockCall: 'ይደውሉ',
+    callInstitutionAria: 'የዚህን ተቋም የሕዝብ መገናኛ ስልክ {number} ይደውሉ',
+    callEmployeeInstitutionAria: 'ይህ ሠራተኛ የሚያገለግልበትን ተቋም የሕዝብ መገናኛ ስልክ {number} ይደውሉ',
     // የQR ገጾች፣ እንደ ሞባይል መተግበሪያ ማያዎች
     typeFeedbackHint: 'ያገኙትን አገልግሎት በኮከብ ይመዝኑ',
     typeSuggestionHint: 'አገልግሎቱን ለማሻሻል ሀሳብዎን ያካፍሉ',

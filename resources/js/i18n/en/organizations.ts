@@ -139,6 +139,10 @@ const organizations = {
     // Create / Edit — section titles + helper text
     sectionBasicInfo: 'Basic Information',
     sectionBasicInfoHelp: 'Official name, code, and legal reference for this organization.',
+    sectionPublicContact: 'Public contact',
+    sectionPublicContactHelp: 'How the public can reach this institution from a scanned feedback QR code.',
+    publicContactPhone: 'Public contact phone',
+    publicContactPhoneHelp: 'The institution\'s official public line. It becomes the Call button on this institution\'s feedback QR page and on the pages of its employees\' QR codes. Never enter a personal number. Example: 011 123 4567, 0911 223 344 or a short code such as 8044. Leave blank to hide the Call button.',
     sectionClassification: 'Classification',
     sectionClassificationHelp: 'How this organization is categorized in the structure.',
     sectionHierarchy: 'Hierarchy Placement',

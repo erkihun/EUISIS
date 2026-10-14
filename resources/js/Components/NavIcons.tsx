@@ -37,6 +37,7 @@ import { Logout2Icon as SolarLogout2Icon } from '@solar-icons/react/linear/logou
 import { MagnifierIcon as SolarMagnifierIcon } from '@solar-icons/react/linear/magnifier';
 import { MapPointIcon as SolarMapPointIcon } from '@solar-icons/react/linear/map-point';
 import { MoonIcon as SolarMoonIcon } from '@solar-icons/react/linear/moon';
+import { PhoneIcon as SolarPhoneIcon } from '@solar-icons/react/linear/phone';
 import { PulseIcon as SolarPulseIcon } from '@solar-icons/react/linear/pulse';
 import { QrCodeIcon as SolarQrCodeIcon } from '@solar-icons/react/linear/qr-code';
 import { QuestionCircleIcon as SolarQuestionCircleIcon } from '@solar-icons/react/linear/question-circle';
@@ -118,6 +119,7 @@ export const ClockIcon = adapt(SolarClockCircleIcon);
 export const MailIcon = adapt(SolarLetterIcon);
 export const FileChartIcon = adapt(SolarFileChartIcon);
 export const MapPinned = adapt(SolarMapPointIcon);
+export const PhoneIcon = adapt(SolarPhoneIcon);
 export const MenuIcon = adapt(SolarHamburgerMenuIcon);
 export const LogOut = adapt(SolarLogout2Icon);
 export const Sun = adapt(SolarSunIcon);

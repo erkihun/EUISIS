@@ -39,7 +39,7 @@ class PublicFeedbackTargetResolver
 
         $assignment = EmployeeAssignment::query()
             ->with([
-                'organization:id,code,name_en,name_am',
+                'organization:id,code,name_en,name_am,public_contact_phone',
                 'organizationUnit:id,code,name_en,name_am',
                 'position:id,job_position_code,title_en,title_am',
             ])
@@ -75,6 +75,8 @@ class PublicFeedbackTargetResolver
             extras: [
                 // Changes when the photo is replaced, so the page asks for the new one; reveals nothing of the path.
                 'photo_version' => $employee->photo_path ? substr(hash('sha256', (string) $employee->photo_path), 0, 16) : null,
+                // The Call action: the public number of the institution the employee serves now — never the employee's own.
+                'public_contact_phone' => $assignment?->organization?->public_contact_phone,
             ],
         );
     }
@@ -142,6 +144,7 @@ class PublicFeedbackTargetResolver
             extras: [
                 'logo_url' => $organization->logo_url,
                 'short_name' => null,
+                'public_contact_phone' => $organization->public_contact_phone,
             ],
         );
     }

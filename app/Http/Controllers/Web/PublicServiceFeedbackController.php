@@ -20,6 +20,7 @@ use App\Services\ServiceFeedback\PublicFeedbackSubmissionService;
 use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
 use App\Services\ServiceFeedback\PublicServiceFeedbackService;
 use App\Services\ServiceFeedback\TargetContext;
+use App\Support\Phone\PublicContactPhone;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -140,6 +141,7 @@ class PublicServiceFeedbackController extends Controller
                 'enabledTypes' => $this->settings->enabledTypes(),
                 'identityMode' => $this->settings->identityMode()->value,
                 'allowAttachments' => $this->settings->allowAttachments(),
+                'call' => null,
             ]);
         }
 
@@ -168,6 +170,13 @@ class PublicServiceFeedbackController extends Controller
             'enabledTypes' => $this->settings->enabledTypes(),
             'identityMode' => $this->settings->identityMode()->value,
             'allowAttachments' => $this->settings->allowAttachments(),
+            /*
+             * The Call action: the institution's validated public number as a
+             * tel: link and a readable form — the scanned institution, or the
+             * one the scanned employee serves now. Never the employee's own
+             * number. Null (no Call button) when none is set or it is invalid.
+             */
+            'call' => PublicContactPhone::parse($context->extras['public_contact_phone'] ?? null)?->toPublicArray(),
         ]);
     }
 

@@ -20,6 +20,14 @@ export default {
     chooseType: 'Choose a response type',
     employeeChoosePrompt: 'What would you like to submit for this employee?',
     employeePhotoAlt: 'Employee profile photo',
+    // Bottom action dock on phones
+    dockLabel: 'Quick actions',
+    dockFeedback: 'Feedback',
+    dockSuggestion: 'Suggestion',
+    dockComplaint: 'Complaint',
+    dockCall: 'Call',
+    callInstitutionAria: "Call this institution's public contact number, {number}",
+    callEmployeeInstitutionAria: "Call the public contact number of this employee's institution, {number}",
     // QR pages, app-style screens
     typeFeedbackHint: 'Rate the service you received',
     typeSuggestionHint: 'Share an idea to make the service better',

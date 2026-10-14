@@ -10,6 +10,7 @@ use App\Enums\OrganizationStatus;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationType;
+use App\Rules\PublicContactPhoneNumber;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
@@ -34,6 +35,7 @@ class OrganizationStoreRequest extends FormRequest
             'relationship_type' => $this->nullableInput('relationship_type'),
             'branding_primary_color' => $this->input('branding_primary_color') ?: null,
             'branding_secondary_color' => $this->input('branding_secondary_color') ?: null,
+            'public_contact_phone' => $this->input('public_contact_phone') ?: null,
         ]);
     }
 
@@ -57,6 +59,7 @@ class OrganizationStoreRequest extends FormRequest
             'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'branding_primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'branding_secondary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'public_contact_phone' => ['nullable', 'string', 'max:32', new PublicContactPhoneNumber],
         ];
     }
 

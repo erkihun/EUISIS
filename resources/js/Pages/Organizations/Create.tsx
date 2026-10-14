@@ -58,6 +58,7 @@ export default function CreateOrganization({
         logo: File | null;
         branding_primary_color: string;
         branding_secondary_color: string;
+        public_contact_phone: string;
     }>({
         organization_type_id: organizationTypes[0]?.id ?? '',
         code: '',
@@ -73,6 +74,7 @@ export default function CreateOrganization({
         logo: null,
         branding_primary_color: '',
         branding_secondary_color: '',
+        public_contact_phone: '',
     });
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -107,6 +109,7 @@ export default function CreateOrganization({
             relationship_type: data.relationship_type || null,
             branding_primary_color: data.branding_primary_color || null,
             branding_secondary_color: data.branding_secondary_color || null,
+            public_contact_phone: data.public_contact_phone.trim() || null,
         }));
         form.post(route('organizations.store'), {
             forceFormData: form.data.logo !== null,
@@ -187,6 +190,22 @@ export default function CreateOrganization({
                                     placeholder={t('organizations.legalBasisPlaceholder')}
                                     value={form.data.legal_basis_ref}
                                     onChange={(event) => form.setData('legal_basis_ref', event.target.value)}
+                                />
+                            </Field>
+                        </FormSection>
+
+                        {/* Public contact: the Call action on this institution's and its employees' feedback QR pages. */}
+                        <FormSection title={t('organizations.sectionPublicContact')} description={t('organizations.sectionPublicContactHelp')}>
+                            <Field label={t('organizations.publicContactPhone')} error={form.errors.public_contact_phone} help={t('organizations.publicContactPhoneHelp')}>
+                                <input
+                                    className={inputCls}
+                                    type="tel"
+                                    inputMode="tel"
+                                    autoComplete="off"
+                                    maxLength={32}
+                                    placeholder="011 123 4567"
+                                    value={form.data.public_contact_phone}
+                                    onChange={(event) => form.setData('public_contact_phone', event.target.value)}
                                 />
                             </Field>
                         </FormSection>

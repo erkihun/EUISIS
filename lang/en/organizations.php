@@ -69,6 +69,7 @@ return [
     'organization_unit_help' => 'Organization Units are internal departments, directorates, and teams inside an institution office.',
     'invalid_parent_organization_type' => 'The selected organization type does not allow this parent organization type.',
     'inactive_organization_type' => 'Inactive organization type cannot be used for new organizations.',
+    'public_contact_phone_invalid' => 'Enter an Ethiopian number such as 011 123 4567 or 0911 223 344, a number starting with +, or a 3–5 digit short code. Letters, extensions and other characters are not allowed.',
 
     // Deletion guard
     'cannot_delete_used' => 'This organization is already used. Deactivate or archive it instead.',

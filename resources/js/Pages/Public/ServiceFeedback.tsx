@@ -5,6 +5,7 @@ import { publicButtonPrimary, publicButtonSecondary } from '@/Components/public/
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import MultiFileUpload from '@/Components/public/MultiFileUpload';
+import PublicQrActionDock, { type PublicQrCall } from '@/Components/public/PublicQrActionDock';
 import { AlertTriangle, Building2, ChevronRight, MessageSquareIcon, StarIcon as StarOutlineIcon, UserIcon } from '@/Components/NavIcons';
 import { Link, router, useForm } from '@inertiajs/react';
 import FeedbackAppLayout, { FeedbackActionBar } from '@/Layouts/FeedbackAppLayout';
@@ -89,6 +90,8 @@ interface Props {
     /** What is asked of the submitter: nothing, name and contact, or both offered (brief §34). */
     identityMode: 'anonymous' | 'identified' | 'optional';
     allowAttachments: boolean;
+    /** The institution's validated public number for the Call action; null when there is none. */
+    call: PublicQrCall | null;
 }
 
 type IdentityMode = Props['identityMode'];
@@ -738,15 +741,17 @@ function UnavailableScreen() {
     );
 }
 
-function ChoiceScreen({ target, links, enabledTypes, identityMode }: { target: TargetDisplay; links: Links; enabledTypes: Props['enabledTypes']; identityMode: IdentityMode }) {
+function ChoiceScreen({ target, links, enabledTypes, identityMode, call }: { target: TargetDisplay; links: Links; enabledTypes: Props['enabledTypes']; identityMode: IdentityMode; call: PublicQrCall | null }) {
     const { t } = useLocale();
     const organization = target.target_type === 'organization';
     const hrefs: Record<SubmissionKind, string> = { feedback: links.feedback, suggestion: links.suggestion, complaint: links.complaint };
     const offered = (['feedback', 'suggestion', 'complaint'] as const).filter((kind) => enabledTypes.includes(kind));
+    const hasDock = offered.length > 0 || call !== null;
 
     return (
         <FeedbackAppLayout title={t(organization ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}>
-            <div className="flex flex-1 flex-col gap-6 px-4 pb-8 pt-5">
+            {/* Below md the action dock is fixed to the bottom edge; the extra bottom padding keeps it off the last line. */}
+            <div className={`flex flex-1 flex-col gap-6 px-4 pb-8 pt-5 ${hasDock ? 'max-md:pb-[calc(6rem+env(safe-area-inset-bottom))]' : ''}`}>
                 {organization
                     ? <TargetCard target={target} intro={t('serviceFeedback.aboutInstitution')} />
                     : <EmployeeIdentityCard target={target} />}
@@ -782,11 +787,12 @@ function ChoiceScreen({ target, links, enabledTypes, identityMode }: { target: T
 
                 <p className={`mt-auto px-2 text-center text-xs leading-relaxed ${mutedClass}`}>{t(privacyNoteKey(identityMode))}</p>
             </div>
+            <PublicQrActionDock hrefs={hrefs} offered={offered} call={call} target={target.target_type} />
         </FeedbackAppLayout>
     );
 }
 
-export default function ServiceFeedback({ available, target, links, serviceTypes, categories = [], submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], identityMode = 'optional', allowAttachments = true, formToken = null }: Props) {
+export default function ServiceFeedback({ available, target, links, serviceTypes, categories = [], submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], identityMode = 'optional', allowAttachments = true, formToken = null, call = null }: Props) {
     const { t } = useLocale();
 
     /*
@@ -803,7 +809,7 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
     }
 
     if (type === null) {
-        return <ChoiceScreen target={target} links={links} enabledTypes={enabledTypes} identityMode={identityMode} />;
+        return <ChoiceScreen target={target} links={links} enabledTypes={enabledTypes} identityMode={identityMode} call={call} />;
     }
 
     return (

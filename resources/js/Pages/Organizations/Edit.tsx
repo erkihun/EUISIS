@@ -26,6 +26,7 @@ type Organization = {
     has_logo: boolean;
     branding_primary_color: string | null;
     branding_secondary_color: string | null;
+    public_contact_phone: string | null;
 };
 
 const inputCls = cx(inputClassName, 'w-full');
@@ -76,6 +77,7 @@ export default function EditOrganization({
         remove_logo: boolean;
         branding_primary_color: string;
         branding_secondary_color: string;
+        public_contact_phone: string;
     }>({
         organization_type_id: organization.organization_type_id ?? '',
         code: organization.code ?? '',
@@ -89,6 +91,7 @@ export default function EditOrganization({
         remove_logo: false,
         branding_primary_color: organization.branding_primary_color ?? '',
         branding_secondary_color: organization.branding_secondary_color ?? '',
+        public_contact_phone: organization.public_contact_phone ?? '',
     });
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -124,6 +127,7 @@ export default function EditOrganization({
             effective_to: data.effective_to || null,
             branding_primary_color: data.branding_primary_color || null,
             branding_secondary_color: data.branding_secondary_color || null,
+            public_contact_phone: data.public_contact_phone.trim() || null,
         }));
         form.post(route('organizations.update', organization.id), { preserveState: true });
     }
@@ -181,6 +185,22 @@ export default function EditOrganization({
                                     placeholder={t('organizations.legalBasisPlaceholder')}
                                     value={form.data.legal_basis_ref}
                                     onChange={(e) => form.setData('legal_basis_ref', e.target.value)}
+                                />
+                            </Field>
+                        </FormSection>
+
+                        {/* Public contact: the Call action on this institution's and its employees' feedback QR pages. */}
+                        <FormSection title={t('organizations.sectionPublicContact')} description={t('organizations.sectionPublicContactHelp')}>
+                            <Field label={t('organizations.publicContactPhone')} error={form.errors.public_contact_phone} help={t('organizations.publicContactPhoneHelp')}>
+                                <input
+                                    className={inputCls}
+                                    type="tel"
+                                    inputMode="tel"
+                                    autoComplete="off"
+                                    maxLength={32}
+                                    placeholder="011 123 4567"
+                                    value={form.data.public_contact_phone}
+                                    onChange={(e) => form.setData('public_contact_phone', e.target.value)}
                                 />
                             </Field>
                         </FormSection>

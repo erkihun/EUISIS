@@ -12,6 +12,7 @@ use App\Models\PublicFeedbackAssignment;
 use App\Models\PublicFeedbackRoutingRule;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Phone\PublicContactPhone;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -59,6 +60,16 @@ final class PublicFeedbackDataQuality
             DB::table('organizations')->where('status', 'active')->whereNull('deleted_at')
                 ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('organization_feedback_qr_codes as q')
                     ->whereColumn('q.organization_id', 'organizations.id')->where('q.status', 'active'))
+                ->pluck('id'));
+
+        // The Call action on QR pages (docs/public-qr-mobile-actions.md). A missing number is a policy choice;
+        // a stored value that is not a valid number silently hides the button, so a person must correct it.
+        $add('active_organizations_without_public_phone', 'Active institutions without a public contact phone (no Call action on their QR pages)', self::SEVERITY_INFO,
+            DB::table('organizations')->where('status', 'active')->whereNull('deleted_at')->whereNull('public_contact_phone')->pluck('id'));
+
+        $add('organizations_with_invalid_public_phone', 'Institutions whose public contact phone is not a valid number (Call action hidden)', self::SEVERITY_REVIEW,
+            DB::table('organizations')->whereNull('deleted_at')->whereNotNull('public_contact_phone')->get(['id', 'public_contact_phone'])
+                ->filter(fn (object $row): bool => PublicContactPhone::parse((string) $row->public_contact_phone) === null)
                 ->pluck('id'));
 
         $add('qr_without_organization', 'Feedback QR codes whose institution is missing or archived', self::SEVERITY_WARN,

@@ -116,6 +116,7 @@ export default function OrganizationShow({
         has_logo: boolean;
         branding_primary_color: string | null;
         branding_secondary_color: string | null;
+        public_contact_phone?: string | null;
     };
     parentOrganizationId: string | null;
     parentOrganization?: ParentOrganization;
@@ -347,6 +348,7 @@ export default function OrganizationShow({
                         {[
                             { label: t('organizations.type'), value: organization.type ? localizedName(organization.type.name_en, organization.type.name_am, locale) : '—' },
                             { label: t('organizations.legalBasis'), value: organization.legal_basis_ref ?? '—' },
+                            { label: t('organizations.publicContactPhone'), value: organization.public_contact_phone || '—' },
                             { label: t('organizations.mergedInto'), value: organization.merged_into ? localizedName(organization.merged_into.name_en, organization.merged_into.name_am, locale) : '—' },
                         ].map(({ label, value }) => (
                             <div key={label}>

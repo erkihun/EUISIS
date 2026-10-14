@@ -139,6 +139,10 @@ const organizations = {
     // Create / Edit — section titles + helper text
     sectionBasicInfo: 'መሠረታዊ መረጃ',
     sectionBasicInfoHelp: 'የተቋሙ ይፋዊ ስም፣ ኮድ እና ሕጋዊ ማጣቀሻ።',
+    sectionPublicContact: 'የሕዝብ መገናኛ',
+    sectionPublicContactHelp: 'ሕዝቡ የአስተያየት QR ኮድ ከቃኘ በኋላ ተቋሙን የሚያገኝበት መንገድ።',
+    publicContactPhone: 'የሕዝብ መገናኛ ስልክ',
+    publicContactPhoneHelp: 'የተቋሙ ይፋዊ የሕዝብ መስመር። በተቋሙ የአስተያየት QR ገጽና በሠራተኞቹ QR ገጾች ላይ የ«ይደውሉ» ቁልፍ ይሆናል። የግል ስልክ ቁጥር በፍጹም አያስገቡ። ምሳሌ፦ 011 123 4567፣ 0911 223 344 ወይም እንደ 8044 ያለ አጭር ቁጥር። የ«ይደውሉ» ቁልፍ እንዳይታይ ባዶ ይተዉት።',
     sectionClassification: 'ምደባ',
     sectionClassificationHelp: 'ይህ ተቋም በመዋቅሩ ውስጥ እንዴት እንደሚመደብ።',
     sectionHierarchy: 'የተዋረድ ምደባ',
