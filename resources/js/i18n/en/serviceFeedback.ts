@@ -198,7 +198,7 @@ export default {
     // QR management
     employeeFeedbackQr: 'Employee Feedback QR',
     feedbackQrDescription:
-        'Clients scan this code to rate the service this employee provides. It contains no personal information.',
+        'Clients scan this code to rate the service this employee provides. The code itself contains no personal information; while the employee holds an active ID card, scanning shows their photo and full name.',
     generateQr: 'Generate QR',
     regenerateQr: 'Regenerate QR',
     revokeQr: 'Revoke QR',
