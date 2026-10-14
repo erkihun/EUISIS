@@ -113,6 +113,11 @@ final class PublicFeedbackDataQuality
             DB::table('employee_service_feedback as s')->leftJoin('public_feedback_categories as c', 'c.id', '=', 's.category_id')
                 ->whereNotNull('s.category_id')->whereNull('c.id')->pluck('s.id'));
 
+        // The database normally forbids this (pfa_one_open_per_submission); a server that refused the index relies on this check.
+        $add('several_open_assignments', 'Submissions with more than one open assignment', self::SEVERITY_FAIL,
+            DB::table('public_feedback_assignments')->whereNull('ended_at')->groupBy('submission_id')
+                ->havingRaw('COUNT(*) > 1')->pluck('submission_id'));
+
         $add('invalid_handler', 'Open assignments whose handler no longer exists', self::SEVERITY_WARN,
             PublicFeedbackAssignment::query()->whereNull('ended_at')->get(['id', 'handler_type', 'handler_id'])
                 ->filter(fn (PublicFeedbackAssignment $a): bool => ! $this->handlerExists($a->handler_type, $a->handler_id))->pluck('id'));
