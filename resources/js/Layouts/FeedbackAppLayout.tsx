@@ -41,7 +41,7 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
                 <meta head-key="referrer" name="referrer" content="no-referrer" />
             </Head>
 
-            <div className="min-h-dvh bg-slate-100 dark:bg-slate-950" style={bottomSpacing(dockHeight)}>
+            <div className="min-h-dvh bg-[color:var(--app-surface-muted)]" style={bottomSpacing(dockHeight)}>
                 <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-[color:var(--app-background)] sm:border-x sm:border-[color:var(--app-border)] sm:shadow-xl">
                     <header className="sticky top-0 z-30 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] pt-[env(safe-area-inset-top)]">
                         <div className="flex h-14 items-center gap-1 px-2">

@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { fmt, useDateLabel, useNamer, type Name } from '@/Components/SituationRoom/communityVoice/shared';
 import { useLocale } from '@/hooks/useLocale';
-import { Alert, Button, Card, EmptyState, FieldError, FormLabel, Input, SearchableSelect, Select, StatusBadge, Textarea, buttonClassName, type SearchableOption } from '@euisis/ui';
+import { Alert, Button, Card, EmptyState, FieldError, FilterField, FilterPanel, FormLabel, Input, SearchableSelect, Select, StatusBadge, Textarea, buttonClassName, type SearchableOption } from '@euisis/ui';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
@@ -66,6 +66,11 @@ export default function SituationRoomActions({ scope, filters, actions, options,
     const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const [creating, setCreating] = useState(params.get('new') === '1');
     const backQuery = scope.node ? { organization: scope.node.id } : {};
+    const [statusDraft, setStatusDraft] = useState(filters.status ?? '');
+    const applyStatus = (status: string) => {
+        setStatusDraft(status);
+        router.get(route('situation-room.actions.index'), { ...backQuery, ...(status ? { status } : {}) }, { preserveScroll: true });
+    };
 
     return (
         <AuthenticatedLayout header={(
@@ -79,16 +84,16 @@ export default function SituationRoomActions({ scope, filters, actions, options,
             <Head title={t('situationRoom.actionsTitle')} />
 
             <div className="space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-xl font-semibold">{scope.node ? name(scope.node) : t('situationRoom.cityWide')}</h2>
-                    <label className="flex items-center gap-2 text-sm">
-                        <span>{t('situationRoom.actionStatusLabel')}</span>
-                        <Select value={filters.status ?? ''} onChange={(e) => router.get(route('situation-room.actions.index'), { ...backQuery, ...(e.target.value ? { status: e.target.value } : {}) }, { preserveScroll: true })} className="w-auto">
+                <h2 className="text-xl font-semibold">{scope.node ? name(scope.node) : t('situationRoom.cityWide')}</h2>
+
+                <FilterPanel onSubmit={() => applyStatus(statusDraft)} onReset={() => applyStatus('')} hasActiveFilters={Boolean(filters.status)}>
+                    <FilterField label={t('situationRoom.actionStatusLabel')}>
+                        <Select value={statusDraft} onChange={(e) => setStatusDraft(e.target.value)}>
                             <option value="">{t('situationRoom.showOpenActions')}</option>
                             {options.statuses.map((status) => <option key={status} value={status}>{t(`situationRoom.action_status_${status}`)}</option>)}
                         </Select>
-                    </label>
-                </div>
+                    </FilterField>
+                </FilterPanel>
 
                 <Alert tone="info">{t('situationRoom.actionsWorkflowNote')}</Alert>
 
