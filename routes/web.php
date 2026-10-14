@@ -1018,6 +1018,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/system-settings/appearance', [SystemSettingController::class, 'updateAppearance'])->name('system-settings.appearance.update');
     Route::patch('/system-settings/id-cards', [SystemSettingController::class, 'updateIdCards'])->name('system-settings.id-cards.update');
     Route::patch('/system-settings/field-work-gps', [SystemSettingController::class, 'updateFieldWorkGps'])->name('system-settings.field-work-gps.update');
+    Route::patch('/system-settings/situation-room', [SystemSettingController::class, 'updateSituationRoom'])->name('system-settings.situation-room.update');
     Route::post('/system-settings/test-email', [SystemSettingController::class, 'testEmail'])->name('system-settings.test-email');
     Route::post('/system-settings/test-sms', [SystemSettingController::class, 'testSms'])->name('system-settings.test-sms');
     Route::post('/system-settings/test-telegram', [SystemSettingController::class, 'testTelegram'])->name('system-settings.test-telegram');

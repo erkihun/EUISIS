@@ -81,7 +81,7 @@ return new class extends Migration
             Schema::drop('situation_actions');
         }
 
-        Permission::query()->where('group', 'situation_room')->get()->each(fn (Permission $p) => $p->delete());
+        Permission::query()->where('group', 'situation_room')->orWhere('name', 'system-settings.manageSituationRoom')->get()->each(fn (Permission $p) => $p->delete());
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 

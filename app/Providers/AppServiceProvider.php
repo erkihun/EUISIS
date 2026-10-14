@@ -145,6 +145,7 @@ use App\Services\Calendar\LocalizedDateService;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
 use App\Services\Security\SessionActivityService;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
+use App\Services\SituationRoom\SituationMemo;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -168,6 +169,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
+        $this->app->scoped(SituationMemo::class);
+
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);

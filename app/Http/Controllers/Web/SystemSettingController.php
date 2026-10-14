@@ -15,6 +15,7 @@ use App\Http\Requests\Settings\TestNotificationChannelRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;
 use App\Http\Requests\Settings\UpdateEmailSettingsRequest;
 use App\Http\Requests\Settings\UpdateFieldWorkGpsSettingsRequest;
+use App\Http\Requests\Settings\UpdateSituationRoomSettingsRequest;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
 use App\Http\Requests\Settings\UpdateIdCardSettingsRequest;
 use App\Http\Requests\Settings\UpdateLocalizationSettingsRequest;
@@ -108,6 +109,7 @@ class SystemSettingController extends Controller
                 'manageAppearance' => $user?->can('system-settings.manageAppearance') ?? false,
                 'manageIdCards' => $user?->can('system-settings.manageIdCards') ?? false,
                 'manageFieldWorkGps' => $user?->can('system-settings.manageFieldWorkGps') ?? false,
+                'manageSituationRoom' => $user?->can('system-settings.manageSituationRoom') ?? false,
                 'viewIdCardTemplates' => $user?->can('id_card_templates.view') ?? false,
                 'clearCache' => $user?->can('system-settings.clearCache') ?? false,
                 'testChannels' => $user?->can('system-settings.testNotificationChannels') ?? false,
@@ -261,6 +263,17 @@ class SystemSettingController extends Controller
         );
 
         return back()->with('flash', ['message' => __('settings.messages.field_work_gps_updated'), 'type' => 'success']);
+    }
+
+    public function updateSituationRoom(UpdateSituationRoomSettingsRequest $request): RedirectResponse
+    {
+        $this->updateGroupAction->execute(
+            SystemSettingsRegistry::GROUP_SITUATION_ROOM,
+            $request->validated(),
+            $request->user(),
+        );
+
+        return back()->with('flash', ['message' => __('settings.messages.situation_room_updated'), 'type' => 'success']);
     }
 
     public function clearCache(Request $request): RedirectResponse

@@ -91,6 +91,11 @@ final class SituationScopeResolver
 
     public function publishedVersionId(): ?string
     {
+        return app(SituationMemo::class)->remember('published_version', fn (): ?string => $this->lookUpPublishedVersion());
+    }
+
+    private function lookUpPublishedVersion(): ?string
+    {
         $id = HierarchyVersion::query()
             ->where('status', HierarchyVersionStatus::Published->value)
             ->latest('approval_date')

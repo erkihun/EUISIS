@@ -30,6 +30,14 @@ final class OrganizationRollup
      */
     public function for(SituationScope $scope): array
     {
+        return app(SituationMemo::class)->remember('rollup|'.$scope->fingerprint().'|'.$scope->focusOrganizationId, fn (): array => $this->build($scope));
+    }
+
+    /**
+     * @return array{anchor: ?string, hierarchy: bool, groups: list<array{id: string, label: array{en: ?string, am: ?string}, own: bool}>, map: array<string, string>}
+     */
+    private function build(SituationScope $scope): array
+    {
         $versionId = $this->resolver->publishedVersionId();
         $inScope = $scope->organizationIds;
 

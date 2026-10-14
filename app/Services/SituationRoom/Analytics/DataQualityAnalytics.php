@@ -31,7 +31,8 @@ final class DataQualityAnalytics extends SituationAnalytics
     {
         $checks = [];
         $headcount = WorkforceQueries::headcount($context);
-        $distinct = fn ($query): int => (int) $query->distinct()->count('ea.employee_id');
+        // One current assignment per employee (unique partial index), so a row count is a people count.
+        $distinct = fn ($query): int => (int) $query->count();
 
         if ($context->can(SituationPermissions::WORKFORCE)) {
             [$gender, $genderBindings] = WorkforceQueries::genderExpression();

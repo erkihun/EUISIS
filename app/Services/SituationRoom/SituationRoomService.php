@@ -65,11 +65,13 @@ final class SituationRoomService
         private readonly SituationScopeResolver $resolver,
         private readonly SituationSettings $settings,
         private readonly SituationCache $cache,
+        private readonly SituationMemo $memo,
     ) {}
 
     /** @throws AuthorizationException when the requested focus organization is outside the viewer's scope */
     public function context(User $user, Request $request): SituationContext
     {
+        $this->memo->flush();
         $filters = SituationFilters::fromRequest($request, $this->settings->defaultPeriod());
         $scope = $this->resolver->resolve($user, $filters->get('organization_id'));
 

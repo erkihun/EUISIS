@@ -8,6 +8,7 @@ use App\Enums\AssignmentStatus;
 use App\Enums\EstablishmentStatus;
 use App\Services\Assessment\Oversight\AssessmentCoverageService;
 use App\Services\SituationRoom\SituationContext;
+use App\Services\SituationRoom\SituationMemo;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,11 @@ use Illuminate\Support\Facades\DB;
  * slots effective today, or one person when it has none. Every query is
  * confined to the scope before anything is counted, and nothing here ever
  * selects a whole employee row.
+ *
+ * An employee has at most one current assignment (unique partial index
+ * employee_assignments_one_current_per_employee), so people are counted with
+ * COUNT(*) over current assignments — the same number as COUNT(DISTINCT
+ * employee_id), without the sort.
  */
 final class WorkforceQueries
 {
@@ -90,6 +96,12 @@ final class WorkforceQueries
      */
     public static function capacityByOrganization(SituationContext $context): array
     {
+        return app(SituationMemo::class)->remember(SituationMemo::key($context, 'capacity'), fn (): array => self::computeCapacity($context));
+    }
+
+    /** @return array<string, array{positions: int, capacity: int, occupied: int, vacant: int, over: int}> */
+    private static function computeCapacity(SituationContext $context): array
+    {
         $today = CarbonImmutable::today()->toDateString();
 
         $establishment = DB::table('position_establishments')
@@ -145,16 +157,41 @@ final class WorkforceQueries
     /** @return array<string, int> distinct employees per organization of their current assignment */
     public static function headcountByOrganization(SituationContext $context): array
     {
-        return self::assignments($context)
-            ->selectRaw('ea.organization_id AS organization_id, COUNT(DISTINCT ea.employee_id) AS total')
+        // No join to employees: a plain count needs only the assignment (the foreign key guarantees the person).
+        $assignments = DB::table('employee_assignments as ea')
+            ->where('ea.is_current', true)
+            ->where('ea.assignment_status', AssignmentStatus::Active->value);
+        $context->scope->apply($assignments, 'ea.organization_id');
+        if (($unit = $context->filters->get('organization_unit_id')) !== null) {
+            $assignments->where('ea.organization_unit_id', $unit);
+        }
+
+        return app(SituationMemo::class)->remember(SituationMemo::key($context, 'headcount_by_organization'), fn (): array => $assignments
+            ->selectRaw('ea.organization_id AS organization_id, COUNT(*) AS total')
             ->groupBy('ea.organization_id')
             ->pluck('total', 'organization_id')
             ->mapWithKeys(fn ($total, $id): array => [(string) $id => (int) $total])
-            ->all();
+            ->all());
     }
 
     public static function headcount(SituationContext $context): int
     {
-        return (int) self::assignments($context)->distinct()->count('ea.employee_id');
+        return array_sum(self::headcountByOrganization($context));
+    }
+
+    /**
+     * People per value of an expression over current assignments in scope.
+     *
+     * @param  list<string>  $bindings
+     * @return array<string, int>
+     */
+    public static function countBy(SituationContext $context, string $name, string $expression, array $bindings = []): array
+    {
+        return app(SituationMemo::class)->remember(SituationMemo::key($context, 'count_by:'.$name), fn (): array => self::assignments($context)
+            ->selectRaw("{$expression} AS bucket, COUNT(*) AS total", $bindings)
+            ->groupBy('bucket')
+            ->pluck('total', 'bucket')
+            ->mapWithKeys(fn ($total, $bucket): array => [(string) $bucket => (int) $total])
+            ->all());
     }
 }

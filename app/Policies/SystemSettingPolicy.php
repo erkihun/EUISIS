@@ -34,6 +34,7 @@ class SystemSettingPolicy
             'security' => $user->can('system-settings.manageSecurity'),
             'appearance' => $user->can('system-settings.manageAppearance'),
             'field_work_gps' => $user->can('system-settings.manageFieldWorkGps'),
+            'situation_room' => $user->can('system-settings.manageSituationRoom'),
             // legacy
             'ui' => $user->can('system-settings.manageAppearance') || $user->can('system-settings.manageUi'),
             default => $user->can('system-settings.update'),

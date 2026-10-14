@@ -45,10 +45,7 @@ final class WorkforceAnalytics extends SituationAnalytics
         $capacity = array_values(WorkforceQueries::capacityByOrganization($context));
         $sum = fn (string $key): int => array_sum(array_column($capacity, $key));
         [$gender, $bindings] = WorkforceQueries::genderExpression();
-        $byGender = WorkforceQueries::assignments($context)
-            ->selectRaw("{$gender} AS bucket, COUNT(DISTINCT ea.employee_id) AS total", $bindings)
-            ->groupBy('bucket')
-            ->pluck('total', 'bucket');
+        $byGender = WorkforceQueries::countBy($context, 'gender', $gender, $bindings);
         $female = (int) ($byGender['female'] ?? 0);
         $known = $female + (int) ($byGender['male'] ?? 0);
 
@@ -83,7 +80,7 @@ final class WorkforceAnalytics extends SituationAnalytics
     private function gender(SituationContext $context): SituationPanel
     {
         [$expression, $bindings] = WorkforceQueries::genderExpression();
-        $counts = $this->distinctBy($context, $expression, $bindings);
+        $counts = WorkforceQueries::countBy($context, 'gender', $expression, $bindings);
         $buckets = ['male', 'female', 'unknown'];
 
         return $this->chart('gender', 'donut', self::SOURCE, $this->valueLabels('gender', $buckets), [
@@ -94,7 +91,7 @@ final class WorkforceAnalytics extends SituationAnalytics
     private function ageBands(SituationContext $context): SituationPanel
     {
         [$expression, $bindings] = WorkforceQueries::ageBandExpression();
-        $counts = $this->distinctBy($context, $expression, $bindings);
+        $counts = WorkforceQueries::countBy($context, 'age', $expression, $bindings);
 
         return $this->chart('age_bands', 'bar', self::SOURCE, $this->valueLabels('age', WorkforceQueries::AGE_BANDS), [
             ['key' => 'headcount', 'label' => SituationLabel::key('situationRoom.kpi.headcount'), 'values' => array_map(fn (string $b): int => $counts[$b] ?? 0, WorkforceQueries::AGE_BANDS)],
@@ -105,7 +102,7 @@ final class WorkforceAnalytics extends SituationAnalytics
     {
         [$expression, $bindings] = WorkforceQueries::genderExpression();
         $rows = WorkforceQueries::assignments($context)
-            ->selectRaw("ea.organization_id AS organization_id, {$expression} AS bucket, COUNT(DISTINCT ea.employee_id) AS total", $bindings)
+            ->selectRaw("ea.organization_id AS organization_id, {$expression} AS bucket, COUNT(*) AS total", $bindings)
             ->groupBy('ea.organization_id')
             ->groupBy('bucket')
             ->get();
@@ -120,7 +117,7 @@ final class WorkforceAnalytics extends SituationAnalytics
 
     private function employmentType(SituationContext $context): SituationPanel
     {
-        $counts = $this->distinctBy($context, "COALESCE(NULLIF(e.employment_type, ''), 'unknown')");
+        $counts = WorkforceQueries::countBy($context, 'employment_type', "COALESCE(NULLIF(e.employment_type, ''), 'unknown')");
         $buckets = [...EmploymentType::values(), 'unknown'];
         $other = array_sum(array_diff_key($counts, array_flip($buckets)));
         $values = array_map(fn (string $b): int => ($counts[$b] ?? 0) + ($b === 'unknown' ? $other : 0), $buckets);
@@ -132,7 +129,7 @@ final class WorkforceAnalytics extends SituationAnalytics
 
     private function employeeStatus(SituationContext $context): SituationPanel
     {
-        $counts = $this->distinctBy($context, "COALESCE(e.status, 'unknown')");
+        $counts = WorkforceQueries::countBy($context, 'employee_status', "COALESCE(e.status, 'unknown')");
         ksort($counts);
 
         return $this->chart('employee_status', 'bar', self::SOURCE, $this->valueLabels('employee_status', array_keys($counts)), [
@@ -144,7 +141,7 @@ final class WorkforceAnalytics extends SituationAnalytics
     {
         $counts = WorkforceQueries::assignments($context)
             ->leftJoin('positions as p', 'p.id', '=', 'ea.position_id')
-            ->selectRaw("COALESCE(CAST(p.occupation_id AS VARCHAR(64)), '__none') AS bucket, COUNT(DISTINCT ea.employee_id) AS total")
+            ->selectRaw("COALESCE(CAST(p.occupation_id AS VARCHAR(64)), '__none') AS bucket, COUNT(*) AS total")
             ->groupByRaw('p.occupation_id')
             ->pluck('total', 'bucket')
             ->map(fn ($v): int => (int) $v)
@@ -166,7 +163,7 @@ final class WorkforceAnalytics extends SituationAnalytics
     {
         $counts = WorkforceQueries::assignments($context)
             ->leftJoin('positions as p', 'p.id', '=', 'ea.position_id')
-            ->selectRaw("COALESCE(NULLIF(TRIM(p.grade_level), ''), '__none') AS bucket, COUNT(DISTINCT ea.employee_id) AS total")
+            ->selectRaw("COALESCE(NULLIF(TRIM(p.grade_level), ''), '__none') AS bucket, COUNT(*) AS total")
             ->groupBy('bucket')
             ->pluck('total', 'bucket')
             ->map(fn ($v): int => (int) $v)
@@ -181,21 +178,5 @@ final class WorkforceAnalytics extends SituationAnalytics
         return $this->chart('grade_levels', 'bar', 'situationRoom.sources.positions', $categories, [
             ['key' => 'headcount', 'label' => SituationLabel::key('situationRoom.kpi.headcount'), 'values' => array_values($top)],
         ]);
-    }
-
-    /**
-     * Distinct employees per value of an expression.
-     *
-     * @param  list<string>  $bindings
-     * @return array<string, int>
-     */
-    private function distinctBy(SituationContext $context, string $expression, array $bindings = []): array
-    {
-        return WorkforceQueries::assignments($context)
-            ->selectRaw("{$expression} AS bucket, COUNT(DISTINCT ea.employee_id) AS total", $bindings)
-            ->groupBy('bucket')
-            ->pluck('total', 'bucket')
-            ->mapWithKeys(fn ($total, $bucket): array => [(string) $bucket => (int) $total])
-            ->all();
     }
 }

@@ -59,4 +59,9 @@ return [
         'label_en' => 'Manage the executive action register', 'label_am' => 'የአመራር እርምጃ መዝገብን ያስተዳድሩ',
         'description_en' => 'Record and update executive actions for organizations in scope. Never changes the records the action is about.',
         'description_am' => 'በወሰን ውስጥ ላሉ ተቋማት የአመራር እርምጃዎችን መመዝገብ እና ማሻሻል ያስችላል። እርምጃው የሚመለከታቸውን መዛግብት አይለውጥም።'],
+    // The settings group is edited on System Settings, under that module's own grant.
+    ['name' => 'system-settings.manageSituationRoom', 'group' => 'system-settings', 'sort_order' => 116, 'is_system' => true,
+        'label_en' => 'Manage Situation Room settings', 'label_am' => 'የሁኔታ መከታተያ ቅንብሮችን ያስተዳድሩ',
+        'description_en' => 'Configure the Situation Room default period, cache, wall timing, small-group privacy threshold and Critical Attention limits.',
+        'description_am' => 'የሁኔታ መከታተያ ነባሪ ጊዜ፣ የመረጃ ማቆያ፣ የግድግዳ ማሳያ ጊዜ፣ የትንሽ ቡድን ግላዊነት ወሰን እና የትኩረት ገደቦችን ማዋቀር ያስችላል።'],
 ];

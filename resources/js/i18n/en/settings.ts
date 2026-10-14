@@ -268,6 +268,16 @@ const settings = {
     },
     sections: {
         other: 'Other settings',
+        situation_room: {
+            display: 'Display',
+            displayHelp: 'What a Situation Room view opens with and how long computed figures are reused.',
+            privacy: 'Privacy',
+            privacyHelp: 'Counts small enough to point to a person are shown as "fewer than N".',
+            wall: 'Wall mode',
+            wallHelp: 'How long each wall screen stays and how often its figures reload.',
+            attention: 'Critical Attention limits',
+            attentionHelp: 'Leave a limit blank until it is decided: the rule then shows "not configured" and counts nothing.',
+        },
         general: {
             identity: 'Identity',
             identityHelp: 'How the platform names itself and where people land after signing in.',
@@ -344,6 +354,7 @@ const settings = {
         },
     },
     options: {
+        default_period: { today: 'Today', week: 'This week', month: 'This month', quarter: 'This quarter', year: 'This year' },
         default_dashboard_route: { dashboard: 'Dashboard', employees_index: 'Employees', organizations_index: 'Organizations' },
         system_environment_label: { production: 'Production', staging: 'Staging', testing: 'Testing', local: 'Local', development: 'Development', demo: 'Demo', training: 'Training' },
         calendar_system_mode: { locale_based: 'Follow the language (Ethiopian for Amharic)', gregorian_only: 'Gregorian only', ethiopian_only: 'Ethiopian only' },
@@ -374,6 +385,7 @@ const settings = {
         appearance: 'Appearance',
         id_cards: 'ID Cards',
         field_work_gps: 'Field Work GPS',
+        situation_room: 'Situation Room',
         api_management: 'API Management',
     },
     descriptions: {
@@ -387,6 +399,7 @@ const settings = {
         appearance: 'Theme, colors, density, and visual defaults for the app shell.',
         id_cards: 'Manage shared content and visibility defaults. Artwork, typography and layout are edited in ID Card Templates.',
         field_work_gps: 'Configure explicit field-work location capture and enforcement. Values marked not configured do not impose a hidden rule.',
+        situation_room: 'Default period, caching, wall timing, the small-group privacy rule and Critical Attention limits. Blank limits are not configured and count nothing.',
     },
     groups: {
         brandingPreview: 'Branding Preview',
