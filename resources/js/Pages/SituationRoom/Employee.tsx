@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Breadcrumb, fmt, useDateLabel, useNamer, viewQuery, type Filters, type Name, type ScopeProps } from '@/Components/situationRoom/shared';
+import { Breadcrumb, fmt, useDateLabel, useNamer, viewQuery, type Filters, type Name, type ScopeProps } from '@/Components/SituationRoom/communityVoice/shared';
 import { useLocale } from '@/hooks/useLocale';
 import { Alert, Card, EmptyState, StatusBadge, buttonClassName } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';

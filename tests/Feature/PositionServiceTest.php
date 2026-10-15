@@ -346,10 +346,10 @@ it('rejects a submission naming another position service', function (): void {
     makeService($this->alpha, 'HR-001', 'Record Correction');
     $foreign = makeService($this->beta, 'LIC-001', 'Land Permit');
 
-    $this->post('/service-feedback/'.$this->alpha['token']->token, [
+    $this->post('/service-feedback/'.$this->alpha['token']->token, pfComplete('feedback', [
         'position_service_id' => $foreign->id,
         'rating' => 5,
-    ])->assertSessionHasErrors('position_service_id');
+    ]))->assertSessionHasErrors('position_service_id');
 
     // An officer must never be rated on work their post does not do.
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
@@ -358,10 +358,10 @@ it('rejects a submission naming another position service', function (): void {
 it('accepts a submission for the position own service', function (): void {
     $service = makeService($this->alpha, 'HR-001', 'Record Correction');
 
-    $this->post('/service-feedback/'.$this->alpha['token']->token, [
+    $this->post('/service-feedback/'.$this->alpha['token']->token, pfComplete('feedback', [
         'position_service_id' => $service->id,
         'rating' => 4,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
@@ -369,10 +369,10 @@ it('accepts a submission for the position own service', function (): void {
 it('stores the service number and name as a snapshot', function (): void {
     $service = makeService($this->alpha, 'HR-001', 'Employee Record Correction');
 
-    $this->post('/service-feedback/'.$this->alpha['token']->token, [
+    $this->post('/service-feedback/'.$this->alpha['token']->token, pfComplete('feedback', [
         'position_service_id' => $service->id,
         'rating' => 5,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $feedback = EmployeeServiceFeedback::query()->firstOrFail();
 
@@ -385,10 +385,10 @@ it('stores the service number and name as a snapshot', function (): void {
 it('keeps the snapshot after the service is renamed', function (): void {
     $service = makeService($this->alpha, 'HR-001', 'Employee Record Correction');
 
-    $this->post('/service-feedback/'.$this->alpha['token']->token, [
+    $this->post('/service-feedback/'.$this->alpha['token']->token, pfComplete('feedback', [
         'position_service_id' => $service->id,
         'rating' => 3,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $service->forceFill(['service_no' => 'HR-999', 'name_en' => 'Completely Renamed'])->save();
 

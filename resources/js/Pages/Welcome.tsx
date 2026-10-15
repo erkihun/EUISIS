@@ -129,8 +129,7 @@ const MANAGE_CARDS: Card[] = [
 const SERVICE_CARDS: Card[] = [
     { key: 'serviceCard', icon: CreditCard, tone: 'primary', status: 'available' },
     { key: 'serviceCafeteria', icon: Store, tone: 'success', status: 'available' },
-    // Transport Management is a future phase, not part of the current production scope.
-    { key: 'serviceTransport', icon: ArrowLeftRightIcon, tone: 'neutral', status: 'planned' },
+    { key: 'serviceTransport', icon: ArrowLeftRightIcon, tone: 'success', status: 'available' },
     { key: 'serviceProviders', icon: HandshakeIcon, tone: 'neutral', status: 'available' },
     { key: 'serviceIntegration', icon: NetworkIcon, tone: 'primary', status: 'available' },
     { key: 'serviceConsumer', icon: BoxesIcon, tone: 'neutral', status: 'planned' },

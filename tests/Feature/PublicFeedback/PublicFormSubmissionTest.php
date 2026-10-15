@@ -29,47 +29,71 @@ beforeEach(function (): void {
     $this->orgToken = app(OrganizationFeedbackQrService::class)->ensureActive($this->employee->organization, $admin)->public_token;
 });
 
-/** @return array<string, string> What ServiceEntryForm sends when only the message is filled in. */
-function browserEntryPayload(string $message): array
+/**
+ * What the public Tip-off and Complaint forms send when only the required
+ * fields are filled in — every optional field arrives empty, exactly as the
+ * browser posts it. A Tip-off is anonymous; a Complaint is named.
+ *
+ * @return array<string, mixed>
+ */
+function browserEntryPayload(string $type, string $message): array
 {
-    return [
+    $common = [
         'form_token' => '',
         'position_service_id' => '',
         'category_id' => '',
         'message' => $message,
-        'client_name' => '',
-        'client_contact' => '',
+        'client_email' => '',
         'incident_date' => '',
         'incident_location' => '',
     ];
+
+    return $type === 'suggestion'
+        ? $common + [
+            'tip_type' => 'CORRUPTION',
+            'client_name' => '',
+            'client_contact' => '',
+            'involved_parties' => '',
+            'submitter_address' => ['city' => '', 'sub_city' => '', 'woreda' => '', 'detail' => ''],
+        ]
+        : $common + [
+            'client_name' => 'Abebe Kebede',
+            'client_contact' => '0911 22 33 44',
+            'submitter_organization' => '',
+        ];
 }
 
-it('accepts a suggestion and a complaint exactly as the browser form sends them', function (string $target, string $type): void {
+it('accepts a Tip-off and a complaint exactly as the browser form sends them', function (string $target, string $type): void {
     $url = $target === 'organization'
         ? '/feedback/'.$this->orgToken.'/'.$type
         : '/service-feedback/'.$this->employee->token->token.'/'.$type;
 
     $this->from($url)
         ->withHeaders(['X-Inertia' => 'true'])
-        ->post($url, browserEntryPayload("A {$type} about the {$target}."))
+        ->post($url, browserEntryPayload($type, "A {$type} about the {$target}."))
         ->assertSessionHasNoErrors()
         ->assertRedirect()
         ->assertSessionHas('feedback_submitted', true);
 
-    expect(EmployeeServiceFeedback::query()->where('type', $type)->count())->toBe(1);
+    $row = EmployeeServiceFeedback::query()->where('type', $type)->sole();
+    expect($row->submitter_address)->toBeNull()
+        ->and($row->involved_parties)->toBeNull()
+        ->and($row->client_email)->toBeNull();
 })->with([
-    'suggestion to an institution' => ['organization', 'suggestion'],
+    'Tip-off to an institution' => ['organization', 'suggestion'],
     'complaint to an institution' => ['organization', 'complaint'],
-    'suggestion about an employee' => ['employee', 'suggestion'],
+    'Tip-off about an employee' => ['employee', 'suggestion'],
     'complaint about an employee' => ['employee', 'complaint'],
 ]);
 
-it('still refuses incident details sent with a suggestion', function (): void {
+it('stores the optional when-and-where of a Tip-off', function (): void {
     $url = '/feedback/'.$this->orgToken.'/suggestion';
 
     $this->from($url)
-        ->post($url, ['message' => 'A suggestion.', 'incident_date' => '2026-10-01', 'incident_location' => 'Front desk'])
-        ->assertSessionHasErrors(['incident_date', 'incident_location']);
+        ->post($url, ['message' => 'Asked for a fee.', 'tip_type' => 'CORRUPTION', 'incident_date' => '2026-10-01', 'incident_location' => 'Front desk'])
+        ->assertSessionHasNoErrors();
 
-    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+    $row = EmployeeServiceFeedback::query()->sole();
+    expect($row->incident_date?->toDateString())->toBe('2026-10-01')
+        ->and($row->incident_location)->toBe('Front desk');
 });

@@ -24,10 +24,10 @@ beforeEach(function (): void {
 });
 
 it('stores an employee submission with the employee target, the card QR source and a submission time', function (): void {
-    $this->post('/service-feedback/'.$this->scenario->token->token, [
+    $this->post('/service-feedback/'.$this->scenario->token->token, pfComplete('feedback', [
         'position_service_id' => $this->scenario->positionService->id,
         'rating' => 4,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
 
@@ -105,9 +105,9 @@ it('enforces target integrity at the database on PostgreSQL', function (): void 
 });
 
 it('keeps the employee target when the employee later transfers', function (): void {
-    $this->post('/service-feedback/'.$this->scenario->token->token.'/suggestion', [
+    $this->post('/service-feedback/'.$this->scenario->token->token.'/suggestion', pfComplete('suggestion', [
         'message' => 'Open earlier on Mondays.',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
     $before = $row->only(['employee_id', 'employee_assignment_id', 'organization_id', 'organization_unit_id', 'position_id', 'target_name_snapshot']);

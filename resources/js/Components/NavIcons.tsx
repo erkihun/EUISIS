@@ -14,6 +14,7 @@ import { BoxMinimalisticIcon as SolarBoxMinimalisticIcon } from '@solar-icons/re
 import { BranchingPathsDownIcon as SolarBranchingPathsDownIcon } from '@solar-icons/react/linear/branching-paths-down';
 import { Buildings2Icon as SolarBuildings2Icon } from '@solar-icons/react/linear/buildings-2';
 import { CalendarIcon as SolarCalendarIcon } from '@solar-icons/react/linear/calendar';
+import { CameraMinimalisticIcon as SolarCameraMinimalisticIcon } from '@solar-icons/react/linear/camera-minimalistic';
 import { CardIcon as SolarCardIcon } from '@solar-icons/react/linear/card';
 import { CaseMinimalisticIcon as SolarCaseMinimalisticIcon } from '@solar-icons/react/linear/case-minimalistic';
 import { ChatSquareDotsIcon as SolarChatSquareDotsIcon } from '@solar-icons/react/linear/chat-square-dots';
@@ -36,6 +37,7 @@ import { LetterIcon as SolarLetterIcon } from '@solar-icons/react/linear/letter'
 import { Logout2Icon as SolarLogout2Icon } from '@solar-icons/react/linear/logout-2';
 import { MagnifierIcon as SolarMagnifierIcon } from '@solar-icons/react/linear/magnifier';
 import { MapPointIcon as SolarMapPointIcon } from '@solar-icons/react/linear/map-point';
+import { MicrophoneIcon as SolarMicrophoneIcon } from '@solar-icons/react/linear/microphone';
 import { MoonIcon as SolarMoonIcon } from '@solar-icons/react/linear/moon';
 import { PhoneIcon as SolarPhoneIcon } from '@solar-icons/react/linear/phone';
 import { PulseIcon as SolarPulseIcon } from '@solar-icons/react/linear/pulse';
@@ -61,6 +63,7 @@ import { UserRoundedIcon as SolarUserRoundedIcon } from '@solar-icons/react/line
 import { UsersGroupRoundedIcon as SolarUsersGroupRoundedIcon } from '@solar-icons/react/linear/users-group-rounded';
 import { VerifiedCheckIcon as SolarVerifiedCheckIcon } from '@solar-icons/react/linear/verified-check';
 import { Widget5Icon as SolarWidget5Icon } from '@solar-icons/react/linear/widget-5';
+import { VideocameraRecordIcon as SolarVideocameraRecordIcon } from '@solar-icons/react/linear/videocamera-record';
 
 export type NavIcon = (props: Omit<SVGProps<SVGSVGElement>, 'ref'>) => JSX.Element;
 
@@ -120,6 +123,10 @@ export const MailIcon = adapt(SolarLetterIcon);
 export const FileChartIcon = adapt(SolarFileChartIcon);
 export const MapPinned = adapt(SolarMapPointIcon);
 export const PhoneIcon = adapt(SolarPhoneIcon);
+/** Evidence kinds on the public Tip-off and Complaint forms. */
+export const PhotoIcon = adapt(SolarCameraMinimalisticIcon);
+export const VideoIcon = adapt(SolarVideocameraRecordIcon);
+export const MicIcon = adapt(SolarMicrophoneIcon);
 export const MenuIcon = adapt(SolarHamburgerMenuIcon);
 export const LogOut = adapt(SolarLogout2Icon);
 export const Sun = adapt(SolarSunIcon);

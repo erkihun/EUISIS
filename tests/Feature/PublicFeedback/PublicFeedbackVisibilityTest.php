@@ -115,9 +115,9 @@ it('keeps submitter identity out of the csv export without the permission', func
 });
 
 it('encrypts the submitter contact at rest and still reads rows written before encryption', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', [
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'Encrypted contact.', 'client_name' => 'Abebe', 'client_contact' => '0911223344',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $row = EmployeeServiceFeedback::query()->sole();
     $raw = DB::table('employee_service_feedback')->where('id', $row->id)->value('client_contact');
@@ -135,10 +135,10 @@ it('encrypts the submitter contact at rest and still reads rows written before e
 });
 
 it('requires the sensitive attachments permission to list and download complaint evidence', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', [
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'With evidence.',
         'attachments' => [UploadedFile::fake()->create('evidence.pdf', 10, 'application/pdf')],
-    ])->assertRedirect();
+    ]))->assertRedirect();
     $complaint = EmployeeServiceFeedback::query()->sole();
     $attachment = $complaint->attachments()->sole();
 

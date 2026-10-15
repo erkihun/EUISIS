@@ -35,7 +35,8 @@ use Tests\Support\PublicFeedbackScenario;
  */
 
 const RES_NARRATIVE = 'NARRATIVE-SENTINEL the officer kept my file for weeks';
-const RES_CONTACT = 'sentinel-contact@example.invalid';
+const RES_CONTACT = '+251 911 987 654';
+const RES_EMAIL = 'sentinel-contact@example.invalid';
 
 beforeEach(function (): void {
     app()->setLocale('en');
@@ -77,11 +78,11 @@ it('rolls the whole submission back when an attachment cannot be stored and tell
     });
 
     $response = $this->from('/service-feedback/'.$this->a->token->token.'/complaint')
-        ->post('/service-feedback/'.$this->a->token->token.'/complaint', [
+        ->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', [
             'message' => RES_NARRATIVE,
             'form_token' => $formToken,
             'attachments' => [UploadedFile::fake()->image('first.jpg', 40, 40), UploadedFile::fake()->image('second.jpg', 40, 40)],
-        ]);
+        ]));
 
     $response->assertRedirect('/service-feedback/'.$this->a->token->token.'/complaint')
         ->assertSessionHasErrors('message')
@@ -95,10 +96,10 @@ it('rolls the whole submission back when an attachment cannot be stored and tell
         ->and(collect($captured)->filter(fn (string $line): bool => str_contains($line, RES_NARRATIVE) || str_contains($line, $this->a->token->token))->all())->toBe([]);
 
     Storage::set('local', $disk);
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', [
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', [
         'message' => RES_NARRATIVE,
         'form_token' => $formToken,
-    ])->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('feedback_receipt');
+    ]))->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('feedback_receipt');
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
@@ -113,7 +114,7 @@ it('keeps the submission and the receipt when the notification provider throws, 
         $captured[] = $event->message.' '.json_encode($event->context);
     });
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => RES_NARRATIVE, 'client_contact' => RES_CONTACT])
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => RES_NARRATIVE, 'client_contact' => RES_CONTACT]))
         ->assertRedirect()
         ->assertSessionHas('feedback_receipt');
 
@@ -158,11 +159,13 @@ it('writes no narrative, contact or QR secret to the log across every public com
         $landing = $this->get($url)->assertOk();
         expect($landing->headers->get(RequestCorrelationId::HEADER))->not->toBeEmpty();
 
-        $payload = ['message' => RES_NARRATIVE, 'client_contact' => RES_CONTACT];
-        if (str_ends_with($url, '/feedback')) {
+        $type = substr((string) strrchr($url, '/'), 1);
+        // The comment field carries the narrative on a rating; the contact is the phone everywhere.
+        $payload = ['message' => RES_NARRATIVE, 'comment' => RES_NARRATIVE, 'client_contact' => RES_CONTACT, 'client_email' => RES_EMAIL];
+        if ($type === 'feedback') {
             $payload += ['rating' => 3, 'position_service_id' => str_contains($url, '/service-feedback/') ? $this->a->positionService->id : null];
         }
-        $posted = $this->post($url, array_filter($payload, fn ($v) => $v !== null))->assertRedirect();
+        $posted = $this->post($url, pfComplete($type, array_filter($payload, fn ($v) => $v !== null)))->assertRedirect();
         expect($posted->headers->get(RequestCorrelationId::HEADER))->not->toBeEmpty();
     }
 
@@ -170,6 +173,7 @@ it('writes no narrative, contact or QR secret to the log across every public com
 
     $leaks = collect($captured)->filter(fn (string $line): bool => str_contains($line, RES_NARRATIVE)
         || str_contains($line, RES_CONTACT)
+        || str_contains($line, RES_EMAIL)
         || str_contains($line, $this->a->token->token)
         || str_contains($line, $this->orgToken));
     expect($leaks->all())->toBe([]);

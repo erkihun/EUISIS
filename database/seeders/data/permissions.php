@@ -1479,6 +1479,9 @@ return [
     // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
     ...require database_path('seeders/data/organization-design-permissions.php'),
 
+    // Executive Situation Room (docs/situation-room-access-control.md).
+    ...require database_path('seeders/data/situation-room-permissions.php'),
+
     // API Management
     ['name' => 'api_management.view', 'group' => 'api_management', 'sort_order' => 10, 'is_system' => true,
         'label_en' => 'View API Management', 'label_am' => 'የAPI አስተዳደር ይመልከቱ',

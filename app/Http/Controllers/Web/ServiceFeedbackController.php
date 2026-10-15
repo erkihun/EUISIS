@@ -68,6 +68,7 @@ class ServiceFeedbackController extends Controller
         $base = $this->feedbackQuery->applyFilters(
             $this->feedbackQuery->scopedQuery($user),
             $filters,
+            $user,
         );
 
         return Inertia::render('ServiceFeedback/Dashboard', [
@@ -96,7 +97,7 @@ class ServiceFeedbackController extends Controller
         $filters = $request->only(self::FILTER_KEYS);
 
         $feedback = $this->feedbackQuery
-            ->applyFilters($this->feedbackQuery->scopedQuery($user), $filters)
+            ->applyFilters($this->feedbackQuery->scopedQuery($user), $filters, $user)
             ->with([
                 'employee:id,full_name,employee_number',
                 'organization:id,name_en,name_am',
@@ -127,12 +128,24 @@ class ServiceFeedbackController extends Controller
         ]);
     }
 
-    public function show(EmployeeServiceFeedback $serviceFeedback): Response
+    public function show(Request $request, EmployeeServiceFeedback $serviceFeedback): Response
     {
         abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
         // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
         abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('view', $serviceFeedback);
+
+        // Who sent it is a separate grant, and each opening of it is recorded.
+        if ($this->visibility->canSeeIdentity(Auth::user()) && $this->visibility->hasIdentity($serviceFeedback)) {
+            $this->writeAuditLogAction->execute(
+                eventType: AuditEventType::PublicSubmitterIdentityViewed,
+                actor: Auth::user(),
+                auditable: $serviceFeedback,
+                organizationId: $serviceFeedback->organization_id,
+                reason: 'Submitter identity viewed on public feedback',
+                request: $request,
+            );
+        }
 
         $serviceFeedback->load([
             'employee:id,full_name,employee_number',

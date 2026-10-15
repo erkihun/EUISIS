@@ -53,7 +53,7 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 - [ ] `LOG_LEVEL=warning` (or info), daily log rotation
 - [ ] `MAIL_*` delivers; SMS gateway configured with daily and monthly caps
 - [ ] Self-registration off unless deliberately enabled
-- [ ] `FEATURE_TRANSPORT=false` and `FEATURE_COURT_CASES=false` (Transport is out of production scope; routes return 404 when off)
+- [ ] `FEATURE_COURT_CASES=false` (placeholder module). Transport is live by default; leave `FEATURE_TRANSPORT` unset (or `true`) and review Transport › Settings before the first boarding
 - [ ] `STORAGE_PRIVATE_DRIVER=s3` and `STORAGE_PUBLIC_DRIVER=s3` with `STORAGE_PRIVATE_BUCKET`, `STORAGE_PUBLIC_BUCKET`, `STORAGE_PUBLIC_URL` and `AWS_*` credentials when more than one app server runs (node-local disks are not shared)
 - [ ] `DB_QUEUE_RETRY_AFTER` / `REDIS_QUEUE_RETRY_AFTER` (default 900) above the longest job timeout (600); `production:readiness` checks it
 - [ ] `REDIS_*` or database cache shared by every node; scheduler locks (`onOneServer`) need a shared cache

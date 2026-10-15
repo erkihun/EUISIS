@@ -4,124 +4,164 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom;
 
-use Closure;
-use Illuminate\Support\Facades\Cache;
+use App\Models\User;
+use App\Services\SituationRoom\Analytics\CafeteriaAnalytics;
+use App\Services\SituationRoom\Analytics\CaseSummaryAnalytics;
+use App\Services\SituationRoom\Analytics\ComplaintsAnalytics;
+use App\Services\SituationRoom\Analytics\CriticalAttentionAnalytics;
+use App\Services\SituationRoom\Analytics\DailyOperationsAnalytics;
+use App\Services\SituationRoom\Analytics\DataQualityAnalytics;
+use App\Services\SituationRoom\Analytics\FeedbackAnalytics;
+use App\Services\SituationRoom\Analytics\FieldWorkAnalytics;
+use App\Services\SituationRoom\Analytics\MovementAnalytics;
+use App\Services\SituationRoom\Analytics\OverviewAnalytics;
+use App\Services\SituationRoom\Analytics\PerformanceAnalytics;
+use App\Services\SituationRoom\Analytics\ServiceDeliveryAnalytics;
+use App\Services\SituationRoom\Analytics\SituationAnalytics;
+use App\Services\SituationRoom\Analytics\StructureAnalytics;
+use App\Services\SituationRoom\Analytics\TipOffAnalytics;
+use App\Services\SituationRoom\Analytics\TrendsAnalytics;
+use App\Services\SituationRoom\Analytics\WorkforceAnalytics;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Container\Container;
+use Illuminate\Http\Request;
+use Throwable;
 
 /**
- * Assembles the Situation Room sections and caches each one briefly.
+ * Entry point of the Situation Room: builds the viewer's context, runs a
+ * category's panels and assembles the wall.
  *
- * A cache key is built from everything that decides what a user may see —
- * the scope signature (published version, institution, authorized
- * organizations, visible target types, own-employee exclusion), the filters
- * and the section — so two leaders with different reach never share a value.
- * Every payload says when it was computed (generated_at).
+ * Each panel runs on its own: an exception becomes one ERROR card (and is
+ * reported), never a failed page, and a payload with an ERROR card is not
+ * cached. Scope is resolved once per request, before any panel runs.
  */
 final class SituationRoomService
 {
-    public const SECTIONS = ['headline', 'comparison', 'breakdown', 'supporting'];
+    /** @var array<string, class-string<SituationAnalytics>> */
+    public const ANALYTICS = [
+        'overview' => OverviewAnalytics::class,
+        'workforce' => WorkforceAnalytics::class,
+        'structure' => StructureAnalytics::class,
+        'service_delivery' => ServiceDeliveryAnalytics::class,
+        'complaints' => ComplaintsAnalytics::class,
+        'feedback' => FeedbackAnalytics::class,
+        'tip_offs' => TipOffAnalytics::class,
+        'daily_operations' => DailyOperationsAnalytics::class,
+        'performance' => PerformanceAnalytics::class,
+        'movement' => MovementAnalytics::class,
+        'field_work' => FieldWorkAnalytics::class,
+        'cafeteria' => CafeteriaAnalytics::class,
+        'cases' => CaseSummaryAnalytics::class,
+        'critical_attention' => CriticalAttentionAnalytics::class,
+        'trends' => TrendsAnalytics::class,
+        'data_quality' => DataQualityAnalytics::class,
+    ];
+
+    /** Panels that name people: never on a wall, never in a payload without their grant. */
+    public const DETAIL_PANEL_SUFFIX = '_employees';
 
     public function __construct(
-        private readonly CommunityVoiceQuery $voice,
-        private readonly AttentionCenter $attention,
-        private readonly ManagementSummary $summary,
-        private readonly SupportingIndicators $supporting,
-        private readonly EmployeeTargetedQuery $employees,
+        private readonly Container $container,
+        private readonly SituationScopeResolver $resolver,
+        private readonly SituationSettings $settings,
+        private readonly SituationCache $cache,
+        private readonly SituationMemo $memo,
     ) {}
 
-    /** KPIs and the trend: what loads first. */
-    public function headline(SituationRoomScope $scope, SituationRoomFilters $filters): array
+    /** @throws AuthorizationException when the requested focus organization is outside the viewer's scope */
+    public function context(User $user, Request $request): SituationContext
     {
-        return $this->remember($scope, $filters, 'headline', SituationRoomMetrics::CACHE_SECONDS, fn (): array => [
-            'kpis' => $this->voice->kpis($scope, $filters),
-            'trend' => $this->voice->trend($scope, $filters),
-        ]);
-    }
+        $this->memo->flush();
+        $filters = SituationFilters::fromRequest($request, $this->settings->defaultPeriod());
+        $scope = $this->resolver->resolve($user, $filters->get('organization_id'));
 
-    /** Institution comparison, attention items and the plain-language summary. */
-    public function comparison(SituationRoomScope $scope, SituationRoomFilters $filters): array
-    {
-        return $this->remember($scope, $filters, 'comparison', SituationRoomMetrics::CACHE_SECONDS, function () use ($scope, $filters): array {
-            $kpis = $this->headline($scope, $filters)['kpis'];
-            $institutions = $this->voice->byInstitution($scope, $filters);
-            $categories = $this->voice->byCategory($scope, $filters);
-
-            return [
-                'institutions' => $institutions,
-                'attention' => $this->attention->items($scope, $filters, $kpis),
-                'summary' => $this->summary->sentences($kpis, $categories, $institutions),
-            ];
-        });
-    }
-
-    /** Categories, services, workflow state, target split and ratings. */
-    public function breakdown(SituationRoomScope $scope, SituationRoomFilters $filters): array
-    {
-        return $this->remember($scope, $filters, 'breakdown', SituationRoomMetrics::CACHE_SECONDS, fn (): array => [
-            'categories' => $this->voice->byCategory($scope, $filters),
-            'services' => $this->voice->byService($scope, $filters),
-            'resolution' => $this->voice->resolution($scope, $filters),
-            'targets' => $this->voice->byTarget($scope, $filters),
-            'ratings' => $this->voice->ratings($scope, $filters),
-        ]);
-    }
-
-    /** Workforce, EPMS, daily work, field work and cafeteria cards, plus configuration gaps. */
-    public function supporting(SituationRoomScope $scope, SituationRoomFilters $filters): array
-    {
-        // The cards depend on the viewer's module permissions, so those join the key.
-        $grants = implode(',', array_map(
-            fn (array $permissions): string => implode('+', array_map(fn (string $p): string => $scope->user->can($p) ? '1' : '0', $permissions)),
-            SupportingIndicators::CARDS,
-        ));
-
-        return $this->remember($scope, $filters, 'supporting:'.$grants, SituationRoomMetrics::CACHE_SECONDS, fn (): array => [
-            'cards' => $this->supporting->cards($scope),
-            'configuration' => $this->attention->configurationGaps($scope),
-        ]);
+        return new SituationContext($user, $scope, $filters, $this->settings->topN());
     }
 
     /**
-     * The Wall: aggregates only — no names of people, no narrative, no
-     * identity, no attachments.
+     * @return array{generated_at: string, cached_for: int, payload: array{panels: list<array<string, mixed>>, has_errors: bool}}
      */
-    public function wall(SituationRoomScope $scope, SituationRoomFilters $filters): array
+    public function category(SituationCategory $category, SituationContext $context): array
     {
-        return $this->remember($scope, $filters, 'wall', SituationRoomMetrics::WALL_CACHE_SECONDS, function () use ($scope, $filters): array {
-            $categories = $this->voice->byCategory($scope, $filters);
-
-            return [
-                'kpis' => $this->voice->kpis($scope, $filters),
-                'trend' => $this->voice->trend($scope, $filters),
-                'institutions' => $this->voice->byInstitution($scope, $filters),
-                'categories' => array_slice($categories, 0, SituationRoomMetrics::TOP_N),
-                'resolution' => $this->voice->resolution($scope, $filters)['statuses'],
-            ];
-        });
+        return $this->cache->remember(
+            'category:'.$category->value,
+            $context,
+            fn (): array => $this->run($this->analytics($category), $context),
+            fn (array $payload): bool => ! $payload['has_errors'],
+        );
     }
 
-    /** Employee-targeted counts, one page. */
-    public function employeeSummary(SituationRoomScope $scope, SituationRoomFilters $filters, int $page, string $sort): array
+    /**
+     * The wall: for each wall-eligible category the viewer may see, its
+     * headline figures and up to two charts. Aggregates only — tables and
+     * every panel that names a person are left out whatever the grants.
+     *
+     * @return array{generated_at: string, cached_for: int, payload: array{screens: list<array{category: string, panels: list<array<string, mixed>>}>, has_errors: bool}}
+     */
+    public function wall(SituationContext $context): array
     {
-        return $this->remember($scope, $filters, "employees:{$page}:{$sort}", SituationRoomMetrics::CACHE_SECONDS, fn (): array => $this->employees->summary($scope, $filters, $page, $sort));
+        return $this->cache->remember('wall', $context, function () use ($context): array {
+            $screens = [];
+            $errors = false;
+
+            foreach (SituationCategory::visibleFor($context->user) as $category) {
+                if (! $category->wallEligible()) {
+                    continue;
+                }
+
+                $result = $this->run($this->analytics($category), $context, fn (string $key, \Closure|callable $panel): bool => ! str_ends_with($key, self::DETAIL_PANEL_SUFFIX));
+                $errors = $errors || $result['has_errors'];
+                $kpis = array_values(array_filter($result['panels'], fn (array $p): bool => $p['type'] === 'kpis'));
+                $charts = array_values(array_filter($result['panels'], fn (array $p): bool => in_array($p['type'], SituationPanel::CHARTS, true)));
+                $screens[] = ['category' => $category->value, 'panels' => [...array_slice($kpis, 0, 1), ...array_slice($charts, 0, 2)]];
+            }
+
+            return ['screens' => $screens, 'has_errors' => $errors];
+        }, fn (array $payload): bool => ! $payload['has_errors']);
     }
 
-    /** Drop this user's cached sections for these filters (the Refresh button). */
-    public function forget(SituationRoomScope $scope, SituationRoomFilters $filters): void
+    public function analytics(SituationCategory $category): SituationAnalytics
     {
-        foreach (['headline', 'comparison', 'breakdown', 'wall'] as $section) {
-            Cache::forget($this->key($scope, $filters, $section));
+        return $this->container->make(self::ANALYTICS[$category->value]);
+    }
+
+    /**
+     * Run every panel of an analytics class, each isolated.
+     *
+     * @param  (callable(string, callable): bool)|null  $only
+     * @return array{panels: list<array<string, mixed>>, has_errors: bool}
+     */
+    public function run(SituationAnalytics $analytics, SituationContext $context, ?callable $only = null): array
+    {
+        $panels = [];
+        $errors = false;
+
+        foreach ($analytics->panels($context) as $key => $build) {
+            if ($only !== null && ! $only($key, $build)) {
+                continue;
+            }
+
+            try {
+                $panels[] = $build()->toArray();
+            } catch (Throwable $e) {
+                report($e);
+                $errors = true;
+                $panels[] = SituationPanel::notice($key, "situationRoom.panels.{$key}.title", null, 'situationRoom.sources.none', 'ERROR')->toArray();
+            }
         }
-        // Supporting and employee pages carry extra key parts; they expire on their own within two minutes.
+
+        return ['panels' => $panels, 'has_errors' => $errors];
     }
 
-    public function key(SituationRoomScope $scope, SituationRoomFilters $filters, string $section): string
+    /** Whether a computed payload includes an employee-level table (for the audit trail). */
+    public static function showsEmployeeBreakdown(array $panels): bool
     {
-        return 'situation-room:'.SituationRoomMetrics::VERSION.':'.sha1($scope->signature().'|'.json_encode($filters->toArray(), JSON_THROW_ON_ERROR).'|'.$section);
-    }
+        foreach ($panels as $panel) {
+            if (str_ends_with((string) $panel['key'], self::DETAIL_PANEL_SUFFIX) && $panel['type'] === 'table') {
+                return true;
+            }
+        }
 
-    /** @param  Closure(): array<string, mixed>  $compute */
-    private function remember(SituationRoomScope $scope, SituationRoomFilters $filters, string $section, int $seconds, Closure $compute): array
-    {
-        return Cache::remember($this->key($scope, $filters, $section), $seconds, fn (): array => $compute() + ['generated_at' => now()->toIso8601String()]);
+        return false;
     }
 }

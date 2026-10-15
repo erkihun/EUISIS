@@ -60,8 +60,8 @@ it('gives an employee QR the public number of the institution the employee serve
     $props = qrcProps($this->get($this->pageA)->assertOk());
 
     expect($props['call'])->toBe(['href' => 'tel:+251111234567', 'display' => '011 123 4567'])
-        // The identity confirmation is untouched: still name and photo link only.
-        ->and(array_keys($props['target']))->toBe(['target_type', 'display_name', 'photo_url'])
+        // The identity confirmation: name, job designation and photo link only — no institution data in it.
+        ->and(array_keys($props['target']))->toBe(['target_type', 'display_name', 'position_title', 'photo_url'])
         ->and($props['links']['feedback'])->toEndWith('/service-feedback/'.$this->a->token->token.'/feedback');
 });
 
@@ -126,7 +126,7 @@ it('never turns a stored value that is not a plain phone number into a link', fu
 })->with(['javascript:alert(1)', 'tel:+251111234567', 'data:text/html,x', '0111234567;ext=9', '911223344']);
 
 it('follows a transfer: the same QR then calls the new institution, and earlier submissions keep their context', function (): void {
-    $this->post($this->pageA.'/suggestion', ['message' => 'Before the transfer.'])->assertRedirect();
+    $this->post($this->pageA.'/suggestion', pfComplete('suggestion', ['message' => 'Before the transfer.']))->assertRedirect();
     $before = EmployeeServiceFeedback::query()->sole();
     $token = $this->a->token->token;
 

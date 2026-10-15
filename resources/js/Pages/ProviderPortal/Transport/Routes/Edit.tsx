@@ -1,3 +1,14 @@
 import TransportProviderLayout from '@/Layouts/TransportProviderLayout';
-import TransportRouteForm from '@/Components/transport/TransportRouteForm';
-export default function Edit({ route: routeData }: { route: any }) { return <TransportProviderLayout title="Edit Route"><TransportRouteForm routeData={routeData} /></TransportProviderLayout>; }
+import { RouteForm } from '@/Components/transport/TransportForms';
+import { useLocale } from '@/hooks/useLocale';
+import type { TransportRoute } from '@/types/transport';
+
+export default function Edit({ route: record }: { route: TransportRoute }) {
+    const { t } = useLocale();
+
+    return (
+        <TransportProviderLayout title={t('transport.editRoute')}>
+            <RouteForm mode="portal" route={record} />
+        </TransportProviderLayout>
+    );
+}

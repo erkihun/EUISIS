@@ -4,16 +4,17 @@ import type { Page, VisitOptions } from '@inertiajs/core';
 import { publicButtonPrimary, publicButtonSecondary } from '@/Components/public/PublicPage';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import MultiFileUpload from '@/Components/public/MultiFileUpload';
+import EvidencePicker from '@/Components/public/EvidencePicker';
 import PublicQrActionDock, { type PublicQrCall } from '@/Components/public/PublicQrActionDock';
 import { AlertTriangle, Building2, ChevronRight, MessageSquareIcon, StarIcon as StarOutlineIcon, UserIcon } from '@/Components/NavIcons';
 import { Link, router, useForm } from '@inertiajs/react';
 import FeedbackAppLayout, { FeedbackActionBar } from '@/Layouts/FeedbackAppLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
+import type { EvidenceLimits, SubmissionKind, SubmissionRequirements, TipType } from '@/types/publicSubmissions';
 
 /**
- * Public Feedback, Suggestion and Complaint.
+ * Public Feedback, Tip-off (ጥቆማ — internal type `suggestion`) and Complaint.
  *
  * Reached by scanning an employee's feedback QR or an institution's feedback
  * QR with any phone camera, so the page is built as the screens of a phone app
@@ -41,6 +42,8 @@ interface TargetDisplay {
     target_type: 'employee' | 'organization';
     /** The employee's full name, or the institution's name. */
     display_name: string;
+    /** Employee: the title of the post they hold now (job designation); null when they hold none. */
+    position_title?: string | null;
     /** Employee: a short-lived signed link to the photo; null when there is none. */
     photo_url?: string | null;
     /** Institution only. */
@@ -59,10 +62,11 @@ interface Links {
 }
 
 interface Receipt {
-    type: 'feedback' | 'suggestion' | 'complaint';
+    type: SubmissionKind;
     target_type: 'employee' | 'organization';
     target_name: string;
     reference: string | null;
+    tip_type: TipType | null;
     submitted_at: string | null;
 }
 
@@ -86,16 +90,16 @@ interface Props {
     /** One-time token for the form on this page; consumed by the submission. */
     formToken: string | null;
     /** Submission types the policy allows right now (brief §93). */
-    enabledTypes: Array<'feedback' | 'suggestion' | 'complaint'>;
-    /** What is asked of the submitter: nothing, name and contact, or both offered (brief §34). */
-    identityMode: 'anonymous' | 'identified' | 'optional';
-    allowAttachments: boolean;
+    enabledTypes: SubmissionKind[];
+    /** What each form asks of the submitter — the server's PublicSubmissionPolicy, mirrored. */
+    requirements: Record<SubmissionKind, SubmissionRequirements>;
+    /** What evidence a Tip-off or Complaint may carry (PublicEvidencePolicy). */
+    evidence: EvidenceLimits;
+    tipTypes: TipType[];
     /** The institution's validated public number for the Call action; null when there is none. */
     call: PublicQrCall | null;
 }
 
-type IdentityMode = Props['identityMode'];
-type SubmissionKind = 'feedback' | 'suggestion' | 'complaint';
 
 // ── Look ────────────────────────────────────────────────────────────────────
 // Grouped cards on a soft background, 16px type in every control (no zoom on
@@ -210,19 +214,27 @@ function TargetMark({ target, size }: { target: TargetDisplay; size: 'md' | 'lg'
     );
 }
 
-/** The scanned employee as the choice screen confirms them: photo and full name, nothing else. */
+/**
+ * The scanned employee as the choice screen confirms them: photo, full name
+ * and — directly under the name — the job designation they hold now. Nothing
+ * else. An employee with no current post shows no designation line at all.
+ */
 function EmployeeIdentityCard({ target }: { target: TargetDisplay }) {
     return (
         <div className={`${cardClass} flex flex-col items-center px-5 pb-5 pt-6 text-center`}>
             <EmployeePhoto key={target.photo_url ?? 'none'} url={target.photo_url} size="lg" />
             <h2 className="mt-4 text-xl font-bold leading-snug text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{target.display_name}</h2>
+            {target.position_title && (
+                <p className={`mt-1 text-base leading-snug ${mutedClass} [overflow-wrap:anywhere]`}>{target.position_title}</p>
+            )}
         </div>
     );
 }
 
 /** Who the visitor is writing about, as they may see it. */
 function TargetCard({ target, intro }: { target: TargetDisplay; intro?: string }) {
-    const detail = target.target_type === 'organization' ? target.short_name ?? '' : '';
+    // Under the name: an institution's short name, or the employee's job designation.
+    const detail = target.target_type === 'organization' ? target.short_name ?? '' : target.position_title ?? '';
 
     return (
         <div className={cardClass}>
@@ -398,47 +410,89 @@ function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormE
     });
 }
 
-/** The privacy promise must match what the form asks for (brief §34). */
-function privacyNoteKey(mode: IdentityMode): string {
-    return mode === 'identified' ? 'serviceFeedback.publicPrivacyNoteIdentified' : mode === 'anonymous' ? 'serviceFeedback.publicPrivacyNoteAnonymous' : 'serviceFeedback.publicPrivacyNote';
+/** The privacy promise must match what the form asks for (PublicSubmissionPolicy). */
+function privacyNoteKey(requirements: SubmissionRequirements): string {
+    return requirements.anonymous_allowed ? 'serviceFeedback.publicPrivacyNoteTipOff' : 'serviceFeedback.publicPrivacyNoteIdentified';
 }
 
-function ClientFields({ name, contact, onName, onContact, errors, mode }: {
-    name: string;
-    contact: string;
-    onName: (value: string) => void;
-    onContact: (value: string) => void;
-    errors: { client_name?: string; client_contact?: string };
-    mode: IdentityMode;
+/** "(Required)" or "(Optional)" beside a label; the input carries the real `required`. */
+function RequirementMark({ required }: { required: boolean }) {
+    const { t } = useLocale();
+
+    return <span className={optionalClass}>({t(required ? 'serviceFeedback.requiredMark' : 'serviceFeedback.clientNameHint')})</span>;
+}
+
+interface IdentityData {
+    client_name: string;
+    client_contact: string;
+    client_email: string;
+    submitter_organization?: string;
+}
+
+type IdentityErrors = Partial<Record<'client_name' | 'client_contact' | 'client_email' | 'submitter_organization', string>>;
+
+/**
+ * Who is sending: full name and phone (required on Feedback and Complaint,
+ * optional on a Tip-off), e-mail, and — on Feedback and Complaint — the
+ * submitter's own organization. What is required comes from the server's
+ * policy; the page only reflects it.
+ */
+function IdentityFields({ requirements, data, set, errors }: {
+    requirements: SubmissionRequirements;
+    data: IdentityData;
+    set: (field: keyof IdentityData, value: string) => void;
+    errors: IdentityErrors;
 }) {
     const { t } = useLocale();
 
-    // Anonymous: nothing is asked and nothing is kept (brief §34).
-    if (mode === 'anonymous') {
-        return <p className={`${cardClass} text-sm ${mutedClass}`}>{t('serviceFeedback.anonymousNotice')}</p>;
-    }
-    const required = mode === 'identified';
-    const hint = required ? t('serviceFeedback.requiredHint') : t('serviceFeedback.clientNameHint');
-
     return (
-        <div role="group" aria-labelledby="about-you-title" className={`${cardClass} space-y-4`}>
-            <p id="about-you-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.sectionAboutYou')}</p>
+        <>
             <div data-field>
                 <label htmlFor="client_name" className={labelClass}>
                     {t('serviceFeedback.clientName')}
-                    <span className={optionalClass}>({hint})</span>
+                    <RequirementMark required={requirements.name_required} />
                 </label>
-                <input id="client_name" type="text" autoComplete="name" maxLength={120} required={required} value={name} onChange={(e) => onName(e.target.value)} className={fieldClass} />
+                <input id="client_name" type="text" autoComplete="name" maxLength={120} required={requirements.name_required} aria-required={requirements.name_required} value={data.client_name} onChange={(e) => set('client_name', e.target.value)} className={fieldClass} />
                 {errors.client_name && <p role="alert" className={errorClass}>{errors.client_name}</p>}
             </div>
             <div data-field>
                 <label htmlFor="client_contact" className={labelClass}>
                     {t('serviceFeedback.clientContact')}
-                    <span className={optionalClass}>({required ? t('serviceFeedback.requiredHint') : t('serviceFeedback.clientContactHint')})</span>
+                    <RequirementMark required={requirements.phone_required} />
                 </label>
-                <input id="client_contact" type="text" inputMode="email" autoComplete="tel" maxLength={120} required={required} value={contact} onChange={(e) => onContact(e.target.value)} className={fieldClass} />
+                <input id="client_contact" type="tel" inputMode="tel" autoComplete="tel" maxLength={40} required={requirements.phone_required} aria-required={requirements.phone_required} value={data.client_contact} onChange={(e) => set('client_contact', e.target.value)} className={fieldClass} />
                 {errors.client_contact && <p role="alert" className={errorClass}>{errors.client_contact}</p>}
             </div>
+            <div data-field>
+                <label htmlFor="client_email" className={labelClass}>
+                    {t('serviceFeedback.clientEmail')}
+                    <RequirementMark required={false} />
+                </label>
+                <input id="client_email" type="email" inputMode="email" autoComplete="email" maxLength={190} value={data.client_email} onChange={(e) => set('client_email', e.target.value)} className={fieldClass} />
+                {errors.client_email && <p role="alert" className={errorClass}>{errors.client_email}</p>}
+            </div>
+            {requirements.submitter_organization && data.submitter_organization !== undefined && (
+                <div data-field>
+                    <label htmlFor="submitter_organization" className={labelClass}>
+                        {t('serviceFeedback.submitterOrganization')}
+                        <RequirementMark required={false} />
+                    </label>
+                    <input id="submitter_organization" type="text" autoComplete="organization" maxLength={200} value={data.submitter_organization} onChange={(e) => set('submitter_organization', e.target.value)} className={fieldClass} />
+                    {errors.submitter_organization && <p role="alert" className={errorClass}>{errors.submitter_organization}</p>}
+                </div>
+            )}
+        </>
+    );
+}
+
+/** The named-submitter section of Feedback and Complaint. */
+function AboutYou(props: Parameters<typeof IdentityFields>[0]) {
+    const { t } = useLocale();
+
+    return (
+        <div role="group" aria-labelledby="about-you-title" className={`${cardClass} space-y-4`}>
+            <p id="about-you-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.sectionAboutYou')}</p>
+            <IdentityFields {...props} />
         </div>
     );
 }
@@ -454,24 +508,35 @@ function FormNotice({ message }: { message?: string }) {
     );
 }
 
-/** One form screen: the fields scroll, the Send button stays at the bottom edge. */
-function FormScreen({ formRef, onSubmit, identityMode, processing, submitLabel, children }: {
+/** One form screen: the fields scroll, the Send button stays at the bottom edge, with upload progress above it. */
+function FormScreen({ formRef, onSubmit, requirements, processing, progress, submitLabel, children }: {
     formRef: RefObject<HTMLFormElement>;
     onSubmit: (event: FormEvent) => void;
-    identityMode: IdentityMode;
+    requirements: SubmissionRequirements;
     processing: boolean;
+    /** Upload progress of a form carrying files; null while nothing is uploading. */
+    progress?: number | null;
     submitLabel: string;
     children: ReactNode;
 }) {
     const { t } = useLocale();
+    const uploading = processing && progress !== null && progress !== undefined;
 
     return (
         <form ref={formRef} onSubmit={onSubmit} noValidate className="flex flex-1 flex-col">
             <div className="space-y-4 px-4 pb-6 pt-4">
                 {children}
-                <p className={`px-1 text-center text-xs leading-relaxed ${mutedClass}`}>{t(privacyNoteKey(identityMode))}</p>
+                <p className={`px-1 text-center text-xs leading-relaxed ${mutedClass}`}>{t(privacyNoteKey(requirements))}</p>
             </div>
             <FeedbackActionBar>
+                {uploading && (
+                    <div className="mb-2" role="status" aria-live="polite">
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]">
+                            <div className="h-full rounded-full bg-[color:var(--color-primary)] transition-[width]" style={{ width: `${progress}%` }} />
+                        </div>
+                        <p className={`mt-1 text-center text-xs ${mutedClass}`}>{t('serviceFeedback.uploadProgress').replace('{percent}', String(progress))}</p>
+                    </div>
+                )}
                 <button type="submit" disabled={processing} className={sendButtonClass}>
                     {processing ? t('serviceFeedback.submitting') : submitLabel}
                 </button>
@@ -480,47 +545,247 @@ function FormScreen({ formRef, onSubmit, identityMode, processing, submitLabel, 
     );
 }
 
-function ServiceEntryForm({ type, target, serviceTypes, categories, links, formToken, identityMode, allowAttachments }: {
-    type: 'suggestion' | 'complaint';
+/** Optional evidence, shared by the Tip-off and the Complaint forms. */
+function EvidenceSection({ files, onChange, limits, error }: { files: File[]; onChange: (files: File[]) => void; limits: EvidenceLimits; error?: string }) {
+    const { t } = useLocale();
+
+    return (
+        <div role="group" aria-labelledby="evidence-title" className={cardClass} data-field>
+            <p id="evidence-title" className={labelClass}>
+                {t('serviceFeedback.evidenceTitle')}
+                <RequirementMark required={false} />
+            </p>
+            <p id="evidence-hint" className={`mt-1 text-xs leading-relaxed ${mutedClass}`}>
+                {t('serviceFeedback.evidenceHint')}{' '}
+                {t('serviceFeedback.attachmentHint').replace('{files}', String(limits.max_files)).replace('{total}', String(limits.max_total_mb))}
+            </p>
+            <div className="mt-3">
+                <EvidencePicker id="evidence" files={files} onChange={onChange} limits={limits} error={error} describedBy="evidence-hint" />
+            </div>
+        </div>
+    );
+}
+
+/** The first evidence error, whichever file it was about. */
+function evidenceError(errors: Record<string, string | undefined>): string | undefined {
+    return errors.attachments ?? Object.entries(errors).find(([key]) => key.startsWith('attachments.'))?.[1];
+}
+
+interface FormProps {
     target: TargetDisplay;
     serviceTypes: ServiceTypeOption[];
     categories: CategoryOption[];
     links: Links;
     formToken: string | null;
-    identityMode: IdentityMode;
-    allowAttachments: boolean;
-}) {
+    requirements: SubmissionRequirements;
+    evidence: EvidenceLimits;
+}
+
+const TIP_TYPE_COPY: Record<TipType, { label: string; hint: string }> = {
+    CORRUPTION: { label: 'serviceFeedback.tipTypeCorruption', hint: 'serviceFeedback.tipTypeCorruptionHint' },
+    IMPROPER_PRACTICE: { label: 'serviceFeedback.tipTypeImproperPractice', hint: 'serviceFeedback.tipTypeImproperPracticeHint' },
+};
+
+/**
+ * The two Tip-off types as large radio cards: native radios, so keyboard and
+ * screen readers get real radio-group and required semantics.
+ */
+function TipTypeChooser({ tipTypes, value, onChange, error }: { tipTypes: TipType[]; value: TipType | ''; onChange: (value: TipType) => void; error?: string }) {
+    const { t } = useLocale();
+
+    return (
+        <fieldset className={cardClass} data-field aria-describedby="tip-type-hint">
+            <legend className="sr-only">{t('serviceFeedback.tipTypeLabel')}</legend>
+            <p className={labelClass} aria-hidden="true">
+                {t('serviceFeedback.tipTypeLabel')}
+                <RequirementMark required />
+            </p>
+            <p id="tip-type-hint" className={`mt-1 text-xs leading-relaxed ${mutedClass}`}>{t('serviceFeedback.tipTypeHint')}</p>
+            <div className="mt-3 space-y-3">
+                {tipTypes.map((tipType) => {
+                    const chosen = value === tipType;
+
+                    return (
+                        <label
+                            key={tipType}
+                            className={`flex min-h-[64px] cursor-pointer items-start gap-3 rounded-xl border-2 p-3 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[color:var(--color-primary)] ${chosen
+                                ? 'border-[color:var(--color-primary)] bg-[color:var(--app-surface-muted)]'
+                                : 'border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] hover:bg-[color:var(--app-surface-muted)]'}`}
+                        >
+                            <input
+                                type="radio"
+                                name="tip_type"
+                                value={tipType}
+                                checked={chosen}
+                                required
+                                onChange={() => onChange(tipType)}
+                                className="mt-1 h-5 w-5 shrink-0 accent-[color:var(--color-primary)]"
+                            />
+                            <span className="min-w-0">
+                                <span className="block text-base font-semibold text-[color:var(--app-foreground)]">{t(TIP_TYPE_COPY[tipType].label)}</span>
+                                <span className={`mt-0.5 block text-sm leading-snug ${mutedClass}`}>{t(TIP_TYPE_COPY[tipType].hint)}</span>
+                            </span>
+                        </label>
+                    );
+                })}
+            </div>
+            {error && <p role="alert" className={errorClass}>{error}</p>}
+        </fieldset>
+    );
+}
+
+/**
+ * The digital Tip-off (ጥቆማ) form, from the paper intake form: the target is
+ * already known from the scanned QR; the tipster chooses the type and states
+ * the facts; when, where, who else and a related service are optional and
+ * folded away; evidence and the tipster's own details are optional. Nothing
+ * the system knows — channel, date received, reference — is asked.
+ */
+function TipOffForm({ target, serviceTypes, categories, links, formToken, requirements, evidence, tipTypes }: FormProps & { tipTypes: TipType[] }) {
     const { t } = useLocale();
     const formRef = useRef<HTMLFormElement>(null);
-    const outcome = useSubmissionOutcome(type, formRef);
-    const { data, setData, post, processing, errors } = useForm({
+    const outcome = useSubmissionOutcome('suggestion', formRef);
+    const { data, setData, post, processing, progress, errors, clearErrors } = useForm({
         form_token: formToken ?? '',
-        position_service_id: '', category_id: '', message: '', client_name: '', client_contact: '',
+        tip_type: '' as TipType | '',
+        message: '',
+        incident_date: '',
+        incident_location: '',
+        involved_parties: '',
+        position_service_id: '',
+        category_id: '',
+        client_name: '',
+        client_contact: '',
+        client_email: '',
+        submitter_address: { city: '', sub_city: '', woreda: '', detail: '' },
+        attachments: [] as File[],
+    });
+    // Each field's error is cleared the moment the visitor changes it, so a fixed field never stays red.
+    const fieldErrors = errors as Record<string, string | undefined>;
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        post(links.submitSuggestion, { forceFormData: true, ...outcome() });
+    };
+
+    return (
+        <FormScreen formRef={formRef} onSubmit={submit} requirements={requirements} processing={processing} progress={progress?.percentage ?? null} submitLabel={t('serviceFeedback.submitSuggestion')}>
+            <FormNotice message={errors.form_token} />
+            <TargetCard target={target} />
+
+            <TipTypeChooser tipTypes={tipTypes} value={data.tip_type} onChange={(value) => { setData('tip_type', value); clearErrors('tip_type'); }} error={errors.tip_type} />
+
+            <div role="group" aria-labelledby="tip-details-title" className={`${cardClass} space-y-4`}>
+                <p id="tip-details-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.tipDetailsTitle')}</p>
+                <div data-field>
+                    <label htmlFor="entry-message" className={labelClass}>
+                        {t('serviceFeedback.suggestionText')}
+                        <RequirementMark required />
+                    </label>
+                    <p id="tip-details-hint" className={`mt-1 text-xs ${mutedClass}`}>{t('serviceFeedback.tipDetailsHint')}</p>
+                    <textarea id="entry-message" required aria-required="true" aria-describedby="tip-details-hint" maxLength={5000} rows={7} value={data.message} onChange={(event) => { setData('message', event.target.value); clearErrors('message'); }} className={areaClass} />
+                    {errors.message && <p role="alert" className={errorClass}>{errors.message}</p>}
+                </div>
+
+                <details className="group rounded-xl border border-[color:var(--app-border)] p-3" open={Boolean(errors.incident_date || errors.incident_location || errors.involved_parties || errors.position_service_id || errors.category_id)}>
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-[color:var(--app-foreground)]">
+                        {t('serviceFeedback.tipMoreDetails')}
+                        <ChevronRight className="h-5 w-5 transition-transform group-open:rotate-90" aria-hidden="true" />
+                    </summary>
+                    <div className="mt-3 space-y-4">
+                        <div data-field>
+                            <label htmlFor="incident-date" className={labelClass}>{t('serviceFeedback.tipIncidentDate')}</label>
+                            <div className="mt-2"><LocalizedDatePicker id="incident-date" value={data.incident_date} onChange={(iso) => setData('incident_date', iso)} className="min-h-12 rounded-xl text-base" /></div>
+                            {errors.incident_date && <p role="alert" className={errorClass}>{errors.incident_date}</p>}
+                        </div>
+                        <div data-field>
+                            <label htmlFor="incident-location" className={labelClass}>{t('serviceFeedback.tipIncidentLocation')}</label>
+                            <input id="incident-location" maxLength={255} value={data.incident_location} onChange={(event) => setData('incident_location', event.target.value)} className={fieldClass} />
+                            {errors.incident_location && <p role="alert" className={errorClass}>{errors.incident_location}</p>}
+                        </div>
+                        <div data-field>
+                            <label htmlFor="involved-parties" className={labelClass}>{t('serviceFeedback.tipInvolvedParties')}</label>
+                            <p id="involved-parties-hint" className={`mt-1 text-xs ${mutedClass}`}>{t('serviceFeedback.tipInvolvedPartiesHint')}</p>
+                            <textarea id="involved-parties" aria-describedby="involved-parties-hint" maxLength={2000} rows={3} value={data.involved_parties} onChange={(event) => setData('involved_parties', event.target.value)} className={areaClass} />
+                            {errors.involved_parties && <p role="alert" className={errorClass}>{errors.involved_parties}</p>}
+                        </div>
+                        {target.target_type === 'employee' && serviceTypes.length > 0 && (
+                            <div data-field>
+                                <label htmlFor="position_service_id" className={labelClass}>{t('serviceFeedback.tipRelatedService')}</label>
+                                <select id="position_service_id" value={data.position_service_id} onChange={(e) => setData('position_service_id', e.target.value)} className={fieldClass}>
+                                    <option value="">{t('serviceFeedback.serviceTypePlaceholder')}</option>
+                                    {serviceTypes.map((service) => (
+                                        <option key={service.id} value={service.id}>{service.service_no ? `${service.service_no} — ${service.name}` : service.name}</option>
+                                    ))}
+                                </select>
+                                {errors.position_service_id && <p role="alert" className={errorClass}>{errors.position_service_id}</p>}
+                            </div>
+                        )}
+                    </div>
+                </details>
+            </div>
+
+            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
+
+            {requirements.evidence_allowed && (
+                <EvidenceSection files={data.attachments} onChange={(files) => { setData('attachments', files); clearErrors(); }} limits={evidence} error={evidenceError(fieldErrors)} />
+            )}
+
+            <div role="group" aria-labelledby="tipster-title" className={`${cardClass} space-y-4`}>
+                <div>
+                    <p id="tipster-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.tipsterTitle')}</p>
+                    <p className={`mt-1 text-xs leading-relaxed ${mutedClass}`}>{t('serviceFeedback.tipsterHint')}</p>
+                </div>
+                <IdentityFields requirements={requirements} data={data} set={(field, value) => { setData(field as 'client_name', value); clearErrors(field as 'client_name'); }} errors={errors} />
+                <details className="group rounded-xl border border-[color:var(--app-border)] p-3">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-[color:var(--app-foreground)]">
+                        {t('serviceFeedback.tipsterAddressToggle')}
+                        <ChevronRight className="h-5 w-5 transition-transform group-open:rotate-90" aria-hidden="true" />
+                    </summary>
+                    <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                        {(['city', 'sub_city', 'woreda', 'detail'] as const).map((part) => (
+                            <div key={part} data-field className={part === 'detail' ? 'sm:col-span-2' : ''}>
+                                <label htmlFor={`address-${part}`} className={labelClass}>{t(`serviceFeedback.${{ city: 'addressCity', sub_city: 'addressSubCity', woreda: 'addressWoreda', detail: 'addressDetail' }[part]}`)}</label>
+                                <input id={`address-${part}`} type="text" autoComplete={part === 'city' ? 'address-level2' : 'off'} maxLength={part === 'detail' ? 255 : 100} value={data.submitter_address[part]} onChange={(e) => setData('submitter_address', { ...data.submitter_address, [part]: e.target.value })} className={fieldClass} />
+                                {fieldErrors[`submitter_address.${part}`] && <p role="alert" className={errorClass}>{fieldErrors[`submitter_address.${part}`]}</p>}
+                            </div>
+                        ))}
+                    </div>
+                </details>
+            </div>
+        </FormScreen>
+    );
+}
+
+/** The Complaint form: a named complainant, the details, optional when/where and evidence. */
+function ComplaintForm({ target, serviceTypes, categories, links, formToken, requirements, evidence }: FormProps) {
+    const { t } = useLocale();
+    const formRef = useRef<HTMLFormElement>(null);
+    const outcome = useSubmissionOutcome('complaint', formRef);
+    const { data, setData, post, processing, progress, errors, clearErrors } = useForm({
+        form_token: formToken ?? '',
+        position_service_id: '', category_id: '', message: '',
+        client_name: '', client_contact: '', client_email: '', submitter_organization: '',
         incident_date: '', incident_location: '', attachments: [] as File[],
     });
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        post(type === 'complaint' ? links.submitComplaint : links.submitSuggestion, { forceFormData: true, ...outcome() });
+        post(links.submitComplaint, { forceFormData: true, ...outcome() });
     };
 
     return (
-        <FormScreen
-            formRef={formRef}
-            onSubmit={submit}
-            identityMode={identityMode}
-            processing={processing}
-            submitLabel={t(type === 'complaint' ? 'serviceFeedback.submitComplaint' : 'serviceFeedback.submitSuggestion')}
-        >
+        <FormScreen formRef={formRef} onSubmit={submit} requirements={requirements} processing={processing} progress={progress?.percentage ?? null} submitLabel={t('serviceFeedback.submitComplaint')}>
             <FormNotice message={errors.form_token} />
             <TargetCard target={target} />
 
             {/* The message is the point of this screen, so it comes first and is the biggest field. */}
             <div className={cardClass} data-field>
                 <label htmlFor="entry-message" className={labelClass}>
-                    {t(type === 'complaint' ? 'serviceFeedback.complaintDescription' : 'serviceFeedback.suggestionText')}
+                    {t('serviceFeedback.complaintDescription')}
+                    <RequirementMark required />
                 </label>
-                <textarea id="entry-message" required maxLength={5000} rows={7} value={data.message} onChange={(event) => setData('message', event.target.value)} className={areaClass} />
+                <textarea id="entry-message" required aria-required="true" maxLength={5000} rows={7} value={data.message} onChange={(event) => { setData('message', event.target.value); clearErrors('message'); }} className={areaClass} />
                 {errors.message && <p role="alert" className={errorClass}>{errors.message}</p>}
             </div>
 
@@ -530,35 +795,25 @@ function ServiceEntryForm({ type, target, serviceTypes, categories, links, formT
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional />
             )}
 
-            {type === 'complaint' && (
-                <div role="group" aria-labelledby="when-where-title" className={`${cardClass} space-y-4`}>
-                    <p id="when-where-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.sectionWhenWhere')}</p>
-                    <div data-field>
-                        <label htmlFor="incident-date" className={labelClass}>{t('serviceFeedback.incidentDate')}</label>
-                        <div className="mt-2"><LocalizedDatePicker id="incident-date" value={data.incident_date} onChange={(iso) => setData('incident_date', iso)} className="min-h-12 rounded-xl text-base" /></div>
-                        {errors.incident_date && <p role="alert" className={errorClass}>{errors.incident_date}</p>}
-                    </div>
-                    <div data-field>
-                        <label htmlFor="incident-location" className={labelClass}>{t('serviceFeedback.incidentLocation')}</label>
-                        <input id="incident-location" maxLength={255} value={data.incident_location} onChange={(event) => setData('incident_location', event.target.value)} className={fieldClass} />
-                        {errors.incident_location && <p role="alert" className={errorClass}>{errors.incident_location}</p>}
-                    </div>
+            <div role="group" aria-labelledby="when-where-title" className={`${cardClass} space-y-4`}>
+                <p id="when-where-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.sectionWhenWhere')}</p>
+                <div data-field>
+                    <label htmlFor="incident-date" className={labelClass}>{t('serviceFeedback.incidentDate')}</label>
+                    <div className="mt-2"><LocalizedDatePicker id="incident-date" value={data.incident_date} onChange={(iso) => setData('incident_date', iso)} className="min-h-12 rounded-xl text-base" /></div>
+                    {errors.incident_date && <p role="alert" className={errorClass}>{errors.incident_date}</p>}
                 </div>
+                <div data-field>
+                    <label htmlFor="incident-location" className={labelClass}>{t('serviceFeedback.incidentLocation')}</label>
+                    <input id="incident-location" maxLength={255} value={data.incident_location} onChange={(event) => setData('incident_location', event.target.value)} className={fieldClass} />
+                    {errors.incident_location && <p role="alert" className={errorClass}>{errors.incident_location}</p>}
+                </div>
+            </div>
+
+            {requirements.evidence_allowed && (
+                <EvidenceSection files={data.attachments} onChange={(files) => setData('attachments', files)} limits={evidence} error={evidenceError(errors as Record<string, string | undefined>)} />
             )}
 
-            {type === 'complaint' && allowAttachments && (
-                <div className={cardClass} data-field>
-                    <label htmlFor="complaint-attachments" className={labelClass}>
-                        {t('serviceFeedback.attachments')}
-                        <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>
-                    </label>
-                    <p id="attachment-hint" className={`mt-1 text-xs ${mutedClass}`}>{t('serviceFeedback.attachmentHint')}</p>
-                    <div className="mt-3 [&>div>button:first-child]:min-h-12 [&>div>button:first-child]:rounded-xl"><MultiFileUpload id="complaint-attachments" files={data.attachments} onChange={(files) => setData('attachments', files)} accept=".pdf,.jpg,.jpeg,.png" max={3} chooseLabel={t('serviceFeedback.chooseFiles')} removeLabel={t('serviceFeedback.removeFile')} describedBy="attachment-hint" /></div>
-                    {errors.attachments && <p role="alert" className={errorClass}>{errors.attachments}</p>}
-                </div>
-            )}
-
-            <ClientFields name={data.client_name} contact={data.client_contact} onName={(v) => setData('client_name', v)} onContact={(v) => setData('client_contact', v)} errors={errors} mode={identityMode} />
+            <AboutYou requirements={requirements} data={data} set={(field, value) => { setData(field as 'client_name', value); clearErrors(field); }} errors={errors} />
         </FormScreen>
     );
 }
@@ -573,7 +828,7 @@ function StarIcon({ filled }: { filled: boolean }) {
     );
 }
 
-function RatingForm({ target, serviceTypes, categories, links, formToken, identityMode }: { identityMode: IdentityMode; target: TargetDisplay; serviceTypes: ServiceTypeOption[]; categories: CategoryOption[]; links: Links; formToken: string | null }) {
+function RatingForm({ target, serviceTypes, categories, links, formToken, requirements }: Omit<FormProps, 'evidence'>) {
     const { t } = useLocale();
     /*
      * Hover preview is tracked separately from the committed rating so the
@@ -591,6 +846,8 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
         comment: '',
         client_name: '',
         client_contact: '',
+        client_email: '',
+        submitter_organization: '',
     });
 
     const submit = (event: FormEvent) => {
@@ -604,14 +861,14 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
     const formError = errors.form_token ?? (errors as Record<string, string | undefined>).message;
 
     return (
-        <FormScreen formRef={formRef} onSubmit={submit} identityMode={identityMode} processing={processing} submitLabel={t('serviceFeedback.submitFeedback')}>
+        <FormScreen formRef={formRef} onSubmit={submit} requirements={requirements} processing={processing} submitLabel={t('serviceFeedback.submitFeedback')}>
             <FormNotice message={formError} />
             <TargetCard target={target} />
 
             {/* The rating is the whole point here: one large, centred question with big stars. */}
             <div className={`${cardClass} px-2 py-6 text-center`} data-field>
                 <h2 className="text-lg font-bold text-[color:var(--app-foreground)]">{t('serviceFeedback.feedbackQuestion')}</h2>
-                <div className="mt-4 flex items-center justify-center gap-1" role="radiogroup" aria-label={t('serviceFeedback.satisfactionRating')} onMouseLeave={() => setHoveredRating(null)}>
+                <div className="mt-4 flex items-center justify-center gap-1" role="radiogroup" aria-required="true" aria-label={t('serviceFeedback.satisfactionRating')} onMouseLeave={() => setHoveredRating(null)}>
                     {RATING_VALUES.map((value) => (
                         <button
                             key={value}
@@ -638,7 +895,7 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
             </div>
 
             {target.target_type === 'employee' && (
-                <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={false} />
+                <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={!requirements.service_required} />
             )}
 
             <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
@@ -646,13 +903,13 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, identi
             <div className={cardClass} data-field>
                 <label htmlFor="comment" className={labelClass}>
                     {t('serviceFeedback.comment')}
-                    <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>
+                    <RequirementMark required={requirements.narrative_required} />
                 </label>
-                <textarea id="comment" rows={4} maxLength={2000} value={data.comment} onChange={(e) => setData('comment', e.target.value)} placeholder={t('serviceFeedback.commentPlaceholder')} className={areaClass} />
+                <textarea id="comment" rows={4} maxLength={2000} required={requirements.narrative_required} aria-required={requirements.narrative_required} value={data.comment} onChange={(e) => { setData('comment', e.target.value); clearErrors('comment'); }} placeholder={t('serviceFeedback.commentPlaceholder')} className={areaClass} />
                 {errors.comment && <p role="alert" className={errorClass}>{errors.comment}</p>}
             </div>
 
-            <ClientFields name={data.client_name} contact={data.client_contact} onName={(v) => setData('client_name', v)} onContact={(v) => setData('client_contact', v)} errors={errors} mode={identityMode} />
+            <AboutYou requirements={requirements} data={data} set={(field, value) => { setData(field as 'client_name', value); clearErrors(field); }} errors={errors} />
         </FormScreen>
     );
 }
@@ -685,11 +942,53 @@ function ReferenceCard({ reference }: { reference: string }) {
     );
 }
 
-function ReceiptScreen({ kind, receipt, links }: { kind: SubmissionKind; receipt: Receipt | null; links: Links }) {
+/** The submission kinds the policy allows right now, in the order every screen lists them. */
+function offeredKinds(enabledTypes: Props['enabledTypes']): SubmissionKind[] {
+    return (['feedback', 'suggestion', 'complaint'] as const).filter((kind) => enabledTypes.includes(kind));
+}
+
+/**
+ * The bottom navigation every screen of the flow carries, so the submissions
+ * and Call stay under the thumb wherever the visitor is — a visitor who opened
+ * the wrong form switches with one tap instead of going back first. The layout
+ * fixes it to the bottom edge; on a form screen it marks the open form.
+ */
+function SubmissionDock({ links, enabledTypes, call, target, active }: {
+    links: Links;
+    enabledTypes: Props['enabledTypes'];
+    call: PublicQrCall | null;
+    target: TargetDisplay['target_type'];
+    active?: SubmissionKind;
+}) {
+    return (
+        <PublicQrActionDock
+            hrefs={{ feedback: links.feedback, suggestion: links.suggestion, complaint: links.complaint }}
+            offered={offeredKinds(enabledTypes)}
+            call={call}
+            target={target}
+            active={active}
+        />
+    );
+}
+
+function ReceiptScreen({ kind, receipt, links, target, enabledTypes, call }: {
+    kind: SubmissionKind;
+    receipt: Receipt | null;
+    links: Links;
+    target: TargetDisplay;
+    enabledTypes: Props['enabledTypes'];
+    call: PublicQrCall | null;
+}) {
     const { t } = useLocale();
 
     return (
-        <FeedbackAppLayout title={t('serviceFeedback.publicTitle')} subtitle={receipt?.target_name} backHref={links.landing} backLabel={t('serviceFeedback.backToOptions')}>
+        <FeedbackAppLayout
+            title={t('serviceFeedback.publicTitle')}
+            subtitle={receipt?.target_name}
+            backHref={links.landing}
+            backLabel={t('serviceFeedback.backToOptions')}
+            dock={<SubmissionDock links={links} enabledTypes={enabledTypes} call={call} target={target.target_type} />}
+        >
             <div className="flex flex-1 flex-col items-center px-5 pb-6 pt-10 text-center">
                 <span className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-500/15" aria-hidden="true">
                     <svg viewBox="0 0 24 24" className="h-10 w-10 text-emerald-600 dark:text-emerald-300" fill="none" stroke="currentColor" strokeWidth={2.5}>
@@ -703,6 +1002,12 @@ function ReceiptScreen({ kind, receipt, links }: { kind: SubmissionKind; receipt
                     {receipt?.reference && <ReferenceCard reference={receipt.reference} />}
                     {/* The receipt (brief §42): what, about whom, the reference, and when. */}
                     <dl className={`${cardClass} space-y-3 text-left text-sm`}>
+                        {receipt?.tip_type && (
+                            <div className="flex justify-between gap-4">
+                                <dt className={`shrink-0 ${mutedClass}`}>{t('serviceFeedback.tipTypeLabel')}</dt>
+                                <dd className="text-right font-medium text-[color:var(--app-foreground)]">{t(TIP_TYPE_COPY[receipt.tip_type].label)}</dd>
+                            </div>
+                        )}
                         {receipt?.target_name && (
                             <div className="flex justify-between gap-4">
                                 <dt className={`shrink-0 ${mutedClass}`}>{t('serviceFeedback.receiptAbout')}</dt>
@@ -741,17 +1046,18 @@ function UnavailableScreen() {
     );
 }
 
-function ChoiceScreen({ target, links, enabledTypes, identityMode, call }: { target: TargetDisplay; links: Links; enabledTypes: Props['enabledTypes']; identityMode: IdentityMode; call: PublicQrCall | null }) {
+function ChoiceScreen({ target, links, enabledTypes, call }: { target: TargetDisplay; links: Links; enabledTypes: Props['enabledTypes']; call: PublicQrCall | null }) {
     const { t } = useLocale();
     const organization = target.target_type === 'organization';
     const hrefs: Record<SubmissionKind, string> = { feedback: links.feedback, suggestion: links.suggestion, complaint: links.complaint };
-    const offered = (['feedback', 'suggestion', 'complaint'] as const).filter((kind) => enabledTypes.includes(kind));
-    const hasDock = offered.length > 0 || call !== null;
+    const offered = offeredKinds(enabledTypes);
 
     return (
-        <FeedbackAppLayout title={t(organization ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}>
-            {/* Below md the action dock is fixed to the bottom edge; the extra bottom padding keeps it off the last line. */}
-            <div className={`flex flex-1 flex-col gap-6 px-4 pb-8 pt-5 ${hasDock ? 'max-md:pb-[calc(6rem+env(safe-area-inset-bottom))]' : ''}`}>
+        <FeedbackAppLayout
+            title={t(organization ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}
+            dock={<SubmissionDock links={links} enabledTypes={enabledTypes} call={call} target={target.target_type} />}
+        >
+            <div className="flex flex-1 flex-col gap-6 px-4 pb-8 pt-5">
                 {organization
                     ? <TargetCard target={target} intro={t('serviceFeedback.aboutInstitution')} />
                     : <EmployeeIdentityCard target={target} />}
@@ -785,14 +1091,13 @@ function ChoiceScreen({ target, links, enabledTypes, identityMode, call }: { tar
                     </ul>
                 </section>
 
-                <p className={`mt-auto px-2 text-center text-xs leading-relaxed ${mutedClass}`}>{t(privacyNoteKey(identityMode))}</p>
+                <p className={`mt-auto px-2 text-center text-xs leading-relaxed ${mutedClass}`}>{t('serviceFeedback.publicPrivacyNoteLanding')}</p>
             </div>
-            <PublicQrActionDock hrefs={hrefs} offered={offered} call={call} target={target.target_type} />
         </FeedbackAppLayout>
     );
 }
 
-export default function ServiceFeedback({ available, target, links, serviceTypes, categories = [], submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], identityMode = 'optional', allowAttachments = true, formToken = null, call = null }: Props) {
+export default function ServiceFeedback({ available, target, links, serviceTypes, categories = [], submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], requirements, evidence, tipTypes = ['CORRUPTION', 'IMPROPER_PRACTICE'], formToken = null, call = null }: Props) {
     const { t } = useLocale();
 
     /*
@@ -805,18 +1110,24 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
     }
 
     if (submitted) {
-        return <ReceiptScreen kind={receipt?.type ?? type ?? 'feedback'} receipt={receipt} links={links} />;
+        return <ReceiptScreen kind={receipt?.type ?? type ?? 'feedback'} receipt={receipt} links={links} target={target} enabledTypes={enabledTypes} call={call} />;
     }
 
     if (type === null) {
-        return <ChoiceScreen target={target} links={links} enabledTypes={enabledTypes} identityMode={identityMode} call={call} />;
+        return <ChoiceScreen target={target} links={links} enabledTypes={enabledTypes} call={call} />;
     }
 
     return (
-        <FeedbackAppLayout title={t(KINDS[type].label)} subtitle={target.display_name} backHref={links.landing} backLabel={t('serviceFeedback.backToOptions')}>
-            {type === 'feedback'
-                ? <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} />
-                : <ServiceEntryForm type={type} target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} allowAttachments={allowAttachments} />}
+        <FeedbackAppLayout
+            title={t(KINDS[type].label)}
+            subtitle={target.display_name}
+            backHref={links.landing}
+            backLabel={t('serviceFeedback.backToOptions')}
+            dock={<SubmissionDock links={links} enabledTypes={enabledTypes} call={call} target={target.target_type} active={type} />}
+        >
+            {type === 'feedback' && <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} requirements={requirements.feedback} />}
+            {type === 'suggestion' && <TipOffForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} requirements={requirements.suggestion} evidence={evidence} tipTypes={tipTypes} />}
+            {type === 'complaint' && <ComplaintForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} requirements={requirements.complaint} evidence={evidence} />}
         </FeedbackAppLayout>
     );
 }

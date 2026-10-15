@@ -55,6 +55,12 @@ const CARDS: Record<string, CardDefinition[]> = {
         { key: 'layout', fields: ['table_density', 'button_style', 'card_radius', 'logo_position', 'sidebar_compact_default', 'show_breadcrumbs', 'show_language_switcher'] },
         { key: 'dashboard', fields: ['dashboard_layout', 'dashboard_refresh_seconds', 'default_page_size', 'sticky_table_headers'] },
     ],
+    situation_room: [
+        { key: 'display', fields: ['default_period', 'top_n', 'cache_seconds'] },
+        { key: 'privacy', fields: ['small_cell_threshold'] },
+        { key: 'wall', fields: ['wall_refresh_seconds', 'wall_rotation_seconds'] },
+        { key: 'attention', fields: ['complaint_open_days', 'tip_off_unassigned_days', 'daily_review_backlog_days', 'field_work_overdue_hours', 'vacancy_rate_percent'] },
+    ],
     // Global defaults only: template artwork and overrides are edited in ID Card Templates.
     id_cards: [
         { key: 'headerDefaults', fields: (field) => /^(city|bureau)_name_/.test(field.key) },

@@ -10,9 +10,10 @@ use Spatie\Permission\Models\Permission;
 use function Pest\Laravel\actingAs;
 
 /*
- * Transport Management is a future phase and Court Cases a placeholder: with
- * their flags off (the production default) they are unreachable and unlisted,
- * even for an account that still holds their permissions.
+ * Transport Management is live by default and Court Cases is a placeholder
+ * that stays off. A module whose flag is off is unreachable and unlisted, even
+ * for an account that still holds its permissions; FEATURE_TRANSPORT=false
+ * switches Transport off that way without touching its data.
  */
 
 beforeEach(function (): void {
@@ -22,30 +23,31 @@ beforeEach(function (): void {
     $this->admin->givePermissionTo(['transport-providers.viewAny', 'court_cases.view']);
 });
 
-it('defaults Transport and Court Cases to disabled', function (): void {
-    expect(Features::enabled('transport'))->toBeFalse()
+it('defaults Transport to enabled and Court Cases to disabled', function (): void {
+    expect(Features::enabled('transport'))->toBeTrue()
         ->and(Features::enabled('court_cases'))->toBeFalse();
 });
 
-it('answers 404 for transport and court-case routes while disabled', function (): void {
-    actingAs($this->admin)->get(route('transport.providers.index'))->assertNotFound();
+it('serves transport and answers 404 for court cases by default', function (): void {
+    actingAs($this->admin)->get(route('transport.providers.index'))->assertOk();
     actingAs($this->admin)->get(route('court-cases.index'))->assertNotFound();
 });
 
-it('serves the module again when its flag is enabled', function (): void {
-    config(['features.transport' => true]);
+it('answers 404 for transport once its flag is switched off', function (): void {
+    config(['features.transport' => false]);
 
-    actingAs($this->admin)->get(route('transport.providers.index'))->assertOk();
+    actingAs($this->admin)->get(route('transport.providers.index'))->assertNotFound();
+    expect(Features::serviceAvailable('transport'))->toBeFalse();
 });
 
 it('shares the flags with the frontend', function (): void {
     actingAs($this->admin)->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('features.transport', false)
+            ->where('features.transport', true)
             ->where('features.court_cases', false));
 });
 
-it('never treats a provider as offering a disabled module service', function (): void {
-    expect(Features::serviceAvailable('transport'))->toBeFalse()
+it('treats transport as an available provider service while enabled', function (): void {
+    expect(Features::serviceAvailable('transport'))->toBeTrue()
         ->and(Features::serviceAvailable('cafeteria'))->toBeTrue();
 });

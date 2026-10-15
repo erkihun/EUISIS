@@ -123,7 +123,7 @@ class IdCardExportController extends Controller
     {
         if (! $this->pngExporter->isAvailable()) {
             return response(
-                'PNG export requires the Imagick PHP extension. Please contact the system administrator.',
+                'PNG export requires the Imagick PHP extension with SVG support. Please contact the system administrator.',
                 503,
                 ['Content-Type' => 'text/plain'],
             );

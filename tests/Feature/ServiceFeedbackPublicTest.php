@@ -111,7 +111,7 @@ it('opens the public feedback page with a valid token', function (): void {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Public/ServiceFeedback')
             ->where('available', true)
-            ->where('target', ['target_type' => 'employee', 'display_name' => 'Hanna Girma', 'photo_url' => null])
+            ->where('target', ['target_type' => 'employee', 'display_name' => 'Hanna Girma', 'position_title' => 'Licensing Officer', 'photo_url' => null])
         );
 });
 
@@ -190,11 +190,11 @@ it('shows the employee full name as the display name', function (): void {
 });
 
 it('lets a client submit a rating and comment', function (): void {
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 5,
         'comment' => 'Fast and courteous service.',
-    ])->assertRedirect('/service-feedback/'.$this->token->token);
+    ]))->assertRedirect('/service-feedback/'.$this->token->token);
 
     $feedback = EmployeeServiceFeedback::query()->first();
 
@@ -206,10 +206,10 @@ it('lets a client submit a rating and comment', function (): void {
 });
 
 it('snapshots the organization, unit and position at submission time', function (): void {
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 4,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $feedback = EmployeeServiceFeedback::query()->firstOrFail();
 
@@ -219,12 +219,12 @@ it('snapshots the organization, unit and position at submission time', function 
 });
 
 it('accepts an optional client name and contact', function (): void {
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 3,
         'client_name' => 'Abebe Kebede',
         'client_contact' => '0911000000',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $feedback = EmployeeServiceFeedback::query()->firstOrFail();
 
@@ -232,25 +232,23 @@ it('accepts an optional client name and contact', function (): void {
         ->and($feedback->client_contact)->toBe('0911000000');
 });
 
-it('stores an anonymous submission with no client details', function (): void {
+it('refuses anonymous feedback: a name and a phone number are required', function (): void {
     $this->post('/service-feedback/'.$this->token->token, [
         'position_service_id' => $this->positionService->id,
         'rating' => 2,
+        'comment' => 'Slow.',
         'client_name' => '',
         'client_contact' => '',
-    ])->assertRedirect();
+    ])->assertSessionHasErrors(['client_name', 'client_contact']);
 
-    $feedback = EmployeeServiceFeedback::query()->firstOrFail();
-
-    expect($feedback->client_name)->toBeNull()
-        ->and($feedback->client_contact)->toBeNull();
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
 
 it('rejects a rating outside 1 to 5', function (int $rating): void {
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => $rating,
-    ])->assertSessionHasErrors('rating');
+    ]))->assertSessionHasErrors('rating');
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 })->with([0, 6, -1, 99]);
@@ -267,28 +265,29 @@ it('rejects a service type that is inactive', function (): void {
         'is_active' => false,
     ]);
 
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $inactive->id,
         'rating' => 4,
-    ])->assertSessionHasErrors('position_service_id');
+    ]))->assertSessionHasErrors('position_service_id');
 });
 
 it('does not store feedback submitted against a revoked token', function (): void {
     app(EmployeeFeedbackTokenService::class)->revoke($this->token);
 
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 5,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
 
 it('rate limits repeated submissions from one device', function (): void {
-    $payload = [
+    $payload = pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 5,
-    ];
+    ]);
+    unset($payload['comment']);
 
     // The per-token ceiling is 3 per 10 minutes. Each attempt carries a
     // different comment: an identical repeat is a double submit, stored once.
@@ -303,10 +302,10 @@ it('rate limits repeated submissions from one device', function (): void {
 });
 
 it('writes an audit entry when feedback is submitted', function (): void {
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 1,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $log = AuditLog::query()
         ->where('event_type', AuditEventType::ServiceFeedbackSubmitted->value)
@@ -371,10 +370,10 @@ it('does not expose the raw token when the model is serialised', function (): vo
 });
 
 it('does not expose submitter ip or user agent when serialised', function (): void {
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 4,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     expect(EmployeeServiceFeedback::query()->firstOrFail()->toArray())
         ->not->toHaveKey('ip_address')
@@ -463,11 +462,11 @@ it('offers the full feedback form to an anonymous visitor', function (): void {
 });
 
 it('links a submission to the correct employee and assignment', function (): void {
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 4,
         'comment' => 'Clear guidance, thank you.',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $feedback = EmployeeServiceFeedback::query()->firstOrFail();
 
@@ -478,10 +477,10 @@ it('links a submission to the correct employee and assignment', function (): voi
 });
 
 it('records submission metadata for abuse investigation', function (): void {
-    $this->post('/service-feedback/'.$this->token->token, [
+    $this->post('/service-feedback/'.$this->token->token, pfComplete('feedback', [
         'position_service_id' => $this->positionService->id,
         'rating' => 3,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $feedback = EmployeeServiceFeedback::query()->firstOrFail();
 
@@ -608,11 +607,11 @@ it('opens exactly the three typed options from the existing feedback qr', functi
 });
 
 it('records a suggestion for the qr employee without requiring a rating', function (): void {
-    $this->post('/service-feedback/'.$this->token->token.'/suggestion', [
+    $this->post('/service-feedback/'.$this->token->token.'/suggestion', pfComplete('suggestion', [
         'message' => 'Please offer appointments earlier in the day.',
         'client_name' => 'Visitor',
         'employee_id' => 'attacker-controlled-target',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $entry = EmployeeServiceFeedback::query()->sole();
     expect($entry->type)->toBe(ServiceFeedbackType::Suggestion)
@@ -625,19 +624,20 @@ it('records a suggestion for the qr employee without requiring a rating', functi
 it('rejects disallowed complaint attachments and excessive file counts', function (): void {
     Storage::fake('local');
 
-    $this->post('/service-feedback/'.$this->token->token.'/complaint', [
+    $this->post('/service-feedback/'.$this->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'A detailed complaint.',
         'attachments' => [UploadedFile::fake()->create('malware.exe', 10, 'application/octet-stream')],
-    ])->assertSessionHasErrors('attachments.0');
+    ]))->assertSessionHasErrors('attachments.0');
 
     $files = [];
-    for ($i = 0; $i < 4; $i++) {
+    // Five files is the limit (PublicEvidencePolicy::MAX_FILES).
+    for ($i = 0; $i < 6; $i++) {
         $files[] = UploadedFile::fake()->create('evidence'.$i.'.pdf', 10, 'application/pdf');
     }
-    $this->post('/service-feedback/'.$this->token->token.'/complaint', [
+    $this->post('/service-feedback/'.$this->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'A detailed complaint.',
         'attachments' => $files,
-    ])->assertSessionHasErrors('attachments');
+    ]))->assertSessionHasErrors('attachments');
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
@@ -645,11 +645,11 @@ it('rejects disallowed complaint attachments and excessive file counts', functio
 it('issues a non-sequential complaint reference and stores approved attachments privately', function (): void {
     Storage::fake('local');
 
-    $this->post('/service-feedback/'.$this->token->token.'/complaint', [
+    $this->post('/service-feedback/'.$this->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'I was refused the service without a reason.',
         'incident_date' => now()->toDateString(),
         'attachments' => [UploadedFile::fake()->create('evidence.pdf', 100, 'application/pdf')],
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $entry = EmployeeServiceFeedback::query()->sole();
     expect($entry->type)->toBe(ServiceFeedbackType::Complaint)
@@ -664,7 +664,7 @@ it('rejects an inactive feedback qr for every new submission type', function ():
     app(EmployeeFeedbackTokenService::class)->revoke($this->token);
 
     foreach (['suggestion', 'complaint'] as $type) {
-        $this->post('/service-feedback/'.$this->token->token.'/'.$type, ['message' => 'A legitimate detailed message'])
+        $this->post('/service-feedback/'.$this->token->token.'/'.$type, pfComplete($type, ['message' => 'A legitimate detailed message']))
             ->assertRedirect('/service-feedback/'.$this->token->token);
     }
 

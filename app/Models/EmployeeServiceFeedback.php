@@ -7,6 +7,8 @@ namespace App\Models;
 use App\Casts\EncryptedOrPlaintext;
 use App\Enums\PublicFeedbackSourceType;
 use App\Enums\PublicFeedbackTargetType;
+use App\Enums\PublicIntakeChannel;
+use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Enums\SubmitterIdentityMode;
@@ -58,6 +60,12 @@ class EmployeeServiceFeedback extends Model
         'comment',
         'client_name',
         'client_contact',
+        'client_email',
+        'submitter_organization',
+        'submitter_address',
+        'tip_type',
+        'intake_channel',
+        'involved_parties',
         'ip_address',
         'user_agent',
         'status',
@@ -74,6 +82,12 @@ class EmployeeServiceFeedback extends Model
     protected $hidden = [
         'ip_address',
         'user_agent',
+        // Who sent it is a separate grant (PublicFeedbackVisibility::IDENTITY); screens add it explicitly.
+        'client_name',
+        'client_contact',
+        'client_email',
+        'submitter_organization',
+        'submitter_address',
     ];
 
     protected function casts(): array
@@ -86,6 +100,11 @@ class EmployeeServiceFeedback extends Model
             'submitter_identity_mode' => SubmitterIdentityMode::class,
             // Encrypted at rest (brief §35); rows written before encryption read through.
             'client_contact' => EncryptedOrPlaintext::class,
+            // Tipster/submitter details added with Tip-offs: encrypted from the first row.
+            'client_email' => 'encrypted',
+            'submitter_address' => 'encrypted:array',
+            'tip_type' => PublicTipType::class,
+            'intake_channel' => PublicIntakeChannel::class,
             'rating' => 'integer',
             'incident_date' => 'date',
             'submitted_at' => 'datetime',
@@ -102,6 +121,7 @@ class EmployeeServiceFeedback extends Model
         // PHP's copy of the PostgreSQL CHECK constraints: every driver, every path.
         static::saving(function (self $submission): void {
             $submission->assertTargetIntegrity();
+            $submission->assertTipTypeIntegrity();
         });
     }
 
@@ -129,6 +149,19 @@ class EmployeeServiceFeedback extends Model
         if ($source->targetType() !== $target) {
             throw new InvalidArgumentException('The submission source does not produce this target type.');
         }
+    }
+
+    /** A tip type belongs to a Tip-off (a `suggestion` row) only — the PHP copy of esf_tip_type_chk. */
+    public function assertTipTypeIntegrity(): void
+    {
+        if ($this->tip_type !== null && $this->type !== ServiceFeedbackType::Suggestion) {
+            throw new InvalidArgumentException('Only a Tip-off carries a tip type.');
+        }
+    }
+
+    public function isTipOff(): bool
+    {
+        return $this->type === ServiceFeedbackType::Suggestion;
     }
 
     public function isEmployeeTarget(): bool

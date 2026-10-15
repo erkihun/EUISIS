@@ -268,6 +268,16 @@ const settings = {
     },
     sections: {
         other: 'ሌሎች ቅንብሮች',
+        situation_room: {
+            display: 'ማሳያ',
+            displayHelp: 'የሁኔታ መከታተያ ገጽ ሲከፈት የሚያሳየው እና የተሰሉ ቁጥሮች ለምን ያህል ጊዜ እንደሚቆዩ።',
+            privacy: 'ግላዊነት',
+            privacyHelp: 'አንድን ሰው ሊጠቁሙ የሚችሉ ትናንሽ ቁጥሮች «ከN ያነሰ» ተብለው ይታያሉ።',
+            wall: 'የግድግዳ ማሳያ',
+            wallHelp: 'እያንዳንዱ የግድግዳ ገጽ የሚቆይበት ጊዜ እና ቁጥሮቹ የሚታደሱበት ድግግሞሽ።',
+            attention: 'የትኩረት ገደቦች',
+            attentionHelp: 'እስኪወሰን ድረስ ገደቡን ባዶ ይተዉት፤ ደንቡ «አልተዋቀረም» ያሳያል፤ ምንም አይቆጥርም።',
+        },
         general: {
             identity: 'መለያ',
             identityHelp: 'መድረኩ ራሱን የሚጠራበት ስም እና ተጠቃሚዎች ከገቡ በኋላ የሚከፈተው ገጽ።',
@@ -344,6 +354,7 @@ const settings = {
         },
     },
     options: {
+        default_period: { today: 'ዛሬ', week: 'ይህ ሳምንት', month: 'ይህ ወር', quarter: 'ይህ ሩብ ዓመት', year: 'ይህ ዓመት' },
         default_dashboard_route: { dashboard: 'ዳሽቦርድ', employees_index: 'ሠራተኞች', organizations_index: 'ተቋማት' },
         system_environment_label: { production: 'ምርት', staging: 'ቅድመ-ምርት', testing: 'ሙከራ', local: 'አካባቢያዊ', development: 'ልማት', demo: 'ማሳያ', training: 'ሥልጠና' },
         calendar_system_mode: { locale_based: 'ቋንቋውን ተከተል (ለአማርኛ የኢትዮጵያ)', gregorian_only: 'ጎርጎርዮሳዊ ብቻ', ethiopian_only: 'የኢትዮጵያ ብቻ' },
@@ -365,6 +376,7 @@ const settings = {
     },
     tabs: {
         field_work_gps: 'የመስክ ሥራ GPS',
+        situation_room: 'የሁኔታ መከታተያ',
         general: 'አጠቃላይ',
         localization: 'አካባቢ ቅንብር',
         notifications: 'ማሳወቂያዎች',
@@ -378,6 +390,7 @@ const settings = {
     },
     descriptions: {
         field_work_gps: 'የመስክ ሥራ የቦታ ምዝገባን እና አፈጻጸሙን ያዋቅሩ። "አልተዋቀረም" የሆኑ እሴቶች ምንም የተደበቀ ደንብ አይጭኑም።',
+        situation_room: 'ነባሪ ጊዜ፣ የመረጃ ማቆያ፣ የግድግዳ ማሳያ ጊዜ፣ የትንሽ ቡድን ግላዊነት ደንብ እና የትኩረት ገደቦች። ባዶ ገደቦች አልተዋቀሩም፤ ምንም አይቆጥሩም።',
         general: 'ዋና የመተግበሪያ መለያ፣ የድጋፍ መረጃ እና የመግቢያ ገጽ ብራንዲንግ።',
         localization: 'ነባሪ ቋንቋ፣ የሰዓት ክልል እና የማሳያ ምርጫዎች።',
         notifications: 'አጠቃላይ የማሳወቂያ ማቅረቢያ ቁጥጥር እና የኪው ባህሪ።',

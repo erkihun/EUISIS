@@ -274,7 +274,7 @@ class CodeGeneratorService
             CodeRuleEntityType::OrganizationUnit => OrganizationUnit::withTrashed()->where('code', $generatedCode)->exists(),
             CodeRuleEntityType::OrganizationUnitType => OrganizationUnitType::withTrashed()->where('code', $generatedCode)->exists(),
             CodeRuleEntityType::TransferApplication => TransferApplication::withTrashed()->where('application_number', $generatedCode)->exists(),
-            CodeRuleEntityType::PublicServiceComplaint => EmployeeServiceFeedback::query()->where('reference_number', $generatedCode)->exists(),
+            CodeRuleEntityType::PublicServiceComplaint, CodeRuleEntityType::PublicTipOff => EmployeeServiceFeedback::query()->where('reference_number', $generatedCode)->exists(),
             CodeRuleEntityType::DisciplinaryCase => DisciplinaryCase::query()->where('case_number', $generatedCode)->exists(),
             default => false,
         };

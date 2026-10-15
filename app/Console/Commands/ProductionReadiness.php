@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Models\Employee;
 use App\Services\Backup\BackupStatusService;
 use App\Services\Branding\BrandingService;
+use App\Services\IdCards\IdCardPngExporter;
 use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Support\Security\NationalIdHash;
@@ -86,7 +87,7 @@ class ProductionReadiness extends Command
         $this->check("Queue retry_after ({$retryAfter}s) exceeds the longest job timeout ({$longestTimeout}s)", config('queue.default') === 'sync' || $retryAfter > $longestTimeout, $production, 'A job still running at retry_after is handed to a second worker and runs twice.');
         $notOnOneServer = collect($schedule->events())->reject(fn ($event) => $event->onOneServer)->map(fn ($event) => (string) ($event->command ?? $event->description))->values()->all();
         $this->check('Every scheduled task runs on one server', $notOnOneServer === [], $production, 'Duplicates on a multi-node scheduler: '.implode(', ', $notOnOneServer));
-        $this->check('Transport Management is disabled (out of current scope)', ! (bool) config('features.transport'), false, 'FEATURE_TRANSPORT is on; Transport is a future phase and not part of this release.');
+        $this->check('Transport Management is enabled', (bool) config('features.transport'), false, 'FEATURE_TRANSPORT is off: transport routes answer 404 and providers cannot scan.');
         $this->check('Legacy card QR (card id only) is refused at the counter', ! (bool) config('id_cards.accept_legacy_qr'), false, 'ID_CARD_ACCEPT_LEGACY_QR is on: anyone who knows a card id can present it (decision D-3). Turn it off once the reprint is done.');
         $this->check('National-ID lookup hashes are keyed', $this->nationalIdHashesKeyed(), $production, 'Stored hashes do not match the keyed hash (decision D-1): run php artisan security:rehash-national-ids.');
         if (config('database.default') === 'pgsql') {
@@ -104,7 +105,7 @@ class ProductionReadiness extends Command
         }
         $usesRedis = collect([config('cache.default'), config('queue.default'), config('session.driver')])->contains('redis');
         $this->check('redis extension (phpredis)', ! $usesRedis || config('database.redis.client') !== 'phpredis' || extension_loaded('redis'), $production, 'Cache, queue or session use Redis through phpredis.');
-        $this->check('imagick (card PNG export)', extension_loaded('imagick'), false, 'Without it PNG card export is refused; SVG and PDF still work.');
+        $this->check('imagick with SVG support (card PNG export)', app(IdCardPngExporter::class)->isAvailable(), false, 'Without Imagick and its SVG coder (librsvg) PNG card export is refused; SVG and PDF still work.');
 
         $this->section('Branding (docs/branding.md)');
         try {
@@ -144,7 +145,7 @@ class ProductionReadiness extends Command
                 $settings = app(PublicFeedbackSettings::class);
                 $types = array_map(fn ($type): string => $type instanceof \BackedEnum ? (string) $type->value : (string) $type, $settings->enabledTypes());
                 $this->info_('Public feedback enabled / types', ($settings->enabled() ? 'yes' : 'no').' / '.($types === [] ? 'none' : implode(', ', $types)));
-                $this->info_('Submitter identity policy', $settings->identityMode()->value.' (attachments '.($settings->allowAttachments() ? 'allowed' : 'off').')');
+                $this->info_('Submitter identity policy', 'feedback & complaint named, tip-off optional (evidence '.($settings->allowAttachments() ? 'allowed' : 'off').')');
                 $this->check('Attachment disk (local) is writable', is_writable(Storage::disk('local')->path('')), $production, 'Attachments are stored on the private local disk; the web user must be able to write there.');
 
                 $assignGranted = DB::table('role_has_permissions')

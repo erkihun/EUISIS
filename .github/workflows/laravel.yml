@@ -17,7 +17,11 @@ jobs:
         # Laravel 12 needs PHP >= 8.2; composer.lock is resolved for 8.3.
         php-version: '8.3'
         # bcmath: Daily Work performance calculation (bccomp/bcdiv).
-        extensions: bcmath, pdo_sqlite, intl, gd, zip, mbstring
+        extensions: bcmath, pdo_sqlite, intl, gd, zip, mbstring, opcache
+        # Every test boots a fresh application and re-includes config and
+        # route files; without the CLI opcache each re-compile is kept until
+        # the process ends and the suite outgrows phpunit's memory_limit.
+        ini-values: opcache.enable_cli=1
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:

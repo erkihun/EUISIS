@@ -44,7 +44,7 @@ beforeEach(function (): void {
 });
 
 it('keeps the submission-time context after the employee is transferred, while a new scan uses the new context', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'Before transfer.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'Before transfer.']))->assertRedirect();
     $before = EmployeeServiceFeedback::query()->sole();
 
     $this->a->assignment->forceFill(['is_current' => false, 'effective_to' => now()->toDateString()])->save();
@@ -52,7 +52,7 @@ it('keeps the submission-time context after the employee is transferred, while a
     $this->a->employee->forceFill(['current_assignment_id' => $transfer->id])->save();
     RateLimiter::clear('sf-submit:'.$this->a->token->token.'|127.0.0.1');
 
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'After transfer.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'After transfer.']))->assertRedirect();
     $after = EmployeeServiceFeedback::query()->where('comment', 'After transfer.')->sole();
 
     expect($before->fresh()->organization_id)->toBe($this->a->organization->id)
@@ -69,7 +69,7 @@ it('keeps the submission-time context after the employee is transferred, while a
 });
 
 it('keeps the institution submission intelligible after a rename and keeps its QR valid', function (): void {
-    $this->post('/feedback/'.$this->orgToken.'/feedback', ['rating' => 5, 'comment' => 'Before rename.'])->assertRedirect();
+    $this->post('/feedback/'.$this->orgToken.'/feedback', pfComplete('feedback', ['rating' => 5, 'comment' => 'Before rename.']))->assertRedirect();
     $row = EmployeeServiceFeedback::query()->sole();
     $oldName = $this->a->organization->name_en;
 
@@ -82,8 +82,8 @@ it('keeps the institution submission intelligible after a rename and keeps its Q
 });
 
 it('keeps rows when the employee leaves, the institution is archived or the QR is revoked, and refuses a hard delete of the employee', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', ['message' => 'Employee row.'])->assertRedirect();
-    $this->post('/feedback/'.$this->orgToken.'/suggestion', ['message' => 'Institution row.'])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/suggestion', pfComplete('suggestion', ['message' => 'Employee row.']))->assertRedirect();
+    $this->post('/feedback/'.$this->orgToken.'/suggestion', pfComplete('suggestion', ['message' => 'Institution row.']))->assertRedirect();
     expect(EmployeeServiceFeedback::query()->count())->toBe(2);
 
     $this->a->employee->forceFill(['status' => EmployeeStatus::Terminated->value])->save();

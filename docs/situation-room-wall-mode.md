@@ -1,54 +1,39 @@
-# Situation Room — Wall mode
+# Executive Situation Room — Wall Mode
 
-A full-screen display for a screen in a leadership office:
-`GET /situation-room/wall`, optionally with `?organization=<id>` and the
-usual period filters.
+A full-screen display for an operations room (`/situation-room/wall`,
+grant `situation_room.wall_mode` + `situation_room.view`).
 
-## Access
+* **Aggregates only.** The server builds the wall from wall-eligible
+  categories (Overview, Workforce, Complaints, Feedback, Tip-offs, Daily
+  Operations, Field Work — those the account may see) and keeps, per
+  category, its headline figures and up to two charts. Tables and every
+  `*_employees` panel are dropped **on the server**, whatever the account's
+  grants. Tested in `SituationRoomActionsAndExportsTest`.
+* **Scope.** The wall shows the signed-in account's scope (optionally focused
+  with `?organization_id=`), like any other page. Use a dedicated account whose
+  scope matches the room the screen is in.
+* **Rotation and refresh.** Screens rotate every `wall_rotation_seconds`
+  (default 30); the figures reload every `wall_refresh_seconds` (default 300)
+  as a partial reload — no full page reload, no flicker. The footer shows when
+  the figures were computed.
+* **Controls.** Previous / next, pause (also Space, ← →), full screen,
+  language, theme, exit. Large type, no sidebar.
+* **Nothing stored in the browser** beyond the existing language preference.
+* Small-group rule applies as everywhere else.
 
-- It is an **authenticated** route in the admin group, so the normal login,
-  MFA and password-change rules apply.
-- It needs `situation_room.view` **and** `situation_room.wall_mode`.
-- It shows the scope of the signed-in user. A wall account should be a user
-  whose scope is exactly what the screen should show.
+## Kiosk setup
 
-## What it shows
-
-- The institution in view, the period and *Last updated*
-- Six KPIs: feedback, suggestions, complaints, unresolved, resolved, unrouted
-- The community feedback trend
-- Institutions compared (Top 10)
-- Categories (Top 10)
-- Status buckets
-
-## What it never shows
-
-- No person's name: not employees, not visitors.
-- No submission text, identity or attachments.
-- No filters, menus or buttons, except "Leave wall mode".
-
-A test checks that the wall page data contains none of a fixture's message,
-visitor name or employee name.
-
-## Refresh
-
-- The page reloads only the `wall` prop every `refreshSeconds` (300 seconds),
-  through `router.reload({ only: ['wall'] })`.
-- The server caches the wall payload for the same 300 seconds per scope and
-  filters. Ten screens on the same view cost one computation per five minutes.
-
-## Presentation
-
-- `WallLayout` has no sidebar, uses large type and draws on the theme tokens,
-  so the light and dark themes both keep their contrast.
-- It is sized for 1920×1080 and stays readable on a laptop.
-- Charts carry a screen-reader summary.
-- The reload interval is stated on screen.
+1. Create a user with `situation_room.view` + `situation_room.wall_mode` and the
+   category grants to display, scoped to the organization the room covers.
+2. Sign in on the display, open Wall Mode, press **Full screen**.
+3. Session timeouts follow the security settings; plan re-authentication for
+   long-running displays.
 
 ## Open points
 
 - **D8: kiosk session.** The user session times out as it does everywhere.
   A display account with a longer session, or a signed display link, needs a
   decision. Neither is built.
-- Choosing the scope of a wall: today it is the signed-in user's scope, plus
-  an optional institution in the URL.
+- The Community Voice view no longer has a wall of its own: its KPIs, trend
+  and breakdowns appear on this wall through the Public Complaints, Public
+  Feedback and Tip-offs screens, so there is one wall to configure and audit.

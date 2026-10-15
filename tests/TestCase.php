@@ -3,6 +3,8 @@
 namespace Tests;
 
 use App\Services\Security\SessionActivityService;
+use Carbon\AbstractTranslator;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\ParallelTesting;
@@ -27,6 +29,23 @@ abstract class TestCase extends BaseTestCase
             if (! str_ends_with($baseDatabase, '_test') || ! in_array($database, $allowedDatabases, true)) {
                 throw new \RuntimeException('PostgreSQL tests require DB_TEST_DATABASE to name a dedicated database ending in _test (or its matching parallel worker database).');
             }
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        // Carbon keeps one translator per PHP process. Every application boot
+        // runs Carbon\Laravel\ServiceProvider::boot(), whose setFallbackLocale()
+        // calls append a merged copy of the locale messages to that shared
+        // translator, so a long suite grew by ~60 KB per test and exhausted the
+        // phpunit memory_limit. Each test boots a fresh application that sets
+        // the locale again, so dropping the accumulated copies loses nothing.
+        $translator = Carbon::getTranslator();
+
+        if ($translator instanceof AbstractTranslator) {
+            $translator->resetMessages();
         }
     }
 

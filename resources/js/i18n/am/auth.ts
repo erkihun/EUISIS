@@ -1,5 +1,6 @@
 const auth = {
     loggedIn: 'ገብተዋል!',
+    must_change_password_notice: 'ፖርታሉን ከመጠቀምዎ በፊት የተሰጠዎትን የይለፍ ቃል ይቀይሩ።',
     login: 'ይግቡ',
     logout: 'ይውጡ',
     register: 'ይመዝገቡ',

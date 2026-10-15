@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import ThemeToggle from '@/Components/ThemeToggle';
@@ -8,23 +8,26 @@ import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import Dropdown from '@/Components/Dropdown';
 import { ActivityIcon, ChevronDown, LayoutDashboard, LogOut, MenuIcon, QrCodeIcon, ReceiptTextIcon, ScrollText, UserIcon, X } from '@/Components/Icons';
 import type { PageProps } from '@/types';
+import type { TransportPortalCan } from '@/types/transport';
 
 import { badgeClassName } from '@/Components/ui';
 type ProviderPortal = {
+    can?: Partial<TransportPortalCan>;
     user?: { name?: string | null; email?: string | null; initials?: string | null } | null;
     provider?: { code?: string | null; name_en?: string | null; name_am?: string | null } | null;
 };
 
+// Each link shows only when the provider user holds its permission (the route middleware checks the same key).
 const NAV = [
-    ['provider.portal.transport.dashboard', 'transport.dashboard', LayoutDashboard],
-    ['provider.portal.transport.scan', 'transport.scan_id', QrCodeIcon],
-    ['provider.portal.transport.transactions.index', 'transport.transactions', ReceiptTextIcon],
-    ['provider.portal.transport.routes.index', 'transport.routes', ScrollText],
-    ['provider.portal.transport.vehicles.index', 'transport.vehicles', ActivityIcon],
-    ['provider.portal.transport.drivers.index', 'transport.drivers', UserIcon],
-    ['provider.portal.transport.trips.index', 'transport.trips', ActivityIcon],
-    ['provider.portal.transport.reports.index', 'transport.reports', ScrollText],
-] as const;
+    ['provider.portal.transport.dashboard', 'transport.portalHome', LayoutDashboard, 'transportDashboardView'],
+    ['provider.portal.transport.scan', 'transport.scan_id', QrCodeIcon, 'transportScan'],
+    ['provider.portal.transport.transactions.index', 'transport.transactionsAdmin', ReceiptTextIcon, 'transportTransactionsView'],
+    ['provider.portal.transport.trips.index', 'transport.trips', ActivityIcon, 'transportTripsManage'],
+    ['provider.portal.transport.routes.index', 'transport.routes', ScrollText, 'transportRoutesManage'],
+    ['provider.portal.transport.vehicles.index', 'transport.vehicles', ActivityIcon, 'transportVehiclesManage'],
+    ['provider.portal.transport.drivers.index', 'transport.drivers', UserIcon, 'transportDriversManage'],
+    ['provider.portal.transport.reports.index', 'transport.reports', ScrollText, 'transportReportsView'],
+] as const satisfies readonly (readonly [string, string, unknown, keyof TransportPortalCan])[];
 
 function BusIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -59,8 +62,8 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                 )}
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-                {NAV.map(([routeName, labelKey, Icon]) => {
-                    const active = currentRoute === routeName;
+                {NAV.filter(([, , , ability]) => providerPortal?.can?.[ability]).map(([routeName, labelKey, Icon]) => {
+                    const active = currentRoute === routeName || (routeName.endsWith('.index') && Boolean(currentRoute?.startsWith(routeName.slice(0, -'index'.length))));
 
                     return (
                         <Link
@@ -112,6 +115,9 @@ function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void
                 </Dropdown.Trigger>
                 <Dropdown.Content>
                     <div className="px-4 py-2 text-sm text-[color:var(--app-foreground)]">{user?.name}</div>
+                    <Dropdown.Link href={route('provider.portal.profile.show')}>
+                        <span className="flex items-center gap-2"><UserIcon className="h-4 w-4" /> {t('providerPortal.profile')}</span>
+                    </Dropdown.Link>
                     <Dropdown.Link href={route('provider.portal.logout')} method="post" as="button">
                         <span className="flex items-center gap-2 text-red-600"><LogOut className="h-4 w-4" /> {t('providerPortal.logout')}</span>
                     </Dropdown.Link>
@@ -127,6 +133,7 @@ export default function TransportProviderLayout({ title, header, children }: Pro
     return (
         <LocalizedUiProvider>
         <div className="min-h-screen bg-[color:var(--app-surface-muted)]">
+            <Head title={title} />
             <AppToaster />
             <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:w-64">
                 <Sidebar />

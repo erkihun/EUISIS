@@ -72,10 +72,12 @@ function matrixCase(string $target, string $type): array
 {
     $employee = $target === 'employee';
     $base = $employee ? '/service-feedback/'.test()->a->token->token : '/feedback/'.test()->orgToken;
+    // Feedback and Complaint come from a named visitor; the Tip-off is anonymous and names its type.
+    $identity = ['client_name' => 'Matrix Visitor', 'client_contact' => '+251911223344'];
     $payload = match ($type) {
-        'feedback' => ['rating' => 4, 'comment' => 'Matrix feedback '.$target] + ($employee ? ['position_service_id' => test()->a->positionService->id] : []),
-        'suggestion' => ['message' => 'Matrix suggestion '.$target],
-        'complaint' => ['message' => 'Matrix complaint '.$target, 'incident_location' => 'Counter 2'],
+        'feedback' => ['rating' => 4, 'comment' => 'Matrix feedback '.$target] + $identity + ($employee ? ['position_service_id' => test()->a->positionService->id] : []),
+        'suggestion' => ['message' => 'Matrix tip-off '.$target, 'tip_type' => 'IMPROPER_PRACTICE'],
+        'complaint' => ['message' => 'Matrix complaint '.$target, 'incident_location' => 'Counter 2'] + $identity,
     };
 
     return [
@@ -128,7 +130,7 @@ it('works end to end for', function (string $target, string $type) {
             ->and($row->currentAssignment?->handler_id)->toBe((string) $this->handler->id)
             ->and($row->statusHistory()->pluck('to_status')->all())->toBe(['pending', 'assigned'])
             ->and($row->rating)->toBeNull();
-        expect($row->reference_number)->{$kind === ServiceFeedbackType::Complaint ? 'toStartWith' : 'toBeNull'}(...($kind === ServiceFeedbackType::Complaint ? ['PSC-'] : []));
+        expect($row->reference_number)->toStartWith($kind === ServiceFeedbackType::Complaint ? 'PSC-' : 'PTO-');
     }
 
     // Permissions and scope: the institution's handler opens it; a foreign-scope handler does not.

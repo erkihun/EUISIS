@@ -24,11 +24,13 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\ProviderUser;
 use App\Models\StrategicGoal;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\Cafeteria\Policy\CafeteriaEntitlementService;
 use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Support\Demo\DemoDataset;
 use App\Support\Demo\DemoDataValidator;
 use Database\Seeders\DatabaseSeeder;
@@ -43,6 +45,16 @@ use Illuminate\Support\Facades\Storage;
  */
 
 beforeEach(function (): void {
+    // The migration pins Daily Activity's tracking start to the day it runs in
+    // Africa/Addis_Ababa, while the demo anchors on the UTC date. Every test
+    // migrates afresh, so from 21:00 to 24:00 UTC tracking would start
+    // "tomorrow" and no seeded day would be tracked. A deployment that has
+    // been live a week is what the demo describes.
+    SystemSetting::query()
+        ->where('group', SystemSettingsRegistry::GROUP_DAILY_ACTIVITY)
+        ->where('key', 'tracking_start_date')
+        ->update(['value' => now()->subWeek()->toDateString()]);
+
     // Card printing writes artwork to the local disk.
     Storage::fake('local');
     Storage::fake('public');

@@ -70,6 +70,8 @@ const allEntries: NavEntry[] = [
     { routeName: 'transport.vehicles.index', labelKey: 'nav.transportVehicles', groupKey: 'nav.groupTransport', icon: Activity,         permission: 'transport-vehicles.viewAny' },
     { routeName: 'transport.drivers.index', labelKey: 'nav.transportDrivers', groupKey: 'nav.groupTransport', icon: User,             permission: 'transport-drivers.viewAny' },
     { routeName: 'transport.passes.index', labelKey: 'nav.transportPasses', groupKey: 'nav.groupTransport', icon: BadgeCheck,       permission: 'transport-passes.viewAny' },
+    { routeName: 'transport.transactions.index', labelKey: 'nav.transportTransactions', groupKey: 'nav.groupTransport', icon: ScrollText, permission: 'transport-transactions.viewAny' },
+    { routeName: 'transport.reports.index', labelKey: 'nav.transportReports', groupKey: 'nav.groupTransport', icon: ScrollText,       permission: 'transport-reports.view' },
     // Configuration
     { routeName: 'code-rules.index', labelKey: 'nav.codeRules', groupKey: 'nav.groupConfiguration', icon: Hash,             permission: 'code-rules.viewAny' },
     { routeName: 'audit-logs.index', labelKey: 'nav.auditLogs', groupKey: 'nav.groupConfiguration', icon: ScrollText,       permission: 'audit.view' },

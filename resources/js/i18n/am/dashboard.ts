@@ -264,6 +264,12 @@ const dashboard = {
         lowRatingPending: 'ዝቅተኛ ደረጃ በመጠባበቅ ላይ',
         pendingReview: 'ግምገማ በመጠባበቅ ላይ',
     },
+    tipOffs: {
+        total: 'የደረሱ ጥቆማዎች',
+        corruption: 'የሙስና ጥቆማዎች',
+        improperPractice: 'የብልሹ አሠራር ጥቆማዎች',
+        awaitingRouting: 'ተቀባይ የሚጠብቁ ጥቆማዎች',
+    },
 } as const;
 
 export default dashboard;

@@ -1,4 +1,8 @@
-# Executive Situation Room (የአመራር ሁኔታ መከታተያ ማዕከል)
+# Executive Situation Room — Community Voice by Institution
+
+> This page is one view of the Executive Situation Room (የአመራር ሁኔታ መከታተያ ማዕከል).
+> The room's launcher, its sixteen categories, reports and wall are described in
+> [situation-room-architecture.md](situation-room-architecture.md).
 
 One page where a leader at any level sees what the public is saying about
 service delivery in the institutions they are responsible for, and where
@@ -21,11 +25,12 @@ Related documents:
 
 | Route | Page | Permission |
 |---|---|---|
-| `GET /situation-room` | Overview for everything in the user's scope | `situation_room.view` |
-| `GET /situation-room/organizations/{organization}` | The same overview for one institution and everything under it | `situation_room.view` and the institution in scope |
+| `GET /situation-room` | The room's category launcher (see [situation-room-architecture.md](situation-room-architecture.md)) | `situation_room.view` |
+| `GET /situation-room/community-voice` | This overview for everything in the user's scope | `situation_room.view` and `situation_room.public_voice.view` |
+| `GET /situation-room/community-voice/organizations/{organization}` | The same overview for one institution and everything under it | as above, and the institution in scope |
 | `GET /situation-room/targeted-employees` | Employee-targeted counts per employee | `situation_room.view_employee_targeted` and `service_feedback.view_employee_target` |
 | `GET /situation-room/targeted-employees/{employee}` | One employee's submissions; text only with `situation_room.view_detail` | as above |
-| `GET /situation-room/wall` | Full-screen aggregate display | `situation_room.view` and `situation_room.wall_mode` |
+| `GET /situation-room/wall` | The room's one full-screen aggregate display (community voice appears as its Complaints, Feedback and Tip-offs screens) | `situation_room.view` and `situation_room.wall_mode` |
 | `GET /situation-room/actions` (+ `POST`, `PATCH /{action}`) | Action Register | `situation_room.view`; changes need `situation_room.manage_actions` |
 | `POST /situation-room/exports`, `GET /situation-room/exports/{export}` | Queued institution export | `situation_room.export`; download by the requester only |
 | `POST /situation-room/refresh` | Drops the user's cached sections for the current view | `situation_room.view` |

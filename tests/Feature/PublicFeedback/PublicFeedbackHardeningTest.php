@@ -68,10 +68,10 @@ beforeEach(function (): void {
 });
 
 it('answers 403 on every management route to a foreign-scope admin and to the target employee', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', [
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'Hardening fixture.', 'client_name' => 'Abebe', 'client_contact' => '0911223344',
         'attachments' => [UploadedFile::fake()->createWithContent('evidence.pdf', "%PDF-1.4\n%fake\n")],
-    ])->assertRedirect();
+    ]))->assertRedirect();
     $complaint = EmployeeServiceFeedback::query()->sole();
     app(PublicFeedbackAssignmentService::class)->assign($complaint, PublicFeedbackHandlerType::User, (string) $this->insider->id, $this->superAdmin);
     app(PublicFeedbackWorkflow::class)->transition($complaint, ServiceFeedbackStatus::UnderReview, $this->insider);
@@ -107,7 +107,7 @@ it('never accepts a sequential or guessed identifier on a public or management r
     $this->get('/service-feedback/1')->assertOk()->assertInertia(fn ($page) => $page->where('available', false));
     $this->get('/feedback/1')->assertOk()->assertInertia(fn ($page) => $page->where('available', false));
     $this->get('/feedback/'.str_repeat('a', 64))->assertOk()->assertInertia(fn ($page) => $page->where('available', false));
-    $this->post('/service-feedback/1/complaint', ['message' => 'x'])->assertRedirect('/service-feedback/1');
+    $this->post('/service-feedback/1/complaint', pfComplete('complaint', ['message' => 'x']))->assertRedirect('/service-feedback/1');
 
     $this->actingAs($this->superAdmin)->get('/service-submissions/complaint/1')->assertNotFound();
     $this->actingAs($this->superAdmin)->get('/service-submissions/complaint/00000000-0000-0000-0000-000000000000')->assertNotFound();
@@ -117,7 +117,7 @@ it('never accepts a sequential or guessed identifier on a public or management r
 
 it('escapes stored text on every page that shows it', function (): void {
     $payload = '<script>alert("xss")</script><img src=x onerror=alert(1)>';
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => $payload, 'client_name' => $payload, 'incident_location' => $payload])->assertRedirect();
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => $payload, 'client_name' => $payload, 'incident_location' => $payload]))->assertRedirect();
     $complaint = EmployeeServiceFeedback::query()->sole();
     expect($complaint->comment)->toBe($payload);
 
@@ -132,9 +132,9 @@ it('escapes stored text on every page that shows it', function (): void {
 });
 
 it('keeps the narrative and the contact out of the audit trail', function (): void {
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', [
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', [
         'message' => 'SECRET-NARRATIVE the counter was closed', 'client_name' => 'Abebe Kebede', 'client_contact' => '0911223344',
-    ])->assertRedirect();
+    ]))->assertRedirect();
     $complaint = EmployeeServiceFeedback::query()->sole();
     app(PublicFeedbackAssignmentService::class)->assign($complaint, PublicFeedbackHandlerType::User, (string) $this->insider->id, $this->superAdmin, 'Handled by the insider');
     app(PublicFeedbackWorkflow::class)->transition($complaint, ServiceFeedbackStatus::UnderReview, $this->insider);
@@ -150,7 +150,7 @@ it('keeps the narrative and the contact out of the audit trail', function (): vo
 
 it('keeps the three types strictly on one table with no sibling records in other domains', function (): void {
     foreach (['feedback' => ['position_service_id' => $this->a->positionService->id, 'rating' => 4], 'suggestion' => ['message' => 'S'], 'complaint' => ['message' => 'C']] as $type => $payload) {
-        $this->post('/service-feedback/'.$this->a->token->token.'/'.$type, $payload)->assertRedirect();
+        $this->post('/service-feedback/'.$this->a->token->token.'/'.$type, pfComplete($type, $payload))->assertRedirect();
     }
 
     expect(EmployeeServiceFeedback::query()->pluck('type')->map(fn (ServiceFeedbackType $t) => $t->value)->sort()->values()->all())->toBe(['complaint', 'feedback', 'suggestion'])

@@ -73,11 +73,11 @@ it('registers only the entry permission, in its own category', function (): void
 
 it('gives the sidebar the court cases entry only when the user holds the permission', function (): void {
     $sidebar = courtCasesSource('resources/js/Components/AppSidebar.tsx');
-    $group = strpos($sidebar, "key: 'courtCases'");
+    $group = strpos($sidebar, "key: 'tribunalCourt'");
     $grievances = strpos($sidebar, "key: 'grievances'");
     $item = strpos($sidebar, "routeName: 'court-cases.index'");
 
-    // The item is gated by court_cases.view and sits in its own group, not under Grievance Management.
+    // The item is gated by court_cases.view and sits in the Tribunal Court group, not under Grievance Management.
     expect(substr_count($sidebar, "routeName: 'court-cases.index'"))->toBe(1)
         ->and($sidebar)->toContain("{ routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: ScaleIcon, permission: 'court_cases.view' }")
         ->and($group)->toBeGreaterThan($grievances)
@@ -110,9 +110,8 @@ it('has the module name, description and status in English and Amharic', functio
     preg_match_all('/^\s{4}(\w+):/m', $en, $enKeys);
     preg_match_all('/^\s{4}(\w+):/m', $am, $amKeys);
     expect($amKeys[1])->toBe($enKeys[1])
-        ->and(courtCasesSource('resources/js/hooks/useLocale.ts'))
-        ->toContain('courtCases: enCourtCases')
-        ->toContain('courtCases: amCourtCases');
+        ->and(courtCasesSource('resources/js/i18n/bundles/en.ts'))->toContain('courtCases: enCourtCases')
+        ->and(courtCasesSource('resources/js/i18n/bundles/am.ts'))->toContain('courtCases: amCourtCases');
 });
 
 it('serves the page in the viewer\'s locale', function (string $locale): void {

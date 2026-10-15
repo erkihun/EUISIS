@@ -4,6 +4,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import type { TipType } from '@/types/publicSubmissions';
 
 export type HandlerType = 'user' | 'organization_unit' | 'role';
 
@@ -12,6 +13,7 @@ export type RuleRecord = {
     organization_id: string | null;
     target_type: 'employee' | 'organization' | null;
     submission_type: 'suggestion' | 'complaint' | null;
+    tip_type: TipType | null;
     category_id: string | null;
     handler_type: HandlerType;
     handler_id: string;
@@ -39,6 +41,7 @@ export default function RuleForm({ record, organizations, categories, canManageC
         organization_id: record?.organization_id ?? (canManageCityWide ? '' : organizations[0]?.id ?? ''),
         target_type: record?.target_type ?? '',
         submission_type: record?.submission_type ?? '',
+        tip_type: record?.tip_type ?? '',
         category_id: record?.category_id ?? '',
         handler_type: (record?.handler_type ?? 'user') as HandlerType,
         handler_id: record?.handler_id ?? '',
@@ -75,6 +78,8 @@ export default function RuleForm({ record, organizations, categories, canManageC
             organization_id: data.organization_id === '' ? null : data.organization_id,
             target_type: data.target_type === '' ? null : data.target_type,
             submission_type: data.submission_type === '' ? null : data.submission_type,
+            // A tip type narrows only a Tip-off rule.
+            tip_type: data.tip_type === '' || data.submission_type === 'complaint' ? null : data.tip_type,
             category_id: data.category_id === '' ? null : data.category_id,
             effective_from: data.effective_from === '' ? null : data.effective_from,
             effective_to: data.effective_to === '' ? null : data.effective_to,
@@ -123,13 +128,24 @@ export default function RuleForm({ record, organizations, categories, canManageC
                     </FormField>
                     <FormField id="rule-type" label={t('serviceFeedback.appliesToTypes')} error={errors.submission_type}>
                         {({ id, describedBy, invalid }) => (
-                            <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.submission_type} onChange={(e) => form.setData('submission_type', e.target.value)}>
+                            <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.submission_type} onChange={(e) => form.setData((data) => ({ ...data, submission_type: e.target.value, tip_type: e.target.value === 'complaint' ? '' : data.tip_type }))}>
                                 <option value="">{t('serviceFeedback.anySubmissionType')}</option>
                                 <option value="suggestion">{t('serviceFeedback.typeSuggestion')}</option>
                                 <option value="complaint">{t('serviceFeedback.typeComplaint')}</option>
                             </Select>
                         )}
                     </FormField>
+                    {form.data.submission_type !== 'complaint' && (
+                        <FormField id="rule-tip-type" label={t('serviceFeedback.ruleTipType')} description={t('serviceFeedback.ruleTipTypeHint')} error={errors.tip_type}>
+                            {({ id, describedBy, invalid }) => (
+                                <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.tip_type} onChange={(e) => form.setData('tip_type', e.target.value)}>
+                                    <option value="">{t('serviceFeedback.anyTipTypeExceptCorruption')}</option>
+                                    <option value="CORRUPTION">{t('serviceFeedback.tipTypeCorruption')}</option>
+                                    <option value="IMPROPER_PRACTICE">{t('serviceFeedback.tipTypeImproperPractice')}</option>
+                                </Select>
+                            )}
+                        </FormField>
+                    )}
                     <FormField id="rule-handler-type" label={t('serviceFeedback.handlerType')} error={errors.handler_type} required>
                         {({ id, describedBy, invalid }) => (
                             <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.handler_type} onChange={(e) => form.setData((data) => ({ ...data, handler_type: e.target.value as HandlerType, handler_id: '' }))}>

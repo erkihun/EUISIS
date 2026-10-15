@@ -32,9 +32,9 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\CommunityVoiceQuery;
+use App\Services\SituationRoom\CommunityVoiceRoomService;
 use App\Services\SituationRoom\SituationRoomFilters;
 use App\Services\SituationRoom\SituationRoomScope;
-use App\Services\SituationRoom\SituationRoomService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Storage;
@@ -51,11 +51,11 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 const SR_PERMISSIONS = [
     'situation_room.view', 'situation_room.view_employee_targeted', 'situation_room.view_detail',
-    'situation_room.export', 'situation_room.wall_mode', 'situation_room.manage_actions',
+    'situation_room.export', 'situation_room.wall_mode', 'situation_room.manage_actions', 'situation_room.public_voice.view',
     'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
 ];
 
-const SR_AGGREGATE = ['situation_room.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target'];
+const SR_AGGREGATE = ['situation_room.view', 'situation_room.public_voice.view', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target'];
 
 function srOrg(string $code): Organization
 {
@@ -221,6 +221,7 @@ it('needs the Situation Room permission', function (): void {
     $other = srUser(['service_feedback.view_employee_target', 'service_feedback.view_organization_target'], $this->bureau);
 
     $this->actingAs($other)->get(route('situation-room.index'))->assertForbidden();
+    $this->actingAs($other)->get(route('situation-room.community-voice'))->assertForbidden();
     $this->actingAs($other)->get(route('situation-room.wall'))->assertForbidden();
     $this->actingAs($other)->get(route('situation-room.actions.index'))->assertForbidden();
 });
@@ -275,7 +276,7 @@ it('separates target types by the viewer grants', function (): void {
 it('never shares a cached section between leaders with different reach', function (): void {
     srRow($this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending);
     srRow($this->bureau, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending);
-    $room = app(SituationRoomService::class);
+    $room = app(CommunityVoiceRoomService::class);
 
     $bureauHeadline = $room->headline(srScope($this->bureauHead), $this->filters);
     $woredaHeadline = $room->headline(srScope($this->woredaHead), $this->filters);
@@ -288,7 +289,7 @@ it('never shares a cached section between leaders with different reach', functio
 
 it('says nothing is overdue or rising until the rules are configured', function (): void {
     srRow($this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, ['submitted_at' => now()->subDays(20)]);
-    $room = app(SituationRoomService::class);
+    $room = app(CommunityVoiceRoomService::class);
     $codes = fn (): array => array_column($room->comparison(srScope($this->bureauHead), $this->filters)['attention'], 'code');
 
     expect($codes())->toContain('unresolved_complaints')->not->toContain('overdue');
@@ -331,8 +332,15 @@ it('keeps the Wall to aggregates: no narrative, no person', function (): void {
     $employee = srEmployee($this->woreda, 'Kebede');
     srEmployeeRow($employee, $this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, ['comment' => 'Secret wall text', 'client_name' => 'Visitor Name']);
 
-    $response = $this->actingAs($this->bureauHead)->get(route('situation-room.wall'))->assertOk();
-    $json = json_encode($response->viewData('page'), JSON_THROW_ON_ERROR);
+    // The room has one wall; its figures are a deferred prop, so load them before looking.
+    $json = '';
+    $this->actingAs($this->bureauHead)->get(route('situation-room.wall'))->assertOk()
+        ->assertInertia(function (Assert $page) use (&$json): void {
+            $page->component('SituationRoom/Wall')->loadDeferredProps(function (Assert $reload) use (&$json): void {
+                $json = json_encode($reload->toArray(), JSON_THROW_ON_ERROR);
+            });
+        });
+    expect($json)->toContain('complaints');
 
     expect($json)->not->toContain('Secret wall text')
         ->not->toContain('Visitor Name')
@@ -428,7 +436,7 @@ it('flags an increase only past the configured threshold and never from zero', f
     }
     app(SystemSettingsService::class)->clearCache();
 
-    $items = collect(app(SituationRoomService::class)->comparison(srScope($this->bureauHead), $this->filters)['attention'])->where('code', 'increase');
+    $items = collect(app(CommunityVoiceRoomService::class)->comparison(srScope($this->bureauHead), $this->filters)['attention'])->where('code', 'increase');
 
     // Complaints 2 → 5 is +150%; suggestions 0 → 5 has no baseline and is not called an increase.
     expect($items)->toHaveCount(1)
@@ -455,10 +463,10 @@ it('needs the wall permission for wall mode, and defers the slower sections', fu
     $viewer = srUser(SR_AGGREGATE, $this->bureau);
     $this->actingAs($viewer)->get(route('situation-room.wall'))->assertForbidden();
 
-    $this->actingAs($viewer)->get(route('situation-room.index'))
+    $this->actingAs($viewer)->get(route('situation-room.community-voice'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('SituationRoom/Index')
+            ->component('SituationRoom/CommunityVoice')
             ->has('headline.kpis.current')
             ->missing('comparison')
             ->missing('breakdown')

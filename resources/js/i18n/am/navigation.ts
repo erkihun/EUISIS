@@ -117,6 +117,8 @@ const navigation = {
     situationRoom: 'የሁኔታ መከታተያ ማዕከል',
     situationRoomWall: 'የግድግዳ ማሳያ',
     situationRoomActions: 'የእርምጃ መዝገብ',
+    situationRoomCommunityVoice: 'የሕዝብ ድምፅ በተቋም',
+    situationRoomReports: 'የአመራር ሪፖርቶች',
     serviceFeedbackCategories: 'ምድቦች',
     serviceFeedbackRoutingRules: 'የማስተላለፊያ ደንቦች',
     organizationFeedbackQrCodes: 'የተቋም QR ኮዶች',
@@ -170,6 +172,7 @@ const navigation = {
     transportVehicles: 'ተሽከርካሪዎች',
     transportDrivers: 'አሽከርካሪዎች',
     transportPasses: 'ፓሶች',
+    transportTransactions: 'የመሳፈሪያ መዝገቦች',
     transportReports: 'ሪፖርቶች',
     transportSettings: 'የትራንስፖርት ቅንብሮች',
     // የእኔ ፖርታል የጎን ምናሌ ምድቦች

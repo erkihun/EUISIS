@@ -12,6 +12,7 @@ use App\Http\Middleware\EnsureMfaNotRequired;
 use App\Http\Middleware\EnsureProviderHasActiveAssignment;
 use App\Http\Middleware\EnsureProviderPortalUser;
 use App\Http\Middleware\EnsureProviderServiceEnabled;
+use App\Http\Middleware\EnsureProviderServicePermission;
 use App\Http\Middleware\EnsureProviderServiceScope;
 use App\Http\Middleware\EnsurePublicSiteEnabled;
 use App\Http\Middleware\ExternalApplicationGate;
@@ -89,6 +90,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'provider.scope' => EnsureProviderServiceScope::class,
             'provider.portal' => EnsureProviderPortalUser::class,
             'provider.service' => EnsureProviderServiceEnabled::class,
+            'provider.permission' => EnsureProviderServicePermission::class,
             'provider.portal.context' => SetProviderPortalContext::class,
             'provider.assigned' => EnsureProviderHasActiveAssignment::class,
             'cafeteria.portal' => EnsureCafeteriaPortalUser::class,

@@ -16,6 +16,7 @@ return [
         'appearance_updated' => 'የገጽታ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
         'id_cards_updated' => 'የመታወቂያ ካርድ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
         'field_work_gps_updated' => 'የመስክ ሥራ የGPS ፖሊሲ ተዘምኗል።',
+        'situation_room_updated' => 'የሁኔታ መከታተያ ቅንብሮች ተዘምነዋል።',
         'setting_updated' => 'ቅንብሩ በተሳካ ሁኔታ ተዘምኗል።',
         'cache_cleared' => 'የቅንብር ካሽ በተሳካ ሁኔታ ተጽድቷል።',
         'test_channel_missing' => 'የ:channel የሙከራ መዳረሻ አልተቀናበረም።',

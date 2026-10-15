@@ -41,7 +41,7 @@ class TransportScanController extends Controller
         return response()->json([
             'accepted' => $result['accepted'],
             'result_code' => $result['result_code'],
-            'message' => __($result['message_key']),
+            'message' => $scanService->message($result),
             'transaction' => $result['transaction'] ? (new TransportTransactionResource($result['transaction']))->resolve() : null,
         ], $result['accepted'] ? 201 : 422);
     }

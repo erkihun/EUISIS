@@ -27,9 +27,15 @@ final class IdCardPngExporter
 
     private const FALLBACK_H_MM = 54.0;
 
+    /**
+     * Imagick alone is not enough: ImageMagick rasterises SVG through its SVG
+     * coder (librsvg or the built-in MSVG), which many builds leave out. On
+     * such a server every conversion failed with a 500; it now reports the
+     * export as unavailable (a clear 503) instead.
+     */
     public function isAvailable(): bool
     {
-        return extension_loaded('imagick');
+        return extension_loaded('imagick') && \Imagick::queryFormats('SVG') !== [];
     }
 
     /**
@@ -41,7 +47,7 @@ final class IdCardPngExporter
     {
         if (! $this->isAvailable()) {
             throw new RuntimeException(
-                'PNG export requires the Imagick PHP extension. '
+                'PNG export requires the Imagick PHP extension with SVG support (librsvg). '
                 .'Please install it and restart the web server.',
             );
         }

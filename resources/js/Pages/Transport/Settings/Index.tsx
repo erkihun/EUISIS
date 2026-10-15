@@ -1,29 +1,17 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEvent } from 'react';
-import { useLocale } from '@/hooks/useLocale';
+import { Button, Card } from '@euisis/ui';
+import type { FormEvent } from 'react';
+import { useTransportLabels } from '@/Components/transport/labels';
 
-type Settings = {
-    require_pass_for_scan: boolean;
-    allow_pay_as_you_go: boolean;
-    scan_nonce_required: boolean;
-};
+type Settings = { require_pass_for_scan: boolean; allow_pay_as_you_go: boolean; scan_nonce_required: boolean };
 
-const labels: Record<keyof Settings, string> = {
-    require_pass_for_scan: 'transport.requirePassForScan',
-    allow_pay_as_you_go: 'transport.allowPayAsYouGo',
-    scan_nonce_required: 'transport.scanNonceRequired',
-};
+const KEYS: (keyof Settings)[] = ['require_pass_for_scan', 'allow_pay_as_you_go', 'scan_nonce_required'];
 
-/* Named to avoid shadowing the globally shared `settings` branding prop. */
 export default function Index({ transportSettings }: { transportSettings: Settings }) {
-    const { t } = useLocale();
-    const form = useForm<Settings>({
-        require_pass_for_scan: transportSettings.require_pass_for_scan,
-        allow_pay_as_you_go: transportSettings.allow_pay_as_you_go,
-        scan_nonce_required: transportSettings.scan_nonce_required,
-    });
+    const { t, label } = useTransportLabels();
+    const form = useForm<Settings>({ ...transportSettings });
 
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -31,43 +19,24 @@ export default function Index({ transportSettings }: { transportSettings: Settin
     }
 
     return (
-        <AuthenticatedLayout
-            header={<PageHeader title={t('transport.settings')} />}
-        >
+        <AuthenticatedLayout header={<PageHeader title={t('transport.settings')} description={t('transport.settingsIntro')} />}>
             <Head title={t('transport.settings')} />
-
-            <form onSubmit={submit} className="space-y-4">
-                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    {(Object.keys(labels) as Array<keyof Settings>).map((key, idx, arr) => (
-                        <div
-                            key={key}
-                            className={`flex items-center justify-between px-5 py-4 ${idx < arr.length - 1 ? 'border-b border-gray-100 dark:border-slate-800' : ''}`}
-                        >
-                            <span className="text-sm font-medium text-gray-700 dark:text-slate-200">
-                                {t(labels[key])}
+            <form onSubmit={submit}>
+                <Card className="divide-y divide-[color:var(--app-border)] p-0">
+                    {KEYS.map((key) => (
+                        <label key={key} className="flex cursor-pointer items-start justify-between gap-4 p-4">
+                            <span className="min-w-0">
+                                <span className="block text-sm font-medium">{label('settingLabels', key)}</span>
+                                <span className="mt-0.5 block text-sm text-[color:var(--app-muted-foreground)]">{label('settingHelp', key)}</span>
+                                {form.errors[key] && <span className="mt-1 block text-sm text-red-600">{form.errors[key]}</span>}
                             </span>
-                            <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-gray-600 dark:text-slate-300">
-                                <input
-                                    type="checkbox"
-                                    checked={form.data[key]}
-                                    onChange={(e) => form.setData(key, e.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-600 dark:border-slate-700"
-                                />
-                                <span>{form.data[key] ? t('common.enabled') : t('common.disabled')}</span>
-                            </label>
-                        </div>
+                            <input type="checkbox" role="switch" className="mt-1 h-5 w-5 shrink-0" checked={form.data[key]} onChange={(e) => form.setData(key, e.target.checked)} />
+                        </label>
                     ))}
-                </div>
-
-                <div>
-                    <button
-                        type="submit"
-                        disabled={form.processing}
-                        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
-                    >
-                        {form.processing ? t('common.saving') : t('common.save')}
-                    </button>
-                </div>
+                    <div className="flex justify-end p-4">
+                        <Button type="submit" variant="primary" disabled={form.processing || !form.isDirty}>{t('transport.save')}</Button>
+                    </div>
+                </Card>
             </form>
         </AuthenticatedLayout>
     );

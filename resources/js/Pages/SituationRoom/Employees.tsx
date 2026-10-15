@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Breadcrumb, FilterBar, fmt, useDateLabel, useNamer, viewQuery, type Counts, type FilterOptions, type Filters, type Name, type ScopeProps } from '@/Components/situationRoom/shared';
+import { Breadcrumb, FilterBar, fmt, useDateLabel, useNamer, viewQuery, type Counts, type FilterOptions, type Filters, type Name, type ScopeProps } from '@/Components/SituationRoom/communityVoice/shared';
 import { useLocale } from '@/hooks/useLocale';
 import { Alert, Card, EmptyState, Select, TBody, THead, Table, Td, Th, Tr, buttonClassName } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
@@ -27,7 +27,7 @@ export default function SituationRoomEmployees({ scope, filters, filterOptions, 
     const go = (extra: Record<string, string | number>) => router.get(route('situation-room.employees'), { ...query, sort: employees.sort, page: employees.page, ...extra }, { preserveScroll: true });
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('situationRoom.employeesTitle')} description={t('situationRoom.employeesIntro')} backHref={scope.node ? route('situation-room.organization', query) : route('situation-room.index', query)} />}>
+        <AuthenticatedLayout header={<PageHeader title={t('situationRoom.employeesTitle')} description={t('situationRoom.employeesIntro')} backHref={scope.node ? route('situation-room.organization', query) : route('situation-room.community-voice', query)} />}>
             <Head title={t('situationRoom.employeesTitle')} />
 
             <div className="space-y-5">

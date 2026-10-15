@@ -117,6 +117,8 @@ const navigation = {
     situationRoom: 'Situation Room',
     situationRoomWall: 'Wall Mode',
     situationRoomActions: 'Action Register',
+    situationRoomCommunityVoice: 'Community Voice',
+    situationRoomReports: 'Executive Reports',
     serviceFeedbackCategories: 'Categories',
     serviceFeedbackRoutingRules: 'Routing Rules',
     organizationFeedbackQrCodes: 'Organization QR Codes',
@@ -170,6 +172,7 @@ const navigation = {
     transportVehicles: 'Vehicles',
     transportDrivers: 'Drivers',
     transportPasses: 'Passes',
+    transportTransactions: 'Boardings',
     transportReports: 'Reports',
     transportSettings: 'Transport Settings',
     // My Portal sidebar categories

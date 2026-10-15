@@ -9,9 +9,10 @@ use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\PublicFeedbackTargetType;
+use App\Enums\PublicIntakeChannel;
+use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
-use App\Enums\SubmitterIdentityMode;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\PositionService;
 use Illuminate\Http\Request;
@@ -27,10 +28,14 @@ use Illuminate\Support\Str;
  *
  * The target comes only from PublicFeedbackTargetResolver — never from the
  * request — and is written with its snapshots so later transfers, renames or
- * QR rotations cannot move the row. Complaints get their reference from the
- * code rules and keep their attachments on the private disk. An accidental
- * double submit inside a short window returns the row already stored rather
- * than creating a twin (brief §39).
+ * QR rotations cannot move the row; text in the submission naming another
+ * person or office never re-targets it. What is stored about the submitter
+ * follows PublicSubmissionPolicy: Feedback and Complaint carry a named
+ * submitter, a Tip-off carries only what the tipster chose to give. The
+ * channel is recorded as WEB_QR, never asked. Tip-offs and Complaints get
+ * their reference from the code rules and keep their evidence on the private
+ * disk. An accidental double submit inside a short window returns the row
+ * already stored rather than creating a twin (brief §39).
  */
 class PublicFeedbackSubmissionService
 {
@@ -43,6 +48,7 @@ class PublicFeedbackSubmissionService
         private readonly PublicFeedbackRoutingService $routing,
         private readonly PublicFeedbackSettings $settings,
         private readonly PublicFeedbackNotifier $notifier,
+        private readonly PublicSubmissionPolicy $policy,
     ) {}
 
     /**
@@ -80,12 +86,12 @@ class PublicFeedbackSubmissionService
         $service = $target->targetType === PublicFeedbackTargetType::Employee && ! empty($data['position_service_id'])
             ? PositionService::query()->find($data['position_service_id'])
             : null;
-        $isComplaint = $type === ServiceFeedbackType::Complaint;
-        $identityMode = $this->settings->identityMode();
+        $requirements = $this->policy->for($type, $this->settings->allowAttachments());
+        $tipType = $requirements->tipTypeRequired ? PublicTipType::from((string) $data['tip_type']) : null;
         $storedPaths = [];
 
         try {
-            return DB::transaction(function () use ($target, $type, $data, $request, $service, $isComplaint, $identityMode, &$storedPaths): EmployeeServiceFeedback {
+            return DB::transaction(function () use ($target, $type, $data, $request, $service, $requirements, $tipType, &$storedPaths): EmployeeServiceFeedback {
                 $entry = EmployeeServiceFeedback::query()->create([
                     // Target and source: only ever from the resolved context.
                     'target_type' => $target->targetType,
@@ -111,22 +117,29 @@ class PublicFeedbackSubmissionService
                     'subject' => $this->trimmedOrNull($data['subject'] ?? null),
                     // Applicability was checked by the controller against the resolved target.
                     'category_id' => $this->trimmedOrNull($data['category_id'] ?? null),
-                    // Brief §34: the identity policy in force, recorded with the row; anonymous keeps nothing.
-                    'client_name' => $identityMode === SubmitterIdentityMode::Anonymous ? null : $this->trimmedOrNull($data['client_name'] ?? null),
-                    'client_contact' => $identityMode === SubmitterIdentityMode::Anonymous ? null : $this->trimmedOrNull($data['client_contact'] ?? null),
-                    'submitter_identity_mode' => $identityMode,
-                    'incident_date' => $isComplaint ? ($data['incident_date'] ?? null) : null,
-                    'incident_location' => $isComplaint ? $this->trimmedOrNull($data['incident_location'] ?? null) : null,
+                    // The identity policy of this type, recorded with the row (PublicSubmissionPolicy).
+                    'client_name' => $this->trimmedOrNull($data['client_name'] ?? null),
+                    'client_contact' => $this->trimmedOrNull($data['client_contact'] ?? null),
+                    'client_email' => $this->trimmedOrNull($data['client_email'] ?? null),
+                    'submitter_organization' => $requirements->submitterOrganization ? $this->trimmedOrNull($data['submitter_organization'] ?? null) : null,
+                    'submitter_address' => $requirements->submitterAddress ? $this->address($data['submitter_address'] ?? null) : null,
+                    'submitter_identity_mode' => $requirements->identityMode(),
+                    'tip_type' => $tipType,
+                    'involved_parties' => $requirements->involvedParties ? $this->trimmedOrNull($data['involved_parties'] ?? null) : null,
+                    // The system knows how this arrived; the citizen is never asked.
+                    'intake_channel' => PublicIntakeChannel::WebQr,
+                    'incident_date' => $requirements->incidentContext ? ($data['incident_date'] ?? null) : null,
+                    'incident_location' => $requirements->incidentContext ? $this->trimmedOrNull($data['incident_location'] ?? null) : null,
                     'ip_address' => $request->ip(),
                     'user_agent' => Str::limit((string) $request->userAgent(), 500, ''),
                     'status' => ServiceFeedbackStatus::Pending,
                     'submitted_at' => now(),
                 ]);
 
-                if ($isComplaint) {
+                if ($type !== ServiceFeedbackType::Feedback) {
                     $entry->forceFill([
                         'reference_number' => $this->codes->execute(
-                            CodeRuleEntityType::PublicServiceComplaint,
+                            $type === ServiceFeedbackType::Complaint ? CodeRuleEntityType::PublicServiceComplaint : CodeRuleEntityType::PublicTipOff,
                             ['organization_id' => $target->contextOrganizationId],
                             null,
                             null,
@@ -134,7 +147,9 @@ class PublicFeedbackSubmissionService
                             $entry->getKey(),
                         ),
                     ])->save();
+                }
 
+                if ($requirements->evidenceAllowed) {
                     foreach ($data['attachments'] ?? [] as $file) {
                         if (! $file instanceof UploadedFile) {
                             continue;
@@ -160,7 +175,8 @@ class PublicFeedbackSubmissionService
                     actor: null,
                     auditable: $entry,
                     organizationId: $target->contextOrganizationId,
-                    reason: 'Public '.$type->value.' submitted about '.$target->targetType->value,
+                    // Codes only: never the narrative, never who sent it.
+                    reason: 'Public '.$type->value.($tipType !== null ? ' ('.$tipType->value.')' : '').' submitted about '.$target->targetType->value,
                     request: $request,
                 );
 
@@ -189,12 +205,15 @@ class PublicFeedbackSubmissionService
             $target->targetType->value,
             $target->sourceId,
             $type->value,
+            (string) ($data['tip_type'] ?? ''),
             trim((string) ($data['message'] ?? $data['comment'] ?? '')),
             (string) ($data['rating'] ?? ''),
             (string) ($data['position_service_id'] ?? ''),
             (string) ($data['category_id'] ?? ''),
             trim((string) ($data['client_name'] ?? '')),
             trim((string) ($data['client_contact'] ?? '')),
+            trim((string) ($data['client_email'] ?? '')),
+            trim((string) ($data['involved_parties'] ?? '')),
             (string) ($data['incident_date'] ?? ''),
             trim((string) ($data['incident_location'] ?? '')),
             $attachments,
@@ -214,7 +233,7 @@ class PublicFeedbackSubmissionService
         $path = $file->storeAs('service-feedback/'.$entry->getKey(), Str::uuid7().'.'.$extension, 'local');
 
         if ($path === false) {
-            throw new \RuntimeException('Complaint attachment could not be stored.');
+            throw new \RuntimeException('Public submission evidence could not be stored.');
         }
 
         $entry->attachments()->create([
@@ -224,10 +243,33 @@ class PublicFeedbackSubmissionService
             'mime_type' => (string) $file->getMimeType(),
             'size_bytes' => (int) $file->getSize(),
             'sha256' => hash_file('sha256', $file->getRealPath()),
+            // No malware scanner is integrated (MALWARE_SCANNER_REQUIRED); never claim otherwise.
             'scan_status' => 'not_scanned',
         ]);
 
         return $path;
+    }
+
+    /**
+     * The tipster's optional address, keeping only the parts given.
+     *
+     * @return array<string, string>|null
+     */
+    private function address(mixed $value): ?array
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $parts = [];
+        foreach (['city', 'sub_city', 'woreda', 'detail'] as $key) {
+            $part = $this->trimmedOrNull(is_string($value[$key] ?? null) ? $value[$key] : null);
+            if ($part !== null) {
+                $parts[$key] = $part;
+            }
+        }
+
+        return $parts === [] ? null : $parts;
     }
 
     private function safeAttachmentName(string $name): string

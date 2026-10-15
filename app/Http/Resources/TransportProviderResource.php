@@ -21,6 +21,10 @@ class TransportProviderResource extends JsonResource
             'status' => $this->status,
             'contact_person' => $this->contact_person,
             'email' => $this->email,
+            // Hidden from generic serialisation; the transport admin edits it.
+            'phone_number' => $this->resource->getAttribute('phone_number'),
+            'address' => $this->address,
+            'assigned_organization_id' => $this->assigned_organization_id,
             'assigned_organization' => $this->whenLoaded('assignedOrganization', fn () => [
                 'id' => $this->assignedOrganization?->id,
                 'name_en' => $this->assignedOrganization?->name_en,

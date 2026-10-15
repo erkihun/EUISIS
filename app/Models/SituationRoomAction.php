@@ -24,7 +24,8 @@ class SituationRoomAction extends Model
 
     public const PRIORITIES = ['low', 'normal', 'high'];
 
-    public const SOURCE_TYPES = ['attention', 'organization', 'submission'];
+    // 'panel': recorded from a Situation Room category panel; source_reference is "<category>:<panel key>".
+    public const SOURCE_TYPES = ['attention', 'organization', 'submission', 'panel'];
 
     protected $fillable = [
         'organization_id',

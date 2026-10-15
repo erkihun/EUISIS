@@ -19,6 +19,7 @@ use App\Models\TransportVehicle;
 use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,7 +30,10 @@ class TransportTripController extends Controller
         $provider = $this->provider($request, $context);
 
         return Inertia::render('ProviderPortal/Transport/Trips/Index', [
-            'trips' => TransportTripResource::collection(TransportTrip::query()->with(['route', 'vehicle', 'driver'])->where('provider_id', $provider->id)->latest('trip_date')->get())->resolve(),
+            'trips' => TransportTripResource::collection(
+                TransportTrip::query()->with(['route', 'vehicle', 'driver'])->where('provider_id', $provider->id)
+                    ->latest('trip_date')->latest('departure_time')->paginate(25)->withQueryString()
+            )->response()->getData(true),
         ]);
     }
 
@@ -42,7 +46,7 @@ class TransportTripController extends Controller
     {
         $provider = $this->provider($request, $context);
         $data = $request->validated();
-        $data['trip_number'] ??= 'TRP-TRIP-'.now()->format('Ymd').'-'.str_pad((string) (TransportTrip::query()->whereDate('created_at', today())->count() + 1), 5, '0', STR_PAD_LEFT);
+        $data['trip_number'] ??= $this->newTripNumber();
 
         TransportTrip::query()->create(array_merge($data, ['provider_id' => $provider->id]));
 
@@ -73,6 +77,8 @@ class TransportTripController extends Controller
         $provider = $this->provider($request, $context);
 
         return [
+            // The city's date, not the device's: a phone set to UTC would plan "today" on the wrong day.
+            'today' => today()->toDateString(),
             'routes' => TransportRouteResource::collection(TransportRoute::query()->where('provider_id', $provider->id)->orderBy('name_en')->get())->resolve(),
             'vehicles' => TransportVehicleResource::collection(TransportVehicle::query()->where('provider_id', $provider->id)->orderBy('vehicle_code')->get())->resolve(),
             'drivers' => TransportDriverResource::collection(TransportDriver::query()->where('provider_id', $provider->id)->orderBy('full_name')->get())->resolve(),
@@ -85,5 +91,18 @@ class TransportTripController extends Controller
         abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
 
         return $provider;
+    }
+
+    /**
+     * TRP-YYYYMMDD-XXXXXX with a random suffix: unique without counting (a
+     * count collides under concurrency and after any deletion).
+     */
+    private function newTripNumber(): string
+    {
+        do {
+            $number = 'TRP-'.now()->format('Ymd').'-'.Str::upper(Str::random(6));
+        } while (TransportTrip::query()->where('trip_number', $number)->exists());
+
+        return $number;
     }
 }

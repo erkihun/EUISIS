@@ -46,15 +46,15 @@ Employee grievance · Employee discipline · Administrative tribunal integration
 EPMS / performance · Assessments and oversight · Users, roles, permissions, MFA ·
 System settings, notifications, audit, reports, backup health, My Portal.
 
-## Out of current production scope
+## Feature-flagged modules
 
-| Module | Status | How it is kept out |
+| Module | Status | Flag |
 | --- | --- | --- |
-| **Transport Management** | **FUTURE PHASE / OUT OF CURRENT PRODUCTION SCOPE** | `config/features.php` `transport=false` (default): routes answer 404, navigation and command palette hide it, providers are never treated as offering transport, the homepage lists it as planned. Code, tables and data are kept. No Transport config, env, queue, health check or seeder is needed to run production. |
+| **Transport Management** | **Live** (docs/transport-provider-module.md) | `features.transport=true` by default. `FEATURE_TRANSPORT=false` switches it off again: routes answer 404, navigation and command palette hide it and providers are not treated as offering transport. Code, tables and data are kept either way. |
 | Court Cases | Planned placeholder | `features.court_cases=false` (default). |
 
-Turn a module on only by setting `FEATURE_TRANSPORT=true` / `FEATURE_COURT_CASES=true`
-after it is completed and approved — never as a hotfix.
+Turn a disabled module on only by setting its flag after it is completed and
+approved — never as a hotfix.
 
 ## Rules for new code (the golden path)
 

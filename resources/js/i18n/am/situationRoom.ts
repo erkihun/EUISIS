@@ -8,6 +8,7 @@
 export default {
     title: 'የአመራር ሁኔታ መከታተያ ማዕከል',
     subtitle: 'ሕዝቡ ስለ አገልግሎት አሰጣጥ የሚለው እና የአመራር ትኩረት የሚያስፈልግበት ቦታ።',
+    communityVoiceTitle: 'የሕዝብ ድምፅ በተቋም',
     cityWide: 'በወሰንዎ ውስጥ ያሉ ሁሉም ተቋማት',
     scopeLabel: 'የሚታየው ተቋም',
     changeScope: 'ተቋም ይቀይሩ',

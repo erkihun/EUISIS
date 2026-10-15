@@ -245,9 +245,9 @@ test('organization type index page includes level_order category and parent_allo
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('OrganizationTypes/Index')
-            ->has('types.0.level_order')
-            ->has('types.0.category')
-            ->has('types.0.parent_allowed_types')
+            ->has('types.data.0.level_order')
+            ->has('types.data.0.category')
+            ->has('types.data.0.parent_allowed_types')
         );
 });
 

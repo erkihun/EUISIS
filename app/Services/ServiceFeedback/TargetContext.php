@@ -91,7 +91,8 @@ final readonly class TargetContext
         ];
     }
 
-    private function localized(string $key, string $locale): ?string
+    /** One bilingual name in the visitor's language, falling back to the other; null when neither is set. */
+    public function localized(string $key, string $locale): ?string
     {
         $pair = $this->names[$key] ?? null;
 

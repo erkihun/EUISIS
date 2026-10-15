@@ -213,13 +213,20 @@ const navGroups: NavGroup[] = [
         items: selfServiceNav,
     },
     {
+        /*
+         * Executive Situation Room: leadership aggregates inside the viewer's
+         * organization scope. Its categories are listed on the launcher
+         * (SituationCategory registry), so only the entry points live here.
+         */
         key: 'situationRoom',
         labelKey: 'nav.groupSituationRoom',
-        icon: FileChartIcon,
+        icon: ActivityIcon,
         items: [
-            { routeName: 'situation-room.index', labelKey: 'nav.situationRoom', icon: FileChartIcon, permission: 'situation_room.view' },
+            { routeName: 'situation-room.index', labelKey: 'nav.situationRoom', icon: LayoutDashboard, permission: 'situation_room.view' },
+            { routeName: 'situation-room.community-voice', labelKey: 'nav.situationRoomCommunityVoice', icon: MessageSquareIcon, permission: 'situation_room.public_voice.view' },
             { routeName: 'situation-room.wall', labelKey: 'nav.situationRoomWall', icon: ActivityIcon, permission: 'situation_room.wall_mode' },
             { routeName: 'situation-room.actions.index', labelKey: 'nav.situationRoomActions', icon: ClipboardCheckIcon, permission: 'situation_room.view' },
+            { routeName: 'situation-room.reports', labelKey: 'nav.situationRoomReports', icon: FileChartIcon, permission: 'situation_room.export' },
         ],
     },
     {
@@ -535,7 +542,8 @@ const navGroups: NavGroup[] = [
             { routeName: 'transport.vehicles.index', labelKey: 'nav.transportVehicles', icon: ActivityIcon,    permission: 'transport-vehicles.viewAny' },
             { routeName: 'transport.drivers.index', labelKey: 'nav.transportDrivers', icon: UserIcon,        permission: 'transport-drivers.viewAny' },
             { routeName: 'transport.passes.index', labelKey: 'nav.transportPasses', icon: BadgeCheckIcon,  permission: 'transport-passes.viewAny' },
-            { routeName: 'transport.reports.index', labelKey: 'nav.transportReports', icon: ReceiptTextIcon, permission: 'transport-reports.view' },
+            { routeName: 'transport.transactions.index', labelKey: 'nav.transportTransactions', icon: ReceiptTextIcon, permission: 'transport-transactions.viewAny' },
+            { routeName: 'transport.reports.index', labelKey: 'nav.transportReports', icon: TrendingUpIcon, permission: 'transport-reports.view' },
             { routeName: 'transport.settings.index', labelKey: 'nav.transportSettings', icon: SettingsIcon,    permission: 'transport-settings.view' },
         ],
     },

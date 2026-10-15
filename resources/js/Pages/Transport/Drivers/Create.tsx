@@ -1,4 +1,18 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { TransportDriverAdminForm } from '@/Components/transport/TransportAdminForms';
+import PageHeader from '@/Components/PageHeader';
+import { Head } from '@inertiajs/react';
+import { DriverForm } from '@/Components/transport/TransportForms';
 import { useLocale } from '@/hooks/useLocale';
-export default function Create(props: any) { const { t } = useLocale(); return <AuthenticatedLayout><h1 className="mb-4 text-lg font-semibold">{t('transport.newDriver')}</h1><TransportDriverAdminForm {...props} /></AuthenticatedLayout>; }
+import type { ProviderOption, TransportVehicle } from '@/types/transport';
+
+export default function Create({ providers, vehicles }: { providers: ProviderOption[]; vehicles: TransportVehicle[] }) {
+    const { t } = useLocale();
+    const title = t('transport.newDriver');
+
+    return (
+        <AuthenticatedLayout header={<PageHeader title={title} backHref={route('transport.drivers.index')} />}>
+            <Head title={title} />
+            <DriverForm mode="admin" providers={providers} vehicles={vehicles} />
+        </AuthenticatedLayout>
+    );
+}

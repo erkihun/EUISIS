@@ -6,9 +6,10 @@ import { useLocale } from '@/hooks/useLocale';
 import { Card, EmptyState, cx } from '@euisis/ui';
 import { ListPagination, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link } from '@inertiajs/react';
+import type { TipTypeBucket } from '@/types/publicSubmissions';
 
 type Entry = {
-    id: string; reference: string | null; type: string; status: string;
+    id: string; reference: string | null; type: string; status: string; tip_type: TipTypeBucket | null;
     target_type: 'employee' | 'organization'; target_name: string | null;
     message: string; created_at: string | null; submitted_at: string | null; employee: string | null;
     employee_number: string | null; organization: string | null; handler: string | null;
@@ -19,8 +20,15 @@ type Props = {
     entries: { data: Entry[] } & LaravelPageMeta;
     counts: Record<string, number>;
     statuses: string[];
-    filters: { status: string | null; mine: boolean };
+    filters: { status: string | null; mine: boolean; tip_type: TipTypeBucket | null };
     canManageRouting: boolean;
+};
+
+const TIP_FILTER_LABEL: Record<TipTypeBucket | 'ALL', string> = {
+    ALL: 'serviceFeedback.tipTypeAll',
+    CORRUPTION: 'serviceFeedback.tipTypeCorruption',
+    IMPROPER_PRACTICE: 'serviceFeedback.tipTypeImproperPractice',
+    UNCLASSIFIED_LEGACY: 'serviceFeedback.tipTypeUnclassified',
 };
 
 /**
@@ -39,7 +47,7 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
         statuses.filter((status) => status === 'pending' || status === 'unrouted' || (counts[status] ?? 0) > 0 || ['assigned', 'under_review', 'closed'].includes(status))
             .map((status) => ({ id: status, label: t(statusLabelKey(status)), count: Number(counts[status] ?? 0) })),
     );
-    const href = (status: string, mine: boolean) => route(listRoute, { ...(status ? { status } : {}), ...(mine ? { mine: 1 } : {}) });
+    const href = (status: string, mine: boolean, tipType: TipTypeBucket | null = filters.tip_type) => route(listRoute, { ...(status ? { status } : {}), ...(mine ? { mine: 1 } : {}), ...(tipType ? { tip_type: tipType } : {}) });
 
     return <AuthenticatedLayout
         header={<PageHeader
@@ -75,6 +83,17 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
                 </ul>
             </nav>
 
+            {type === 'suggestion' && (
+                <div role="group" aria-label={t('serviceFeedback.tipTypeLabel')} className="flex flex-wrap gap-2 text-sm">
+                    {([null, 'CORRUPTION', 'IMPROPER_PRACTICE', 'UNCLASSIFIED_LEGACY'] as const).map((tipType) => (
+                        <Link key={tipType ?? 'all'} href={href(filters.status ?? '', filters.mine, tipType)} preserveScroll aria-current={filters.tip_type === tipType ? 'true' : undefined}
+                            className={cx('inline-flex min-h-9 items-center rounded-full border px-3 font-medium', filters.tip_type === tipType ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white' : 'border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]')}>
+                            {t(TIP_FILTER_LABEL[tipType ?? 'ALL'])}
+                        </Link>
+                    ))}
+                </div>
+            )}
+
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.showingRange').replace(':total', entries.total.toLocaleString()).replace(':from', String(entries.from ?? 0)).replace(':to', String(entries.to ?? 0))}</p>
                 <div role="group" aria-label={t('serviceFeedback.queueFilter')} className="inline-flex rounded-[var(--radius-control)] border border-[color:var(--app-border)] p-0.5 text-sm">
@@ -92,6 +111,7 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
                                 <span className="font-semibold">
                                     <span className="mr-2 rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t(entry.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee')}</span>{' '}
                                     {entry.target_name ?? entry.employee ?? entry.employee_number ?? '—'}
+                                    {type === 'suggestion' && <span className="ml-2 rounded-full border border-[color:var(--app-border)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t(TIP_FILTER_LABEL[entry.tip_type ?? 'UNCLASSIFIED_LEGACY'])}</span>}
                                 </span>
                                 <FeedbackStatusBadge status={entry.status} />
                             </div>

@@ -520,6 +520,9 @@ enum AuditEventType: string
     case ServiceSuggestionSubmitted = 'service_feedback.suggestion_submitted';
     case ServiceComplaintSubmitted = 'service_feedback.complaint_submitted';
     case ServiceComplaintAttachmentDownloaded = 'service_feedback.complaint_attachment_downloaded';
+    // Tip-off evidence and any submitter's identity are confidential: each opening is recorded.
+    case ServiceTipOffAttachmentDownloaded = 'service_feedback.tip_off_attachment_downloaded';
+    case PublicSubmitterIdentityViewed = 'service_feedback.submitter_identity_viewed';
     case ServiceFeedbackBlocked = 'service_feedback.blocked';
     case ServiceFeedbackReviewed = 'service_feedback.reviewed';
     case ServiceFeedbackResolved = 'service_feedback.resolved';
@@ -788,4 +791,13 @@ enum AuditEventType: string
     case OccupationLinked = 'organization_design.occupation_linked';
     case CompetencyLinked = 'organization_design.competency_linked';
     case PositionServiceLinked = 'organization_design.position_service_linked';
+
+    /*
+     * Executive Situation Room categories. Aggregates are not audited per
+     * view; what is audited is what reaches beyond aggregates (an
+     * employee-level breakdown) and what leaves the system (an export). The
+     * Action Register and Community Voice events are listed above.
+     */
+    case SituationRoomEmployeeBreakdownViewed = 'situation_room.employee_breakdown_viewed';
+    case SituationRoomExported = 'situation_room.exported';
 }

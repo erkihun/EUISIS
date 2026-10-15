@@ -16,10 +16,12 @@ class TransportDriverResource extends JsonResource
             'id' => $this->id,
             'provider_id' => $this->provider_id,
             'full_name' => $this->full_name,
+            'phone_number' => $this->phone_number,
             'license_number' => $this->license_number,
             'license_expiry_date' => $this->license_expiry_date?->toDateString(),
             'status' => $this->status,
             'assigned_vehicle_id' => $this->assigned_vehicle_id,
+            'notes' => $this->notes,
             'vehicle' => $this->whenLoaded('vehicle', fn () => $this->vehicle ? [
                 'id' => $this->vehicle->id,
                 'vehicle_code' => $this->vehicle->vehicle_code,
@@ -29,6 +31,7 @@ class TransportDriverResource extends JsonResource
                 'id' => $this->provider->id,
                 'provider_code' => $this->provider->provider_code,
                 'name_en' => $this->provider->name_en,
+                'name_am' => $this->provider->name_am,
             ] : null),
         ];
     }

@@ -1,110 +1,112 @@
-import WallLayout from '@/Layouts/WallLayout';
-import { MultiSeriesLineChart, StackedBarChart } from '@/Components/dashboard/charts/SimpleCharts';
-import type { CategoryRow, Institutions, Kpis, Trend } from '@/Components/situationRoom/sections';
-import { TYPES, fmt, useDateLabel, useNamer, viewQuery, type Filters, type ScopeProps } from '@/Components/situationRoom/shared';
-import { useLocale } from '@/hooks/useLocale';
-import { Head, Link, router } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { Deferred, Head, Link, router } from '@inertiajs/react';
+import { Button, buttonClassName } from '@euisis/ui';
+import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
+import LanguageSwitcher from '@/Components/LanguageSwitcher';
+import ThemeToggle from '@/Components/ThemeToggle';
+import PanelSkeleton from '@/Components/SituationRoom/PanelSkeleton';
+import { PanelGrid } from '@/Components/SituationRoom/Panels';
+import { useSituationLabels } from '@/Components/SituationRoom/useSituationLabels';
+import { formatDateTimeDisplay } from '@/lib/calendar/dateFormat';
+import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
+import type { SrFilters, SrLabels, SrPanel, SrResult, SrScope } from '@/types/situationRoom';
+
+type Screen = { category: string; panels: SrPanel[] };
 
 type Props = {
-    scope: ScopeProps;
-    filters: Filters;
-    wall: { kpis: Kpis; trend: Trend; institutions: Institutions; categories: CategoryRow[]; resolution: Record<string, number>; generated_at: string };
-    refreshSeconds: number;
+    labels: SrLabels;
+    scope: SrScope;
+    filters: SrFilters;
+    refresh_seconds: number;
+    rotation_seconds: number;
+    privacy: { small_cell: number };
+    result?: SrResult<{ screens: Screen[]; has_errors: boolean }>;
 };
 
 /**
- * Wall mode: aggregate figures for a screen in a leadership office. No
- * person's name, no submission text, no controls beyond leaving. Reloads the
- * figures on a timer; the server caches them for the same interval.
+ * Wall Mode: a full-screen display for an operations room. No sidebar, no
+ * names — the server already leaves out every table and every panel that
+ * names a person. Screens rotate on their own; the figures reload on the
+ * configured interval without a page reload. Space pauses, the arrow keys
+ * step, and nothing here stores anything in the browser.
  */
-export default function SituationRoomWall({ scope, filters, wall, refreshSeconds }: Props) {
-    const { t } = useLocale();
-    const name = useNamer();
-    const { date, dateTime } = useDateLabel();
-    const query = viewQuery(scope, filters);
-    const series = TYPES.map((type) => ({ key: type, label: t(`situationRoom.type_${type}`) }));
+export default function SituationRoomWall(props: Props) {
+    return (
+        <LocalizedUiProvider>
+            <WallBody {...props} />
+        </LocalizedUiProvider>
+    );
+}
+
+function WallBody({ scope, refresh_seconds, rotation_seconds, privacy, result }: Props) {
+    const { sr, label, locale } = useSituationLabels();
+    const system = useCalendarSystem();
+    const screens = result?.payload.screens ?? [];
+    const [index, setIndex] = useState(0);
+    const [paused, setPaused] = useState(false);
+    const current = screens.length > 0 ? screens[index % screens.length] : null;
+    const step = useCallback((by: number) => setIndex((i) => (screens.length === 0 ? 0 : (i + by + screens.length) % screens.length)), [screens.length]);
 
     useEffect(() => {
-        const timer = window.setInterval(() => router.reload({ only: ['wall'] }), refreshSeconds * 1000);
+        if (paused || screens.length < 2) return undefined;
+        const timer = window.setInterval(() => step(1), rotation_seconds * 1000);
         return () => window.clearInterval(timer);
-    }, [refreshSeconds]);
+    }, [paused, rotation_seconds, screens.length, step]);
 
-    const kpis: { key: keyof Kpis['current']; label: string }[] = [
-        { key: 'feedback', label: t('situationRoom.kpiFeedback') },
-        { key: 'suggestion', label: t('situationRoom.kpiSuggestions') },
-        { key: 'complaint', label: t('situationRoom.kpiComplaints') },
-        { key: 'unresolved', label: t('situationRoom.kpiUnresolved') },
-        { key: 'resolved', label: t('situationRoom.kpiResolved') },
-        { key: 'unrouted', label: t('situationRoom.kpiUnrouted') },
-    ];
-    const institutions = [
-        ...wall.institutions.rows.slice(0, 10).map((row) => ({ label: name(row), feedback: row.feedback, suggestion: row.suggestion, complaint: row.complaint })),
-    ].filter((row) => row.feedback + row.suggestion + row.complaint > 0);
-    const categoryMax = Math.max(1, ...wall.categories.map((row) => row.total));
+    useEffect(() => {
+        const timer = window.setInterval(() => router.reload({ only: ['result'] }), refresh_seconds * 1000);
+        return () => window.clearInterval(timer);
+    }, [refresh_seconds]);
+
+    useEffect(() => {
+        const onKey = (event: KeyboardEvent) => {
+            if (event.target instanceof HTMLElement && ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A'].includes(event.target.tagName)) return;
+            if (event.key === ' ') { event.preventDefault(); setPaused((p) => !p); }
+            if (event.key === 'ArrowRight') step(1);
+            if (event.key === 'ArrowLeft') step(-1);
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [step]);
+
+    const scopeName = scope.breadcrumb.length > 0 ? label(scope.breadcrumb[scope.breadcrumb.length - 1].label) : sr(scope.unrestricted ? 'ui.scope_all' : 'ui.scope_mine');
 
     return (
-        <WallLayout>
-            <Head title={`${t('situationRoom.wallTitle')} — ${scope.node ? name(scope.node) : t('situationRoom.cityWide')}`} />
+        <div className="flex min-h-dvh flex-col bg-[color:var(--app-background)] text-[color:var(--app-foreground)]">
+            <Head title={sr('wall.title')} />
 
-            <header className="flex flex-wrap items-end justify-between gap-4">
-                <div>
-                    <p className="text-lg text-[color:var(--app-muted-foreground)]">{t('situationRoom.wallTitle')}</p>
-                    <h1 className="text-3xl font-bold xl:text-4xl">{scope.node ? name(scope.node) : t('situationRoom.cityWide')}</h1>
-                    <p className="mt-1 text-lg">{fmt(t('situationRoom.periodRange'), { from: date(filters.from), to: date(filters.to) })}</p>
+            <header className="flex flex-wrap items-center gap-3 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 sm:px-6">
+                <div className="min-w-0 flex-1">
+                    <h1 className="truncate text-xl font-semibold sm:text-2xl">{current ? sr(`categories.${current.category}.title`) : sr('title')}</h1>
+                    <p className="truncate text-sm text-[color:var(--app-muted-foreground)]">{scopeName} · {sr('wall.aggregates_only')}</p>
                 </div>
-                <div className="text-end">
-                    <p className="text-lg">{t('situationRoom.lastUpdated')}: <time dateTime={wall.generated_at}>{dateTime(wall.generated_at)}</time></p>
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{fmt(t('situationRoom.wallRefreshNote'), { minutes: Math.round(refreshSeconds / 60) })} · {t('situationRoom.wallAggregateNote')}</p>
-                    <Link href={route(scope.node ? 'situation-room.organization' : 'situation-room.index', query)} className="mt-1 inline-block text-sm underline underline-offset-4">{t('situationRoom.exitWall')}</Link>
-                </div>
+                {screens.length > 1 && (
+                    <div className="flex items-center gap-2" role="group" aria-label={sr('wall.screen', { current: (index % screens.length) + 1, total: screens.length })}>
+                        <Button variant="outline" size="sm" onClick={() => step(-1)} aria-label={sr('wall.previous')}>‹</Button>
+                        <span className="text-sm tabular-nums" aria-live="polite">{sr('wall.screen', { current: (index % screens.length) + 1, total: screens.length })}</span>
+                        <Button variant="outline" size="sm" onClick={() => step(1)} aria-label={sr('wall.next')}>›</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setPaused((p) => !p)} aria-pressed={paused}>{sr(paused ? 'wall.resume' : 'wall.pause')}</Button>
+                    </div>
+                )}
+                <Button variant="ghost" size="sm" onClick={() => void document.documentElement.requestFullscreen?.()}>{sr('wall.fullscreen')}</Button>
+                <LanguageSwitcher variant="toolbar" />
+                <ThemeToggle variant="toolbar" />
+                <Link href={route('situation-room.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{sr('wall.exit')}</Link>
             </header>
 
-            <section aria-label={t('situationRoom.title')} className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-                {kpis.map((kpi) => (
-                    <div key={kpi.key} className="rounded-[var(--radius-card)] border-2 border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] p-5">
-                        <p className="text-lg text-[color:var(--app-muted-foreground)]">{kpi.label}</p>
-                        <p className="mt-2 text-5xl font-bold tabular-nums">{Number(wall.kpis.current[kpi.key] ?? 0).toLocaleString()}</p>
-                    </div>
-                ))}
-            </section>
+            <main id="main-content" className="flex-1 p-4 sm:p-6">
+                <Deferred data="result" fallback={<PanelSkeleton label={sr('ui.loading')} />}>
+                    {current
+                        ? <PanelGrid panels={current.panels} options={{ smallCell: privacy.small_cell, wall: true }} />
+                        : <p className="text-lg text-[color:var(--app-muted-foreground)]">{sr('wall.nothing')}</p>}
+                </Deferred>
+            </main>
 
-            <div className="grid flex-1 gap-6 xl:grid-cols-2">
-                <section className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5" aria-labelledby="wall-trend">
-                    <h2 id="wall-trend" className="text-xl font-semibold">{t('situationRoom.trendTitle')}</h2>
-                    <p className="sr-only">{fmt(t('situationRoom.trendSummary'), wall.kpis.current)}</p>
-                    <div className="mt-3" aria-hidden="true"><MultiSeriesLineChart data={wall.trend.points} xKey="bucket" series={series} xLabel={(value) => date(value)} height={320} emptyTitle={t('situationRoom.summary_no_submissions')} /></div>
-                </section>
-                <section className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5" aria-labelledby="wall-institutions">
-                    <h2 id="wall-institutions" className="text-xl font-semibold">{t('situationRoom.institutionsTitle')}</h2>
-                    <div className="mt-3">
-                        {institutions.length === 0 ? <p className="text-lg text-[color:var(--app-muted-foreground)]">{t('situationRoom.noChildren')}</p>
-                            : <StackedBarChart data={institutions} labelKey="label" series={series} />}
-                    </div>
-                </section>
-                <section className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5" aria-labelledby="wall-categories">
-                    <h2 id="wall-categories" className="text-xl font-semibold">{t('situationRoom.categoriesTitle')}</h2>
-                    <ul className="mt-3 space-y-3">
-                        {wall.categories.map((row) => (
-                            <li key={row.id ?? 'none'}>
-                                <div className="flex items-baseline justify-between gap-3 text-lg"><span className="truncate">{row.uncategorized ? t('situationRoom.uncategorized') : name(row)}</span><span className="font-semibold tabular-nums">{row.total.toLocaleString()}</span></div>
-                                <div className="mt-1 h-2 rounded-full bg-[color:var(--app-surface-muted)]" aria-hidden="true"><div className="h-2 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${Math.max(2, Math.round((row.total / categoryMax) * 100))}%` }} /></div>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-                <section className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5" aria-labelledby="wall-status">
-                    <h2 id="wall-status" className="text-xl font-semibold">{t('situationRoom.resolutionTitle')}</h2>
-                    <dl className="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3">
-                        {Object.entries(wall.resolution).map(([status, value]) => (
-                            <div key={status}>
-                                <dt className="text-lg text-[color:var(--app-muted-foreground)]">{t(`situationRoom.status_${status}`)}</dt>
-                                <dd className="text-3xl font-bold tabular-nums">{value.toLocaleString()}</dd>
-                            </div>
-                        ))}
-                    </dl>
-                </section>
-            </div>
-        </WallLayout>
+            {result && (
+                <footer className="border-t border-[color:var(--app-border)] px-4 py-2 text-sm text-[color:var(--app-muted-foreground)] sm:px-6">
+                    {sr('ui.computed_at', { time: formatDateTimeDisplay(result.generated_at, system, locale) })} · {sr('wall.refreshes', { minutes: Math.max(1, Math.round(refresh_seconds / 60)) })}
+                </footer>
+            )}
+        </div>
     );
 }

@@ -8,6 +8,7 @@
 export default {
     title: 'Executive Situation Room',
     subtitle: 'What the public is saying about service delivery, and where management attention is needed.',
+    communityVoiceTitle: 'Community Voice by Institution',
     cityWide: 'All institutions in your scope',
     scopeLabel: 'Institution in view',
     changeScope: 'Change institution',

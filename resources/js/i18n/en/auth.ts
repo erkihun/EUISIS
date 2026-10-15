@@ -1,5 +1,6 @@
 const auth = {
     loggedIn: "You're logged in!",
+    must_change_password_notice: 'Replace the password you were given before using the portal.',
     login: 'Log in',
     logout: 'Log out',
     register: 'Register',

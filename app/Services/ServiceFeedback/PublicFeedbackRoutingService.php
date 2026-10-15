@@ -7,6 +7,7 @@ namespace App\Services\ServiceFeedback;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\PublicFeedbackHandlerType;
+use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeServiceFeedback;
@@ -21,14 +22,22 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Routing of new suggestions and complaints (brief §45–47). Rating feedback
- * is not routed: it keeps the lightweight review flow (§48).
+ * Routing of new Tip-offs (internal type `suggestion`) and Complaints (brief
+ * §45–47). Rating feedback is not routed: it keeps the lightweight review
+ * flow (§48).
  *
  * Rule precedence: a rule naming the organization beats a city-wide one, then
- * a named target type, then a named submission type, then a named category;
- * among equally specific rules the lowest priority number wins, then the
- * older rule. No match → UNROUTED and the routing administrators are told;
- * the submission never falls to the target employee (§46).
+ * a named target type, then a named submission type, then a named tip type,
+ * then a named category; among equally specific rules the lowest priority
+ * number wins, then the older rule. No match → UNROUTED and the routing
+ * administrators are told; the submission never falls to the target employee
+ * (§46).
+ *
+ * A Corruption Tip-off is routed ONLY by a rule that names the corruption tip
+ * type. Rules written for suggestions before Tip-off types existed, and any
+ * rule without a tip type, never receive one: with no designated handler it
+ * stays UNROUTED for an authorized routing review. No corruption-investigation
+ * route is assumed here (OFFICIAL_TIP_ROUTING_POLICY_REQUIRED).
  */
 final class PublicFeedbackRoutingService
 {
@@ -67,11 +76,15 @@ final class PublicFeedbackRoutingService
                 ->when($submission->organization_id !== null, fn (Builder $q) => $q->orWhere('organization_id', $submission->organization_id)))
             ->where(fn (Builder $q) => $q->whereNull('target_type')->orWhere('target_type', $submission->target_type?->value ?? 'employee'))
             ->where(fn (Builder $q) => $q->whereNull('submission_type')->orWhere('submission_type', $submission->type->value))
+            ->where(fn (Builder $q) => $submission->tip_type === PublicTipType::Corruption
+                ? $q->where('tip_type', PublicTipType::Corruption->value)
+                : $q->whereNull('tip_type')->when($submission->tip_type !== null, fn (Builder $q) => $q->orWhere('tip_type', $submission->tip_type->value)))
             ->where(fn (Builder $q) => $q->whereNull('category_id')
                 ->when($submission->category_id !== null, fn (Builder $q) => $q->orWhere('category_id', $submission->category_id)))
             ->orderByRaw('CASE WHEN organization_id IS NULL THEN 1 ELSE 0 END')
             ->orderByRaw('CASE WHEN target_type IS NULL THEN 1 ELSE 0 END')
             ->orderByRaw('CASE WHEN submission_type IS NULL THEN 1 ELSE 0 END')
+            ->orderByRaw('CASE WHEN tip_type IS NULL THEN 1 ELSE 0 END')
             ->orderByRaw('CASE WHEN category_id IS NULL THEN 1 ELSE 0 END')
             ->orderBy('priority')
             ->orderBy('created_at')
@@ -192,6 +205,8 @@ final class PublicFeedbackRoutingService
             'organization_id' => $data['organization_id'] ?? null,
             'target_type' => $data['target_type'] ?? null,
             'submission_type' => $data['submission_type'] ?? null,
+            // A tip type narrows only Tip-off rules; the request refuses it on a complaint rule.
+            'tip_type' => ($data['submission_type'] ?? null) === 'complaint' ? null : ($data['tip_type'] ?? null),
             'category_id' => $data['category_id'] ?? null,
             'handler_type' => PublicFeedbackHandlerType::from($data['handler_type']),
             'handler_id' => (string) $data['handler_id'],

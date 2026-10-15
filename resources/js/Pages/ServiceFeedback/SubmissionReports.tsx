@@ -9,9 +9,10 @@ import { Alert, Button, Card, FilterField, FilterPanel, Select, TBody, THead, Ta
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState, type FormEvent } from 'react';
+import type { TipOffBreakdown, TipTypeBucket } from '@/types/publicSubmissions';
 
 type NamePair = { id: string | null; name_en: string | null; name_am: string | null; total: number };
-type Filters = Partial<Record<'organization_id' | 'submission_type' | 'target_type' | 'category_id' | 'status' | 'date_from' | 'date_to' | 'handler_type' | 'handler_id', string>>;
+type Filters = Partial<Record<'organization_id' | 'submission_type' | 'tip_type' | 'target_type' | 'category_id' | 'status' | 'date_from' | 'date_to' | 'handler_type' | 'handler_id', string>>;
 type Summary = { total: number; by_type: Record<'feedback' | 'suggestion' | 'complaint', number>; by_target: Record<'employee' | 'organization', number>; by_status: Record<string, number> };
 type ExportRow = { id: string; format: string; status: 'queued' | 'ready' | 'failed'; filename: string | null; row_count: number | null; error: string | null; created_at: string | null; completed_at: string | null };
 
@@ -21,11 +22,15 @@ type Props = {
     byOrganization: (NamePair & { open: number; closed: number })[];
     byCategory: NamePair[];
     byHandler: (NamePair & { handler_type: string; handler_id: string })[];
+    tipOffs: TipOffBreakdown;
+    tipOffsByOrganization: (Omit<NamePair, 'total'> & TipOffBreakdown)[];
+    employeeTargetedTipOffs: ({ employee_id: string; full_name: string | null; employee_number: string | null } & TipOffBreakdown)[];
     filterOptions: {
         organizations: { id: string; name_en: string; name_am: string | null }[];
         categories: { id: string; name_en: string; name_am: string | null }[];
         statuses: string[];
         types: string[];
+        tipTypes: TipTypeBucket[];
         targets: string[];
     };
     exports: ExportRow[];
@@ -35,12 +40,25 @@ type Props = {
 const TYPE_KEY: Record<string, string> = { feedback: 'typeFeedback', suggestion: 'typeSuggestion', complaint: 'typeComplaint' };
 const STATUS_ORDER = ['pending', 'unrouted', 'assigned', 'under_review', 'resolved', 'closed'] as const;
 
+const TIP_LABEL: Record<TipTypeBucket, string> = {
+    CORRUPTION: 'serviceFeedback.tipTypeCorruption',
+    IMPROPER_PRACTICE: 'serviceFeedback.tipTypeImproperPractice',
+    UNCLASSIFIED_LEGACY: 'serviceFeedback.tipTypeUnclassified',
+};
+const TIP_BUCKETS: TipTypeBucket[] = ['CORRUPTION', 'IMPROPER_PRACTICE', 'UNCLASSIFIED_LEGACY'];
+
 /**
  * The public submissions report (brief §83–87): one slice across the three
  * types with breakdowns by institution, category and handler, and queued
- * private exports. No per-employee table, by design (§82).
+ * private exports. No per-employee ranking (§82).
+ *
+ * Tip-offs get their own section: counts by type that always add up, counts
+ * per institution in name order, and — only once one institution is chosen —
+ * employee-targeted Tip-off counts in name order for that institution's
+ * reviewers. These are reports received, not findings; nothing here is sorted
+ * by count, scored or labelled as conduct.
  */
-export default function SubmissionReports({ filters, summary, byOrganization, byCategory, byHandler, filterOptions, exports, can }: Props) {
+export default function SubmissionReports({ filters, summary, byOrganization, byCategory, byHandler, tipOffs, tipOffsByOrganization, employeeTargetedTipOffs, filterOptions, exports, can }: Props) {
     const { t, locale } = useLocale();
     const [draft, setDraft] = useState<Filters>({ ...filters });
     const exportForm = useForm({ format: 'csv' as 'csv' | 'xlsx' });
@@ -82,6 +100,12 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                         <Select id="rf-type" value={draft.submission_type ?? ''} onChange={(e) => set('submission_type')(e.target.value)}>
                             <option value="">{t('common.all')}</option>
                             {filterOptions.types.map((type) => <option key={type} value={type}>{t(`serviceFeedback.${TYPE_KEY[type]}`)}</option>)}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('serviceFeedback.tipTypeLabel')} htmlFor="rf-tip-type">
+                        <Select id="rf-tip-type" value={draft.tip_type ?? ''} onChange={(e) => set('tip_type')(e.target.value)}>
+                            <option value="">{t('serviceFeedback.tipTypeAll')}</option>
+                            {filterOptions.tipTypes.map((tipType) => <option key={tipType} value={tipType}>{t(TIP_LABEL[tipType])}</option>)}
                         </Select>
                     </FilterField>
                     <FilterField label={t('serviceFeedback.appliesToTargets')} htmlFor="rf-target">
@@ -135,6 +159,63 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                 </div>
 
                 <Alert tone="info">{t('serviceFeedback.noRankingNote')}</Alert>
+
+                <section aria-labelledby="tip-off-analytics" className="space-y-4">
+                    <div>
+                        <h2 id="tip-off-analytics" className="text-lg font-semibold">{t('serviceFeedback.tipOffAnalyticsTitle')}</h2>
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.tipOffAnalyticsNote')}</p>
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                        <Stat label={t('serviceFeedback.tipOffTotal')} value={tipOffs.total} />
+                        {TIP_BUCKETS.map((bucket) => <Stat key={bucket} label={t(TIP_LABEL[bucket])} value={tipOffs[bucket]} />)}
+                    </div>
+
+                    <TableCard title={t('serviceFeedback.tipOffsByInstitution')}>
+                        {tipOffsByOrganization.length === 0 ? <EmptyState title={t('serviceFeedback.noSubmissions')} /> : (
+                            <Table>
+                                <THead>
+                                    <Tr>
+                                        <Th>{t('serviceFeedback.filterOrganization')}</Th>
+                                        <Th align="right">{t('serviceFeedback.tipOffTotal')}</Th>
+                                        {TIP_BUCKETS.map((bucket) => <Th key={bucket} align="right">{t(TIP_LABEL[bucket])}</Th>)}
+                                    </Tr>
+                                </THead>
+                                <TBody>
+                                    {tipOffsByOrganization.map((row) => (
+                                        <Tr key={row.id ?? 'none'}>
+                                            <Td>{name(row)}</Td>
+                                            <Td align="right" numeric>{row.total.toLocaleString()}</Td>
+                                            {TIP_BUCKETS.map((bucket) => <Td key={bucket} align="right" numeric>{row[bucket].toLocaleString()}</Td>)}
+                                        </Tr>
+                                    ))}
+                                </TBody>
+                            </Table>
+                        )}
+                    </TableCard>
+
+                    <TableCard title={t('serviceFeedback.employeeTargetedTipOffs')} description={t('serviceFeedback.employeeTargetedTipOffsHint')}>
+                        {!filters.organization_id || employeeTargetedTipOffs.length === 0 ? <EmptyState title={t(filters.organization_id ? 'serviceFeedback.noSubmissions' : 'serviceFeedback.employeeTargetedTipOffsHint')} /> : (
+                            <Table>
+                                <THead>
+                                    <Tr>
+                                        <Th>{t('serviceFeedback.targetEmployee')}</Th>
+                                        <Th align="right">{t('serviceFeedback.tipOffTotal')}</Th>
+                                        {TIP_BUCKETS.map((bucket) => <Th key={bucket} align="right">{t(TIP_LABEL[bucket])}</Th>)}
+                                    </Tr>
+                                </THead>
+                                <TBody>
+                                    {employeeTargetedTipOffs.map((row) => (
+                                        <Tr key={row.employee_id}>
+                                            <Td>{row.full_name ?? '—'}{row.employee_number && <span className="ml-2 text-xs text-[color:var(--app-muted-foreground)]">{row.employee_number}</span>}</Td>
+                                            <Td align="right" numeric>{row.total.toLocaleString()}</Td>
+                                            {TIP_BUCKETS.map((bucket) => <Td key={bucket} align="right" numeric>{row[bucket].toLocaleString()}</Td>)}
+                                        </Tr>
+                                    ))}
+                                </TBody>
+                            </Table>
+                        )}
+                    </TableCard>
+                </section>
 
                 {can.export && (
                     <TableCard

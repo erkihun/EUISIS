@@ -1,121 +1,85 @@
+import { Deferred, Head, Link } from '@inertiajs/react';
+import { Alert, Card } from '@euisis/ui';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { AttentionSection, CategorySection, ExportsSection, InstitutionSection, KpiRow, RatingsSection, ResolutionSection, ServiceSection, SummarySection, SupportingSection, TrendSection, type AttentionItem, type CategoryRow, type ExportRow, type Institutions, type Kpis, type Ratings, type Resolution, type ServiceRow, type SummarySentence, type Trend } from '@/Components/situationRoom/sections';
-import { Breadcrumb, FilterBar, SectionSkeleton, fmt, useDateLabel, useNamer, viewQuery, type FilterOptions, type Filters, type ScopeProps } from '@/Components/situationRoom/shared';
-import { useLocale } from '@/hooks/useLocale';
-import { Alert, Button, Card, buttonClassName } from '@euisis/ui';
-import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import CategoryIcon from '@/Components/SituationRoom/CategoryIcon';
+import HeaderActions from '@/Components/SituationRoom/HeaderActions';
+import { KpiTiles, PanelGrid } from '@/Components/SituationRoom/Panels';
+import { Freshness, ScopeTrail, SituationFilterBar } from '@/Components/SituationRoom/SituationFilters';
+import { useSituationLabels } from '@/Components/SituationRoom/useSituationLabels';
+import type { SrCategory, SrFrameProps, SrResult } from '@/types/situationRoom';
 
-type Props = {
-    scope: ScopeProps;
-    filters: Filters;
-    filterOptions: FilterOptions;
-    headline: { kpis: Kpis; trend: Trend; generated_at: string };
-    comparison?: { institutions: Institutions; attention: AttentionItem[]; summary: SummarySentence[]; generated_at: string };
-    breakdown?: { categories: CategoryRow[]; services: ServiceRow[]; resolution: Resolution; targets: Record<string, Record<string, number>>; ratings: Ratings; generated_at: string };
-    supporting?: { cards: Record<string, Record<string, number | boolean>>; configuration: { without_qr: number; without_public_phone: number }; generated_at: string };
-    exports: ExportRow[];
-    rules: Record<string, number | null>;
-    can: { employeeTargeted: boolean; viewDetail: boolean; export: boolean; wall: boolean; manageActions: boolean };
-};
+type Props = SrFrameProps & { result?: SrResult; privacy: { small_cell: number } };
+
+const SECTIONS: SrCategory['section'][] = ['command', 'people', 'public_voice', 'operations', 'governance'];
 
 /**
- * Executive Situation Room overview (docs/executive-situation-room.md).
- * KPIs and the trend arrive with the page; comparison, attention and the
- * breakdowns stream in as deferred props so the first paint is quick.
+ * The Situation Room launcher: one large card per category the viewer may
+ * open, grouped by area, with the Executive Overview headlines underneath
+ * once they have loaded. Everything is inside the viewer's scope.
  */
-export default function SituationRoomIndex({ scope, filters, filterOptions, headline, comparison, breakdown, supporting, exports, rules, can }: Props) {
-    const { t } = useLocale();
-    const name = useNamer();
-    const { date, dateTime } = useDateLabel();
-    const [refreshing, setRefreshing] = useState(false);
-    const query = viewQuery(scope, filters);
-    const title = scope.node ? name(scope.node) : t('situationRoom.cityWide');
-
-    function refresh() {
-        router.post(route('situation-room.refresh'), query, { preserveScroll: true, onStart: () => setRefreshing(true), onFinish: () => setRefreshing(false) });
-    }
+export default function SituationRoomIndex({ categories, filters, query, scope, can, result, privacy }: Props) {
+    const { sr } = useSituationLabels();
+    const url = route('situation-room.index');
+    const kpis = result?.payload.panels.find((p) => p.type === 'kpis');
 
     return (
-        <AuthenticatedLayout header={(
-            <PageHeader
-                title={t('situationRoom.title')}
-                description={t('situationRoom.subtitle')}
-                actions={(
-                    <div className="flex flex-wrap items-center gap-2">
-                        <Button variant="outline" onClick={refresh} loading={refreshing}>{t('situationRoom.refresh')}</Button>
-                        {can.wall && <Link href={route('situation-room.wall', query)} className={buttonClassName({ variant: 'outline' })}>{t('situationRoom.wallMode')}</Link>}
-                        <Link href={route('situation-room.actions.index', scope.node ? { organization: scope.node.id } : {})} className={buttonClassName({ variant: 'outline' })}>{t('situationRoom.actionRegister')}</Link>
+        <AuthenticatedLayout header={<PageHeader title={sr('title')} description={sr('subtitle')} actions={<HeaderActions can={can} query={query} />} />}>
+            <Head title={sr('title')} />
+
+            <div className="space-y-6">
+                {scope.empty && <Alert tone="warning">{sr('ui.empty_scope')}</Alert>}
+                <ScopeTrail url={url} query={query} scope={scope} />
+                <SituationFilterBar url={url} filters={filters} query={query} scope={scope} />
+
+                <section aria-labelledby="sr-headlines" className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h2 id="sr-headlines" className="text-base font-semibold text-[color:var(--app-foreground)]">{sr('categories.overview.title')}</h2>
+                        {result && <Freshness generatedAt={result.generated_at} cachedFor={result.cached_for} />}
                     </div>
-                )}
-            />
-        )}>
-            <Head title={`${t('situationRoom.title')} — ${title}`} />
-
-            <div className="space-y-5">
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                    <div className="min-w-0">
-                        <Breadcrumb scope={scope} filters={filters} />
-                        <h2 className="mt-1 text-xl font-semibold">{title}</h2>
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">
-                            {fmt(t('situationRoom.periodRange'), { from: date(filters.from), to: date(filters.to) })}
-                            {' · '}
-                            {fmt(t('situationRoom.previousRange'), { from: date(filters.previous_from), to: date(filters.previous_to) })}
-                        </p>
-                    </div>
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('situationRoom.lastUpdated')}: <time dateTime={headline.generated_at}>{dateTime(headline.generated_at)}</time></p>
-                </div>
-
-                <FilterBar key={JSON.stringify(query)} scope={scope} filters={filters} options={filterOptions} />
-
-                <KpiRow kpis={headline.kpis} />
-
-                <div className="grid gap-5 xl:grid-cols-3">
-                    <TrendSection trend={headline.trend} kpis={headline.kpis} />
-                    <Deferred data="comparison" fallback={<SectionSkeleton rows={4} />}>
-                        {comparison ? <AttentionSection items={comparison.attention} rules={rules} scope={scope} filters={filters} canManageActions={can.manageActions} /> : <SectionSkeleton />}
+                    <Deferred data="result" fallback={<p className="text-sm text-[color:var(--app-muted-foreground)]" role="status">{sr('ui.loading')}</p>}>
+                        <>
+                            {kpis && kpis.type === 'kpis' && <KpiTiles items={kpis.data.items} />}
+                        </>
                     </Deferred>
-                    <Deferred data="comparison" fallback={<SectionSkeleton rows={4} />}>
-                        {comparison ? <SummarySection sentences={comparison.summary} /> : <SectionSkeleton />}
-                    </Deferred>
-                </div>
+                </section>
 
-                <Deferred data="comparison" fallback={<SectionSkeleton rows={8} />}>
-                    {comparison ? <InstitutionSection institutions={comparison.institutions} scope={scope} filters={filters} /> : <SectionSkeleton />}
+                {categories.length === 0 && <Alert tone="info">{sr('ui.nothing_available')}</Alert>}
+
+                {SECTIONS.map((section) => {
+                    const items: SrCategory[] = categories.filter((c) => c.section === section);
+                    // The institution-level Community Voice view sits with the community-voice categories.
+                    if (section === 'public_voice' && can.community_voice) {
+                        items.unshift({ key: 'community_voice', section, icon: 'MessageSquareIcon', wall: false, href: route('situation-room.community-voice') });
+                    }
+                    if (items.length === 0) return null;
+                    return (
+                        <section key={section} aria-labelledby={`sr-section-${section}`} className="space-y-3">
+                            <h2 id={`sr-section-${section}`} className="text-sm font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{sr(`sections.${section}`)}</h2>
+                            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                {items.map((category) => (
+                                    <li key={category.key}>
+                                        <Link href={category.href} data={query} className="group block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)]">
+                                            <Card className="flex h-full items-start gap-3 p-4 transition-colors group-hover:border-[color:var(--color-primary)]">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]">
+                                                    <CategoryIcon name={category.icon} className="h-6 w-6" />
+                                                </span>
+                                                <span className="min-w-0">
+                                                    <span className="block font-semibold text-[color:var(--app-foreground)]">{sr(`categories.${category.key}.title`)}</span>
+                                                    <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">{sr(`categories.${category.key}.description`)}</span>
+                                                </span>
+                                            </Card>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    );
+                })}
+
+                <Deferred data="result" fallback={null}>
+                    <PanelGrid panels={(result?.payload.panels ?? []).filter((p) => p.type !== 'kpis')} options={{ smallCell: privacy.small_cell }} />
                 </Deferred>
-
-                <Deferred data={['breakdown', 'supporting']} fallback={<div className="grid gap-5 lg:grid-cols-2"><SectionSkeleton rows={5} /><SectionSkeleton rows={5} /></div>}>
-                    {breakdown ? (
-                        <div className="grid gap-5 lg:grid-cols-2">
-                            <CategorySection categories={breakdown.categories} />
-                            <ResolutionSection resolution={breakdown.resolution} targets={breakdown.targets} />
-                            <ServiceSection services={breakdown.services} />
-                            <RatingsSection ratings={breakdown.ratings} />
-                        </div>
-                    ) : <SectionSkeleton />}
-                </Deferred>
-
-                {can.employeeTargeted && (
-                    <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
-                        <div className="min-w-0">
-                            <h2 className="font-semibold">{t('situationRoom.employeesTitle')}</h2>
-                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.employeesIntro')}</p>
-                        </div>
-                        <Link href={route('situation-room.employees', query)} className={buttonClassName({ variant: 'outline' })}>{t('situationRoom.employeesOpen')}</Link>
-                    </Card>
-                )}
-
-                <Deferred data={['breakdown', 'supporting']} fallback={<SectionSkeleton rows={2} />}>
-                    {supporting ? <SupportingSection cards={supporting.cards} configuration={supporting.configuration} /> : <SectionSkeleton />}
-                </Deferred>
-
-                {can.export && <ExportsSection exports={exports} scope={scope} filters={filters} />}
-
-                <Alert tone="info">
-                    <p>{t('situationRoom.neutralNote')}</p>
-                    <p className="mt-1">{t('situationRoom.countsOnlyNote')}</p>
-                </Alert>
             </div>
         </AuthenticatedLayout>
     );

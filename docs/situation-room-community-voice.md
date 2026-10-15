@@ -1,17 +1,20 @@
-# Situation Room — what is counted
+# Situation Room — Community Voice: what is counted
 
-The Situation Room counts **public submissions**: rows of
-`employee_service_feedback` made through an employee card QR or an
-institution feedback QR. It counts nothing else.
+The **Community Voice by Institution** view (`/situation-room/community-voice`,
+grants `situation_room.view` + `situation_room.public_voice.view`) counts
+**public submissions**: rows of `employee_service_feedback` made through an
+employee card QR or an institution feedback QR. It counts nothing else. The
+room's other categories read other modules and are described in
+[situation-room-metrics-catalog.md](situation-room-metrics-catalog.md).
 
 ## Domain boundaries
 
 | Domain | In the Situation Room? |
 |---|---|
 | Public feedback, suggestions and complaints (`employee_service_feedback`) | Yes: the only source of the community-voice figures |
-| Employee grievances (Regulation 201) | No. A grievance is an employee's case, not a public submission. |
-| Discipline cases | No |
-| Appeals | No |
+| Employee grievances (Regulation 201) | No. A grievance is an employee's case, not a public submission. Counted only in the separate *Grievance, Discipline & Appeal* category (counts only). |
+| Discipline cases | No (separate category, counts only, small groups protected) |
+| Appeals | No (separate category, counts only) |
 | Performance (EPMS) | Shown only as a separate supporting card (agreement counts), never mixed into community-voice figures |
 | Transport | Out of scope |
 
@@ -88,3 +91,14 @@ Every query starts from these filters, in this order:
   served then. The drill-down shows "Recorded at" for each submission.
 - A leader who has no submission about an employee in their scope gets a 404
   for that employee, so they cannot learn the name.
+
+## Tip-offs and the category views
+
+Suggestions are presented to the public as **Tip-offs (ጥቆማ)** with two types,
+Corruption and Improper practice (`tip_type`). The *Tip-offs* category of the
+room breaks them down by type; Tip-offs stored before types existed are shown
+as *Unclassified (older)* and never guessed, so the buckets always add up.
+The *Public Complaints*, *Public Feedback* and *Tip-offs* categories use the
+same base rows as this view (moderation-hidden excluded, `organization_id`
+snapshot for scope, `submitted_at` for the period) — see
+[situation-room-public-voice-analytics.md](situation-room-public-voice-analytics.md).

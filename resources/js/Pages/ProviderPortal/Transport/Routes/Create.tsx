@@ -1,3 +1,13 @@
 import TransportProviderLayout from '@/Layouts/TransportProviderLayout';
-import TransportRouteForm from '@/Components/transport/TransportRouteForm';
-export default function Create() { return <TransportProviderLayout title="New Route"><TransportRouteForm /></TransportProviderLayout>; }
+import { RouteForm } from '@/Components/transport/TransportForms';
+import { useLocale } from '@/hooks/useLocale';
+
+export default function Create() {
+    const { t } = useLocale();
+
+    return (
+        <TransportProviderLayout title={t('transport.newRoute')}>
+            <RouteForm mode="portal" />
+        </TransportProviderLayout>
+    );
+}

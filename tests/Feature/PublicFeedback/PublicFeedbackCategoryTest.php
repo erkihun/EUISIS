@@ -87,26 +87,26 @@ it('offers only active categories that apply to the type and the target', functi
 });
 
 it('stores the chosen category on the submission', function (): void {
-    $this->post('/feedback/'.$this->orgToken.'/complaint', [
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', [
         'message' => 'The licensing counter closed early.',
         'category_id' => $this->counterA->id,
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     expect(EmployeeServiceFeedback::query()->sole()->category_id)->toBe($this->counterA->id);
 });
 
 it('refuses a category that does not apply to the submission', function (): void {
     // Organization-only category on an employee QR.
-    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'x', 'category_id' => $this->counterA->id])
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', pfComplete('complaint', ['message' => 'x', 'category_id' => $this->counterA->id]))
         ->assertSessionHasErrors('category_id');
     // Another institution's category.
-    $this->post('/feedback/'.$this->orgToken.'/complaint', ['message' => 'y', 'category_id' => $this->onlyB->id])
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'y', 'category_id' => $this->onlyB->id]))
         ->assertSessionHasErrors('category_id');
     // A retired category.
-    $this->post('/feedback/'.$this->orgToken.'/complaint', ['message' => 'z', 'category_id' => $this->retired->id])
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'z', 'category_id' => $this->retired->id]))
         ->assertSessionHasErrors('category_id');
     // Wrong submission type.
-    $this->post('/feedback/'.$this->orgToken.'/suggestion', ['message' => 'w', 'category_id' => $this->cityWide->id])
+    $this->post('/feedback/'.$this->orgToken.'/suggestion', pfComplete('suggestion', ['message' => 'w', 'category_id' => $this->cityWide->id]))
         ->assertSessionHasErrors('category_id');
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
@@ -129,7 +129,7 @@ it('lets a city-level user manage city-wide categories and a scoped admin only t
 });
 
 it('never deletes a referenced category; it is retired instead', function (): void {
-    $this->post('/feedback/'.$this->orgToken.'/complaint', ['message' => 'Referenced.', 'category_id' => $this->counterA->id])->assertRedirect();
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'Referenced.', 'category_id' => $this->counterA->id]))->assertRedirect();
 
     $this->actingAs($this->superAdmin)->delete(route('service-feedback.categories.destroy', $this->counterA))->assertRedirect();
     expect($this->counterA->fresh())->not->toBeNull()

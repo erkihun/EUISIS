@@ -374,6 +374,26 @@ class DashboardMetricService
                     ->where('employee_service_feedback.status', ServiceFeedbackStatus::Pending->value)
                     ->count(),
             ];
+
+            /*
+             * Public Tip-offs: aggregate counts only, safe for a wall display —
+             * no narrative, no tipster, no employee. One grouped query; the
+             * three type buckets add up to the total (legacy rows unclassified).
+             */
+            $tipBuckets = $this->tipOffQuery($scope)
+                ->toBase()
+                ->selectRaw("COALESCE(employee_service_feedback.tip_type, 'UNCLASSIFIED_LEGACY') AS bucket, COUNT(*) AS aggregate")
+                ->groupBy('bucket')
+                ->pluck('aggregate', 'bucket');
+            $cards['tipOffs'] = [
+                'total' => (int) $tipBuckets->sum(),
+                'corruption' => (int) ($tipBuckets['CORRUPTION'] ?? 0),
+                'improperPractice' => (int) ($tipBuckets['IMPROPER_PRACTICE'] ?? 0),
+                'unclassified' => (int) ($tipBuckets['UNCLASSIFIED_LEGACY'] ?? 0),
+                'awaitingRouting' => $this->tipOffQuery($scope)
+                    ->where('employee_service_feedback.status', ServiceFeedbackStatus::Unrouted->value)
+                    ->count(),
+            ];
         }
 
         if ($can['nfc'] ?? false) {
@@ -1117,8 +1137,14 @@ class DashboardMetricService
 
     public function feedbackQuery(array $scope): Builder
     {
+        return $this->publicSubmissionQuery($scope)
+            ->where('employee_service_feedback.type', 'feedback');
+    }
+
+    /** Public submissions of every type, confined to the viewer's organization scope. */
+    private function publicSubmissionQuery(array $scope): Builder
+    {
         return EmployeeServiceFeedback::query()
-            ->where('employee_service_feedback.type', 'feedback')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('employee_service_feedback.organization_id', $scope['organization_ids'])
@@ -1131,6 +1157,13 @@ class DashboardMetricService
                 $scope['provider_only'],
                 fn (Builder $query) => $query->whereRaw('1 = 0')
             );
+    }
+
+    /** Public Tip-offs (internal type `suggestion`) in the viewer's organization scope. */
+    public function tipOffQuery(array $scope): Builder
+    {
+        return $this->publicSubmissionQuery($scope)
+            ->where('employee_service_feedback.type', 'suggestion');
     }
 
     public function transferQuery(array $scope): Builder

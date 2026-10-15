@@ -81,7 +81,8 @@ final class PublicFeedbackNotifier
      */
     public function acknowledge(EmployeeServiceFeedback $submission, string $locale): void
     {
-        $contact = trim((string) $submission->client_contact);
+        // The e-mail field; before it existed the one contact field could hold an address.
+        $contact = trim((string) ($submission->client_email ?? $submission->client_contact));
 
         if (! $this->policy->acknowledgementEnabled() || $contact === '' || filter_var($contact, FILTER_VALIDATE_EMAIL) === false) {
             return;
@@ -98,7 +99,8 @@ final class PublicFeedbackNotifier
             try {
                 Notification::route('mail', $contact)->notify($notification);
             } catch (Throwable $exception) {
-                Log::warning('Public feedback acknowledgement failed', ['exception' => $exception->getMessage()]);
+                // By class only: a transport message can echo the recipient's address.
+                Log::warning('Public feedback acknowledgement failed', ['exception' => $exception::class]);
             }
         });
     }

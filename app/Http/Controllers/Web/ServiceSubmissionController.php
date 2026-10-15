@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\PublicFeedbackHandlerType;
+use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
@@ -16,6 +17,7 @@ use App\Models\PublicFeedbackAssignment;
 use App\Models\PublicFeedbackStatusHistory;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\ServiceFeedback\PublicEvidencePolicy;
 use App\Services\ServiceFeedback\PublicFeedbackAssignmentService;
 use App\Services\ServiceFeedback\PublicFeedbackReferralService;
 use App\Services\ServiceFeedback\PublicFeedbackRoutingService;
@@ -79,6 +81,12 @@ class ServiceSubmissionController extends Controller
         if ($status !== null) {
             $query->where('status', $status);
         }
+        // Tip-offs filter by their type; legacy rows without one are their own bucket.
+        $tipType = $kind === ServiceFeedbackType::Suggestion ? $request->query('tip_type') : null;
+        $tipType = is_string($tipType) && in_array($tipType, [...PublicTipType::values(), PublicTipType::UNCLASSIFIED_LEGACY], true) ? $tipType : null;
+        if ($tipType !== null) {
+            $tipType === PublicTipType::UNCLASSIFIED_LEGACY ? $query->whereNull('tip_type') : $query->where('tip_type', $tipType);
+        }
         $mine = $request->boolean('mine');
         if ($mine) {
             $query->whereHas('currentAssignment', fn (Builder $q) => $this->handledBy($q, $user));
@@ -92,18 +100,30 @@ class ServiceSubmissionController extends Controller
             'counts' => $this->scoped($user, $kind)
                 ->selectRaw('status, COUNT(*) AS total')->groupBy('status')->pluck('total', 'status'),
             'statuses' => self::STATUS_ORDER[$kind->value],
-            'filters' => ['status' => $status, 'mine' => $mine],
+            'filters' => ['status' => $status, 'mine' => $mine, 'tip_type' => $tipType],
             'canManageRouting' => $user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]),
         ]);
     }
 
-    public function show(string $type, EmployeeServiceFeedback $submission): Response
+    public function show(Request $request, string $type, EmployeeServiceFeedback $submission): Response
     {
         $kind = $this->kind($type);
         abort_unless($submission->type === $kind, 404);
         $user = $this->user();
         $this->assertAccess($user, $submission);
         $this->authorize('view', $submission);
+
+        // Seeing who sent it — above all a tipster — is a recorded act. Codes only, never the details.
+        if ($this->visibility->canSeeIdentity($user) && $this->visibility->hasIdentity($submission)) {
+            $this->audit->execute(
+                eventType: AuditEventType::PublicSubmitterIdentityViewed,
+                actor: $user,
+                auditable: $submission,
+                organizationId: $submission->organization_id,
+                reason: 'Submitter identity viewed on public '.$kind->value,
+                request: $request,
+            );
+        }
 
         $submission->load([
             'employee:id,full_name,employee_number',
@@ -139,6 +159,8 @@ class ServiceSubmissionController extends Controller
             'type' => $kind->value,
             'entry' => $this->summary($submission) + $this->visibility->identity($user, $submission) + [
                 'subject' => $submission->subject,
+                'involved_parties' => $submission->involved_parties,
+                'intake_channel' => $submission->intake_channel?->value,
                 'incident_date' => $submission->incident_date?->toDateString(),
                 'incident_location' => $submission->incident_location,
                 'organization_unit' => $locale === 'am' ? ($submission->organizationUnit?->name_am ?? $submission->organizationUnit?->name_en) : $submission->organizationUnit?->name_en,
@@ -156,6 +178,9 @@ class ServiceSubmissionController extends Controller
                     'id' => $file->id,
                     'name' => $file->original_name,
                     'size' => $file->size_bytes,
+                    // Submitted evidence, not verified proof; and never claimed scanned when it was not.
+                    'kind' => PublicEvidencePolicy::kindForMime((string) $file->mime_type),
+                    'scan_status' => $file->scan_status,
                 ])->all(),
             ],
             'history' => $submission->statusHistory->map(fn (PublicFeedbackStatusHistory $row): array => [
@@ -262,8 +287,9 @@ class ServiceSubmissionController extends Controller
 
     public function download(Request $request, string $type, EmployeeServiceFeedback $submission, EmployeeServiceFeedbackAttachment $attachment): StreamedResponse
     {
-        abort_unless($this->kind($type) === ServiceFeedbackType::Complaint
-            && $submission->type === ServiceFeedbackType::Complaint
+        // Evidence exists on Complaints and Tip-offs; the URL's type must be the row's own.
+        $kind = $this->kind($type);
+        abort_unless($submission->type === $kind
             && $attachment->employee_service_feedback_id === $submission->getKey(), 404);
         $this->assertAccess($this->user(), $submission);
         $this->authorize('view', $submission);
@@ -273,16 +299,16 @@ class ServiceSubmissionController extends Controller
         abort_unless($disk->exists($attachment->path), 404);
         // Streamed through the disk so it also works on shared object storage.
         if (! StoredFileChecksum::matches('local', $attachment->path, $attachment->sha256)) {
-            report(new \RuntimeException('Complaint attachment integrity mismatch: '.$attachment->getKey()));
+            report(new \RuntimeException('Public submission evidence integrity mismatch: '.$attachment->getKey()));
             abort(409);
         }
 
         $this->audit->execute(
-            eventType: AuditEventType::ServiceComplaintAttachmentDownloaded,
+            eventType: $kind === ServiceFeedbackType::Complaint ? AuditEventType::ServiceComplaintAttachmentDownloaded : AuditEventType::ServiceTipOffAttachmentDownloaded,
             actor: $this->user(),
             auditable: $attachment,
             organizationId: $submission->organization_id,
-            reason: 'Complaint attachment downloaded',
+            reason: $kind === ServiceFeedbackType::Complaint ? 'Complaint attachment downloaded' : 'Tip-off evidence downloaded',
             request: $request,
         );
 
@@ -364,6 +390,7 @@ class ServiceSubmissionController extends Controller
             'id' => $entry->id,
             'reference' => $entry->reference_number,
             'type' => $entry->type->value,
+            'tip_type' => $entry->tip_type?->value,
             'status' => $entry->status->value,
             'target_type' => $entry->target_type?->value ?? 'employee',
             'target_name' => $entry->target_name_snapshot ?? $entry->employee?->full_name,

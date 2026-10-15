@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Services\Transport\TransportSettings;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TransportScanRequest extends FormRequest
@@ -19,9 +20,11 @@ class TransportScanRequest extends FormRequest
         return [
             'provider_id' => ['required', 'uuid', 'exists:providers,id'],
             'qr_token' => ['required', 'string', 'min:10'],
-            'scan_nonce' => ['required', 'uuid'],
+            // The replay guard; Transport › Settings may let the server make one.
+            'scan_nonce' => [app(TransportSettings::class)->nonceRequired() ? 'required' : 'nullable', 'uuid'],
             'transport_route_id' => ['nullable', 'uuid', 'exists:transport_routes,id'],
             'transport_trip_id' => ['nullable', 'uuid', 'exists:transport_trips,id'],
+            // Recorded as the device's claim only; the server clock dates the scan.
             'scanned_at' => ['nullable', 'date'],
         ];
     }
