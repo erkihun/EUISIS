@@ -40,7 +40,7 @@ export default function Dashboard({ assigned, queue, intakePending, approvalsPen
         can.correspondence && { title: t('grievanceWork.correspondence'), hint: t('grievanceCases.dash.correspondence_hint'), href: route('grievances.correspondence.index') },
         can.committees && { title: t('grievanceAdmin.committees'), hint: t('grievanceCases.dash.committees_hint'), href: route('grievances.committees.index') },
         can.reports && { title: t('grievanceWork.reports'), hint: t('grievanceCases.dash.reports_hint'), href: route('grievances.reports.index') },
-    ].filter((a): a is { title: string; hint: string; href: string } => Boolean(a));
+    ].filter((a): a is Exclude<typeof a, false> => Boolean(a));
 
     const actions = (can.approvals || can.intake) ? <>
         {can.approvals && <Link className={secondaryBtn} href={route('grievances.approvals.index')}>{t('grievanceWork.approvals')}<Count value={approvalsPending ?? 0} /></Link>}
