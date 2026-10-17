@@ -1,5 +1,5 @@
 import { CoverageBar, ExportButtons, GenderTable, Kpi, KpiGroup, OUTCOMES, OversightLayout, SeverityBadge, StatusBadge, named, oversightHref, pct, type Distribution, type Metrics, type ShellProps } from '@/Components/assessmentOversight/shell';
-import { Section, Table, dangerBtn, inputCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls } from '@/Components/performance/ui';
+import { Section, Table, dangerBtn, inputCls, textareaCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls } from '@/Components/performance/ui';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { Link, router, useForm } from '@inertiajs/react';
@@ -197,7 +197,7 @@ export default function OversightInstitution(props: Props) {
                         {actions.submit && (
                             <form className="mb-4 grid gap-2 sm:max-w-xl" onSubmit={(e) => { e.preventDefault(); submitForm.post(route('assessment-oversight.submissions.store', cycle.id), { preserveScroll: true }); }}>
                                 <label htmlFor="ao-note" className="text-sm font-medium">{t('assessmentOversight.signOffNote')}</label>
-                                <textarea id="ao-note" rows={2} className={inputCls} value={submitForm.data.note} onChange={(e) => submitForm.setData('note', e.target.value)} />
+                                <textarea id="ao-note" rows={2} className={textareaCls} value={submitForm.data.note} onChange={(e) => submitForm.setData('note', e.target.value)} />
                                 {submitForm.errors && Object.values(submitForm.errors).map((e) => <p key={e} className="text-sm text-red-600">{e}</p>)}
                                 <div><button className={primaryBtn} disabled={submitForm.processing}>{t('assessmentOversight.submitSummary')}</button></div>
                                 <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.submitHelp')}</p>
@@ -206,7 +206,7 @@ export default function OversightInstitution(props: Props) {
                         {(actions.startReview || actions.return || actions.reject || actions.verify || actions.finalize) && latest && (
                             <div className="mb-4 grid gap-2 sm:max-w-xl">
                                 <label htmlFor="ao-comment" className="text-sm font-medium">{t('assessmentOversight.reviewComment')}</label>
-                                <textarea id="ao-comment" rows={2} className={inputCls} value={comment} onChange={(e) => setComment(e.target.value)} />
+                                <textarea id="ao-comment" rows={2} className={textareaCls} value={comment} onChange={(e) => setComment(e.target.value)} />
                                 <div className="flex flex-wrap gap-2">
                                     {actions.startReview && <button type="button" className={primaryBtn} onClick={() => move('start-review')}>{t('assessmentOversight.actions.startReview')}</button>}
                                     {actions.verify && <button type="button" className={primaryBtn} onClick={() => move('verify')}>{t('assessmentOversight.actions.verify')}</button>}

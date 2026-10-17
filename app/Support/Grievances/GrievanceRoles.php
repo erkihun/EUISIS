@@ -100,11 +100,14 @@ final class GrievanceRoles
         'grievance_reports.view',
     ];
 
-    /** Correspondence registry: seal custody and dispatch of letters in scope. */
+    /**
+     * Correspondence registry: seal custody and dispatch of letters in scope.
+     * Seals are uploaded and approved on the Settings page, hence settings.view.
+     */
     public const REGISTRY_PERMISSIONS = [
         'dashboard.view',
         'grievance_correspondence.view', 'grievance_correspondence.apply_seal', 'grievance_correspondence.issue',
-        'grievance_settings.manage_seals',
+        'grievance_settings.view', 'grievance_settings.manage_seals',
     ];
 
     /** Read-only oversight within scope; highly restricted cases show metadata only. */

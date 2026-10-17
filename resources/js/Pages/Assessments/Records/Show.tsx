@@ -3,11 +3,11 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import OfficialAssessmentSheet, { type SheetColumn } from '@/Components/assessmentForms/OfficialAssessmentSheet';
 import { RecordStatus } from '@/Components/assessmentOversight/RecordStatus';
-import { Details, Field, Section, formatScore, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, titleOf } from '@/Components/performance/ui';
+import { Details, Field, Section, formatScore, inputCls, textareaCls, nameOf, pageCls, primaryBtn, secondaryBtn, titleOf } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Alert } from '@euisis/ui';
 import { Head, Link, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 
 type Option = { id: string; label_en: string; label_am: string | null; description_en: string | null; description_am: string | null; score: string | number };
 type Props = {
@@ -29,6 +29,8 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
     const form = useForm({ answers: response?.answers ?? {} as Record<string, string> });
     const signoff = useForm({});
     const absence = useForm({ reason: 'illness', note: '' });
+    // Marking a record unassessed ends the wait for ratings, so the form opens on request rather than on every record.
+    const [absenceOpen, setAbsenceOpen] = useState(false);
     const title = `${record.employee_snapshot.name} · ${nameOf(version, locale)}`;
     const count = version.sections.reduce((sum, section) => sum + section.criteria.filter((c) => c.is_required).length, 0);
     const answered = version.sections.reduce((sum, section) => sum + section.criteria.filter((c) => c.is_required && c.options.some((o) => String(o.id) === String(form.data.answers[c.id] ?? ''))).length, 0);
@@ -127,8 +129,9 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                 </Section>
 
                 {can.unassessed && (
-                    <Section className="print-hidden" title={r('nonAssessmentTitle')}>
-                        <form className="grid gap-3 sm:max-w-xl" onSubmit={(e) => { e.preventDefault(); absence.post(route('assessment-records.unassessed', record.id), { preserveScroll: true }); }}>
+                    <Section className="print-hidden" title={r('nonAssessmentTitle')} description={r('nonAssessmentHelp')}>
+                        {!absenceOpen && <button type="button" className={secondaryBtn} onClick={() => setAbsenceOpen(true)}>{r('markUnassessed')}</button>}
+                        {absenceOpen && <form className="grid gap-3 sm:max-w-xl" onSubmit={(e) => { e.preventDefault(); absence.post(route('assessment-records.unassessed', record.id), { preserveScroll: true }); }}>
                             <Field label={r('reason')} htmlFor="absence-reason">
                                 <select id="absence-reason" className={inputCls} value={absence.data.reason} onChange={(e) => absence.setData('reason', e.target.value)}>
                                     <option value="illness">{r('illness')}</option>
@@ -136,10 +139,10 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                                 </select>
                             </Field>
                             <Field label={r('explanation')} htmlFor="absence-note">
-                                <textarea required id="absence-note" maxLength={2000} rows={3} className={inputCls} value={absence.data.note} onChange={(e) => absence.setData('note', e.target.value)} />
+                                <textarea required id="absence-note" maxLength={2000} rows={3} className={textareaCls} value={absence.data.note} onChange={(e) => absence.setData('note', e.target.value)} />
                             </Field>
-                            <div><button disabled={absence.processing} className={secondaryBtn}>{r('markUnassessed')}</button></div>
-                        </form>
+                            <div className="flex gap-2"><button disabled={absence.processing} className={secondaryBtn}>{r('markUnassessed')}</button><button type="button" className={secondaryBtn} onClick={() => setAbsenceOpen(false)}>{t('common.cancel')}</button></div>
+                        </form>}
                     </Section>
                 )}
             </div>

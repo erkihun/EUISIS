@@ -1,8 +1,8 @@
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
-import { FormRow, inputCls, primaryBtn, secondaryBtn, useEnumLabel } from '@/Components/grievances/ui';
+import { FormRow, inputCls, primaryBtn, secondaryBtn, textareaCls, useEnumLabel } from '@/Components/grievances/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { useForm } from '@inertiajs/react';
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useId, useState, type ReactNode } from 'react';
 import type { Bilingual, HandlerOptions, HandlerRef } from '@/types/grievances';
 import { nameOf } from '@/Components/grievances/ui';
 
@@ -14,7 +14,25 @@ export type AdminField = {
     required?: boolean; min?: number; max?: number; maxLength?: number; pattern?: string; accept?: string; help?: string;
     options?: Choice[]; lookup?: 'employees' | 'units' | 'positions' | 'users'; organizationKey?: string; initialLabel?: string;
     visible?: (data: AdminData) => boolean; clearOnChange?: string[]; enumGroup?: string;
+    /** Shown but not editable, e.g. the organization a letterhead belongs to. */
+    disabled?: boolean;
 };
+
+/**
+ * Set by a container that hosts a form (the settings drawer): it learns when
+ * the form has unsaved edits, and pins the actions to its bottom edge.
+ */
+export const FormHostContext = createContext<{ onDirtyChange?: (dirty: boolean) => void; stickyActions?: boolean; requestClose?: () => void }>({});
+
+/** Accessible on/off switch (role="switch"). */
+export function Switch({ id, checked, onChange, disabled, label, describedBy }: { id?: string; checked: boolean; onChange: (value: boolean) => void; disabled?: boolean; label: string; describedBy?: string }) {
+    return (
+        <button id={id} type="button" role="switch" aria-checked={checked} aria-label={label} aria-describedby={describedBy} disabled={disabled} onClick={() => onChange(!checked)}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${checked ? 'bg-[color:var(--color-primary)]' : 'bg-gray-300 dark:bg-slate-600'}`}>
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+        </button>
+    );
+}
 
 /** Lookup results are scoped by the existing grievance endpoints; IDs are never typed. */
 export function AdminLookup({ endpoint, organizationId, value, initialLabel, onChange, disabled, required, id }: {
@@ -63,26 +81,39 @@ export function AdminForm({ initial, fields, url, method = 'post', editable = tr
     const { t } = useLocale();
     const label = useEnumLabel();
     const id = useId();
+    const host = useContext(FormHostContext);
     const form = useForm<AdminData>(initial);
     const errors = form.errors as Record<string, string>;
+    const { onDirtyChange } = host;
+    useEffect(() => { onDirtyChange?.(form.isDirty); }, [form.isDirty, onDirtyChange]);
     const change = (field: AdminField, value: AdminValue) => form.setData(data => ({ ...data, [field.key]: value, ...Object.fromEntries((field.clearOnChange ?? []).map(key => [key, ''])) }));
     return <form onSubmit={event => {
         event.preventDefault();
         form.transform(data => Object.fromEntries(Object.entries(data).map(([key, value]) => [key, value === '' ? null : value])));
-        form.submit(method, url, { preserveScroll: true, onSuccess: () => { form.setDefaults(); onSaved?.(); } });
+        form.submit(method, url, { preserveScroll: true, onSuccess: () => { form.setDefaults(); onDirtyChange?.(false); onSaved?.(); } });
     }} className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">{fields.filter(field => !field.visible || field.visible(form.data)).map(field => {
             const fieldId = `${id}-${field.key}`;
             const value = form.data[field.key];
-            const disabled = !editable || form.processing;
+            const disabled = !editable || form.processing || Boolean(field.disabled);
             const title = field.label ?? t(`grievanceAdmin.fields.${field.key}`);
             const fieldError = Object.entries(errors).filter(([key]) => key === field.key || key.startsWith(`${field.key}.`)).map(([, error]) => error).join(' ');
             const common = { id: fieldId, disabled, required: field.required, className: inputCls, 'aria-invalid': Boolean(fieldError), 'aria-describedby': fieldError ? `${fieldId}-error` : undefined };
             let control: ReactNode;
-            if (field.type === 'boolean') control = <input {...common} className="h-5 w-5 rounded border-[color:var(--app-border-strong)]" type="checkbox" checked={Boolean(value)} onChange={event => change(field, event.target.checked)} />;
-            else if (field.type === 'date') control = <LocalizedDatePicker id={fieldId} disabled={disabled} required={field.required} className={inputCls} value={String(value ?? '')} onChange={date => change(field, date)} />;
+            if (field.type === 'boolean') {
+                // A switch row: label and help on the left, the switch on the right.
+                return <div key={field.key} className="flex items-start justify-between gap-4 rounded-md border border-[color:var(--app-border)] px-3 py-2.5 sm:col-span-2">
+                    <span className="min-w-0">
+                        <span id={`${fieldId}-label`} className="block text-sm font-medium text-[color:var(--app-foreground)]">{title}</span>
+                        {field.help && <span id={`${fieldId}-help`} className="block text-xs text-[color:var(--app-muted-foreground)]">{field.help}</span>}
+                        {fieldError && <span id={`${fieldId}-error`} role="alert" className="mt-1 block text-xs text-red-600">{fieldError}</span>}
+                    </span>
+                    <Switch id={fieldId} label={title} describedBy={field.help ? `${fieldId}-help` : undefined} checked={Boolean(value)} disabled={disabled} onChange={checked => change(field, checked)} />
+                </div>;
+            }
+            if (field.type === 'date') control = <LocalizedDatePicker id={fieldId} disabled={disabled} required={field.required} className={inputCls} value={String(value ?? '')} onChange={date => change(field, date)} />;
             else if (field.type === 'lookup') control = <AdminLookup id={fieldId} endpoint={field.lookup!} organizationId={field.organizationKey ? String(form.data[field.organizationKey] ?? '') : undefined} value={String(value ?? '')} initialLabel={field.initialLabel} disabled={disabled} required={field.required} onChange={selection => change(field, selection)} />;
-            else if (field.type === 'textarea') control = <textarea {...common} rows={field.key === 'body_template' ? 10 : 3} maxLength={field.maxLength ?? 2000} value={String(value ?? '')} onChange={event => change(field, event.target.value)} />;
+            else if (field.type === 'textarea') control = <textarea {...common} className={textareaCls} rows={field.key === 'body_template' ? 10 : 3} maxLength={field.maxLength ?? 2000} value={String(value ?? '')} onChange={event => change(field, event.target.value)} />;
             else if (field.type === 'select' || field.type === 'multiselect') control = <select {...common} multiple={field.type === 'multiselect'} value={field.type === 'multiselect' ? (value as string[] ?? []) : String(value ?? '')} onChange={event => change(field, field.type === 'multiselect' ? Array.from(event.target.selectedOptions).map(option => option.value) : event.target.value)}>
                 {field.type !== 'multiselect' && <option value="">{t(field.required ? 'grievances.common.select' : 'grievances.common.all')}</option>}
                 {field.options?.map(option => <option key={option.value} value={option.value}>{field.enumGroup ? label(field.enumGroup, option.value) : option.label}</option>)}
@@ -94,7 +125,7 @@ export function AdminForm({ initial, fields, url, method = 'post', editable = tr
         })}</div>
         {children}
         {Object.keys(errors).length > 0 && <div role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{Object.values(errors).map((error, index) => <p key={index}>{error}</p>)}</div>}
-        {editable && <div className="flex items-center gap-3"><button className={primaryBtn} disabled={form.processing} type="submit">{submitLabel ?? t('grievances.common.save')}</button>{onCancel && <button className={secondaryBtn} type="button" onClick={onCancel}>{t('grievances.common.cancel')}</button>}{form.recentlySuccessful && <span role="status" className="text-sm text-emerald-700">{t('grievanceAdmin.saved')}</span>}</div>}
+        {editable && <div className={`flex items-center gap-3 ${host.stickyActions ? 'sticky -bottom-5 flex-row-reverse justify-start z-10 -mx-6 -mb-5 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-3' : ''}`}><button className={primaryBtn} disabled={form.processing} type="submit">{submitLabel ?? t('grievances.common.save')}</button>{onCancel && <button className={secondaryBtn} type="button" onClick={host.requestClose ?? onCancel}>{t('grievances.common.cancel')}</button>}{form.recentlySuccessful && <span role="status" className="text-sm text-emerald-700">{t('grievanceAdmin.saved')}</span>}</div>}
         {!editable && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('grievanceAdmin.readOnly')}</p>}
     </form>;
 }
@@ -108,7 +139,7 @@ export const choices = (values: string[]): Choice[] => values.map(value => ({ va
 export const today = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
 
 export function handlerFields({ prefix = '', options, locale, title, organizationLabel, required = false, allowOrganization = false, initial }: {
-    prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations' | 'committees' | 'external_authorities'>;
+    prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations'> & { committees: Bilingual[]; external_authorities: Bilingual[] };
     locale: string; title: string; organizationLabel: string; required?: boolean; allowOrganization?: boolean; initial?: HandlerRef | null;
 }): AdminField[] {
     const typeKey = `${prefix}handler_type`, idKey = `${prefix}handler_id`, orgKey = `${prefix}lookup_organization_id`;

@@ -1,6 +1,6 @@
 import LookupPicker from '@/Components/assessmentForms/LookupPicker';
 import { ChevronDown, ChevronUp, ComponentIcon, Plus, TrashIcon } from '@/Components/Icons';
-import { Field, compactInputCls, inputCls, smallBtn } from '@/Components/performance/ui';
+import { Field, compactInputCls, inputCls, textareaCls, smallBtn } from '@/Components/performance/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import { StatusBadge } from '@euisis/ui';
@@ -125,7 +125,7 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                                         className={`inline-flex min-h-9 items-center gap-2 rounded-control border bg-[color:var(--app-surface)] px-3 py-1.5 text-xs hover:border-[color:var(--color-primary)] ${broken ? 'border-red-300 dark:border-red-800' : 'border-[color:var(--app-border)]'}`}>
                                         <span className="font-semibold">{si + 1}.</span>
                                         <span className="max-w-[14rem] truncate">{title(s, t('assessments.builder.untitledSection'))}</span>
-                                        <span className="text-[color:var(--app-muted-foreground)]">· {t('assessments.builder.criteriaCount').replace(':count', String(s.criteria.length))} · {fmt(sectionMax(s))}</span>
+                                        <span className="text-[color:var(--app-muted-foreground)]">· {t(s.criteria.length === 1 ? 'assessments.builder.criteriaCountOne' : 'assessments.builder.criteriaCount').replace(':count', String(s.criteria.length))} · {fmt(sectionMax(s))}</span>
                                     </button>
                                 </li>
                             );
@@ -154,7 +154,7 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                                 <span className="min-w-0 truncate text-sm font-semibold text-[color:var(--app-foreground)]">{title(section, t('assessments.builder.untitledSection'))}</span>
                             </button>
                             <div className="flex flex-wrap items-center gap-1.5">
-                                <StatusBadge tone="neutral">{t('assessments.builder.criteriaCount').replace(':count', String(section.criteria.length))}</StatusBadge>
+                                <StatusBadge tone="neutral">{t(section.criteria.length === 1 ? 'assessments.builder.criteriaCountOne' : 'assessments.builder.criteriaCount').replace(':count', String(section.criteria.length))}</StatusBadge>
                                 <StatusBadge tone={mismatch ? 'danger' : 'info'}>{t('assessments.sectionMax')} {fmt(computed)}{section.max_score !== '' ? ` / ${section.max_score}` : ''}</StatusBadge>
                                 {!section.is_required && <StatusBadge tone="neutral">{t('assessments.builder.optional')}</StatusBadge>}
                                 {sectionErrors.length > 0 && <StatusBadge tone="danger">{t('assessments.builder.hasProblems')}</StatusBadge>}
@@ -172,8 +172,8 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                                 <fieldset disabled={!editable} className="grid min-w-0 items-end gap-3 md:grid-cols-4">
                                     <Field label={t('assessments.fields.titleEn')} htmlFor={id('title-en')} error={err('title_en')} className="md:col-span-2"><input id={id('title-en')} className={inputCls} value={section.title_en} onChange={(e) => setSection(si, { title_en: e.target.value })} /></Field>
                                     <Field label={t('assessments.fields.titleAm')} htmlFor={id('title-am')} className="md:col-span-2"><input id={id('title-am')} className={inputCls} value={section.title_am} onChange={(e) => setSection(si, { title_am: e.target.value })} /></Field>
-                                    <Field label={t('assessments.fields.descriptionEn')} htmlFor={id('desc-en')} className="md:col-span-2"><textarea id={id('desc-en')} rows={2} className={inputCls} value={section.description_en} onChange={(e) => setSection(si, { description_en: e.target.value })} /></Field>
-                                    <Field label={t('assessments.fields.descriptionAm')} htmlFor={id('desc-am')} className="md:col-span-2"><textarea id={id('desc-am')} rows={2} className={inputCls} value={section.description_am} onChange={(e) => setSection(si, { description_am: e.target.value })} /></Field>
+                                    <Field label={t('assessments.fields.descriptionEn')} htmlFor={id('desc-en')} className="md:col-span-2"><textarea id={id('desc-en')} rows={2} className={textareaCls} value={section.description_en} onChange={(e) => setSection(si, { description_en: e.target.value })} /></Field>
+                                    <Field label={t('assessments.fields.descriptionAm')} htmlFor={id('desc-am')} className="md:col-span-2"><textarea id={id('desc-am')} rows={2} className={textareaCls} value={section.description_am} onChange={(e) => setSection(si, { description_am: e.target.value })} /></Field>
                                     <Field label={t('assessments.fields.code')} htmlFor={id('code')} error={err('code')}><input id={id('code')} className={inputCls} value={section.code} maxLength={40} onChange={(e) => setSection(si, { code: e.target.value })} /></Field>
                                     <Field label={t('assessments.fields.sectionMax')} htmlFor={id('max')} error={err('max_score')} help={mismatch ? `${t('assessments.computed')}: ${fmt(computed)}` : undefined}>
                                         <input id={id('max')} type="number" min={0} step="any" className={inputCls} value={section.max_score} placeholder={fmt(computed)} onChange={(e) => setSection(si, { max_score: e.target.value })} />
