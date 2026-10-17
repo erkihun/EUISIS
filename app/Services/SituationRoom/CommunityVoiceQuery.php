@@ -200,17 +200,22 @@ final class CommunityVoiceQuery
     }
 
     /**
-     * Counts per service the visitor named (the position service, as recorded at submission).
+     * Counts per service the visitor named, as recorded at submission: the
+     * position service (employee QR) or the institution catalog service
+     * (organization feedback form). A service described only in words is not
+     * linked and not counted.
      *
      * @return list<array<string, mixed>>
      */
     public function byService(SituationRoomScope $scope, SituationRoomFilters $filters): array
     {
+        $service = 'COALESCE('.self::T.'.position_service_id, '.self::T.'.service_id)';
+
         return $this->base($scope, $filters, $filters->start, $filters->end)->toBase()
-            ->whereNotNull(self::T.'.position_service_id')
-            ->selectRaw(self::T.'.position_service_id AS service_id, MAX('.self::T.'.service_no_snapshot) AS service_no, MAX('.self::T.'.service_name_snapshot) AS service_name')
+            ->where(fn ($query) => $query->whereNotNull(self::T.'.position_service_id')->orWhereNotNull(self::T.'.service_id'))
+            ->selectRaw($service.' AS service_id, MAX('.self::T.'.service_no_snapshot) AS service_no, MAX('.self::T.'.service_name_snapshot) AS service_name')
             ->selectRaw($this->countColumns())
-            ->groupBy(self::T.'.position_service_id')
+            ->groupByRaw($service)
             ->orderByDesc('total')
             ->limit(SituationRoomMetrics::TOP_N)
             ->get()

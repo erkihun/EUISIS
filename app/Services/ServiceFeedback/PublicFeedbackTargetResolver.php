@@ -159,7 +159,11 @@ class PublicFeedbackTargetResolver
                 'organization' => ['en' => $organization->name_en, 'am' => $organization->name_am],
             ],
             extras: [
-                'logo_url' => $organization->logo_url,
+                // Through the token (PublicFeedbackOrganizationLogoController), never /storage/…/{organization id}/….
+                // The version changes with the logo, so a replaced logo is fetched again.
+                'logo_url' => filled($organization->logo_path)
+                    ? route('public-feedback.organization.logo', ['token' => $token, 'v' => substr(hash('sha256', (string) $organization->logo_path), 0, 12)], false)
+                    : null,
                 'short_name' => null,
                 'public_contact_phone' => $organization->public_contact_phone,
             ],

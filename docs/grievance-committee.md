@@ -38,6 +38,22 @@ Approval is refused with a localized problem list when any of these hold:
 Problem codes render through `grievances.committee_rules.*` in both English and
 Amharic.
 
+## Seats and votes on a case
+
+- **Art. 6(2).** `addMember` and a recusal replacement refuse an employee
+  disciplined in the last two years (a penalty reversed on appeal does not
+  count); a replacement must also be active and must not be the complainant,
+  the respondent or the immediate supervisor.
+- **Art. 8.** A committee recommendation goes forward only when the
+  chairperson and at least two other seated members have voted (8(2)), the
+  concurring votes outnumber the dissenting ones with the chairperson's side
+  winning a tie (8(3)), and every dissent states its reason (8(4)). This holds
+  whatever the voting settings say.
+- **Arts. 30(1), 35(1).** The committee only recommends. Its decision always
+  goes to the head of the institution through an approval rule for handler
+  type `committee`; without one, the decision stops with
+  `head_decision_rule_missing`.
+
 ## History preservation
 
 Membership is never deleted. Ending a term sets `effective_to` / `end_reason`

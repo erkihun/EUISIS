@@ -107,7 +107,7 @@ function ChartBody({ panel, options }: { panel: Extract<SrPanel, { data: { serie
     return (
         <div>
             <div role="img" aria-label={summary}>
-                <SituationChart type={panel.type} rows={rows} series={series} unit={panel.data.unit} suppressedLabel={fewer} wall={options.wall} />
+                <SituationChart type={panel.type} rows={rows} series={series} unit={panel.data.unit} suppressedLabel={fewer} wall={options.wall} palette={panel.data.palette} />
             </div>
             {!options.wall && (
                 <>

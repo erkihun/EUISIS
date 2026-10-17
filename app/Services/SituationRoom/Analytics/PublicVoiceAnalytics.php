@@ -12,6 +12,8 @@ use App\Enums\ServiceFeedbackType;
 use App\Models\Employee;
 use App\Models\PositionService;
 use App\Models\PublicFeedbackCategory;
+use App\Models\Service;
+use App\Services\ServiceFeedback\PublicFeedbackAnswerStatistics;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
@@ -73,6 +75,8 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
             "{$p}_target" => fn (): SituationPanel => $this->targets($context),
             "{$p}_category" => fn (): SituationPanel => $this->categories($context),
             "{$p}_service" => fn (): SituationPanel => $this->services($context),
+            "{$p}_question_ratings" => fn (): SituationPanel => $this->questionRatings($context),
+            "{$p}_question_choices" => fn (): SituationPanel => $this->questionChoices($context),
             "{$p}_channel" => fn (): SituationPanel => $this->channels($context),
             "{$p}_employees" => fn (): SituationPanel => $this->employees($context),
         ];
@@ -237,22 +241,26 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
     }
 
     /**
-     * By the service named on the submission. Only employee-QR submissions can
-     * name a service; an institution QR has no service picker, so when nothing
-     * in the slice names one the panel reports SERVICE_LINKAGE_REQUIRED.
+     * By the service named on the submission: the position service of an
+     * employee-QR submission, or the institution catalog service chosen on the
+     * organization feedback form. A service the visitor only described in
+     * words is not linked and is not counted here. When nothing in the slice
+     * names a service the panel reports SERVICE_LINKAGE_REQUIRED.
      */
     private function services(SituationContext $context): SituationPanel
     {
         $p = $this->prefix();
-        $linked = (clone $this->inPeriodBase($context))->whereNotNull('f.position_service_id');
-        $counts = $this->countBy($linked, 'f.position_service_id');
+        $linked = (clone $this->inPeriodBase($context))->where(fn (Builder $query) => $query->whereNotNull('f.position_service_id')->orWhereNotNull('f.service_id'));
+        $counts = $this->countBy($linked, 'COALESCE(f.position_service_id, f.service_id)');
 
         if ($counts === []) {
             return $this->notice("{$p}_service", self::SOURCE, 'SERVICE_LINKAGE_REQUIRED');
         }
 
         $top = $this->topWithOther($counts);
-        $names = PositionService::withTrashed()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => $k !== '__other'))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($s): string => (string) $s->id);
+        $ids = array_filter(array_keys($top), fn ($k): bool => $k !== '__other');
+        $names = PositionService::withTrashed()->whereIn('id', $ids)->get(['id', 'name_en', 'name_am'])->keyBy(fn ($s): string => (string) $s->id)
+            ->union(Service::withTrashed()->whereIn('id', $ids)->get(['id', 'name_en', 'name_am'])->keyBy(fn ($s): string => (string) $s->id));
         $categories = array_map(fn ($key): array => $key === '__other'
             ? SituationLabel::key('situationRoom.values.common.other')
             : SituationLabel::names($names[$key]->name_en ?? null, $names[$key]->name_am ?? null), array_keys($top));
@@ -260,6 +268,80 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
         return $this->chart("{$p}_service", 'hbar', 'situationRoom.sources.position_services', $categories, [
             ['key' => 'received', 'label' => SituationLabel::key('situationRoom.series.received'), 'values' => array_values($top)],
         ]);
+    }
+
+    /**
+     * The organization feedback form's rating questions: how many answers
+     * fell on each point of the five-point scale, per question, for the
+     * submissions this view counts. A distribution only — the scale's
+     * points are labels, so no per-question average is drawn here.
+     */
+    private function questionRatings(SituationContext $context): SituationPanel
+    {
+        $key = "{$this->prefix()}_question_ratings";
+        $statistics = app(PublicFeedbackAnswerStatistics::class);
+        $summary = $statistics->ratingSummaryOf($this->inPeriodBase($context));
+
+        if ($summary === []) {
+            return $this->notice($key, self::SOURCE, 'NO_DATA', 2);
+        }
+
+        $labels = $statistics->labels(array_column($summary, 'code'));
+        usort($summary, fn (array $a, array $b): int => [$labels[$a['code']]['sort'] ?? PHP_INT_MAX, $a['code']] <=> [$labels[$b['code']]['sort'] ?? PHP_INT_MAX, $b['code']]);
+        $series = [];
+
+        foreach ([1, 2, 3, 4, 5] as $point) {
+            $series[] = [
+                'key' => 'rating_'.$point,
+                'label' => SituationLabel::key("situationRoom.values.satisfaction.{$point}"),
+                'values' => array_map(fn (array $question): int => $question['distribution'][$point], $summary),
+            ];
+        }
+
+        return $this->chart($key, 'stacked', self::SOURCE, array_map(
+            fn (array $question): array => SituationLabel::names($labels[$question['code']]['en'] ?? $question['code'], $labels[$question['code']]['am'] ?? null),
+            $summary,
+        ), $series, span: 2, palette: 'diverging');
+    }
+
+    /**
+     * The organization feedback form's choice and yes/no questions: per
+     * question, how many answered it and how many chose each choice. Free-text
+     * answers are never aggregated or shown here.
+     */
+    private function questionChoices(SituationContext $context): SituationPanel
+    {
+        $key = "{$this->prefix()}_question_choices";
+        $statistics = app(PublicFeedbackAnswerStatistics::class);
+        $summary = $statistics->choiceSummaryOf($this->inPeriodBase($context));
+        $labels = $statistics->labels(array_column($summary, 'code'));
+        usort($summary, fn (array $a, array $b): int => [$labels[$a['code']]['sort'] ?? PHP_INT_MAX, $a['code']] <=> [$labels[$b['code']]['sort'] ?? PHP_INT_MAX, $b['code']]);
+        $rows = [];
+
+        foreach ($summary as $question) {
+            $label = $labels[$question['code']] ?? ['en' => $question['code'], 'am' => null, 'options' => []];
+            $choices = $question['choices'];
+            // Yes before no; options in the questionnaire's order.
+            uksort($choices, fn (string $a, string $b): int => [$label['options'][$a]['sort'] ?? ($a === 'yes' ? 0 : 1), $a] <=> [$label['options'][$b]['sort'] ?? ($b === 'yes' ? 0 : 1), $b]);
+
+            foreach ($choices as $choice => $total) {
+                $rows[] = [
+                    'question' => SituationLabel::names($label['en'], $label['am']),
+                    'answer' => in_array($choice, ['yes', 'no'], true) && ! isset($label['options'][$choice])
+                        ? SituationLabel::key("situationRoom.values.yes_no.{$choice}")
+                        : SituationLabel::names($label['options'][$choice]['en'] ?? $choice, $label['options'][$choice]['am'] ?? null),
+                    'total' => $total,
+                    'share' => $this->percent($total, $question['answered']),
+                ];
+            }
+        }
+
+        return SituationPanel::table($key, $this->title($key), $this->hint($key), self::SOURCE, [
+            ['key' => 'question', 'label' => SituationLabel::key('situationRoom.columns.question'), 'type' => 'label'],
+            ['key' => 'answer', 'label' => SituationLabel::key('situationRoom.columns.answer'), 'type' => 'label'],
+            ['key' => 'total', 'label' => SituationLabel::key('situationRoom.columns.chosen'), 'type' => 'number'],
+            ['key' => 'share', 'label' => SituationLabel::key('situationRoom.columns.share_of_answers'), 'type' => 'percent'],
+        ], $rows);
     }
 
     private function channels(SituationContext $context): SituationPanel

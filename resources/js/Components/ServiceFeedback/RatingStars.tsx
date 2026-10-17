@@ -1,3 +1,4 @@
+import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 
 /**
@@ -16,6 +17,7 @@ export default function RatingStars({
     size?: 'sm' | 'md';
     showValue?: boolean;
 }): JSX.Element {
+    const { t } = useLocale();
     const dimension = size === 'md' ? 'h-5 w-5' : 'h-4 w-4';
 
     return (
@@ -34,7 +36,7 @@ export default function RatingStars({
                     </svg>
                 ))}
             </span>
-            <span className="sr-only">{rating} out of 5</span>
+            <span className="sr-only">{t('serviceFeedback.ratingOutOfFive').replace(':rating', String(rating))}</span>
             {showValue && (
                 <span className="text-sm font-medium text-[color:var(--app-foreground)]">{rating.toFixed(1)}</span>
             )}

@@ -50,11 +50,13 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 });
 
 export function FormLabel({ required, className, children, ...props }: LabelHTMLAttributes<HTMLLabelElement> & { required?: boolean }) {
+    const messages = useUiMessages();
+
     return (
         <label className={cx('block text-label text-[color:var(--app-foreground)]', className)} {...props}>
             {children}
             {required && <span className="ml-1 text-red-600" aria-hidden="true">*</span>}
-            {required && <span className="sr-only"> required</span>}
+            {required && <span className="sr-only"> {messages.required}</span>}
         </label>
     );
 }

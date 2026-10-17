@@ -75,7 +75,7 @@ function mount() {
 
             const root = createRoot(el);
             root.render(
-                <LocaleProvider defaultLocale={defaultLocale}>
+                <LocaleProvider defaultLocale={defaultLocale} serverLocale={initialProps.textLocale === 'en' || initialProps.textLocale === 'am' ? initialProps.textLocale : undefined}>
                     <AppErrorBoundary>
                         <ConfirmProvider>
                             {/* Remove the native HTML loader as soon as React mounts */}

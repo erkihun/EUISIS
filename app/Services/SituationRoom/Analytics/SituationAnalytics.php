@@ -236,9 +236,9 @@ abstract class SituationAnalytics
     }
 
     /** Shortcut for a chart whose title and description follow the panel key. */
-    protected function chart(string $key, string $type, string $source, array $categories, array $series, int $span = 1, ?string $unit = null, ?string $href = null): SituationPanel
+    protected function chart(string $key, string $type, string $source, array $categories, array $series, int $span = 1, ?string $unit = null, ?string $href = null, ?string $palette = null): SituationPanel
     {
-        return SituationPanel::chart($key, $type, $this->title($key), $this->hint($key), $source, $categories, $series, $href, $span, $unit);
+        return SituationPanel::chart($key, $type, $this->title($key), $this->hint($key), $source, $categories, $series, $href, $span, $unit, $palette);
     }
 
     protected function notice(string $key, string $source, string $reason, int $span = 1): SituationPanel

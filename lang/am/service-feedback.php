@@ -39,6 +39,17 @@ return [
     'rule_deleted' => 'የመስመር ደንቡ ተሰርዟል።',
     'category_out_of_scope' => 'ምድቡ ከተማ አቀፍ ወይም የደንቡ ተቋም መሆን አለበት።',
     'settings_saved' => 'የሕዝብ አስተያየት ፖሊሲው ተቀምጧል።',
+    'questionnaire_draft_created' => 'የመጠይቁ አዲስ ረቂቅ ተፈጥሯል።',
+    'questionnaire_saved' => 'የመጠይቁ ረቂቅ ተቀምጧል።',
+    'questionnaire_published' => 'መጠይቁ ታትሟል። አዲስ የሚቀርቡ አስተያየቶች ይህንን ስሪት ይመልሳሉ።',
+    'questionnaire_retired' => 'መጠይቁ ከአገልግሎት ወጥቷል። ቅጹ አሁን መጠይቅ አያሳይም።',
+    'questionnaire_deleted' => 'የመጠይቁ ረቂቅ ተሰርዟል።',
+    'questionnaire_not_draft' => 'መለወጥ የሚቻለው ረቂቅ ብቻ ነው። የታተመ መጠይቅን ለማሻሻል አዲስ ረቂቅ ይፍጠሩ።',
+    'questionnaire_not_published' => 'ከአገልግሎት ማውጣት የሚቻለው የታተመውን ስሪት ብቻ ነው።',
+    'questionnaire_empty' => 'ከማተምዎ በፊት ቢያንስ አንድ ጥያቄ ያክሉ።',
+    'questionnaire_missing_amharic' => 'ከማተምዎ በፊት እያንዳንዱ ጥያቄ እና ምርጫ የአማርኛ ጽሑፍ ያስፈልገዋል፦ :code',
+    'questionnaire_missing_options' => 'የምርጫ ጥያቄ ቢያንስ ሁለት ምርጫዎች ያስፈልጉታል፦ :code',
+    'questionnaire_duplicate_code' => 'እያንዳንዱ የጥያቄ ኮድ የተለየ መሆን አለበት፦ :code',
     'export_queued' => 'ፋይሉ እንዲዘጋጅ ተይዟል። ሲዘጋጅ ከታች ባለው ዝርዝር ውስጥ ይታያል።',
     'subject_added' => 'ሠራተኛው እንደ የምርመራ ተሳታፊ ተሰይሟል።',
     'subject_removed' => 'የምርመራ ተሳታፊው ተወግዷል።',
@@ -73,6 +84,26 @@ return [
         'intake_channel' => 'የመቀበያ መንገድ',
         'subject' => 'ርዕስ',
         'message' => 'መልዕክት',
+    ],
+
+    // Header of the Feedback CSV (ServiceFeedbackController::export), in the requester's language.
+    'feedback_export_columns' => [
+        'submitted_at' => 'የቀረበበት ጊዜ', 'target_type' => 'የሚመለከተው ዓይነት', 'target' => 'የሚመለከተው',
+        'employee' => 'ሠራተኛ', 'employee_number' => 'የሠራተኛ ቁጥር', 'organization' => 'ተቋም',
+        'unit' => 'የሥራ ክፍል', 'service' => 'አገልግሎት', 'category' => 'ምድብ', 'rating' => 'ደረጃ',
+        'status' => 'ሁኔታ', 'comment' => 'አስተያየት', 'client_name' => 'የተገልጋዩ ስም', 'client_contact' => 'የተገልጋዩ መገናኛ',
+    ],
+
+    // Values written into exports, in the requester's language (ExportPublicFeedbackReport).
+    'export_values' => [
+        'types' => ['feedback' => 'አስተያየት', 'suggestion' => 'ጥቆማ', 'complaint' => 'ቅሬታ'],
+        'target_types' => ['employee' => 'ሠራተኛ', 'organization' => 'ተቋም'],
+        'statuses' => [
+            'pending' => 'በመጠባበቅ ላይ', 'unrouted' => 'ያልተላለፈ', 'assigned' => 'የተመደበ', 'reviewed' => 'ተገምግሟል',
+            'under_review' => 'በግምገማ ላይ', 'accepted' => 'ተግባራዊ እንዲሆን ተቀባይነት ያገኘ', 'not_adopted' => 'ተቀባይነት ያላገኘ',
+            'resolved' => 'ተፈትቷል', 'closed' => 'የተዘጋ', 'hidden' => 'ተደብቋል',
+        ],
+        'intake_channels' => ['WEB_QR' => 'የሕዝብ QR ድረ-ገጽ ቅጽ', 'PHONE' => 'በስልክ', 'ORAL' => 'በአካል (በቃል)', 'WRITTEN' => 'በጽሑፍ'],
     ],
 
     'types' => [
@@ -134,5 +165,13 @@ return [
         'email_invalid' => 'እባክዎ ትክክለኛ ኢሜይል አድራሻ ያስገቡ።',
         'contact_invalid' => 'እባክዎ ትክክለኛ ስልክ ቁጥር ወይም ኢሜይል አድራሻ ያስገቡ።',
         'attachments_disabled' => 'በአሁኑ ጊዜ ፋይሎች ማያያዝ አይቻልም።',
+        'questionnaire_updated' => 'ቅጹን በሚሞሉበት ጊዜ ቅጹ ተሻሽሏል። እባክዎ ጥያቄዎቹን ይመልከቱ እና እንደገና ይላኩ።',
+        'office_invalid' => 'እባክዎ ከተዘረዘሩት ቢሮዎች አንዱን ይምረጡ።',
+        'service_date_future' => 'አገልግሎቱን ያገኙበት ቀን ወደፊት ሊሆን አይችልም።',
+        'service_date_too_old' => 'አገልግሎቱን ያገኙበት ቀን ባለፈው አንድ ዓመት ውስጥ መሆን አለበት።',
+        'service_date_invalid' => 'እባክዎ ትክክለኛ ቀን ያስገቡ።',
+        'answer_required' => 'እባክዎ ይህንን ይመልሱ፦ :attribute',
+        'answer_invalid' => 'እባክዎ ከቀረቡት መልሶች አንዱን ይምረጡ፦ :attribute',
+        'answer_too_long' => 'ይህ መልስ በጣም ረጅም ነው።',
     ],
 ];

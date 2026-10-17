@@ -54,7 +54,8 @@ it('opens the organization landing with the institution identity, three options 
             ->where('type', null)
             ->where('target.target_type', 'organization')
             ->where('target.display_name', 'የአስተያየት ተቋም')
-            ->where('target.logo_url', '/storage/organizations/logos/test.png')
+            // Through the scanned token: no organization id, no storage path.
+            ->where('target.logo_url', '/feedback/'.$this->token.'/logo?v='.substr(hash('sha256', 'organizations/logos/test.png'), 0, 12))
             ->where('links.feedback', url('/feedback/'.$this->token.'/feedback'))
             ->where('links.suggestion', url('/feedback/'.$this->token.'/suggestion'))
             ->where('links.complaint', url('/feedback/'.$this->token.'/complaint'))

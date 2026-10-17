@@ -25,6 +25,7 @@ use App\Models\GrievanceSlaProfile;
 use App\Models\Organization;
 use App\Models\OrganizationLetterhead;
 use App\Models\OrganizationSeal;
+use App\Models\PublicHoliday;
 use App\Models\User;
 use App\Services\Grievances\GrievanceAudit;
 use App\Services\Grievances\GrievanceCorrespondenceService;
@@ -55,6 +56,35 @@ class GrievanceSettingsController extends Controller
         private readonly GrievancePresenter $presenter,
         private readonly OrganizationScopeService $scope,
     ) {}
+
+    /**
+     * What Regulation 201/2018 needs configured before grievances can run to a
+     * lawful end, counted here so every viewer sees the same answer (the seal
+     * list itself is shown only to seal managers).
+     *
+     * @return array<string, mixed>
+     */
+    private function statutoryReadiness(User $user): array
+    {
+        $today = now()->toDateString();
+
+        return [
+            // Arts. 30(1), 35(1): someone must be named to decide on committee recommendations.
+            'head_decision_rules' => GrievanceApprovalRule::query()
+                ->where('is_active', true)->where('requires_approval', true)->whereNotNull('approver_position_id')
+                ->where('handler_type', GrievanceHandlerType::Committee->value)
+                ->whereDate('effective_from', '<=', $today)
+                ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $today))
+                ->count(),
+            // Art. 35(2): the written decision carries the institution seal.
+            'approved_seals' => OrganizationSeal::query()->where('status', 'active')->whereNotNull('approved_at')->count(),
+            // Working-day periods skip public holidays only if they are listed.
+            'holidays' => PublicHoliday::query()->where('is_active', true)->count(),
+            'holidays_url' => $user->can('viewAny', PublicHoliday::class) ? route('cafeteria.holidays.index') : null,
+            // Statutory periods use the civil-service work week, not the SLA setting.
+            'work_week_days' => array_values(array_map('intval', (array) config('civil_service.work_week_days', [1, 2, 3, 4, 5]))),
+        ];
+    }
 
     public function index(Request $request): Response
     {
@@ -111,6 +141,7 @@ class GrievanceSettingsController extends Controller
                     'ends_at' => $d->ends_at?->toIso8601String(),
                     'revoked_at' => $d->revoked_at?->toIso8601String(),
                 ]),
+            'statutory' => $this->statutoryReadiness($user),
             'options' => [
                 'organizations' => $this->scope->applyOrganizationScope(Organization::query(), $user, 'id')->where('status', 'active')->orderBy('name_en')->limit(2000)->get(['id', 'name_en', 'name_am']),
                 'committees' => $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)->orderBy('name_en')->limit(2000)->get(['id', 'name_en', 'name_am', 'organization_id', 'status']),

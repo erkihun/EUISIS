@@ -10,6 +10,7 @@ use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\CommitteeType;
+use App\Enums\Discipline\DisciplinaryAppealOutcome;
 use App\Enums\Discipline\DisciplinaryCaseRole;
 use App\Enums\Discipline\DisciplinaryCaseStatus;
 use App\Enums\Discipline\DisciplinaryEvidenceSide;
@@ -20,6 +21,8 @@ use App\Enums\Discipline\DisciplinaryPenalty;
 use App\Enums\Discipline\DisciplinaryPlea;
 use App\Enums\Discipline\DisciplinarySeverity;
 use App\Enums\Discipline\DisciplinaryTrack;
+use App\Enums\EmployeeStatus;
+use App\Models\DisciplinaryAppeal;
 use App\Models\DisciplinaryCase;
 use App\Models\DisciplinaryCaseMember;
 use App\Models\DisciplinaryCharge;
@@ -27,6 +30,7 @@ use App\Models\DisciplinaryDecision;
 use App\Models\DisciplinaryEvidence;
 use App\Models\DisciplinaryRecommendation;
 use App\Models\DisciplinaryResponse;
+use App\Models\DisciplinarySuspension;
 use App\Models\DisciplinaryWitness;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -36,6 +40,8 @@ use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
+use App\Support\Storage\StoredFileChecksum;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -195,6 +201,7 @@ final class DisciplinaryCaseService
                     if ($member->employee_id === $case->accused_employee_id) {
                         continue;
                     }
+                    $this->assertSeatable($case, (string) $member->employee_id, 'committee_id');
                     $this->seatMember($case, $member->employee_id, match ($member->roleEnum()->value) {
                         'chairperson' => DisciplinaryCaseRole::Chairperson,
                         'writer' => DisciplinaryCaseRole::Secretary,
@@ -208,6 +215,7 @@ final class DisciplinaryCaseService
                     $this->fail('investigators', 'investigator_required');
                 }
                 foreach ($ids as $employeeId) {
+                    $this->assertSeatable($case, $employeeId, 'investigators');
                     $this->seatMember($case, $employeeId, DisciplinaryCaseRole::Investigator, StatutoryCommitteeRules::APPOINTED, null);
                 }
                 $case->forceFill(['committee_id' => null])->save();
@@ -330,6 +338,11 @@ final class DisciplinaryCaseService
                 'objection_text' => $ground === null ? null : $this->clean($data['objection_text'] ?? null),
                 'defense_evidence_list' => $this->clean($data['defense_evidence_list'] ?? null),
                 'acknowledged_name' => trim($data['acknowledged_name']),
+                // Art. 20: this response's own admission or denial of each charge, kept as given.
+                'pleas' => collect($data['pleas'])->map(fn (array $plea, string $chargeId): array => [
+                    'charge_id' => $chargeId, 'sequence' => $charges[$chargeId]->sequence,
+                    'plea' => DisciplinaryPlea::from($plea['plea'])->value, 'statement' => $this->clean($plea['statement'] ?? null),
+                ])->sortBy('sequence')->values()->all(),
                 'recorded_by' => $actor->getKey(),
                 'received_at' => now(),
             ])->save();
@@ -446,7 +459,7 @@ final class DisciplinaryCaseService
             abort(404);
         }
         // Streamed through the disk so it also works on shared object storage.
-        if (! \App\Support\Storage\StoredFileChecksum::matches((string) $evidence->disk, $evidence->path, $evidence->sha256)) {
+        if (! StoredFileChecksum::matches((string) $evidence->disk, $evidence->path, $evidence->sha256)) {
             abort(409, __('discipline.errors.integrity'));
         }
 
@@ -503,6 +516,9 @@ final class DisciplinaryCaseService
         if ($replacementEmployeeId !== null && ($replacementEmployeeId === $case->accused_employee_id
             || $case->members()->seated()->where('employee_id', $replacementEmployeeId)->exists())) {
             $this->fail('replacement_employee_id', 'replacement_invalid');
+        }
+        if ($replacementEmployeeId !== null) {
+            $this->assertSeatable($case, $replacementEmployeeId, 'replacement_employee_id');
         }
 
         DB::transaction(function () use ($case, $actor, $member, $reason, $replacementEmployeeId): void {
@@ -670,6 +686,11 @@ final class DisciplinaryCaseService
             $amount = $recommendation?->penalty_amount;
         } elseif ($action === DisciplinaryHeadAction::Reinvestigate) {
             [$finding, $penalty, $amount] = [null, null, null];
+        } elseif ($action === DisciplinaryHeadAction::ReferToCommittee) {
+            if ($case->track !== DisciplinaryTrack::Expedited) {
+                $this->fail('action', 'refer_expedited_only');
+            }
+            [$finding, $penalty, $amount] = [null, null, null];
         } else {
             $finding = DisciplinaryFinding::from((string) ($data['finding'] ?? ''));
             [$penalty, $amount] = $this->validatedPenalty($case, $finding, $data['penalty'] ?? null, $data['penalty_amount'] ?? null);
@@ -692,10 +713,14 @@ final class DisciplinaryCaseService
             ])->save();
 
             $this->deadlines->complete($case, Regulation201::DISCIPLINE_HEAD_DECISION, $now);
+            // Art. 53(2): a decision after a remand meets the 15-working-day reconsideration deadline.
+            $this->deadlines->complete($case, Regulation201::APPEAL_REMAND_RECONSIDERATION, $now);
 
             if ($action === DisciplinaryHeadAction::Reinvestigate) {
                 $case->forceFill(['status' => DisciplinaryCaseStatus::UnderInvestigation, 'report_submitted_at' => null])->save();
                 $this->transition($case, DisciplinaryCaseStatus::ReportSubmitted, DisciplinaryCaseStatus::UnderInvestigation, $actor, $decision->reason);
+            } elseif ($action === DisciplinaryHeadAction::ReferToCommittee) {
+                $this->referToCommittee($case, $actor, $decision);
             } else {
                 $case->forceFill(['status' => DisciplinaryCaseStatus::Decided, 'decided_at' => $now])->save();
                 if ($case->track === DisciplinaryTrack::Formal) {
@@ -710,6 +735,35 @@ final class DisciplinaryCaseService
 
             return $decision;
         });
+    }
+
+    /**
+     * Art. 13(5): the expedited inquiry points to a serious penalty, which only
+     * the disciplinary committee may examine. The case returns to a draft on
+     * the formal track, keeping its charges, the employee's written answer and
+     * the investigator's recommendation on record; the officer then assigns
+     * the committee and files the charge, which starts the formal procedure
+     * (summons, hearing, Art. 27(1) investigation period) afresh. The
+     * investigators' seats close; who they were stays in the audit trail.
+     */
+    private function referToCommittee(DisciplinaryCase $case, User $actor, DisciplinaryDecision $referral): void
+    {
+        $investigators = $case->members()->pluck('employee_id')->all();
+        $case->members()->delete();
+        $case->forceFill([
+            'track' => DisciplinaryTrack::Formal,
+            'severity' => DisciplinarySeverity::Serious,
+            'status' => DisciplinaryCaseStatus::Draft,
+            'committee_id' => null,
+            'report_submitted_at' => null,
+            'charged_at' => null,
+            'charge_signed_by' => null,
+        ])->save();
+
+        $this->transition($case, DisciplinaryCaseStatus::ReportSubmitted, DisciplinaryCaseStatus::Draft, $actor, $referral->reason);
+        $this->record(AuditEventType::DisciplinaryReferredToCommittee, $actor, $case, [
+            'decision_id' => $referral->getKey(), 'former_investigators' => $investigators,
+        ]);
     }
 
     /**
@@ -751,12 +805,316 @@ final class DisciplinaryCaseService
             if ($data['method'] === 'posted') {
                 $this->deadlines->snapshot($case, Regulation201::DISCIPLINE_DECISION_POSTING, $deliveredAt);
             }
+            if ($decision->penalty !== null) {
+                // Art. 38(1): 30 days from written delivery to appeal to the Administrative Court,
+                // rolled to the next working day (Art. 38(4)); and for dismissal or demotion the
+                // absolute three-month bar from the decision, whatever leave is asked for (Art. 39(2)).
+                $this->deadlines->snapshot($case, Regulation201::APPEAL_FILING, $deliveredAt);
+                if (in_array($decision->penalty, [DisciplinaryPenalty::Dismissal, DisciplinaryPenalty::Demotion], true)) {
+                    $this->deadlines->snapshot($case, Regulation201::APPEAL_LATE_ABSOLUTE, Carbon::parse($decision->decided_at));
+                }
+            }
 
             $this->transition($case, DisciplinaryCaseStatus::Decided, DisciplinaryCaseStatus::DecisionDelivered, $actor, null);
             $this->record(AuditEventType::DisciplinaryDecisionDelivered, $actor, $case, [
                 'decision_id' => $decision->getKey(), 'method' => $data['method'], 'delivered_at' => $deliveredAt->toIso8601String(), 'effective_on' => $effective,
             ]);
         });
+    }
+
+    // ── Appeal to the Administrative Court (Part Five) ───────────────────────
+
+    /**
+     * Art. 37(1): the employee gives the institution notice of appeal against the
+     * delivered decision, optionally asking for a copy of the committee record.
+     * From now until the court's outcome the penalty is not executed (Art. 29).
+     *
+     * @param  array{notice_received_at: string, record_copy_requested: bool}  $data
+     */
+    public function recordAppealNotice(DisciplinaryCase $case, User $actor, array $data): DisciplinaryAppeal
+    {
+        $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.manage'));
+        $this->requireStatus($case, [DisciplinaryCaseStatus::DecisionDelivered]);
+
+        $decision = $case->currentDecision();
+        $noticeAt = Carbon::parse($data['notice_received_at']);
+        if ($decision === null || $decision->penalty === null) {
+            $this->fail('decision', 'nothing_to_appeal');
+        }
+        if ($noticeAt->isFuture() || $decision->delivered_at === null || $noticeAt->lt($decision->delivered_at)) {
+            $this->fail('notice_received_at', 'appeal_date_invalid');
+        }
+        if ($case->currentAppeal() !== null) {
+            $this->fail('decision', 'appeal_exists');
+        }
+
+        return DB::transaction(function () use ($case, $actor, $data, $decision, $noticeAt): DisciplinaryAppeal {
+            $appeal = new DisciplinaryAppeal;
+            $appeal->forceFill([
+                'case_id' => $case->getKey(),
+                'decision_id' => $decision->getKey(),
+                'notice_received_at' => $noticeAt,
+                'record_copy_requested' => (bool) $data['record_copy_requested'],
+                'recorded_by' => $actor->getKey(),
+            ])->save();
+
+            if ($appeal->record_copy_requested) {
+                // Art. 37(2): the sealed, certified copy within 5 consecutive working days.
+                $this->deadlines->snapshot($case, Regulation201::APPEAL_RECORD_COPY, $noticeAt);
+            }
+
+            $this->record(AuditEventType::DisciplinaryAppealNoticed, $actor, $case, [
+                'appeal_id' => $appeal->getKey(), 'decision_id' => $decision->getKey(), 'record_copy_requested' => $appeal->record_copy_requested,
+            ]);
+
+            return $appeal;
+        });
+    }
+
+    /** Art. 37(2): the certified, sealed copy of the committee record was handed to the employee. */
+    public function recordAppealRecordCopy(DisciplinaryCase $case, User $actor, string $deliveredAt): void
+    {
+        $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.deliver_decision'));
+        $appeal = $this->pendingAppeal($case);
+        $at = Carbon::parse($deliveredAt);
+        if (! $appeal->record_copy_requested || $appeal->record_copy_delivered_at !== null) {
+            $this->fail('record_copy', 'record_copy_not_due');
+        }
+        if ($at->isFuture() || $at->lt($appeal->notice_received_at)) {
+            $this->fail('delivered_at', 'appeal_date_invalid');
+        }
+
+        DB::transaction(function () use ($case, $actor, $appeal, $at): void {
+            $appeal->forceFill(['record_copy_delivered_at' => $at, 'record_copy_certified_by' => $actor->getKey()])->save();
+            $this->deadlines->complete($case, Regulation201::APPEAL_RECORD_COPY, $at);
+            $this->record(AuditEventType::DisciplinaryAppealRecordCopyDelivered, $actor, $case, ['appeal_id' => $appeal->getKey(), 'delivered_at' => $at->toIso8601String()]);
+        });
+    }
+
+    /** Art. 38/40: the appeal as filed with the Administrative Court. */
+    public function recordAppealFiling(DisciplinaryCase $case, User $actor, string $filedOn, ?string $courtCaseNumber): void
+    {
+        $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.manage'));
+        $appeal = $this->pendingAppeal($case);
+        $filed = Carbon::parse($filedOn)->startOfDay();
+        if ($filed->isFuture() || $filed->lt(Carbon::parse($appeal->notice_received_at)->startOfDay())) {
+            $this->fail('filed_on', 'appeal_date_invalid');
+        }
+
+        DB::transaction(function () use ($case, $actor, $appeal, $filed, $courtCaseNumber): void {
+            $appeal->forceFill(['filed_on' => $filed->toDateString(), 'court_case_number' => $courtCaseNumber === null ? null : trim($courtCaseNumber)])->save();
+            $this->record(AuditEventType::DisciplinaryAppealFiled, $actor, $case, ['appeal_id' => $appeal->getKey(), 'filed_on' => $filed->toDateString()]);
+        });
+    }
+
+    /**
+     * The court's outcome as received. The decision standing (upheld, or the appeal
+     * withdrawn) lets its penalty take effect from the outcome, never earlier than its
+     * original effective date (Art. 29). A ruling for the employee must be carried out
+     * within 10 days (Art. 54(1)). A remand returns the case to the head for a new
+     * decision within 15 consecutive working days (Art. 53).
+     *
+     * @param  array{outcome: string, decided_on: string, received_at: string, summary: string}  $data
+     */
+    public function recordAppealOutcome(DisciplinaryCase $case, User $actor, array $data): void
+    {
+        $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.manage'));
+        $appeal = $this->pendingAppeal($case);
+        $outcome = DisciplinaryAppealOutcome::from($data['outcome']);
+        $decidedOn = Carbon::parse($data['decided_on'])->startOfDay();
+        $receivedAt = Carbon::parse($data['received_at']);
+        if ($decidedOn->isFuture() || $receivedAt->isFuture() || $receivedAt->lt($decidedOn) || $decidedOn->lt(Carbon::parse($appeal->notice_received_at)->startOfDay())) {
+            $this->fail('decided_on', 'appeal_date_invalid');
+        }
+
+        DB::transaction(function () use ($case, $actor, $appeal, $outcome, $decidedOn, $receivedAt, $data): void {
+            $appeal->forceFill([
+                'outcome' => $outcome,
+                'outcome_decided_on' => $decidedOn->toDateString(),
+                'outcome_received_at' => $receivedAt,
+                'outcome_summary' => trim($data['summary']),
+            ])->save();
+
+            $decision = $appeal->decision;
+            if ($outcome->decisionStands() && $decision->effective_on !== null && $decision->effective_on->lt($decidedOn)) {
+                // Art. 29: execution was stayed until the appeal was decided.
+                $decision->forceFill(['effective_on' => $decidedOn->toDateString()])->save();
+            }
+            if ($outcome->requiresImplementation()) {
+                $this->deadlines->snapshot($case, Regulation201::APPEAL_EXECUTION, $receivedAt);
+            }
+            if ($outcome === DisciplinaryAppealOutcome::Remanded) {
+                // Art. 53: back to the head for a new decision within 15 consecutive working days.
+                $case->forceFill(['status' => DisciplinaryCaseStatus::ReportSubmitted, 'decided_at' => null, 'delivered_at' => null])->save();
+                $this->deadlines->snapshot($case, Regulation201::APPEAL_REMAND_RECONSIDERATION, $receivedAt);
+                $this->transition($case, DisciplinaryCaseStatus::DecisionDelivered, DisciplinaryCaseStatus::ReportSubmitted, $actor, trim($data['summary']));
+            }
+
+            $this->record(AuditEventType::DisciplinaryAppealOutcomeRecorded, $actor, $case, [
+                'appeal_id' => $appeal->getKey(), 'outcome' => $outcome->value, 'decided_on' => $decidedOn->toDateString(),
+            ]);
+        });
+    }
+
+    /** Art. 54(1): a ruling for the employee was carried out. */
+    public function recordAppealImplemented(DisciplinaryCase $case, User $actor, string $implementedAt, string $note): void
+    {
+        $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.manage'));
+        $appeal = $case->currentAppeal();
+        $at = Carbon::parse($implementedAt);
+        if ($appeal === null || $appeal->outcome === null || ! $appeal->outcome->requiresImplementation() || $appeal->implemented_at !== null) {
+            $this->fail('appeal', 'nothing_to_implement');
+        }
+        if ($at->isFuture() || $at->lt($appeal->outcome_received_at)) {
+            $this->fail('implemented_at', 'appeal_date_invalid');
+        }
+
+        DB::transaction(function () use ($case, $actor, $appeal, $at, $note): void {
+            $appeal->forceFill(['implemented_at' => $at, 'implementation_note' => trim($note)])->save();
+            $this->deadlines->complete($case, Regulation201::APPEAL_EXECUTION, $at);
+            $this->record(AuditEventType::DisciplinaryAppealImplemented, $actor, $case, ['appeal_id' => $appeal->getKey(), 'implemented_at' => $at->toIso8601String()]);
+        });
+    }
+
+    private function pendingAppeal(DisciplinaryCase $case): DisciplinaryAppeal
+    {
+        $appeal = $case->currentAppeal();
+        if ($appeal === null || ! $appeal->isPending()) {
+            $this->fail('appeal', 'no_pending_appeal');
+        }
+
+        return $appeal;
+    }
+
+    // ── Suspension (Art. 12) ─────────────────────────────────────────────────
+
+    /**
+     * Art. 12(1) with Proclamation Art. 98: the head (or a delegate) suspends
+     * the employee pending the case, with the reason in writing. When it
+     * cannot be handed over it is posted for 10 consecutive days. A suspension
+     * from work and salary is limited to three months (Art. 12(4)).
+     *
+     * @param  array{starts_on: string, without_pay: bool, ends_on?: string|null, reason: string, served_at: string, service_method: string}  $data
+     */
+    public function suspend(DisciplinaryCase $case, User $actor, array $data): DisciplinarySuspension
+    {
+        $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.decide') && $this->access->seat($actor, $case) === null);
+        if ($case->status->isFinal() || $case->status === DisciplinaryCaseStatus::DecisionDelivered) {
+            $this->fail('status', 'invalid_status');
+        }
+        if ($case->suspensionInForce() !== null) {
+            $this->fail('starts_on', 'suspension_in_force');
+        }
+
+        $startsOn = Carbon::parse($data['starts_on'])->startOfDay();
+        $endsOn = filled($data['ends_on'] ?? null) ? Carbon::parse($data['ends_on'])->startOfDay() : null;
+        $servedAt = Carbon::parse($data['served_at']);
+        $withoutPay = (bool) $data['without_pay'];
+        if ($servedAt->isFuture()) {
+            $this->fail('served_at', 'not_in_future');
+        }
+        if ($endsOn !== null && $endsOn->lt($startsOn)) {
+            $this->fail('ends_on', 'suspension_dates_invalid');
+        }
+        if ($withoutPay) {
+            // The last day may not pass three months from the first.
+            $limit = $this->deadlines->dueAt(Regulation201::DISCIPLINE_SUSPENSION_MAX, $startsOn)->startOfDay();
+            if ($endsOn === null || $endsOn->gt($limit)) {
+                throw ValidationException::withMessages(['ends_on' => __('discipline.errors.suspension_too_long', ['date' => $limit->toDateString()])]);
+            }
+        }
+
+        return DB::transaction(function () use ($case, $actor, $data, $startsOn, $endsOn, $servedAt, $withoutPay): DisciplinarySuspension {
+            $suspension = new DisciplinarySuspension;
+            $suspension->forceFill([
+                'case_id' => $case->getKey(),
+                'employee_id' => $case->accused_employee_id,
+                'ordered_by' => $actor->getKey(),
+                'ordered_at' => now(),
+                'reason' => trim($data['reason']),
+                'without_pay' => $withoutPay,
+                'starts_on' => $startsOn->toDateString(),
+                'ends_on' => $endsOn?->toDateString(),
+                'served_at' => $servedAt,
+                'service_method' => $data['service_method'],
+                'posting_ends_on' => $data['service_method'] === 'posted' ? $servedAt->copy()->addDays(10)->toDateString() : null,
+            ])->save();
+
+            if ($withoutPay) {
+                $this->deadlines->snapshot($case, Regulation201::DISCIPLINE_SUSPENSION_MAX, $startsOn);
+            }
+            $this->record(AuditEventType::DisciplinarySuspended, $actor, $case, [
+                'suspension_id' => $suspension->getKey(), 'without_pay' => $withoutPay,
+                'starts_on' => $startsOn->toDateString(), 'ends_on' => $endsOn?->toDateString(), 'service_method' => $data['service_method'],
+            ]);
+
+            return $suspension;
+        });
+    }
+
+    public function liftSuspension(DisciplinaryCase $case, User $actor, string $liftedOn, string $reason): void
+    {
+        $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.decide') && $this->access->seat($actor, $case) === null);
+        $suspension = $case->suspensionInForce() ?? $this->fail('suspension', 'no_suspension_in_force');
+        $on = Carbon::parse($liftedOn)->startOfDay();
+        if ($on->isFuture() || $on->lt($suspension->starts_on)) {
+            $this->fail('lifted_on', 'suspension_dates_invalid');
+        }
+
+        DB::transaction(function () use ($case, $actor, $suspension, $on, $reason): void {
+            $this->closeSuspension($case, $actor, $suspension, $on, trim($reason));
+        });
+    }
+
+    /** Art. 12(2): the withheld salary was paid back. */
+    public function recordSuspensionBackPay(DisciplinaryCase $case, User $actor, string $suspensionId, string $paidOn, ?string $note): void
+    {
+        $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.manage'));
+        $suspension = $case->suspensions()->whereKey($suspensionId)->first();
+        if ($suspension === null || $suspension->back_pay_status !== DisciplinarySuspension::BACK_PAY_DUE) {
+            $this->fail('suspension', 'no_back_pay_due');
+        }
+        $on = Carbon::parse($paidOn)->startOfDay();
+        if ($on->isFuture()) {
+            $this->fail('paid_on', 'not_in_future');
+        }
+
+        DB::transaction(function () use ($case, $actor, $suspension, $on, $note): void {
+            $suspension->forceFill(['back_pay_status' => DisciplinarySuspension::BACK_PAY_PAID, 'back_pay_paid_on' => $on->toDateString(), 'back_pay_note' => $note === null ? null : trim($note)])->save();
+            $this->record(AuditEventType::DisciplinarySuspensionBackPaid, $actor, $case, ['suspension_id' => $suspension->getKey(), 'paid_on' => $on->toDateString()]);
+        });
+    }
+
+    private function closeSuspension(DisciplinaryCase $case, User $actor, DisciplinarySuspension $suspension, CarbonInterface $on, string $reason): void
+    {
+        $suspension->forceFill(['lifted_on' => $on->toDateString(), 'lifted_by' => $actor->getKey(), 'lift_reason' => $reason])->save();
+        if ($suspension->without_pay) {
+            $this->deadlines->complete($case, Regulation201::DISCIPLINE_SUSPENSION_MAX, $on);
+        }
+        $this->record(AuditEventType::DisciplinarySuspensionLifted, $actor, $case, ['suspension_id' => $suspension->getKey(), 'lifted_on' => $on->toDateString()]);
+    }
+
+    /**
+     * When the case ends, a suspension still in force ends with it, and the
+     * salary withheld by each unpaid suspension falls due unless the employee
+     * was dismissed for the charged misconduct (Art. 12(2)) — a dismissal set
+     * aside on appeal does not count.
+     */
+    private function settleSuspensions(DisciplinaryCase $case, User $actor, DisciplinaryCaseStatus $to): void
+    {
+        $decision = $to === DisciplinaryCaseStatus::Closed ? $case->currentDecision() : null;
+        $appeal = $decision === null ? null : $case->currentAppeal();
+        $dismissed = $decision?->penalty === DisciplinaryPenalty::Dismissal
+            && ! ($appeal?->outcome !== null && ! $appeal->outcome->decisionStands());
+
+        foreach ($case->suspensions()->get() as $suspension) {
+            if ($suspension->isInForce()) {
+                $this->closeSuspension($case, $actor, $suspension, now()->startOfDay(), __('discipline.suspension_ended_with_case'));
+            }
+            if ($suspension->without_pay && $suspension->back_pay_status === null) {
+                $suspension->forceFill(['back_pay_status' => $dismissed ? DisciplinarySuspension::BACK_PAY_NOT_DUE : DisciplinarySuspension::BACK_PAY_DUE])->save();
+            }
+        }
     }
 
     // ── Ending a case ────────────────────────────────────────────────────────
@@ -789,6 +1147,12 @@ final class DisciplinaryCaseService
     {
         $this->access->authorize($this->access->canOperate($actor, $case, 'discipline.manage'));
         $this->requireStatus($case, [DisciplinaryCaseStatus::DecisionDelivered]);
+        // Art. 29: the decision is not final while the Administrative Court has the appeal,
+        // nor while a ruling for the employee is still to be carried out (Art. 54).
+        $appeal = $case->currentAppeal();
+        if ($appeal !== null && ($appeal->isPending() || ($appeal->outcome->requiresImplementation() && $appeal->implemented_at === null))) {
+            $this->fail('status', 'appeal_pending');
+        }
 
         $this->end($case, $actor, DisciplinaryCaseStatus::Closed, ['closed_at' => now()], AuditEventType::DisciplinaryCaseClosed, null);
     }
@@ -895,6 +1259,7 @@ final class DisciplinaryCaseService
     {
         DB::transaction(function () use ($case, $actor, $to, $attributes, $event, $reason): void {
             $from = $case->status;
+            $this->settleSuspensions($case, $actor, $to);
             $case->forceFill(['status' => $to, ...$attributes])->save();
             $case->deadlines()->whereNull('completed_at')->whereNull('superseded_at')->update(['superseded_at' => now()]);
             $this->transition($case, $from, $to, $actor, $reason);
@@ -911,6 +1276,28 @@ final class DisciplinaryCaseService
             'reason' => $reason === null ? null : trim($reason),
             'created_at' => now(),
         ]);
+    }
+
+    /**
+     * Who may sit on a case — committee member, expedited-inquiry investigator
+     * (Art. 13(1)) or recusal substitute (Art. 9(2)): an active employee whose
+     * current post is in the case's institution, never the accused, and not
+     * disciplined in the last two years (Art. 6(2)). A seat opens the whole
+     * confidential record, so an employee of another institution is refused.
+     */
+    private function assertSeatable(DisciplinaryCase $case, string $employeeId, string $field): void
+    {
+        $employee = Employee::query()->find($employeeId);
+        if ($employee === null || $employeeId === (string) $case->accused_employee_id || $employee->status !== EmployeeStatus::Active) {
+            $this->fail($field, 'seat_not_eligible');
+        }
+        $assignment = $this->currentAssignment($employee);
+        if ($assignment === null || (string) $assignment->organization_id !== (string) $case->organization_id) {
+            $this->fail($field, 'seat_other_institution');
+        }
+        if ($this->committees->employeeEligibility($employeeId)['problems'] !== []) {
+            $this->fail($field, 'seat_disciplined');
+        }
     }
 
     /** @param  list<DisciplinaryCaseStatus>  $allowed */

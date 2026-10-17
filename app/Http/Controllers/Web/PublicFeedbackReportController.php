@@ -84,6 +84,8 @@ class PublicFeedbackReportController extends Controller
         $export = PublicFeedbackReportExport::query()->create([
             'organization_id' => $organizationId,
             'format' => $data['format'],
+            // The job has no request: it writes labels, names and dates in the language the export was asked for.
+            'locale' => app()->getLocale(),
             'filters' => $filters,
             'status' => 'queued',
             'disk' => 'local',

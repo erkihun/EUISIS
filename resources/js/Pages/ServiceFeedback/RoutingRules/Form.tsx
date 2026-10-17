@@ -130,8 +130,8 @@ export default function RuleForm({ record, organizations, categories, canManageC
                         {({ id, describedBy, invalid }) => (
                             <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.submission_type} onChange={(e) => form.setData((data) => ({ ...data, submission_type: e.target.value, tip_type: e.target.value === 'complaint' ? '' : data.tip_type }))}>
                                 <option value="">{t('serviceFeedback.anySubmissionType')}</option>
-                                <option value="suggestion">{t('serviceFeedback.typeSuggestion')}</option>
-                                <option value="complaint">{t('serviceFeedback.typeComplaint')}</option>
+                                <option value="suggestion">{t('serviceFeedback.adminTypeSuggestion')}</option>
+                                <option value="complaint">{t('serviceFeedback.adminTypeComplaint')}</option>
                             </Select>
                         )}
                     </FormField>

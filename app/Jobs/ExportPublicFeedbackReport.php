@@ -53,11 +53,16 @@ class ExportPublicFeedbackReport implements ShouldQueue
             return;
         }
 
+        // English: English labels and Gregorian dates. Amharic: Amharic labels and names, Ethiopian dates.
+        $previousLocale = app()->getLocale();
+        $locale = in_array($export->locale, ['en', 'am'], true) ? $export->locale : $previousLocale;
+        app()->setLocale($locale);
+
         try {
             $filters = $metrics->filters($export->filters ?? []);
             $query = $metrics->query($requester, $filters);
             $columns = $metrics->exportColumns($requester);
-            $rows = $metrics->exportRows($query, $requester);
+            $rows = $metrics->exportRows($query, $requester, $locale);
             $labels = collect($columns)->mapWithKeys(fn (string $column): array => [$column => (string) __('service-feedback.export_columns.'.$column)])->all();
             $csv = $export->format === 'csv';
             $filename = 'public-feedback-submissions-'.now()->format('Ymd-His').'.'.$export->format;
@@ -79,6 +84,8 @@ class ExportPublicFeedbackReport implements ShouldQueue
             $export->forceFill(['status' => 'failed', 'error' => mb_substr($exception->getMessage(), 0, 2000), 'completed_at' => now()])->save();
 
             throw $exception;
+        } finally {
+            app()->setLocale($previousLocale);
         }
     }
 

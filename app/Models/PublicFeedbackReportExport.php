@@ -20,7 +20,7 @@ class PublicFeedbackReportExport extends Model
 
     public const STATUSES = ['queued', 'ready', 'failed'];
 
-    protected $fillable = ['organization_id', 'report', 'format', 'filters', 'status', 'disk', 'path', 'filename', 'row_count', 'error', 'requested_by', 'completed_at'];
+    protected $fillable = ['organization_id', 'report', 'format', 'locale', 'filters', 'status', 'disk', 'path', 'filename', 'row_count', 'error', 'requested_by', 'completed_at'];
 
     protected function casts(): array
     {

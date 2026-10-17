@@ -15,6 +15,7 @@ use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\PositionService;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -49,6 +50,7 @@ class PublicFeedbackSubmissionService
         private readonly PublicFeedbackSettings $settings,
         private readonly PublicFeedbackNotifier $notifier,
         private readonly PublicSubmissionPolicy $policy,
+        private readonly PublicFeedbackQuestionnaire $questionnaire,
     ) {}
 
     /**
@@ -88,10 +90,11 @@ class PublicFeedbackSubmissionService
             : null;
         $requirements = $this->policy->for($type, $this->settings->allowAttachments());
         $tipType = $requirements->tipTypeRequired ? PublicTipType::from((string) $data['tip_type']) : null;
+        $organizationForm = $this->organizationForm($target, $type, $data);
         $storedPaths = [];
 
         try {
-            return DB::transaction(function () use ($target, $type, $data, $request, $service, $requirements, $tipType, &$storedPaths): EmployeeServiceFeedback {
+            return DB::transaction(function () use ($target, $type, $data, $request, $service, $requirements, $tipType, $organizationForm, &$storedPaths): EmployeeServiceFeedback {
                 $entry = EmployeeServiceFeedback::query()->create([
                     // Target and source: only ever from the resolved context.
                     'target_type' => $target->targetType,
@@ -102,14 +105,20 @@ class PublicFeedbackSubmissionService
                     'source_organization_qr_id' => $target->targetType === PublicFeedbackTargetType::Organization ? $target->sourceId : null,
                     'employee_assignment_id' => $target->employeeAssignmentId,
                     'organization_id' => $target->contextOrganizationId,
-                    'organization_unit_id' => $target->contextUnitId,
+                    // Employee: the unit of the post. Organization: the office the visitor chose, checked against it.
+                    'organization_unit_id' => $organizationForm['organization_unit_id'] ?? $target->contextUnitId,
                     'position_id' => $target->contextPositionId,
                     'target_name_snapshot' => $target->targetNameSnapshot,
                     'target_code_snapshot' => $target->targetCodeSnapshot,
                     'type' => $type,
                     'position_service_id' => $service?->getKey(),
-                    'service_no_snapshot' => $service?->service_no,
-                    'service_name_snapshot' => $service?->name_en,
+                    'service_no_snapshot' => $service?->service_no ?? $organizationForm['service_no_snapshot'] ?? null,
+                    'service_name_snapshot' => $service?->name_en ?? $organizationForm['service_name_snapshot'] ?? null,
+                    'service_id' => $organizationForm['service_id'] ?? null,
+                    'service_text' => $organizationForm['service_text'] ?? null,
+                    'service_date' => $organizationForm['service_date'] ?? null,
+                    'service_time_band' => $organizationForm['service_time_band'] ?? null,
+                    'question_set_id' => $organizationForm['question_set_id'] ?? null,
                     'rating' => $type === ServiceFeedbackType::Feedback ? (int) $data['rating'] : null,
                     'comment' => $type === ServiceFeedbackType::Feedback
                         ? $this->trimmedOrNull($data['comment'] ?? null)
@@ -148,6 +157,9 @@ class PublicFeedbackSubmissionService
                         ),
                     ])->save();
                 }
+
+                // Structured answers, one typed row each, against the version the visitor answered.
+                $this->questionnaire->persist($entry, $organizationForm['answers'] ?? []);
 
                 if ($requirements->evidenceAllowed) {
                     foreach ($data['attachments'] ?? [] as $file) {
@@ -191,6 +203,42 @@ class PublicFeedbackSubmissionService
         }
     }
 
+    /**
+     * The service information and questionnaire answers of an organization
+     * submission. The controller has already checked that the service and the
+     * office belong to the resolved institution; an employee submission has none.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function organizationForm(TargetContext $target, ServiceFeedbackType $type, array $data): array
+    {
+        if ($target->targetType !== PublicFeedbackTargetType::Organization) {
+            return [];
+        }
+
+        $catalogService = ! empty($data['service_id']) ? Service::query()->find((string) $data['service_id']) : null;
+        $set = $this->questionnaire->published();
+        // Validation has checked the stated version is the published one; no version means the page showed no questions.
+        $asked = $set !== null
+            && filled($data['questionnaire_version'] ?? null)
+            && $this->questionnaire->questionsFor($set, $type)->isNotEmpty();
+
+        return [
+            'service_id' => $catalogService?->getKey(),
+            'service_no_snapshot' => $catalogService?->code,
+            'service_name_snapshot' => $catalogService === null ? null : ($catalogService->name_en ?: $catalogService->name_am),
+            // The visitor's own words only when no catalog service was chosen: an unstructured service.
+            'service_text' => $catalogService === null ? $this->trimmedOrNull(is_string($data['service_text'] ?? null) ? $data['service_text'] : null) : null,
+            'organization_unit_id' => $this->trimmedOrNull(is_string($data['organization_unit_id'] ?? null) ? $data['organization_unit_id'] : null),
+            'service_date' => $data['service_date'] ?? null,
+            'service_time_band' => $data['service_time_band'] ?? null,
+            // The version is recorded whenever the visitor was shown its questions, answered or not.
+            'question_set_id' => $asked ? $set->getKey() : null,
+            'answers' => $asked ? $this->questionnaire->rowsFor($set, $type, is_array($data['answers'] ?? null) ? $data['answers'] : []) : [],
+        ];
+    }
+
     /** @param array<string, mixed> $data */
     private function fingerprint(TargetContext $target, ServiceFeedbackType $type, array $data, Request $request): string
     {
@@ -216,6 +264,12 @@ class PublicFeedbackSubmissionService
             trim((string) ($data['involved_parties'] ?? '')),
             (string) ($data['incident_date'] ?? ''),
             trim((string) ($data['incident_location'] ?? '')),
+            (string) ($data['service_id'] ?? ''),
+            trim((string) ($data['service_text'] ?? '')),
+            (string) ($data['organization_unit_id'] ?? ''),
+            (string) ($data['service_date'] ?? ''),
+            (string) ($data['service_time_band'] ?? ''),
+            $data['answers'] ?? [],
             $attachments,
         ]));
     }

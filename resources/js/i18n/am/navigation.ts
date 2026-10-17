@@ -108,6 +108,8 @@ const navigation = {
     cafeteriaSettingsReports: 'የሪፖርት ቅንብሮች',
     groupServiceFeedback: 'የተገልጋይ አስተያየት',
     serviceFeedbackDashboard: 'የአስተያየት ዳሽቦርድ',
+    serviceAllSubmissions: 'ሁሉም የቀረቡ ጉዳዮች',
+    serviceUnrouted: 'ያልተላለፉ',
     serviceFeedbackList: 'የተገልጋይ አስተያየቶች',
     serviceSuggestions: 'ጥቆማዎች',
     serviceComplaints: 'የተገልጋይ ቅሬታዎች',
@@ -123,6 +125,7 @@ const navigation = {
     serviceFeedbackRoutingRules: 'የማስተላለፊያ ደንቦች',
     organizationFeedbackQrCodes: 'የተቋም QR ኮዶች',
     serviceSubmissionReports: 'የቀረቡ ጉዳዮች ሪፖርቶች',
+    serviceFeedbackQuestionnaire: 'የአስተያየት መጠይቅ',
     serviceFeedbackSettings: 'ቅንብሮች',
     positionServices: 'የሥራ መደብ አገልግሎቶች',
     employeeFeedbackQr: 'የሠራተኛ አስተያየት መስጫ QR',
@@ -224,6 +227,16 @@ const navigation = {
     commandMenu: 'ትዕዛዝ ምናሌ',
     typeCommandOrSearch: 'ትዕዛዝ ይጻፉ ወይም ይፈልጉ…',
     noResults: 'ምንም ውጤት አልተገኘም',
+    // Sidebar pages that had no menu entry.
+    myAssessments: 'የእኔ ምዘናዎች',
+    assignedAssessments: 'ለእኔ የተመደቡ ምዘናዎች',
+    assessmentReviews: 'ግምገማ የሚጠብቁ ምዘናዎች',
+    vacancyApplications: 'የክፍት የሥራ መደብ ማመልከቻዎች',
+    printBatches: 'የሕትመት ዙሮች',
+    idCardTemplates: 'የመታወቂያ ካርድ አብነቶች',
+    nfcCredentials: 'የNFC ማረጋገጫዎች',
+    cafeteriaSpecialDays: 'ልዩ ቀናት',
+    cafeteriaEmployeeExclusions: 'ሠራተኛ ፈቃድ / ማግለሎች',
 } as const;
 
 export default navigation;

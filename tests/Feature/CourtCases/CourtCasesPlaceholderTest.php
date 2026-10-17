@@ -79,7 +79,7 @@ it('gives the sidebar the court cases entry only when the user holds the permiss
 
     // The item is gated by court_cases.view and sits in the Tribunal Court group, not under Grievance Management.
     expect(substr_count($sidebar, "routeName: 'court-cases.index'"))->toBe(1)
-        ->and($sidebar)->toContain("{ routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: ScaleIcon, permission: 'court_cases.view' }")
+        ->and($sidebar)->toContain("{ routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: GavelIcon, permission: 'court_cases.view' }")
         ->and($group)->toBeGreaterThan($grievances)
         ->and($item)->toBeGreaterThan($group)
         ->and($item > $grievances && $item < $group)->toBeFalse();

@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import { secondaryBtn } from '@/Components/dailyActivity/helpers';
 import { EvidenceForm, FinalStatementForm, ResponseForm } from '@/Components/discipline/forms';
 import {
-    CaseStatusBadge, ChargeList, DeadlineList, Detail, EvidenceList, Section, penaltyLabel, useDates,
+    AppealSummary, CaseStatusBadge, ChargeList, DeadlineList, Detail, EvidenceList, Section, SuspensionList, penaltyLabel, useDates,
     type Abilities, type CaseDetail,
 } from '@/Components/discipline/shared';
 import { useLocale } from '@/hooks/useLocale';
@@ -28,6 +28,7 @@ export default function MyDisciplinaryCase({ disciplinaryCase: c, abilities: can
                     <Section title={t('discipline.sections.overview')} actions={<CaseStatusBadge status={c.status} />}>
                         <dl className="grid gap-3 sm:grid-cols-2">
                             <Detail label={t('discipline.trackLabel')}>{t(`discipline.tracks.${c.track}`)}</Detail>
+                            {c.legacy_regulation && <Detail label={t('discipline.governingRegulation')}>{t('discipline.regulationLegacy')}</Detail>}
                             <Detail label={t('discipline.chargedAt')}>{dateTime(c.charged_at)}</Detail>
                             <Detail label={t('discipline.summons.hearingAt')}>{dateTime(c.summons.hearing_at)}</Detail>
                             <Detail label={t('discipline.summons.hearingLocation')}>{c.summons.hearing_location ?? '—'}</Detail>
@@ -73,13 +74,19 @@ export default function MyDisciplinaryCase({ disciplinaryCase: c, abilities: can
                                 <p className="font-medium">{decision.finding ? t(`discipline.findings.${decision.finding}`) : '—'} — {penaltyLabel(t, decision.penalty, decision.penalty_amount, decision.penalty_unit)}</p>
                                 <p className="mt-1 whitespace-pre-line text-gray-700 dark:text-slate-300">{decision.reason}</p>
                                 <p className="mt-1 text-xs text-gray-500">{t('discipline.decision.deliveredAt')}: {dateTime(decision.delivered_at)}{decision.effective_on ? ` · ${t('discipline.decision.effectiveOn')}: ${date(decision.effective_on)}` : ''}</p>
-                                <p className="mt-2 text-xs text-gray-500">{t('discipline.decision.appealNote')}</p>
+                                {decision.appeal ? <AppealSummary appeal={decision.appeal} stayed={Boolean(decision.execution_stayed)} /> : <p className="mt-2 text-xs text-gray-500">{t('discipline.decision.appealNote')}</p>}
                             </div>
                         ) : <p className="text-sm text-gray-500 dark:text-slate-400">{t('discipline.portal.decisionPending')}</p>}
                     </Section>
                 </div>
                 <div className="space-y-3">
                     <Section title={t('discipline.sections.deadlines')}><DeadlineList deadlines={c.deadlines} /></Section>
+                    {c.suspensions.length > 0 && (
+                        <Section title={t('discipline.sections.suspension')}>
+                            <SuspensionList suspensions={c.suspensions} />
+                            <p className="mt-2 text-xs text-gray-500">{t('discipline.suspension.rightsNote')}</p>
+                        </Section>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

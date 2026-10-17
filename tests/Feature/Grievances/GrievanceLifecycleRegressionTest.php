@@ -40,7 +40,7 @@ it('rejects historical decision edits and finalization after escalation', functi
 });
 
 it('rechecks draft letter state when a stale edit follows finalization', function (): void {
-    $decision = $this->decisions->finalize($this->decision, $this->s->chair);
+    $decision = $this->s->headDecides($this->decision, $this->s->chair);
     $letter = $this->letters->generate($this->g->fresh(), $this->s->writer, ['letter_type' => 'decision_letter', 'language' => 'en', 'decision_id' => $decision->id]);
     $before = $letter->body;
     $this->letters->finalize($letter->fresh(), $this->s->chair);
@@ -51,9 +51,9 @@ it('rechecks draft letter state when a stale edit follows finalization', functio
 });
 
 it('rejects first issuance from an escalated stage before storing a PDF', function (): void {
-    $decision = $this->decisions->finalize($this->decision, $this->s->chair);
+    $decision = $this->s->headDecides($this->decision, $this->s->chair);
     $letter = $this->letters->generate($this->g->fresh(), $this->s->writer, ['letter_type' => 'decision_letter', 'language' => 'en', 'decision_id' => $decision->id]);
-    $letter = $this->letters->sign($this->letters->finalize($letter, $this->s->chair), $this->s->chair, GrievanceSignatureMethod::ElectronicApproval);
+    $letter = GrievanceScenario::seal($this->letters->sign($this->letters->finalize($letter, $this->s->chair), $this->s->chair, GrievanceSignatureMethod::ElectronicApproval));
     Carbon::setTestNow(Carbon::parse('2026-10-09 10:00:00'));
     app(GrievanceEscalationService::class)->autoEscalate($this->g->current_stage_id);
 
@@ -63,16 +63,16 @@ it('rejects first issuance from an escalated stage before storing a PDF', functi
 });
 
 it('issues a corrected decision letter without resetting the decision or appeal clock', function (): void {
-    $decision = $this->decisions->finalize($this->decision, $this->s->chair);
+    $decision = $this->s->headDecides($this->decision, $this->s->chair);
     $letter = $this->letters->generate($this->g->fresh(), $this->s->writer, ['letter_type' => 'decision_letter', 'language' => 'en', 'decision_id' => $decision->id]);
-    $letter = $this->letters->issue($this->letters->sign($this->letters->finalize($letter, $this->s->chair), $this->s->chair, GrievanceSignatureMethod::ElectronicApproval), $this->s->chair);
+    $letter = $this->letters->issue(GrievanceScenario::seal($this->letters->sign($this->letters->finalize($letter, $this->s->chair), $this->s->chair, GrievanceSignatureMethod::ElectronicApproval)), $this->s->chair);
     $issuedAt = $decision->fresh()->issued_at->toIso8601String();
     $deadline = $this->g->fresh()->appeal_deadline_at?->toIso8601String();
     $oldPdf = Storage::disk('local')->get($letter->pdf_path);
     Carbon::setTestNow(now()->addDay());
     $voided = $this->letters->void($letter, $this->s->chair, 'Correct spelling');
     $replacement = $this->letters->revise($voided, $this->s->writer);
-    $replacement = $this->letters->issue($this->letters->sign($this->letters->finalize($replacement, $this->s->chair), $this->s->chair, GrievanceSignatureMethod::ElectronicApproval), $this->s->chair);
+    $replacement = $this->letters->issue(GrievanceScenario::seal($this->letters->sign($this->letters->finalize($replacement, $this->s->chair), $this->s->chair, GrievanceSignatureMethod::ElectronicApproval)), $this->s->chair);
 
     expect($replacement->status)->toBe(GrievanceLetterStatus::Issued)
         ->and($replacement->reference_number)->not->toBe($letter->reference_number)

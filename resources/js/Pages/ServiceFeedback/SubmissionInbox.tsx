@@ -38,7 +38,7 @@ const TIP_FILTER_LABEL: Record<TipTypeBucket | 'ALL', string> = {
  */
 export default function SubmissionInbox({ type, entries, counts, statuses, filters, canManageRouting }: Props) {
     const { t } = useLocale();
-    const title = t(type === 'complaint' ? 'serviceFeedback.typeComplaint' : 'serviceFeedback.typeSuggestion');
+    const title = t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion');
     const listRoute = type === 'complaint' ? 'service-submissions.complaints' : 'service-submissions.suggestions';
     const total = Object.values(counts).reduce((sum, value) => sum + Number(value), 0);
     const needsAttention = Number(counts.unrouted ?? 0);

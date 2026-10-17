@@ -66,6 +66,9 @@ class HandleInertiaRequests extends Middleware
             'features' => Features::shared(),
 
             'locale' => $locale,
+            // The language the server wrote this page's own text in (SetClientLocale), read when the page renders.
+            // The browser reloads once when it shows another language (LocaleContext).
+            'textLocale' => fn (): string => app()->getLocale(),
             'calendar' => [
                 'system' => $calendarSystem->value,
                 'mode' => $calendarMode,

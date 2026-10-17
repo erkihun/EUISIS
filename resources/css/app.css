@@ -603,3 +603,9 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 .login-rise { animation: login-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .login-orbit { animation: login-orbit 28s linear infinite; transform-origin: 200px 200px; transform-box: view-box; }
 .login-sheen { background-size: 200% 100%; animation: login-sheen 7s linear infinite; }
+
+/* Grievance settings: the save bar rises into view when a change is made. */
+@keyframes slideUp {
+    from { transform: translateY(8px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}

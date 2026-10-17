@@ -718,10 +718,19 @@ enum AuditEventType: string
     case DisciplinaryRecommendationAdopted = 'discipline.recommendation_adopted';
     case DisciplinaryReportSubmitted = 'discipline.report_submitted';
     case DisciplinaryDecisionIssued = 'discipline.decision_issued';
+    case DisciplinaryReferredToCommittee = 'discipline.referred_to_committee';
+    case DisciplinarySuspended = 'discipline.suspended';
+    case DisciplinarySuspensionLifted = 'discipline.suspension_lifted';
+    case DisciplinarySuspensionBackPaid = 'discipline.suspension_back_paid';
     case DisciplinaryDecisionDelivered = 'discipline.decision_delivered';
     case DisciplinaryCaseDiscontinued = 'discipline.case_discontinued';
     case DisciplinaryCaseTerminated = 'discipline.case_terminated';
     case DisciplinaryCaseClosed = 'discipline.case_closed';
+    case DisciplinaryAppealNoticed = 'discipline.appeal_noticed';
+    case DisciplinaryAppealRecordCopyDelivered = 'discipline.appeal_record_copy_delivered';
+    case DisciplinaryAppealFiled = 'discipline.appeal_filed';
+    case DisciplinaryAppealOutcomeRecorded = 'discipline.appeal_outcome_recorded';
+    case DisciplinaryAppealImplemented = 'discipline.appeal_implemented';
     // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md)
     case MandateCreated = 'organization_design.mandate_created';
     case MandateUpdated = 'organization_design.mandate_updated';

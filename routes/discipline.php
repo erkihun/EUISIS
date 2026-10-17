@@ -55,6 +55,16 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/{case}/recommendation', 'recommend')->name('recommendation');
         Route::post('/{case}/decision', 'decide')->name('decision');
         Route::post('/{case}/delivery', 'deliver')->name('delivery');
+        // Regulation 201/2018 Art. 12: suspension pending the case.
+        Route::post('/{case}/suspension', 'suspend')->name('suspension.store');
+        Route::post('/{case}/suspension/lift', 'liftSuspension')->name('suspension.lift');
+        Route::post('/{case}/suspension/back-pay', 'suspensionBackPay')->name('suspension.back-pay');
+        // Regulation 201/2018 Part Five: the employee's appeal to the Administrative Court.
+        Route::post('/{case}/appeal', 'appealNotice')->name('appeal.notice');
+        Route::post('/{case}/appeal/record-copy', 'appealRecordCopy')->name('appeal.record-copy');
+        Route::post('/{case}/appeal/filing', 'appealFiling')->name('appeal.filing');
+        Route::post('/{case}/appeal/outcome', 'appealOutcome')->name('appeal.outcome');
+        Route::post('/{case}/appeal/implemented', 'appealImplemented')->name('appeal.implemented');
         Route::post('/{case}/discontinue', 'discontinue')->name('discontinue');
         Route::post('/{case}/terminate', 'terminate')->name('terminate');
         Route::post('/{case}/close', 'close')->name('close');

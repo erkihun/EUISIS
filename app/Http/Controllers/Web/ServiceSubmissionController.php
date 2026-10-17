@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\PublicFeedbackHandlerType;
+use App\Enums\PublicFeedbackTargetType;
 use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
@@ -19,6 +20,7 @@ use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\PublicEvidencePolicy;
 use App\Services\ServiceFeedback\PublicFeedbackAssignmentService;
+use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\ServiceFeedback\PublicFeedbackReferralService;
 use App\Services\ServiceFeedback\PublicFeedbackRoutingService;
 use App\Services\ServiceFeedback\PublicFeedbackTransitionException;
@@ -94,7 +96,7 @@ class ServiceSubmissionController extends Controller
 
         return Inertia::render('ServiceFeedback/SubmissionInbox', [
             'type' => $kind->value,
-            'entries' => $query->with(['employee:id,full_name,employee_number', 'organization:id,name_en,name_am', 'currentAssignment'])
+            'entries' => $query->with(['employee:id,full_name,employee_number', 'organization:id,name_en,name_am', 'organizationTarget:id,code,name_en,name_am', 'currentAssignment'])
                 ->latest('created_at')->paginate(20)->withQueryString()
                 ->through(fn (EmployeeServiceFeedback $entry): array => $this->summary($entry)),
             'counts' => $this->scoped($user, $kind)
@@ -128,7 +130,7 @@ class ServiceSubmissionController extends Controller
         $submission->load([
             'employee:id,full_name,employee_number',
             'organization:id,name_en,name_am',
-            'organizationTarget:id,name_en,name_am',
+            'organizationTarget:id,code,name_en,name_am',
             'organizationUnit:id,name_en,name_am',
             'position:id,title_en,title_am',
             'category:id,name_en,name_am',
@@ -183,6 +185,7 @@ class ServiceSubmissionController extends Controller
                     'scan_status' => $file->scan_status,
                 ])->all(),
             ],
+            'organizationForm' => app(PublicFeedbackQuestionnaire::class)->presentForStaff($submission, $locale),
             'history' => $submission->statusHistory->map(fn (PublicFeedbackStatusHistory $row): array => [
                 'id' => $row->id,
                 'from_status' => $row->from_status,
@@ -393,7 +396,11 @@ class ServiceSubmissionController extends Controller
             'tip_type' => $entry->tip_type?->value,
             'status' => $entry->status->value,
             'target_type' => $entry->target_type?->value ?? 'employee',
-            'target_name' => $entry->target_name_snapshot ?? $entry->employee?->full_name,
+            // An institution in the reader's language (the snapshot only when the institution is gone); an employee by the recorded label.
+            'target_name' => $entry->target_type === PublicFeedbackTargetType::Organization && $entry->organizationTarget !== null
+                ? ($locale === 'am' && filled($entry->organizationTarget->name_am) ? $entry->organizationTarget->name_am : $entry->organizationTarget->name_en)
+                : ($entry->target_name_snapshot ?? $entry->employee?->full_name),
+            'target_code' => $entry->target_type === PublicFeedbackTargetType::Organization ? $entry->organizationTarget?->code : null,
             'message' => $entry->comment,
             'created_at' => $entry->created_at?->toIso8601String(),
             'submitted_at' => ($entry->submitted_at ?? $entry->created_at)?->toIso8601String(),

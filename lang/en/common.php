@@ -57,4 +57,10 @@ return [
     'terminated' => 'Terminated',
     'transferred' => 'Transferred',
     'deceased' => 'Deceased',
+
+    'statutory_deadline' => [
+        'title' => 'Statutory deadline',
+        'due_soon' => ':rule on :case is due on :date.',
+        'overdue' => ':rule on :case was due on :date and is overdue.',
+    ],
 ];

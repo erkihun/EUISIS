@@ -21,6 +21,8 @@ export interface UiMessages {
     range: string;
     remove: string;
     replace: string;
+    /** Screen-reader word after a required field's label. */
+    required: string;
     /** Clears a filter panel. */
     reset: string;
     results: string;
@@ -43,6 +45,7 @@ const fallbackMessages: UiMessages = {
     range: ':from–:to of :total',
     remove: 'Remove',
     replace: 'Replace',
+    required: 'required',
     reset: 'Reset',
     results: 'results',
     search: 'Search',

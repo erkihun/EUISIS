@@ -37,7 +37,7 @@ type Props = {
     can: { export: boolean };
 };
 
-const TYPE_KEY: Record<string, string> = { feedback: 'typeFeedback', suggestion: 'typeSuggestion', complaint: 'typeComplaint' };
+const TYPE_KEY: Record<string, string> = { feedback: 'adminTypeFeedback', suggestion: 'adminTypeSuggestion', complaint: 'adminTypeComplaint' };
 const STATUS_ORDER = ['pending', 'unrouted', 'assigned', 'under_review', 'resolved', 'closed'] as const;
 
 const TIP_LABEL: Record<TipTypeBucket, string> = {
@@ -136,9 +136,9 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
 
                 <section aria-label={t('serviceFeedback.submissionCounts')} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <Stat label={t('serviceFeedback.totalSubmissions')} value={summary.total} />
-                    <Stat label={t('serviceFeedback.typeFeedback')} value={summary.by_type.feedback} />
-                    <Stat label={t('serviceFeedback.typeSuggestion')} value={summary.by_type.suggestion} />
-                    <Stat label={t('serviceFeedback.typeComplaint')} value={summary.by_type.complaint} />
+                    <Stat label={t('serviceFeedback.adminTypeFeedback')} value={summary.by_type.feedback} />
+                    <Stat label={t('serviceFeedback.adminTypeSuggestion')} value={summary.by_type.suggestion} />
+                    <Stat label={t('serviceFeedback.adminTypeComplaint')} value={summary.by_type.complaint} />
                     <Stat label={t('serviceFeedback.employeeTargeted')} value={summary.by_target.employee} />
                     <Stat label={t('serviceFeedback.organizationTargeted')} value={summary.by_target.organization} />
                     <Stat label={t('serviceFeedback.statusUnrouted')} value={summary.by_status.unrouted ?? 0} tone={summary.by_status.unrouted > 0 ? 'warning' : undefined} />

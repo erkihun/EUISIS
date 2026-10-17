@@ -138,3 +138,61 @@ it('groups Administrative Tribunal and Court Cases under Tribunal Court, out of 
         ->and($amharic)->toContain("groupTribunalCourt: 'የአስተዳደር ፍርድ ቤት'")
         ->not->toContain('groupCourtCases:');
 });
+
+it('gives every menu and submenu page its own descriptive icon', function (): void {
+    $sidebar = file_get_contents(__DIR__.'/../../resources/js/Components/AppSidebar.tsx');
+    $icons = file_get_contents(__DIR__.'/../../resources/js/Components/NavIcons.tsx');
+    preg_match_all('/^export const (\w+) = /m', $icons, $exported);
+
+    // Each group's pages: navGroups and portal groups by key, the Administration sub-clusters by label.
+    preg_match_all("/(?:key: '(\w+)',\s+labelKey: '[^']+',\s+icon: (\w+),\s+items: \[|labelKey: '(nav\.admin\w+)',\s+items: \[)(.*?)\n\s+\],/s", $sidebar, $groups, PREG_SET_ORDER);
+    expect(count($groups))->toBeGreaterThanOrEqual(28);
+
+    $selfService = [];
+    foreach ($groups as $group) {
+        $name = $group[1] ?: $group[3];
+        preg_match_all("/\{ routeName: '[^']+',(?: tab: '[^']+',)? labelKey: '[^']+',\s+icon: (\w+)(?<listed>[^}]*)\}/", $group[4], $pages, PREG_SET_ORDER);
+        $pageIcons = array_column($pages, 1);
+
+        expect($pageIcons)->not->toBeEmpty()
+            ->and(array_values(array_diff($pageIcons, $exported[1])))->toBe([])
+            ->and(array_keys(array_filter(array_count_values($pageIcons), fn (int $n): bool => $n > 1)))->toBe([], "{$name} reuses an icon");
+
+        if (str_starts_with($name, 'portal')) {
+            foreach ($pages as $page) {
+                if (! str_contains($page['listed'], 'listedInAdmin')) {
+                    $selfService[] = $page[1];
+                }
+            }
+        }
+    }
+
+    // Staff see the portal pages flattened into one Self-service group, so they must differ there too.
+    expect(array_keys(array_filter(array_count_values($selfService), fn (int $n): bool => $n > 1)))->toBe([])
+        // Submenu pages render their icon (smaller) instead of hiding it.
+        ->and($sidebar)->toContain("nested && !compact\n                        ? ['h-4 w-4 shrink-0'");
+});
+
+it('lists the admin pages that have no other entry point', function (): void {
+    $sidebar = file_get_contents(__DIR__.'/../../resources/js/Components/AppSidebar.tsx');
+
+    foreach ([
+        "routeName: 'assessment-workspace.index'" => "permission: 'assessments.view_assigned'",
+        "routeName: 'assessment-reviews.index'" => "anyPermission: ['assessments.review', 'assessment_assignments.view']",
+        "routeName: 'employee.assessments.index'" => "permission: 'assessments.view_own_result'",
+        "routeName: 'vacancy-applications.index'" => "permission: 'vacancy-applications.viewAny'",
+        "routeName: 'print-batches.index'" => "anyPermission: ['id-cards.createPrintBatch', 'cards.manage']",
+        "routeName: 'id-card-templates.index'" => "permission: 'id_card_templates.view'",
+        "routeName: 'nfc-management.credentials.index'" => "permission: 'nfc_credentials.view'",
+        "routeName: 'cafeteria.special-days.index'" => "permission: 'cafeteria_special_days.view'",
+        "routeName: 'cafeteria.employee-exclusions.index'" => "permission: 'cafeteria_employee_exclusions.view'",
+    ] as $route => $gate) {
+        expect(substr_count($sidebar, $route))->toBe(1);
+        $line = strstr(substr($sidebar, strpos($sidebar, $route)), "\n", true);
+        expect($line)->toContain($gate);
+    }
+
+    // The discipline portal needs the account's own employee record, so admins without one never get a 403 link.
+    expect($sidebar)->toContain("permission: 'discipline.view_own', employeeOnly: true")
+        ->toContain('&& (!item.employeeOnly || hasEmployeeRecord)');
+});

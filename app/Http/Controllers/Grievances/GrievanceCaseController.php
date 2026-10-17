@@ -736,7 +736,8 @@ class GrievanceCaseController extends Controller
             'review_decision' => $a->canLead($user, $grievance, 'grievance_decisions.review'),
             'submit_decision' => $a->canLead($user, $grievance, 'grievance_decisions.submit_for_approval'),
             'finalize_decision' => $a->canLead($user, $grievance, 'grievance_decisions.finalize'),
-            'vote' => $a->panelSeat($user, $stage) !== null && $user->can('grievances.review') && ($this->settings->votingEnabled() || $this->settings->dissentEnabled()),
+            // Art. 8: a committee recommendation always passes by vote of the seated members.
+            'vote' => $a->panelSeat($user, $stage) !== null && $user->can('grievances.review'),
             'prepare_letters' => $a->canPrepareLetters($user, $grievance) || $a->canLead($user, $grievance, 'grievance_correspondence.create'),
             'sign_letters' => $user->can('grievance_correspondence.sign'),
             'seal_letters' => $user->can('grievance_correspondence.apply_seal'),

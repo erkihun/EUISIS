@@ -1,9 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { dangerBtn, inputCls, primaryBtn, secondaryBtn } from '@/Components/dailyActivity/helpers';
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import LocalizedTimePicker from '@/Components/Calendar/LocalizedTimePicker';
 import { EvidenceForm, FinalStatementForm, ResponseForm } from '@/Components/discipline/forms';
 import {
-    CaseStatusBadge, ChargeList, DeadlineList, Detail, EvidenceList, Field, Section, TextArea, employeeLabel, penaltyLabel, useDates,
+    AppealSummary, CaseStatusBadge, ChargeList, DeadlineList, Detail, EvidenceList, Field, Section, SuspensionList, TextArea, employeeLabel, penaltyLabel, useDates,
     type Abilities, type CaseDetail, type EmployeeRef,
 } from '@/Components/discipline/shared';
 import { useLocale } from '@/hooks/useLocale';
@@ -24,7 +26,7 @@ type StaffCase = CaseDetail & {
     history: { from: string | null; to: string; actor: string | null; reason: string | null; at: string | null }[];
     source_type: string | null;
 };
-type Penalty = { value: string; severity: string; article: string; unit: string | null; max: number | null };
+type Penalty = { value: string; severity: string; unit: string | null; max: number | null };
 type Props = {
     disciplinaryCase: StaffCase;
     abilities: Abilities;
@@ -32,6 +34,21 @@ type Props = {
     votingMembers: { id: string; employee: EmployeeRef; role: string }[];
     options: { penalties: Penalty[]; objectionGrounds: string[]; headActions: string[]; sides: string[] };
 };
+
+/**
+ * A date in the interface's calendar (Ethiopian in Amharic) and a clock time
+ * (Ethiopian hours in Amharic). The value is the Gregorian "Y-m-d HH:mm" the
+ * server parses.
+ */
+function LocalizedDateTime({ id, value, onChange, required }: { id: string; value: string; onChange: (v: string) => void; required?: boolean }): JSX.Element {
+    const [day = '', time = ''] = value.split(' ');
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            <LocalizedDatePicker id={id} value={day} onChange={(d) => onChange(d ? `${d} ${time || '09:00'}` : '')} required={required} />
+            <LocalizedTimePicker value={time || '09:00'} onChange={(tm) => onChange(day ? `${day} ${tm}` : '')} />
+        </div>
+    );
+}
 
 /** URL of a discipline.cases.* action; names are fixed literals at every call site. */
 const go = (name: string, id: string, extra?: string): string =>
@@ -55,6 +72,7 @@ export default function DisciplineShow({ disciplinaryCase: c, abilities: can, co
                             <Detail label={t('discipline.unit')}>{c.unit ?? '—'}</Detail>
                             <Detail label={t('discipline.position')}>{c.position ?? '—'}</Detail>
                             <Detail label={t('discipline.trackLabel')}>{t(`discipline.tracks.${c.track}`)}</Detail>
+                            {c.legacy_regulation && <Detail label={t('discipline.governingRegulation')}>{t('discipline.regulationLegacy')}</Detail>}
                             <Detail label={t('discipline.severityLabel')}>{t(`discipline.severities.${c.severity}`)}</Detail>
                             <Detail label={t('discipline.chargedAt')}>{dateTime(c.charged_at)}</Detail>
                             <Detail label={t('discipline.panel.committee')}>{c.committee?.name ?? '—'}</Detail>
@@ -102,6 +120,11 @@ export default function DisciplineShow({ disciplinaryCase: c, abilities: can, co
                             {c.responses.map((r) => (
                                 <div key={r.id} className="mb-2 rounded-control border border-gray-100 p-3 text-sm dark:border-slate-800">
                                     <p className="text-xs text-gray-500 dark:text-slate-400">#{r.version} · {dateTime(r.received_at)} · {r.acknowledged_name}</p>
+                                    {r.pleas.length > 0 && (
+                                        <ul className="mt-1 space-y-0.5">
+                                            {r.pleas.map((p) => <li key={p.charge_id}>{p.sequence}. {t('discipline.charge.plea')}: <strong>{t(`discipline.pleas.${p.plea}`)}</strong>{p.statement ? ` — ${p.statement}` : ''}</li>)}
+                                        </ul>
+                                    )}
                                     {r.objection_ground && (
                                         <p className="mt-1">{t('discipline.response.objectionDecision')}: <strong>{t(`discipline.objectionGrounds.${r.objection_ground}`)}</strong>
                                             {r.objection_text ? ` — ${r.objection_text}` : ''}{r.objection_decision ? ` (${t(`discipline.actions.${r.objection_decision === 'accepted' ? 'accept' : 'reject'}`)})` : ''}</p>
@@ -161,16 +184,24 @@ export default function DisciplineShow({ disciplinaryCase: c, abilities: can, co
                                     <p className="mt-1 whitespace-pre-line text-gray-700 dark:text-slate-300">{d.reason}</p>
                                     <p className="mt-1 text-xs text-gray-500">{t('discipline.decision.deliveredAt')}: {d.delivered_at ? `${dateTime(d.delivered_at)} (${t(`discipline.deliveryMethods.${d.delivery_method}`)})` : t('discipline.decision.notDelivered')}
                                         {d.effective_on ? ` · ${t('discipline.decision.effectiveOn')}: ${date(d.effective_on)}` : ''}</p>
+                                    {d.appeal && <AppealSummary appeal={d.appeal} stayed={Boolean(d.execution_stayed)} />}
                                 </div>
                             ))}
                             {can.decide && <DecisionForm caseId={c.id} track={c.track} penalties={options.penalties} actions={options.headActions} />}
                             {can.deliver && <DeliveryForm caseId={c.id} />}
+                            <AppealActions caseId={c.id} can={can} />
                         </Section>
                     )}
                 </div>
 
                 <div className="space-y-3">
                     <Section title={t('discipline.sections.deadlines')}><DeadlineList deadlines={c.deadlines} /></Section>
+                    {(c.suspensions.length > 0 || can.suspend) && (
+                        <Section title={t('discipline.sections.suspension')}>
+                            {c.suspensions.length > 0 && <SuspensionList suspensions={c.suspensions} />}
+                            <SuspensionActions caseId={c.id} can={can} dueBackPay={c.suspensions.filter((s) => s.back_pay_status === 'due').map((s) => s.id)} />
+                        </Section>
+                    )}
                     {can.extend && (
                         <Section title={t('discipline.sections.deadlines')}>
                             <button type="button" className={secondaryBtn} onClick={() => post('extend')}>{t('discipline.actions.extend')}</button>
@@ -211,7 +242,7 @@ function AddChargeForm({ caseId }: { caseId: string }): JSX.Element {
         <form onSubmit={submit} className="grid gap-3 sm:grid-cols-2">
             <Field id="ch-title" label={t('discipline.charge.title')} error={form.errors.title}><input id="ch-title" className={inputCls} value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} required /></Field>
             <Field id="ch-provision" label={t('discipline.charge.violatedProvision')} error={form.errors.violated_provision}><input id="ch-provision" className={inputCls} value={form.data.violated_provision} onChange={(e) => form.setData('violated_provision', e.target.value)} required /></Field>
-            <Field id="ch-date" label={t('discipline.charge.occurredOn')} error={form.errors.occurred_on}><input id="ch-date" type="date" className={inputCls} value={form.data.occurred_on} onChange={(e) => form.setData('occurred_on', e.target.value)} required /></Field>
+            <Field id="ch-date" label={t('discipline.charge.occurredOn')} error={form.errors.occurred_on}><LocalizedDatePicker id="ch-date" value={form.data.occurred_on} onChange={(v) => form.setData('occurred_on', v)} required /></Field>
             <Field id="ch-place" label={t('discipline.charge.occurredPlace')} error={form.errors.occurred_place}><input id="ch-place" className={inputCls} value={form.data.occurred_place} onChange={(e) => form.setData('occurred_place', e.target.value)} required /></Field>
             <div className="sm:col-span-2"><Field id="ch-part" label={t('discipline.charge.particulars')} error={form.errors.particulars}><TextArea id="ch-part" value={form.data.particulars} onChange={(v) => form.setData('particulars', v)} /></Field></div>
             <div className="sm:col-span-2"><Field id="ch-ev" label={t('discipline.charge.evidenceList')} error={form.errors.evidence_list}><TextArea id="ch-ev" rows={2} value={form.data.evidence_list} onChange={(v) => form.setData('evidence_list', v)} /></Field></div>
@@ -293,13 +324,13 @@ function SummonsForm({ caseId }: { caseId: string }): JSX.Element {
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); form.post(go('summons', caseId), { preserveScroll: true }); }} className="grid gap-3 sm:grid-cols-2">
-            <Field id="sm-served" label={t('discipline.summons.servedAt')} error={form.errors.served_at}><input id="sm-served" type="datetime-local" className={inputCls} value={form.data.served_at} onChange={(e) => form.setData('served_at', e.target.value)} required /></Field>
+            <Field id="sm-served" label={t('discipline.summons.servedAt')} error={form.errors.served_at}><LocalizedDateTime id="sm-served" value={form.data.served_at} onChange={(v) => form.setData('served_at', v)} required /></Field>
             <Field id="sm-method" label={t('discipline.summons.method')} error={form.errors.method}>
                 <select id="sm-method" className={inputCls} value={form.data.method} onChange={(e) => form.setData('method', e.target.value)}>
                     {['personal', 'family_member', 'posted'].map((m) => <option key={m} value={m}>{t(`discipline.deliveryMethods.${m}`)}</option>)}
                 </select>
             </Field>
-            <Field id="sm-hearing" label={t('discipline.summons.hearingAt')} error={form.errors.hearing_at}><input id="sm-hearing" type="datetime-local" className={inputCls} value={form.data.hearing_at} onChange={(e) => form.setData('hearing_at', e.target.value)} required /></Field>
+            <Field id="sm-hearing" label={t('discipline.summons.hearingAt')} error={form.errors.hearing_at}><LocalizedDateTime id="sm-hearing" value={form.data.hearing_at} onChange={(v) => form.setData('hearing_at', v)} required /></Field>
             <Field id="sm-place" label={t('discipline.summons.hearingLocation')} error={form.errors.hearing_location}><input id="sm-place" className={inputCls} value={form.data.hearing_location} onChange={(e) => form.setData('hearing_location', e.target.value)} required /></Field>
             <p className="text-xs text-gray-500 sm:col-span-2">{t('discipline.summons.noticeHelp')}</p>
             <div className="sm:col-span-2"><button type="submit" className={primaryBtn} disabled={form.processing}>{t('discipline.actions.serveSummons')}</button></div>
@@ -365,7 +396,7 @@ function WitnessForm({ caseId, sides }: { caseId: string; sides: string[] }): JS
             {text('address', t('discipline.witness.address'))}
             {text('occupation', t('discipline.witness.occupation'))}
             {text('relationship_disclosure', t('discipline.witness.relationship'))}
-            <Field id="w-heard" label={t('discipline.witness.heardAt')} error={form.errors.heard_at}><input id="w-heard" type="datetime-local" className={inputCls} value={form.data.heard_at} onChange={(e) => form.setData('heard_at', e.target.value)} required /></Field>
+            <Field id="w-heard" label={t('discipline.witness.heardAt')} error={form.errors.heard_at}><LocalizedDateTime id="w-heard" value={form.data.heard_at} onChange={(v) => form.setData('heard_at', v)} required /></Field>
             <div className="sm:col-span-2"><Field id="w-stmt" label={t('discipline.witness.statement')} error={form.errors.statement}><TextArea id="w-stmt" rows={4} value={form.data.statement} onChange={(v) => form.setData('statement', v)} /></Field></div>
             <div className="sm:col-span-2"><Field id="w-cross" label={t('discipline.witness.crossExamination')}><TextArea id="w-cross" rows={2} value={form.data.cross_examination} onChange={(v) => form.setData('cross_examination', v)} /></Field></div>
             <div className="sm:col-span-2"><Field id="w-q" label={t('discipline.witness.committeeQuestions')}><TextArea id="w-q" rows={2} value={form.data.committee_questions} onChange={(v) => form.setData('committee_questions', v)} /></Field></div>
@@ -388,7 +419,7 @@ function PenaltyFields({ penalties, track, data, setData, errors }: {
             <Field id="penalty" label={t('discipline.recommendation.penalty')} error={errors.penalty}>
                 <select id="penalty" className={inputCls} value={data.penalty} onChange={(e) => setData('penalty', e.target.value)} required>
                     <option value="" disabled>—</option>
-                    {penalties.filter((p) => track === 'formal' || p.severity === 'minor').map((p) => <option key={p.value} value={p.value}>{t(`discipline.penalties.${p.value}`)} ({p.article})</option>)}
+                    {penalties.filter((p) => track === 'formal' || p.severity === 'minor').map((p) => <option key={p.value} value={p.value}>{t(`discipline.penalties.${p.value}`)}</option>)}
                 </select>
             </Field>
             {chosen?.max && (
@@ -503,7 +534,7 @@ function DecisionForm({ caseId, track, penalties, actions }: { caseId: string; t
         <form onSubmit={submit} className="mt-3 grid gap-3 sm:grid-cols-2">
             <Field id="dec-action" label={t('discipline.decision.action')} error={errors.action}>
                 <select id="dec-action" className={inputCls} value={form.data.action} onChange={(e) => form.setData('action', e.target.value)}>
-                    {actions.map((a) => <option key={a} value={a}>{t(`discipline.headActions.${a}`)}</option>)}
+                    {actions.filter((a) => a !== 'refer_to_committee' || track === 'expedited').map((a) => <option key={a} value={a}>{t(`discipline.headActions.${a}`)}</option>)}
                 </select>
             </Field>
             {ownFinding && (
@@ -527,15 +558,156 @@ function DeliveryForm({ caseId }: { caseId: string }): JSX.Element {
 
     return (
         <form onSubmit={(e) => { e.preventDefault(); form.transform((d) => ({ ...d, acknowledged_at: d.acknowledged_at || null })); form.post(go('delivery', caseId), { preserveScroll: true }); }} className="mt-3 grid gap-3 sm:grid-cols-3">
-            <Field id="dl-at" label={t('discipline.decision.deliveredAt')} error={form.errors.delivered_at}><input id="dl-at" type="datetime-local" className={inputCls} value={form.data.delivered_at} onChange={(e) => form.setData('delivered_at', e.target.value)} required /></Field>
+            <Field id="dl-at" label={t('discipline.decision.deliveredAt')} error={form.errors.delivered_at}><LocalizedDateTime id="dl-at" value={form.data.delivered_at} onChange={(v) => form.setData('delivered_at', v)} required /></Field>
             <Field id="dl-method" label={t('discipline.summons.method')} error={form.errors.method}>
                 <select id="dl-method" className={inputCls} value={form.data.method} onChange={(e) => form.setData('method', e.target.value)}>
                     {['personal', 'family_member', 'posted'].map((m) => <option key={m} value={m}>{t(`discipline.deliveryMethods.${m}`)}</option>)}
                 </select>
             </Field>
-            <Field id="dl-ack" label={t('discipline.decision.acknowledgedAt')} error={form.errors.acknowledged_at}><input id="dl-ack" type="datetime-local" className={inputCls} value={form.data.acknowledged_at} onChange={(e) => form.setData('acknowledged_at', e.target.value)} /></Field>
+            <Field id="dl-ack" label={t('discipline.decision.acknowledgedAt')} error={form.errors.acknowledged_at}><LocalizedDateTime id="dl-ack" value={form.data.acknowledged_at} onChange={(v) => form.setData('acknowledged_at', v)} /></Field>
             <p className="text-xs text-gray-500 sm:col-span-3">{t('discipline.decision.appealNote')}</p>
             <div className="sm:col-span-3"><button type="submit" className={primaryBtn} disabled={form.processing}>{t('discipline.actions.deliver')}</button></div>
         </form>
+    );
+}
+
+/**
+ * Regulation 201/2018 Art. 12: the head's suspension order with its written
+ * reason, lifting it, and paying back withheld salary once the case ends.
+ */
+function SuspensionActions({ caseId, can, dueBackPay }: { caseId: string; can: Abilities; dueBackPay: string[] }): JSX.Element | null {
+    const { t } = useLocale();
+    const order = useForm({ starts_on: '', without_pay: false, ends_on: '', reason: '', served_at: '', service_method: 'personal' });
+    const lift = useForm({ lifted_on: '', reason: '' });
+    const backPay = useForm({ suspension_id: dueBackPay[0] ?? '', paid_on: '', note: '' });
+
+    if (!can.suspend && !can.liftSuspension && !can.suspensionBackPay) return null;
+
+    return (
+        <div className="mt-3 space-y-4 text-sm">
+            {can.suspend && (
+                <form onSubmit={(e) => { e.preventDefault(); order.transform((d) => ({ ...d, ends_on: d.ends_on || null })); order.post(go('suspension.store', caseId), { preserveScroll: true }); }} className="grid gap-3">
+                    <Field id="su-start" label={t('discipline.suspension.startsOn')} error={order.errors.starts_on}>
+                        <LocalizedDatePicker id="su-start" value={order.data.starts_on} onChange={(v) => order.setData('starts_on', v)} required />
+                    </Field>
+                    <label className="flex items-center gap-2"><input type="checkbox" checked={order.data.without_pay} onChange={(e) => order.setData('without_pay', e.target.checked)} />{t('discipline.suspension.withoutPay')}</label>
+                    <Field id="su-end" label={t('discipline.suspension.endsOn')} error={order.errors.ends_on}>
+                        <LocalizedDatePicker id="su-end" value={order.data.ends_on} onChange={(v) => order.setData('ends_on', v)} required={order.data.without_pay} />
+                    </Field>
+                    <p className="text-xs text-gray-500">{t('discipline.suspension.limitHelp')}</p>
+                    <Field id="su-reason" label={t('discipline.suspension.reason')} error={order.errors.reason}><TextArea id="su-reason" rows={3} value={order.data.reason} onChange={(v) => order.setData('reason', v)} /></Field>
+                    <Field id="su-served" label={t('discipline.suspension.servedAt')} error={order.errors.served_at}>
+                        <LocalizedDatePicker id="su-served" value={order.data.served_at} onChange={(v) => order.setData('served_at', v)} required />
+                    </Field>
+                    <Field id="su-method" label={t('discipline.summons.method')} error={order.errors.service_method}>
+                        <select id="su-method" className={inputCls} value={order.data.service_method} onChange={(e) => order.setData('service_method', e.target.value)}>
+                            {['personal', 'family_member', 'posted'].map((m) => <option key={m} value={m}>{t(`discipline.deliveryMethods.${m}`)}</option>)}
+                        </select>
+                    </Field>
+                    <div><button type="submit" className={dangerBtn} disabled={order.processing}>{t('discipline.suspension.order')}</button></div>
+                </form>
+            )}
+            {can.liftSuspension && (
+                <form onSubmit={(e) => { e.preventDefault(); lift.post(go('suspension.lift', caseId), { preserveScroll: true }); }} className="grid gap-3">
+                    <Field id="su-lift" label={t('discipline.suspension.liftedOn')} error={lift.errors.lifted_on}>
+                        <LocalizedDatePicker id="su-lift" value={lift.data.lifted_on} onChange={(v) => lift.setData('lifted_on', v)} required />
+                    </Field>
+                    <Field id="su-lift-reason" label={t('discipline.suspension.liftReason')} error={lift.errors.reason}><TextArea id="su-lift-reason" rows={2} value={lift.data.reason} onChange={(v) => lift.setData('reason', v)} /></Field>
+                    <div><button type="submit" className={secondaryBtn} disabled={lift.processing}>{t('discipline.suspension.lift')}</button></div>
+                </form>
+            )}
+            {can.suspensionBackPay && (
+                <form onSubmit={(e) => { e.preventDefault(); backPay.post(go('suspension.back-pay', caseId), { preserveScroll: true }); }} className="grid gap-3">
+                    <p className="text-xs text-gray-500">{t('discipline.suspension.backPayHelp')}</p>
+                    <Field id="su-paid" label={t('discipline.suspension.paidOn')} error={backPay.errors.paid_on ?? backPay.errors.suspension_id}>
+                        <LocalizedDatePicker id="su-paid" value={backPay.data.paid_on} onChange={(v) => backPay.setData('paid_on', v)} required />
+                    </Field>
+                    <Field id="su-paid-note" label={t('discipline.suspension.paidNote')} error={backPay.errors.note}><TextArea id="su-paid-note" rows={2} value={backPay.data.note} onChange={(v) => backPay.setData('note', v)} /></Field>
+                    <div><button type="submit" className={primaryBtn} disabled={backPay.processing}>{t('discipline.suspension.recordBackPay')}</button></div>
+                </form>
+            )}
+        </div>
+    );
+}
+
+/**
+ * The institution's side of an appeal to the Administrative Court (Regulation
+ * 201/2018 Part Five): the employee's notice (Art. 37(1)), the certified record
+ * copy (Art. 37(2)), the filing, the court's outcome and its implementation
+ * (Arts. 53, 54). Dates use the calendar of the interface language.
+ */
+function AppealActions({ caseId, can }: { caseId: string; can: Abilities }): JSX.Element | null {
+    const { t } = useLocale();
+    const notice = useForm({ notice_received_at: '', record_copy_requested: false });
+    const copy = useForm({ delivered_at: '' });
+    const filing = useForm({ filed_on: '', court_case_number: '' });
+    const outcome = useForm({ outcome: 'upheld', decided_on: '', received_at: '', summary: '' });
+    const implemented = useForm({ implemented_at: '', note: '' });
+
+    if (!can.appealNotice && !can.appealRecordCopy && !can.appealFiling && !can.appealOutcome && !can.appealImplemented) return null;
+
+    return (
+        <div className="mt-4 space-y-4 rounded-control border border-gray-200 p-3 text-sm dark:border-slate-700">
+            <p className="font-semibold">{t('discipline.appeal.title')}</p>
+            {can.appealNotice && (
+                <form onSubmit={(e) => { e.preventDefault(); notice.post(go('appeal.notice', caseId), { preserveScroll: true }); }} className="grid gap-3 sm:grid-cols-2">
+                    <Field id="ap-notice" label={t('discipline.appeal.noticeReceivedAt')} error={notice.errors.notice_received_at}>
+                        <LocalizedDatePicker id="ap-notice" value={notice.data.notice_received_at} onChange={(v) => notice.setData('notice_received_at', v)} required />
+                    </Field>
+                    <label className="flex items-center gap-2 self-end text-sm">
+                        <input type="checkbox" checked={notice.data.record_copy_requested} onChange={(e) => notice.setData('record_copy_requested', e.target.checked)} />
+                        {t('discipline.appeal.recordCopyRequested')}
+                    </label>
+                    <p className="text-xs text-gray-500 sm:col-span-2">{t('discipline.appeal.noticeHelp')}</p>
+                    <div className="sm:col-span-2"><button type="submit" className={primaryBtn} disabled={notice.processing}>{t('discipline.appeal.recordNotice')}</button></div>
+                </form>
+            )}
+            {can.appealRecordCopy && (
+                <form onSubmit={(e) => { e.preventDefault(); copy.post(go('appeal.record-copy', caseId), { preserveScroll: true }); }} className="grid gap-3 sm:grid-cols-2">
+                    <Field id="ap-copy" label={t('discipline.appeal.recordCopyDeliveredAt')} error={copy.errors.delivered_at}>
+                        <LocalizedDatePicker id="ap-copy" value={copy.data.delivered_at} onChange={(v) => copy.setData('delivered_at', v)} required />
+                    </Field>
+                    <div className="self-end"><button type="submit" className={secondaryBtn} disabled={copy.processing}>{t('discipline.appeal.recordCopyGiven')}</button></div>
+                </form>
+            )}
+            {can.appealFiling && (
+                <form onSubmit={(e) => { e.preventDefault(); filing.post(go('appeal.filing', caseId), { preserveScroll: true }); }} className="grid gap-3 sm:grid-cols-3">
+                    <Field id="ap-filed" label={t('discipline.appeal.filedOn')} error={filing.errors.filed_on}>
+                        <LocalizedDatePicker id="ap-filed" value={filing.data.filed_on} onChange={(v) => filing.setData('filed_on', v)} required />
+                    </Field>
+                    <Field id="ap-number" label={t('discipline.appeal.courtCaseNumber')} error={filing.errors.court_case_number}>
+                        <input id="ap-number" className={inputCls} maxLength={100} value={filing.data.court_case_number} onChange={(e) => filing.setData('court_case_number', e.target.value)} />
+                    </Field>
+                    <div className="self-end"><button type="submit" className={secondaryBtn} disabled={filing.processing}>{t('discipline.appeal.recordFiling')}</button></div>
+                </form>
+            )}
+            {can.appealOutcome && (
+                <form onSubmit={(e) => { e.preventDefault(); outcome.post(go('appeal.outcome', caseId), { preserveScroll: true }); }} className="grid gap-3 sm:grid-cols-3">
+                    <Field id="ap-outcome" label={t('discipline.appeal.outcome')} error={outcome.errors.outcome}>
+                        <select id="ap-outcome" className={inputCls} value={outcome.data.outcome} onChange={(e) => outcome.setData('outcome', e.target.value)}>
+                            {['upheld', 'modified', 'reversed', 'remanded', 'withdrawn'].map((o) => <option key={o} value={o}>{t(`discipline.appeal.outcomes.${o}`)}</option>)}
+                        </select>
+                    </Field>
+                    <Field id="ap-decided" label={t('discipline.appeal.decidedOn')} error={outcome.errors.decided_on}>
+                        <LocalizedDatePicker id="ap-decided" value={outcome.data.decided_on} onChange={(v) => outcome.setData('decided_on', v)} required />
+                    </Field>
+                    <Field id="ap-received" label={t('discipline.appeal.receivedAt')} error={outcome.errors.received_at}>
+                        <LocalizedDatePicker id="ap-received" value={outcome.data.received_at} onChange={(v) => outcome.setData('received_at', v)} required />
+                    </Field>
+                    <div className="sm:col-span-3"><Field id="ap-summary" label={t('discipline.appeal.summary')} error={outcome.errors.summary}><TextArea id="ap-summary" rows={3} value={outcome.data.summary} onChange={(v) => outcome.setData('summary', v)} /></Field></div>
+                    <p className="text-xs text-gray-500 sm:col-span-3">{t('discipline.appeal.outcomeHelp')}</p>
+                    <div className="sm:col-span-3"><button type="submit" className={primaryBtn} disabled={outcome.processing}>{t('discipline.appeal.recordOutcome')}</button></div>
+                </form>
+            )}
+            {can.appealImplemented && (
+                <form onSubmit={(e) => { e.preventDefault(); implemented.post(go('appeal.implemented', caseId), { preserveScroll: true }); }} className="grid gap-3 sm:grid-cols-2">
+                    <Field id="ap-impl" label={t('discipline.appeal.implementedAt')} error={implemented.errors.implemented_at}>
+                        <LocalizedDatePicker id="ap-impl" value={implemented.data.implemented_at} onChange={(v) => implemented.setData('implemented_at', v)} required />
+                    </Field>
+                    <div className="sm:col-span-2"><Field id="ap-impl-note" label={t('discipline.appeal.implementationNote')} error={implemented.errors.note}><TextArea id="ap-impl-note" rows={2} value={implemented.data.note} onChange={(v) => implemented.setData('note', v)} /></Field></div>
+                    <div className="sm:col-span-2"><button type="submit" className={primaryBtn} disabled={implemented.processing}>{t('discipline.appeal.recordImplemented')}</button></div>
+                </form>
+            )}
+        </div>
     );
 }

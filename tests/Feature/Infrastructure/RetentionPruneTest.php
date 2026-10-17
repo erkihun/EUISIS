@@ -67,6 +67,7 @@ it('keeps audit rows of a grievance until the case is archived and off legal hol
     $this->actingAs($s->complainant)->post(route('employee.grievances.store'), [
         'subject' => 'Overtime not paid', 'description' => 'Narrative.', 'category_id' => $s->category->id, 'submit' => true,
         'files' => [UploadedFile::fake()->create('proof.pdf', 20, 'application/pdf')], 'file_types' => ['document'],
+        ...GrievanceScenario::application(),
     ])->assertRedirect();
     $grievance = Grievance::query()->latest('created_at')->firstOrFail();
     $row = retentionAudit('-1000 days', Grievance::class, $grievance->id);

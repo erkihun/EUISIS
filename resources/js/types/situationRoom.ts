@@ -56,7 +56,7 @@ interface SrPanelBase {
 
 export type SrPanel =
     | (SrPanelBase & { type: 'kpis'; reason: null; data: { items: SrKpiItem[] } })
-    | (SrPanelBase & { type: SrChartType; reason: null; data: { categories: SrLabel[]; series: SrSeries[]; unit: string | null } })
+    | (SrPanelBase & { type: SrChartType; reason: null; data: { categories: SrLabel[]; series: SrSeries[]; unit: string | null; palette?: 'diverging' } })
     | (SrPanelBase & { type: 'table'; reason: null; data: { columns: SrColumn[]; rows: Array<Record<string, unknown>>; pagination: SrPagination | null } })
     | (SrPanelBase & { type: 'notice'; reason: SrReason; data: Record<string, never> });
 

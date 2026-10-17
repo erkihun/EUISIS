@@ -35,6 +35,9 @@ Schedule::command('backup:health --monitor')->everyFiveMinutes()->withoutOverlap
 // withoutOverlapping/onOneServer just avoid wasted work.
 Schedule::command('grievances:process-sla')->everyFifteenMinutes()->withoutOverlapping()->onOneServer();
 
+// Regulation 201/2018 deadlines the institution owes: due-soon and overdue alerts, once each.
+Schedule::command('legal:statutory-deadline-alerts')->dailyAt('06:45')->withoutOverlapping()->onOneServer();
+
 // Assessment oversight: outdated submissions and deadline reminders (docs/assessment-oversight.md).
 Schedule::command('assessments:oversight-monitor')->dailyAt('06:30')->withoutOverlapping()->onOneServer();
 

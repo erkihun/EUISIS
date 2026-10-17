@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\CodeRuleResetFrequency;
 use App\Models\CodeRule;
+use App\Models\GrievanceCategory;
 use App\Models\GrievanceLetterTemplate;
 use App\Models\GrievanceReasonCode;
 use App\Models\GrievanceSlaProfile;
@@ -25,8 +26,10 @@ class GrievanceDefaultsSeeder extends Seeder
     public function run(): void
     {
         $this->codeRules();
+        $this->categories();
         $this->reasonCodes();
         $this->slaProfiles();
+        $this->statutorySlaProfile();
         $this->letterTemplates();
     }
 
@@ -60,6 +63,34 @@ class GrievanceDefaultsSeeder extends Seeder
                 'is_active' => true,
                 'allow_manual_override' => false,
                 'require_approval_for_override' => true,
+            ]);
+        }
+    }
+
+    /**
+     * The matters a grievance committee hears — Regulation 201/2018 Art. 31.
+     * Keyed by code: an institution may rename or deactivate them, and a re-run
+     * never overwrites that.
+     */
+    private function categories(): void
+    {
+        $categories = [
+            ['LAW_INTERPRETATION', 'Interpretation or application of laws and directives', 'ከሕጎችና መመሪያዎች አተረጓጎም ወይም አፈፃፀም'],
+            ['RIGHTS_BENEFITS', 'Protection of rights and benefits', 'ከመብቶችና ጥቅሞች አጠባበቅ'],
+            ['WORK_SAFETY', 'Workplace health and safety', 'ከሥራ አካባቢ ጤንነትና ደህንነት ሁኔታዎች'],
+            ['PLACEMENT_GRADING', 'Job placement and grading', 'ከሥራ ምደባና ደረጃ አሰጣጥ'],
+            ['PERFORMANCE_EVALUATION', 'Work performance and evaluation', 'ከሥራ አፈፃፀምና ምዘና'],
+            ['SUPERVISOR_INFLUENCE', 'Undue influence by a supervisor', 'በሥራ ኃላፊ ከሚፈፀም ተገቢ ያልሆኑ ተፅዕኖዎች'],
+            ['MINOR_DISCIPLINARY_MEASURE', 'Minor disciplinary measures', 'ቀላል የዲሲፕሊን እርምጃዎች'],
+            ['WORKING_CONDITIONS', 'Other matters concerning working conditions', 'የሥራ ሁኔታዎችን ከሚመለከቱ ሌሎች ጉዳዮች'],
+        ];
+
+        foreach ($categories as $i => [$code, $en, $am]) {
+            GrievanceCategory::query()->firstOrCreate(['code' => $code], [
+                'name_en' => $en,
+                'name_am' => $am,
+                'is_active' => true,
+                'sort_order' => ($i + 1) * 10,
             ]);
         }
     }
@@ -132,6 +163,38 @@ class GrievanceDefaultsSeeder extends Seeder
             'auto_escalate' => true,
             'priority' => 1000,
             'effective_from' => '2026-01-01',
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Regulation 201/2018 Art. 34(3): the committee reports to the head within
+     * 15 consecutive working days of the filing. Ranked ahead of the 3-day
+     * baseline above (lower priority number wins), which stays for an
+     * institution that confirmed it. It never auto-escalates: moving a case
+     * away from the committee on a timer would bypass the body the regulation
+     * names. The statutory deadline itself is tracked separately
+     * (StatutoryDeadlineService) and does not depend on this profile.
+     */
+    private function statutorySlaProfile(): void
+    {
+        $name = 'Committee report (15 working days)';
+        if (GrievanceSlaProfile::query()->where('name_en', $name)->exists()) {
+            return;
+        }
+
+        GrievanceSlaProfile::query()->create([
+            'name_en' => $name,
+            'name_am' => 'የኮሚቴ ሪፖርት (15 የሥራ ቀናት)',
+            'purpose' => 'resolution',
+            'handler_type' => 'committee',
+            'resolution_days' => 15,
+            'day_type' => 'working_days',
+            'start_point' => 'on_receipt',
+            'warning_thresholds' => ['percent' => [50, 80], 'days_remaining' => [3, 1], 'due_today' => true],
+            'auto_escalate' => false,
+            'priority' => 900,
+            'effective_from' => '2026-01-16',
             'is_active' => true,
         ]);
     }

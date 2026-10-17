@@ -87,6 +87,11 @@ class Grievance extends Model
         'late_reviewed_by',
         'late_reviewed_at',
         'late_decision_reason',
+        'written_issue_raised_at',
+        'immediate_supervisor_name',
+        'requested_remedy',
+        'applicant_address',
+        'applicant_declared_at',
         'respondent_type',
         'respondent_employee_id',
         'respondent_organization_unit_id',
@@ -129,6 +134,8 @@ class Grievance extends Model
             'cause_started_at' => 'datetime',
             'cause_ended_at' => 'datetime',
             'late_reviewed_at' => 'datetime',
+            'written_issue_raised_at' => 'datetime',
+            'applicant_declared_at' => 'datetime',
             'metadata' => 'array',
         ];
     }

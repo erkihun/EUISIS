@@ -113,6 +113,32 @@ class DisciplinaryCase extends Model
         return $this->hasMany(DisciplinaryDecision::class, 'case_id')->orderBy('decided_at');
     }
 
+    /** Appeals to the Administrative Court against the case's delivered decisions (Part Five). */
+    public function appeals(): HasMany
+    {
+        return $this->hasMany(DisciplinaryAppeal::class, 'case_id');
+    }
+
+    public function suspensions(): HasMany
+    {
+        return $this->hasMany(DisciplinarySuspension::class, 'case_id');
+    }
+
+    /** The suspension in force today (Art. 12), if any. */
+    public function suspensionInForce(): ?DisciplinarySuspension
+    {
+        return $this->suspensions()->whereNull('lifted_on')->latest('starts_on')->get()
+            ->first(fn (DisciplinarySuspension $s) => $s->isInForce());
+    }
+
+    /** The appeal of the current decision, if one was noticed. */
+    public function currentAppeal(): ?DisciplinaryAppeal
+    {
+        $decision = $this->currentDecision();
+
+        return $decision === null ? null : $this->appeals()->where('decision_id', $decision->getKey())->first();
+    }
+
     public function history(): HasMany
     {
         return $this->hasMany(DisciplinaryStatusHistory::class, 'case_id')->orderBy('created_at');

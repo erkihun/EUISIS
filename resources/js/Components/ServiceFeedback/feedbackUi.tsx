@@ -24,7 +24,24 @@ export type FeedbackSummary = {
     position?: NamePair;
     service_no?: string | null;
     service_type: NamePair;
+    /** The service as recorded at submission (position service, catalog service, or the visitor's words). */
+    service_name?: string | null;
+    target_type?: 'employee' | 'organization';
+    /** An institution target's name and code; null for an employee target. */
+    target_organization?: { en: string | null; am: string | null; code: string | null } | null;
+    category?: NamePair;
+    identity_mode?: 'anonymous' | 'identified' | 'optional' | null;
 };
+
+/**
+ * What to print for the submitter on a staff screen. "Identity hidden" when
+ * the viewer lacks the identity grant, so a named submitter is never shown as
+ * anonymous; "Anonymous" only when nothing was given.
+ */
+export function submitterKey(row: Pick<FeedbackSummary, 'identity_hidden' | 'client_name'>): string | null {
+    if (row.identity_hidden) return 'serviceFeedback.identityHidden';
+    return row.client_name ? null : 'serviceFeedback.anonymousClient';
+}
 
 export const MAX_RATING = 5;
 

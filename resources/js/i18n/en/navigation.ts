@@ -108,8 +108,10 @@ const navigation = {
     cafeteriaSettingsReports: 'Report Settings',
     groupServiceFeedback: 'Service Feedback',
     serviceFeedbackDashboard: 'Feedback Dashboard',
+    serviceAllSubmissions: 'All Submissions',
+    serviceUnrouted: 'Unrouted',
     serviceFeedbackList: 'Client Feedback',
-    serviceSuggestions: 'Suggestions',
+    serviceSuggestions: 'Tip-offs',
     serviceComplaints: 'Complaints',
     serviceFeedbackReports: 'Feedback Reports',
     groupPublicFeedback: 'Public Feedback Management',
@@ -123,6 +125,7 @@ const navigation = {
     serviceFeedbackRoutingRules: 'Routing Rules',
     organizationFeedbackQrCodes: 'Organization QR Codes',
     serviceSubmissionReports: 'Submission Reports',
+    serviceFeedbackQuestionnaire: 'Feedback Questionnaire',
     serviceFeedbackSettings: 'Settings',
     positionServices: 'Position Services',
     employeeFeedbackQr: 'Employee Feedback QR',
@@ -225,6 +228,16 @@ const navigation = {
     commandMenu: 'Command menu',
     typeCommandOrSearch: 'Type a command or search…',
     noResults: 'No results found',
+    // Sidebar pages that had no menu entry.
+    myAssessments: 'My Assessments',
+    assignedAssessments: 'My Assigned Assessments',
+    assessmentReviews: 'Assessments Pending Review',
+    vacancyApplications: 'Vacancy Applications',
+    printBatches: 'Print Batches',
+    idCardTemplates: 'ID Card Templates',
+    nfcCredentials: 'NFC Credentials',
+    cafeteriaSpecialDays: 'Special Days',
+    cafeteriaEmployeeExclusions: 'Employee Leave / Exclusions',
 } as const;
 
 export default navigation;
