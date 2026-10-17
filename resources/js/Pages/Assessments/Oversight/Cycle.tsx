@@ -5,9 +5,12 @@ import { CycleForm, type CycleData, type Option } from '@/Components/assessmentO
 import { named, oversightHref, type Cycle as ShellCycle } from '@/Components/assessmentOversight/shell';
 import { Section, Table, dangerLinkBtn, filterInputCls, pageCls, primaryBtn, secondaryBtn, smallBtn, smallPrimaryBtn, tdCls, thCls } from '@/Components/performance/ui';
 import { useConfirm } from '@/Components/ConfirmProvider';
+import { badgeClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
+import { formatDateDisplay } from '@/lib/calendar/dateFormat';
+import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Participant = { id: string; organization_id: string; status: string; submission_status: string; exclusion_reason: string | null; organization: Option | null };
 
@@ -27,12 +30,39 @@ type Props = {
 export default function OversightCycle({ cycle, participants, organizations, eligibility, pending, policies, types, employeeStatuses, search }: Props) {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
+    const calendar = useCalendarSystem();
     const [picked, setPicked] = useState<string[]>([]);
     const finalized = cycle.eligibility_status === 'finalized';
-    const post = (name: string, data: Record<string, string> = {}) => router.post(route(name, cycle.id), data, { preserveScroll: true });
+    const post = (name: string, data: Record<string, string> = {}, onSuccess?: () => void) => router.post(route(name, cycle.id), data, { preserveScroll: true, onSuccess });
+    const date = (iso: string | null) => formatDateDisplay(iso, calendar, locale) || iso || '—';
+
+    // The snapshot is built by a queued job: until the cycle shows a newer snapshot, say so and refresh the figures.
+    const [buildingSince, setBuildingSince] = useState<string | null | undefined>(undefined);
+    const building = buildingSince !== undefined && cycle.eligibility_snapshot_at === buildingSince;
+    useEffect(() => {
+        if (!building) return;
+        let tries = 0;
+        const timer = window.setInterval(() => {
+            tries += 1;
+            if (tries > 40) { window.clearInterval(timer); setBuildingSince(undefined); return; }
+            router.reload({ only: ['cycle', 'eligibility', 'pending'] });
+        }, 3000);
+        return () => window.clearInterval(timer);
+    }, [building]);
+
+    const finalize = async () => {
+        const empty = eligibility.eligible === 0;
+        const { confirmed } = await confirm({
+            title: t('assessmentOversight.cycleActions.finalizeTitle'),
+            description: empty ? t('assessmentOversight.cycleActions.finalizeEmpty') : t('assessmentOversight.cycleActions.finalizeConfirm').replace(':count', String(eligibility.eligible)),
+            confirmLabel: t('assessmentOversight.cycleActions.finalize'),
+            variant: empty ? 'danger' : 'warning',
+        });
+        if (confirmed) post('assessment-oversight.cycles.eligibility.finalize');
+    };
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={named(cycle, locale)} description={`${cycle.code} · ${cycle.period_start} – ${cycle.period_end} · ${t(`assessmentOversight.cycleStatuses.${cycle.status}`)}`}
+        <AuthenticatedLayout header={<PageHeader title={named(cycle, locale)} description={`${cycle.code} · ${date(cycle.period_start)} – ${date(cycle.period_end)} · ${t(`assessmentOversight.cycleStatuses.${cycle.status}`)}`}
             actions={<div className="flex gap-2">
                 <Link href={oversightHref('assessment-oversight.dashboard', { id: cycle.id } as ShellCycle)} className={secondaryBtn}>{t('assessmentOversight.nav.dashboard')}</Link>
                 <Link href={route('assessment-oversight.setup')} className={secondaryBtn}>{t('assessmentOversight.nav.setup')}</Link>
@@ -50,18 +80,23 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                         <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.eligible')}</span> <b className="tabular-nums">{eligibility.eligible}</b></div>
                         <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.excluded')}</span> <b className="tabular-nums">{eligibility.excluded}</b></div>
                         <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.snapshotAt')}</span> {cycle.eligibility_snapshot_at ? <LocalizedDateDisplay value={cycle.eligibility_snapshot_at} withTime /> : '—'}</div>
-                        <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.eligibility')}</span> {t(`assessmentOversight.eligibilityStatuses.${cycle.eligibility_status}`)}</div>
+                        <span className={badgeClassName(finalized ? 'success' : 'neutral')}>{t(`assessmentOversight.eligibilityStatuses.${cycle.eligibility_status}`)}</span>
                         {pending > 0 && <div className="text-amber-700">{t('assessmentOversight.pendingExclusions')}: {pending}</div>}
                     </div>
                     {eligibility.by_reason.length > 0 && (
                         <ul className="mt-3 text-sm">{eligibility.by_reason.map((r) => <li key={r.code} className="flex max-w-md justify-between py-0.5"><span>{named(r, locale)}</span><span className="tabular-nums">{r.n}</span></li>)}</ul>
                     )}
                     {!finalized && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            <button type="button" className={smallPrimaryBtn} onClick={() => post('assessment-oversight.cycles.eligibility.snapshot')}>{cycle.eligibility_snapshot_at ? t('assessmentOversight.cycleActions.resnapshot') : t('assessmentOversight.cycleActions.snapshot')}</button>
-                            {cycle.eligibility_snapshot_at && (
-                                <button type="button" className={smallBtn} onClick={async () => { if ((await confirm({ title: t('assessmentOversight.cycleActions.finalizeConfirm') })).confirmed) post('assessment-oversight.cycles.eligibility.finalize'); }}>{t('assessmentOversight.cycleActions.finalize')}</button>
+                        <div className="mt-4 flex flex-wrap items-center gap-2">
+                            <button type="button" className={smallPrimaryBtn} disabled={building || participants.length === 0}
+                                onClick={() => post('assessment-oversight.cycles.eligibility.snapshot', {}, () => setBuildingSince(cycle.eligibility_snapshot_at))}>
+                                {cycle.eligibility_snapshot_at ? t('assessmentOversight.cycleActions.resnapshot') : t('assessmentOversight.cycleActions.snapshot')}
+                            </button>
+                            {cycle.eligibility_snapshot_at && !building && (
+                                <button type="button" className={smallBtn} onClick={() => void finalize()}>{t('assessmentOversight.cycleActions.finalize')}</button>
                             )}
+                            {building && <span role="status" className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.cycleActions.snapshotBuilding')}</span>}
+                            {!building && participants.length === 0 && <span className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.cycleActions.snapshotNeedsInstitutions')}</span>}
                         </div>
                     )}
                 </Section>
@@ -73,6 +108,9 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                         <th className={thCls}>{t('assessmentOversight.submissionStatus')}</th>
                         <th className={thCls}><span className="sr-only">{t('assessmentOversight.actionsLabel')}</span></th>
                     </>}>
+                        {participants.length === 0 && (
+                            <tr><td colSpan={4} className={`${tdCls} text-[color:var(--app-muted-foreground)]`}>{t('assessmentOversight.noParticipants')}</td></tr>
+                        )}
                         {participants.map((p) => (
                             <tr key={p.id}>
                                 <td className={tdCls}>{named(p.organization, locale)} <span className="text-xs text-[color:var(--app-muted-foreground)]">{p.organization?.code}</span></td>

@@ -100,7 +100,7 @@ function Policies({ policies }: { policies: Policy[] }) {
                         <>
                             <ul className="text-sm">
                                 {p.bands.length === 0 && <li className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.setup.noBands')}</li>}
-                                {p.bands.map((b) => <li key={b.code} className="flex justify-between border-b border-[color:var(--app-border)] py-1"><span>{(locale === 'am' && b.label_am) || b.label_en}</span><span className="tabular-nums text-[color:var(--app-muted-foreground)]">{b.min_inclusive ? '[' : '('}{Number(b.min_score)} – {Number(b.max_score)}{b.max_inclusive ? ']' : ')'}</span></li>)}
+                                {p.bands.map((b) => <li key={b.code} className="flex justify-between border-b border-[color:var(--app-border)] py-1"><span>{(locale === 'am' && b.label_am) || b.label_en}</span><span className="tabular-nums text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.setup.range.${b.min_inclusive ? 'from' : 'over'}_${b.max_inclusive ? 'to' : 'under'}`).replace(':min', String(Number(b.min_score))).replace(':max', String(Number(b.max_score)))}</span></li>)}
                             </ul>
                             {p.problems.length > 0 && <ul className="mt-2 list-disc ps-5 text-sm text-red-700">{p.problems.map((x) => <li key={x}>{x}</li>)}</ul>}
                         </>

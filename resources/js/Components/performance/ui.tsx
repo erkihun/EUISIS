@@ -3,9 +3,9 @@ import { Inbox } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
 import ListPagination from '@/Components/ui/ListPagination';
-import type { ReactNode } from 'react';
+import { cloneElement, isValidElement, useId, type ReactNode } from 'react';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, textareaClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 export { fill } from '@/Components/dailyActivity/helpers';
 export { AppFilterBar, FilterField, filterInputCls } from '@/Components/ui';
 
@@ -19,6 +19,8 @@ export { AppFilterBar, FilterField, filterInputCls } from '@/Components/ui';
 // ── Controls ──────────────────────────────────────────────────────────────────
 
 export const inputCls = cx(inputClassName, 'w-full');
+/** Multi-line control: `inputCls` has a fixed control height, which would cut a textarea down to one line. */
+export const textareaCls = cx(textareaClassName, 'w-full');
 export const compactInputCls = inputClassName;
 export const labelCls = 'mb-1 block text-sm font-medium text-[color:var(--app-foreground)]';
 
@@ -150,11 +152,21 @@ export function FieldError({ message }: { message?: string }) {
     return message ? <p className="mt-1 text-xs text-red-600 dark:text-red-400">{message}</p> : null;
 }
 
+const LABELLABLE = new Set(['input', 'select', 'textarea']);
+
+/**
+ * Label + control. With one native input/select/textarea as the child and no
+ * `htmlFor`, the control gets a generated id so the label is announced by
+ * screen readers and clicking it focuses the control.
+ */
 export function Field({ label, htmlFor, error, help, children, className = '' }: { label: string; htmlFor?: string; error?: string; help?: string; children: ReactNode; className?: string }) {
+    const autoId = useId();
+    const single = !htmlFor && isValidElement<{ id?: string }>(children) && typeof children.type === 'string' && LABELLABLE.has(children.type) ? children : null;
+    const controlId = htmlFor ?? (single ? (single.props.id ?? autoId) : undefined);
     return (
         <div className={className}>
-            <label htmlFor={htmlFor} className={labelCls}>{label}</label>
-            {children}
+            <label htmlFor={controlId} className={labelCls}>{label}</label>
+            {single && !single.props.id ? cloneElement(single, { id: controlId }) : children}
             {help && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{help}</p>}
             <FieldError message={error} />
         </div>

@@ -225,6 +225,8 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 items: [
                     { routeName: 'employee.performance.index', labelKey: 'nav.myPerformance', icon: TrendingUpIcon, permission: 'employee_performance_agreements.view_own' },
                     { routeName: 'employee.assessments.index', labelKey: 'nav.myAssessments', icon: MedalStarIcon, permission: 'assessments.view_own_result' },
+                    // Peer evaluators are ordinary staff: without this link they could reach their rating tasks only from a notification.
+                    { routeName: 'assessment-workspace.index', labelKey: 'nav.assignedAssessments', icon: PenNewRoundIcon, permission: 'assessments.view_assigned', listedInAdmin: true },
                 ],
             },
         ],
