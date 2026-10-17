@@ -1,17 +1,20 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
-import { AdminForm, choices, handlerFields, today, type AdminField } from '@/Components/grievances/AdminForm';
-import { GPill, HandlerName, Table, fmt, inputCls, nameOf, primaryBtn, secondaryBtn, tdCls, thCls, useEnumLabel } from '@/Components/grievances/ui';
-import { AlertTriangle, CheckCircle, Plus, ShieldCheck, TagsIcon, X, XCircle } from '@/Components/Icons';
+import { AdminForm, FormHostContext, Switch, choices, handlerFields, today, type AdminField, type Choice } from '@/Components/grievances/AdminForm';
+import { GPill, HandlerName, Table, fmt, inputCls, nameOf, primaryBtn, secondaryBtn, tdCls, textareaCls, thCls, useEnumLabel } from '@/Components/grievances/ui';
+import { AlertTriangle, CheckCircle, Plus, SearchIcon, ShieldCheck, TagsIcon, X, XCircle } from '@/Components/Icons';
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { SettingField, SettingsIndexProps } from '@/types/grievances';
 
 import { actionLinkClassName, badgeClassName, tableRowClassName } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { useConfirm } from '@/hooks/useConfirm';
+import { useCan } from '@/hooks/useCan';
+import type { PageProps } from '@/types';
 /*
  * Grievance Management → Settings (design: Claude Design canvas
  * "Grievance Settings redesign"). Readiness checklist, grouped section nav
@@ -55,10 +58,12 @@ export default function Index(props: SettingsIndexProps) {
     const activeCategories = props.categories.filter(c => c.is_active).length;
     const activeRules = props.approvalRules.filter(r => r.is_active && r.requires_approval).length;
     const activeSeals = props.seals.filter(s => s.status === 'active').length;
+    const activeTemplates = props.templates.filter(x => x.is_active).length;
+    const activeReasonCodes = props.reasonCodes.filter(c => c.is_active).length;
     const counts: Record<SectionId, number | null> = {
-        policy: null, categories: activeCategories, reason_codes: props.reasonCodes.length, approval_rules: activeRules,
-        external_authorities: props.externalAuthorities.length, delegations: props.delegations.filter(d => d.status === 'active').length,
-        templates: props.templates.length, letterheads: props.letterheads.length, seals: activeSeals,
+        policy: null, categories: activeCategories, reason_codes: activeReasonCodes, approval_rules: activeRules,
+        external_authorities: props.externalAuthorities.length, delegations: props.delegations.filter(d => delegationState(d) === 'active').length,
+        templates: activeTemplates, letterheads: props.letterheads.length, seals: activeSeals,
     };
     /** error = blocks employees; warning = a feature is unavailable until configured. */
     const severity: Partial<Record<SectionId, 'error' | 'warning'>> = {
@@ -66,6 +71,8 @@ export default function Index(props: SettingsIndexProps) {
         ...(activeRules === 0 ? { approval_rules: 'warning' as const } : {}),
         ...(activeSeals === 0 ? { seals: 'warning' as const } : {}),
         ...(props.letterheads.length === 0 ? { letterheads: 'warning' as const } : {}),
+        ...(activeTemplates === 0 ? { templates: 'warning' as const } : {}),
+        ...(activeReasonCodes === 0 ? { reason_codes: 'warning' as const } : {}),
     };
 
     return (
@@ -127,10 +134,14 @@ export default function Index(props: SettingsIndexProps) {
             { id: 'approval_rules', ok: !sev.approval_rules, sev: sev.approval_rules, title: sev.approval_rules ? a('ready_rules_missing') : fmt(a('ready_rules_ok'), { n: n.approval_rules ?? 0 }), body: sev.approval_rules ? a('ready_rules_help') : a('ready_rules_ok_help') },
             { id: 'letterheads', ok: !sev.letterheads, sev: sev.letterheads, title: sev.letterheads ? a('ready_letterheads_missing') : fmt(a('ready_letterheads_ok'), { n: n.letterheads ?? 0 }), body: sev.letterheads ? a('ready_letterheads_help') : a('ready_letterheads_ok_help') },
             { id: 'seals', ok: !sev.seals, sev: sev.seals, title: sev.seals ? a('ready_seals_missing') : fmt(a('ready_seals_ok'), { n: n.seals ?? 0 }), body: sev.seals ? a('ready_seals_help') : a('ready_seals_ok_help') },
+            { id: 'templates', ok: !sev.templates, sev: sev.templates, title: sev.templates ? a('ready_templates_missing') : fmt(a('ready_templates_ok'), { n: n.templates ?? 0 }), body: sev.templates ? a('ready_templates_help') : a('ready_templates_ok_help') },
+            { id: 'reason_codes', ok: !sev.reason_codes, sev: sev.reason_codes, title: sev.reason_codes ? a('ready_reason_codes_missing') : fmt(a('ready_reason_codes_ok'), { n: n.reason_codes ?? 0 }), body: sev.reason_codes ? a('ready_reason_codes_help') : a('ready_reason_codes_ok_help') },
         ];
-        const ready = items.filter(i => i.ok).length + (p.templates.length ? 1 : 0) + (p.reasonCodes.length ? 1 : 0);
-        const total = items.length + 2;
+        // The count and the bar cover every item; the cards list only what still needs setup.
+        const ready = items.filter(i => i.ok).length;
+        const total = items.length;
         if (ready === total) return null;
+        const pending = items.filter(i => !i.ok);
         return (
             <section aria-labelledby="readiness" className="space-y-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                 <div className="flex items-baseline justify-between gap-3">
@@ -141,7 +152,7 @@ export default function Index(props: SettingsIndexProps) {
                     <div className="h-full bg-[color:var(--color-primary)]" style={{ width: `${(100 * ready) / total}%` }} />
                 </div>
                 <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-                    {items.map(item => {
+                    {pending.map(item => {
                         const tone = item.ok ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/20'
                             : item.sev === 'error' ? 'border-red-200 bg-red-50 dark:border-red-900/60 dark:bg-red-950/20' : 'border-amber-200 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/20';
                         const Icon = item.ok ? CheckCircle : item.sev === 'error' ? XCircle : AlertTriangle;
@@ -149,7 +160,7 @@ export default function Index(props: SettingsIndexProps) {
                         return (
                             <button key={item.id} type="button" onClick={() => open(item.id)} className={`flex items-start gap-2.5 rounded-card border p-3 text-left ${tone}`}>
                                 <Icon className={`mt-0.5 h-[18px] w-[18px] shrink-0 ${iconTone}`} aria-hidden="true" />
-                                <span className="min-w-0"><span className="block text-[13px] font-semibold text-[color:var(--app-foreground)]">{item.title}</span><span className="block text-xs text-[color:var(--app-foreground)]">{item.body}</span></span>
+                                <span className="min-w-0"><span className="block text-[13px] font-semibold text-[color:var(--app-foreground)]">{item.title}</span><span className="hidden text-xs text-[color:var(--app-foreground)] sm:block">{item.body}</span></span>
                             </button>
                         );
                     })}
@@ -160,15 +171,6 @@ export default function Index(props: SettingsIndexProps) {
 }
 
 // ── Shared pieces ────────────────────────────────────────────────────────────
-
-function Toggle({ id, checked, onChange, disabled, label }: { id?: string; checked: boolean; onChange: (v: boolean) => void; disabled?: boolean; label: string }) {
-    return (
-        <button id={id} type="button" role="switch" aria-checked={checked} aria-label={label} disabled={disabled} onClick={() => onChange(!checked)}
-            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-50 ${checked ? 'bg-[color:var(--color-primary)]' : 'bg-gray-300 dark:bg-slate-600'}`}>
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
-        </button>
-    );
-}
 
 function ConfirmBadge() {
     const { t } = useLocale();
@@ -184,43 +186,84 @@ function Card({ title, actions, children }: { title: string; actions?: ReactNode
     );
 }
 
-/** Right-hand drawer used for every add/edit form (Esc and the backdrop close it). */
+/**
+ * Right-hand drawer used for every add/edit form. Esc, the backdrop, ✕ and
+ * Cancel all close it, but ask first when the form has unsaved edits.
+ * Rendered in a portal so no transformed ancestor can offset `fixed`.
+ */
 function Drawer({ title, open, onClose, children }: { title: string; open: boolean; onClose: () => void; children: ReactNode }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
     const panel = useRef<HTMLDivElement>(null);
+    const body = useRef<HTMLDivElement>(null);
+    const dirty = useRef(false);
+    // Latest callbacks in a ref so the close handler (and the focus effect) stay stable across renders.
+    const latest = useRef({ confirm, onClose, t });
+    latest.current = { confirm, onClose, t };
+    const onDirtyChange = useCallback((value: boolean) => { dirty.current = value; }, []);
+    const requestClose = useCallback(async () => {
+        const { confirm: ask, onClose: close, t: tr } = latest.current;
+        if (dirty.current) {
+            const { confirmed } = await ask({ title: tr('grievanceAdmin.discard_title'), description: tr('grievanceAdmin.discard_body'), confirmLabel: tr('grievanceAdmin.discard'), cancelLabel: tr('grievanceAdmin.keep_editing'), variant: 'warning' });
+            if (!confirmed) return;
+        }
+        dirty.current = false;
+        close();
+    }, []);
     useEffect(() => {
         if (!open) return;
         const previous = document.activeElement as HTMLElement | null;
-        panel.current?.querySelector<HTMLElement>('input, select, textarea, button')?.focus();
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        body.current?.querySelector<HTMLElement>('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])')?.focus();
+        // While the confirmation dialog is open, focus is inside it (not the panel) and it handles Esc itself.
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape' || !panel.current?.contains(document.activeElement)) return;
+            // Handled here: the confirmation dialog this may open must not see the same keypress and close at once.
+            e.stopPropagation();
+            void requestClose();
+        };
         document.addEventListener('keydown', onKey);
         return () => { document.removeEventListener('keydown', onKey); previous?.focus(); };
-    }, [open, onClose]);
+    }, [open, requestClose]);
+    const host = useMemo(() => ({ onDirtyChange, stickyActions: true, requestClose: () => void requestClose() }), [onDirtyChange, requestClose]);
     if (!open) return null;
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-slate-900/30" onClick={onClose} aria-hidden="true" />
+            <div className="absolute inset-0 bg-slate-900/30" onClick={() => void requestClose()} aria-hidden="true" />
             <div ref={panel} role="dialog" aria-modal="true" aria-label={title} className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-2xl">
                 <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
                     <h2 className="text-[17px] font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                    <button type="button" onClick={onClose} aria-label={t('grievances.common.close')} className="flex h-9 w-9 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]"><X className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => void requestClose()} aria-label={t('grievances.common.close')} className="flex h-9 w-9 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]"><X className="h-4 w-4" /></button>
                 </div>
-                <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
+                <div ref={body} className="flex-1 overflow-y-auto px-6 py-5">
+                    <FormHostContext.Provider value={host}>{children}</FormHostContext.Provider>
+                </div>
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }
 
+type Facet<T> = { label: string; options: Choice[]; value: (row: T) => string };
+
 /** A section: heading, description, New button, the table (or an empty state) and the edit drawer. */
-function ListSection<T extends { id: string }>({ id, rows, head, cells, form, canEdit, rowEdit = true, emptyIcon, emptyTitle, emptyBody, emptyTone = 'neutral', intro }: {
+function ListSection<T extends { id: string }>({ id, rows, head, cells, form, canEdit, rowEdit = true, emptyIcon, emptyTitle, emptyBody, emptyTone = 'neutral', intro, searchText, facet }: {
     id: string; rows: T[]; head: string[]; cells: (row: T) => ReactNode[]; form: (row: T | null, close: () => void) => ReactNode;
     /** False for append-only records (delegations, seals): rows change through their inline actions, never an edit form. */
     canEdit: boolean; rowEdit?: boolean; emptyIcon?: ReactNode; emptyTitle?: string; emptyBody?: string; emptyTone?: 'neutral' | 'danger'; intro?: ReactNode;
+    /** Text the search box matches (case-insensitive); the toolbar appears once a list is long enough to need it. */
+    searchText?: (row: T) => string; facet?: Facet<T>;
 }) {
     const { t } = useLocale();
     const a = (k: string) => t(`grievanceAdmin.${k}`);
     const [editing, setEditing] = useState<T | 'new' | null>(null);
-    const close = () => setEditing(null);
+    const [query, setQuery] = useState('');
+    const [facetValue, setFacetValue] = useState('');
+    const close = useCallback(() => setEditing(null), []);
+    const needle = query.trim().toLocaleLowerCase();
+    const shown = rows.filter(row => (!needle || (searchText?.(row) ?? '').toLocaleLowerCase().includes(needle)) && (!facetValue || facet?.value(row) === facetValue));
+    const toolbar = rows.length > 6 && (searchText || facet);
+    const filtered = shown.length !== rows.length;
+    const clear = () => { setQuery(''); setFacetValue(''); };
     return (
         <div className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -231,10 +274,36 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
                 {canEdit && <button type="button" className={primaryBtn} onClick={() => setEditing('new')}><Plus className="h-4 w-4" aria-hidden="true" />{a(`new_${id}`)}</button>}
             </div>
             {intro}
+            {toolbar && (
+                <div className="flex flex-wrap items-center gap-2">
+                    {searchText && (
+                        <label className="relative w-full min-w-0 sm:w-auto sm:max-w-xs sm:flex-1">
+                            <span className="sr-only">{a('search')}</span>
+                            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                            <input type="search" className={`${inputCls} pl-9`} value={query} onChange={e => setQuery(e.target.value)} placeholder={a('search')} />
+                        </label>
+                    )}
+                    {facet && (
+                        <label className="w-full min-w-0 sm:w-56">
+                            <span className="sr-only">{facet.label}</span>
+                            <select className={inputCls} value={facetValue} onChange={e => setFacetValue(e.target.value)}>
+                                <option value="">{fmt(a('filter_all'), { label: facet.label })}</option>
+                                {facet.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                            </select>
+                        </label>
+                    )}
+                    <span role="status" className="text-sm text-[color:var(--app-muted-foreground)]">{filtered ? fmt(a('showing_count'), { shown: shown.length, total: rows.length }) : ''}</span>
+                </div>
+            )}
             <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                {rows.length ? (
+                {rows.length > 0 && shown.length === 0 ? (
+                    <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{a('no_results')}</p>
+                        <button type="button" className={secondaryBtn} onClick={clear}>{a('clear_filters')}</button>
+                    </div>
+                ) : rows.length ? (
                     <Table head={<>{[...head, ...(rowEdit ? [''] : [])].map((h, i) => <th key={i} className={thCls}>{h ? a(`fields.${h}`) : <span className="sr-only">{t('grievances.common.actions')}</span>}</th>)}</>}>
-                        {rows.map(row => (
+                        {shown.map(row => (
                             <tr key={row.id} className={tableRowClassName}>
                                 {cells(row).map((cell, i) => <td key={i} className={tdCls}>{cell}</td>)}
                                 {rowEdit && (
@@ -252,6 +321,7 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
                         <div className={`flex h-12 w-12 items-center justify-center rounded-full ${emptyTone === 'danger' ? 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>{emptyIcon ?? <TagsIcon className="h-5 w-5" />}</div>
                         <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{emptyTitle ?? a('empty')}</h3>
                         {emptyBody && <p className="max-w-md text-sm text-[color:var(--app-muted-foreground)]">{emptyBody}</p>}
+                        {canEdit && <button type="button" className={`${primaryBtn} mt-2`} onClick={() => setEditing('new')}><Plus className="h-4 w-4" aria-hidden="true" />{a(`new_${id}`)}</button>}
                     </div>
                 )}
             </section>
@@ -288,7 +358,7 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
             return (
                 <div key={f.key} className="flex items-start justify-between gap-4">
                     <label htmlFor={id} className="min-w-0"><span className="block text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(f)}</span>{helpOf(f) && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{helpOf(f)}</span>}</label>
-                    <Toggle id={id} label={labelOf(f)} checked={Boolean(form.data[f.key])} disabled={!editable} onChange={v => set(f.key, v)} />
+                    <Switch id={id} label={labelOf(f)} checked={Boolean(form.data[f.key])} disabled={!editable} onChange={v => set(f.key, v)} />
                 </div>
             );
         }
@@ -349,7 +419,7 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
                     <h2 className="text-lg font-semibold text-[color:var(--app-foreground)]">{a('tab_policy')}</h2>
                     <p className="text-sm text-[color:var(--app-muted-foreground)]">{a('policy_help')}</p>
                 </div>
-                {enabled && <label className="flex items-center gap-3 text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(enabled)}<Toggle label={labelOf(enabled)} checked={Boolean(form.data.enabled)} disabled={!editable} onChange={v => set('enabled', v)} /></label>}
+                {enabled && <label className="flex items-center gap-3 text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(enabled)}<Switch label={labelOf(enabled)} checked={Boolean(form.data.enabled)} disabled={!editable} onChange={v => set('enabled', v)} /></label>}
             </div>
             <div className="grid gap-4 xl:grid-cols-2">
                 {POLICY_GROUPS.map(group => {
@@ -386,7 +456,7 @@ function CategoriesSection({ props }: { props: SettingsIndexProps }) {
     const { t } = useLocale();
     const a = (k: string) => t(`grievanceAdmin.${k}`);
     type Row = SettingsIndexProps['categories'][number];
-    return <ListSection<Row> id="categories" rows={props.categories} canEdit={props.can.update} emptyTone="danger"
+    return <ListSection<Row> id="categories" rows={props.categories} canEdit={props.can.update} emptyTone="danger" searchText={c => `${c.code} ${c.name_en} ${c.name_am ?? ''}`}
         emptyTitle={a('empty_categories')} emptyBody={a('empty_categories_help')}
         head={['code', 'name', 'default_confidentiality', 'requires_executive_approval', 'grievances_count', 'status']}
         cells={c => [<code className="text-xs">{c.code}</code>, <><span className="block font-medium">{c.name_en}</span>{c.name_am && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{c.name_am}</span>}</>,
@@ -407,6 +477,8 @@ function ReasonCodesSection({ props }: { props: SettingsIndexProps }) {
     const a = (k: string) => t(`grievanceAdmin.${k}`);
     type Row = SettingsIndexProps['reasonCodes'][number];
     return <ListSection<Row> id="reason_codes" rows={props.reasonCodes} canEdit={props.can.update}
+        searchText={c => `${c.code} ${c.name_en} ${c.name_am ?? ''}`}
+        facet={{ label: a('fields.type'), options: props.options.reason_code_types.map(v => ({ value: v, label: label('reason_code_type', v) })), value: c => c.type }}
         head={['type', 'code', 'name', 'status']}
         cells={c => [label('reason_code_type', c.type), <code className="text-xs">{c.code}</code>, nameOf(c, locale), <StatusPill active={c.is_active} />]}
         form={(c, close) => <AdminForm key={c?.id ?? 'new'} onSaved={close} onCancel={close}
@@ -422,7 +494,7 @@ function ApprovalRulesSection({ props }: { props: SettingsIndexProps }) {
     type Row = SettingsIndexProps['approvalRules'][number];
     const orgs = props.options.organizations.map(o => ({ value: o.id!, label: nameOf(o, locale) }));
     const title = (r: Row) => r.approver_position ? ((locale === 'am' && r.approver_position.title_am) || r.approver_position.title_en) : '—';
-    return <ListSection<Row> id="approval_rules" rows={props.approvalRules} canEdit={props.can.update}
+    return <ListSection<Row> id="approval_rules" rows={props.approvalRules} canEdit={props.can.update} searchText={r => `${r.name_en} ${r.name_am ?? ''} ${title(r)}`}
         emptyTitle={a('empty_approval_rules')} emptyBody={a('empty_approval_rules_help')}
         head={['name', 'handler_type', 'category', 'decision_type', 'approver_position', 'status']}
         cells={r => [nameOf(r, locale), r.handler ? <HandlerName handler={r.handler} showType /> : label('handler_type', r.handler_type), nameOf(r.category, locale), label('decision_type', r.decision_type), r.requires_approval ? title(r) : a('no_approval_needed'), <StatusPill active={r.is_active} />]}
@@ -443,7 +515,7 @@ function ExternalAuthoritiesSection({ props }: { props: SettingsIndexProps }) {
     const orgs = props.options.organizations.map(o => ({ value: o.id!, label: nameOf(o, locale) }));
     return <ListSection<Row> id="external_authorities" rows={props.externalAuthorities} canEdit={props.can.update}
         head={['code', 'name', 'organization', 'is_administrative_tribunal', 'status']}
-        cells={x => [<code className="text-xs">{x.code}</code>, nameOf(x, locale), nameOf(x.organization, locale), x.is_administrative_tribunal ? t('grievances.common.yes') : t('grievances.common.no'), <StatusPill active={x.is_active} />]}
+        cells={x => [<code className="text-xs">{x.code}</code>, nameOf(x, locale), x.organization ? nameOf(x.organization, locale) : t('grievanceAdmin.all_organizations_label'), x.is_administrative_tribunal ? t('grievances.common.yes') : t('grievances.common.no'), <StatusPill active={x.is_active} />]}
         form={(x, close) => <AdminForm key={x?.id ?? 'new'} onSaved={close} onCancel={close}
             url={x ? route('grievances.settings.external-authorities.update', x.id) : route('grievances.settings.external-authorities.store')} method={x ? 'patch' : 'post'}
             initial={{ code: x?.code ?? '', name_en: x?.name_en ?? '', name_am: x?.name_am ?? '', organization_id: x?.organization_id ?? '', is_administrative_tribunal: x?.is_administrative_tribunal ?? false, address: x?.address ?? '', is_active: x?.is_active ?? true }}
@@ -458,10 +530,27 @@ function DelegationsSection({ props }: { props: SettingsIndexProps }) {
         head={['delegator', 'delegate', 'position', 'period', 'status']}
         cells={d => [d.delegator?.name ?? '—', d.delegate?.name ?? '—', d.position ? ((locale === 'am' && d.position.title_am) || d.position.title_en) : '—',
             <><DateDisplay value={d.starts_at} /> – <DateDisplay value={d.ends_at} />{d.reason && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{d.reason}</span>}</>,
-            <span className="flex items-center gap-2"><StatusPill active={d.status === 'active'} />{props.can.delegations && d.status === 'active' && <RevokeButton id={d.id} />}</span>]}
+            <span className="flex flex-wrap items-center gap-2"><DelegationState row={d} />{props.can.delegations && d.status === 'active' && delegationState(d) !== 'expired' && <RevokeButton id={d.id} />}</span>]}
         form={(_, close) => <AdminForm onSaved={close} onCancel={close} url={route('grievances.settings.delegations.store')}
             initial={{ delegator_user_id: '', delegate_user_id: '', position_id: '', organization_id: '', starts_at: today(), ends_at: '', reason: '' }}
             fields={[{ key: 'delegator_user_id', type: 'lookup', lookup: 'users', required: true }, { key: 'delegate_user_id', type: 'lookup', lookup: 'users', required: true }, { key: 'position_id', type: 'lookup', lookup: 'positions' }, { key: 'organization_id', type: 'select', options: orgs }, { key: 'starts_at', type: 'date', required: true }, { key: 'ends_at', type: 'date', required: true }, { key: 'reason', type: 'textarea', required: true }]} />} />;
+}
+
+type DelegationRow = SettingsIndexProps['delegations'][number];
+
+/** Stored status plus the period: an "active" delegation past its end date has expired. */
+function delegationState(d: DelegationRow): 'active' | 'scheduled' | 'expired' | 'revoked' {
+    if (d.status !== 'active') return 'revoked';
+    const now = Date.now();
+    if (new Date(d.ends_at).getTime() < now) return 'expired';
+    return new Date(d.starts_at).getTime() > now ? 'scheduled' : 'active';
+}
+
+function DelegationState({ row }: { row: DelegationRow }) {
+    const { t } = useLocale();
+    const state = delegationState(row);
+    const tone = state === 'active' ? 'success' : state === 'scheduled' ? 'info' : 'neutral';
+    return <span className={badgeClassName(tone)}>{t(`grievanceAdmin.delegation_state_${state}`)}</span>;
 }
 
 function RevokeButton({ id }: { id: string }) {
@@ -494,7 +583,7 @@ function LetterheadsSection({ props }: { props: SettingsIndexProps }) {
         cells={l => [nameOf(l.organization, locale), <>{(locale === 'am' ? l.address_am : l.address_en) ?? '—'}{l.po_box && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{a('fields.po_box')} {l.po_box}</span>}</>, l.phone ?? '—', l.email ?? '—']}
         form={(l, close) => <AdminForm key={l?.id ?? 'new'} onSaved={close} onCancel={close} url={route('grievances.settings.letterheads.save')}
             initial={{ organization_id: l?.organization_id ?? '', ...Object.fromEntries(keys.map(k => [k, l?.[k] ?? ''])) }}
-            fields={[{ key: 'organization_id', type: 'select', required: true, options: orgs }, ...keys.map(k => ({ key: k, type: k.startsWith('address') || k.startsWith('footer') ? 'textarea' as const : 'text' as const }))]} />} />;
+            fields={[{ key: 'organization_id', type: 'select', required: true, options: orgs, disabled: l !== null, help: l ? a('letterhead_org_fixed') : undefined }, ...keys.map(k => ({ key: k, type: k.startsWith('address') || k.startsWith('footer') ? 'textarea' as const : 'text' as const }))]} />} />;
 }
 
 function SealsSection({ props }: { props: SettingsIndexProps }) {
@@ -502,12 +591,16 @@ function SealsSection({ props }: { props: SettingsIndexProps }) {
     const a = (k: string) => t(`grievanceAdmin.${k}`);
     type Row = SettingsIndexProps['seals'][number];
     const orgs = props.options.organizations.map(o => ({ value: o.id!, label: nameOf(o, locale) }));
+    const userId = usePage<PageProps>().props.auth.user?.id;
+    const { isSuperAdmin } = useCan();
+    // Separation of duties: the uploader waits for someone else (the server enforces it too).
+    const canApprove = (s: Row) => isSuperAdmin || s.uploaded_by !== userId;
     return <ListSection<Row> id="seals" rows={props.seals} canEdit={props.can.seals} rowEdit={false}
         emptyTitle={a('empty_seals')} emptyBody={a('seal_help')} emptyIcon={<ShieldCheck className="h-5 w-5" />}
         head={['seal', 'organization', 'name', 'status', 'approved_at']}
         cells={s => [<img alt={s.name} className="h-12 w-12 rounded border border-[color:var(--app-border)] bg-[color:var(--app-surface)] object-contain" src={route('grievances.settings.seals.image', s.id)} />, nameOf(s.organization, locale),
             <>{s.name}<span className="block font-mono text-[11px] text-[color:var(--app-muted-foreground)]" title={s.sha256}>SHA-256 {s.sha256.slice(0, 12)}…</span></>,
-            <span className="flex flex-wrap items-center gap-2"><GPill group="seal_status" value={s.status} />{props.can.seals && s.status === 'pending' && <SealAction id={s.id} action="approve" label={a('approve')} />}{props.can.seals && s.status !== 'retired' && <SealAction id={s.id} action="retire" label={a('retire')} />}</span>,
+            <span className="flex flex-wrap items-center gap-2"><GPill group="seal_status" value={s.status} />{props.can.seals && s.status === 'pending' && (canApprove(s) ? <SealAction id={s.id} action="approve" label={a('approve')} /> : <span className="text-xs text-[color:var(--app-muted-foreground)]">{a('awaiting_second_approver')}</span>)}{props.can.seals && s.status !== 'retired' && <SealAction id={s.id} action="retire" label={a('retire')} />}</span>,
             <DateDisplay value={s.approved_at} />]}
         form={(_, close) => <AdminForm onSaved={close} onCancel={close} url={route('grievances.settings.seals.store')} submitLabel={a('upload_seal')}
             initial={{ organization_id: '', name: '', file: null, effective_from: today() }}
@@ -543,8 +636,11 @@ function TemplatesSection({ props }: { props: SettingsIndexProps }) {
     const label = useEnumLabel();
     type Row = SettingsIndexProps['templates'][number];
     return <ListSection<Row> id="templates" rows={props.templates} canEdit={props.can.update}
-        head={['template_type', 'language', 'name', 'organization', 'status']}
-        cells={x => [label('letter_type', x.template_type), <span className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 text-[11px] font-semibold">{x.language.toUpperCase()}</span>, x.name, x.organization ? nameOf(x.organization, locale) : t('grievanceAdmin.all_organizations'), <StatusPill active={x.is_active} />]}
+        searchText={x => `${x.name} ${x.subject_template}`}
+        facet={{ label: t('grievanceAdmin.fields.template_type'), options: props.options.letter_types.map(v => ({ value: v, label: label('letter_type', v) })), value: x => x.template_type }}
+        head={['template_type', 'language', 'name', 'organization', 'period', 'status']}
+        cells={x => [label('letter_type', x.template_type), <span className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 text-[11px] font-semibold">{x.language.toUpperCase()}</span>, x.name, x.organization ? nameOf(x.organization, locale) : t('grievanceAdmin.all_organizations_label'),
+            <span className="whitespace-nowrap text-xs"><DateDisplay value={x.effective_from} /> – {x.effective_to ? <DateDisplay value={x.effective_to} /> : t('grievanceAdmin.open_ended')}</span>, <StatusPill active={x.is_active} />]}
         form={(x, close) => <TemplateEditor key={x?.id ?? 'new'} row={x} props={props} close={close} />} />;
 }
 
@@ -553,17 +649,25 @@ function TemplateEditor({ row, props, close }: { row: SettingsIndexProps['templa
     const a = (k: string) => t(`grievanceAdmin.${k}`);
     const label = useEnumLabel();
     const body = useRef<HTMLTextAreaElement>(null);
+    const subject = useRef<HTMLInputElement>(null);
+    // Tokens go into whichever of subject/body was edited last (body by default).
+    const target = useRef<'subject_template' | 'body_template'>('body_template');
+    const host = useContext(FormHostContext);
     const form = useForm({
         organization_id: row?.organization_id ?? '', template_type: row?.template_type ?? '', language: row?.language ?? 'am', name: row?.name ?? '',
         subject_template: row?.subject_template ?? '', body_template: row?.body_template ?? '', effective_from: row?.effective_from ?? today(), effective_to: row?.effective_to ?? '', is_active: row?.is_active ?? true,
     });
     const errors = form.errors as Record<string, string>;
+    const { onDirtyChange } = host;
+    useEffect(() => { onDirtyChange?.(form.isDirty); }, [form.isDirty, onDirtyChange]);
     const insert = (token: string) => {
-        const el = body.current;
+        const key = target.current;
+        const el = key === 'subject_template' ? subject.current : body.current;
         const text = `{{${token}}}`;
-        const start = el?.selectionStart ?? form.data.body_template.length;
+        const current = form.data[key];
+        const start = el?.selectionStart ?? current.length;
         const end = el?.selectionEnd ?? start;
-        form.setData('body_template', form.data.body_template.slice(0, start) + text + form.data.body_template.slice(end));
+        form.setData(key, current.slice(0, start) + text + current.slice(end));
         requestAnimationFrame(() => { el?.focus(); el?.setSelectionRange(start + text.length, start + text.length); });
     };
     const preview = (text: string) => text.split(/(\{\{\s*[a-z_]+\s*\}\})/g).map((part, i) => {
@@ -577,7 +681,7 @@ function TemplateEditor({ row, props, close }: { row: SettingsIndexProps['templa
     const field = 'block text-sm font-medium text-[color:var(--app-foreground)]';
 
     return (
-        <form className="space-y-4" onSubmit={e => { e.preventDefault(); form.transform(d => ({ ...d, organization_id: d.organization_id || null, effective_to: d.effective_to || null })); form.submit(row ? 'patch' : 'post', url, { preserveScroll: true, onSuccess: close }); }}>
+        <form className="space-y-4" onSubmit={e => { e.preventDefault(); form.transform(d => ({ ...d, organization_id: d.organization_id || null, effective_to: d.effective_to || null })); form.submit(row ? 'patch' : 'post', url, { preserveScroll: true, onSuccess: () => { onDirtyChange?.(false); close(); } }); }}>
             <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-1.5"><span className={field}>{a('fields.template_type')}</span><select className={inputCls} required value={form.data.template_type} onChange={e => form.setData('template_type', e.target.value)}><option value="">{t('grievances.common.select')}</option>{props.options.letter_types.map(v => <option key={v} value={v}>{label('letter_type', v)}</option>)}</select></label>
                 <div className="space-y-1.5"><span className={field}>{a('fields.language')}</span>
@@ -586,31 +690,33 @@ function TemplateEditor({ row, props, close }: { row: SettingsIndexProps['templa
                     </div>
                 </div>
                 <label className="space-y-1.5 sm:col-span-2"><span className={field}>{a('fields.name')}</span><input className={inputCls} required value={form.data.name} onChange={e => form.setData('name', e.target.value)} /></label>
-                <label className="space-y-1.5 sm:col-span-2"><span className={field}>{a('fields.subject_template')}</span><input className={inputCls} required value={form.data.subject_template} onChange={e => form.setData('subject_template', e.target.value)} /></label>
+                <label className="space-y-1.5 sm:col-span-2"><span className={field}>{a('fields.subject_template')}</span><input ref={subject} className={inputCls} required value={form.data.subject_template} onFocus={() => { target.current = 'subject_template'; }} onChange={e => form.setData('subject_template', e.target.value)} /></label>
             </div>
             <label className="block space-y-1.5"><span className={field}>{a('fields.body_template')}</span>
-                <textarea ref={body} rows={10} required className={`${inputCls} font-mono text-[13px] leading-relaxed`} value={form.data.body_template} onChange={e => form.setData('body_template', e.target.value)} />
+                <textarea ref={body} rows={12} required className={`${textareaCls} font-mono text-[13px] leading-relaxed`} value={form.data.body_template} onFocus={() => { target.current = 'body_template'; }} onChange={e => form.setData('body_template', e.target.value)} />
             </label>
             <div className="space-y-2">
                 <p className="text-sm font-medium text-[color:var(--app-foreground)]">{a('insert_token')}</p>
-                <div className="flex flex-wrap gap-1.5">{props.options.tokens.map(tok => <button key={tok} type="button" onClick={() => insert(tok)} className="h-7 rounded-full border border-[color:var(--color-primary-200,#bcc7eb)] bg-[color:var(--color-primary-50,#eef1fa)] px-2.5 font-mono text-[11px] text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface)]">{tok}</button>)}</div>
                 <p className="text-xs text-[color:var(--app-muted-foreground)]">{a('template_help')}</p>
+                <div className="flex flex-wrap gap-1.5">{props.options.tokens.map(tok => <button key={tok} type="button" onMouseDown={e => e.preventDefault()} onClick={() => insert(tok)} className="h-7 rounded-full border border-[color:var(--color-primary-200,#bcc7eb)] bg-[color:var(--color-primary-50,#eef1fa)] px-2.5 font-mono text-[11px] text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface)]">{tok}</button>)}</div>
                 {unknown.length > 0 && <p role="alert" className="text-xs font-medium text-red-700">{fmt(a('unknown_tokens'), { tokens: unknown.join(', ') })}</p>}
             </div>
             <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--app-muted-foreground)]">{a('preview_sample')}</p>
                 <div className="space-y-2 rounded border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 text-[13px] leading-relaxed text-[color:var(--app-foreground)] shadow-sm">
                     <p className="font-semibold underline">{preview(form.data.subject_template)}</p>
-                    <p className="whitespace-pre-wrap">{preview(form.data.body_template)}</p>
+                    {form.data.subject_template || form.data.body_template
+                        ? <p className="whitespace-pre-wrap">{preview(form.data.body_template)}</p>
+                        : <p className="text-[color:var(--app-muted-foreground)]">{a('preview_empty')}</p>}
                 </div>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-1.5"><span className={field}>{a('fields.organization')}</span><select className={inputCls} value={form.data.organization_id} onChange={e => form.setData('organization_id', e.target.value)}><option value="">{a('all_organizations')}</option>{props.options.organizations.map(o => <option key={o.id} value={o.id}>{nameOf(o, locale)}</option>)}</select></label>
-                <label className="flex items-center justify-between gap-3 pt-6 text-sm font-medium text-[color:var(--app-foreground)]">{a('fields.is_active')}<Toggle label={a('fields.is_active')} checked={form.data.is_active} onChange={v => form.setData('is_active', v)} /></label>
+                <label className="flex items-center justify-between gap-3 pt-6 text-sm font-medium text-[color:var(--app-foreground)]">{a('fields.is_active')}<Switch label={a('fields.is_active')} checked={form.data.is_active} onChange={v => form.setData('is_active', v)} /></label>
             </div>
             {Object.keys(errors).length > 0 && <div role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{Object.values(errors).map((e, i) => <p key={i}>{e}</p>)}</div>}
-            <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] pt-4">
-                <button type="button" className={secondaryBtn} onClick={close}>{t('grievances.common.cancel')}</button>
+            <div className="sticky -bottom-5 z-10 -mx-6 -mb-5 flex justify-end gap-2 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-3">
+                <button type="button" className={secondaryBtn} onClick={host.requestClose ?? close}>{t('grievances.common.cancel')}</button>
                 <button type="submit" className={primaryBtn} disabled={form.processing}>{a('save_template')}</button>
             </div>
         </form>
