@@ -1,5 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -215,17 +215,23 @@ function Card({ title, actions, children }: { title: string; actions?: ReactNode
 }
 
 /**
- * Right-hand drawer used for every add/edit form. Esc, the backdrop, ✕ and
- * Cancel all close it, but ask first when the form has unsaved edits.
- * Rendered in a portal so no transformed ancestor can offset `fixed`.
+ * Right-hand drawer used for every add/edit form, on the same Headless UI
+ * dialog as the shared kit (portal, focus trap, stacking under the confirm
+ * dialog). Esc, the backdrop, ✕ and Cancel all close it, but ask first when
+ * the form has unsaved edits.
  */
 function Drawer({ title, open, onClose, children }: { title: string; open: boolean; onClose: () => void; children: ReactNode }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
-    const panel = useRef<HTMLDivElement>(null);
-    const body = useRef<HTMLDivElement>(null);
     const dirty = useRef(false);
-    // Latest callbacks in a ref so the close handler (and the focus effect) stay stable across renders.
+    const body = useRef<HTMLDivElement>(null);
+    // Start on the first field rather than the ✕ button (after the dialog's own initial focus).
+    useEffect(() => {
+        if (!open) return;
+        const frame = requestAnimationFrame(() => body.current?.querySelector<HTMLElement>('input:not([disabled]), select:not([disabled]), textarea:not([disabled])')?.focus());
+        return () => cancelAnimationFrame(frame);
+    }, [open]);
+    // Latest callbacks in a ref so the close handler stays stable across renders.
     const latest = useRef({ confirm, onClose, t });
     latest.current = { confirm, onClose, t };
     const onDirtyChange = useCallback((value: boolean) => { dirty.current = value; }, []);
@@ -238,36 +244,20 @@ function Drawer({ title, open, onClose, children }: { title: string; open: boole
         dirty.current = false;
         close();
     }, []);
-    useEffect(() => {
-        if (!open) return;
-        const previous = document.activeElement as HTMLElement | null;
-        body.current?.querySelector<HTMLElement>('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])')?.focus();
-        // While the confirmation dialog is open, focus is inside it (not the panel) and it handles Esc itself.
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key !== 'Escape' || !panel.current?.contains(document.activeElement)) return;
-            // Handled here: the confirmation dialog this may open must not see the same keypress and close at once.
-            e.stopPropagation();
-            void requestClose();
-        };
-        document.addEventListener('keydown', onKey);
-        return () => { document.removeEventListener('keydown', onKey); previous?.focus(); };
-    }, [open, requestClose]);
     const host = useMemo(() => ({ onDirtyChange, stickyActions: true, requestClose: () => void requestClose() }), [onDirtyChange, requestClose]);
-    if (!open) return null;
-    return createPortal(
-        <div className="fixed inset-0 z-50">
-            <div className="absolute inset-0 bg-slate-900/30" onClick={() => void requestClose()} aria-hidden="true" />
-            <div ref={panel} role="dialog" aria-modal="true" aria-label={title} className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-2xl">
+    return (
+        <Dialog open={open} onClose={() => void requestClose()} className="relative z-50">
+            <DialogBackdrop className="fixed inset-0 bg-slate-900/30" />
+            <DialogPanel className="fixed inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-2xl">
                 <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
-                    <h2 className="text-[17px] font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+                    <DialogTitle className="text-[17px] font-semibold text-[color:var(--app-foreground)]">{title}</DialogTitle>
                     <button type="button" onClick={() => void requestClose()} aria-label={t('grievances.common.close')} className="flex h-9 w-9 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]"><X className="h-4 w-4" /></button>
                 </div>
                 <div ref={body} className="flex-1 overflow-y-auto px-6 py-5">
                     <FormHostContext.Provider value={host}>{children}</FormHostContext.Provider>
                 </div>
-            </div>
-        </div>,
-        document.body,
+            </DialogPanel>
+        </Dialog>
     );
 }
 
