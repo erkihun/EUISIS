@@ -98,6 +98,7 @@ final class GrievanceCorrespondenceService
             ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $day))
             ->where(fn ($q) => $q->whereNull('organization_id')->orWhere('organization_id', $organizationId))
             ->orderByRaw('organization_id is null')
+            ->orderByDesc('effective_from')
             ->first();
     }
 

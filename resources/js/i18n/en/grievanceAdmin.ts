@@ -29,6 +29,9 @@ const grievanceAdmin = {
     seal_help: 'Seals are controlled assets kept on private storage. A second authorized person approves a seal before it can be used; every use is audited.',
     upload_seal: 'Upload a seal', seal_file_help: 'PNG, up to 1 MB.', retire: 'Retire',
     delegation_help: 'Acting or delegated approval authority for a period. Nobody can delegate to themselves.', add_delegation: 'Record delegation', revoke: 'Revoke',
+    confirm_revoke_title: 'Revoke this delegation?', confirm_revoke_body: 'The delegate loses approval authority immediately. The record is kept for the audit trail and cannot be reactivated.',
+    confirm_approve_seal_title: 'Approve this seal?', confirm_approve_seal_body: 'It becomes the organization’s active seal and can be applied to letters. Any currently active seal of the organization is retired.',
+    confirm_retire_seal_title: 'Retire this seal?', confirm_retire_seal_body: 'It can no longer be applied to letters. Letters already sealed keep it. A retired seal cannot be reactivated; upload a new one instead.',
 
     settings_description: "Policy, reference data and official correspondence for the grievance process. Every change is audited.",
     can_edit: "You can edit these settings",

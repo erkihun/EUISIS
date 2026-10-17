@@ -11,6 +11,7 @@ import type { SettingField, SettingsIndexProps } from '@/types/grievances';
 
 import { actionLinkClassName, badgeClassName, tableRowClassName } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
+import { useConfirm } from '@/hooks/useConfirm';
 /*
  * Grievance Management → Settings (design: Claude Design canvas
  * "Grievance Settings redesign"). Readiness checklist, grouped section nav
@@ -211,9 +212,10 @@ function Drawer({ title, open, onClose, children }: { title: string; open: boole
 }
 
 /** A section: heading, description, New button, the table (or an empty state) and the edit drawer. */
-function ListSection<T extends { id: string }>({ id, rows, head, cells, form, canEdit, emptyIcon, emptyTitle, emptyBody, emptyTone = 'neutral', intro }: {
+function ListSection<T extends { id: string }>({ id, rows, head, cells, form, canEdit, rowEdit = true, emptyIcon, emptyTitle, emptyBody, emptyTone = 'neutral', intro }: {
     id: string; rows: T[]; head: string[]; cells: (row: T) => ReactNode[]; form: (row: T | null, close: () => void) => ReactNode;
-    canEdit: boolean; emptyIcon?: ReactNode; emptyTitle?: string; emptyBody?: string; emptyTone?: 'neutral' | 'danger'; intro?: ReactNode;
+    /** False for append-only records (delegations, seals): rows change through their inline actions, never an edit form. */
+    canEdit: boolean; rowEdit?: boolean; emptyIcon?: ReactNode; emptyTitle?: string; emptyBody?: string; emptyTone?: 'neutral' | 'danger'; intro?: ReactNode;
 }) {
     const { t } = useLocale();
     const a = (k: string) => t(`grievanceAdmin.${k}`);
@@ -231,19 +233,17 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
             {intro}
             <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 {rows.length ? (
-                    <Table head={<>{[...head, ''].map((h, i) => <th key={i} className={thCls}>{h ? a(`fields.${h}`) : <span className="sr-only">{t('grievances.common.actions')}</span>}</th>)}</>}>
+                    <Table head={<>{[...head, ...(rowEdit ? [''] : [])].map((h, i) => <th key={i} className={thCls}>{h ? a(`fields.${h}`) : <span className="sr-only">{t('grievances.common.actions')}</span>}</th>)}</>}>
                         {rows.map(row => (
                             <tr key={row.id} className={tableRowClassName}>
                                 {cells(row).map((cell, i) => <td key={i} className={tdCls}>{cell}</td>)}
-                                <td className={`${tdCls} text-right`}>
-                                    <div className="flex justify-end">
-                                        <AppActionMenu
-                                            items={[
-                                                { label: t('grievances.common.edit'), onClick: () => setEditing(row), show: canEdit },
-                                            ]}
-                                        />
-                                    </div>
-                                </td>
+                                {rowEdit && (
+                                    <td className={`${tdCls} text-right`}>
+                                        <div className="flex justify-end">
+                                            <AppActionMenu items={[{ label: t('grievances.common.edit'), onClick: () => setEditing(row), show: canEdit }]} />
+                                        </div>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </Table>
@@ -430,7 +430,7 @@ function ApprovalRulesSection({ props }: { props: SettingsIndexProps }) {
             url={r ? route('grievances.settings.approval-rules.update', r.id) : route('grievances.settings.approval-rules.store')} method={r ? 'patch' : 'post'}
             initial={{ name_en: r?.name_en ?? '', name_am: r?.name_am ?? '', organization_id: r?.organization_id ?? '', handler_type: r?.handler_type ?? '', handler_id: r?.handler_id ?? '', lookup_organization_id: '', category_id: r?.category_id ?? '', decision_type: r?.decision_type ?? '', requires_approval: r?.requires_approval ?? true, approver_position_id: r?.approver_position_id ?? '', approval_sla_profile_id: r?.approval_sla_profile_id ?? '', priority: r?.priority ?? 100, effective_from: r?.effective_from ?? today(), effective_to: r?.effective_to ?? '', is_active: r?.is_active ?? true }}
             fields={[{ key: 'name_en', required: true }, { key: 'name_am' }, { key: 'organization_id', type: 'select', options: orgs },
-                ...handlerFields({ organizationLabel: t('common.organization'), options: { handler_types: props.options.handler_types, organizations: props.options.organizations, committees: [], external_authorities: [] }, locale, title: a('fields.handler_type'), initial: r?.handler }).filter(f => f.type !== 'select' || f.key !== 'handler_id'),
+                ...handlerFields({ organizationLabel: t('common.organization'), options: { handler_types: props.options.handler_types, organizations: props.options.organizations, committees: props.options.committees, external_authorities: props.externalAuthorities }, locale, title: a('fields.handler_type'), initial: r?.handler }),
                 { key: 'category_id', type: 'select', options: props.categories.map(c => ({ value: c.id, label: nameOf(c, locale) })) }, { key: 'decision_type', type: 'select', options: choices(props.options.decision_types), enumGroup: 'decision_type' },
                 { key: 'requires_approval', type: 'boolean' }, { key: 'approver_position_id', type: 'lookup', lookup: 'positions', required: true, help: a('approval_help'), initialLabel: r ? title(r) : undefined, visible: d => Boolean(d.requires_approval) },
                 { key: 'approval_sla_profile_id', type: 'select', options: props.options.approval_sla_profiles.map(p => ({ value: p.id!, label: nameOf(p, locale) })) },
@@ -454,7 +454,7 @@ function DelegationsSection({ props }: { props: SettingsIndexProps }) {
     const { t, locale } = useLocale();
     type Row = SettingsIndexProps['delegations'][number];
     const orgs = props.options.organizations.map(o => ({ value: o.id!, label: nameOf(o, locale) }));
-    return <ListSection<Row> id="delegations" rows={props.delegations} canEdit={props.can.delegations}
+    return <ListSection<Row> id="delegations" rows={props.delegations} canEdit={props.can.delegations} rowEdit={false}
         head={['delegator', 'delegate', 'position', 'period', 'status']}
         cells={d => [d.delegator?.name ?? '—', d.delegate?.name ?? '—', d.position ? ((locale === 'am' && d.position.title_am) || d.position.title_en) : '—',
             <><DateDisplay value={d.starts_at} /> – <DateDisplay value={d.ends_at} />{d.reason && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{d.reason}</span>}</>,
@@ -466,8 +466,20 @@ function DelegationsSection({ props }: { props: SettingsIndexProps }) {
 
 function RevokeButton({ id }: { id: string }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
     const form = useForm({});
-    return <button type="button" className={actionLinkClassName({ tone: 'danger' })} disabled={form.processing} onClick={() => form.post(route('grievances.settings.delegations.revoke', id), { preserveScroll: true })}>{t('grievanceAdmin.revoke')}</button>;
+    const revoke = async () => {
+        const { confirmed } = await confirm({ title: t('grievanceAdmin.confirm_revoke_title'), description: t('grievanceAdmin.confirm_revoke_body'), confirmLabel: t('grievanceAdmin.revoke'), variant: 'danger' });
+        if (confirmed) form.post(route('grievances.settings.delegations.revoke', id), { preserveScroll: true });
+    };
+    return <ActionWithError error={Object.values(form.errors)[0]}>
+        <button type="button" className={actionLinkClassName({ tone: 'danger' })} disabled={form.processing} onClick={revoke}>{t('grievanceAdmin.revoke')}</button>
+    </ActionWithError>;
+}
+
+/** Inline row action plus the server's refusal (stale record, separation of duties), which would otherwise vanish. */
+function ActionWithError({ error, children }: { error?: string; children: ReactNode }) {
+    return <span className="inline-flex flex-col items-start gap-0.5">{children}{error && <span role="alert" className="text-xs text-red-700 dark:text-red-400">{error}</span>}</span>;
 }
 
 function LetterheadsSection({ props }: { props: SettingsIndexProps }) {
@@ -490,7 +502,7 @@ function SealsSection({ props }: { props: SettingsIndexProps }) {
     const a = (k: string) => t(`grievanceAdmin.${k}`);
     type Row = SettingsIndexProps['seals'][number];
     const orgs = props.options.organizations.map(o => ({ value: o.id!, label: nameOf(o, locale) }));
-    return <ListSection<Row> id="seals" rows={props.seals} canEdit={props.can.seals}
+    return <ListSection<Row> id="seals" rows={props.seals} canEdit={props.can.seals} rowEdit={false}
         emptyTitle={a('empty_seals')} emptyBody={a('seal_help')} emptyIcon={<ShieldCheck className="h-5 w-5" />}
         head={['seal', 'organization', 'name', 'status', 'approved_at']}
         cells={s => [<img alt={s.name} className="h-12 w-12 rounded border border-[color:var(--app-border)] bg-[color:var(--app-surface)] object-contain" src={route('grievances.settings.seals.image', s.id)} />, nameOf(s.organization, locale),
@@ -505,8 +517,19 @@ function SealsSection({ props }: { props: SettingsIndexProps }) {
 }
 
 function SealAction({ id, action, label }: { id: string; action: 'approve' | 'retire'; label: string }) {
+    const { t } = useLocale();
+    const { confirm } = useConfirm();
     const form = useForm({ action });
-    return <button type="button" className={actionLinkClassName()} disabled={form.processing} onClick={() => form.post(route('grievances.settings.seals.decide', id), { preserveScroll: true })}>{label}</button>;
+    const decide = async () => {
+        const { confirmed } = await confirm({
+            title: t(`grievanceAdmin.confirm_${action}_seal_title`), description: t(`grievanceAdmin.confirm_${action}_seal_body`),
+            confirmLabel: label, variant: action === 'retire' ? 'danger' : 'warning',
+        });
+        if (confirmed) form.post(route('grievances.settings.seals.decide', id), { preserveScroll: true });
+    };
+    return <ActionWithError error={Object.values(form.errors)[0]}>
+        <button type="button" className={actionLinkClassName({ tone: action === 'retire' ? 'danger' : undefined })} disabled={form.processing} onClick={decide}>{label}</button>
+    </ActionWithError>;
 }
 
 // ── Letter templates: list + editor with token insertion and preview ────────

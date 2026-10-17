@@ -108,7 +108,7 @@ export const choices = (values: string[]): Choice[] => values.map(value => ({ va
 export const today = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
 
 export function handlerFields({ prefix = '', options, locale, title, organizationLabel, required = false, allowOrganization = false, initial }: {
-    prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations' | 'committees' | 'external_authorities'>;
+    prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations'> & { committees: Bilingual[]; external_authorities: Bilingual[] };
     locale: string; title: string; organizationLabel: string; required?: boolean; allowOrganization?: boolean; initial?: HandlerRef | null;
 }): AdminField[] {
     const typeKey = `${prefix}handler_type`, idKey = `${prefix}handler_id`, orgKey = `${prefix}lookup_organization_id`;

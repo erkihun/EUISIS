@@ -144,6 +144,7 @@ return [
         'unknown_tokens' => 'Unknown template tokens: :tokens',
         'self_delegation' => 'You cannot record a delegation to or from yourself.',
         'delegate_lacks_permission' => 'The delegate must hold the decision approval permission.',
+        'template_overlap' => 'Another active template of this type and language already covers part of this period for the same organization. End or deactivate it first.',
     ],
 
     // Regulation 201/2018 Art. 30 grievance committee composition problems.
