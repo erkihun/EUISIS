@@ -9,6 +9,10 @@ institution feedback QR. Both resolve on the server to exactly one target;
 the browser never chooses it. Everything then flows through one table, one
 workflow engine, one set of permissions and one management area.
 
+The institution QR opens the digitized organization feedback form: service
+information, a configurable and versioned questionnaire, and structured
+answers. See [organization-public-feedback-form.md](organization-public-feedback-form.md).
+
 A public complaint is an allegation about a service. It is not an employee
 grievance, not a disciplinary case and not an administrative appeal; nothing
 here creates any of those (brief §58, §63–64, §122). Transport is out of scope.

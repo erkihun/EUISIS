@@ -110,15 +110,29 @@ final class StatutoryCommitteeRules
      */
     public function eligibility(GrievanceCommitteeMember $member, ?CarbonInterface $on = null): array
     {
+        return $this->employeeEligibility((string) $member->employee_id, $on);
+    }
+
+    /**
+     * Art. 6 eligibility of an employee about to sit on a committee or panel,
+     * including an expedited-inquiry investigator or a recusal substitute.
+     *
+     * @return array{eligible: bool|null, problems: list<string>, needs_data: list<string>}
+     */
+    public function employeeEligibility(string $employeeId, ?CarbonInterface $on = null): array
+    {
         $on ??= now();
         $problems = [];
         $needsData = ['good_conduct_commendation'];
+        $member = (object) ['employee_id' => $employeeId];
 
+        // A penalty set aside by the Administrative Court is not a penalty (Art. 6(2)).
         $penalised = DisciplinaryDecision::query()
             ->whereHas('disciplinaryCase', fn ($q) => $q->where('accused_employee_id', $member->employee_id))
             ->where('finding', DisciplinaryFinding::Responsible->value)
             ->whereIn('penalty', DisciplinaryPenalty::values())
             ->where('decided_at', '>=', $on->copy()->subYears(2))
+            ->whereDoesntHave('appeal', fn ($q) => $q->where('outcome', 'reversed'))
             ->exists();
         if ($penalised) {
             $problems[] = 'disciplined_within_two_years';

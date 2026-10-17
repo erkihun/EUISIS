@@ -278,7 +278,7 @@ it('issues an immutable decision letter, then accepts one appeal routed to the n
     $decisions = app(GrievanceDecisionService::class);
     $d = $decisions->createDraft($g, $this->s->writer, ['decision_type' => 'not_upheld', 'decision_text' => 'Not upheld.']);
     // No approval rule: the chairperson finalizes directly.
-    $d = $decisions->finalize($d, $this->s->chair);
+    $d = $this->s->headDecides($d, $this->s->chair);
 
     $letters = app(GrievanceCorrespondenceService::class);
     $letter = $letters->generate($g->refresh(), $this->s->writer, ['letter_type' => 'decision_letter', 'language' => 'am', 'decision_id' => $d->id]);
@@ -288,7 +288,7 @@ it('issues an immutable decision letter, then accepts one appeal routed to the n
     expect($letter->reference_number)->toMatch('/^GRL-2026-\d{6}$/');
     expect(fn () => $letters->sign($letter, $this->s->chair, GrievanceSignatureMethod::QualifiedDigitalSignature))->toThrow(ValidationException::class);
     $letter = $letters->sign($letter, $this->s->chair, GrievanceSignatureMethod::ElectronicApproval);
-    $letter = $letters->issue($letter, $this->s->chair);
+    $letter = $letters->issue(GrievanceScenario::seal($letter), $this->s->chair);
 
     expect($letter->status)->toBe(GrievanceLetterStatus::Issued)
         ->and($letter->pdf_sha256)->toHaveLength(64)

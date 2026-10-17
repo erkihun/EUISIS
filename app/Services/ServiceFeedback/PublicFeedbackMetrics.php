@@ -15,9 +15,11 @@ use App\Models\Organization;
 use App\Models\PublicFeedbackAssignment;
 use App\Models\PublicFeedbackCategory;
 use App\Models\User;
+use App\Services\Calendar\LocalizedDateService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Lang;
 
 /**
  * Scoped counts and breakdowns over every public submission type (brief
@@ -85,7 +87,8 @@ final class PublicFeedbackMetrics
      */
     public function query(User $user, array $filters = []): Builder
     {
-        $query = $this->visibility->applyTargetScope(EmployeeServiceFeedback::query(), $user);
+        // WHAT: the types and target types the user's grants allow. WHERE: the organization scope below.
+        $query = $this->visibility->applyTypeScope($this->visibility->applyTargetScope(EmployeeServiceFeedback::query(), $user), $user);
 
         if ($user->employee_id !== null) {
             $query->where(fn (Builder $q) => $q->whereNull('employee_id')->orWhere('employee_id', '!=', $user->employee_id));
@@ -359,29 +362,40 @@ final class PublicFeedbackMetrics
      * @param  Builder<EmployeeServiceFeedback>  $query
      * @return list<array<string, mixed>>
      */
-    public function exportRows(Builder $query, User $user): array
+    public function exportRows(Builder $query, User $user, ?string $locale = null): array
     {
         $identity = $this->visibility->canSeeIdentity($user);
+        $locale = in_array($locale, ['en', 'am'], true) ? $locale : app()->getLocale();
+        $dates = app(LocalizedDateService::class);
+        $value = fn (string $group, ?string $key): ?string => $key === null ? null
+            : (Lang::has("service-feedback.export_values.{$group}.{$key}", $locale) ? (string) __("service-feedback.export_values.{$group}.{$key}", [], $locale) : $key);
+        $name = fn (?object $model, string $field = 'name'): ?string => $model === null ? null
+            : ($locale === 'am' && filled($model->{$field.'_am'} ?? null) ? $model->{$field.'_am'} : $model->{$field.'_en'});
         $rows = [];
 
         (clone $query)
-            ->with(['employee:id,full_name', 'organization:id,name_en', 'organizationUnit:id,name_en', 'category:id,name_en', 'currentAssignment'])
+            ->with(['employee:id,full_name', 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'organizationTarget:id,name_en,name_am', 'category:id,name_en,name_am', 'currentAssignment'])
             ->orderBy('submitted_at')
-            ->chunk(500, function ($chunk) use (&$rows, $identity): void {
+            ->chunk(500, function ($chunk) use (&$rows, $identity, $locale, $dates, $value, $name): void {
                 foreach ($chunk as $item) {
+                    $tipType = $item->tip_type?->value ?? ($item->type === ServiceFeedbackType::Suggestion ? PublicTipType::UNCLASSIFIED_LEGACY : null);
+                    $organizationTarget = $item->target_type === PublicFeedbackTargetType::Organization;
                     $row = [
-                        'submitted_at' => ($item->submitted_at ?? $item->created_at)?->toDateTimeString(),
+                        // Gregorian in English, Ethiopian in Amharic (the shared calendar service).
+                        'submitted_at' => $dates->displayDateTime($item->submitted_at ?? $item->created_at, $locale),
                         'reference' => $item->reference_number,
-                        'type' => $item->type->value,
-                        'tip_type' => $item->tip_type?->value ?? ($item->type === ServiceFeedbackType::Suggestion ? PublicTipType::UNCLASSIFIED_LEGACY : null),
-                        'intake_channel' => $item->intake_channel?->value,
-                        'target_type' => $item->target_type?->value ?? 'employee',
-                        'target_name' => $item->target_name_snapshot ?? $item->employee?->full_name,
-                        'organization' => $item->organization?->name_en,
-                        'organization_unit' => $item->organizationUnit?->name_en,
-                        'category' => $item->category?->name_en,
-                        'status' => $item->status->value,
-                        'handler' => $item->currentAssignment?->handler_name_snapshot,
+                        'type' => $value('types', $item->type->value),
+                        'tip_type' => $tipType === null ? null : (string) __("service-feedback.tip_types.{$tipType}", [], $locale),
+                        'intake_channel' => $value('intake_channels', $item->intake_channel?->value),
+                        'target_type' => $value('target_types', $organizationTarget ? 'organization' : 'employee'),
+                        'target_name' => $organizationTarget
+                            ? ($name($item->organizationTarget) ?? $item->target_name_snapshot)
+                            : ($item->target_name_snapshot ?? $item->employee?->full_name),
+                        'organization' => $name($item->organization),
+                        'organization_unit' => $name($item->organizationUnit),
+                        'category' => $name($item->category),
+                        'status' => $value('statuses', $item->status->value),
+                        'handler' => $item->currentAssignment?->handlerName($locale),
                         'subject' => $item->subject,
                         'message' => $item->comment,
                         'involved_parties' => $item->involved_parties,
@@ -413,9 +427,10 @@ final class PublicFeedbackMetrics
                 ->when($organizationIds !== null, fn ($q) => $q->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $organizationIds)))
                 ->orderBy('sort_order')->orderBy('name_en')->get(['id', 'name_en', 'name_am'])->all(),
             'statuses' => ServiceFeedbackStatus::values(),
-            'types' => array_column(ServiceFeedbackType::cases(), 'value'),
+            // Only what the user's grants let them read: no option that can only ever return nothing.
+            'types' => $this->visibility->visibleTypes($user),
             'tipTypes' => [...PublicTipType::values(), PublicTipType::UNCLASSIFIED_LEGACY],
-            'targets' => array_column(PublicFeedbackTargetType::cases(), 'value'),
+            'targets' => $this->visibility->visibleTargetTypes($user),
         ];
     }
 }

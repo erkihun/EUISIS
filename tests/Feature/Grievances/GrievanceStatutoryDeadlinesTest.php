@@ -96,15 +96,15 @@ it('snapshots the 10-wd head-decision on submission and the 5-wd delivery on fin
     expect($delivery->amount)->toBe(5);
 });
 
-it('tracks the head-decision deadline when a decision is finalized without executive approval', function () {
+it('tracks the head-decision deadline from the committee recommendation to the head approving it', function () {
     Carbon::setTestNow(Carbon::parse('2026-10-05 09:00:00'));
     $scenario = GrievanceScenario::build();
     $grievance = acceptedGrievance($scenario);
 
     $decisions = app(GrievanceDecisionService::class);
     $decision = $decisions->createDraft($grievance->refresh(), $scenario->writer, ['decision_type' => 'not_upheld', 'decision_text' => 'Not upheld.']);
-    // No approval rule at the committee stage: the chair finalizes directly.
-    $decisions->finalize($decision, $scenario->chair);
+    // Art. 35(1): the committee recommends; the head of the institution decides.
+    $scenario->headDecides($decision, $scenario->chair);
 
     $head = StatutoryDeadline::query()
         ->where('subject_type', $grievance->getMorphClass())

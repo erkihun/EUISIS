@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Grievances;
 
 use App\Enums\AssignmentStatus;
+use App\Enums\Grievance\GrievanceHandlerType;
 use App\Models\EmployeeAssignment;
 use App\Models\Grievance;
 use App\Models\GrievanceApprovalRule;
@@ -62,6 +63,15 @@ final class GrievanceApproverResolver
     public function requirementFor(Grievance $grievance, GrievanceCaseStage $stage, ?string $decisionType): array
     {
         $rule = $this->ruleFor($grievance, $stage, $decisionType);
+
+        // Regulation 201/2018 Arts. 30(1), 34(3) and 35(1): the grievance committee
+        // only recommends; the head of the institution decides. A committee stage
+        // therefore always needs approval, and a rule that waives it — or no rule
+        // at all — is a configuration gap to fix, never a licence to finalize.
+        if ($stage->handler_type === GrievanceHandlerType::Committee && ($rule === null || ! $rule->requires_approval)) {
+            return ['required' => true, 'rule' => null, 'position_id' => null, 'problem' => 'grievances.errors.head_decision_rule_missing'];
+        }
+
         if ($rule !== null) {
             if (! $rule->requires_approval) {
                 return ['required' => false, 'rule' => $rule, 'position_id' => null, 'problem' => null];

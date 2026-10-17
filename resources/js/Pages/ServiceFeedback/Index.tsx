@@ -5,6 +5,7 @@ import {
     RatingPill,
     exportHref,
     statusLabelKey,
+    submitterKey,
     useNameLabel,
     type FeedbackSummary,
 } from '@/Components/ServiceFeedback/feedbackUi';
@@ -50,6 +51,16 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
     };
 
     const showHref = (id: string) => route('service-feedback.admin.show', id);
+
+    /** Who the feedback is about: the employee, or the institution whose QR was scanned. */
+    const target = (row: FeedbackSummary) => row.target_type === 'organization'
+        ? { kind: t('serviceFeedback.targetOrganization'), name: label(row.target_organization ?? null, '—'), detail: row.target_organization?.code ?? '' }
+        : { kind: t('serviceFeedback.targetEmployee'), name: row.employee?.name ?? '—', detail: row.employee?.employee_number ?? '' };
+    const service = (row: FeedbackSummary) => label(row.service_type, '') || row.service_name || '—';
+    const submitter = (row: FeedbackSummary) => {
+        const key = submitterKey(row);
+        return key ? t(key) : row.client_name;
+    };
 
     return (
         <AuthenticatedLayout
@@ -138,7 +149,7 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                                     <tr className="text-left">
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-20')}>{t('serviceFeedback.filterRating')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.columnFeedback')}</th>
-                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-44')}>{t('serviceFeedback.filterEmployee')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-48')}>{t('serviceFeedback.columnTarget')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left hidden w-52 lg:table-cell')}>{t('serviceFeedback.serviceType')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-28')}>{t('serviceFeedback.filterStatus')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-32')}>{t('serviceFeedback.submittedDate')}</th>
@@ -168,16 +179,17 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                                                             {row.comment || t('serviceFeedback.noCommentRatingOnly')}
                                                         </span>
                                                         <span className="mt-0.5 block text-xs text-[color:var(--app-muted-foreground)]">
-                                                            {row.client_name ?? t('serviceFeedback.anonymousClient')}
+                                                            {submitter(row)}
                                                         </span>
                                                     </Link>
                                                 </td>
                                                 <td className={tableCellClassName}>
-                                                    <div className="font-medium text-[color:var(--app-foreground)]">{row.employee?.name ?? '—'}</div>
-                                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee?.employee_number}</div>
+                                                    <span className="mb-1 inline-flex rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--app-muted-foreground)]">{target(row).kind}</span>
+                                                    <div className="font-medium text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{target(row).name}</div>
+                                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">{target(row).detail}</div>
                                                 </td>
                                                 <td className={cx(tableCellClassName, 'hidden lg:table-cell')}>
-                                                    <div className="text-[color:var(--app-foreground)]">{label(row.service_type)}</div>
+                                                    <div className="text-[color:var(--app-foreground)]">{service(row)}</div>
                                                     <div className="max-w-[13rem] truncate text-xs text-[color:var(--app-muted-foreground)]">{label(row.organization)}</div>
                                                 </td>
                                                 <td className={tableCellClassName}><FeedbackStatusBadge status={row.status} /></td>
@@ -209,7 +221,7 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                                                 {row.comment || t('serviceFeedback.noCommentRatingOnly')}
                                             </span>
                                             <span className="text-xs text-[color:var(--app-muted-foreground)]">
-                                                {row.employee?.name ?? '—'} · {label(row.service_type)} · <LocalizedDateDisplay value={row.created_at} />
+                                                {target(row).kind}: {target(row).name} · {service(row)} · <LocalizedDateDisplay value={row.created_at} />
                                             </span>
                                         </Link>
                                     </li>

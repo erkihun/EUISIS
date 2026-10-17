@@ -1,5 +1,8 @@
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { SearchIcon, X } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
+import { formatDateDisplay } from '@/lib/calendar/dateFormat';
 import { Input, Select, cx } from '@euisis/ui';
 import { router } from '@inertiajs/react';
 import { useEffect, useState, type JSX } from 'react';
@@ -16,11 +19,16 @@ export type FeedbackFilters = {
     date_from?: string;
     date_to?: string;
     q?: string;
+    /** `employee` (an employee's QR) or `organization` (an institution's QR). */
+    target_type?: string;
+    category_id?: string;
 };
 
 export type FeedbackFilterOptions = {
     organizations: { id: string; name_en: string; name_am: string | null }[];
     serviceTypes: { id: string; name_en: string; name_am: string | null }[];
+    /** Categories the user may filter on (city-wide and their institutions'); absent on screens without the filter. */
+    categories?: { id: string; name_en: string; name_am: string | null }[];
 };
 
 type FilterKey = keyof FeedbackFilters;
@@ -76,6 +84,7 @@ export default function FeedbackFilterBar({
     embedded = false,
 }: Props): JSX.Element {
     const { locale, t } = useLocale();
+    const calendar = useCalendarSystem();
     const am = locale === 'am';
     const [query, setQuery] = useState(filters.q ?? '');
 
@@ -116,8 +125,10 @@ export default function FeedbackFilterBar({
         service_type_id: (value) => nameOf(filterOptions.serviceTypes, value),
         rating: (value) => `${t('serviceFeedback.filterRating')}: ${value} ★`,
         status: (value) => `${t('serviceFeedback.filterStatus')}: ${t(statusLabelKey(value))}`,
-        date_from: (value) => `${t('serviceFeedback.dateFrom')} ${value}`,
-        date_to: (value) => `${t('serviceFeedback.dateTo')} ${value}`,
+        date_from: (value) => `${t('serviceFeedback.dateFrom')} ${formatDateDisplay(value, calendar, locale)}`,
+        date_to: (value) => `${t('serviceFeedback.dateTo')} ${formatDateDisplay(value, calendar, locale)}`,
+        target_type: (value) => t(value === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee'),
+        category_id: (value) => nameOf(filterOptions.categories ?? [], value),
         employee_id: () => t('serviceFeedback.filterEmployee'),
         organization_unit_id: () => t('serviceFeedback.filterUnit'),
         service_no: (value) => `${t('serviceFeedback.serviceIdNo')}: ${value}`,
@@ -233,6 +244,31 @@ export default function FeedbackFilterBar({
                         ))}
                     </Select>
 
+                    <Select
+                        className={selectCls}
+                        value={filters.target_type ?? ''}
+                        onChange={(event) => apply({ target_type: event.target.value })}
+                        aria-label={t('serviceFeedback.columnTarget')}
+                    >
+                        <option value="">{t('serviceFeedback.allTargets')}</option>
+                        <option value="employee">{t('serviceFeedback.targetEmployee')}</option>
+                        <option value="organization">{t('serviceFeedback.targetOrganization')}</option>
+                    </Select>
+
+                    {filterOptions.categories && filterOptions.categories.length > 0 && (
+                        <Select
+                            className={selectCls}
+                            value={filters.category_id ?? ''}
+                            onChange={(event) => apply({ category_id: event.target.value })}
+                            aria-label={t('serviceFeedback.category')}
+                        >
+                            <option value="">{t('serviceFeedback.allCategories')}</option>
+                            {filterOptions.categories.map((category) => (
+                                <option key={category.id} value={category.id}>{am ? (category.name_am ?? category.name_en) : category.name_en}</option>
+                            ))}
+                        </Select>
+                    )}
+
                     {statuses && (
                         <Select
                             className={selectCls}
@@ -247,22 +283,27 @@ export default function FeedbackFilterBar({
                         </Select>
                     )}
 
-                    <Input
-                        type="date"
-                        className="h-[var(--control-h-sm)] w-full sm:w-[9.5rem]"
-                        value={filters.date_from ?? ''}
-                        max={filters.date_to || undefined}
-                        onChange={(event) => apply({ date_from: event.target.value })}
-                        aria-label={t('serviceFeedback.dateFrom')}
-                    />
-                    <Input
-                        type="date"
-                        className="h-[var(--control-h-sm)] w-full sm:w-[9.5rem]"
-                        value={filters.date_to ?? ''}
-                        min={filters.date_from || undefined}
-                        onChange={(event) => apply({ date_to: event.target.value })}
-                        aria-label={t('serviceFeedback.dateTo')}
-                    />
+                    {/* Ethiopian calendar in Amharic, Gregorian in English; the value is always Gregorian ISO. */}
+                    <div className="w-full sm:w-[11rem]" aria-label={t('serviceFeedback.dateFrom')} role="group">
+                        <LocalizedDatePicker
+                            id="filter-date-from"
+                            value={filters.date_from ?? ''}
+                            max={filters.date_to || undefined}
+                            placeholder={t('serviceFeedback.dateFrom')}
+                            onChange={(iso) => apply({ date_from: iso })}
+                            className="h-[var(--control-h-sm)] text-[13px]"
+                        />
+                    </div>
+                    <div className="w-full sm:w-[11rem]" aria-label={t('serviceFeedback.dateTo')} role="group">
+                        <LocalizedDatePicker
+                            id="filter-date-to"
+                            value={filters.date_to ?? ''}
+                            min={filters.date_from || undefined}
+                            placeholder={t('serviceFeedback.dateTo')}
+                            onChange={(iso) => apply({ date_to: iso })}
+                            className="h-[var(--control-h-sm)] text-[13px]"
+                        />
+                    </div>
                 </div>
             </div>
 

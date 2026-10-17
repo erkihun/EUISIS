@@ -28,6 +28,7 @@ beforeEach(function (): void {
         'submit' => true,
         'files' => [UploadedFile::fake()->create('proof.pdf', 20, 'application/pdf')],
         'file_types' => ['document'],
+        ...GrievanceScenario::application(),
     ])->assertRedirect();
     $this->base = Grievance::query()->latest('created_at')->firstOrFail();
     app(GrievanceCaseService::class)->intakeAccept($this->base, $this->s->intake, null);

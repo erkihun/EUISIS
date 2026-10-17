@@ -1,8 +1,10 @@
 import RatingStars from '@/Components/ServiceFeedback/RatingStars';
+import OrganizationFormDetails, { type OrganizationFormDetailsData } from '@/Components/ServiceFeedback/OrganizationFormDetails';
 import {
     FeedbackStatusBadge,
     ratingTone,
     statusLabelKey,
+    submitterKey,
     toneClasses,
     useNameLabel,
     type FeedbackSummary,
@@ -20,14 +22,23 @@ type Feedback = FeedbackSummary & {
     reviewed_at: string | null;
     reviewed_by: string | null;
     review_note: string | null;
+    target_logo_url?: string | null;
 };
+
+type HistoryRow = { id: string; from_status: string | null; to_status: string; actor: string | null; reason: string | null; transitioned_at: string | null };
 
 type Props = {
     feedback: Feedback;
+    /** Organization form: the service received and the questionnaire answers; null otherwise. */
+    organizationForm?: OrganizationFormDetailsData | null;
     can: { review: boolean; hide: boolean; delete: boolean; export: boolean };
+    /** Every recorded change of state, oldest first. */
+    history?: HistoryRow[];
+    /** The moves the workflow allows from the current status (empty without the review grant). */
+    allowedTransitions?: string[];
 };
 
-type Outcome = 'reviewed' | 'resolved';
+type Outcome = 'reviewed' | 'resolved' | 'closed';
 
 const NOTE_LIMIT = 2000;
 
@@ -40,7 +51,7 @@ function initials(name: string | null | undefined): string {
         .join('');
 }
 
-export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Element {
+export default function ServiceFeedbackShow({ feedback, organizationForm = null, can, history = [], allowedTransitions = [] }: Props): JSX.Element {
     const { t } = useLocale();
     const { confirm } = useConfirm();
     const label = useNameLabel();
@@ -48,8 +59,9 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
     const isHidden = feedback.status === 'hidden';
     const tone = toneClasses[ratingTone(feedback.rating)];
 
-    // A resolved entry opens on Resolved so re-saving a note keeps its outcome.
-    const [outcome, setOutcome] = useState<Outcome>(feedback.status === 'resolved' ? 'resolved' : 'reviewed');
+    // Only the moves the workflow allows from the current status; none once closed or hidden.
+    const allowed: Outcome[] = (['reviewed', 'resolved', 'closed'] as const).filter((id) => allowedTransitions.includes(id));
+    const [outcome, setOutcome] = useState<Outcome>(allowed[0] ?? 'reviewed');
     const [note, setNote] = useState(feedback.review_note ?? '');
     const [processing, setProcessing] = useState(false);
 
@@ -74,16 +86,20 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
         router.delete(route('service-feedback.admin.destroy', feedback.id), busy);
     }
 
-    const title = feedback.employee?.name
-        ? t('serviceFeedback.feedbackFor').replace(':name', feedback.employee.name)
+    const isOrganization = feedback.target_type === 'organization';
+    const targetName = isOrganization ? label(feedback.target_organization ?? null, '') : feedback.employee?.name ?? '';
+    const title = targetName
+        ? t('serviceFeedback.feedbackFor').replace(':name', targetName)
         : t('serviceFeedback.feedbackDetail');
 
-    const outcomes: { id: Outcome; label: string; hint: string }[] = [
+    const outcomes = ([
         { id: 'reviewed', label: t('serviceFeedback.statusReviewed'), hint: t('serviceFeedback.reviewedHint') },
         { id: 'resolved', label: t('serviceFeedback.statusResolved'), hint: t('serviceFeedback.resolvedHint') },
-    ];
+        { id: 'closed', label: t('serviceFeedback.statusClosed'), hint: t('serviceFeedback.closedHint') },
+    ] as { id: Outcome; label: string; hint: string }[]).filter((option) => allowed.includes(option.id));
 
-    const serviceLabel = [feedback.service_no, label(feedback.service_type, '')].filter(Boolean).join(' · ') || '—';
+    const serviceLabel = [feedback.service_no, label(feedback.service_type, '') || feedback.service_name].filter(Boolean).join(' · ') || '—';
+    const submitter = submitterKey(feedback);
 
     return (
         <AuthenticatedLayout
@@ -102,7 +118,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                             <FeedbackStatusBadge status={feedback.status} />
                         </div>
                         <p className="mt-1 text-[13px] text-[color:var(--app-muted-foreground)]">
-                            {label(feedback.service_type)} · {t('serviceFeedback.submittedDate')}{' '}
+                            {t(isOrganization ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee')} · {t('serviceFeedback.submittedDate')}{' '}
                             <LocalizedDateDisplay value={feedback.created_at} withTime /> {t('serviceFeedback.viaQr')}
                         </p>
                     </div>
@@ -153,7 +169,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                             <dl className="flex flex-wrap gap-x-8 gap-y-3 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-5 py-3.5 text-[13px] sm:px-6">
                                 <div>
                                     <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.client')}</dt>
-                                    <dd className="font-medium text-[color:var(--app-foreground)]">{feedback.identity_hidden ? t('serviceFeedback.identityHidden') : feedback.client_name ?? t('serviceFeedback.anonymousClient')}</dd>
+                                    <dd className="font-medium text-[color:var(--app-foreground)]">{submitter ? t(submitter) : feedback.client_name}</dd>
                                 </div>
                                 <div className="min-w-0">
                                     <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.contact')}</dt>
@@ -176,8 +192,10 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                             </dl>
                         </section>
 
+                        {organizationForm && <OrganizationFormDetails details={organizationForm} />}
+
                         {/* Review */}
-                        {can.review && (
+                        {can.review && outcomes.length > 0 && (
                             <section aria-labelledby="review-heading" className="space-y-4 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 sm:p-6">
                                 <div>
                                     <h2 id="review-heading" className="text-base font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.review')}</h2>
@@ -186,7 +204,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
 
                                 <fieldset>
                                     <legend className="mb-2 text-[13px] font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.outcome')}</legend>
-                                    <div className="grid gap-3 sm:grid-cols-2">
+                                    <div className="grid gap-3 sm:grid-cols-3">
                                         {outcomes.map((option) => {
                                             const selected = outcome === option.id;
                                             return (
@@ -238,7 +256,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
 
                                 <div className="flex justify-end">
                                     <Button type="button" variant="primary" size="lg" loading={processing} onClick={submitReview}>
-                                        {outcome === 'resolved' ? t('serviceFeedback.markResolved') : t('serviceFeedback.markReviewed')}
+                                        {outcome === 'resolved' ? t('serviceFeedback.markResolved') : outcome === 'closed' ? t('serviceFeedback.markClosed') : t('serviceFeedback.markReviewed')}
                                     </Button>
                                 </div>
                             </section>
@@ -249,41 +267,55 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                     <aside className="space-y-5 lg:col-span-4">
                         <section aria-labelledby="context-heading" className="rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                             <h2 id="context-heading" className="px-5 pt-4 text-xs font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">
-                                {t('serviceFeedback.serviceProvidedBy')}
+                                {t(isOrganization ? 'serviceFeedback.targetInstitutionHeading' : 'serviceFeedback.serviceProvidedBy')}
                             </h2>
                             <div className="flex items-center gap-3 border-b border-[color:var(--app-border)] px-5 pb-4 pt-3">
-                                <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary-100)] text-sm font-bold text-[color:var(--color-primary)] dark:bg-[color:var(--color-primary-900)] dark:text-[color:var(--color-primary-200)]">
-                                    {initials(feedback.employee?.name)}
-                                </span>
+                                {isOrganization && feedback.target_logo_url ? (
+                                    <img src={feedback.target_logo_url} alt="" className="h-10 w-10 shrink-0 rounded-[var(--radius-control)] border border-[color:var(--app-border)] bg-white object-contain p-0.5" />
+                                ) : (
+                                    <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary-100)] text-sm font-bold text-[color:var(--color-primary)] dark:bg-[color:var(--color-primary-900)] dark:text-[color:var(--color-primary-200)]">
+                                        {initials(isOrganization ? targetName : feedback.employee?.name)}
+                                    </span>
+                                )}
                                 <span className="min-w-0">
-                                    <span className="block truncate text-[15px] font-semibold text-[color:var(--app-foreground)]">{feedback.employee?.name ?? '—'}</span>
-                                    <span className="block text-xs text-[color:var(--app-muted-foreground)]">{feedback.employee?.employee_number}</span>
+                                    <span className="block text-[15px] font-semibold text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{(isOrganization ? targetName : feedback.employee?.name) || '—'}</span>
+                                    <span className="block text-xs text-[color:var(--app-muted-foreground)]">{isOrganization ? feedback.target_organization?.code : feedback.employee?.employee_number}</span>
                                 </span>
                             </div>
                             <dl className="space-y-3.5 px-5 py-4 text-sm">
                                 <Detail label={t('serviceFeedback.serviceType')}>{serviceLabel}</Detail>
                                 <Detail label={t('serviceFeedback.filterOrganization')}>{label(feedback.organization)}</Detail>
-                                <Detail label={t('serviceFeedback.filterUnit')}>{label(feedback.organization_unit)}</Detail>
-                                <Detail label={t('serviceFeedback.servicePosition')}>{label(feedback.position)}</Detail>
+                                <Detail label={t(isOrganization ? 'serviceFeedback.servicePoint' : 'serviceFeedback.filterUnit')}>{label(feedback.organization_unit)}</Detail>
+                                {!isOrganization && <Detail label={t('serviceFeedback.servicePosition')}>{label(feedback.position)}</Detail>}
+                                <Detail label={t('serviceFeedback.category')}>{label(feedback.category ?? null)}</Detail>
                             </dl>
                         </section>
 
                         <section aria-labelledby="activity-heading" className="rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                             <h2 id="activity-heading" className="text-xs font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.activity')}</h2>
                             <ol className="mt-3.5 space-y-3.5">
-                                <TimelineItem done title={t('serviceFeedback.submittedByClient')}>
-                                    <LocalizedDateDisplay value={feedback.created_at} withTime />
-                                </TimelineItem>
-                                {feedback.reviewed_at ? (
-                                    <TimelineItem done title={`${t(statusLabelKey(feedback.status))} · ${feedback.reviewed_by ?? '—'}`}>
-                                        <LocalizedDateDisplay value={feedback.reviewed_at} withTime />
-                                        {feedback.review_note && (
+                                {history.length === 0 && (
+                                    // A row written before the history existed: what the record itself says.
+                                    <TimelineItem done title={t('serviceFeedback.submittedByClient')}>
+                                        <LocalizedDateDisplay value={feedback.created_at} withTime />
+                                    </TimelineItem>
+                                )}
+                                {history.map((row) => (
+                                    <TimelineItem key={row.id} done title={row.from_status === null ? t('serviceFeedback.submittedByClient') : `${t(statusLabelKey(row.to_status))} · ${row.actor ?? t('serviceFeedback.historySystem')}`}>
+                                        <LocalizedDateDisplay value={row.transitioned_at} withTime />
+                                        {row.reason && (
                                             <span className="mt-1.5 block whitespace-pre-wrap rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] px-2.5 py-2 text-[color:var(--app-foreground)]">
-                                                {feedback.review_note}
+                                                {row.reason}
                                             </span>
                                         )}
                                     </TimelineItem>
-                                ) : (
+                                ))}
+                                {history.length === 0 && feedback.reviewed_at && (
+                                    <TimelineItem done title={`${t(statusLabelKey(feedback.status))} · ${feedback.reviewed_by ?? '—'}`}>
+                                        <LocalizedDateDisplay value={feedback.reviewed_at} withTime />
+                                    </TimelineItem>
+                                )}
+                                {feedback.status === 'pending' && (
                                     <TimelineItem title={t('serviceFeedback.awaitingReview')}>{t('serviceFeedback.awaitingReviewDetail')}</TimelineItem>
                                 )}
                             </ol>

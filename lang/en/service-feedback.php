@@ -39,6 +39,17 @@ return [
     'rule_deleted' => 'The routing rule was deleted.',
     'category_out_of_scope' => 'The category must be city-wide or belong to the rule\'s institution.',
     'settings_saved' => 'The public feedback policy was saved.',
+    'questionnaire_draft_created' => 'A new draft of the questionnaire was created.',
+    'questionnaire_saved' => 'The questionnaire draft was saved.',
+    'questionnaire_published' => 'The questionnaire was published. New submissions answer this version.',
+    'questionnaire_retired' => 'The questionnaire was withdrawn. The form now shows no questionnaire.',
+    'questionnaire_deleted' => 'The questionnaire draft was deleted.',
+    'questionnaire_not_draft' => 'Only a draft can be changed. Create a new draft to revise a published questionnaire.',
+    'questionnaire_not_published' => 'Only the published version can be withdrawn.',
+    'questionnaire_empty' => 'Add at least one question before publishing.',
+    'questionnaire_missing_amharic' => 'Every question and option needs its Amharic wording before publishing: :code',
+    'questionnaire_missing_options' => 'A choice question needs at least two options: :code',
+    'questionnaire_duplicate_code' => 'Each question code must be unique: :code',
     'export_queued' => 'Export queued. It appears in the list below once the file is ready.',
     'subject_added' => 'The employee was named as an investigation subject.',
     'subject_removed' => 'The investigation subject was removed.',
@@ -73,6 +84,26 @@ return [
         'intake_channel' => 'Channel',
         'subject' => 'Subject',
         'message' => 'Message',
+    ],
+
+    // Header of the Feedback CSV (ServiceFeedbackController::export), in the requester's language.
+    'feedback_export_columns' => [
+        'submitted_at' => 'Submitted At', 'target_type' => 'Target Type', 'target' => 'Target',
+        'employee' => 'Employee', 'employee_number' => 'Employee No.', 'organization' => 'Organization',
+        'unit' => 'Unit', 'service' => 'Service', 'category' => 'Category', 'rating' => 'Rating',
+        'status' => 'Status', 'comment' => 'Comment', 'client_name' => 'Client Name', 'client_contact' => 'Client Contact',
+    ],
+
+    // Values written into exports, in the requester's language (ExportPublicFeedbackReport).
+    'export_values' => [
+        'types' => ['feedback' => 'Feedback', 'suggestion' => 'Tip-off', 'complaint' => 'Complaint'],
+        'target_types' => ['employee' => 'Employee', 'organization' => 'Institution'],
+        'statuses' => [
+            'pending' => 'Pending', 'unrouted' => 'Unrouted', 'assigned' => 'Assigned', 'reviewed' => 'Reviewed',
+            'under_review' => 'Under review', 'accepted' => 'Accepted', 'not_adopted' => 'Not adopted',
+            'resolved' => 'Resolved', 'closed' => 'Closed', 'hidden' => 'Hidden',
+        ],
+        'intake_channels' => ['WEB_QR' => 'Public QR web form', 'PHONE' => 'Phone', 'ORAL' => 'In person (oral)', 'WRITTEN' => 'Written'],
     ],
 
     'types' => [
@@ -134,5 +165,13 @@ return [
         'phone_invalid' => 'Please enter a valid phone number.',
         'email_invalid' => 'Please enter a valid e-mail address.',
         'attachments_disabled' => 'Files cannot be attached at the moment.',
+        'questionnaire_updated' => 'This form was updated while you were filling it in. Please review the questions and send again.',
+        'office_invalid' => 'Please choose one of the offices listed.',
+        'service_date_future' => 'The service date cannot be in the future.',
+        'service_date_too_old' => 'The service date must be within the last year.',
+        'service_date_invalid' => 'Please enter a valid date.',
+        'answer_required' => 'Please answer: :attribute',
+        'answer_invalid' => 'Please choose one of the answers offered for: :attribute',
+        'answer_too_long' => 'This answer is too long.',
     ],
 ];

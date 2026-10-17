@@ -8,6 +8,7 @@ use App\Casts\EncryptedOrPlaintext;
 use App\Enums\PublicFeedbackSourceType;
 use App\Enums\PublicFeedbackTargetType;
 use App\Enums\PublicIntakeChannel;
+use App\Enums\PublicServiceTimeBand;
 use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
@@ -56,6 +57,11 @@ class EmployeeServiceFeedback extends Model
         'position_service_id',
         'service_no_snapshot',
         'service_name_snapshot',
+        'question_set_id',
+        'service_id',
+        'service_text',
+        'service_date',
+        'service_time_band',
         'rating',
         'comment',
         'client_name',
@@ -107,6 +113,8 @@ class EmployeeServiceFeedback extends Model
             'intake_channel' => PublicIntakeChannel::class,
             'rating' => 'integer',
             'incident_date' => 'date',
+            'service_date' => 'date',
+            'service_time_band' => PublicServiceTimeBand::class,
             'submitted_at' => 'datetime',
             'acknowledged_at' => 'datetime',
             'assigned_at' => 'datetime',
@@ -122,6 +130,7 @@ class EmployeeServiceFeedback extends Model
         static::saving(function (self $submission): void {
             $submission->assertTargetIntegrity();
             $submission->assertTipTypeIntegrity();
+            $submission->assertServiceContextIntegrity();
         });
     }
 
@@ -159,6 +168,18 @@ class EmployeeServiceFeedback extends Model
         }
     }
 
+    /**
+     * Service information and questionnaire answers belong to an organization
+     * submission — the PHP copy of esf_org_service_context_chk. An employee
+     * submission takes its service from the employee's post instead.
+     */
+    public function assertServiceContextIntegrity(): void
+    {
+        if ($this->isEmployeeTarget() && ($this->service_id !== null || $this->service_text !== null || $this->question_set_id !== null)) {
+            throw new InvalidArgumentException('Service information and questionnaire answers belong to an organization submission only.');
+        }
+    }
+
     public function isTipOff(): bool
     {
         return $this->type === ServiceFeedbackType::Suggestion;
@@ -167,6 +188,24 @@ class EmployeeServiceFeedback extends Model
     public function isEmployeeTarget(): bool
     {
         return ($this->target_type ?? PublicFeedbackTargetType::Employee) === PublicFeedbackTargetType::Employee;
+    }
+
+    /** The questionnaire version this submission answered; null when it answered none. */
+    public function questionSet(): BelongsTo
+    {
+        return $this->belongsTo(PublicFeedbackQuestionSet::class, 'question_set_id');
+    }
+
+    /** @return HasMany<PublicFeedbackAnswer, $this> */
+    public function answers(): HasMany
+    {
+        return $this->hasMany(PublicFeedbackAnswer::class, 'submission_id');
+    }
+
+    /** The institution's catalog service the visitor received (organization target). */
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class)->withTrashed();
     }
 
     public function employee(): BelongsTo

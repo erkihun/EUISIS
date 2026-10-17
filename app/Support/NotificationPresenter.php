@@ -11,6 +11,7 @@ use App\Notifications\GrievanceNotification;
 use App\Notifications\PasswordSecurityNotification;
 use App\Notifications\PerformanceNotification;
 use App\Notifications\PublicFeedbackNotification;
+use App\Notifications\StatutoryDeadlineNotification;
 use App\Notifications\TransferAnnouncementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -32,6 +33,7 @@ final class NotificationPresenter
         'performance' => PerformanceNotification::class,
         'grievance' => GrievanceNotification::class,
         'public_feedback' => PublicFeedbackNotification::class,
+        'statutory_deadline' => StatutoryDeadlineNotification::class,
         'transfer' => TransferAnnouncementNotification::class,
     ];
 

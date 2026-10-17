@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import OrganizationFormDetails, { type OrganizationFormDetailsData } from '@/Components/ServiceFeedback/OrganizationFormDetails';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import { FeedbackStatusBadge, statusLabelKey } from '@/Components/ServiceFeedback/feedbackUi';
@@ -11,7 +12,7 @@ import type { TipType } from '@/types/publicSubmissions';
 
 type Entry = {
     id: string; reference: string | null; status: string; message: string; subject: string | null;
-    target_type: 'employee' | 'organization'; target_name: string | null;
+    target_type: 'employee' | 'organization'; target_name: string | null; target_code?: string | null;
     created_at: string | null; submitted_at: string | null; employee: string | null; employee_number: string | null;
     organization: string | null; organization_unit: string | null; position: string | null; category: string | null;
     client_name: string | null; client_contact: string | null; identity_hidden: boolean;
@@ -42,6 +43,8 @@ type Props = {
     referrals: ReferralRow[];
     can: { assign: boolean; subjects: boolean; refer: boolean; decideReferral: boolean };
     handlerOptions: HandlerOptions | null;
+    /** Organization form: the service received and the questionnaire answers; null otherwise. */
+    organizationForm?: OrganizationFormDetailsData | null;
 };
 
 const HANDLER_TYPE_KEY: Record<AssignmentRow['handler_type'], string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole' };
@@ -55,9 +58,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  * stands and every step it took (brief §52–53). The transition form offers
  * only the statuses this user may set from here; assignment opens a dialog.
  */
-export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions, subjects = [], referrals = [] }: Props) {
+export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions, subjects = [], referrals = [], organizationForm = null }: Props) {
     const { t, locale } = useLocale();
-    const title = t(type === 'complaint' ? 'serviceFeedback.typeComplaint' : 'serviceFeedback.typeSuggestion');
+    const title = t(type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion');
     const [assigning, setAssigning] = useState(false);
 
     return <AuthenticatedLayout header={<PageHeader title={title} backHref={route(type === 'complaint' ? 'service-submissions.complaints' : 'service-submissions.suggestions')} />}>
@@ -65,8 +68,9 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
         <div className="space-y-5">
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t(entry.target_type === 'organization' ? 'serviceFeedback.submissionsAboutInstitution' : 'serviceFeedback.serviceProvidedBy')}</p>
-                    <h2 className="text-xl font-semibold">{entry.target_name ?? entry.employee ?? entry.employee_number ?? '—'}</h2>
+                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t(entry.target_type === 'organization' ? 'serviceFeedback.targetInstitutionHeading' : 'serviceFeedback.serviceProvidedBy')}</p>
+                    <h2 className="text-xl font-semibold [overflow-wrap:anywhere]">{entry.target_name ?? entry.employee ?? entry.employee_number ?? '—'}</h2>
+                    {entry.target_code && <p className="text-sm text-[color:var(--app-muted-foreground)]">{entry.target_code}</p>}
                     {entry.reference && <p className="mt-1 font-mono text-sm">{entry.reference}</p>}
                 </div>
                 <FeedbackStatusBadge status={entry.status} className="text-sm" />
@@ -112,6 +116,8 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                         )}
                     </section>
 
+                    {organizationForm && <OrganizationFormDetails details={organizationForm} />}
+
                     {entry.attachments_hidden && entry.attachment_count > 0 && <section className={PANEL}>
                         <h2 className="font-semibold">{t('serviceFeedback.attachments')}</h2>
                         <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.attachmentsHidden').replace(':count', String(entry.attachment_count))}</p>
@@ -153,10 +159,10 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                             <h2 className="font-semibold">{t('serviceFeedback.currentHandler')}</h2>
                             {can.assign && <Button type="button" size="sm" variant={currentAssignment ? 'outline' : 'primary'} onClick={() => setAssigning(true)}>{t(currentAssignment ? 'serviceFeedback.reassign' : 'serviceFeedback.assignHandler')}</Button>}
                         </div>
-                        {currentAssignment ? <dl className="space-y-1 text-sm">
+                        {currentAssignment ? <div className="space-y-1 text-sm">
                             <div className="font-medium">{currentAssignment.handler}</div>
                             <div className="text-[color:var(--app-muted-foreground)]">{t(`serviceFeedback.${HANDLER_TYPE_KEY[currentAssignment.handler_type]}`)} · {currentAssignment.via_rule ? t('serviceFeedback.viaRoutingRule') : currentAssignment.assigned_by ?? t('common.system')} · <LocalizedDateDisplay value={currentAssignment.assigned_at} withTime /></div>
-                        </dl> : <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noHandler')}</p>}
+                        </div> : <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noHandler')}</p>}
                         {assignments.length > 1 && <details className="text-sm">
                             <summary className="cursor-pointer font-medium text-[color:var(--color-primary)]">{t('serviceFeedback.assignmentHistory')}</summary>
                             <ul className="mt-2 space-y-2">{assignments.map((row) => <li key={row.id} className="rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] p-2">

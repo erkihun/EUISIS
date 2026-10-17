@@ -79,6 +79,10 @@ class ServiceFeedbackQueryService
             ->when($this->filled($filters, 'service_no'), fn (Builder $q): Builder => $q->where('service_no_snapshot', $filters['service_no']))
             ->when($this->filled($filters, 'rating'), fn (Builder $q): Builder => $q->where('rating', (int) $filters['rating']))
             ->when($this->filled($filters, 'status'), fn (Builder $q): Builder => $q->where('status', $filters['status']))
+            ->when($this->filled($filters, 'category_id'), fn (Builder $q): Builder => $q->where('category_id', $filters['category_id']))
+            // Rows written before the unified model carry no target type and are employee submissions.
+            ->when(($filters['target_type'] ?? null) === 'employee', fn (Builder $q): Builder => $q->where(fn (Builder $q) => $q->where('target_type', 'employee')->orWhereNull('target_type')))
+            ->when(($filters['target_type'] ?? null) === 'organization', fn (Builder $q): Builder => $q->where('target_type', 'organization'))
             // Dates arrive as Y-m-d; `date_to` is inclusive of the whole day.
             ->when($this->filled($filters, 'date_from'), fn (Builder $q): Builder => $q->whereDate('created_at', '>=', $filters['date_from']))
             ->when($this->filled($filters, 'date_to'), fn (Builder $q): Builder => $q->whereDate('created_at', '<=', $filters['date_to']))

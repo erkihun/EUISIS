@@ -94,6 +94,7 @@ const common = {
     dismiss: 'ይዝጉ',
     remove: 'ያስወግዱ',
     replace: 'ይተኩ',
+    requiredField: 'ግዴታ',
     undo: 'ይቀልብሱ',
     user: 'ተጠቃሚ',
     optional: 'አማራጭ',

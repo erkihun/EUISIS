@@ -57,7 +57,7 @@ export default function Index(props: SettingsIndexProps) {
 
     const activeCategories = props.categories.filter(c => c.is_active).length;
     const activeRules = props.approvalRules.filter(r => r.is_active && r.requires_approval).length;
-    const activeSeals = props.seals.filter(s => s.status === 'active').length;
+    const activeSeals = props.statutory.approved_seals;
     const activeTemplates = props.templates.filter(x => x.is_active).length;
     const activeReasonCodes = props.reasonCodes.filter(c => c.is_active).length;
     const counts: Record<SectionId, number | null> = {
@@ -65,14 +65,14 @@ export default function Index(props: SettingsIndexProps) {
         external_authorities: props.externalAuthorities.length, delegations: props.delegations.filter(d => delegationState(d) === 'active').length,
         templates: activeTemplates, letterheads: props.letterheads.length, seals: activeSeals,
     };
-    /** error = blocks employees; warning = a feature is unavailable until configured. */
+    /** error = a case cannot reach a lawful end; warning = a feature is unavailable until configured. */
     const severity: Partial<Record<SectionId, 'error' | 'warning'>> = {
         ...(activeCategories === 0 ? { categories: 'error' as const } : {}),
-        ...(activeRules === 0 ? { approval_rules: 'warning' as const } : {}),
-        ...(activeSeals === 0 ? { seals: 'warning' as const } : {}),
+        // Arts. 30(1), 35(1): without a head-decision rule, committee recommendations cannot be finalized.
+        ...(props.statutory.head_decision_rules === 0 ? { approval_rules: 'error' as const } : {}),
+        // Art. 35(2): without an approved seal, no decision letter can be issued.
+        ...(activeSeals === 0 ? { seals: 'error' as const } : {}),
         ...(props.letterheads.length === 0 ? { letterheads: 'warning' as const } : {}),
-        ...(activeTemplates === 0 ? { templates: 'warning' as const } : {}),
-        ...(activeReasonCodes === 0 ? { reason_codes: 'warning' as const } : {}),
     };
 
     return (
@@ -94,7 +94,7 @@ export default function Index(props: SettingsIndexProps) {
                     <nav aria-label={a('sections')} className="sticky top-4 hidden space-y-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3 lg:block">
                         {GROUPS.map(group => (
                             <div key={group.id} className="space-y-0.5">
-                                <p className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--app-muted-foreground)]">{a(`group_${group.id}`)}</p>
+                                <p className="px-2.5 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)]">{a(`group_${group.id}`)}</p>
                                 {group.sections.map(id => {
                                     const active = id === section;
                                     const sev = severity[id];
@@ -131,40 +131,68 @@ export default function Index(props: SettingsIndexProps) {
     function Readiness({ props: p, severity: sev, counts: n, go: open }: { props: SettingsIndexProps; severity: typeof severity; counts: typeof counts; go: (id: SectionId) => void }) {
         const items: { id: SectionId; ok: boolean; sev?: 'error' | 'warning'; title: string; body: string }[] = [
             { id: 'categories', ok: !sev.categories, sev: sev.categories, title: sev.categories ? a('ready_categories_missing') : fmt(a('ready_categories_ok'), { n: n.categories ?? 0 }), body: sev.categories ? a('ready_categories_help') : a('ready_categories_ok_help') },
-            { id: 'approval_rules', ok: !sev.approval_rules, sev: sev.approval_rules, title: sev.approval_rules ? a('ready_rules_missing') : fmt(a('ready_rules_ok'), { n: n.approval_rules ?? 0 }), body: sev.approval_rules ? a('ready_rules_help') : a('ready_rules_ok_help') },
+            { id: 'approval_rules', ok: !sev.approval_rules, sev: sev.approval_rules, title: sev.approval_rules ? a('ready_rules_missing') : fmt(a('ready_rules_ok'), { n: p.statutory.head_decision_rules }), body: sev.approval_rules ? a('ready_rules_help') : a('ready_rules_ok_help') },
             { id: 'letterheads', ok: !sev.letterheads, sev: sev.letterheads, title: sev.letterheads ? a('ready_letterheads_missing') : fmt(a('ready_letterheads_ok'), { n: n.letterheads ?? 0 }), body: sev.letterheads ? a('ready_letterheads_help') : a('ready_letterheads_ok_help') },
             { id: 'seals', ok: !sev.seals, sev: sev.seals, title: sev.seals ? a('ready_seals_missing') : fmt(a('ready_seals_ok'), { n: n.seals ?? 0 }), body: sev.seals ? a('ready_seals_help') : a('ready_seals_ok_help') },
-            { id: 'templates', ok: !sev.templates, sev: sev.templates, title: sev.templates ? a('ready_templates_missing') : fmt(a('ready_templates_ok'), { n: n.templates ?? 0 }), body: sev.templates ? a('ready_templates_help') : a('ready_templates_ok_help') },
-            { id: 'reason_codes', ok: !sev.reason_codes, sev: sev.reason_codes, title: sev.reason_codes ? a('ready_reason_codes_missing') : fmt(a('ready_reason_codes_ok'), { n: n.reason_codes ?? 0 }), body: sev.reason_codes ? a('ready_reason_codes_help') : a('ready_reason_codes_ok_help') },
         ];
-        // The count and the bar cover every item; the cards list only what still needs setup.
-        const ready = items.filter(i => i.ok).length;
-        const total = items.length;
+        const holidaysOk = p.statutory.holidays > 0;
+        // The smaller checks, each shown so the count always matches what is on screen.
+        const minor: { key: string; ok: boolean; label: string; section?: SectionId; href?: string | null }[] = [
+            { key: 'holidays', ok: holidaysOk, label: holidaysOk ? fmt(a('ready_holidays_ok'), { n: p.statutory.holidays }) : a('ready_holidays_short'), href: p.statutory.holidays_url },
+            { key: 'templates', ok: p.templates.length > 0, label: p.templates.length ? fmt(a('ready_templates_ok'), { n: p.templates.length }) : a('ready_templates_missing'), section: 'templates' },
+            { key: 'reason_codes', ok: p.reasonCodes.length > 0, label: p.reasonCodes.length ? fmt(a('ready_reason_codes_ok'), { n: p.reasonCodes.length }) : a('ready_reason_codes_missing'), section: 'reason_codes' },
+        ];
+        const ready = items.filter(i => i.ok).length + minor.filter(m => m.ok).length;
+        const total = items.length + minor.length;
         if (ready === total) return null;
-        const pending = items.filter(i => !i.ok);
+        // What stops a case first, then what degrades it, then what is done.
+        const rank = (i: (typeof items)[number]) => (i.ok ? 2 : i.sev === 'error' ? 0 : 1);
+        const blocking = items.filter(i => !i.ok && i.sev === 'error').length;
         return (
             <section aria-labelledby="readiness" className="space-y-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                <div className="flex items-baseline justify-between gap-3">
-                    <h2 id="readiness" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{a('readiness')}</h2>
-                    <span className="text-sm text-[color:var(--app-muted-foreground)]">{fmt(a('readiness_count'), { ready, total })}</span>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <div>
+                        <h2 id="readiness" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{a('readiness')}</h2>
+                        {blocking > 0 && <p className="text-[13px] text-red-700 dark:text-red-400">{fmt(a('readiness_blocking'), { n: blocking })}</p>}
+                    </div>
+                    <span className="text-sm tabular-nums text-[color:var(--app-muted-foreground)]">{fmt(a('readiness_count'), { ready, total })}</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={ready} aria-label={a('readiness')}>
-                    <div className="h-full bg-[color:var(--color-primary)]" style={{ width: `${(100 * ready) / total}%` }} />
+                    <div className="h-full bg-[color:var(--color-primary)] transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${(100 * ready) / total}%` }} />
                 </div>
                 <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
-                    {pending.map(item => {
+                    {[...items].sort((x, y) => rank(x) - rank(y)).map(item => {
                         const tone = item.ok ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/20'
                             : item.sev === 'error' ? 'border-red-200 bg-red-50 dark:border-red-900/60 dark:bg-red-950/20' : 'border-amber-200 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/20';
                         const Icon = item.ok ? CheckCircle : item.sev === 'error' ? XCircle : AlertTriangle;
                         const iconTone = item.ok ? 'text-emerald-700 dark:text-emerald-400' : item.sev === 'error' ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400';
                         return (
-                            <button key={item.id} type="button" onClick={() => open(item.id)} className={`flex items-start gap-2.5 rounded-card border p-3 text-left ${tone}`}>
+                            <button key={item.id} type="button" onClick={() => open(item.id)}
+                                className={`group flex items-start gap-2.5 rounded-card border p-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] ${tone}`}>
                                 <Icon className={`mt-0.5 h-[18px] w-[18px] shrink-0 ${iconTone}`} aria-hidden="true" />
-                                <span className="min-w-0"><span className="block text-[13px] font-semibold text-[color:var(--app-foreground)]">{item.title}</span><span className="hidden text-xs text-[color:var(--app-foreground)] sm:block">{item.body}</span></span>
+                                <span className="min-w-0">
+                                    <span className="block text-[13px] font-semibold text-[color:var(--app-foreground)]">{item.title}</span>
+                                    <span className="hidden text-xs text-[color:var(--app-foreground)] sm:block">{item.body}</span>
+                                    {!item.ok && <span className="mt-1.5 inline-block text-xs font-semibold text-[color:var(--color-primary)] group-hover:underline">{a('ready_fix')}</span>}
+                                </span>
                             </button>
                         );
                     })}
                 </div>
+                <ul className="flex flex-wrap gap-2" aria-label={a('readiness_more')}>
+                    {minor.map(m => {
+                        const cls = `inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${m.ok ? 'border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)]' : 'border-amber-300 bg-amber-50 text-[color:var(--app-foreground)] dark:border-amber-800 dark:bg-amber-950/20'}`;
+                        const content = <>{m.ok ? <CheckCircle className="h-3.5 w-3.5 text-emerald-700 dark:text-emerald-400" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" aria-hidden="true" />}{m.label}</>;
+                        return (
+                            <li key={m.key}>
+                                {m.section ? <button type="button" onClick={() => open(m.section!)} className={`${cls} hover:border-[color:var(--app-border-strong)]`}>{content}</button>
+                                    : m.href ? <a href={m.href} className={`${cls} hover:border-[color:var(--app-border-strong)]`}>{content}</a>
+                                        : <span className={cls}>{content}</span>}
+                            </li>
+                        );
+                    })}
+                </ul>
+                {!holidaysOk && <p className="text-xs text-[color:var(--app-muted-foreground)]">{a('ready_holidays_missing')}</p>}
             </section>
         );
     }
@@ -374,7 +402,7 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
                                 className={`h-9 min-w-11 rounded-md px-2 text-[13px] font-semibold ${on ? 'bg-[color:var(--color-primary)] text-white' : 'border border-[color:var(--app-border-strong)] text-[color:var(--app-muted-foreground)]'}`}>{a(`weekday_${d}`)}</button>;
                         })}
                     </div>
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{a('weekday_help')}</p>
+                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{a('weekday_help')} {a('weekday_sla_only')}</p>
                     {err(f.key) && <p className="text-xs text-red-600">{err(f.key)}</p>}
                 </fieldset>
             );
@@ -411,6 +439,16 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
 
     const enabled = byKey.enabled;
     const save = () => form.put(route('grievances.settings.policy.update'), { preserveScroll: true });
+    /** Settings the regulation now decides for committee cases: shown, but not switchable. */
+    const fixedByLaw: Record<string, string> = { voting_enabled: 'law_voting', dissent_enabled: 'law_dissent' };
+    const renderField = (f: SettingField) => fixedByLaw[f.key]
+        ? (
+            <div key={f.key} className="flex items-start justify-between gap-4">
+                <span className="min-w-0"><span className="block text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(f)}</span><span className="block text-xs text-[color:var(--app-muted-foreground)]">{a(fixedByLaw[f.key])}</span></span>
+                <span className={badgeClassName('info', 'shrink-0 whitespace-nowrap')}>{a('law_always_on')}</span>
+            </div>
+        )
+        : control(f);
 
     return (
         <form onSubmit={e => { e.preventDefault(); save(); }} className="space-y-4">
@@ -421,20 +459,21 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
                 </div>
                 {enabled && <label className="flex items-center gap-3 text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(enabled)}<Switch label={labelOf(enabled)} checked={Boolean(form.data.enabled)} disabled={!editable} onChange={v => set('enabled', v)} /></label>}
             </div>
-            <div className="grid gap-4 xl:grid-cols-2">
+            <div className="gap-4 xl:columns-2 [&>*]:mb-4 [&>*]:break-inside-avoid">
                 {POLICY_GROUPS.map(group => {
                     const groupFields = group.keys.map(k => byKey[k]).filter((f): f is SettingField => Boolean(f))
                         .filter(f => f.key !== 'quorum_fixed_count' || form.data.quorum_rule === 'fixed_count');
                     if (!groupFields.length) return null;
                     return (
                         <Card key={group.id} title={a(`policy_group_${group.id}`)} actions={group.confirm ? <ConfirmBadge /> : undefined}>
-                            <div className="space-y-4">{groupFields.map(control)}</div>
+                            <div className="space-y-4">{groupFields.map(renderField)}</div>
+                            {group.id === 'committee' && <p className="border-t border-[color:var(--app-border)] pt-3 text-xs text-[color:var(--app-muted-foreground)]">{a('law_committee_note')}</p>}
                         </Card>
                     );
                 })}
             </div>
-            {editable && (
-                <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-panel sm:border">
+            {editable && (dirty > 0 || form.processing || form.recentlySuccessful) && (
+                <div className="sticky bottom-0 z-10 animate-[slideUp_160ms_ease-out] motion-reduce:animate-none -mx-4 flex items-center justify-between gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-panel sm:border">
                     <span role="status" className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                         {dirty > 0
                             ? <><span className="h-2 w-2 rounded-full bg-amber-600" aria-hidden="true" />{fmt(a('unsaved'), { n: dirty })}</>
@@ -494,8 +533,10 @@ function ApprovalRulesSection({ props }: { props: SettingsIndexProps }) {
     type Row = SettingsIndexProps['approvalRules'][number];
     const orgs = props.options.organizations.map(o => ({ value: o.id!, label: nameOf(o, locale) }));
     const title = (r: Row) => r.approver_position ? ((locale === 'am' && r.approver_position.title_am) || r.approver_position.title_en) : '—';
+    const missingHead = props.statutory.head_decision_rules === 0;
     return <ListSection<Row> id="approval_rules" rows={props.approvalRules} canEdit={props.can.update} searchText={r => `${r.name_en} ${r.name_am ?? ''} ${title(r)}`}
-        emptyTitle={a('empty_approval_rules')} emptyBody={a('empty_approval_rules_help')}
+        emptyTitle={a('empty_approval_rules')} emptyBody={a('empty_approval_rules_help')} emptyTone={missingHead ? 'danger' : 'neutral'}
+        intro={missingHead ? <p role="alert" className="flex items-start gap-2 rounded-card border border-red-200 bg-red-50 p-3 text-sm text-[color:var(--app-foreground)] dark:border-red-900/60 dark:bg-red-950/20"><XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-700 dark:text-red-400" aria-hidden="true" />{a('head_rule_needed')}</p> : undefined}
         head={['name', 'handler_type', 'category', 'decision_type', 'approver_position', 'status']}
         cells={r => [nameOf(r, locale), r.handler ? <HandlerName handler={r.handler} showType /> : label('handler_type', r.handler_type), nameOf(r.category, locale), label('decision_type', r.decision_type), r.requires_approval ? title(r) : a('no_approval_needed'), <StatusPill active={r.is_active} />]}
         form={(r, close) => <AdminForm key={r?.id ?? 'new'} onSaved={close} onCancel={close}

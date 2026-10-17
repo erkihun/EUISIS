@@ -30,7 +30,7 @@ type RuleKey = (typeof RULES)[number]['key'];
 
 type Props = { feedbackSettings: Settings; identityPolicy: SubmissionRequirements[] };
 
-const TYPE_LABEL = { feedback: 'typeFeedback', suggestion: 'typeSuggestion', complaint: 'typeComplaint' } as const;
+const TYPE_LABEL = { feedback: 'adminTypeFeedback', suggestion: 'adminTypeSuggestion', complaint: 'adminTypeComplaint' } as const;
 
 const SWITCHES: Array<{ key: keyof Pick<Settings, 'enabled' | 'feedback_enabled' | 'suggestion_enabled' | 'complaint_enabled' | 'allow_attachments'>; label: string; hint: string }> = [
     { key: 'enabled', label: 'settingEnabled', hint: 'settingEnabledHint' },

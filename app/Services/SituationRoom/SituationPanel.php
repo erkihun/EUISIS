@@ -21,6 +21,9 @@ final readonly class SituationPanel
 {
     public const CHARTS = ['bar', 'hbar', 'stacked', 'line', 'donut'];
 
+    /** Colour schemes a chart may ask for instead of the categorical default. */
+    public const PALETTES = ['diverging'];
+
     /**
      * @param  array<string, mixed>  $data
      */
@@ -48,7 +51,7 @@ final readonly class SituationPanel
      * @param  list<array{key: string, label: array<string, ?string>}>  $categories
      * @param  list<array{key: string, label: array<string, ?string>, values: list<int|float>}>  $series
      */
-    public static function chart(string $key, string $type, string $title, string $description, string $source, array $categories, array $series, ?string $href = null, int $span = 1, ?string $unit = null): self
+    public static function chart(string $key, string $type, string $title, string $description, string $source, array $categories, array $series, ?string $href = null, int $span = 1, ?string $unit = null, ?string $palette = null): self
     {
         $total = array_sum(array_map(fn (array $s): float => (float) array_sum(array_filter($s['values'], 'is_numeric')), $series));
         // A null is a count withheld by the small-group rule: something was recorded, so this is not "no data".
@@ -58,7 +61,10 @@ final readonly class SituationPanel
             return self::notice($key, $title, $description, $source, 'NO_DATA', $span);
         }
 
-        return new self($key, $type, $title, $description, $source, ['categories' => $categories, 'series' => $series, 'unit' => $unit], $href, span: $span);
+        // `palette: diverging` marks series that are the ordered points of one scale (PALETTES), drawn low → high.
+        $data = ['categories' => $categories, 'series' => $series, 'unit' => $unit] + ($palette !== null ? ['palette' => $palette] : []);
+
+        return new self($key, $type, $title, $description, $source, $data, $href, span: $span);
     }
 
     /**

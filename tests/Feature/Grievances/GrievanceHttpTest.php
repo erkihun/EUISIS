@@ -47,6 +47,7 @@ function httpFile(object $test, bool $accept = true): Grievance
         'submit' => true,
         'files' => [UploadedFile::fake()->create('proof.pdf', 20, 'application/pdf')],
         'file_types' => ['document'],
+        ...GrievanceScenario::application(),
     ])->assertRedirect();
 
     $grievance = Grievance::query()->latest('created_at')->firstOrFail();
@@ -175,13 +176,13 @@ it('refuses a checksum mismatch instead of serving a replaced evidence file', fu
 it('lets the complainant download an issued decision letter but never a draft', function (): void {
     $g = httpFile($this);
     $decisions = app(GrievanceDecisionService::class);
-    $d = $decisions->finalize($decisions->createDraft($g, $this->s->writer, ['decision_type' => 'upheld', 'decision_text' => 'Upheld.']), $this->s->chair);
+    $d = $this->s->headDecides($decisions->createDraft($g, $this->s->writer, ['decision_type' => 'upheld', 'decision_text' => 'Upheld.']), $this->s->chair);
     $letters = app(GrievanceCorrespondenceService::class);
     $letter = $letters->generate($g->refresh(), $this->s->writer, ['letter_type' => 'decision_letter', 'language' => 'en', 'decision_id' => $d->id]);
 
     $this->actingAs($this->s->complainant)->get(route('employee.grievances.letters.download', [$g, $letter]))->assertForbidden();
 
-    $letter = $letters->issue($letters->sign($letters->finalize($letter, $this->s->chair), $this->s->chair, GrievanceSignatureMethod::ElectronicApproval), $this->s->chair);
+    $letter = $letters->issue(GrievanceScenario::seal($letters->sign($letters->finalize($letter, $this->s->chair), $this->s->chair, GrievanceSignatureMethod::ElectronicApproval)), $this->s->chair);
     $this->actingAs($this->s->complainant)->get(route('employee.grievances.letters.download', [$g, $letter]))
         ->assertOk()->assertHeader('content-type', 'application/pdf');
 });

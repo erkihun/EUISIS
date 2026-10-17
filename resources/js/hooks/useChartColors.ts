@@ -17,6 +17,12 @@ export interface ChartColors {
      */
     axisText: string;
     series: string[];
+    /**
+     * Five ordered points of a scale, low → high: orange through a neutral
+     * slate to blue. Orange/blue rather than red/green so the two ends stay
+     * apart for red–green colour blindness; the legend always names each point.
+     */
+    diverging: string[];
 }
 
 function readColors(): ChartColors {
@@ -33,6 +39,9 @@ function readColors(): ChartColors {
         series: isDark
             ? [primary, accent, '#93c5fd', '#fdba74', '#3b82f6', '#f97316', '#bfdbfe', '#fed7aa']
             : [primary, accent, '#60a5fa', '#fb923c', '#1e40af', '#9a3412', '#93c5fd', '#fdba74'],
+        diverging: isDark
+            ? ['#fb923c', '#fdba74', '#94a3b8', '#93c5fd', '#3b82f6']
+            : ['#c2410c', '#fb923c', '#94a3b8', '#60a5fa', '#1d4ed8'],
     };
 }
 

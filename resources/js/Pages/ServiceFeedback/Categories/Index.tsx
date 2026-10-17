@@ -120,7 +120,7 @@ export default function CategoriesIndex({ categories, filters, organizations, ca
                                             {row.is_referenced && <div className="text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.categoryReferenced')}</div>}
                                         </Td>
                                         <Td>{scopeLabel(row)}</Td>
-                                        <Td>{row.submission_types.map((type) => t(`serviceFeedback.${SUBMISSION_TYPES.find((s) => s.value === type)?.key ?? 'typeFeedback'}`)).join(', ')}</Td>
+                                        <Td>{row.submission_types.map((type) => t(`serviceFeedback.${SUBMISSION_TYPES.find((s) => s.value === type)?.key ?? 'adminTypeFeedback'}`)).join(', ')}</Td>
                                         <Td>{row.target_types.map((target) => t(`serviceFeedback.${TARGET_TYPES.find((s) => s.value === target)?.key ?? 'targetEmployee'}`)).join(', ')}</Td>
                                         <Td><StatusBadge status={row.is_active ? 'active' : 'inactive'} label={t(row.is_active ? 'serviceFeedback.qrActive' : 'serviceFeedback.qrStatusDisabled')} /></Td>
                                         <Td align="right">

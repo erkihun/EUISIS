@@ -71,6 +71,7 @@ class DatabaseSeeder extends Seeder
         $this->seedSystemSettings();
         $this->call(CodeRuleSeeder::class);
         $this->call(GrievanceDefaultsSeeder::class);
+        $this->call(EthiopianPublicHolidaySeeder::class);
         $this->call(FieldWorkTypeSeeder::class);
         $this->call(OrganizationUnitTypeSeeder::class);
         $this->call(IsicActivitySeeder::class);

@@ -16,13 +16,14 @@ function chartHeight(type: SrChartImplProps['type'], rows: number, wall = false)
     return base;
 }
 
-export default function SituationChartImpl({ type, rows, series, unit, suppressedLabel, colors, wall = false }: SrChartImplProps) {
+export default function SituationChartImpl({ type, rows, series, unit, suppressedLabel, colors, wall = false, palette }: SrChartImplProps) {
     const fontSize = wall ? 16 : 12;
     const height = chartHeight(type, rows.length, wall);
     const tick = { fontSize, fill: colors.axisText };
     const format = (value: unknown) => (value === null || value === undefined ? suppressedLabel : `${Number(value).toLocaleString()}${unit && unit !== 'days' ? ` ${unit}` : ''}`);
     const seriesName = (key: unknown) => series.find((s) => s.key === key)?.label ?? String(key);
-    const color = (index: number) => colors.series[index % colors.series.length];
+    const swatches = palette === 'diverging' ? colors.diverging : colors.series;
+    const color = (index: number) => swatches[index % swatches.length];
 
     if (type === 'donut') {
         const data = rows.map((row) => ({ name: row.label, value: Number(row[series[0]?.key ?? ''] ?? 0) })).filter((d) => d.value > 0);

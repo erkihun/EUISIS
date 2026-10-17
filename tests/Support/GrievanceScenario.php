@@ -6,6 +6,7 @@ namespace Tests\Support;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\CommitteeType;
+use App\Enums\Grievance\GrievanceVoteType;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\Employee;
@@ -14,14 +15,18 @@ use App\Models\GrievanceApprovalRule;
 use App\Models\GrievanceCategory;
 use App\Models\GrievanceCommittee;
 use App\Models\GrievanceCommitteeMember;
+use App\Models\GrievanceDecision;
+use App\Models\GrievanceLetter;
 use App\Models\GrievanceRoute;
 use App\Models\GrievanceSlaProfile;
 use App\Models\Organization;
+use App\Models\OrganizationSeal;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use App\Services\Grievances\GrievanceDecisionService;
 use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Support\Str;
 
@@ -123,6 +128,13 @@ final class GrievanceScenario
             ]);
         }
 
+        // Regulation 201/2018 Art. 35(1): the committee recommends, the head of the institution decides.
+        GrievanceApprovalRule::query()->create([
+            'name_en' => 'Committee recommendations', 'handler_type' => 'committee',
+            'requires_approval' => true, 'approver_position_id' => $s->headPosition->id, 'priority' => 5,
+            'effective_from' => now()->subYear()->toDateString(), 'is_active' => true,
+        ]);
+
         if ($withRoutes) {
             self::route('organization', $s->woreda->id, 'committee', $s->committee->id, 'initial_assignment');
             self::route('committee', $s->committee->id, 'organization_unit', $s->team->id, 'timeout_escalation');
@@ -147,6 +159,38 @@ final class GrievanceScenario
         return $s;
     }
 
+    /** The committee's recommendation goes to the head, who approves it; the lead then finalizes. */
+    public function headDecides(GrievanceDecision $decision, User $lead): GrievanceDecision
+    {
+        $decisions = app(GrievanceDecisionService::class);
+        $this->committeeVotes($decision);
+        $decision = $decisions->submitForApproval($decision, $lead);
+        $decisions->approve($decision, $this->approver, null);
+
+        return $decisions->finalize($decision->refresh(), $lead);
+    }
+
+    /** Put the issuing organization's approved seal on a signed letter (Art. 35(2)). */
+    public static function seal(GrievanceLetter $letter): GrievanceLetter
+    {
+        $seal = OrganizationSeal::query()->firstOrCreate(['organization_id' => $letter->organization_id, 'name' => 'Official seal'], [
+            'disk' => 'local', 'path' => 'seals/'.$letter->organization_id.'.png', 'mime_type' => 'image/png', 'sha256' => str_repeat('0', 64),
+            'status' => 'active', 'effective_from' => now()->subYear()->toDateString(), 'approved_at' => now()->subYear(),
+        ]);
+        $letter->forceFill(['seal_id' => $seal->getKey(), 'seal_applied_at' => now()])->save();
+
+        return $letter;
+    }
+
+    /** The seated chairperson, writer and member all concur (Art. 8: quorum and majority). */
+    public function committeeVotes(GrievanceDecision $decision): void
+    {
+        $decisions = app(GrievanceDecisionService::class);
+        foreach ([$this->chair, $this->writer, $this->member] as $voter) {
+            $decisions->castVote($decision, $voter, GrievanceVoteType::Concur, null);
+        }
+    }
+
     /** Directorate decisions need the Bureau Head's approval. */
     public function requireDirectorateApproval(): GrievanceApprovalRule
     {
@@ -155,6 +199,26 @@ final class GrievanceScenario
             'requires_approval' => true, 'approver_position_id' => $this->headPosition->id, 'priority' => 1,
             'effective_from' => now()->subYear()->toDateString(), 'is_active' => true,
         ]);
+    }
+
+    /**
+     * The rest of a complete grievance application on the portal form
+     * (Regulation 201/2018 Art. 32(2)), presented to the supervisor in
+     * writing today so it is inside the Art. 33(1) filing window.
+     *
+     * @return array<string, mixed>
+     */
+    public static function application(array $overrides = []): array
+    {
+        return [
+            'incident_date' => now()->subDays(3)->toDateString(),
+            'written_issue_raised_at' => now()->toDateString(),
+            'immediate_supervisor_name' => 'Records Team Leader',
+            'applicant_address' => 'Bole Sub-City, Woreda 3, Addis Ababa',
+            'requested_remedy' => 'Pay the overtime that is owed.',
+            'declaration' => '1',
+            ...$overrides,
+        ];
     }
 
     public static function route(string $sourceType, string $sourceId, string $targetType, string $targetId, string $movement, bool $approved = true, bool $descendants = false): GrievanceRoute

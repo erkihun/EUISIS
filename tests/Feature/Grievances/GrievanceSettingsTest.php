@@ -130,7 +130,7 @@ it('lets an approval rule target one committee and rejects a handler that does n
     $this->actingAs($this->admin)->post(route('grievances.settings.approval-rules.store'), [...$payload, 'handler_id' => (string) Str::uuid()])
         ->assertSessionHasErrors('handler_id');
     $this->actingAs($this->admin)->post(route('grievances.settings.approval-rules.store'), $payload)->assertSessionHasNoErrors();
-    expect(GrievanceApprovalRule::query()->sole()->handler_id)->toBe($this->s->committee->id);
+    expect(GrievanceApprovalRule::query()->where('name_en', 'Woreda committee decisions')->sole()->handler_id)->toBe($this->s->committee->id);
 
     // Without a handler type there is no specific handler.
     $this->actingAs($this->admin)->post(route('grievances.settings.approval-rules.store'), [...$payload, 'name_en' => 'Any', 'handler_type' => null])

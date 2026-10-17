@@ -142,6 +142,7 @@ use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
 use App\Services\Security\SessionActivityService;
+use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\SituationRoom\SituationMemo;
 use App\Services\Sms\BudgetedSmsGateway;
@@ -169,6 +170,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
         $this->app->scoped(SituationMemo::class);
+        // One instance per request: validation, rendering and storage read the same questionnaire version.
+        $this->app->scoped(PublicFeedbackQuestionnaire::class);
 
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);

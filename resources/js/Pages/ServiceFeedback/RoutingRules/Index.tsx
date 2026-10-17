@@ -123,7 +123,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                                             </div>
                                         </Td>
                                         <Td>
-                                            <div className="text-sm">{row.target_type ? t(row.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee') : t('serviceFeedback.anyTargetType')} · {row.submission_type ? t(row.submission_type === 'complaint' ? 'serviceFeedback.typeComplaint' : 'serviceFeedback.typeSuggestion') : t('serviceFeedback.anySubmissionType')}</div>
+                                            <div className="text-sm">{row.target_type ? t(row.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee') : t('serviceFeedback.anyTargetType')} · {row.submission_type ? t(row.submission_type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion') : t('serviceFeedback.anySubmissionType')}</div>
                                             <div className="text-xs text-[color:var(--app-muted-foreground)]">{pair(row.category, t('serviceFeedback.anyCategory'))}</div>
                                         </Td>
                                         <Td>

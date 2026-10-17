@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\ServiceFeedbackType;
+use App\Http\Requests\Concerns\ValidatesOrganizationFormContext;
 use App\Http\Requests\Concerns\ValidatesPublicSubmitter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -20,6 +21,7 @@ use Illuminate\Validation\Rule;
  */
 class StorePublicServiceEntryRequest extends FormRequest
 {
+    use ValidatesOrganizationFormContext;
     use ValidatesPublicSubmitter;
 
     public function authorize(): bool
@@ -48,17 +50,24 @@ class StorePublicServiceEntryRequest extends FormRequest
             'incident_date' => $requirements->incidentContext ? ['nullable', 'date', 'before_or_equal:today'] : ['prohibited'],
             'incident_location' => $requirements->incidentContext ? ['nullable', 'string', 'max:255'] : ['prohibited'],
             ...$this->evidenceRules($requirements),
+            ...$this->organizationContextRules($type),
         ];
     }
 
     /** @return array<string, string> */
     public function messages(): array
     {
-        return $this->submitterMessages() + [
+        return $this->submitterMessages() + $this->organizationContextMessages() + [
             'message.required' => __('service-feedback.validation.message_required'),
             'position_service_id.uuid' => __('service-feedback.validation.service_required'),
             'position_service_id.exists' => __('service-feedback.service_not_provided'),
             'incident_date.before_or_equal' => __('service-feedback.validation.incident_date_future'),
         ];
+    }
+
+    /** @return array<string, string> */
+    public function attributes(): array
+    {
+        return $this->organizationContextAttributes($this->route('type') === 'complaint' ? ServiceFeedbackType::Complaint : ServiceFeedbackType::Suggestion);
     }
 }

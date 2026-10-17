@@ -17,14 +17,17 @@ use App\Services\ServiceFeedback\PublicEmployeeFeedbackIdentity;
 use App\Services\ServiceFeedback\PublicEvidencePolicy;
 use App\Services\ServiceFeedback\PublicFeedbackCategoryService;
 use App\Services\ServiceFeedback\PublicFeedbackFormToken;
+use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\ServiceFeedback\PublicFeedbackSubmissionService;
 use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
+use App\Services\ServiceFeedback\PublicOrganizationServiceContext;
 use App\Services\ServiceFeedback\PublicServiceFeedbackService;
 use App\Services\ServiceFeedback\PublicSubmissionPolicy;
 use App\Services\ServiceFeedback\TargetContext;
 use App\Support\Phone\PublicContactPhone;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -62,6 +65,8 @@ class PublicServiceFeedbackController extends Controller
         private readonly PublicFeedbackCategoryService $categories,
         private readonly PublicFeedbackSettings $settings,
         private readonly PublicSubmissionPolicy $policy,
+        private readonly PublicFeedbackQuestionnaire $questionnaire,
+        private readonly PublicOrganizationServiceContext $serviceContext,
     ) {}
 
     // ── Employee feedback QR ─────────────────────────────────────────────
@@ -114,6 +119,24 @@ class PublicServiceFeedbackController extends Controller
         return $this->storeFor($request, PublicFeedbackTargetType::Organization, $token, $this->entryType($type));
     }
 
+    /**
+     * Search the scanned institution's published services — used only when
+     * its catalog is too large to send with the page. The token decides the
+     * institution; an unknown, disabled or revoked token gets the same empty
+     * answer as a search with no match, so the endpoint reveals nothing.
+     */
+    public function searchOrganizationServices(Request $request, string $token): JsonResponse
+    {
+        $context = $this->settings->enabled() ? $this->resolver->resolveOrganizationToken($token) : null;
+        $term = is_string($request->query('q')) ? mb_substr($request->query('q'), 0, 100) : '';
+
+        $items = $context?->organizationTargetId === null
+            ? []
+            : $this->serviceContext->searchServices($context->organizationTargetId, $term, app()->getLocale());
+
+        return response()->json(['items' => $items])->header('Cache-Control', 'no-store');
+    }
+
     // ── Shared ───────────────────────────────────────────────────────────
 
     private function render(Request $request, PublicFeedbackTargetType $kind, string $token, ?ServiceFeedbackType $type): Response
@@ -145,6 +168,7 @@ class PublicServiceFeedbackController extends Controller
                 'formToken' => null,
                 'enabledTypes' => $this->settings->enabledTypes(),
                 ...$this->formContract(),
+                ...$this->organizationForm(null, null, 'en'),
                 'call' => null,
             ]);
         }
@@ -179,6 +203,7 @@ class PublicServiceFeedbackController extends Controller
             'formToken' => $type === null ? null : $this->formTokens->issue(),
             'enabledTypes' => $this->settings->enabledTypes(),
             ...$this->formContract(),
+            ...$this->organizationForm($context, $type, $locale),
             /*
              * The Call action: the institution's validated public number as a
              * tel: link and a readable form — the scanned institution, or the
@@ -228,6 +253,17 @@ class PublicServiceFeedbackController extends Controller
             && ! empty($validated['position_service_id'])
             && ! $this->feedback->serviceIsAvailable((string) $validated['position_service_id'], $context->contextPositionId)) {
             return back()->withErrors(['position_service_id' => __('service-feedback.service_not_provided')]);
+        }
+
+        // Service information is checked against the institution the token resolved to, never one the browser names.
+        if ($context->targetType === PublicFeedbackTargetType::Organization && $context->organizationTargetId !== null) {
+            if (! empty($validated['service_id']) && $this->serviceContext->availableService((string) $validated['service_id'], $context->organizationTargetId) === null) {
+                return back()->withErrors(['service_id' => __('service-feedback.service_not_provided')]);
+            }
+
+            if (! empty($validated['organization_unit_id']) && $this->serviceContext->availableOffice((string) $validated['organization_unit_id'], $context->organizationTargetId) === null) {
+                return back()->withErrors(['organization_unit_id' => __('service-feedback.validation.office_invalid')]);
+            }
         }
 
         $formToken = isset($validated['form_token']) ? (string) $validated['form_token'] : null;
@@ -280,6 +316,27 @@ class PublicServiceFeedbackController extends Controller
             'requirements' => $requirements,
             'evidence' => PublicEvidencePolicy::toPublicArray(),
             'tipTypes' => PublicTipType::values(),
+        ];
+    }
+
+    /**
+     * What the organization form adds to a typed form page: the questionnaire
+     * of this type, the institution's services (or a search link, or nothing
+     * for free text) and its offices. Empty on the landing, on the employee
+     * QR and on an unavailable page.
+     *
+     * @return array{questionnaire: array<string, mixed>|null, serviceOptions: array<string, mixed>, offices: list<array{id: string, name: string}>}
+     */
+    private function organizationForm(?TargetContext $context, ?ServiceFeedbackType $type, string $locale): array
+    {
+        if ($context === null || $type === null || $context->targetType !== PublicFeedbackTargetType::Organization || $context->organizationTargetId === null) {
+            return ['questionnaire' => null, 'serviceOptions' => ['mode' => 'none', 'items' => []], 'offices' => []];
+        }
+
+        return [
+            'questionnaire' => $this->questionnaire->toPublicArray($type, $locale),
+            'serviceOptions' => $this->serviceContext->serviceOptions($context->organizationTargetId, $locale),
+            'offices' => $this->serviceContext->officeOptions($context->organizationTargetId, $locale),
         ];
     }
 
@@ -347,6 +404,7 @@ class PublicServiceFeedbackController extends Controller
             'submitFeedback' => route('public-feedback.organization.feedback.store', $token),
             'submitSuggestion' => route('public-feedback.organization.entry.store', ['token' => $token, 'type' => 'suggestion']),
             'submitComplaint' => route('public-feedback.organization.entry.store', ['token' => $token, 'type' => 'complaint']),
+            'serviceSearch' => route('public-feedback.organization.services', $token),
         ];
     }
 

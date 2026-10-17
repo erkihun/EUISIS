@@ -16,6 +16,7 @@ use App\Models\GrievanceDecision;
 use App\Models\GrievanceEvidence;
 use App\Models\GrievanceLetter;
 use App\Models\User;
+use App\Support\Legal\Regulation201;
 
 /**
  * Shapes grievance data for Inertia pages. Two audiences:
@@ -55,6 +56,8 @@ final class GrievancePresenter
             'subject' => $hidden ? null : $g->subject,
             'status' => $g->status?->value,
             'priority' => $g->priority?->value,
+            // Transitional provision: a grievance begun under the earlier regulation stays under it.
+            'legacy_regulation' => ($g->governing_regulation ?? Regulation201::CODE) !== Regulation201::CODE,
             'confidentiality_level' => $g->confidentiality_level?->value,
             'category' => $g->category?->only(['id', 'name_en', 'name_am']),
             'organization' => $g->organization?->only(['id', 'name_en', 'name_am']),

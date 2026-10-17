@@ -228,7 +228,7 @@ export default function OrganizationFeedbackQr({ organization, qr, history, stat
                         <div className={`${card} p-5`}>
                             <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.submissionsAboutInstitution')}</h2>
                             <dl className="mt-4 grid gap-4 sm:grid-cols-3">
-                                {([['feedback', 'typeFeedback'], ['suggestion', 'typeSuggestion'], ['complaint', 'typeComplaint']] as const).map(([key, label]) => (
+                                {([['feedback', 'adminTypeFeedback'], ['suggestion', 'adminTypeSuggestion'], ['complaint', 'adminTypeComplaint']] as const).map(([key, label]) => (
                                     <div key={key} className="rounded-card border border-[color:var(--app-border)] p-4">
                                         <dt className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">{t(`serviceFeedback.${label}`)}</dt>
                                         <dd className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{stats[key]}</dd>

@@ -110,6 +110,8 @@ use App\Http\Controllers\Web\PositionServiceController;
 use App\Http\Controllers\Web\ProviderUserController;
 use App\Http\Controllers\Web\PublicFeedbackCategoryController;
 use App\Http\Controllers\Web\PublicFeedbackEmployeePhotoController;
+use App\Http\Controllers\Web\PublicFeedbackOrganizationLogoController;
+use App\Http\Controllers\Web\PublicFeedbackQuestionnaireController;
 use App\Http\Controllers\Web\PublicFeedbackReferralController;
 use App\Http\Controllers\Web\PublicFeedbackReportController;
 use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
@@ -119,6 +121,7 @@ use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
 use App\Http\Controllers\Web\PublicServiceFeedbackController;
 use App\Http\Controllers\Web\PublicSiteManagementController;
+use App\Http\Controllers\Web\PublicSubmissionListController;
 use App\Http\Controllers\Web\RecycleBinController;
 use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
@@ -510,6 +513,16 @@ Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController
 Route::get('/feedback/{token}', [PublicServiceFeedbackController::class, 'showOrganization'])
     ->middleware(['qr.private', 'throttle:30,1'])
     ->name('public-feedback.organization.show');
+
+// The institution's logo, by the scanned token: the page never carries the organization id or a storage path.
+Route::get('/feedback/{token}/logo', PublicFeedbackOrganizationLogoController::class)
+    ->middleware(['qr.private', 'throttle:service-feedback-photo'])
+    ->name('public-feedback.organization.logo');
+
+// The institution's published services, searched — only for a catalog too large to send with the form.
+Route::get('/feedback/{token}/services', [PublicServiceFeedbackController::class, 'searchOrganizationServices'])
+    ->middleware(['qr.private', 'throttle:30,1'])
+    ->name('public-feedback.organization.services');
 
 Route::get('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'formOrganization'])
     ->where('type', 'feedback|suggestion|complaint')
@@ -1374,6 +1387,14 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/feedback-admin/submission-reports/exports/{export}', [PublicFeedbackReportController::class, 'download'])->whereUuid('export')->name('service-feedback.submission-reports.download');
     Route::get('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'index'])->name('service-feedback.settings.index');
     Route::put('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'update'])->name('service-feedback.settings.update');
+    // The organization feedback questionnaire: versions, the one draft, publish and withdraw (city-level).
+    Route::get('/feedback-admin/questionnaire', [PublicFeedbackQuestionnaireController::class, 'index'])->name('service-feedback.questionnaire.index');
+    Route::post('/feedback-admin/questionnaire', [PublicFeedbackQuestionnaireController::class, 'store'])->name('service-feedback.questionnaire.store');
+    Route::get('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'edit'])->whereUuid('questionSet')->name('service-feedback.questionnaire.edit');
+    Route::put('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'update'])->whereUuid('questionSet')->name('service-feedback.questionnaire.update');
+    Route::post('/feedback-admin/questionnaire/{questionSet}/publish', [PublicFeedbackQuestionnaireController::class, 'publish'])->whereUuid('questionSet')->name('service-feedback.questionnaire.publish');
+    Route::post('/feedback-admin/questionnaire/{questionSet}/retire', [PublicFeedbackQuestionnaireController::class, 'retire'])->whereUuid('questionSet')->name('service-feedback.questionnaire.retire');
+    Route::delete('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'destroy'])->whereUuid('questionSet')->name('service-feedback.questionnaire.destroy');
     Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');
     Route::get('/feedback-admin/routing-rules/handlers', [PublicFeedbackRoutingRuleController::class, 'handlers'])->name('service-feedback.routing-rules.handlers');
     Route::get('/feedback-admin/routing-rules/create', [PublicFeedbackRoutingRuleController::class, 'create'])->name('service-feedback.routing-rules.create');
@@ -1390,6 +1411,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/{serviceFeedback}/hide', [ServiceFeedbackController::class, 'hide'])->name('service-feedback.admin.hide');
     Route::delete('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'destroy'])->name('service-feedback.admin.destroy');
 
+    // Every public submission the user may read, and the queue of routed ones with no handler yet.
+    Route::get('/service-submissions', [PublicSubmissionListController::class, 'index'])->name('service-submissions.index');
+    Route::get('/service-submissions/unrouted', [PublicSubmissionListController::class, 'unrouted'])->name('service-submissions.unrouted');
     Route::get('/service-suggestions', [ServiceSubmissionController::class, 'suggestions'])->name('service-submissions.suggestions');
     Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');
     Route::get('/service-submissions/{type}/{submission}', [ServiceSubmissionController::class, 'show'])
