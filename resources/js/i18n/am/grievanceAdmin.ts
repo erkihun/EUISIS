@@ -153,7 +153,7 @@ const grievanceAdmin = {
     delegation_state_scheduled: "የታቀደ",
     delegation_state_expired: "ጊዜው ያለፈ",
     delegation_state_revoked: "የተሻረ",
-    awaiting_second_approver: "በሌላ ሰው መጽደቅን በመጠበቅ ላይ",
+    awaiting_second_approver: "በሌላ ሰው መጽደቅን በመጠባበቅ ላይ",
     letterhead_org_fixed: "የደብዳቤ ራስጌ የአንድ ተቋም ነው፤ ለሌላ ተቋም አዲስ ያክሉ።",
 
     fields: {
