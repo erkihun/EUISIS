@@ -8,6 +8,7 @@ import enCommon from '@/i18n/en/common';
 import enDailyActivities from '@/i18n/en/dailyActivities';
 import enFieldWork from '@/i18n/en/fieldWork';
 import enPerformance from '@/i18n/en/performance';
+import enCommunication from '@/i18n/en/communication';
 import enAuth from '@/i18n/en/auth';
 import enConfirmations from '@/i18n/en/confirmations';
 import enEntitlements from '@/i18n/en/entitlements';
@@ -81,6 +82,7 @@ const tree: TranslationTree = {
     fieldWork: enFieldWork,
     dailyActivities: enDailyActivities,
     performance: enPerformance,
+    communication: enCommunication,
     entitlements: enEntitlements,
     gradeLevels: enGradeLevels,
     idCards: { ...((en.idCards as TranslationTree | undefined) ?? {}), ...enIdCards },

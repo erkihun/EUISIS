@@ -132,10 +132,28 @@ final class PerformancePresenter
             'rating_en' => $result->rating_label_en,
             'rating_am' => $result->rating_label_am,
             'released_at' => $result->released_at?->toIso8601String(),
-            // "How this score was calculated" — the frozen trace.
-            'trace' => $result->snapshot_json,
+            // "How this score was calculated" — the frozen trace. The employee's copy leaves
+            // out what the manager and committee said about the score (adjustment and
+            // calibration reasons, the appeal panel's reasoning); they see the outcome only.
+            'trace' => $forEmployee ? $this->employeeTrace($result->snapshot_json) : $result->snapshot_json,
             'adjustments' => $forEmployee ? [] : $result->adjustments()->latest()->get(['id', 'adjustment_type', 'original_score', 'adjusted_score', 'reason', 'status', 'created_at'])->toArray(),
         ];
+    }
+
+    /** @return array<string, mixed>|null */
+    private function employeeTrace(?array $trace): ?array
+    {
+        if ($trace === null) {
+            return null;
+        }
+        if (isset($trace['final']) && is_array($trace['final'])) {
+            unset($trace['final']['adjustments'], $trace['final']['calibration'], $trace['final']['adjusted_score']);
+        }
+        if (isset($trace['appeal']) && is_array($trace['appeal'])) {
+            unset($trace['appeal']['reason']);
+        }
+
+        return $trace;
     }
 
     /** @return array<string, mixed> */

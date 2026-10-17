@@ -7,6 +7,9 @@ return [
 
         'band_range_invalid' => 'ከፍተኛው ውጤት ከዝቅተኛው ውጤት በላይ ወይም እኩል መሆን አለበት።',
         'forbidden' => 'ይህን የአፈጻጸም ተግባር ለማከናወን ፈቃድ የለዎትም።',
+        'manager_not_eligible' => 'የተመረጠው ኃላፊ የዚህን ሠራተኛ ስምምነት ለማስተዳደር መብት የለውም።',
+        'objective_invalid' => 'ዓላማው የዚህ ስምምነት የራሱ ዕቅድ አካል መሆን አለበት።',
+        'amended_weights' => 'በዚህ ለውጥ ክብደቶቹ በድምሩ :total% ይሆናሉ፤ 100% መሆን አለባቸው።',
         'separation_of_duties' => 'ይህን ያዘጋጀ ወይም የጠየቀ ሰው ራሱ ሊያጸድቀው (:step) አይችልም።',
         'invalid_transition' => 'ዑደት ከ:from ወደ :to መሸጋገር አይችልም።',
         'end_before_start' => 'የማብቂያ ቀን ከመጀመሪያ ቀን በኋላ ወይም እኩል መሆን አለበት።',

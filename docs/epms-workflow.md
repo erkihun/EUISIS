@@ -31,6 +31,7 @@ DRAFT --submit--> UNDER_REVIEW --approve--> APPROVED --publish--> PUBLISHED --ne
 
 - **Submit:** requires the plan's validation list to be empty (see the [cascade rules](epms-cascade-rules.md) §3).
 - **Approve:** must be done by someone other than the submitter.
+- **Return:** possible from UNDER_REVIEW and from APPROVED (an approved plan that was not yet published), always with a reason.
 - **Publish:** makes the plan the live version; child plans and agreements can then use it.
 
 ## 3. Employee agreement (`EmployeeAgreementService`)
@@ -41,6 +42,9 @@ DRAFT/RETURNED --send--> PENDING_EMPLOYEE_REVIEW --acknowledge--> PENDING_MANAGE
 ACTIVE → UNDER_REVIEW (first result calculated) → FINALIZED (result finalized)
 AGREED/ACTIVE/UNDER_REVIEW --close (end date, reason)--> CLOSED
 ```
+
+- Only those three states close; a FINALIZED agreement keeps its frozen result and a DRAFT is deleted or declined instead.
+- The named manager must already be entitled to manage the assignment (coverage or scope); they are never the employee.
 
 - Items can be edited only in DRAFT or RETURNED, and must total 100% before sending.
 - **Transfer:**
@@ -81,6 +85,7 @@ calculate → CALCULATED (or PENDING_CALIBRATION when require_calibration)
 ```
 
 - **Calculate:** allowed on ACTIVE, UNDER_REVIEW or CLOSED agreements, and repeatable until the result is final. The trace is stored with every calculation.
+- **Calculate** is refused once the cycle is CLOSED or CANCELLED, as is every agreement transition and manual actual.
 - **Finalize requires:**
   - a completed year-end review (and a completed mid-year review when required);
   - rated competencies;
@@ -94,7 +99,8 @@ calculate → CALCULATED (or PENDING_CALIBRATION when require_calibration)
 1. Create a session (cycle, organization, optional unit, optional `performance_calibration` committee). The cycle must be open and belong to the organization (or be city-wide), the unit must be one of the organization's, and the committee must be the organization's own calibration committee.
 2. Add CALCULATED or PENDING_CALIBRATION results in scope.
 3. Committee members decide a calibrated score with a reason for each item. Without a committee, a scoped user with `performance_calibration.manage` decides.
-4. Finalizing the session (`performance_calibration.finalize`, in scope) writes CALIBRATION adjustments, sets `calibrated_score` and freezes every result.
+4. Finalizing the session (`performance_calibration.finalize`, in scope) writes CALIBRATION adjustments, sets `calibrated_score` and freezes every result. Each result must meet the same conditions as a direct finalization (completed reviews, rated competencies, no pending adjustment); the "before" score is the one in force at finalization, not the one copied when the result was added, so a recalculation in between is honoured. Nobody decides or finalizes their own result.
+5. Session creation and adding results are audited like every other step.
 
 Before and after values and reasons are kept, and no forced distribution is applied.
 

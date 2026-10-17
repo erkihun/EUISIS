@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Rbac;
 
+use App\Support\Communication\CommunicationRoles;
 use App\Support\DailyActivity\DailyActivityRoles;
 use App\Support\Discipline\DisciplineRoles;
 use App\Support\FieldWork\FieldWorkRoles;
@@ -121,7 +122,7 @@ final class DefaultRoleMatrix
     private static function build(bool $validate = true): array
     {
         $all = PermissionCatalog::names();
-        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
+        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, CommunicationRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
 
         $roles = [
             // ── Administration ────────────────────────────────────────────────
@@ -162,6 +163,7 @@ final class DefaultRoleMatrix
                 ...PerformanceRoles::ASSESSMENT_INSTITUTION_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS,
+                ...CommunicationRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
             ], 'Manages authorized HR operations within the assigned organization scope and submits controlled structure/position change requests. Does not have global administration or unrestricted master-structure modification rights.',
                 'በተመደበው የተቋም ወሰን ውስጥ የተፈቀዱ የሰው ሀብት ሥራዎችን ያስተዳድራል፣ የመዋቅር/የሥራ መደብ ለውጥ ጥያቄዎችን ያቀርባል። ሁሉን አቀፍ አስተዳደር ወይም ያልተገደበ የዋና መዋቅር ማሻሻያ መብት የለውም።'),
             'HR Officer' => self::role(self::SCOPE_SCOPED, [
@@ -183,6 +185,7 @@ final class DefaultRoleMatrix
                 ...PerformanceRoles::ASSESSMENT_HR_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_HR_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS,
+                ...CommunicationRoles::HR_PERMISSIONS,
             ], 'Keeps employee records, imports, card requests and transfer paperwork within scope. The only default role that sees employee personal identifiers (employees.viewPii).',
                 'በወሰኑ ውስጥ የሠራተኛ መዝገቦችን፣ ማስገባቶችን፣ የመታወቂያ ጥያቄዎችን እና የዝውውር ሰነዶችን ይይዛል። የሠራተኞችን የግል መለያ የሚያይ ብቸኛው ነባሪ ሚና።'),
 
@@ -313,9 +316,19 @@ final class DefaultRoleMatrix
                 'የሕዝብ ድረ-ገጽ ይዘትን ያስተካክላል። የመታወቂያ ማረጋገጫን፣ OTPን፣ የፍጥነት ገደቦችን፣ የሠራተኛ መረጃን ወይም የማረጋገጫ ፖሊሲን መቀየር አይችልም።'),
 
             // ── Employee self-service, teams and performance ─────────────────
-            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
+            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS, ...CommunicationRoles::EMPLOYEE_PERMISSIONS],
                 'Self-service for the signed-in employee only: own daily activity, own field work requests and GPS check-in/out, own performance agreement, reviews and appeals. My Portal pages are tied to the linked employee record, not to extra permissions.',
                 'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የመስክ ሥራ ጥያቄ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች።'),
+            // ── Communication oversight: who asks for investigation access never approves it ─
+            CommunicationRoles::MODERATOR_ROLE => self::role(self::SCOPE_SCOPED, CommunicationRoles::MODERATOR_PERMISSIONS,
+                'Reviews reported messages and conversations: sees only the reported content and its immediate context, and can remove it. Never browses private conversations.',
+                'ሪፖርት የተደረጉ መልዕክቶችንና ውይይቶችን ይገመግማል፦ ሪፖርት የተደረገውን ይዘትና የቅርብ አውዱን ብቻ ያያል፣ ሊያስወግደውም ይችላል። የግል ውይይቶችን አያስስም።'),
+            CommunicationRoles::INVESTIGATOR_ROLE => self::role(self::SCOPE_GLOBAL, CommunicationRoles::INVESTIGATOR_PERMISSIONS,
+                'Requests time-limited, audited access to a named conversation or employee for a legal or disciplinary investigation. Cannot approve requests.',
+                'ለሕጋዊ ወይም ለዲሲፕሊን ምርመራ ለተወሰነ ውይይት ወይም ሠራተኛ በጊዜ የተገደበና የሚመዘገብ ፈቃድ ይጠይቃል። ጥያቄዎችን ማጽደቅ አይችልም።'),
+            CommunicationRoles::PRIVACY_OFFICER_ROLE => self::role(self::SCOPE_GLOBAL, CommunicationRoles::PRIVACY_OFFICER_PERMISSIONS,
+                'Approves, rejects and revokes investigation access requests made by others, and reads the communication audit trail. Reads no messages itself.',
+                'በሌሎች የቀረቡ የምርመራ ፈቃድ ጥያቄዎችን ያጸድቃል፣ ውድቅ ያደርጋል፣ ይሽራል፤ የኮሙኒኬሽን የኦዲት መዝገብን ያነባል። ራሱ መልዕክት አያነብም።'),
             DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::REVIEWER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS],
                 'Reviews the daily activity, and decides the field work requests, of the team named in the user\'s reviewer assignment.',
                 'በተመደበበት ቡድን ውስጥ ያሉ ሠራተኞችን ዕለታዊ እንቅስቃሴ ይገመግማል፤ የመስክ ሥራ ጥያቄዎቻቸውን ይወስናል።'),

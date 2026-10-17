@@ -54,6 +54,9 @@ final class KpiActualService
         $agreement = $item->agreement;
         $this->access->authorize($actor->can('kpi_actuals.enter') && $this->access->canManageAgreement($actor, $agreement));
 
+        if (PerformanceCycleService::isReadOnly($agreement->cycle)) {
+            throw ValidationException::withMessages(['agreement' => __('performance.errors.cycle_read_only')]);
+        }
         if (! in_array($agreement->status, [AgreementStatus::Active, AgreementStatus::UnderReview, AgreementStatus::Closed], true)) {
             throw ValidationException::withMessages(['agreement' => __('performance.errors.agreement_not_active')]);
         }
@@ -70,7 +73,9 @@ final class KpiActualService
             'employee_id' => $agreement->employee_id,
             'organization_id' => $agreement->organization_id,
             'organization_unit_id' => $agreement->organization_unit_id,
-        ], $from, $to, KpiDataSource::Manual, 'manual', $data, $actor);
+            // Stored under the item's own source (MANUAL, DOCUMENT_EVIDENCE or SURVEY) so the
+            // calculator, which reads an item's configured source only, finds it.
+        ], $from, $to, $item->data_source_type, 'manual', $data, $actor);
     }
 
     /** Own measurement for a unit/organization target (e.g. a verified survey figure). */
@@ -143,6 +148,10 @@ final class KpiActualService
 
         $count = (clone $query)->count();
         if ($count === 0) {
+            // Nothing approved any more (approvals withdrawn, items unlinked): a figure
+            // synced earlier must not keep scoring.
+            KpiActual::query()->where(['subject_key' => 'item:'.$item->getKey(), 'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(), 'source_key' => 'daily_activity'])->delete();
+
             return null;
         }
         $quantity = (string) (clone $query)->sum('quantity');

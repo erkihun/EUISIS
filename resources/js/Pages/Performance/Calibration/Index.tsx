@@ -63,7 +63,7 @@ export default function CalibrationIndex({ sessions, cycles, organizations, comm
                             <th className={thCls}>{t('performance.fields.title')}</th>
                             <th className={thCls}>{t('performance.fields.organization')}</th>
                             <th className={thCls}>{t('performance.fields.sessionDate')}</th>
-                            <th className={thCls}>#</th>
+                            <th className={thCls}>{t('performance.reports.columns.count')}</th>
                             <th className={thCls}>{t('performance.fields.status')}</th>
                         </>}>
                             {sessions.data.map((s) => (

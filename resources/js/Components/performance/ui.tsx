@@ -3,7 +3,7 @@ import { Inbox } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
 import ListPagination from '@/Components/ui/ListPagination';
-import type { ReactNode } from 'react';
+import { cloneElement, isValidElement, useId, type ReactNode } from 'react';
 
 import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 export { fill } from '@/Components/dailyActivity/helpers';
@@ -150,11 +150,20 @@ export function FieldError({ message }: { message?: string }) {
     return message ? <p className="mt-1 text-xs text-red-600 dark:text-red-400">{message}</p> : null;
 }
 
+/**
+ * A labelled control. When the caller gives no `htmlFor`, the label is tied to a
+ * single child control by a generated id, so every field is announced by name.
+ */
 export function Field({ label, htmlFor, error, help, children, className = '' }: { label: string; htmlFor?: string; error?: string; help?: string; children: ReactNode; className?: string }) {
+    const generated = useId();
+    const id = htmlFor ?? generated;
+    const control = htmlFor === undefined && isValidElement<{ id?: string }>(children) && typeof children.type === 'string' && children.props.id === undefined
+        ? cloneElement(children, { id })
+        : children;
     return (
         <div className={className}>
-            <label htmlFor={htmlFor} className={labelCls}>{label}</label>
-            {children}
+            <label htmlFor={id} className={labelCls}>{label}</label>
+            {control}
             {help && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{help}</p>}
             <FieldError message={error} />
         </div>

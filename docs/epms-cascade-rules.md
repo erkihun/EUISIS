@@ -63,9 +63,9 @@ A target on a published plan (or an item on a live agreement) changes only throu
 
 1. **Request:** new value and/or weight, reason, effective date.
 2. **Approval:** by someone other than the requester, when `amendment_requires_approval` is on. Otherwise the request is applied at once.
-3. **New version:** approval creates a new target row (`amended_from_id`, `version_no + 1`, `is_current`) and re-points children to it.
+3. **New version:** approval creates a new target row (`amended_from_id`, `version_no + 1`, `is_current`). Children keep pointing at the row they were cascaded from; the aggregator follows `amended_from_id`, so lineage is never rewritten. An amended weight is refused when the sibling weights would no longer total 100.
 
-Scoring then applies each version to its own period.
+Scoring compares the whole period's actuals with the **current** version's target and cap (see the calculation rules §3). Scoring each version against its own sub-period is a policy decision still open (`NEEDS_DECISION`).
 
 ## 6. From position plan to agreement
 

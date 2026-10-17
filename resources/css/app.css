@@ -609,3 +609,20 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
     from { transform: translateY(8px); opacity: 0; }
     to { transform: none; opacity: 1; }
 }
+
+/* Communication: thin scrollbars in the chat columns, and a brief highlight
+   when jumping to a replied or pinned message (none with reduced motion). */
+.comm-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--app-border-strong) transparent;
+}
+.comm-scroll::-webkit-scrollbar { width: 8px; }
+.comm-scroll::-webkit-scrollbar-thumb { background: var(--app-border-strong); border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+.comm-flash { animation: comm-flash 1.6s ease-out; }
+@keyframes comm-flash {
+    0%, 30% { background-color: color-mix(in srgb, var(--color-primary) 14%, transparent); }
+    100% { background-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .comm-flash { animation: none; outline: 2px solid var(--color-primary); outline-offset: -2px; }
+}

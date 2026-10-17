@@ -122,19 +122,22 @@ class EmployeeAgreementController extends PerformanceController
                 : [],
             'validation' => in_array($status, [AgreementStatus::Draft, AgreementStatus::Returned, AgreementStatus::PendingManagerApproval], true) ? $this->agreements->validate($agreement) : [],
             'pendingAdjustments' => PerformanceScoreAdjustment::query()->where('status', 'PENDING')
-                ->whereIn('result_id', PerformanceResult::query()->where('agreement_id', $agreement->getKey())->select('id'))->get()->toArray(),
+                ->whereIn('result_id', PerformanceResult::query()->where('agreement_id', $agreement->getKey())->select('id'))
+                ->get()->map(fn ($a) => $a->only(['id', 'original_score', 'adjusted_score', 'reason', 'requested_by']))->all(),
             'pendingAmendments' => PerformanceTargetAmendment::query()->where('subject_type', 'ITEM')->where('status', 'PENDING')
-                ->whereIn('subject_id', $agreement->allItems()->select('id'))->get()->toArray(),
+                ->whereIn('subject_id', $agreement->allItems()->select('id'))
+                ->get()->map(fn ($a) => [...$a->only(['id', 'subject_id', 'original_values', 'proposed_values', 'reason', 'requested_by']), 'effective_date' => $a->effective_date?->toDateString()])->all(),
             'recommendPip' => ($result = $agreement->results()->where('is_current', true)->first()) !== null && app(DevelopmentPlanService::class)->recommendsImprovementPlan($result),
-            'combined' => $this->results->combinedForCycle($agreement->employee_id, $agreement->cycle_id),
+            'combined' => $this->results->combinedForCycle($agreement->employee_id, $agreement->cycle_id, $user),
             'can' => [
                 'manage' => $manage,
                 'edit' => $manage && in_array($status, [AgreementStatus::Draft, AgreementStatus::Returned], true),
                 'approve' => $manage && $user->can('employee_performance_agreements.approve') && $status === AgreementStatus::PendingManagerApproval,
                 'enterActual' => $manage && $user->can('kpi_actuals.enter'),
                 'verify' => $manage && $user->can('kpi_actuals.verify'),
-                'review' => $manage && $user->can('performance_reviews.manage'),
-                'checkin' => $manage && $user->can('performance_checkins.manage'),
+                // Reviews and check-ins belong to the line manager (the services require coverage, not only scope).
+                'review' => $this->access->isManagerOf($user, $agreement) && $user->can('performance_reviews.manage'),
+                'checkin' => $this->access->isManagerOf($user, $agreement) && $user->can('performance_checkins.manage'),
                 'finalize' => $this->access->inScope($user, 'performance_reviews.finalize', $agreement->organization_id),
                 'adjust' => $manage && $this->settings->allowScoreAdjustment(),
                 'amend' => $manage && $user->can('kpi_targets.manage'),
@@ -203,7 +206,7 @@ class EmployeeAgreementController extends PerformanceController
 
     public function syncActual(Request $request, EmployeePerformanceItem $item): RedirectResponse
     {
-        $this->access->authorize($this->access->canManageAgreement($request->user(), $item->agreement));
+        $this->access->authorize($request->user()->can('kpi_actuals.enter') && $this->access->canManageAgreement($request->user(), $item->agreement));
         $data = $request->validate(['period_start' => ['required', 'date_format:Y-m-d'], 'period_end' => ['required', 'date_format:Y-m-d', 'after_or_equal:period_start']]);
         $from = Carbon::parse($data['period_start'])->max($item->agreement->effective_from);
         $to = Carbon::parse($data['period_end'])->min($item->agreement->effective_to);
@@ -250,7 +253,8 @@ class EmployeeAgreementController extends PerformanceController
     public function storeCheckin(Request $request, EmployeePerformanceAgreement $agreement): RedirectResponse
     {
         $data = $request->validate([
-            'checkin_date' => ['required', 'date_format:Y-m-d'], 'period_start' => ['nullable', 'date_format:Y-m-d'], 'period_end' => ['nullable', 'date_format:Y-m-d'],
+            'checkin_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$agreement->effective_from->toDateString(), 'before_or_equal:'.$agreement->effective_to->toDateString()],
+            'period_start' => ['nullable', 'date_format:Y-m-d'], 'period_end' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:period_start'],
             'progress_status' => ['required', Rule::in(['ON_TRACK', 'AT_RISK', 'OFF_TRACK', 'NOT_REPORTED'])],
             'manager_comment' => ['nullable', 'string', 'max:5000'], 'manager_private_note' => ['nullable', 'string', 'max:5000'],
             'blockers' => ['nullable', 'string', 'max:5000'], 'support_required' => ['nullable', 'string', 'max:5000'],

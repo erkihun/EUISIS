@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\Communication;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+/** Up to five target conversations. Authorization is the policy's, checked in the action. */
+class ForwardMessageRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user() !== null;
+    }
+
+    /** @return array<string, mixed> */
+    public function rules(): array
+    {
+        return [
+            'conversation_ids' => ['required', 'array', 'min:1', 'max:5'],
+            'conversation_ids.*' => ['uuid'],
+        ];
+    }
+}

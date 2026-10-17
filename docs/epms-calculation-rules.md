@@ -49,8 +49,9 @@ Combining **children** into a parent target (roll-up):
 - An agreement item counts only actuals of **its configured data source**, inside the agreement's effective period. For example, a manual entry on a `DAILY_ACTIVITY` KPI is ignored.
 - **Daily activity:** Σ `quantity` of *approved* daily-activity items linked to the item, in the period. This is stored as one actual with `source_key = daily_activity`. The count of activities is never used.
 - **System sources:** computed by `SystemKpiSourceRegistry` and stored as verified, one row per calendar month clipped to the agreement or target period. Re-syncing replaces those months rather than adding overlapping rows. Agreement items are measured in their own position and plan-item service context. Client service feedback is synced automatically on each submission (see [performance-cascade.md](performance-cascade.md#client-service-feedback)).
-- **Manual / document / survey:** entered by the covering manager with `kpi_actuals.enter`. A verified actual can be changed only by a verifier. The person who enters an actual cannot verify it (separation of duties).
-- **Amended targets:** the item's amendment chain is followed, and each version applies to its own effective period.
+- **Manual / document / survey:** entered by the covering manager with `kpi_actuals.enter` and stored under the item's own source; an item of any of these three sources reads all three. A verified actual can be changed only by a verifier. The person who enters an actual cannot verify it (separation of duties).
+- **Daily activity, revoked:** when no approved activity remains in a period, the synced figure for that period is removed, so nothing stale keeps scoring.
+- **Amended targets:** the item's amendment chain is followed: every actual recorded against any version of the item counts once (one figure per period and source, the newest version's entry winning), and the total is scored against the current version's target and cap. Scoring each version against its own sub-period is not implemented (`NEEDS_DECISION`).
 
 ## 4. Employee score (`EmployeeScoreCalculator::trace`)
 

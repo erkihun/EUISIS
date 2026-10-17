@@ -120,7 +120,7 @@ function PerformanceBody({ agreements, agreement, appeals, appealWindowDays, can
                         </Section>
                         <Section title={t('performance.fields.evidence')} actions={['AGREED', 'ACTIVE', 'UNDER_REVIEW'].includes(agreement.status) && <button type="button" className={smallBtn} onClick={() => toggle('evidence')}>{t('performance.actions.upload')}</button>}>
                             {open === 'evidence' && <div className="mb-3"><EvidenceForm url={route('employee.performance.evidence.store', agreement.id)} items={agreement.items.map((i) => ({ id: i.id, label: `${i.kpi.code} — ${nameOf(i.kpi, locale)}` }))} onDone={() => setOpen(null)} /></div>}
-                            <EvidenceList evidence={agreement.evidence} />
+                            <EvidenceList evidence={agreement.evidence} downloadRoute="employee.performance.evidence.download" />
                         </Section>
                     </div>
 
