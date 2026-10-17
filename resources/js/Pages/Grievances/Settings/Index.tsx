@@ -472,7 +472,7 @@ function RevokeButton({ id }: { id: string }) {
         const { confirmed } = await confirm({ title: t('grievanceAdmin.confirm_revoke_title'), description: t('grievanceAdmin.confirm_revoke_body'), confirmLabel: t('grievanceAdmin.revoke'), variant: 'danger' });
         if (confirmed) form.post(route('grievances.settings.delegations.revoke', id), { preserveScroll: true });
     };
-    return <ActionWithError error={Object.values(form.errors)[0]}>
+    return <ActionWithError error={Object.values(form.errors as Record<string, string>)[0]}>
         <button type="button" className={actionLinkClassName({ tone: 'danger' })} disabled={form.processing} onClick={revoke}>{t('grievanceAdmin.revoke')}</button>
     </ActionWithError>;
 }
@@ -527,7 +527,7 @@ function SealAction({ id, action, label }: { id: string; action: 'approve' | 're
         });
         if (confirmed) form.post(route('grievances.settings.seals.decide', id), { preserveScroll: true });
     };
-    return <ActionWithError error={Object.values(form.errors)[0]}>
+    return <ActionWithError error={Object.values(form.errors as Record<string, string>)[0]}>
         <button type="button" className={actionLinkClassName({ tone: action === 'retire' ? 'danger' : undefined })} disabled={form.processing} onClick={decide}>{label}</button>
     </ActionWithError>;
 }
