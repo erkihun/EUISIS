@@ -49,7 +49,7 @@ export default function CommunicationButton() {
                 )}
             </Link>
             {/* Tooltip: on hover and on keyboard focus, below the bar so the header never clips it. */}
-            <span role="tooltip" className="pointer-events-none absolute right-1/2 top-full z-50 mt-2 hidden translate-x-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white shadow-lg group-hover:block group-focus-within:block dark:bg-slate-700">
+            <span role="tooltip" className="pointer-events-none absolute right-1/2 top-full z-50 mt-2 hidden translate-x-1/2 whitespace-nowrap rounded bg-[color:var(--app-foreground)] px-2 py-1 text-xs text-[color:var(--app-background)] shadow-lg group-hover:block group-focus-within:block">
                 {label}
             </span>
         </span>

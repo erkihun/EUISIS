@@ -122,7 +122,7 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
     const heading = announcement ? t('communication.announcements.form.editTitle') : t('communication.announcements.form.createTitle');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={heading} backHref={announcement ? route('communication.announcements.show', announcement.id) : route('communication.announcements.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={heading} backHref={announcement ? route('communication.announcements.show', announcement.id) : route('communication.announcements.index')} />}>
             <Head title={heading} />
 
             <form onSubmit={submit('draft')} className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">

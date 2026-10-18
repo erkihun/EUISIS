@@ -1,4 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
+import { Button } from '@euisis/ui';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
@@ -229,13 +230,9 @@ export default function Messages(props: Props): JSX.Element {
                             <h1 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.chat.selectTitle')}</h1>
                             <p className="max-w-xs text-sm text-[color:var(--app-muted-foreground)]">{t('communication.chat.selectHelp')}</p>
                             {can.message && (
-                                <button
-                                    type="button"
-                                    onClick={() => setComposing('message')}
-                                    className="mt-1 h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90"
-                                >
+                                <Button type="button" variant="primary" className="mt-1" onClick={() => setComposing('message')}>
                                     {t('communication.dashboard.newMessage')}
-                                </button>
+                                </Button>
                             )}
                         </div>
                     )}

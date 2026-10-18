@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent, type JSX } from 'react';
+import { Button } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/Components/ConfirmProvider';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
@@ -500,9 +501,9 @@ function SettingsTab({ detail, onChanged, onArchive }: { detail: ConversationDet
                     </fieldset>
                 )}
                 {error && <p role="alert" className="text-xs text-[color:var(--color-danger,#b42318)]">{error}</p>}
-                <button type="submit" disabled={saving || !title.trim()} className="h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40">
+                <Button type="submit" variant="primary" disabled={saving || !title.trim()} loading={saving}>
                     {t('communication.manage.save')}
-                </button>
+                </Button>
             </form>
 
             {detail.can.archive && !detail.archived && (

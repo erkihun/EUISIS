@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent, type JSX } from 'react';
+import { Button } from '@euisis/ui';
 import Modal from '@/Components/Modal';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { useLocale } from '@/hooks/useLocale';
@@ -127,9 +128,9 @@ export default function TaskDialog({ message, detail, onClose }: { message: Mess
                 </div>
                 <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] px-5 py-3">
                     <button type="button" onClick={onClose} className="h-9 rounded-control px-3 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">{t('common.cancel')}</button>
-                    <button type="submit" disabled={saving || assignee === null} className="h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40">
+                    <Button type="submit" variant="primary" disabled={saving || assignee === null} loading={saving}>
                         {t('communication.tasks.create.submit')}
-                    </button>
+                    </Button>
                 </div>
             </form>
         </Modal>
