@@ -26,9 +26,10 @@ type Props = {
     onJump: (messageId: string) => void;
     onChanged: () => void;
     onGone: () => void;
+    onReport: () => void;
 };
 
-export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClose, onMute, onJump, onChanged, onGone }: Props): JSX.Element {
+export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClose, onMute, onJump, onChanged, onGone, onReport }: Props): JSX.Element {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const system = useCalendarSystem();
@@ -92,6 +93,27 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
         }
     };
 
+    const toggleBlock = async () => {
+        if (!other) return;
+        if (!detail.blocked_by_me) {
+            const answer = await confirm({
+                title: tr(t('communication.block.title'), { name: other.name }),
+                description: t('communication.block.message'),
+                confirmLabel: t('communication.block.block'),
+                variant: 'warning',
+            });
+            if (!answer.confirmed) return;
+        }
+        try {
+            if (detail.blocked_by_me) await communicationApi.unblock(other.id);
+            else await communicationApi.block(other.id);
+            toast.success(tr(t(detail.blocked_by_me ? 'communication.block.undone' : 'communication.block.done'), { name: other.name }));
+            onChanged();
+        } catch (reason) {
+            toast.error(firstError(reason) ?? t('communication.errors.generic'));
+        }
+    };
+
     const subtitle = other
         ? [other.position, other.unit ?? other.organization].filter(Boolean).join(' · ')
         : `${detail.channel_info ? t(`communication.channels.types.${detail.channel_info.type}`) : t(`communication.types.${detail.type}`)} · ${tr(t('communication.details.memberCount'), { n: detail.member_count })}`;
@@ -137,6 +159,16 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                             {detail.muted ? <BellIcon className="h-4 w-4" aria-hidden="true" /> : <BellOffIcon className="h-4 w-4" aria-hidden="true" />}
                             {detail.muted ? t('communication.actions.unmute') : t('communication.actions.mute')}
                         </button>
+                        {direct && other && (
+                            <button type="button" onClick={() => void toggleBlock()} className="inline-flex h-8 items-center rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                {detail.blocked_by_me ? t('communication.block.unblock') : t('communication.block.block')}
+                            </button>
+                        )}
+                        {!direct && (
+                            <button type="button" onClick={onReport} className="inline-flex h-8 items-center rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                {t('communication.actions.report')}
+                            </button>
+                        )}
                         {detail.can.leave && !detail.archived && (
                             <button type="button" onClick={() => void leave()} className="inline-flex h-8 items-center rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
                                 {t('communication.manage.leave')}

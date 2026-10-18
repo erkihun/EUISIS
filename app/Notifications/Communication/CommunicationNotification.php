@@ -23,7 +23,7 @@ class CommunicationNotification extends Notification implements ShouldQueue
 
     public const KINDS = [
         'direct_message', 'mentioned', 'added_to_group', 'removed_from_group', 'channel_invitation',
-        'announcement_important', 'announcement_urgent', 'announcement_ack_required', 'task_assigned',
+        'announcement_important', 'announcement_urgent', 'announcement_ack_required', 'task_assigned', 'access_requested', 'access_approved', 'access_rejected',
     ];
 
     /**

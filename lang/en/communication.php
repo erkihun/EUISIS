@@ -6,6 +6,12 @@ declare(strict_types=1);
 // Page text lives in resources/js/i18n/{en,am}/communication.ts.
 return [
     'errors' => [
+        'assignee_not_member' => 'Assign the task to someone in this conversation.',
+        'due_in_past' => 'The due date must be in the future.',
+        'report_closed' => 'This report is already closed.',
+        'block_self' => 'You cannot block yourself.',
+        'investigation_target_invalid' => 'Choose an existing conversation or person (not yourself).',
+        'investigation_hours' => 'Access can be granted for 1 to :max hours.',
         'expiry_in_past' => 'The expiry must be in the future.',
         'expiry_before_publish' => 'The announcement would expire before it is published. Change the expiry or the time.',
         'too_many_attachments' => 'An announcement can have at most 10 files.',
@@ -61,7 +67,7 @@ return [
         'member_left' => ':actor left.',
         'group_created' => ':actor created the group.',
         'channel_created' => ':actor created the channel.',
-        'task_created' => ':actor created a task from a message.',
+        'task_created' => ':actor created a task for :subject.',
     ],
 
     'notifications' => [
@@ -83,6 +89,10 @@ return [
     ],
 
     'flash' => [
+        'access_requested' => 'Request sent. It needs approval by someone else before anything can be read.',
+        'access_approved' => 'Access approved for a limited time.',
+        'access_rejected' => 'Request rejected.',
+        'access_revoked' => 'Access ended.',
         'announcement_saved' => 'Announcement saved as a draft.',
         'announcement_saved_for_publisher' => 'Saved. Someone who may publish in this scope will publish it.',
         'announcement_published' => 'Announcement published.',
@@ -93,5 +103,8 @@ return [
     ],
     'targets' => [
         'city' => 'Everyone in the city administration',
+    ],
+    'tasks' => [
+        'untitled' => 'Task from a message',
     ],
 ];

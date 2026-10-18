@@ -120,6 +120,12 @@ final class CommunicationSettings
         return $this->bool('sms_emergency_announcements', false);
     }
 
+    /** Longest investigation (break-glass) access an approver may grant. */
+    public function breakGlassMaxHours(): int
+    {
+        return $this->bounded('break_glass_max_hours', 24, 1, 72);
+    }
+
     /** Seconds since the last heartbeat within which someone counts as online. */
     public function onlineWindowSeconds(): int
     {

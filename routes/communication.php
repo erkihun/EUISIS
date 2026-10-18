@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Communication\AnnouncementController;
 use App\Http\Controllers\Communication\AttachmentController;
+use App\Http\Controllers\Communication\BlockController;
+use App\Http\Controllers\Communication\InvestigationController;
+use App\Http\Controllers\Communication\ModerationController;
+use App\Http\Controllers\Communication\TaskController;
 use App\Http\Controllers\Communication\ChannelController;
 use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\Communication\ConversationController;
@@ -48,6 +52,15 @@ Route::middleware(['auth', 'mfa', 'force.password', 'admin.access', EnsureCommun
         Route::get('/announcements/{announcement}/export', [AnnouncementController::class, 'export'])->whereUuid('announcement')->middleware('throttle:10,1')->name('announcements.export');
         Route::get('/announcement-files/{attachment}', [AnnouncementController::class, 'downloadAttachment'])->whereUuid('attachment')->name('announcements.files.download');
 
+        // Tasks, moderation and investigation access.
+        Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+        Route::get('/moderation', [ModerationController::class, 'index'])->name('moderation.index');
+        Route::get('/investigations', [InvestigationController::class, 'index'])->name('investigations.index');
+        Route::post('/investigations', [InvestigationController::class, 'store'])->middleware('throttle:10,1')->name('investigations.store');
+        Route::get('/investigations/{investigation}', [InvestigationController::class, 'show'])->whereUuid('investigation')->name('investigations.show');
+        Route::post('/investigations/{investigation}/decide', [InvestigationController::class, 'decide'])->whereUuid('investigation')->name('investigations.decide');
+        Route::post('/investigations/{investigation}/revoke', [InvestigationController::class, 'revoke'])->whereUuid('investigation')->name('investigations.revoke');
+
         Route::prefix('api')->name('api.')->group(function (): void {
             Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
             Route::post('/conversations', [ConversationController::class, 'store'])->middleware('throttle:communication-start')->name('conversations.store');
@@ -91,6 +104,20 @@ Route::middleware(['auth', 'mfa', 'force.password', 'admin.access', EnsureCommun
             Route::get('/announcements/{announcement}/recipients', [AnnouncementController::class, 'recipients'])->whereUuid('announcement')->name('announcements.recipients');
             Route::post('/announcements/{announcement}/attachments', [AnnouncementController::class, 'storeAttachment'])->whereUuid('announcement')->middleware('throttle:communication-upload')->name('announcements.attachments.store');
             Route::delete('/announcement-files/{attachment}', [AnnouncementController::class, 'destroyAttachment'])->whereUuid('attachment')->name('announcements.attachments.destroy');
+
+            Route::get('/tasks', [TaskController::class, 'list'])->name('tasks.list');
+            Route::post('/messages/{message}/task', [TaskController::class, 'store'])->whereUuid('message')->middleware('throttle:30,1')->name('tasks.store');
+            Route::patch('/tasks/{task}', [TaskController::class, 'update'])->whereUuid('task')->name('tasks.update');
+            Route::post('/messages/{message}/report', [ModerationController::class, 'reportMessage'])->whereUuid('message')->middleware('throttle:communication-report')->name('reports.message');
+            Route::post('/conversations/{conversation}/report', [ModerationController::class, 'reportConversation'])->whereUuid('conversation')->middleware('throttle:communication-report')->name('reports.conversation');
+            Route::get('/reports', [ModerationController::class, 'list'])->name('reports.list');
+            Route::get('/reports/{report}', [ModerationController::class, 'show'])->whereUuid('report')->name('reports.show');
+            Route::post('/reports/{report}/resolve', [ModerationController::class, 'resolve'])->whereUuid('report')->name('reports.resolve');
+            Route::get('/blocks', [BlockController::class, 'index'])->name('blocks.index');
+            Route::post('/blocks', [BlockController::class, 'store'])->middleware('throttle:30,1')->name('blocks.store');
+            Route::delete('/blocks/{user}', [BlockController::class, 'destroy'])->whereNumber('user')->name('blocks.destroy');
+            Route::get('/investigations/people', [InvestigationController::class, 'people'])->middleware('throttle:communication-search')->name('investigations.people');
+            Route::get('/investigations/{investigation}/conversations/{conversation}', [InvestigationController::class, 'messages'])->whereUuid('investigation')->whereUuid('conversation')->middleware('throttle:60,1')->name('investigations.messages');
 
             Route::get('/attachments/{attachment}', [AttachmentController::class, 'download'])->whereUuid('attachment')->name('attachments.download');
             Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])->whereUuid('attachment')->name('attachments.destroy');

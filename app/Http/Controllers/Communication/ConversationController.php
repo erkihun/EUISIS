@@ -91,6 +91,9 @@ class ConversationController extends Controller
             'members_complete' => $small,
             'my_last_read_message_id' => $member?->last_read_message_id,
             'archived' => $conversation->isArchived(),
+            // Only the person who blocked sees it; the other side is never told.
+            'blocked_by_me' => $conversation->type === ConversationType::Direct && \App\Models\Communication\CommunicationBlock::query()
+                ->where('blocker_id', $user->getKey())->whereIn('blocked_id', $conversation->activeMembers()->select('user_id'))->exists(),
             'channel_info' => $channel === null ? null : [
                 'type' => $channel->type->value,
                 'name' => $channel->name,

@@ -6,6 +6,12 @@ declare(strict_types=1);
 // የገጽ ጽሑፍ በ resources/js/i18n/{en,am}/communication.ts ውስጥ ነው።
 return [
     'errors' => [
+        'assignee_not_member' => 'ተግባሩን በዚህ ውይይት ውስጥ ላለ ሰው ይመድቡ።',
+        'due_in_past' => 'የማብቂያ ቀኑ ወደፊት መሆን አለበት።',
+        'report_closed' => 'ይህ ሪፖርት ተዘግቷል።',
+        'block_self' => 'ራስዎን ማገድ አይችሉም።',
+        'investigation_target_invalid' => 'ያለ ውይይት ወይም ሰው ይምረጡ (ራስዎን አይደለም)።',
+        'investigation_hours' => 'ፈቃዱ ከ1 እስከ :max ሰዓት ሊሰጥ ይችላል።',
         'expiry_in_past' => 'የሚያበቃበት ጊዜ ወደፊት መሆን አለበት።',
         'expiry_before_publish' => 'ማስታወቂያው ከመታተሙ በፊት ጊዜው ያልፋል። የሚያበቃበትን ጊዜ ወይም የሚታተምበትን ሰዓት ይቀይሩ።',
         'too_many_attachments' => 'አንድ ማስታወቂያ ቢበዛ 10 ፋይሎች ሊኖሩት ይችላል።',
@@ -61,7 +67,7 @@ return [
         'member_left' => ':actor ወጡ።',
         'group_created' => ':actor ቡድኑን ፈጠሩ።',
         'channel_created' => ':actor ቻናሉን ፈጠሩ።',
-        'task_created' => ':actor ከመልዕክት ተግባር ፈጠሩ።',
+        'task_created' => ':actor ለ:subject ተግባር ፈጠሩ።',
     ],
 
     'notifications' => [
@@ -83,6 +89,10 @@ return [
     ],
 
     'flash' => [
+        'access_requested' => 'ጥያቄው ተልኳል። ምንም ነገር ከመነበቡ በፊት በሌላ ሰው መጽደቅ አለበት።',
+        'access_approved' => 'ፈቃዱ ለተወሰነ ጊዜ ጸድቋል።',
+        'access_rejected' => 'ጥያቄው ውድቅ ተደርጓል።',
+        'access_revoked' => 'ፈቃዱ አብቅቷል።',
         'announcement_saved' => 'ማስታወቂያው በረቂቅነት ተቀምጧል።',
         'announcement_saved_for_publisher' => 'ተቀምጧል። በዚህ ወሰን የማተም ፈቃድ ያለው ሰው ያትመዋል።',
         'announcement_published' => 'ማስታወቂያው ታትሟል።',
@@ -93,5 +103,8 @@ return [
     ],
     'targets' => [
         'city' => 'በከተማ አስተዳደሩ ያሉ ሁሉም',
+    ],
+    'tasks' => [
+        'untitled' => 'ከመልዕክት የተፈጠረ ተግባር',
     ],
 ];

@@ -60,6 +60,7 @@ export default function Messages(props: Props): JSX.Element {
     });
     const [detailsOpen, setDetailsOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1280);
     const [box, height] = useFillHeight();
+    const [jumpTo] = useState<string | null>(() => (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('message')));
     const [socket, setSocket] = useState(false);
 
     // The socket is an addition: until it connects (or when it is off) everything polls.
@@ -210,6 +211,7 @@ export default function Messages(props: Props): JSX.Element {
                             onToggleDetails={setDetailsOpen}
                             onBack={() => select(null)}
                             onActivity={onActivity}
+                            initialMessageId={activeId === props.activeConversationId ? jumpTo : null}
                             onGone={(id) => { setItems((current) => current.filter((c) => c.id !== id)); select(null); }}
                         />
                     ) : (

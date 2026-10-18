@@ -91,6 +91,7 @@ export type ConversationDetail = ConversationSummary & {
     members_complete: boolean;
     my_last_read_message_id: string | null;
     archived: boolean;
+    blocked_by_me: boolean;
     channel_info: ChannelInfo | null;
     can: {
         post: boolean;
@@ -217,3 +218,56 @@ export type Recipient = {
 };
 
 export type TargetOption = { id: string; name: string; hint: string | null };
+
+export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type TaskPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+
+export type CommunicationTaskItem = {
+    id: string;
+    title: string;
+    description: string | null;
+    priority: TaskPriority;
+    status: TaskStatus;
+    due_at: string | null;
+    completed_at: string | null;
+    created_at: string | null;
+    assignee: { id: number; name: string } | null;
+    creator: { id: number; name: string } | null;
+    source: { conversation_id: string; message_id: string | null; title: string | null; type: ConversationType } | null;
+    can: { updateStatus: boolean; manage: boolean };
+};
+
+export type ReportCategory = 'SPAM' | 'HARASSMENT' | 'INAPPROPRIATE_CONTENT' | 'SECURITY_CONCERN' | 'OTHER';
+export type ReportStatus = 'OPEN' | 'UNDER_REVIEW' | 'ACTIONED' | 'DISMISSED';
+
+export type ReportItem = {
+    id: string;
+    subject: 'MESSAGE' | 'CONVERSATION';
+    category: ReportCategory;
+    details: string | null;
+    status: ReportStatus;
+    reporter: string | null;
+    reported_user: string | null;
+    reviewer: string | null;
+    resolution_note: string | null;
+    created_at: string | null;
+    reviewed_at: string | null;
+};
+
+export type ReportedMessage = {
+    id: string;
+    reported: boolean;
+    sender: string | null;
+    sender_id: number | null;
+    type: string;
+    body: string | null;
+    deleted: boolean;
+    attachments: { name: string; size: number }[];
+    created_at: string | null;
+};
+
+export type ReportDetail = {
+    report: ReportItem;
+    conversation: { type: ConversationType; title: string | null } | null;
+    messages: ReportedMessage[];
+};

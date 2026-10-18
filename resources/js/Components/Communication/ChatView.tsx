@@ -12,6 +12,8 @@ import MessageBubble, { type BubbleAbilities } from '@/Components/Communication/
 import Composer, { type ComposerSubmit } from '@/Components/Communication/Composer';
 import DetailsPanel from '@/Components/Communication/DetailsPanel';
 import ForwardDialog from '@/Components/Communication/ForwardDialog';
+import TaskDialog from '@/Components/Communication/TaskDialog';
+import ReportDialog, { type ReportTarget } from '@/Components/Communication/ReportDialog';
 import MessageText from '@/Components/Communication/MessageText';
 import { ArrowLeftIcon, ChatIcon, DangerCircleIcon, MenuDotsIcon, OfflineIcon, PaperclipIcon, RefreshIcon } from '@/Components/NavIcons';
 import type {
@@ -30,6 +32,8 @@ type Props = {
     onBack: () => void;
     onActivity: (conversationId: string, patch: Partial<ConversationSummary>) => void;
     onGone: (conversationId: string) => void;
+    /** Open on this message (from a task or a link) instead of the latest. */
+    initialMessageId?: string | null;
 };
 
 type Outgoing = PendingMessage & { parentId: string | null; attachmentIds: string[] };
@@ -76,6 +80,8 @@ export default function ChatView(props: Props): JSX.Element {
     const [replyTo, setReplyTo] = useState<MessageItem | null>(null);
     const [editing, setEditing] = useState<MessageItem | null>(null);
     const [forwarding, setForwarding] = useState<MessageItem | null>(null);
+    const [tasking, setTasking] = useState<MessageItem | null>(null);
+    const [reporting, setReporting] = useState<ReportTarget | null>(null);
     const [pinned, setPinned] = useState<Set<string>>(new Set());
     const [pinsVersion, setPinsVersion] = useState(0);
     const [typing, setTyping] = useState<Map<number, { name: string; until: number }>>(new Map());
@@ -252,6 +258,11 @@ export default function ChatView(props: Props): JSX.Element {
     useLayoutEffect(() => {
         if (loading || landed.current === conversationId) return;
         landed.current = conversationId;
+        if (props.initialMessageId) {
+            stickToBottom.current = false;
+            void jump(props.initialMessageId);
+            return;
+        }
         const first = messages.find((m) => unreadFrom.current && m.id > unreadFrom.current && m.sender?.id !== currentUserId);
         if (first && unreadFrom.current) {
             document.getElementById(`m-${first.id}`)?.scrollIntoView({ block: 'center' });
@@ -443,6 +454,8 @@ export default function ChatView(props: Props): JSX.Element {
             delete: own && !message.deleted && limits.deleteWindowMinutes > 0 && age <= limits.deleteWindowMinutes,
             pin: (detail?.can.pin ?? false) && !message.deleted,
             forward: can.forward && !message.deleted,
+            task: can.createTask && !message.deleted && message.type !== 'SYSTEM' && !(detail?.archived ?? false),
+            report: can.report && !own && !message.deleted && message.type !== 'SYSTEM',
         };
     }, [currentUserId, detail, limits, can.forward, now]);
 
@@ -603,6 +616,8 @@ export default function ChatView(props: Props): JSX.Element {
                                                 onForward={setForwarding}
                                                 onPin={pin}
                                                 onJump={jump}
+                                                onTask={setTasking}
+                                                onReport={(m) => setReporting({ kind: 'message', id: m.id })}
                                             />
                                         </Fragment>
                                     );
@@ -685,12 +700,15 @@ export default function ChatView(props: Props): JSX.Element {
                             onJump={(id) => { if (window.innerWidth < 1280) props.onToggleDetails(false); void jump(id); }}
                             onChanged={() => { void refreshDetail(); void refreshLatest(); announceTotalsChanged(); }}
                             onGone={() => props.onGone(conversationId)}
+                            onReport={() => setReporting({ kind: 'conversation', id: conversationId })}
                         />
                     </div>
                 </>
             )}
 
             <ForwardDialog message={forwarding} onClose={() => setForwarding(null)} />
+            <TaskDialog message={tasking} detail={detail} onClose={() => setTasking(null)} />
+            <ReportDialog target={reporting} onClose={() => setReporting(null)} />
         </div>
     );
 }

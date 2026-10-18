@@ -316,10 +316,16 @@ class AppServiceProvider extends ServiceProvider
             $target = $arguments[0] ?? null;
             // Private communication is never opened by role (docs/communication-module.md §Privacy):
             // the policy decides, by membership or an approved break-glass grant.
-            if ($target instanceof \App\Models\Communication\Conversation
-                || $target instanceof \App\Models\Communication\Message
-                || $target instanceof \App\Models\Communication\MessageAttachment
-                || $target instanceof \App\Models\Communication\CommunicationAccessRequest) {
+            // Reported content and investigation access follow the same rule, whether the check is on a
+            // record or on the class (viewAny, create).
+            $private = [
+                \App\Models\Communication\Conversation::class,
+                \App\Models\Communication\Message::class,
+                \App\Models\Communication\MessageAttachment::class,
+                \App\Models\Communication\CommunicationAccessRequest::class,
+                \App\Models\Communication\CommunicationReport::class,
+            ];
+            if ((is_object($target) && in_array($target::class, $private, true)) || (is_string($target) && in_array($target, $private, true))) {
                 return null;
             }
             if ($target instanceof User && $target->is($user)

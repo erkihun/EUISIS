@@ -29,7 +29,7 @@ type Props = PageProps<{
     contacts: (Person & { conversation_id: string | null })[];
     announcements: AnnouncementRow[];
     pendingAcknowledgements: AnnouncementRow[];
-    can: { message: boolean; createGroup: boolean; browseChannels: boolean; createAnnouncement: boolean };
+    can: { message: boolean; createGroup: boolean; browseChannels: boolean; createAnnouncement: boolean; tasks: boolean; moderate: boolean; investigations: boolean };
 }>;
 
 const has = (name: string) => (route() as unknown as { has: (n: string) => boolean }).has(name);
@@ -111,6 +111,14 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                             : <span key={key} className={cls}>{content}</span>;
                     })}
                 </nav>
+
+                {(can.tasks || can.moderate || can.investigations) && (
+                    <nav aria-label={t('communication.title')} className="-mt-2 flex flex-wrap gap-x-5 gap-y-1 px-1 text-sm">
+                        {can.tasks && <Link href={route('communication.tasks.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.tasks')}</Link>}
+                        {can.moderate && <Link href={route('communication.moderation.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.moderation')}</Link>}
+                        {can.investigations && <Link href={route('communication.investigations.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.investigations')}</Link>}
+                    </nav>
+                )}
 
                 {pendingAcknowledgements.length > 0 && (
                     <Section title={t('communication.dashboard.pendingAcknowledgements')} count={pendingAcknowledgements.length} tone="warning">

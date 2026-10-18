@@ -48,3 +48,4 @@ Schedule::command('assessments:evaluator-reminders')->dailyAt('07:00')->withoutO
 Schedule::command('communication:sync-memberships --queue')->dailyAt('03:40')->withoutOverlapping()->onOneServer();
 Schedule::command('communication:publish-scheduled')->everyMinute()->withoutOverlapping()->onOneServer();
 Schedule::command('communication:expire-announcements')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+Schedule::command('communication:expire-investigations')->everyFiveMinutes()->withoutOverlapping()->onOneServer();

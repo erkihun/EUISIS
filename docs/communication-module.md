@@ -114,6 +114,64 @@ notifications and builds the acknowledgement report.
 - Files (up to 10) go through the same private storage and type checks as chat
   attachments, and download only for people who may view the announcement.
 
+## Tasks, reports and blocks
+
+### Message → task
+
+Any member with `communication.tasks.create` can turn a message into a task
+for someone in the same conversation. The task links back to the message
+(only for people who can still read that conversation), the conversation gets
+a short note ("X created a task for Y") and the assignee is notified. The
+assignee and the creator move its status; only the creator (or a task manager
+on it) changes its details, reassigns it within the conversation or cancels it.
+Everyone sees their own tasks at `/communication/tasks`.
+
+### Reporting and moderation
+
+- Members report a message (not their own) or a group or channel. Reporting the
+  same thing again while it is open returns the same report. The audit row holds
+  ids only, never the text.
+- Moderators (`communication.moderate`) review at `/communication/moderation`.
+  Opening a report shows **only the reported message and three messages either
+  side** (or the latest few of a reported group or channel), never the rest of a
+  private conversation; it moves the report to "in review" and is audited
+  (`communication.reported_content_accessed`).
+- A moderator never sees reports they filed or reports about themselves.
+- Closing a report needs a note; "action taken" may remove the message (members
+  then see "This message was deleted"; audited as a moderator deletion).
+
+### Blocking
+
+Blocking someone stops both of you from starting or posting in a direct
+conversation and from adding the other to a group. The blocked person is not
+told: they see the same "cannot message this person" as for anyone else.
+Block or unblock from the details of a direct conversation.
+
+## Investigation access (break-glass)
+
+Private conversations are never opened by role. Super Admin has no bypass: the
+policies for conversations, messages, files, reports and access requests read
+permissions from the person's roles (`checkPermissionTo`), whatever the global
+Super Admin rule says.
+
+1. **Request** (`communication.break_glass.request`): one conversation, or every
+   conversation of one employee, with a case reference, a written reason of at
+   least 30 characters and the hours needed. Approvers are notified.
+2. **Decide** (`communication.break_glass.approve`): someone other than the
+   requester approves (for no more hours than asked, and never more than the
+   "Investigation access limit" setting, default 24, maximum 72) or rejects,
+   with a note either way.
+3. **Read**: only the requester, only while approved and unexpired. Read-only:
+   no posting, reacting, read receipts or downloads; deleted messages are shown
+   and marked. Every page read is audited (`communication.access_used`) with the
+   conversation and message ids.
+4. **End**: at expiry (`communication:expire-investigations`, every five
+   minutes; access stops at the expiry time regardless), or earlier when an
+   approver or the investigator revokes it.
+
+Approvers and auditors (`communication.audit`) see requests and decisions, never
+the content. City Admin does not get these permissions by default.
+
 ## Realtime
 
 HTTP is the source of truth. Realtime only tells an open page that something

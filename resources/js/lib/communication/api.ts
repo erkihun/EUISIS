@@ -5,7 +5,7 @@
  */
 import axios, { type AxiosProgressEvent } from 'axios';
 import type {
-    AnnouncementFile, AnnouncementPage, Attachment, ChannelPage, Recipient, TargetOption, ConversationDetail, ConversationMemberRow, ConversationPage, MemberRole, MessageItem, MessagePage, Person, Reaction, ScopeOption, Totals,
+    AnnouncementFile, AnnouncementPage, CommunicationTaskItem, ReportCategory, ReportDetail, ReportItem, Attachment, ChannelPage, Recipient, TargetOption, ConversationDetail, ConversationMemberRow, ConversationPage, MemberRole, MessageItem, MessagePage, Person, Reaction, ScopeOption, Totals,
 } from '@/types/communication';
 
 const r = (name: string, params?: unknown): string => (route as unknown as (n: string, p?: unknown) => string)(`communication.${name}`, params);
@@ -67,6 +67,29 @@ export const communicationApi = {
         axios.post<{ id: string; conversation_id: string }>(r('api.channels.store'), payload).then((res) => res.data),
     joinChannel: (channelId: string) => axios.post<{ conversation_id: string }>(r('api.channels.join', channelId)).then((res) => res.data.conversation_id),
     scopeOrganizations: (q: string) => axios.get<{ data: ScopeOption[] }>(r('api.channels.organizations', { q })).then((res) => res.data.data),
+    // Tasks, reports, blocks, investigations
+    tasks: (view: 'assigned' | 'created', status: 'open' | 'done' | 'all') =>
+        axios.get<{ data: CommunicationTaskItem[] }>(r('api.tasks.list', { view, status })).then((res) => res.data.data),
+    createTask: (messageId: string, payload: { assigned_to: number; title?: string | null; description?: string | null; priority?: string; due_at?: string | null }) =>
+        axios.post<{ data: CommunicationTaskItem }>(r('api.tasks.store', messageId), payload).then((res) => res.data.data),
+    updateTask: (taskId: string, payload: Record<string, unknown>) =>
+        axios.patch<{ data: CommunicationTaskItem }>(r('api.tasks.update', taskId), payload).then((res) => res.data.data),
+    reportMessage: (messageId: string, category: ReportCategory, details: string | null) =>
+        axios.post(r('api.reports.message', messageId), { category, details }),
+    reportConversation: (conversationId: string, category: ReportCategory, details: string | null) =>
+        axios.post(r('api.reports.conversation', conversationId), { category, details }),
+    reports: (status: 'active' | 'closed' | 'all') => axios.get<{ data: ReportItem[] }>(r('api.reports.list', { status })).then((res) => res.data.data),
+    report: (id: string) => axios.get<ReportDetail>(r('api.reports.show', id)).then((res) => res.data),
+    resolveReport: (id: string, payload: { status: 'ACTIONED' | 'DISMISSED'; note: string; remove_message: boolean }) =>
+        axios.post<{ report: ReportItem }>(r('api.reports.resolve', id), payload).then((res) => res.data.report),
+    blocks: () => axios.get<{ data: { id: number; name: string; blocked_at: string | null }[] }>(r('api.blocks.index')).then((res) => res.data.data),
+    block: (userId: number) => axios.post(r('api.blocks.store'), { user_id: userId }),
+    unblock: (userId: number) => axios.delete(r('api.blocks.destroy', userId)),
+    investigationPeople: (q: string) => axios.get<{ data: TargetOption[] }>(r('api.investigations.people', { q })).then((res) => res.data.data),
+    investigationMessages: (requestId: string, conversationId: string, before?: string | null) =>
+        axios.get<{ data: { id: string; type: string; sender: string | null; body: string | null; metadata: Record<string, unknown> | null; deleted: boolean; edited_at: string | null; attachments: { name: string; size: number; mime_type: string }[]; created_at: string | null }[]; next_before: string | null }>(
+            r('api.investigations.messages', before ? [requestId, conversationId, { before }] : [requestId, conversationId])).then((res) => res.data),
+
     // Announcements
     announcementFeed: (filter: 'all' | 'unread' | 'acknowledge', cursor?: string | null) =>
         axios.get<AnnouncementPage>(r('api.announcements.feed', Object.fromEntries(Object.entries({ filter, cursor }).filter(([, v]) => v)))).then((res) => res.data),
