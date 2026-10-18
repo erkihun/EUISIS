@@ -24,6 +24,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Notifications\FieldWorkNotification;
 use App\Services\FieldWork\FieldWorkAttendanceService;
+use App\Services\FieldWork\FieldWorkSettings;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
@@ -36,6 +37,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -918,4 +920,16 @@ test('the schema conversion keeps the earlier implementation\'s rows, ids and re
     fwAt('09:00');
     $this->actingAs($this->userA)->post(route('employee.field-work.check-in', $approved), fwGps())->assertSessionHasNoErrors();
     expect($approved->refresh()->status)->toBe(FieldWorkStatus::InField);
+});
+
+it('gives the request form a map for the expected location, capped at the configured radius', function (): void {
+    config(['maps.tile_url' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png']);
+
+    $this->actingAs($this->userA)->get(route('employee.field-work.create'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Employee/FieldWork/Form')
+            ->where('map.tileUrl', 'https://tile.openstreetmap.org/{z}/{x}/{y}.png')
+            ->where('map.maxRadius', app(FieldWorkSettings::class)->maxGeofenceRadius())
+            ->has('map.center.lat'));
 });

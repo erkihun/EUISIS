@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\SecurityHeaders;
 use App\Models\User;
 
 // ── INSA Annex B: Content headers, anti-clickjacking, XCTO, CSP ──────────────
@@ -116,4 +117,15 @@ test('500 response does not expose SQL or file paths', function (): void {
         ->not->toContain('/var/www')
         ->not->toContain('/home/')
         ->not->toContain('SQLSTATE');
+});
+
+test('the map tile host is the only outside image source', function (): void {
+    config(['maps.tile_url' => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png']);
+
+    $csp = (string) $this->actingAs(User::factory()->create())->get('/profile')->headers->get('Content-Security-Policy');
+
+    expect($csp)->toContain("img-src 'self' data: blob: https://tile.openstreetmap.org;")
+        ->and(SecurityHeaders::tileOrigin('https://{s}.tiles.city.gov.et:8443/{z}/{x}/{y}.png'))->toBe('https://*.tiles.city.gov.et:8443')
+        ->and(SecurityHeaders::tileOrigin('javascript:alert(1)'))->toBe('')
+        ->and(SecurityHeaders::tileOrigin(''))->toBe('');
 });
