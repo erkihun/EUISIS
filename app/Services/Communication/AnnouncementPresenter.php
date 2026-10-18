@@ -53,7 +53,8 @@ final class AnnouncementPresenter
     /** @return array{data: list<array<string, mixed>>, next_cursor: ?string} */
     public function managed(User $user, ?string $status, ?string $cursor, string $locale): array
     {
-        $query = $this->manageableBy(Announcement::query(), $user)->withCount('attachments');
+        // Archived by the retention policy: kept for the record, out of the working list.
+        $query = $this->manageableBy(Announcement::query(), $user)->whereNull('archived_at')->withCount('attachments');
         if ($status !== null && AnnouncementStatus::tryFrom($status) !== null) {
             $query->where('status', $status);
         }

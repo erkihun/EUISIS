@@ -532,6 +532,56 @@ const communication = {
 
     navMore: { tasks: 'የእኔ ተግባራት', moderation: 'የይዘት ግምገማ', investigations: 'የምርመራ ፈቃድ' },
 
+    settings: {
+        title: 'የኮሙኒኬሽን ቅንብሮች',
+        description: 'መልዕክት፣ ቡድኖች፣ ቻናሎች፣ ማስታወቂያዎችና ፋይሎች ለሁሉም እንዴት እንደሚሠሩ። ለውጦች በኦዲት ይመዘገባሉ።',
+        save: 'ቅንብሮችን አስቀምጥ',
+        saved: 'ተቀምጧል።',
+        sections: {
+            access: 'ሞጁሉና ተደራሽነቱ',
+            groups: 'ቡድኖችና ቻናሎች',
+            messages: 'መልዕክቶች',
+            presence: 'መገኘት',
+            files: 'ፋይሎች',
+            announcements: 'ማስታወቂያዎች',
+            retention: 'ማቆያ',
+            investigations: 'የምርመራ ፈቃድ',
+        },
+        retentionHelp: 'ባዶ ከሆነ ሁሉም ይቀመጣል። በክፍት ሪፖርት ወይም በምርመራ ሥር ያለ ይዘት ሁልጊዜ ይቀመጣል።',
+        status: {
+            title: 'የአሁኑ ሁኔታ',
+            messages24h: 'መልዕክቶች፣ ባለፉት 24 ሰዓታት',
+            activeConversations: 'ንቁ ውይይቶች፣ ባለፉት 24 ሰዓታት',
+            liveAnnouncements: 'በሥራ ላይ ያሉ ማስታወቂያዎች',
+            openReports: 'ግምገማ የሚጠብቁ ሪፖርቶች',
+            pendingRequests: 'የሚጠብቁ የምርመራ ጥያቄዎች',
+            activeGrants: 'በሥራ ላይ ያሉ ምርመራዎች',
+            realtime: 'ቀጥታ ዝመና',
+            realtimeOn: 'በርቷል (:driver)፣ ወረፋ «:queue»',
+            realtimeOff: 'ጠፍቷል፦ ገጾች በየጥቂት ሰከንዱ ይታደሳሉ',
+            waiting: ':n ስርጭቶች በመጠበቅ ላይ',
+            failures: 'ቆጣሪው ከተጸዳ ወዲህ :n ያልተሳኩ ስርጭቶች',
+        },
+    },
+
+    preferences: {
+        title: 'የእኔ የኮሙኒኬሽን ምርጫዎች',
+        description: 'ማን ሊያገኝዎት እንደሚችል፣ ሌሎች ምን እንደሚያዩና ማስታወቂያዎች እንዴት እንደሚደርሱዎ።',
+        save: 'ምርጫዎችን አስቀምጥ',
+        sections: { messages: 'መልዕክቶች', privacy: 'ሌሎች የሚያዩት', announcements: 'ማስታወቂያዎች', blocked: 'የታገዱ ሰዎች' },
+        allowDirect: 'ባልደረቦች ከእኔ ጋር የሁለት ሰዎች ውይይት እንዲጀምሩ ፍቀድ',
+        allowDirectHelp: 'ሲጠፋ፦ ማንም ከእርስዎ ጋር አዲስ የሁለት ሰዎች ውይይት መጀመር አይችልም። ቡድኖችና ቻናሎች አይነኩም።',
+        showOnline: 'መስመር ላይ መሆኔን አሳይ',
+        showLastSeen: 'መጨረሻ የታየሁበትን ጊዜ አሳይ',
+        emailAnnouncements: 'አስቸኳይ ማስታወቂያዎችን በኢሜይል ላክልኝ',
+        smsAnnouncements: 'ድንገተኛ ማስታወቂያዎችን በአጭር መልዕክት ላክልኝ',
+        offBySystem: 'ሥርዓቱ ለሁሉም አጥፍቶታል።',
+        noBlocked: 'ማንንም አላገዱም።',
+        unblock: 'እገዳ አንሳ',
+    },
+
+    links: { settings: 'የኮሙኒኬሽን ቅንብሮች', preferences: 'የእኔ ምርጫዎች' },
+
     errors: {
         generic: 'የሆነ ችግር ተፈጥሯል። እንደገና ይሞክሩ።',
         loadFailed: 'ውይይቱ ሊጫን አልቻለም።',

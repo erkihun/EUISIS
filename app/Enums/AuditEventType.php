@@ -837,6 +837,7 @@ enum AuditEventType: string
     case CommunicationAccessUsed = 'communication.access_used';
     case CommunicationAttachmentDownloaded = 'communication.attachment_downloaded';
     case CommunicationSettingsUpdated = 'communication.settings_updated';
+    case CommunicationRetentionApplied = 'communication.retention_applied';
     case CommunicationTaskCreated = 'communication.task_created';
     case CommunicationUserBlocked = 'communication.user_blocked';
 }

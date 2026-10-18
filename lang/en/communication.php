@@ -89,6 +89,7 @@ return [
     ],
 
     'flash' => [
+        'preferences_saved' => 'Your preferences are saved.',
         'access_requested' => 'Request sent. It needs approval by someone else before anything can be read.',
         'access_approved' => 'Access approved for a limited time.',
         'access_rejected' => 'Request rejected.',

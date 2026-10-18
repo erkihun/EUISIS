@@ -89,6 +89,7 @@ return [
     ],
 
     'flash' => [
+        'preferences_saved' => 'ምርጫዎችዎ ተቀምጠዋል።',
         'access_requested' => 'ጥያቄው ተልኳል። ምንም ነገር ከመነበቡ በፊት በሌላ ሰው መጽደቅ አለበት።',
         'access_approved' => 'ፈቃዱ ለተወሰነ ጊዜ ጸድቋል።',
         'access_rejected' => 'ጥያቄው ውድቅ ተደርጓል።',

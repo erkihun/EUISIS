@@ -1,7 +1,19 @@
 # Communication & Collaboration
 
-Messages, groups, channels and official announcements for employees. This
-document grows with each phase; the sections below describe what is built.
+Messages, groups, channels and official announcements for employees, with
+tasks from messages, moderation, blocking and controlled investigation access.
+
+| Page | Who |
+|---|---|
+| `/communication` | Everyone with `communication.access`: unread counts, active conversations, announcements |
+| `/communication/messages` | Chat workspace (direct, groups, channels) |
+| `/communication/channels` | Browse, join and create channels |
+| `/communication/announcements` | Feed; authoring and reports for `announcements.*` |
+| `/communication/tasks` | Tasks assigned to me / by me |
+| `/communication/preferences` | Own preferences and blocked people |
+| `/communication/moderation` | `communication.moderate` |
+| `/communication/investigations` | `communication.break_glass.*`, `communication.audit` |
+| `/communication/admin/settings` | `communication.settings.manage` (works while the module is off) |
 
 ## Groups and channels
 
@@ -214,3 +226,43 @@ php artisan queue:work --queue=broadcasts     # only if COMMUNICATION_BROADCAST_
   investigators read through the audited investigation views, never a live
   subscription.
 - Payloads carry ids and the minimum needed to update the page.
+
+## Settings and preferences
+
+`/communication/admin/settings` edits the `communication` settings group (every
+change audited by the shared settings action) and shows the module's status:
+volumes, open reports, pending and active investigations, and the realtime
+pipeline (driver, queue, waiting broadcasts, failed broadcasts). It sits outside
+the module switch so the module can be turned back on.
+
+Each person sets, at `/communication/preferences`: whether colleagues may start
+direct conversations with them, whether others see them online or their last
+seen time (only where the system allows presence), whether urgent announcements
+are emailed and emergency ones texted to them (only where the system allows it),
+and who they blocked.
+
+## Retention
+
+`communication:prune` (daily at 03:55; `--dry-run` to count only) applies the
+retention settings and nothing else:
+
+- Messages **deleted** longer ago than "Message retention (days)" are removed for
+  good with their files. Live messages are never removed by age.
+- Expired or withdrawn announcements older than "Announcement retention (days)"
+  are archived: out of the managers' list, kept for the record.
+- Files uploaded but never sent are removed after a day.
+
+Blank settings mean no policy. Conversations with an open report, or covered by
+a pending or in-force investigation request, are on hold and kept. Each run that
+changes anything is audited (`communication.retention_applied`) with counts.
+
+## Scheduled work
+
+| Command | When |
+|---|---|
+| `communication:publish-scheduled` | every minute |
+| `communication:expire-announcements` | every 5 minutes |
+| `communication:expire-investigations` | every 5 minutes |
+| `communication:sync-memberships --queue` | daily 03:40 |
+| `communication:prune` | daily 03:55 |
+

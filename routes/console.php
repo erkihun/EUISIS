@@ -49,3 +49,4 @@ Schedule::command('communication:sync-memberships --queue')->dailyAt('03:40')->w
 Schedule::command('communication:publish-scheduled')->everyMinute()->withoutOverlapping()->onOneServer();
 Schedule::command('communication:expire-announcements')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('communication:expire-investigations')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+Schedule::command('communication:prune')->dailyAt('03:55')->withoutOverlapping()->onOneServer();

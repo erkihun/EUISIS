@@ -9,6 +9,7 @@ use App\Http\Controllers\Communication\InvestigationController;
 use App\Http\Controllers\Communication\ModerationController;
 use App\Http\Controllers\Communication\TaskController;
 use App\Http\Controllers\Communication\ChannelController;
+use App\Http\Controllers\Communication\CommunicationSettingsController;
 use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\Communication\ConversationController;
 use App\Http\Controllers\Communication\DirectoryController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Communication\GroupController;
 use App\Http\Controllers\Communication\MemberController;
 use App\Http\Controllers\Communication\MessageController;
 use App\Http\Controllers\Communication\MessagesController;
+use App\Http\Controllers\Communication\PreferencesController;
 use App\Http\Middleware\EnsureCommunicationEnabled;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +53,9 @@ Route::middleware(['auth', 'mfa', 'force.password', 'admin.access', EnsureCommun
         Route::post('/announcements/{announcement}/acknowledge', [AnnouncementController::class, 'acknowledge'])->whereUuid('announcement')->middleware('throttle:60,1')->name('announcements.acknowledge');
         Route::get('/announcements/{announcement}/export', [AnnouncementController::class, 'export'])->whereUuid('announcement')->middleware('throttle:10,1')->name('announcements.export');
         Route::get('/announcement-files/{attachment}', [AnnouncementController::class, 'downloadAttachment'])->whereUuid('attachment')->name('announcements.files.download');
+
+        Route::get('/preferences', [PreferencesController::class, 'index'])->name('preferences.index');
+        Route::patch('/preferences', [PreferencesController::class, 'update'])->middleware('throttle:30,1')->name('preferences.update');
 
         // Tasks, moderation and investigation access.
         Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
@@ -126,4 +131,15 @@ Route::middleware(['auth', 'mfa', 'force.password', 'admin.access', EnsureCommun
             Route::get('/directory/{user}/photo', [DirectoryController::class, 'photo'])->whereNumber('user')->name('directory.photo');
             Route::post('/presence', [DirectoryController::class, 'heartbeat'])->middleware('throttle:6,1')->name('presence');
         });
+    });
+
+/*
+ | System Settings → Communication sits outside the module switch: turning the
+ | module off must not lock its administrators out of turning it back on.
+*/
+Route::middleware(['auth', 'mfa', 'force.password', 'admin.access'])
+    ->prefix('communication/admin')->name('communication.settings.')
+    ->group(function (): void {
+        Route::get('/settings', [CommunicationSettingsController::class, 'index'])->name('index');
+        Route::patch('/settings', [CommunicationSettingsController::class, 'update'])->middleware('throttle:30,1')->name('update');
     });

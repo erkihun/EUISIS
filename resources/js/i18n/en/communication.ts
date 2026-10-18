@@ -532,6 +532,56 @@ const communication = {
 
     navMore: { tasks: 'My tasks', moderation: 'Moderation', investigations: 'Investigation access' },
 
+    settings: {
+        title: 'Communication settings',
+        description: 'How messaging, groups, channels, announcements and files work for everyone. Changes are audited.',
+        save: 'Save settings',
+        saved: 'Saved.',
+        sections: {
+            access: 'Module and reach',
+            groups: 'Groups and channels',
+            messages: 'Messages',
+            presence: 'Presence',
+            files: 'Files',
+            announcements: 'Announcements',
+            retention: 'Retention',
+            investigations: 'Investigation access',
+        },
+        retentionHelp: 'Blank keeps everything. Content under an open report or an investigation is always kept.',
+        status: {
+            title: 'Status now',
+            messages24h: 'Messages, last 24 hours',
+            activeConversations: 'Active conversations, last 24 hours',
+            liveAnnouncements: 'Live announcements',
+            openReports: 'Reports waiting for review',
+            pendingRequests: 'Investigation requests waiting',
+            activeGrants: 'Investigations in force',
+            realtime: 'Live updates',
+            realtimeOn: 'On (:driver), queue “:queue”',
+            realtimeOff: 'Off: pages refresh every few seconds',
+            waiting: ':n broadcasts waiting',
+            failures: ':n failed broadcasts since the counter was last cleared',
+        },
+    },
+
+    preferences: {
+        title: 'My communication preferences',
+        description: 'Who can reach you, what others see, and how announcements reach you.',
+        save: 'Save preferences',
+        sections: { messages: 'Messages', privacy: 'What others see', announcements: 'Announcements', blocked: 'Blocked people' },
+        allowDirect: 'Let colleagues start direct conversations with me',
+        allowDirectHelp: 'Off: nobody can start a new direct conversation with you. Groups and channels are not affected.',
+        showOnline: 'Show when I am online',
+        showLastSeen: 'Show when I was last seen',
+        emailAnnouncements: 'Email me urgent announcements',
+        smsAnnouncements: 'Text me emergency announcements',
+        offBySystem: 'Switched off for everyone by the system.',
+        noBlocked: 'You have not blocked anyone.',
+        unblock: 'Unblock',
+    },
+
+    links: { settings: 'Communication settings', preferences: 'My preferences' },
+
     errors: {
         generic: 'Something went wrong. Try again.',
         loadFailed: 'The conversation could not be loaded.',
