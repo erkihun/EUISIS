@@ -31,6 +31,7 @@ use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
+use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Demo\DemoDataset;
 use App\Support\Demo\DemoDataValidator;
 use Database\Seeders\DatabaseSeeder;
@@ -54,6 +55,9 @@ beforeEach(function (): void {
         ->where('group', SystemSettingsRegistry::GROUP_DAILY_ACTIVITY)
         ->where('key', 'tracking_start_date')
         ->update(['value' => now()->subWeek()->toDateString()]);
+    // The app read and cached the settings when it booted; on a migrated file
+    // database (CI) that copy still holds the migration-day start date.
+    app(SystemSettingsService::class)->clearCache();
 
     // Card printing writes artwork to the local disk.
     Storage::fake('local');
