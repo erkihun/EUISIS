@@ -19,7 +19,7 @@ Clients → WAF / reverse proxy (TLS) → Load balancer
 | --- | --- | --- |
 | Sessions | `SESSION_DRIVER=database` or `redis` | Never `file`. MFA state lives in the session (`mfa_verified_at`), so a shared driver keeps MFA valid across nodes. No sticky sessions needed. |
 | Cache, rate limits, locks | `CACHE_STORE=database` or `redis` | Rate limits and `Cache::lock` (backup monitor, ID-card templates, schedule `onOneServer`) must be shared. |
-| Queue | `QUEUE_CONNECTION=database` or `redis` | `retry_after` 900s (must exceed the longest job timeout, 600s). |
+| Queue | `QUEUE_CONNECTION=database` or `redis` | `retry_after` 960s (must exceed the longest job timeout, 900s for announcement delivery). |
 | Private files | `STORAGE_PRIVATE_DRIVER=s3`, `STORAGE_PRIVATE_BUCKET`, `AWS_*` | Evidence, photos, ID print artifacts, attachments, generated letters. Never public URLs. |
 | Public files | `STORAGE_PUBLIC_DRIVER=s3`, `STORAGE_PUBLIC_BUCKET`, `STORAGE_PUBLIC_URL` | Logos, profile photos, public-site images. Replaces the per-node `public/storage` symlink. |
 | Maintenance mode | `APP_MAINTENANCE_DRIVER=cache` (with a shared cache store) | The `file` driver takes only one node down. |
@@ -77,4 +77,4 @@ php artisan queue:work --queue=notifications --timeout=120 --tries=3
 php artisan queue:work --queue=long --timeout=600 --tries=3
 ```
 
-Every worker's `--timeout` must stay below the connection `retry_after` (900s).
+Every worker's `--timeout` must stay below the connection `retry_after` (960s).

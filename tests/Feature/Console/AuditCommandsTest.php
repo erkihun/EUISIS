@@ -85,6 +85,7 @@ it('blocks when a queued job could outlive the queue retry window', function ():
     config(['queue.default' => 'database', 'queue.connections.database.retry_after' => 90]);
 
     $this->artisan('production:readiness', ['--strict' => true])
-        ->expectsOutputToContain('Queue retry_after (90s) exceeds the longest job timeout (600s)')
+        // The longest timeout is read from the jobs, so the message names whatever it is today.
+        ->expectsOutputToContain('Queue retry_after (90s) exceeds the longest job timeout (')
         ->assertExitCode(1);
 });
