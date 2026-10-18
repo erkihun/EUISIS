@@ -45,15 +45,17 @@ final class RuntimeMailSettings
     }
 
     /**
-     * Applies the saved settings when they differ from what was last applied.
-     * Returns whether anything changed.
+     * Applies the saved settings. Between queued jobs only when they differ
+     * from what was last applied, so a mailer is not rebuilt for every job;
+     * at boot ($force) always, as the settings are the source of truth there.
+     * Returns whether the configuration was written.
      */
-    public function apply(): bool
+    public function apply(bool $force = false): bool
     {
         $values = $this->resolve();
         $fingerprint = hash('xxh128', serialize($values));
 
-        if ($fingerprint === $this->applied) {
+        if (! $force && $fingerprint === $this->applied) {
             return false;
         }
 

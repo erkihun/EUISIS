@@ -29,7 +29,7 @@ type Props = PageProps<{
     contacts: (Person & { conversation_id: string | null })[];
     announcements: AnnouncementRow[];
     pendingAcknowledgements: AnnouncementRow[];
-    can: { message: boolean; createGroup: boolean; browseChannels: boolean; createAnnouncement: boolean; tasks: boolean; moderate: boolean; investigations: boolean; settings: boolean };
+    can: { message: boolean; createGroup: boolean; browseChannels: boolean; createAnnouncement: boolean; tasks: boolean; moderate: boolean; investigations: boolean; manageSettings: boolean };
 }>;
 
 const has = (name: string) => (route() as unknown as { has: (n: string) => boolean }).has(name);
@@ -118,7 +118,7 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                         {can.tasks && <Link href={route('communication.tasks.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.tasks')}</Link>}
                         {can.moderate && <Link href={route('communication.moderation.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.moderation')}</Link>}
                         {can.investigations && <Link href={route('communication.investigations.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.investigations')}</Link>}
-                        {can.settings && <Link href={route('communication.settings.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.links.settings')}</Link>}
+                        {can.manageSettings && <Link href={route('communication.settings.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.links.settings')}</Link>}
                     </nav>
                 )}
 

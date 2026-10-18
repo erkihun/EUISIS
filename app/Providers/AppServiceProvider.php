@@ -486,7 +486,7 @@ class AppServiceProvider extends ServiceProvider
                 'session.lifetime' => SessionActivityService::storageLifetimeMinutes($idleTimeout),
             ]);
 
-            $this->app->make(RuntimeMailSettings::class)->apply();
+            $this->app->make(RuntimeMailSettings::class)->apply(force: true);
 
             date_default_timezone_set($timezone);
 
