@@ -75,7 +75,7 @@ export default function Channels({ initial, can }: Props): JSX.Element {
     const empty = q.trim().length >= 2 ? t('communication.channels.emptySearch') : filter === 'mine' ? t('communication.channels.emptyMine') : t('communication.channels.empty');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('communication.channels.title')} description={t('communication.channels.description')} actions={actions} backHref={route('communication.index')} />}>
+        <AuthenticatedLayout mode="communication" header={<PageHeader title={t('communication.channels.title')} description={t('communication.channels.description')} actions={actions} />}>
             <Head title={t('communication.channels.title')} />
 
             <div className="space-y-5">

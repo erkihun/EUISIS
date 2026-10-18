@@ -44,7 +44,7 @@ export default function Tasks({ initial, focus }: Props): JSX.Element {
     const replace = (task: CommunicationTaskItem) => setRows((current) => current.map((x) => (x.id === task.id ? task : x)));
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('communication.tasks.title')} description={t('communication.tasks.description')} backHref={route('communication.index')} />}>
+        <AuthenticatedLayout mode="communication" header={<PageHeader title={t('communication.tasks.title')} description={t('communication.tasks.description')} />}>
             <Head title={t('communication.tasks.title')} />
             <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <div className="flex flex-col gap-3 border-b border-[color:var(--app-border)] p-3 sm:flex-row sm:items-center">

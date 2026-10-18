@@ -11,7 +11,7 @@ import NewGroupPanel from '@/Components/Communication/NewGroupPanel';
 import ChatView from '@/Components/Communication/ChatView';
 import { ChatIcon } from '@/Components/NavIcons';
 import type { PageProps } from '@/types';
-import type { ConversationPage, ConversationSummary, ConversationType, MessagesAbilities, MessagesLimits, WorkspaceLinks } from '@/types/communication';
+import type { ConversationPage, ConversationSummary, ConversationType, MessagesAbilities, MessagesLimits } from '@/types/communication';
 
 type Props = PageProps<{
     initialConversations: ConversationPage;
@@ -21,7 +21,6 @@ type Props = PageProps<{
     reactions: string[];
     can: MessagesAbilities;
     realtime: { enabled: boolean };
-    workspace: WorkspaceLinks;
 }>;
 
 const LIST_POLL_MS = 15000;
@@ -117,7 +116,16 @@ export default function Messages(props: Props): JSX.Element {
 
     // Presence heartbeat while the workspace is open.
     useEffect(() => {
-        const beat = () => { if (document.visibilityState === 'visible') void communicationApi.heartbeat().catch(() => undefined); };
+        // At most one beat a minute per tab, however often the workspace is opened (the route is throttled).
+        const beat = () => {
+            if (document.visibilityState !== 'visible') return;
+            const now = Date.now();
+            try {
+                if (now - Number(sessionStorage.getItem('communication:heartbeat') ?? 0) < 55_000) return;
+                sessionStorage.setItem('communication:heartbeat', String(now));
+            } catch { /* storage unavailable: beat anyway */ }
+            void communicationApi.heartbeat().catch(() => undefined);
+        };
         beat();
         const timer = window.setInterval(beat, 60000);
         return () => window.clearInterval(timer);
@@ -200,7 +208,6 @@ export default function Messages(props: Props): JSX.Element {
                             onSelect={select}
                             onLoadMore={() => void loadMore()}
                             onNew={(kind) => setComposing(kind)}
-                            links={props.workspace}
                         />
                     )}
                 </div>

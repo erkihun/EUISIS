@@ -56,7 +56,7 @@ export default function InvestigationsIndex({ requests, can, maxHours }: Props):
     ) : null;
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('communication.investigations.title')} description={t('communication.investigations.description')} actions={actions} backHref={route('communication.index')} />}>
+        <AuthenticatedLayout mode="communication" header={<PageHeader title={t('communication.investigations.title')} description={t('communication.investigations.description')} actions={actions} />}>
             <Head title={t('communication.investigations.title')} />
             <div className="space-y-5">
                 {creating && <RequestForm maxHours={maxHours} onCancel={() => setCreating(false)} />}

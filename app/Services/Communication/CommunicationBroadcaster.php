@@ -20,7 +20,9 @@ final class CommunicationBroadcaster
 
     public function send(object $event): void
     {
-        if (in_array(config('broadcasting.default'), [null, 'null'], true)) {
+        // `log` counts as realtime off everywhere else (the pages poll); queuing jobs that only
+        // write to the log would add a queue job per message for nothing.
+        if (in_array(config('broadcasting.default'), [null, 'null', 'log'], true)) {
             return;
         }
         try {

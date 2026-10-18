@@ -57,7 +57,7 @@ export default function CommunicationSettings({ fields, metrics }: Props): JSX.E
     ];
 
     return (
-        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('communication.settings.title')} description={t('communication.settings.description')} />}>
+        <AuthenticatedLayout mode="communication" contentWidth="form" header={<PageHeader title={t('communication.settings.title')} description={t('communication.settings.description')} />}>
             <Head title={t('communication.settings.title')} />
             <div className="space-y-6">
                 <section aria-labelledby="comm-status" className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">

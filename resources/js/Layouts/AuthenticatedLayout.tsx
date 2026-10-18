@@ -2,6 +2,7 @@ import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import AppSidebar from '@/Components/AppSidebar';
+import CommunicationNav from '@/Components/Communication/CommunicationNav';
 import AppHeader from '@/Components/AppHeader';
 import Breadcrumbs from '@/Components/Breadcrumbs';
 import AppToaster from '@/Components/ui/AppToaster';
@@ -34,10 +35,12 @@ export default function Authenticated({
     variant?: 'default' | 'portal';
     contentWidth?: ContentWidth;
     /**
-     * 'communication' is the focus mode of the Communication workspace: the
-     * desktop sidebar drops to its icon rail (without touching the person's
-     * saved preference), breadcrumbs and the page measure go, and the content
-     * area is left to the workspace. Same shell, auth, theme, locale and menus.
+     * 'communication' is the Communication area: the desktop sidebar drops to
+     * its icon rail (without touching the person's saved preference) and the
+     * workspace's own navigation sits under the top bar. A page without a
+     * header (the chat workspace) gets the whole content area; pages with a
+     * header keep the usual heading band and measure. Same shell, auth, theme,
+     * locale and menus.
      */
     mode?: 'default' | 'communication';
 }>) {
@@ -196,6 +199,7 @@ export default function Authenticated({
                 ].join(' ')}
             >
                 <AppHeader onMenuClick={() => setSidebarOpen(true)} onToggleSidebar={toggleSidebarCollapse} sidebarCollapsed={collapsed} />
+                {focus && <CommunicationNav />}
 
                 {maintenanceEnabled && maintenanceMessage && (
                     <div
@@ -216,7 +220,7 @@ export default function Authenticated({
                     </div>
                 )}
 
-                {focus ? (
+                {focus && !header ? (
                     <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none sm:p-3 lg:p-4">
                         <TemporaryPasswordNotice />
                         {children}

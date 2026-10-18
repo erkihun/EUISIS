@@ -59,7 +59,7 @@ export default function AnnouncementShow({ announcement: a }: Props): JSX.Elemen
     ) : null;
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={a.title} actions={actions} backHref={route('communication.announcements.index')} />}>
+        <AuthenticatedLayout mode="communication" header={<PageHeader title={a.title} actions={actions} backHref={route('communication.announcements.index')} />}>
             <Head title={a.title} />
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">

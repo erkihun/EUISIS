@@ -52,7 +52,8 @@ it('shares only a small communication prop, and none without access', function (
             ->where('communication.unread_count', 0)
             ->where('communication.realtime', true)
             ->missing('communication.conversations')
-            ->has('workspace.announcements'));
+            ->where('communication.nav.announcements', true)
+            ->where('communication.nav.channels', true));
 
     $outsider = CommunicationScenario::employeeUser('No Access', $this->s->orgA, $this->s->unitA1, ['dashboard.view'], 'No Communication Role');
     $this->actingAs($outsider)->get(route('communication.messages.index'))->assertForbidden();
@@ -87,4 +88,41 @@ it('keeps Communication out of the sidebar and puts it first in the top bar', fu
         ->and(strpos($header, '<CommunicationButton />'))->toBeLessThan(strpos($header, '<NotificationBell />'))
         ->and(strpos($header, '<NotificationBell />'))->toBeLessThan(strpos($header, '<ThemeToggle'))
         ->and(strpos($header, '<ThemeToggle'))->toBeLessThan(strpos($header, '<LanguageSwitcher'));
+});
+
+it('shares the workspace navigation only on Communication pages', function (): void {
+    $this->actingAs($this->s->alice)->get(route('communication.preferences.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('communication.nav.moderate', false)->where('communication.nav.settings', false));
+
+    $this->actingAs($this->s->alice)->followingRedirects()->get(route('profile.edit'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('communication.nav', null));
+});
+
+it('searches inside one conversation for its members only, never deleted messages', function (): void {
+    $conversation = app(StartDirectConversationAction::class)->execute($this->s->alice, $this->s->bob);
+    app(SendMessageAction::class)->execute($conversation, $this->s->alice, ['body' => 'The approval letter is ready']);
+    app(SendMessageAction::class)->execute($conversation, $this->s->bob, ['body' => 'Thanks, see you on Thursday']);
+    $gone = app(SendMessageAction::class)->execute($conversation, $this->s->bob, ['body' => 'Approval draft (old)']);
+    $gone->delete();
+
+    $this->actingAs($this->s->bob)->getJson(route('communication.api.conversations.search', [$conversation, 'q' => 'APPROVAL']))
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.body', 'The approval letter is ready');
+
+    $this->actingAs($this->s->bob)->getJson(route('communication.api.conversations.search', [$conversation, 'q' => 'a']))->assertOk()->assertJsonCount(0, 'data');
+    $this->actingAs($this->s->bob)->getJson(route('communication.api.conversations.search', [$conversation, 'q' => '100%']))->assertOk()->assertJsonCount(0, 'data');
+    $this->actingAs($this->s->carol)->getJson(route('communication.api.conversations.search', [$conversation, 'q' => 'approval']))->assertNotFound();
+});
+
+it('queues no broadcast while the broadcaster only logs', function (): void {
+    config(['broadcasting.default' => 'log']);
+    $conversation = app(StartDirectConversationAction::class)->execute($this->s->alice, $this->s->bob);
+    Event::fake([UnreadCommunicationCountUpdated::class]);
+
+    app(SendMessageAction::class)->execute($conversation, $this->s->alice, ['body' => 'Hello']);
+
+    Event::assertNotDispatched(UnreadCommunicationCountUpdated::class);
 });

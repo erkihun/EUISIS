@@ -161,8 +161,9 @@ export type MessagesAbilities = {
     report: boolean;
 };
 
-/** Workspace navigation the person may open (announcements, tasks, moderation, investigations, settings). */
+/** Sections of the Communication workspace this person may open (shared prop `communication.nav`). */
 export type WorkspaceLinks = {
+    channels: boolean;
     announcements: boolean;
     tasks: boolean;
     moderate: boolean;

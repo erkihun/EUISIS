@@ -42,7 +42,7 @@ export default function InvestigationShow({ request: r, conversations }: Props):
     ];
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={tr(t('communication.investigations.caseRef'), { ref: r.case_reference })} actions={actions} backHref={route('communication.investigations.index')} />}>
+        <AuthenticatedLayout mode="communication" header={<PageHeader title={tr(t('communication.investigations.caseRef'), { ref: r.case_reference })} actions={actions} backHref={route('communication.investigations.index')} />}>
             <Head title={tr(t('communication.investigations.caseRef'), { ref: r.case_reference })} />
             <div className="space-y-5">
                 <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">

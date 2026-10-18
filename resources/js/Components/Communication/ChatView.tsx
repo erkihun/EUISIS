@@ -10,12 +10,12 @@ import { dayKey, dayLabel, tr } from '@/lib/communication/format';
 import Avatar from '@/Components/Communication/Avatar';
 import MessageBubble, { type BubbleAbilities } from '@/Components/Communication/MessageBubble';
 import Composer, { type ComposerSubmit } from '@/Components/Communication/Composer';
-import DetailsPanel from '@/Components/Communication/DetailsPanel';
+import DetailsPanel, { type DetailsTab } from '@/Components/Communication/DetailsPanel';
 import ForwardDialog from '@/Components/Communication/ForwardDialog';
 import TaskDialog from '@/Components/Communication/TaskDialog';
 import ReportDialog, { type ReportTarget } from '@/Components/Communication/ReportDialog';
 import MessageText from '@/Components/Communication/MessageText';
-import { ArrowLeftIcon, ChatIcon, DangerCircleIcon, MenuDotsIcon, OfflineIcon, PaperclipIcon, RefreshIcon } from '@/Components/NavIcons';
+import { ArrowLeftIcon, ChatIcon, DangerCircleIcon, OfflineIcon, PaperclipIcon, PinIcon, RefreshIcon, SearchIcon, SidebarIcon } from '@/Components/NavIcons';
 import type {
     ConversationDetail, ConversationSummary, MessageItem, MessagesAbilities, MessagesLimits, PendingMessage, Reaction,
 } from '@/types/communication';
@@ -82,6 +82,7 @@ export default function ChatView(props: Props): JSX.Element {
     const [forwarding, setForwarding] = useState<MessageItem | null>(null);
     const [tasking, setTasking] = useState<MessageItem | null>(null);
     const [reporting, setReporting] = useState<ReportTarget | null>(null);
+    const [requestedTab, setRequestedTab] = useState<{ tab: DetailsTab; nonce: number } | null>(null);
     const [pinned, setPinned] = useState<Set<string>>(new Set());
     const [pinsVersion, setPinsVersion] = useState(0);
     const [typing, setTyping] = useState<Map<number, { name: string; until: number }>>(new Map());
@@ -491,9 +492,19 @@ export default function ChatView(props: Props): JSX.Element {
         );
     }
 
+    // Direct: presence, then where the colleague works (position · unit/organization) when the directory shares it.
+    const otherMember = detail?.type === 'DIRECT' ? detail.members.find((m) => m.id === detail.other_user?.id) : null;
+    const presence = !detail || detail.type !== 'DIRECT' ? null
+        : detail.other_user?.online ? t('communication.list.online')
+            : detail.other_user?.last_seen_at ? tr(t('communication.list.lastSeen'), { time: formatRelative(detail.other_user.last_seen_at, locale) ?? '' }) : null;
     const subtitle = !detail ? '' : detail.type === 'DIRECT'
-        ? (detail.other_user?.online ? t('communication.list.online') : detail.other_user?.last_seen_at ? tr(t('communication.list.lastSeen'), { time: formatRelative(detail.other_user.last_seen_at, locale) ?? '' }) : '')
+        ? [presence, otherMember?.position, otherMember?.unit ?? otherMember?.organization].filter(Boolean).join(' · ')
         : tr(t('communication.details.memberCount'), { n: detail.member_count });
+    const openDetails = (tab?: DetailsTab) => {
+        if (tab) setRequestedTab({ tab, nonce: Date.now() });
+        props.onToggleDetails(tab ? true : !detailsOpen);
+    };
+    const headerButton = 'flex h-9 w-9 items-center justify-center rounded-control transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]';
 
     let previous: MessageItem | null = null;
     const newDividerAt = unreadFrom.current ? messages.find((m) => m.id > unreadFrom.current! && m.sender?.id !== currentUserId)?.id ?? null : null;
@@ -524,16 +535,24 @@ export default function ChatView(props: Props): JSX.Element {
                             <span className="h-3 w-40 rounded bg-[color:var(--app-surface-muted)]" />
                         </div>
                     )}
-                    <button
-                        type="button"
-                        onClick={() => props.onToggleDetails(!detailsOpen)}
-                        aria-label={detailsOpen ? t('communication.chat.hideDetails') : t('communication.chat.details')}
-                        aria-expanded={detailsOpen}
-                        title={t('communication.chat.details')}
-                        className={`flex h-9 w-9 items-center justify-center rounded-control hover:bg-[color:var(--app-surface-muted)] ${detailsOpen ? 'text-[color:var(--color-primary)]' : 'text-[color:var(--app-muted-foreground)]'}`}
-                    >
-                        <MenuDotsIcon className="h-5 w-5" />
-                    </button>
+                    <div className="flex shrink-0 items-center gap-0.5">
+                        <button type="button" onClick={() => openDetails('search')} aria-label={t('communication.chat.searchInChat')} title={t('communication.chat.searchInChat')} className={`${headerButton} text-[color:var(--app-muted-foreground)]`}>
+                            <SearchIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                        <button type="button" onClick={() => openDetails('pinned')} aria-label={t('communication.chat.pinnedMessages')} title={t('communication.chat.pinnedMessages')} className={`${headerButton} hidden text-[color:var(--app-muted-foreground)] sm:flex`}>
+                            <PinIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => openDetails()}
+                            aria-label={detailsOpen ? t('communication.chat.hideDetails') : t('communication.chat.details')}
+                            aria-expanded={detailsOpen}
+                            title={detailsOpen ? t('communication.chat.hideDetails') : t('communication.chat.details')}
+                            className={`${headerButton} ${detailsOpen ? 'bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]' : 'text-[color:var(--app-muted-foreground)]'}`}
+                        >
+                            <SidebarIcon className="h-5 w-5 -scale-x-100" aria-hidden="true" />
+                        </button>
+                    </div>
                 </header>
 
                 {(!online || (realtimeEnabled && everConnected && rt !== 'connected' && !loading)) && (
@@ -625,7 +644,7 @@ export default function ChatView(props: Props): JSX.Element {
                                 {outgoing.map((item) => (
                                     <li key={item.clientId} className="mt-2 flex justify-end px-3 sm:px-5">
                                         <div className="flex max-w-[min(36rem,85%)] flex-col items-end">
-                                            <div className={`rounded-2xl rounded-se-sm border px-3.5 py-2 text-sm leading-relaxed text-[color:var(--app-foreground)] ${item.status === 'failed' ? 'border-[color:var(--tone-danger-border,#f2b8b5)] bg-[color:var(--tone-danger-bg,#fef3f2)]' : 'border-dashed border-[color:color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] bg-[color:color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]'}`}>
+                                            <div className={`rounded-panel rounded-se-sm border px-3.5 py-2 text-sm leading-relaxed text-[color:var(--app-foreground)] ${item.status === 'failed' ? 'border-[color:var(--tone-danger-border,#f2b8b5)] bg-[color:var(--tone-danger-bg,#fef3f2)]' : 'border-dashed border-[color:color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] bg-[color:color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]'}`}>
                                                 {item.body && <MessageText body={item.body} mentions={[]} currentUserId={currentUserId} />}
                                                 {item.attachments.map((file) => (
                                                     <span key={file.id} className="mt-1 flex items-center gap-1.5 text-xs"><PaperclipIcon className="h-3.5 w-3.5" aria-hidden="true" />{file.name}</span>
@@ -701,6 +720,7 @@ export default function ChatView(props: Props): JSX.Element {
                             onChanged={() => { void refreshDetail(); void refreshLatest(); announceTotalsChanged(); }}
                             onGone={() => props.onGone(conversationId)}
                             onReport={() => setReporting({ kind: 'conversation', id: conversationId })}
+                            requestedTab={requestedTab}
                         />
                     </div>
                 </>
@@ -719,7 +739,7 @@ function MessagesSkeleton(): JSX.Element {
         <ul aria-hidden="true" className="animate-pulse space-y-3 px-5 py-4">
             {rows.map(([width, own], index) => (
                 <li key={index} className={`flex ${own ? 'justify-end' : 'justify-start'}`}>
-                    <span className={`block h-9 ${width} rounded-2xl ${own ? 'bg-[color:var(--color-primary)]/15' : 'bg-[color:var(--app-surface-muted)]'}`} />
+                    <span className={`block h-9 ${width} rounded-panel ${own ? 'bg-[color:var(--color-primary)]/15' : 'bg-[color:var(--app-surface-muted)]'}`} />
                 </li>
             ))}
         </ul>

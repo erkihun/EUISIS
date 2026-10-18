@@ -14,7 +14,8 @@ import { bodyForEditing } from '@/Components/Communication/MessageText';
 import { BellOffIcon, BellIcon, DownloadIcon, MenuDotsIcon, PaperclipIcon, SearchIcon, UserPlusIcon, XMarkIcon } from '@/Components/NavIcons';
 import type { Attachment, ConversationDetail, ConversationMemberRow, MemberRole, MessageItem, Person, PostingPolicy } from '@/types/communication';
 
-type Tab = 'members' | 'files' | 'pinned' | 'settings';
+export type DetailsTab = 'members' | 'search' | 'files' | 'pinned' | 'settings';
+type Tab = DetailsTab;
 type FileRow = Attachment & { uploaded_by: string | null; created_at: string | null; message_id: string };
 type PinRow = { pinned_at: string | null; pinned_by: string | null; message: MessageItem };
 
@@ -28,9 +29,11 @@ type Props = {
     onChanged: () => void;
     onGone: () => void;
     onReport: () => void;
+    /** Opens a given tab from outside (the chat header's Search and Pinned buttons); the nonce re-applies the same tab. */
+    requestedTab?: { tab: DetailsTab; nonce: number } | null;
 };
 
-export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClose, onMute, onJump, onChanged, onGone, onReport }: Props): JSX.Element {
+export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClose, onMute, onJump, onChanged, onGone, onReport, requestedTab }: Props): JSX.Element {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const system = useCalendarSystem();
@@ -47,6 +50,10 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
     }, [detail.id, detail.type]);
 
     useEffect(() => {
+        if (requestedTab) setTab(requestedTab.tab);
+    }, [requestedTab]);
+
+    useEffect(() => {
         if (tab === 'files' && files === null) {
             communicationApi.files(detail.id).then((page) => { setFiles(page.data); setFilesNext(page.next_before); }).catch(() => setFiles([]));
         }
@@ -57,7 +64,7 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
     }, [tab, detail.id, pinsVersion]);
 
     const other = direct ? detail.members.find((m) => m.id === detail.other_user?.id) : null;
-    const tabs: Tab[] = direct ? ['files', 'pinned'] : ['members', 'files', 'pinned', ...(detail.can.update ? ['settings' as const] : [])];
+    const tabs: Tab[] = direct ? ['search', 'files', 'pinned'] : ['members', 'search', 'files', 'pinned', ...(detail.can.update ? ['settings' as const] : [])];
     const tabLabel = (value: Tab) => (value === 'settings' ? t('communication.manage.settings') : t(`communication.details.${value}`));
 
     const leave = async () => {
@@ -255,6 +262,8 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                             </ul>
                         )
                     )}
+
+                    {tab === 'search' && <SearchTab key={detail.id} conversationId={detail.id} onJump={onJump} />}
 
                     {tab === 'settings' && <SettingsTab detail={detail} onChanged={onChanged} onArchive={() => void archive()} />}
                 </div>
@@ -522,6 +531,73 @@ function PanelSkeleton(): JSX.Element {
     return (
         <div aria-hidden="true" className="animate-pulse space-y-2 px-2 py-2">
             {[0, 1, 2].map((key) => <div key={key} className="h-9 rounded-control bg-[color:var(--app-surface-muted)]" />)}
+        </div>
+    );
+}
+
+/** Text search inside this conversation; a result jumps to the message in the chat. */
+function SearchTab({ conversationId, onJump }: { conversationId: string; onJump: (messageId: string) => void }): JSX.Element {
+    const { t, locale } = useLocale();
+    const system = useCalendarSystem();
+    const [q, setQ] = useState('');
+    const [results, setResults] = useState<MessageItem[] | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const term = q.trim();
+        if (term.length < 2) { setResults(null); return; }
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => {
+            setLoading(true);
+            communicationApi.searchMessages(conversationId, term, controller.signal)
+                .then(setResults)
+                .catch(() => { if (!controller.signal.aborted) setResults([]); })
+                .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+        }, 300);
+        return () => { controller.abort(); window.clearTimeout(timer); };
+    }, [q, conversationId]);
+
+    const term = q.trim().toLowerCase();
+    const highlight = (text: string) => {
+        const at = term ? text.toLowerCase().indexOf(term) : -1;
+        if (at < 0) return text;
+        return <>{text.slice(0, at)}<mark className="rounded bg-[color:color-mix(in_srgb,var(--color-primary)_25%,transparent)] px-0.5 text-[color:var(--app-foreground)]">{text.slice(at, at + term.length)}</mark>{text.slice(at + term.length)}</>;
+    };
+
+    return (
+        <div className="space-y-2">
+            <label className="relative block px-1">
+                <span className="sr-only">{t('communication.search.label')}</span>
+                <SearchIcon className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                {/* eslint-disable-next-line jsx-a11y/no-autofocus -- the tab exists to type a search */}
+                <input
+                    type="search"
+                    autoFocus
+                    value={q}
+                    onChange={(e) => setQ(e.target.value)}
+                    placeholder={t('communication.search.placeholder')}
+                    className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15"
+                />
+            </label>
+            {results === null ? (
+                <p className="px-2 py-6 text-center text-xs text-[color:var(--app-muted-foreground)]">{loading ? t('communication.search.searching') : t('communication.search.hint')}</p>
+            ) : results.length === 0 ? (
+                <p className="px-2 py-6 text-center text-xs text-[color:var(--app-muted-foreground)]">{t('communication.search.empty')}</p>
+            ) : (
+                <ul className="space-y-1" aria-live="polite">
+                    {results.map((message) => (
+                        <li key={message.id}>
+                            <button type="button" onClick={() => onJump(message.id)} className="block w-full rounded-control px-2 py-2 text-start hover:bg-[color:var(--app-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]">
+                                <span className="flex items-baseline justify-between gap-2">
+                                    <span className="truncate text-xs font-semibold text-[color:var(--app-foreground)]">{message.sender?.name}</span>
+                                    <span className="shrink-0 text-[11px] text-[color:var(--app-muted-foreground)]">{listTime(message.created_at, locale, system)}</span>
+                                </span>
+                                <span className="line-clamp-3 text-sm text-[color:var(--app-foreground)]">{highlight(bodyForEditing(message).text)}</span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     );
 }
