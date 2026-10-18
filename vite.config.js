@@ -2,6 +2,7 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 /*
  * Keep the development server private by default.  When testing on a phone,
@@ -35,6 +36,8 @@ export default defineConfig({
         },
     },
     plugins: [
+        // Tailwind 4's own Vite plugin (faster than the PostCSS route; no postcss.config.js).
+        tailwindcss(),
         laravel({
             input: 'resources/js/app.tsx',
             refresh: true,
