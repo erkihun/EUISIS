@@ -11,6 +11,9 @@ use App\Models\User;
 use App\Security\Passwords\PasswordPolicy;
 use App\Services\Branding\BrandingService;
 use App\Services\Calendar\CalendarService;
+use App\Services\Communication\CommunicationInbox;
+use App\Services\Communication\CommunicationNavigation;
+use App\Services\Communication\CommunicationSettings;
 use App\Services\IdCards\IdCardTemplateService;
 use App\Services\PublicSite\PublicSiteContent;
 use App\Services\Security\SessionActivityService;
@@ -65,13 +68,21 @@ class HandleInertiaRequests extends Middleware
             // Module feature flags (config/features.php): hide out-of-scope modules.
             'features' => Features::shared(),
 
-            // Communication unread total for the sidebar badge (cached briefly by CommunicationInbox).
-            'communication' => function () use ($user): ?array {
-                if ($user === null || ! app(\App\Services\Communication\CommunicationSettings::class)->enabled() || ! $user->can('communication.access')) {
+            // The top-bar Messages button: on/off, the unread total (cached briefly by
+            // CommunicationInbox) and whether realtime is configured. Nothing else of
+            // Communication travels with every page.
+            'communication' => function () use ($user, $request): ?array {
+                if ($user === null || ! app(CommunicationSettings::class)->enabled() || ! $user->can('communication.access')) {
                     return null;
                 }
 
-                return ['unread' => app(\App\Services\Communication\CommunicationInbox::class)->totals($user)['total']];
+                return [
+                    'enabled' => true,
+                    // The workspace's own navigation (Communication has no sidebar entry), only on its pages.
+                    'nav' => $request->routeIs('communication.*') ? app(CommunicationNavigation::class)->for($user) : null,
+                    'unread_count' => app(CommunicationInbox::class)->totals($user)['total'],
+                    'realtime' => ! in_array(config('broadcasting.default'), [null, 'null', 'log'], true),
+                ];
             },
 
             'locale' => $locale,

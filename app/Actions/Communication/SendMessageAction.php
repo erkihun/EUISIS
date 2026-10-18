@@ -145,11 +145,16 @@ final class SendMessageAction
             ->whereNotNull('muted_until')->where('muted_until', '>', now())->pluck('user_id')->map(fn ($id) => (int) $id)->all();
 
         foreach (User::query()->whereIn('id', array_diff($mentionedIds, $muted))->get() as $user) {
-            $user->notify(new CommunicationNotification('mentioned', ['name' => $sender->name], $url));
+            // Straight to the message that mentions them (the workspace scrolls to and highlights it).
+            $user->notify(new CommunicationNotification('mentioned', ['name' => $sender->name], $url.'?message='.$message->getKey()));
         }
 
         if ($conversation->type !== ConversationType::Direct) {
-            $this->inbox->forgetTotals($sender->getKey());
+            // Members whose badge should move; a very large channel's members catch up by polling.
+            $members = ConversationMember::query()->where('conversation_id', $conversation->getKey())->whereNull('left_at')
+                ->where('user_id', '<>', $sender->getKey())->whereNotIn('user_id', $muted)
+                ->limit(CommunicationInbox::SIGNAL_LIMIT + 1)->pluck('user_id')->all();
+            $this->inbox->forgetTotals($sender->getKey(), ...(count($members) > CommunicationInbox::SIGNAL_LIMIT ? [] : $members));
 
             return;
         }

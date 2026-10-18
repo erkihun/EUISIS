@@ -85,7 +85,7 @@ export default function AnnouncementsIndex({ feed: initialFeed, managed: initial
             : filter === 'acknowledge' ? t('communication.announcements.emptyAcknowledge') : t('communication.announcements.empty');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('communication.announcements.title')} description={t('communication.announcements.description')} actions={actions} backHref={route('communication.index')} />}>
+        <AuthenticatedLayout mode="communication" header={<PageHeader title={t('communication.announcements.title')} description={t('communication.announcements.description')} actions={actions} />}>
             <Head title={t('communication.announcements.title')} />
 
             <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">

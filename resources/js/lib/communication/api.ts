@@ -28,6 +28,8 @@ export const communicationApi = {
     read: (id: string, messageId?: string | null) => axios.post(r('api.conversations.read', id), messageId ? { message_id: messageId } : {}),
     typing: (id: string) => axios.post(r('api.conversations.typing', id)),
     mute: (id: string, mute: boolean, minutes?: number | null) => axios.post(r('api.conversations.mute', id), { mute, minutes: minutes ?? null }),
+    /** Messages in one conversation containing the text (at least two characters). */
+    searchMessages: (id: string, q: string, signal?: AbortSignal) => axios.get<{ data: MessageItem[] }>(r('api.conversations.search', id), { params: { q }, signal }).then((res) => res.data.data),
     pins: (id: string) => axios.get<{ data: { pinned_at: string | null; pinned_by: string | null; message: MessageItem }[] }>(r('api.conversations.pins', id)).then((res) => res.data.data),
     files: (id: string, before?: string | null) =>
         axios.get<{ data: (Attachment & { uploaded_by: string | null; created_at: string | null; message_id: string })[]; next_before: string | null }>(
@@ -129,7 +131,7 @@ export function newClientId(): string {
     return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `c-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-/** Tells the sidebar badge (and the dashboard) to refresh its counts. */
+/** Tells the top-bar Messages badge (and the dashboard) to refresh its counts. */
 export function announceTotalsChanged(): void {
     window.dispatchEvent(new CustomEvent('communication:totals-changed'));
 }

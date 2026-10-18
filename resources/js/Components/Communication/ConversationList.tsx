@@ -1,5 +1,6 @@
 import { memo, useState, type JSX } from 'react';
 import { Link } from '@inertiajs/react';
+import { Button } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { listTime, tr } from '@/lib/communication/format';
@@ -39,16 +40,17 @@ export default function ConversationList(props: Props): JSX.Element {
                 <h2 className="flex-1 text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.messagesTitle')}</h2>
                 {props.canStart && (
                     <div className="relative">
-                        <button
+                        <Button
                             type="button"
+                            variant="primary"
+                            size="sm"
+                            icon={<PlusIcon className="h-4 w-4" aria-hidden="true" />}
                             onClick={() => (many ? setMenu((v) => !v) : props.onNew('message'))}
                             aria-expanded={many ? menu : undefined}
                             aria-haspopup={many ? 'menu' : undefined}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-control bg-[color:var(--color-primary)] px-2.5 text-xs font-medium text-white hover:opacity-90"
                         >
-                            <PlusIcon className="h-4 w-4" aria-hidden="true" />
                             {many ? t('communication.start.label') : t('communication.dashboard.newMessage')}
-                        </button>
+                        </Button>
                         {menu && (
                             <ActionMenu onClose={() => setMenu(false)}>
                                 <MenuItem onClick={() => { setMenu(false); props.onNew('message'); }}><ChatIcon className="h-4 w-4" />{t('communication.start.message')}</MenuItem>

@@ -75,12 +75,17 @@ final class CommunicationDirectory
         }
         $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $term).'%';
 
+        // Reach first, then the term: the employee record's names and number, or the
+        // account name people know a colleague by (it often differs from the record).
         $users = User::query()
             ->where('users.status', 'active')->whereNotNull('users.employee_id')->whereKeyNot($actor->getKey())
-            ->whereIn('users.employee_id', $this->employeesInReach($actor)->where(fn (Builder $q) => $q
-                ->where('full_name', ci_like_operator(), $like)
-                ->orWhere('name_en', ci_like_operator(), $like)
-                ->orWhere('employee_number', ci_like_operator(), $like))->select('employees.id'))
+            ->whereIn('users.employee_id', $this->employeesInReach($actor)->select('employees.id'))
+            ->where(fn (Builder $q) => $q
+                ->where('users.name', ci_like_operator(), $like)
+                ->orWhereIn('users.employee_id', Employee::query()->where(fn (Builder $e) => $e
+                    ->where('full_name', ci_like_operator(), $like)
+                    ->orWhere('name_en', ci_like_operator(), $like)
+                    ->orWhere('employee_number', ci_like_operator(), $like))->select('employees.id')))
             ->orderBy('users.name')->limit(self::LIMIT)->get(['users.id', 'users.name', 'users.employee_id']);
 
         return $this->present($actor, $users, $locale);

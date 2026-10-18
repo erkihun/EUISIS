@@ -15,6 +15,33 @@ tasks from messages, moderation, blocking and controlled investigation access.
 | `/communication/investigations` | `communication.break_glass.*`, `communication.audit` |
 | `/communication/admin/settings` | `communication.settings.manage` (works while the module is off) |
 
+### Entry point and navigation
+
+- Communication is **not a sidebar item**. It opens from the Messages icon in
+  the top bar (`TopNav/CommunicationButton`): first of the top-bar actions,
+  unread badge (none at 0, then the count, "99+" above 99), tooltip, active
+  state on every Communication page. Shown only when the module is on and the
+  person holds `communication.access`; the routes refuse everyone else.
+- Every Communication page uses the layout's communication mode
+  (`<AuthenticatedLayout mode="communication">`): the desktop sidebar drops to
+  its icon rail (the saved preference is untouched) and the workspace's own
+  tab strip (`CommunicationNav`) sits under the top bar — Messages, Channels,
+  Announcements, Tasks, Overview, and a More menu for Preferences, Moderation,
+  Investigations and Settings, each by permission (`CommunicationNavigation`).
+  The chat workspace has no heading band and fills the screen; only its panels
+  scroll.
+- Every page carries one small shared prop, `communication`:
+  `{enabled, unread_count, realtime, nav}`; `nav` is filled on Communication
+  pages only. Conversations, messages, members and announcements load only
+  inside the workspace.
+- Conversation header: avatar, name, presence and (direct) position · unit or
+  organization; buttons for search in the conversation, pinned messages and the
+  details panel. Search (`GET …/conversations/{id}/search?q=`, at least two
+  characters, 30 newest matches, deleted messages excluded, same visibility as
+  reading) opens in the details panel and jumps to the message.
+- Notification links open the conversation (`/communication/messages/{id}`);
+  a mention opens it at the mentioning message (`?message={id}`).
+
 ## Groups and channels
 
 One conversation model serves direct messages, groups and channels; a channel
@@ -208,8 +235,14 @@ php artisan queue:work --queue=broadcasts     # only if COMMUNICATION_BROADCAST_
   when other jobs are busy, and run a worker for that queue.
 - Typing indicators are sent immediately (`ShouldBroadcastNow`) and are never
   stored. A failed broadcast is logged and counted; it never fails the request.
-- The socket client (`laravel-echo`, `pusher-js`) loads only on Communication
-  pages, and only when the server reports realtime as configured.
+- The socket client (`laravel-echo`, `pusher-js`) loads only when the server
+  reports realtime as configured; it is then started by the top-bar badge on
+  any page (for `unread.changed`) and shared with the workspace.
+- `unread.changed` is sent to everyone whose cached totals are cleared (a
+  message, a read, an acknowledgement, a membership change); in groups and
+  channels up to 500 members are told per message, larger audiences catch up
+  by the badge's one-minute poll.
+- With `BROADCAST_CONNECTION=log` (or `null`) nothing is queued for broadcasting.
 - Rebuild the frontend after changing any `VITE_REVERB_*` value.
 
 ### Channels (`routes/channels.php`)
@@ -217,7 +250,7 @@ php artisan queue:work --queue=broadcasts     # only if COMMUNICATION_BROADCAST_
 | Channel | Who may subscribe | Carries |
 |---|---|---|
 | `private-communication.conversation.{id}` | Current members who may use Communication | message sent/edited/deleted, reactions, read pointers, typing, member changes |
-| `private-communication.user.{id}` | That user only | new conversations, membership |
+| `private-communication.user.{id}` | That user only | new conversations, membership, `unread.changed` (no count: the top-bar badge re-reads the cached summary) |
 | `private-communication.announcements` | Users with `announcements.view` | an announcement id and priority; the audience is checked when the page fetches it |
 
 - `/broadcasting/auth` runs behind `auth`, `mfa`, `force.password`,

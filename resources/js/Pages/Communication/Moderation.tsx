@@ -52,7 +52,7 @@ export default function Moderation({ initial }: Props): JSX.Element {
     };
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('communication.moderation.title')} description={t('communication.moderation.description')} backHref={route('communication.index')} />}>
+        <AuthenticatedLayout mode="communication" header={<PageHeader title={t('communication.moderation.title')} description={t('communication.moderation.description')} />}>
             <Head title={t('communication.moderation.title')} />
             <div className="grid gap-5 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
                 <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">

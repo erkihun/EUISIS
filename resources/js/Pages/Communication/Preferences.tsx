@@ -43,7 +43,7 @@ export default function Preferences({ preferences, system, blocked }: Props): JS
     const panel = 'rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5';
 
     return (
-        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('communication.preferences.title')} description={t('communication.preferences.description')} backHref={route('communication.index')} />}>
+        <AuthenticatedLayout mode="communication" contentWidth="form" header={<PageHeader title={t('communication.preferences.title')} description={t('communication.preferences.description')} />}>
             <Head title={t('communication.preferences.title')} />
             <div className="space-y-6">
                 <form onSubmit={submit} className="space-y-6">

@@ -90,7 +90,7 @@ export default function CommunicationIndex(props: Props): JSX.Element {
     );
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('communication.title')} description={t('communication.description')} actions={actions} />}>
+        <AuthenticatedLayout mode="communication" header={<PageHeader title={t('communication.title')} description={t('communication.description')} actions={actions} />}>
             <Head title={t('communication.title')} />
 
             <div className="space-y-6">
@@ -112,15 +112,6 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                     })}
                 </nav>
 
-                {(
-                    <nav aria-label={t('communication.title')} className="-mt-2 flex flex-wrap gap-x-5 gap-y-1 px-1 text-sm">
-                        <Link href={route('communication.preferences.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.links.preferences')}</Link>
-                        {can.tasks && <Link href={route('communication.tasks.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.tasks')}</Link>}
-                        {can.moderate && <Link href={route('communication.moderation.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.moderation')}</Link>}
-                        {can.investigations && <Link href={route('communication.investigations.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.investigations')}</Link>}
-                        {can.manageSettings && <Link href={route('communication.settings.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.links.settings')}</Link>}
-                    </nav>
-                )}
 
                 {pendingAcknowledgements.length > 0 && (
                     <Section title={t('communication.dashboard.pendingAcknowledgements')} count={pendingAcknowledgements.length} tone="warning">
@@ -133,7 +124,7 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                 <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
                     <Section
                         title={t('communication.dashboard.activeConversations')}
-                        count={unreadConversations.length || undefined}
+                        count={conversations.length || undefined}
                         action={<Link href={messagesUrl()} className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.dashboard.openMessages')}<ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>}
                     >
                         {conversations.length === 0 ? (

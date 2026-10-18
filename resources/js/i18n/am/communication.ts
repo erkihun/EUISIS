@@ -58,6 +58,8 @@ const communication = {
         back: 'ወደ ውይይቶች ይመለሱ',
         details: 'የውይይቱ ዝርዝር',
         hideDetails: 'ዝርዝሩን ይደብቁ',
+        searchInChat: 'በዚህ ውይይት ውስጥ ይፈልጉ',
+        pinnedMessages: 'የተሰኩ መልዕክቶች',
         typingOne: ':name እየጻፉ ነው…',
         typingMany: 'ብዙ ሰዎች እየጻፉ ነው…',
         loadOlder: 'ቀደም ያሉ መልዕክቶችን ይጫኑ',
@@ -142,6 +144,7 @@ const communication = {
         members: 'አባላት',
         files: 'የተጋሩ ፋይሎች',
         pinned: 'የተሰኩ መልዕክቶች',
+        search: 'ፍለጋ',
         noFiles: 'እስካሁን የተጋራ ፋይል የለም።',
         noPins: 'የተሰካ መልዕክት የለም።',
         memberCount: ':n አባላት',
@@ -531,6 +534,14 @@ const communication = {
     },
 
     navMore: { tasks: 'የእኔ ተግባራት', moderation: 'የይዘት ግምገማ', investigations: 'የምርመራ ፈቃድ' },
+    workspace: { overview: 'አጠቃላይ እይታ', more: 'ተጨማሪ', label: 'መልዕክቶችና ግንኙነት', messages: 'መልዕክቶች', channels: 'ቻናሎች', announcements: 'ማስታወቂያዎች', tasks: 'ተግባራት' },
+    search: {
+        label: 'መልዕክቶችን ይፈልጉ',
+        placeholder: 'መልዕክቶችን ይፈልጉ…',
+        hint: 'በዚህ ውይይት ውስጥ ለመፈለግ ቢያንስ ሁለት ፊደሎችን ይጻፉ።',
+        empty: 'የሚዛመድ መልዕክት የለም።',
+        searching: 'በመፈለግ ላይ…',
+    },
 
     settings: {
         title: 'የኮሙኒኬሽን ቅንብሮች',

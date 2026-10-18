@@ -22,7 +22,6 @@ import {
     CardSearchIcon,
     CardTransferIcon,
     ChartIcon,
-    ChatIcon,
     ChecklistIcon,
     ChefHatIcon,
     ChevronDown,
@@ -148,7 +147,6 @@ import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useBranding } from '@/hooks/useBranding';
-import { useCommunicationUnread } from '@/hooks/useCommunicationUnread';
 
 /** A leaf nav item — renders as a clickable link. */
 type NavSubItem = {
@@ -684,7 +682,6 @@ const navGroups: NavGroup[] = [
 ];
 
 /** Messages, groups, channels and announcements: one entry for everyone who may use them. */
-const communicationNavBase: NavItem = { routeName: 'communication.index', labelKey: 'nav.communication', icon: ChatIcon, permission: 'communication.access' };
 
 const dashboardNav: NavItem = {
     routeName: 'dashboard',
@@ -830,12 +827,8 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         ? visiblePortalSections.flatMap((section) => section.groups)
         : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
     const homeNav = isEmployeeUser ? portalDashboard : dashboardNav;
-    const communicationUnread = useCommunicationUnread();
-    const communicationNav: NavItem | null = communicationUnread !== null && permitted(communicationNavBase)
-        ? { ...communicationNavBase, badge: communicationUnread }
-        : null;
     const currentRoute = String(route().current() ?? '');
-    const currentItem = activeRoute([homeNav, ...(communicationNav ? [communicationNav] : []), ...allGroups.flatMap((group) => group.items)], currentRoute);
+    const currentItem = activeRoute([homeNav, ...allGroups.flatMap((group) => group.items)], currentRoute);
     const activeGroupKeys = allGroups.filter((group) => group.items.some((item) => item.routeName === currentItem)).map((group) => group.key);
     const activeGroupSignature = activeGroupKeys.join(',');
 
@@ -1095,10 +1088,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             </div>
 
             <nav ref={navRef} className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6 pt-3 [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)]" aria-label={t('publicSite.mainNavigation')}>
-                {(!normalizedQuery || matches(homeNav) || (communicationNav && matches(communicationNav))) && (
+                {(!normalizedQuery || matches(homeNav)) && (
                     <ul className="mb-4 space-y-px">
-                        {(!normalizedQuery || matches(homeNav)) && renderLink(homeNav)}
-                        {communicationNav && (!normalizedQuery || matches(communicationNav)) && renderLink(communicationNav)}
+                        {renderLink(homeNav)}
                     </ul>
                 )}
                 {isEmployeeUser

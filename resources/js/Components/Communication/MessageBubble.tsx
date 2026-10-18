@@ -65,9 +65,10 @@ function MessageBubble(props: Props): JSX.Element {
 
     // A wash of the brand colour, not the colour itself: the primary is set at
     // runtime and white text on it is not legible for every choice.
+    // Soft edges rather than hard borders: a faint ring on one's own, a light lift on the others'.
     const surface = own
-        ? 'bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--app-surface))] dark:bg-[color:color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] text-[color:var(--app-foreground)] border border-[color:color-mix(in_srgb,var(--color-primary)_22%,var(--app-surface))] dark:border-[color:color-mix(in_srgb,var(--color-primary)_40%,var(--app-surface))]'
-        : 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] border border-[color:var(--app-border)]';
+        ? 'bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--app-surface))] dark:bg-[color:color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] text-[color:var(--app-foreground)] ring-1 ring-inset ring-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)]'
+        : 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.08)] ring-1 ring-inset ring-[color:color-mix(in_srgb,var(--app-border)_70%,transparent)]';
 
     return (
         <li
@@ -79,7 +80,7 @@ function MessageBubble(props: Props): JSX.Element {
                     <span className="mb-0.5 px-1 text-xs font-semibold text-[color:var(--app-muted-foreground)]">{message.sender?.name}</span>
                 )}
 
-                <div className={`relative rounded-panel px-3.5 py-2 text-sm leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.02)] ${surface} ${own ? (continued ? 'rounded-se-md' : 'rounded-se-sm') : (continued ? 'rounded-ss-md' : 'rounded-ss-sm')}`}>
+                <div className={`relative rounded-panel px-3.5 py-2 text-sm leading-relaxed ${surface} ${own ? (continued ? 'rounded-se-md' : 'rounded-se-sm') : (continued ? 'rounded-ss-md' : 'rounded-ss-sm')}`}>
                     {message.forwarded && !message.deleted && (
                         <span className={`mb-1 flex items-center gap-1 text-[11px] italic ${own ? 'text-[color:var(--app-muted-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
                             <ForwardIcon className="h-3 w-3" aria-hidden="true" /> {t('communication.chat.forwarded')}

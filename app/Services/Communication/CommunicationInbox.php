@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Communication;
 
 use App\Enums\Communication\ConversationType;
+use App\Events\Communication\UnreadCommunicationCountUpdated;
 use App\Models\Communication\AnnouncementReceipt;
 use App\Models\Communication\Conversation;
 use App\Models\Communication\ConversationMember;
@@ -27,7 +28,13 @@ final class CommunicationInbox
 {
     public const TOTALS_TTL_SECONDS = 20;
 
-    public function __construct(private readonly AnnouncementAudience $audience) {}
+    /** At most this many people are told per change; larger audiences catch up by polling. */
+    public const SIGNAL_LIMIT = 500;
+
+    public function __construct(
+        private readonly AnnouncementAudience $audience,
+        private readonly CommunicationBroadcaster $broadcaster,
+    ) {}
 
     /** Members of the user's active conversations, with an `unread_count` column. */
     public function memberships(User $user): Builder
@@ -78,10 +85,18 @@ final class CommunicationInbox
         });
     }
 
+    /**
+     * Drop the cached totals of these people and tell their open pages (the
+     * top-bar Messages badge) to fetch them again.
+     */
     public function forgetTotals(int|string ...$userIds): void
     {
-        foreach ($userIds as $id) {
+        $ids = array_values(array_unique(array_map('intval', $userIds)));
+        foreach ($ids as $id) {
             Cache::forget("communication:totals:{$id}");
+        }
+        foreach (array_chunk($ids, self::SIGNAL_LIMIT) as $chunk) {
+            $this->broadcaster->send(new UnreadCommunicationCountUpdated($chunk));
         }
     }
 

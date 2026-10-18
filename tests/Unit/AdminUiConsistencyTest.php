@@ -134,7 +134,9 @@ it('renders every admin page title in the heading band', function (): void {
         if (! str_contains($source, '<AuthenticatedLayout')) {
             continue;
         }
-        $bareLayout = preg_match('/<AuthenticatedLayout(?![^>]*\bheader=)[^>]*>/', $source) === 1;
+        // The Communication workspace runs the layout's focus mode: a full-screen application area
+        // with its own panels, deliberately without a heading band (docs/communication-module.md).
+        $bareLayout = preg_match('/<AuthenticatedLayout(?![^>]*\b(?:header=|mode="communication"))[^>]*>/', $source) === 1;
         $bodyHeader = str_contains($source, '<PageHeader') && ! str_contains($source, 'header={');
         if ($bareLayout || $bodyHeader) {
             $offenders[] = substr($file, strpos($file, '/resources/js/') + 14);

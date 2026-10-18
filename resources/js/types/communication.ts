@@ -161,6 +161,16 @@ export type MessagesAbilities = {
     report: boolean;
 };
 
+/** Sections of the Communication workspace this person may open (shared prop `communication.nav`). */
+export type WorkspaceLinks = {
+    channels: boolean;
+    announcements: boolean;
+    tasks: boolean;
+    moderate: boolean;
+    investigations: boolean;
+    settings: boolean;
+};
+
 export type AnnouncementPriority = 'NORMAL' | 'IMPORTANT' | 'URGENT' | 'EMERGENCY';
 export type AnnouncementStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'EXPIRED' | 'CANCELLED';
 export type AnnouncementTargetType = 'CITY' | 'ORGANIZATION' | 'ORGANIZATION_SUBTREE' | 'ORGANIZATION_UNIT' | 'EMPLOYEE' | 'ROLE' | 'GROUP';

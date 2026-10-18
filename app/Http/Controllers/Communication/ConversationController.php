@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Communication;
 
 use App\Actions\Communication\MarkConversationReadAction;
 use App\Actions\Communication\StartDirectConversationAction;
+use App\Enums\Communication\ChannelType;
 use App\Enums\Communication\ConversationType;
 use App\Events\Communication\UserTyping;
 use App\Http\Controllers\Controller;
@@ -13,6 +14,7 @@ use App\Http\Requests\Communication\MarkReadRequest;
 use App\Http\Requests\Communication\MuteConversationRequest;
 use App\Http\Requests\Communication\StartDirectConversationRequest;
 use App\Http\Resources\Communication\MessageResource;
+use App\Models\Communication\CommunicationBlock;
 use App\Models\Communication\Conversation;
 use App\Models\Communication\ConversationMember;
 use App\Models\Communication\ConversationPin;
@@ -22,6 +24,7 @@ use App\Models\User;
 use App\Services\Communication\CommunicationAccess;
 use App\Services\Communication\CommunicationBroadcaster;
 use App\Services\Communication\CommunicationDirectory;
+use App\Services\Communication\CommunicationInbox;
 use App\Services\Communication\CommunicationSettings;
 use App\Services\Communication\ConversationList;
 use Illuminate\Http\JsonResponse;
@@ -92,7 +95,7 @@ class ConversationController extends Controller
             'my_last_read_message_id' => $member?->last_read_message_id,
             'archived' => $conversation->isArchived(),
             // Only the person who blocked sees it; the other side is never told.
-            'blocked_by_me' => $conversation->type === ConversationType::Direct && \App\Models\Communication\CommunicationBlock::query()
+            'blocked_by_me' => $conversation->type === ConversationType::Direct && CommunicationBlock::query()
                 ->where('blocker_id', $user->getKey())->whereIn('blocked_id', $conversation->activeMembers()->select('user_id'))->exists(),
             'channel_info' => $channel === null ? null : [
                 'type' => $channel->type->value,
@@ -110,8 +113,8 @@ class ConversationController extends Controller
                 'update' => $channel ? Gate::forUser($user)->allows('update', $channel) : Gate::forUser($user)->allows('update', $conversation),
                 'changeRoles' => Gate::forUser($user)->allows('changeRoles', $conversation),
                 'archive' => $channel ? Gate::forUser($user)->allows('archive', $channel) : Gate::forUser($user)->allows('archive', $conversation),
-                'leave' => Gate::forUser($user)->allows('leave', $conversation) && $channel?->type !== \App\Enums\Communication\ChannelType::SystemManaged,
-                'addMembers' => Gate::forUser($user)->allows('manageMembers', $conversation) && (! $channel || ! $channel->auto_membership || $channel->type !== \App\Enums\Communication\ChannelType::SystemManaged),
+                'leave' => Gate::forUser($user)->allows('leave', $conversation) && $channel?->type !== ChannelType::SystemManaged,
+                'addMembers' => Gate::forUser($user)->allows('manageMembers', $conversation) && (! $channel || ! $channel->auto_membership || $channel->type !== ChannelType::SystemManaged),
                 'pin' => Gate::forUser($user)->allows('pin', $conversation),
                 'mentionEveryone' => $conversation->type !== ConversationType::Direct && (bool) $member?->role->canManage(),
             ],
@@ -137,6 +140,30 @@ class ConversationController extends Controller
             'data' => MessageResource::collection($rows)->resolve(),
             'next_before' => $more ? $rows->last()?->getKey() : null,
         ]);
+    }
+
+    /**
+     * Messages in this conversation whose text contains the query, newest
+     * first. Same visibility as reading the conversation; deleted messages
+     * are never searched.
+     */
+    public function search(Request $request, Conversation $conversation): JsonResponse
+    {
+        $this->visible($request->user(), $conversation);
+        $q = trim((string) $request->query('q', ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json(['data' => []]);
+        }
+        $needle = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], mb_strtolower(mb_substr($q, 0, 100))).'%';
+
+        $rows = Message::query()->where('conversation_id', $conversation->getKey())
+            ->whereNotNull('body')
+            ->whereRaw('LOWER(body) LIKE ?', [$needle])
+            ->orderByDesc('id')->limit(30)
+            ->with(['sender:id,name', 'attachments', 'reactions', 'mentions.mentionedUser:id,name', 'parent.sender:id,name'])
+            ->get();
+
+        return response()->json(['data' => MessageResource::collection($rows)->resolve()]);
     }
 
     public function read(MarkReadRequest $request, Conversation $conversation, MarkConversationReadAction $read): JsonResponse
@@ -168,7 +195,7 @@ class ConversationController extends Controller
         $this->visible($user, $conversation);
         $until = $request->boolean('mute') ? ($request->filled('minutes') ? now()->addMinutes($request->integer('minutes')) : now()->addYears(50)) : null;
         ConversationMember::query()->where('conversation_id', $conversation->getKey())->where('user_id', $user->getKey())->update(['muted_until' => $until]);
-        app(\App\Services\Communication\CommunicationInbox::class)->forgetTotals($user->getKey());
+        app(CommunicationInbox::class)->forgetTotals($user->getKey());
 
         return response()->json(['muted_until' => $until?->toIso8601String()]);
     }
@@ -211,7 +238,7 @@ class ConversationController extends Controller
 
     private function membershipRow(User $user, Conversation $conversation): ConversationMember
     {
-        return app(\App\Services\Communication\CommunicationInbox::class)->memberships($user)
+        return app(CommunicationInbox::class)->memberships($user)
             ->join('conversations', 'conversations.id', '=', 'conversation_members.conversation_id')
             ->where('conversation_members.conversation_id', $conversation->getKey())
             ->addSelect(['conversations.type as conversation_type', 'conversations.title as conversation_title',

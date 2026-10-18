@@ -58,6 +58,8 @@ const communication = {
         back: 'Back to conversations',
         details: 'Conversation details',
         hideDetails: 'Hide details',
+        searchInChat: 'Search in this conversation',
+        pinnedMessages: 'Pinned messages',
         typingOne: ':name is typing…',
         typingMany: 'Several people are typing…',
         loadOlder: 'Load earlier messages',
@@ -142,6 +144,7 @@ const communication = {
         members: 'Members',
         files: 'Shared files',
         pinned: 'Pinned messages',
+        search: 'Search',
         noFiles: 'No files have been shared yet.',
         noPins: 'No pinned messages.',
         memberCount: ':n members',
@@ -531,6 +534,14 @@ const communication = {
     },
 
     navMore: { tasks: 'My tasks', moderation: 'Moderation', investigations: 'Investigation access' },
+    workspace: { overview: 'Overview', more: 'More', label: 'Communication', messages: 'Messages', channels: 'Channels', announcements: 'Announcements', tasks: 'Tasks' },
+    search: {
+        label: 'Search messages',
+        placeholder: 'Search messages…',
+        hint: 'Type at least two letters to search this conversation.',
+        empty: 'No messages match.',
+        searching: 'Searching…',
+    },
 
     settings: {
         title: 'Communication settings',

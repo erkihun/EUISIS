@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type JSX } from 'react';
+import { Button } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
-import { buttonClassName } from '@/Components/ui';
 import { communicationApi, firstError, statusOf } from '@/lib/communication/api';
 import { tr } from '@/lib/communication/format';
 import PeoplePicker from '@/Components/Communication/PeoplePicker';
@@ -65,13 +65,9 @@ export default function NewGroupPanel({ onBack, onCreated }: { onBack: () => voi
             </div>
 
             <div className="border-t border-[color:var(--app-border)] p-3">
-                <button
-                    type="submit"
-                    disabled={saving || !title.trim() || people.length === 0}
-                    className={buttonClassName({ variant: 'primary', className: 'w-full' })}
-                >
+                <Button type="submit" variant="primary" className="w-full" disabled={saving || !title.trim() || people.length === 0} loading={saving}>
                     {saving ? t('communication.newGroup.creating') : t('communication.newGroup.create')}
-                </button>
+                </Button>
             </div>
         </form>
     );

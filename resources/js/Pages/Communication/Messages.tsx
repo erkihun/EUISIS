@@ -1,7 +1,7 @@
 import { Head, usePage } from '@inertiajs/react';
+import { Button } from '@euisis/ui';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 import { communicationApi } from '@/lib/communication/api';
 import { channels, connectRealtime, listen } from '@/lib/communication/realtime';
@@ -27,14 +27,19 @@ const LIST_POLL_MS = 15000;
 
 const urlFor = (id: string | null) => (id ? route('communication.messages.show', id) : route('communication.messages.index'));
 
-/** Fills the space below the app header, whatever the header and banners measure. */
+/**
+ * Fills the space below the app header, whatever the header and banners
+ * measure, so the page never scrolls: only the conversation list and the
+ * messages do. The bottom gap matches the focus-mode padding of the layout.
+ */
 function useFillHeight(): [React.RefObject<HTMLDivElement>, number | null] {
     const ref = useRef<HTMLDivElement>(null);
     const [height, setHeight] = useState<number | null>(null);
     useLayoutEffect(() => {
         const measure = () => {
             const top = ref.current?.getBoundingClientRect().top ?? 0;
-            setHeight(Math.max(420, window.innerHeight - top - 28));
+            const gap = window.innerWidth >= 1024 ? 16 : window.innerWidth >= 640 ? 12 : 0;
+            setHeight(Math.max(420, window.innerHeight - top - gap));
         };
         measure();
         window.addEventListener('resize', measure);
@@ -111,7 +116,16 @@ export default function Messages(props: Props): JSX.Element {
 
     // Presence heartbeat while the workspace is open.
     useEffect(() => {
-        const beat = () => { if (document.visibilityState === 'visible') void communicationApi.heartbeat().catch(() => undefined); };
+        // At most one beat a minute per tab, however often the workspace is opened (the route is throttled).
+        const beat = () => {
+            if (document.visibilityState !== 'visible') return;
+            const now = Date.now();
+            try {
+                if (now - Number(sessionStorage.getItem('communication:heartbeat') ?? 0) < 55_000) return;
+                sessionStorage.setItem('communication:heartbeat', String(now));
+            } catch { /* storage unavailable: beat anyway */ }
+            void communicationApi.heartbeat().catch(() => undefined);
+        };
         beat();
         const timer = window.setInterval(beat, 60000);
         return () => window.clearInterval(timer);
@@ -166,12 +180,12 @@ export default function Messages(props: Props): JSX.Element {
     const activeTitle = items.find((c) => c.id === activeId)?.title;
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('communication.messagesTitle')} backHref={route('communication.index')} />}>
+        <AuthenticatedLayout mode="communication">
             <Head title={activeTitle ? `${activeTitle} · ${t('communication.messagesTitle')}` : t('communication.messagesTitle')} />
             <div
                 ref={box}
                 style={height ? { height } : undefined}
-                className="-mx-4 -mt-2 flex min-h-[420px] overflow-hidden border-y border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:mx-0 sm:mt-0 sm:rounded-panel sm:border"
+                className="flex min-h-[420px] overflow-hidden border-y border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:rounded-panel sm:border"
             >
                 <div className={`w-full shrink-0 border-e border-[color:var(--app-border)] bg-[color:var(--app-surface)] lg:block lg:w-80 ${activeId ? 'hidden' : 'block'}`}>
                     {composing === 'group' && can.createGroup ? (
@@ -223,13 +237,9 @@ export default function Messages(props: Props): JSX.Element {
                             <h1 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.chat.selectTitle')}</h1>
                             <p className="max-w-xs text-sm text-[color:var(--app-muted-foreground)]">{t('communication.chat.selectHelp')}</p>
                             {can.message && (
-                                <button
-                                    type="button"
-                                    onClick={() => setComposing('message')}
-                                    className="mt-1 h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90"
-                                >
+                                <Button type="button" variant="primary" className="mt-1" onClick={() => setComposing('message')}>
                                     {t('communication.dashboard.newMessage')}
-                                </button>
+                                </Button>
                             )}
                         </div>
                     )}
