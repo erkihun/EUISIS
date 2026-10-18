@@ -13,6 +13,7 @@ import { StatusPill } from '@/Pages/Communication/Announcements/Index';
 import { CheckReadIcon, DownloadIcon, PaperclipIcon, SearchIcon } from '@/Components/NavIcons';
 import type { PageProps } from '@/types';
 import type { AnnouncementDetail, Recipient } from '@/types/communication';
+import RichTextViewer from '@/Components/forms/RichTextViewer';
 
 type Props = PageProps<{ announcement: AnnouncementDetail }>;
 
@@ -78,7 +79,7 @@ export default function AnnouncementShow({ announcement: a }: Props): JSX.Elemen
                             {a.publisher && <span>{tr(t('communication.announcements.by'), { name: a.publisher })}</span>}
                             {a.expires_at && <span>{tr(t('communication.announcements.expires'), { date: dateTime(a.expires_at, locale, system) })}</span>}
                         </div>
-                        <div className="mt-4 max-w-[70ch] whitespace-pre-wrap break-words text-[15px] leading-7 text-[color:var(--app-foreground)]">{a.body}</div>
+                        <RichTextViewer value={a.body} className="mt-4 max-w-[70ch] text-[15px] leading-7" />
 
                         {a.attachments.length > 0 && (
                             <div className="mt-6 border-t border-[color:var(--app-border)] pt-4">

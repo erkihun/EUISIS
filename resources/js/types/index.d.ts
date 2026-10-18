@@ -24,4 +24,5 @@ export type PageProps<
         mode: CalendarMode;
     };
     locale?: string;
+    richText?: { licenseKey: string } | null;
 };

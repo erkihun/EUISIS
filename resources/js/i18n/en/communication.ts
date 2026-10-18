@@ -360,7 +360,7 @@ const communication = {
             amharic: 'Amharic (optional)',
             titleLabel: 'Title',
             bodyLabel: 'Message',
-            bodyHelp: 'Plain text. Line breaks are kept.',
+            bodyHelp: 'Use headings, lists and links to structure the message. Pasted formatting is tidied on save.',
             priority: 'Priority',
             audience: 'Who receives it',
             audienceHelp: 'Add one or more groups of people. Everyone matching any of them receives it.',

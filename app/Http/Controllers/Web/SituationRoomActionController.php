@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OrganizationUnit;
 use App\Models\SituationRoomAction;
 use App\Models\User;
+use App\Rules\RichTextContent;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\SituationRoom\SituationRoomActionService;
@@ -74,7 +75,7 @@ class SituationRoomActionController extends Controller
             'source_type' => ['nullable', Rule::in(SituationRoomAction::SOURCE_TYPES)],
             'source_reference' => ['nullable', 'string', 'max:100'],
             'title' => ['required', 'string', 'max:200'],
-            'action_text' => ['nullable', 'string', 'max:5000'],
+            'action_text' => ['nullable', new RichTextContent(maxLength: 5000)],
             'owner_user_id' => ['nullable', 'integer'],
             'owner_organization_unit_id' => ['nullable', 'uuid'],
             'due_date' => ['nullable', 'date_format:Y-m-d'],
@@ -100,7 +101,7 @@ class SituationRoomActionController extends Controller
             'due_date' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'priority' => ['sometimes', Rule::in(SituationRoomAction::PRIORITIES)],
             'title' => ['sometimes', 'string', 'max:200'],
-            'action_text' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'action_text' => ['sometimes', 'nullable', new RichTextContent(maxLength: 5000)],
             'note' => ['nullable', 'string', 'max:2000'],
         ]);
 

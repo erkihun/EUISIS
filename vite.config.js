@@ -54,6 +54,13 @@ export default defineConfig({
                         return 'ziggy';
                     }
 
+                    // The rich-text editor library, fetched only where an editor is
+                    // shown (RichTextEditor lazy-loads it). The toolbar skins stay
+                    // out: each theme's skin is its own small chunk.
+                    if ((file.includes('/node_modules/tinymce/') || file.includes('/node_modules/@tinymce/')) && !file.includes('/skins/')) {
+                        return 'rich-text-editor';
+                    }
+
                     // Force all React context providers into one shared chunk.
                     // Without this, Vite may inline a provider into whichever
                     // layout chunk first imports it, then duplicate createContext()

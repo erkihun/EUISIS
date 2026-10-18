@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import JobDescriptionForm from '@/Components/organizationDesign/JobDescriptionForm';
 import SectionForm from '@/Components/organizationDesign/SectionForm';
+import RichTextViewer from '@/Components/forms/RichTextViewer';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
@@ -109,8 +110,7 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                 );
             }
             default: {
-                const content = text(section.content_en, section.content_am);
-                return content ? <p className="whitespace-pre-wrap text-sm text-[color:var(--app-foreground)]">{content}</p> : empty;
+                return <RichTextViewer value={text(section.content_en, section.content_am)} empty={empty} />;
             }
         }
     }
@@ -165,9 +165,13 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                                     <CardTitle>{(locale === 'am' && s.title_am) || s.title_en}</CardTitle>
                                     <span className={badgeClassName(s.source === 'derived' ? 'info' : 'neutral')}>{tt(`positionDesign.jd.${s.source}`)}</span>
                                 </div>
-                                {can.update && s.source === 'custom' && <button type="button" className={actionLinkClassName()} onClick={() => setEditing(s)}>{t('common.edit')}</button>}
+                                {can.update && s.source === 'custom' && editing?.id !== s.id && <button type="button" className={actionLinkClassName()} onClick={() => setEditing(s)}>{t('common.edit')}</button>}
                             </CardHeader>
-                            <div className="p-5">{body(s)}</div>
+                            <div className="p-5">
+                                {editing?.id === s.id
+                                    ? <SectionForm key={s.id} jobDescriptionId={jd.id} sectionKey={s.section_key} title={(locale === 'am' && s.title_am) || s.title_en} contentEn={s.content_en} contentAm={s.content_am} onClose={() => setEditing(null)} />
+                                    : body(s)}
+                            </div>
                         </Card>
                     ))}
                 </div>
@@ -200,7 +204,6 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                 </div>
             </div>
 
-            {editing && <SectionForm jobDescriptionId={jd.id} sectionKey={editing.section_key} title={(locale === 'am' && editing.title_am) || editing.title_en} contentEn={editing.content_en} contentAm={editing.content_am} onClose={() => setEditing(null)} />}
             {can.version && <JobDescriptionForm show={versionOpen} onClose={() => setVersionOpen(false)} title={tt('positionDesign.jd.newVersion')} url={route('organization-design.job-descriptions.versions.store', jd.id)} />}
         </AuthenticatedLayout>
     );

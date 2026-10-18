@@ -148,9 +148,11 @@ use App\Services\SituationRoom\SituationMemo;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Mail\RuntimeMailSettings;
+use App\Support\RichText\RichTextSanitizer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -178,6 +180,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(PublicFeedbackQuestionnaire::class);
 
         $this->app->singleton(RuntimeMailSettings::class);
+        $this->app->singleton(RichTextSanitizer::class, fn (): RichTextSanitizer => new RichTextSanitizer((array) config('richtext')));
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);
@@ -208,6 +211,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Formatted text in server-rendered output (PDF, email): `@richtext($value)`
+        // sanitizes against config/richtext.php and prints it; legacy plain text
+        // becomes escaped paragraphs. The only sanctioned way to echo stored HTML.
+        Blade::directive('richtext', fn (string $expression): string => "<?php echo app(\\App\\Support\\RichText\\RichTextSanitizer::class)->sanitize({$expression}) ?? ''; ?>");
+
         EmployeeAssignment::observe(EmployeeAssignmentCardImpactObserver::class);
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);

@@ -10,6 +10,7 @@ import amDailyActivities from '@/i18n/am/dailyActivities';
 import amFieldWork from '@/i18n/am/fieldWork';
 import amPerformance from '@/i18n/am/performance';
 import amCommunication from '@/i18n/am/communication';
+import amRichText from '@/i18n/am/richText';
 import amAuth from '@/i18n/am/auth';
 import amConfirmations from '@/i18n/am/confirmations';
 import amEntitlements from '@/i18n/am/entitlements';
@@ -83,6 +84,7 @@ const tree: TranslationTree = {
     dailyActivities: amDailyActivities,
     performance: amPerformance,
     communication: amCommunication,
+    richText: amRichText,
     entitlements: amEntitlements,
     gradeLevels: amGradeLevels,
     idCards: { ...(((am as { idCards?: TranslationTree }).idCards) ?? {}), ...amIdCards },

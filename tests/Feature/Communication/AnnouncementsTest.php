@@ -213,3 +213,20 @@ it('edits a draft\'s audience and records the change', function (): void {
             ->where('announcement.targets.0.type', 'ORGANIZATION_UNIT')->where('announcement.targets.0.label', 'HR Directorate'));
     expect(AuditLog::query()->where('event_type', AuditEventType::CommunicationAnnouncementTargetsChanged->value)->count())->toBe(1);
 });
+
+it('treats the body as formatted text: required in words, sanitized, excerpted as plain text', function (): void {
+    $this->actingAs($this->admin)->from('/')->post(route('communication.announcements.store'), caPayload($this, ['body' => '<p><br></p>']))
+        ->assertSessionHasErrors('body');
+
+    $announcement = caCreate($this, [
+        'body' => '<h2>New procedure</h2><p>Apply through <a href="https://portal.addis.gov.et" target="_blank">My Portal</a>.<img src=x onerror=alert(1)></p><script>alert(1)</script>',
+        'body_am' => '<p><br></p>',
+    ]);
+
+    expect($announcement->body)->toBe('<h2>New procedure</h2><p>Apply through <a href="https://portal.addis.gov.et" target="_blank" rel="noreferrer noopener">My Portal</a>.</p>')
+        ->and($announcement->body_am)->toBeNull();
+
+    $this->actingAs($this->admin)->post(route('communication.announcements.publish', $announcement))->assertRedirect();
+    $feed = $this->actingAs($this->s->alice)->getJson(route('communication.api.announcements.feed'))->assertOk()->json('data');
+    expect(collect($feed)->firstWhere('id', $announcement->id)['excerpt'])->toBe('New procedure Apply through My Portal.');
+});

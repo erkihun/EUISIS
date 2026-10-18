@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\RichTextHtml;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -47,6 +48,7 @@ class SituationRoomAction extends Model
         return [
             'due_date' => 'date:Y-m-d',
             'closed_at' => 'datetime',
+            'action_text' => RichTextHtml::class,
         ];
     }
 

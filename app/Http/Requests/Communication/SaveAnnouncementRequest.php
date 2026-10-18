@@ -6,6 +6,7 @@ namespace App\Http\Requests\Communication;
 
 use App\Enums\Communication\AnnouncementPriority;
 use App\Enums\Communication\AnnouncementTargetType;
+use App\Rules\RichTextContent;
 use App\Services\Communication\AnnouncementTargeting;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -28,8 +29,8 @@ class SaveAnnouncementRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:200'],
             'title_am' => ['nullable', 'string', 'max:200'],
-            'body' => ['required', 'string', 'max:20000'],
-            'body_am' => ['nullable', 'string', 'max:20000'],
+            'body' => [RichTextContent::required(maxLength: 20000)],
+            'body_am' => ['nullable', new RichTextContent(maxLength: 20000)],
             'priority' => ['required', Rule::in(AnnouncementPriority::values())],
             'acknowledgement_required' => ['boolean'],
             'expires_at' => ['nullable', 'date', 'after:now'],

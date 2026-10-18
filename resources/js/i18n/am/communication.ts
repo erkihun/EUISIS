@@ -360,7 +360,7 @@ const communication = {
             amharic: 'አማርኛ (አማራጭ)',
             titleLabel: 'ርዕስ',
             bodyLabel: 'መልዕክት',
-            bodyHelp: 'ቀላል ጽሑፍ። የመስመር መለያዎች ይጠበቃሉ።',
+            bodyHelp: 'መልዕክቱን በርዕሶች፣ በዝርዝሮች እና በአገናኞች ያደራጁ። የተለጠፈ ቅርጸት ሲቀመጥ ይስተካከላል።',
             priority: 'ቅድሚያ',
             audience: 'የሚደርሳቸው',
             audienceHelp: 'አንድ ወይም ከዚያ በላይ የሰዎች ስብስብ ይጨምሩ። ከማናቸውም ጋር የሚዛመድ ሁሉ ይደርሰዋል።',

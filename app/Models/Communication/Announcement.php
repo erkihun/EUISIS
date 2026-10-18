@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Communication;
 
+use App\Casts\RichTextHtml;
 use App\Enums\Communication\AnnouncementPriority;
 use App\Enums\Communication\AnnouncementStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
@@ -24,6 +25,8 @@ class Announcement extends Model
     {
         return [
             'priority' => AnnouncementPriority::class,
+            'body' => RichTextHtml::class,
+            'body_am' => RichTextHtml::class,
             'status' => AnnouncementStatus::class,
             'publish_at' => 'datetime',
             'published_at' => 'datetime',

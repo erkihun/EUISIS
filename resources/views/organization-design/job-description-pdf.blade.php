@@ -24,7 +24,8 @@
         .meta td.k { color: #555; width: 32%; }
         .draft { border: 1px solid #b45309; color: #b45309; padding: 6px 8px; margin: 10px 0; font-size: 9.5pt; }
         h2 { font-size: 11.5pt; color: #122170; margin: 14px 0 4px; border-bottom: 1px solid #c7cbe0; padding-bottom: 2px; }
-        .body { white-space: pre-wrap; }
+        .body p { margin: 0 0 5px; }
+        @include('pdf.partials.rich-text-styles')
         .rows th, .rows td { border: 1px solid #c7cbe0; padding: 3px 5px; font-size: 9.5pt; text-align: left; vertical-align: top; }
         .rows th { background: #eef0f8; }
         .muted { color: #666; }
@@ -76,7 +77,8 @@
                 @endforeach
             </table>
         @elseif ($content !== null && $content !== '')
-            <div class="body">{{ $content }}</div>
+            {{-- Custom sections are formatted text; derived ones are plain text, shown as paragraphs. --}}
+            <div class="body rich-text">@richtext($content)</div>
         @else
             <div class="muted">{{ $t('empty') }}</div>
         @endif

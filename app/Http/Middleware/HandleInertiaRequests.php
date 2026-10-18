@@ -86,6 +86,9 @@ class HandleInertiaRequests extends Middleware
             },
 
             'locale' => $locale,
+            // The rich-text editor's licence (config/richtext.php). Only signed-in
+            // people edit formatted text; public pages never load the editor.
+            'richText' => fn (): ?array => $user ? ['licenseKey' => (string) config('richtext.editor.license_key', 'gpl')] : null,
             // The language the server wrote this page's own text in (SetClientLocale), read when the page renders.
             // The browser reloads once when it shows another language (LocaleContext).
             'textLocale' => fn (): string => app()->getLocale(),

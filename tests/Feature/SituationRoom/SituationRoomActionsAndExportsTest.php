@@ -120,3 +120,18 @@ it('opens Community Voice by Institution only with the public-voice grant', func
     $this->actingAs($with)->get(route('situation-room.community-voice'))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('SituationRoom/CommunityVoice'));
 });
+
+it('keeps an action\'s description as sanitized formatted text', function (): void {
+    $manager = $this->s->viewer([SituationPermissions::ACTIONS_MANAGE, SituationPermissions::PUBLIC_VOICE], 'subcity_a');
+    $store = fn (string $text) => $this->actingAs($manager)->from('/')->post(route('situation-room.actions.store'), [
+        'organization_id' => $this->s->org['woreda_a1']->id, 'title' => 'Front desk', 'action_text' => $text,
+    ]);
+
+    $store('<p>Call the <strong>woreda</strong> office<script>alert(1)</script></p><ul><li onmouseover="x()">today</li></ul>')->assertSessionHasNoErrors();
+    expect(SituationRoomAction::query()->latest('created_at')->first()->action_text)->toBe('<p>Call the <strong>woreda</strong> office</p><ul><li>today</li></ul>');
+
+    // An emptied editor is no description at all; the limit counts what a reader sees.
+    $store('<p><br></p>')->assertSessionHasNoErrors();
+    expect(SituationRoomAction::query()->whereNull('action_text')->count())->toBe(1);
+    $store('<p>'.str_repeat('a', 5001).'</p>')->assertSessionHasErrors('action_text');
+});
