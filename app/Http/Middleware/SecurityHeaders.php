@@ -98,11 +98,14 @@ class SecurityHeaders
             ? "font-src 'self' data: {$viteHttp}"
             : "font-src 'self' data:";
 
+        // Map tiles (config/maps.php) are the one outside image source.
+        $imgSrc = trim("img-src 'self' data: blob: ".self::tileOrigin((string) config('maps.tile_url', '')));
+
         $response->headers->set('Content-Security-Policy', implode('; ', [
             "default-src 'self'",
             $scriptSrc,
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: blob:",
+            $imgSrc,
             $fontSrc,
             $connectSrc,
             "frame-ancestors 'none'",
@@ -123,5 +126,22 @@ class SecurityHeaders
         }
 
         return $response;
+    }
+
+    /**
+     * The scheme and host of the map tile template, for img-src. A `{s}`
+     * subdomain placeholder becomes a wildcard; anything that is not an
+     * http(s) URL adds nothing.
+     */
+    public static function tileOrigin(string $template): string
+    {
+        $wildcard = str_contains($template, '://{s}.');
+        $parts = parse_url(str_replace('://{s}.', '://sub.', $template));
+        if (! is_array($parts) || ! in_array($parts['scheme'] ?? null, ['http', 'https'], true) || empty($parts['host'])) {
+            return '';
+        }
+        $host = $wildcard ? '*.'.substr($parts['host'], 4) : $parts['host'];
+
+        return $parts['scheme'].'://'.$host.(isset($parts['port']) ? ':'.$parts['port'] : '');
     }
 }

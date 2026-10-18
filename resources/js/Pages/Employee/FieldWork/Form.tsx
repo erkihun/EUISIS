@@ -1,6 +1,8 @@
 import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedTimePicker from '@/Components/Calendar/LocalizedTimePicker';
+import LocationPicker from '@/Components/fieldWork/LocationPicker';
+import type { MapConfig } from '@/Components/fieldWork/LocationMap';
 import SearchPicker from '@/Components/fieldWork/SearchPicker';
 import { employeeName, inputCls, labelCls, named, panelCls, primaryBtn, secondaryBtn } from '@/Components/fieldWork/helpers';
 import type { DestinationType, EmployeeRef, Named, Option } from '@/Components/fieldWork/types';
@@ -41,6 +43,7 @@ type Props = {
     canAddTeam: boolean;
     canSubmit: boolean;
     today: string;
+    map: MapConfig;
     fieldWork: { id: string; reference_number: string; status: string; decision_reason: string | null } | null;
     values: Values | null;
 };
@@ -50,7 +53,7 @@ type Props = {
  * status or supervisor field: the server takes the requester and placement
  * from the signed-in account and resolves the supervisor on submission.
  */
-export default function FieldWorkForm({ employee, placement, types, destinationTypes, canAddTeam, canSubmit, today, fieldWork, values }: Props): JSX.Element {
+export default function FieldWorkForm({ employee, placement, types, destinationTypes, canAddTeam, canSubmit, today, map, fieldWork, values }: Props): JSX.Element {
     const { t, locale } = useLocale();
     const form = useForm<Values & { action: 'draft' | 'submit'; participant_employee_ids: string[] }>({
         ...(values ?? {
@@ -209,13 +212,24 @@ export default function FieldWorkForm({ employee, placement, types, destinationT
                         {text('contact_person', t('fieldWork.fields.contactPerson'), false, false, 150)}
                         {text('contact_phone', t('fieldWork.fields.contactPhone'), false, false, 32)}
 
-                        <div className="sm:col-span-2">
-                            <p className="text-xs font-medium text-gray-600 dark:text-slate-400">{t('fieldWork.fields.expectedPoint')}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">{t('fieldWork.fields.expectedPointHint')}</p>
+                        <div className="space-y-3 sm:col-span-2">
+                            <div>
+                                <p className="text-xs font-medium text-gray-600 dark:text-slate-400">{t('fieldWork.fields.expectedPoint')}</p>
+                                <p className="text-xs text-gray-500 dark:text-slate-400">{t('fieldWork.fields.expectedPointHint')}</p>
+                            </div>
+                            <LocationPicker
+                                config={map}
+                                lat={d.expected_latitude}
+                                lng={d.expected_longitude}
+                                radius={d.geofence_radius_m}
+                                onChange={(next) => form.setData((data) => ({ ...data, expected_latitude: next.lat, expected_longitude: next.lng, geofence_radius_m: next.radius }))}
+                            />
+                            <div className="grid gap-3 sm:grid-cols-3">
+                                {text('expected_latitude', t('fieldWork.fields.latitude'), false, false, 20)}
+                                {text('expected_longitude', t('fieldWork.fields.longitude'), false, false, 20)}
+                                {text('geofence_radius_m', t('fieldWork.fields.radius'), false, false, 6)}
+                            </div>
                         </div>
-                        {text('expected_latitude', t('fieldWork.fields.latitude'), false, false, 20)}
-                        {text('expected_longitude', t('fieldWork.fields.longitude'), false, false, 20)}
-                        {text('geofence_radius_m', t('fieldWork.fields.radius'), false, false, 6)}
                     </>
                 ))}
 
