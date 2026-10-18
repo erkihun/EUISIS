@@ -168,6 +168,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Communication malware-scan hook: replace with a real scanner binding in production.
+        $this->app->bindIf(\App\Services\Communication\AttachmentScanner::class, \App\Services\Communication\PendingAttachmentScanner::class);
         // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
         $this->app->scoped(SituationMemo::class);
         // One instance per request: validation, rendering and storage read the same questionnaire version.
@@ -283,6 +285,16 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(CafeteriaSpecialDay::class, CafeteriaSpecialDayPolicy::class);
         Gate::policy(EmployeeCafeteriaExclusion::class, EmployeeCafeteriaExclusionPolicy::class);
 
+        // Communication & Collaboration (docs/communication-module.md).
+        Gate::policy(\App\Models\Communication\Conversation::class, \App\Policies\Communication\ConversationPolicy::class);
+        Gate::policy(\App\Models\Communication\Message::class, \App\Policies\Communication\MessagePolicy::class);
+        Gate::policy(\App\Models\Communication\MessageAttachment::class, \App\Policies\Communication\MessageAttachmentPolicy::class);
+        Gate::policy(\App\Models\Communication\Channel::class, \App\Policies\Communication\ChannelPolicy::class);
+        Gate::policy(\App\Models\Communication\Announcement::class, \App\Policies\Communication\AnnouncementPolicy::class);
+        Gate::policy(\App\Models\Communication\CommunicationTask::class, \App\Policies\Communication\CommunicationTaskPolicy::class);
+        Gate::policy(\App\Models\Communication\CommunicationReport::class, \App\Policies\Communication\CommunicationReportPolicy::class);
+        Gate::policy(\App\Models\Communication\CommunicationAccessRequest::class, \App\Policies\Communication\CommunicationAccessRequestPolicy::class);
+
         /*
          * Super Admin passes every check, except the self-protection rules:
          * nobody (Super Admin included) deletes, deactivates, archives or
@@ -294,6 +306,14 @@ class AppServiceProvider extends ServiceProvider
                 return null;
             }
             $target = $arguments[0] ?? null;
+            // Private communication is never opened by role (docs/communication-module.md §Privacy):
+            // the policy decides, by membership or an approved break-glass grant.
+            if ($target instanceof \App\Models\Communication\Conversation
+                || $target instanceof \App\Models\Communication\Message
+                || $target instanceof \App\Models\Communication\MessageAttachment
+                || $target instanceof \App\Models\Communication\CommunicationAccessRequest) {
+                return null;
+            }
             if ($target instanceof User && $target->is($user)
                 && in_array($ability, ['delete', 'forceDelete', 'archive', 'deactivate', 'assignRoles', 'assignOrganizationScope'], true)) {
                 return null;
@@ -307,6 +327,24 @@ class AppServiceProvider extends ServiceProvider
          * spend another card's budget, and so a single card cannot be used to
          * spam its holder with codes from many addresses.
          */
+        /*
+         * Communication (docs/communication-module.md §Abuse protection): per person,
+         * so one account cannot flood a conversation, the directory or the moderators.
+         */
+        $perUser = static fn (Request $request): string => (string) ($request->user()?->getAuthIdentifier() ?? $request->ip());
+        RateLimiter::for('communication-send', fn (Request $request): array => [
+            Limit::perMinute(40)->by('comm-send:'.$perUser($request)),
+            Limit::perHour(600)->by('comm-send-h:'.$perUser($request)),
+        ]);
+        RateLimiter::for('communication-start', fn (Request $request): Limit => Limit::perMinute(20)->by('comm-start:'.$perUser($request)));
+        RateLimiter::for('communication-upload', fn (Request $request): Limit => Limit::perMinute(20)->by('comm-upload:'.$perUser($request)));
+        RateLimiter::for('communication-search', fn (Request $request): Limit => Limit::perMinute(40)->by('comm-search:'.$perUser($request)));
+        RateLimiter::for('communication-react', fn (Request $request): Limit => Limit::perMinute(90)->by('comm-react:'.$perUser($request)));
+        RateLimiter::for('communication-typing', fn (Request $request): Limit => Limit::perMinute(30)->by('comm-typing:'.$perUser($request)));
+        RateLimiter::for('communication-group', fn (Request $request): Limit => Limit::perHour(15)->by('comm-group:'.$perUser($request)));
+        RateLimiter::for('communication-channel', fn (Request $request): Limit => Limit::perHour(15)->by('comm-channel:'.$perUser($request)));
+        RateLimiter::for('communication-report', fn (Request $request): Limit => Limit::perHour(20)->by('comm-report:'.$perUser($request)));
+
         RateLimiter::for('id-checker-send-otp', fn (Request $request): array => [
             Limit::perMinutes(10, 3)->by('pic-send:'.$request->route('cardUuid').'|'.$request->ip()),
             // Second ceiling: one IP may not farm codes across many cards.

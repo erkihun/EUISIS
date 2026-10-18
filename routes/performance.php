@@ -14,6 +14,7 @@ use App\Http\Controllers\Performance\PerformancePlanController;
 use App\Http\Controllers\Performance\PerformanceReportController;
 use App\Http\Controllers\Performance\PerformanceSettingController;
 use App\Http\Controllers\Performance\StrategicGoalController;
+use App\Http\Middleware\EnsurePerformanceEnabled;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,7 +26,7 @@ use Illuminate\Support\Facades\Route;
 | No external API routes: performance data is not exposed by the API.
 */
 
-Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
+Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access', EnsurePerformanceEnabled::class])
     ->prefix('performance')->name('performance.')
     ->group(function (): void {
         Route::get('/', [PerformanceDashboardController::class, 'index'])->name('dashboard');
@@ -70,7 +71,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/amendments/{amendment}/decide', [PerformancePlanController::class, 'decideAmendment'])->whereUuid('amendment')->name('amendments.decide');
 
         Route::get('/agreements', [EmployeeAgreementController::class, 'index'])->name('agreements.index');
-        Route::post('/agreements', [EmployeeAgreementController::class, 'store'])->name('agreements.store');
+        Route::post('/agreements', [EmployeeAgreementController::class, 'store'])->middleware('throttle:30,1')->name('agreements.store');
         Route::get('/agreements/{agreement}', [EmployeeAgreementController::class, 'show'])->whereUuid('agreement')->name('agreements.show');
         Route::post('/agreements/{agreement}/items', [EmployeeAgreementController::class, 'storeItem'])->whereUuid('agreement')->name('agreements.items.store');
         Route::put('/items/{item}', [EmployeeAgreementController::class, 'updateItem'])->whereUuid('item')->name('items.update');
@@ -82,12 +83,12 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/agreements/{agreement}/transfer', [EmployeeAgreementController::class, 'transfer'])->whereUuid('agreement')->name('agreements.transfer');
         Route::post('/agreements/{agreement}/evidence', [EmployeeAgreementController::class, 'storeEvidence'])->whereUuid('agreement')->middleware('throttle:30,1')->name('agreements.evidence.store');
         Route::post('/evidence/{evidence}/verify', [EmployeeAgreementController::class, 'verifyEvidence'])->whereUuid('evidence')->name('evidence.verify');
-        Route::post('/agreements/{agreement}/checkins', [EmployeeAgreementController::class, 'storeCheckin'])->whereUuid('agreement')->name('agreements.checkins.store');
+        Route::post('/agreements/{agreement}/checkins', [EmployeeAgreementController::class, 'storeCheckin'])->whereUuid('agreement')->middleware('throttle:30,1')->name('agreements.checkins.store');
         Route::post('/agreements/{agreement}/reviews/{type}/complete', [EmployeeAgreementController::class, 'completeReview'])->whereUuid('agreement')->whereIn('type', ['mid_year', 'year_end'])->name('agreements.reviews.complete');
         Route::post('/agreements/{agreement}/reviews/{type}/return', [EmployeeAgreementController::class, 'returnReview'])->whereUuid('agreement')->whereIn('type', ['mid_year', 'year_end'])->name('agreements.reviews.return');
         Route::post('/agreements/{agreement}/calculate', [EmployeeAgreementController::class, 'calculate'])->whereUuid('agreement')->name('agreements.calculate');
-        Route::post('/agreements/{agreement}/improvement-plans', [EmployeeAgreementController::class, 'storeImprovementPlan'])->whereUuid('agreement')->name('agreements.pips.store');
-        Route::post('/agreements/{agreement}/development-plans', [EmployeeAgreementController::class, 'storeDevelopmentPlan'])->whereUuid('agreement')->name('agreements.idps.store');
+        Route::post('/agreements/{agreement}/improvement-plans', [EmployeeAgreementController::class, 'storeImprovementPlan'])->whereUuid('agreement')->middleware('throttle:30,1')->name('agreements.pips.store');
+        Route::post('/agreements/{agreement}/development-plans', [EmployeeAgreementController::class, 'storeDevelopmentPlan'])->whereUuid('agreement')->middleware('throttle:30,1')->name('agreements.idps.store');
         Route::post('/agreements/{agreement}/{action}', [EmployeeAgreementController::class, 'workflow'])->whereUuid('agreement')->whereIn('action', ['submit', 'approve', 'return', 'close'])->name('agreements.workflow');
         Route::post('/results/{result}/adjustments', [EmployeeAgreementController::class, 'requestAdjustment'])->whereUuid('result')->name('results.adjustments.store');
         Route::post('/adjustments/{adjustment}/decide', [EmployeeAgreementController::class, 'decideAdjustment'])->whereUuid('adjustment')->name('adjustments.decide');
@@ -95,7 +96,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/item-amendments/{amendment}/decide', [EmployeeAgreementController::class, 'decideAmendment'])->whereUuid('amendment')->name('item-amendments.decide');
 
         Route::get('/calibration', [PerformanceCalibrationController::class, 'index'])->name('calibration.index');
-        Route::post('/calibration', [PerformanceCalibrationController::class, 'store'])->name('calibration.store');
+        Route::post('/calibration', [PerformanceCalibrationController::class, 'store'])->middleware('throttle:30,1')->name('calibration.store');
         Route::get('/calibration/{session}', [PerformanceCalibrationController::class, 'show'])->whereUuid('session')->name('calibration.show');
         Route::post('/calibration/{session}/results', [PerformanceCalibrationController::class, 'addResults'])->whereUuid('session')->name('calibration.results.store');
         Route::post('/calibration/{session}/finalize', [PerformanceCalibrationController::class, 'finalize'])->whereUuid('session')->name('calibration.finalize');
@@ -105,12 +106,16 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::get('/appeals/{appeal}', [PerformanceAppealController::class, 'show'])->whereUuid('appeal')->name('appeals.show');
         Route::post('/appeals/{appeal}/decide', [PerformanceAppealController::class, 'decide'])->whereUuid('appeal')->name('appeals.decide');
 
-        Route::get('/reports', [PerformanceReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports', [PerformanceReportController::class, 'index'])->middleware('throttle:60,1')->name('reports.index');
         Route::get('/reports/export', [PerformanceReportController::class, 'export'])->middleware('throttle:10,1')->name('reports.export');
 
         Route::get('/settings', [PerformanceSettingController::class, 'index'])->name('settings.index');
         Route::patch('/settings', [PerformanceSettingController::class, 'update'])->name('settings.update');
         Route::put('/settings/bands/{band}', [PerformanceSettingController::class, 'updateBand'])->whereUuid('band')->name('settings.bands.update');
+
+        // Evidence and appeal files for managers and reviewers (scope / coverage re-checked in the controller).
+        Route::get('/evidence/{evidence}/download', [EmployeeAgreementController::class, 'downloadEvidence'])->whereUuid('evidence')->name('evidence.download');
+        Route::get('/appeals/{appeal}/attachment', [PerformanceAppealController::class, 'attachment'])->whereUuid('appeal')->name('appeals.attachment');
 
         Route::prefix('lookups')->name('lookups.')->middleware('throttle:120,1')->group(function (): void {
             Route::get('/organizations', [PerformanceLookupController::class, 'organizations'])->name('organizations');
@@ -120,20 +125,15 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         });
     });
 
-// Evidence and appeal files: shared by the employee (own) and managers (scope).
-Route::middleware(['auth', 'force.password'])->prefix('performance')->name('performance.')->group(function (): void {
-    Route::get('/evidence/{evidence}/download', [EmployeeAgreementController::class, 'downloadEvidence'])->whereUuid('evidence')->name('evidence.download');
-    Route::get('/appeals/{appeal}/attachment', [PerformanceAppealController::class, 'attachment'])->whereUuid('appeal')->name('appeals.attachment');
-});
-
 // My Portal → My Performance (own records only).
-Route::middleware(['auth', 'force.password', 'admin.access'])->prefix('my-portal/performance')->name('employee.performance.')->group(function (): void {
+Route::middleware(['auth', 'force.password', 'admin.access', EnsurePerformanceEnabled::class])->prefix('my-portal/performance')->name('employee.performance.')->group(function (): void {
     Route::get('/', [MyPerformanceController::class, 'index'])->name('index');
+    Route::get('/evidence/{evidence}/download', [MyPerformanceController::class, 'downloadEvidence'])->whereUuid('evidence')->name('evidence.download');
     Route::post('/agreements/{agreement}/acknowledge', [MyPerformanceController::class, 'acknowledge'])->whereUuid('agreement')->name('acknowledge');
     Route::post('/agreements/{agreement}/return', [MyPerformanceController::class, 'returnAgreement'])->whereUuid('agreement')->name('return');
     Route::post('/agreements/{agreement}/reviews/{type}', [MyPerformanceController::class, 'submitReview'])->whereUuid('agreement')->whereIn('type', ['mid_year', 'year_end'])->name('reviews.submit');
     Route::post('/agreements/{agreement}/evidence', [MyPerformanceController::class, 'storeEvidence'])->whereUuid('agreement')->middleware('throttle:30,1')->name('evidence.store');
-    Route::post('/agreements/{agreement}/development-plans', [MyPerformanceController::class, 'storeDevelopmentPlan'])->whereUuid('agreement')->name('idps.store');
-    Route::post('/checkins/{checkin}', [MyPerformanceController::class, 'checkinNote'])->whereUuid('checkin')->name('checkins.note');
+    Route::post('/agreements/{agreement}/development-plans', [MyPerformanceController::class, 'storeDevelopmentPlan'])->whereUuid('agreement')->middleware('throttle:30,1')->name('idps.store');
+    Route::post('/checkins/{checkin}', [MyPerformanceController::class, 'checkinNote'])->whereUuid('checkin')->middleware('throttle:30,1')->name('checkins.note');
     Route::post('/results/{result}/appeal', [MyPerformanceController::class, 'appeal'])->whereUuid('result')->middleware('throttle:5,60')->name('appeal');
 });

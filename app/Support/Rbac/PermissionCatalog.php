@@ -64,6 +64,8 @@ final class PermissionCatalog
             'public_site', 'public_home', 'public_announcements', 'public_services', 'public_support', 'public_navigation',
             'public_footer', 'public_branding', 'public_seo', 'public_site_settings',
         ],
+        // Chat, channels and official announcements (docs/communication-module.md).
+        'Communication & Collaboration' => ['communication', 'communication_groups', 'communication_channels', 'communication_announcements', 'communication_moderation'],
         'System Settings' => ['system-settings', 'backups'],
         'Audit & Monitoring' => ['audit', 'audit-logs', 'recycle-bin'],
     ];

@@ -25,6 +25,8 @@ const am = {
         performanceSettings: 'የአፈጻጸም ቅንብሮች',
         myPerformance: 'የእኔ አፈጻጸም',
         dashboard: 'ዳሽቦርድ',
+        communication: 'ኮሙኒኬሽን',
+        unreadCount: ':n ያልተነበቡ',
         organizations: 'ተቋማት',
         registeredOrganizations: 'የተመዘገቡ ተቋማት',
         organizationTypes: 'የተቋም ዓይነቶች',

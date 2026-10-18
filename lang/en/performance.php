@@ -7,6 +7,9 @@ return [
 
         'band_range_invalid' => 'The maximum score must be greater than or equal to the minimum score.',
         'forbidden' => 'You are not authorized for this performance action.',
+        'manager_not_eligible' => 'The chosen manager is not entitled to manage this employee\'s agreement.',
+        'objective_invalid' => 'The objective must belong to this agreement\'s own plan.',
+        'amended_weights' => 'With this change the weights total :total%; they must total 100%.',
         'separation_of_duties' => 'The person who prepared or requested this cannot also :step it.',
         'invalid_transition' => 'A cycle cannot move from :from to :to.',
         'end_before_start' => 'The end date must be on or after the start date.',

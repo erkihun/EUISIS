@@ -372,7 +372,7 @@ function ReviewForm({ agreement, type }: { agreement: AgreementView; type: 'MID_
                     {agreement.competencies.map((c) => (
                         <label key={c.competency_id} className="flex items-center justify-between gap-2 text-xs">
                             <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en}{c.self_rating !== null && <span className="text-[color:var(--app-muted-foreground)]"> ({t('performance.fields.selfRating')}: {c.self_rating})</span>}</span>
-                            <select className={selectClassName} value={form.data.ratings[c.competency_id] ?? ''} onChange={(e) => form.setData('ratings', { ...form.data.ratings, [c.competency_id]: Number(e.target.value) })}>
+                            <select className={selectClassName} value={form.data.ratings[c.competency_id] ?? ''} onChange={(e) => { const next = { ...form.data.ratings }; if (e.target.value === '') delete next[c.competency_id]; else next[c.competency_id] = Number(e.target.value); form.setData('ratings', next); }}>
                                 <option value="">—</option>
                                 {levels.map((n) => <option key={n} value={n}>{n}</option>)}
                             </select>

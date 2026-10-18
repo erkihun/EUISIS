@@ -25,6 +25,8 @@ const en = {
         performanceSettings: 'Performance Settings',
         myPerformance: 'My Performance',
         dashboard: 'Dashboard',
+        communication: 'Communication',
+        unreadCount: ':n unread',
         organizations: 'Organizations',
         registeredOrganizations: 'Registered Organizations',
         organizationTypes: 'Organization Types',

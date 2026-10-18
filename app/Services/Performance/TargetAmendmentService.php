@@ -12,6 +12,7 @@ use App\Models\EmployeePerformanceItem;
 use App\Models\KpiTarget;
 use App\Models\PerformanceTargetAmendment;
 use App\Models\User;
+use App\Services\Performance\Calculation\Dec;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -94,6 +95,17 @@ final class TargetAmendmentService
                 }
                 $locked->forceFill(['is_current' => false])->save();
                 $next->save();
+
+                // The scores assume weights total 100; an amended weight must keep it so.
+                if (array_key_exists('weight', $amendment->proposed_values ?? [])) {
+                    $siblings = $next instanceof KpiTarget
+                        ? KpiTarget::query()->where('objective_id', $next->objective_id)->where('is_current', true)->pluck('weight')
+                        : EmployeePerformanceItem::query()->where('agreement_id', $next->agreement_id)->where('is_current', true)->pluck('weight');
+                    $total = Dec::sum($siblings->map(fn ($w) => Dec::of($w)));
+                    if (! $total->isEqualTo(100)) {
+                        throw ValidationException::withMessages(['weight' => __('performance.errors.amended_weights', ['total' => Dec::str($total, 2)])]);
+                    }
+                }
 
                 // Preserve published downstream lineage; period targets are copied
                 // exactly, without redistributing their explicitly entered values.

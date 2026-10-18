@@ -1,0 +1,220 @@
+import { Head, usePage } from '@inertiajs/react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { useLocale } from '@/hooks/useLocale';
+import { communicationApi } from '@/lib/communication/api';
+import { channels, listen } from '@/lib/communication/realtime';
+import ConversationList from '@/Components/Communication/ConversationList';
+import NewConversationPanel from '@/Components/Communication/NewConversationPanel';
+import ChatView from '@/Components/Communication/ChatView';
+import { ChatIcon } from '@/Components/NavIcons';
+import type { PageProps } from '@/types';
+import type { ConversationPage, ConversationSummary, ConversationType, MessagesAbilities, MessagesLimits } from '@/types/communication';
+
+type Props = PageProps<{
+    initialConversations: ConversationPage;
+    activeConversationId: string | null;
+    filter: ConversationType | null;
+    limits: MessagesLimits;
+    reactions: string[];
+    can: MessagesAbilities;
+    realtime: { enabled: boolean };
+}>;
+
+const LIST_POLL_MS = 15000;
+
+const urlFor = (id: string | null) => (id ? route('communication.messages.show', id) : route('communication.messages.index'));
+
+/** Fills the space below the app header, whatever the header and banners measure. */
+function useFillHeight(): [React.RefObject<HTMLDivElement>, number | null] {
+    const ref = useRef<HTMLDivElement>(null);
+    const [height, setHeight] = useState<number | null>(null);
+    useLayoutEffect(() => {
+        const measure = () => {
+            const top = ref.current?.getBoundingClientRect().top ?? 0;
+            setHeight(Math.max(420, window.innerHeight - top - 28));
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        return () => window.removeEventListener('resize', measure);
+    }, []);
+    return [ref, height];
+}
+
+export default function Messages(props: Props): JSX.Element {
+    const { initialConversations, limits, can, reactions, realtime } = props;
+    const { t } = useLocale();
+    const userId = usePage<PageProps>().props.auth.user?.id as number;
+
+    const [items, setItems] = useState<ConversationSummary[]>(initialConversations.data);
+    const [cursor, setCursor] = useState<string | null>(initialConversations.next_cursor);
+    const [filter, setFilter] = useState<ConversationType | null>(props.filter);
+    const [search, setSearch] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [activeId, setActiveId] = useState<string | null>(props.activeConversationId);
+    const [composing, setComposing] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('compose'));
+    const [detailsOpen, setDetailsOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1280);
+    const [box, height] = useFillHeight();
+    const first = useRef(true);
+
+    const fetchFirstPage = useCallback(async (opts: { filter: ConversationType | null; q: string }) => {
+        const page = await communicationApi.conversations({ type: opts.filter, q: opts.q.trim().length >= 2 ? opts.q.trim() : null });
+        return page;
+    }, []);
+
+    // Filter or search changed: reload the first page.
+    useEffect(() => {
+        if (first.current) { first.current = false; return; }
+        let cancelled = false;
+        setLoading(true);
+        const timer = window.setTimeout(() => {
+            fetchFirstPage({ filter, q: search })
+                .then((page) => { if (!cancelled) { setItems(page.data); setCursor(page.next_cursor); } })
+                .catch(() => undefined)
+                .finally(() => { if (!cancelled) setLoading(false); });
+        }, search ? 250 : 0);
+        return () => { cancelled = true; window.clearTimeout(timer); };
+    }, [filter, search, fetchFirstPage]);
+
+    // Keep the list fresh: new conversations arrive on the person's own channel; otherwise poll.
+    const refreshList = useCallback(() => {
+        if (document.visibilityState !== 'visible' || search) return;
+        fetchFirstPage({ filter, q: '' }).then((page) => {
+            setItems((current) => {
+                const fresh = new Map(page.data.map((c) => [c.id, c]));
+                const rest = current.filter((c) => !fresh.has(c.id));
+                return [...page.data, ...rest];
+            });
+        }).catch(() => undefined);
+    }, [fetchFirstPage, filter, search]);
+
+    useEffect(() => {
+        const timer = window.setInterval(refreshList, LIST_POLL_MS);
+        window.addEventListener('communication:totals-changed', refreshList);
+        const stop = realtime.enabled ? listen(channels.user(userId), { 'conversation.created': refreshList, 'member.added': refreshList }) : () => {};
+        return () => { window.clearInterval(timer); window.removeEventListener('communication:totals-changed', refreshList); stop(); };
+    }, [refreshList, realtime.enabled, userId]);
+
+    // Presence heartbeat while the workspace is open.
+    useEffect(() => {
+        const beat = () => { if (document.visibilityState === 'visible') void communicationApi.heartbeat().catch(() => undefined); };
+        beat();
+        const timer = window.setInterval(beat, 60000);
+        return () => window.clearInterval(timer);
+    }, []);
+
+    // Browser back/forward moves between conversations without a page load.
+    useEffect(() => {
+        const pop = () => {
+            const match = /\/communication\/messages\/([0-9a-f-]{36})/i.exec(window.location.pathname);
+            setActiveId(match ? match[1] : null);
+        };
+        window.addEventListener('popstate', pop);
+        return () => window.removeEventListener('popstate', pop);
+    }, []);
+
+    const select = useCallback((id: string | null) => {
+        setActiveId(id);
+        setComposing(false);
+        if (window.location.href !== urlFor(id)) window.history.pushState(window.history.state, '', urlFor(id));
+    }, []);
+
+    const loadMore = async () => {
+        if (!cursor) return;
+        setLoading(true);
+        try {
+            const page = await communicationApi.conversations({ type: filter, cursor, q: search.trim().length >= 2 ? search.trim() : null });
+            setItems((current) => [...current, ...page.data.filter((c) => !current.some((x) => x.id === c.id))]);
+            setCursor(page.next_cursor);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const onActivity = useCallback((id: string, patch: Partial<ConversationSummary>) => {
+        setItems((current) => {
+            const index = current.findIndex((c) => c.id === id);
+            if (index < 0) {
+                if (patch.last_message) refreshList();
+                return current;
+            }
+            const updated = { ...current[index], ...patch };
+            const rest = current.filter((c) => c.id !== id);
+            return patch.last_message ? [updated, ...rest] : current.map((c) => (c.id === id ? updated : c));
+        });
+    }, [refreshList]);
+
+    const started = (id: string) => {
+        select(id);
+        refreshList();
+    };
+
+    const activeTitle = items.find((c) => c.id === activeId)?.title;
+
+    return (
+        <AuthenticatedLayout>
+            <Head title={activeTitle ? `${activeTitle} · ${t('communication.messagesTitle')}` : t('communication.messagesTitle')} />
+            <div
+                ref={box}
+                style={height ? { height } : undefined}
+                className="-mx-4 -mt-2 flex min-h-[420px] overflow-hidden border-y border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:mx-0 sm:mt-0 sm:rounded-panel sm:border"
+            >
+                <div className={`w-full shrink-0 border-e border-[color:var(--app-border)] bg-[color:var(--app-surface)] lg:block lg:w-80 ${activeId ? 'hidden' : 'block'}`}>
+                    {composing ? (
+                        <NewConversationPanel onBack={() => setComposing(false)} onStarted={started} />
+                    ) : (
+                        <ConversationList
+                            items={items}
+                            activeId={activeId}
+                            filter={filter}
+                            search={search}
+                            loading={loading}
+                            hasMore={cursor !== null}
+                            canStart={can.message}
+                            onFilter={setFilter}
+                            onSearch={setSearch}
+                            onSelect={select}
+                            onLoadMore={() => void loadMore()}
+                            onNew={() => setComposing(true)}
+                        />
+                    )}
+                </div>
+
+                <div className={`min-w-0 flex-1 ${activeId ? 'block' : 'hidden lg:block'}`}>
+                    {activeId ? (
+                        <ChatView
+                            key={activeId}
+                            conversationId={activeId}
+                            currentUserId={userId}
+                            limits={limits}
+                            can={can}
+                            reactions={reactions}
+                            realtimeEnabled={realtime.enabled}
+                            detailsOpen={detailsOpen}
+                            onToggleDetails={setDetailsOpen}
+                            onBack={() => select(null)}
+                            onActivity={onActivity}
+                        />
+                    ) : (
+                        <div className="flex h-full flex-col items-center justify-center gap-3 bg-[color:var(--app-background)] px-6 text-center">
+                            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-[color:var(--app-foreground)]">
+                                <ChatIcon className="h-7 w-7" aria-hidden="true" />
+                            </span>
+                            <h1 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.chat.selectTitle')}</h1>
+                            <p className="max-w-xs text-sm text-[color:var(--app-muted-foreground)]">{t('communication.chat.selectHelp')}</p>
+                            {can.message && (
+                                <button
+                                    type="button"
+                                    onClick={() => setComposing(true)}
+                                    className="mt-1 h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90"
+                                >
+                                    {t('communication.dashboard.newMessage')}
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

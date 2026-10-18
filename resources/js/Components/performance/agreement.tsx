@@ -121,7 +121,7 @@ export function ActualsList({ actuals, canVerify }: { actuals: Actual[]; canVeri
                     <span className="whitespace-nowrap"><LocalizedDateDisplay value={a.period_start} /> – <LocalizedDateDisplay value={a.period_end} /></span>
                     <span className="tabular-nums">{a.milestone_key ?? (a.numerator !== null ? `${formatScore(a.numerator)} / ${formatScore(a.denominator)}` : formatScore(a.value))}</span>
                     <span className="text-[color:var(--app-muted-foreground)]">{label('source', a.source)}</span>
-                    {a.verified ? <span className="text-emerald-700 dark:text-emerald-400">✓ {t('performance.actions.verify')}</span>
+                    {a.verified ? <span className="text-emerald-700 dark:text-emerald-400">✓ {t('performance.fields.verified')}</span>
                         : canVerify && <button type="button" className={smallBtn} onClick={() => router.post(route('performance.actuals.verify', a.id), {}, { preserveScroll: true })}>{t('performance.actions.verify')}</button>}
                     {a.comment && <span className="text-[color:var(--app-muted-foreground)]">— {a.comment}</span>}
                 </li>
@@ -130,7 +130,7 @@ export function ActualsList({ actuals, canVerify }: { actuals: Actual[]; canVeri
     );
 }
 
-export function EvidenceList({ evidence, canVerify }: { evidence: AgreementView['evidence']; canVerify?: boolean }) {
+export function EvidenceList({ evidence, canVerify, downloadRoute = 'performance.evidence.download' }: { evidence: AgreementView['evidence']; canVerify?: boolean; downloadRoute?: string }) {
     const { t } = useLocale();
     const label = useEnumLabel();
     if (!evidence.length) return <Empty>—</Empty>;
@@ -144,8 +144,8 @@ export function EvidenceList({ evidence, canVerify }: { evidence: AgreementView[
                         <p className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={e.submitted_at} withTime /></p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {e.has_file && <a className={smallBtn} href={route('performance.evidence.download', e.id)}>{e.original_name ?? t('performance.fields.file')}</a>}
-                        {e.verified ? <span className="text-xs text-emerald-700 dark:text-emerald-400">✓</span>
+                        {e.has_file && <a className={smallBtn} href={route(downloadRoute, e.id)}>{e.original_name ?? t('performance.fields.file')}</a>}
+                        {e.verified ? <span className="text-xs text-emerald-700 dark:text-emerald-400">✓ {t('performance.fields.verified')}</span>
                             : canVerify && <button type="button" className={smallBtn} onClick={() => router.post(route('performance.evidence.verify', e.id), {}, { preserveScroll: true })}>{t('performance.actions.verify')}</button>}
                     </div>
                 </li>

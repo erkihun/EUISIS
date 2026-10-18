@@ -1472,6 +1472,9 @@ if (! app()->isProduction()) {
 // Employee Performance Management (EPMS).
 require __DIR__.'/performance.php';
 
+// Communication & Collaboration: chat, channels, official announcements.
+require __DIR__.'/communication.php';
+
 // Assessment Management: forms, assessments, oversight & compliance.
 require __DIR__.'/assessments.php';
 

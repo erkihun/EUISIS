@@ -22,6 +22,7 @@ import {
     CardSearchIcon,
     CardTransferIcon,
     ChartIcon,
+    ChatIcon,
     ChecklistIcon,
     ChefHatIcon,
     ChevronDown,
@@ -147,6 +148,7 @@ import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useBranding } from '@/hooks/useBranding';
+import { useCommunicationUnread } from '@/hooks/useCommunicationUnread';
 
 /** A leaf nav item — renders as a clickable link. */
 type NavSubItem = {
@@ -161,6 +163,8 @@ type NavSubItem = {
     listedInAdmin?: boolean;
     /** The page serves the signed-in employee's own record, so accounts without one never see it. */
     employeeOnly?: boolean;
+    /** Unread count shown as a badge (Communication). */
+    badge?: number | null;
 };
 
 /** A nav item — either a plain link OR a parent with expandable children. */
@@ -679,6 +683,9 @@ const navGroups: NavGroup[] = [
     },
 ];
 
+/** Messages, groups, channels and announcements: one entry for everyone who may use them. */
+const communicationNavBase: NavItem = { routeName: 'communication.index', labelKey: 'nav.communication', icon: ChatIcon, permission: 'communication.access' };
+
 const dashboardNav: NavItem = {
     routeName: 'dashboard',
     labelKey: 'nav.dashboard',
@@ -823,8 +830,12 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         ? visiblePortalSections.flatMap((section) => section.groups)
         : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
     const homeNav = isEmployeeUser ? portalDashboard : dashboardNav;
+    const communicationUnread = useCommunicationUnread();
+    const communicationNav: NavItem | null = communicationUnread !== null && permitted(communicationNavBase)
+        ? { ...communicationNavBase, badge: communicationUnread }
+        : null;
     const currentRoute = String(route().current() ?? '');
-    const currentItem = activeRoute([homeNav, ...allGroups.flatMap((group) => group.items)], currentRoute);
+    const currentItem = activeRoute([homeNav, ...(communicationNav ? [communicationNav] : []), ...allGroups.flatMap((group) => group.items)], currentRoute);
     const activeGroupKeys = allGroups.filter((group) => group.items.some((item) => item.routeName === currentItem)).map((group) => group.key);
     const activeGroupSignature = activeGroupKeys.join(',');
 
@@ -934,6 +945,16 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         ? ['h-4 w-4 shrink-0', selected ? '' : 'opacity-80'].join(' ')
                         : 'h-[18px] w-[18px] shrink-0'} />
                     {!compact && <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{highlight(label)}</span>}
+                    {item.badge ? (
+                        <span
+                            aria-label={t('nav.unreadCount').replace(':n', String(item.badge))}
+                            className={compact
+                                ? 'absolute end-1 top-1 h-2.5 w-2.5 rounded-full bg-[color:var(--color-accent)] ring-2 ring-[color:var(--sidebar-bg,transparent)]'
+                                : 'inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-accent)] px-1.5 text-[11px] font-semibold tabular-nums text-white'}
+                        >
+                            {compact ? null : item.badge > 99 ? '99+' : item.badge}
+                        </span>
+                    ) : null}
                 </Link>
             </li>
         );
@@ -1074,7 +1095,12 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             </div>
 
             <nav ref={navRef} className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6 pt-3 [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)]" aria-label={t('publicSite.mainNavigation')}>
-                {(!normalizedQuery || matches(homeNav)) && <ul className="mb-4">{renderLink(homeNav)}</ul>}
+                {(!normalizedQuery || matches(homeNav) || (communicationNav && matches(communicationNav))) && (
+                    <ul className="mb-4 space-y-px">
+                        {(!normalizedQuery || matches(homeNav)) && renderLink(homeNav)}
+                        {communicationNav && (!normalizedQuery || matches(communicationNav)) && renderLink(communicationNav)}
+                    </ul>
+                )}
                 {isEmployeeUser
                     ? visiblePortalSections.map((section) => renderSection(section.labelKey, section.groups))
                     : sections.map((section) => {

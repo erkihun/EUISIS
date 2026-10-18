@@ -5,6 +5,28 @@
  * Add an icon here, never from the package directly, so the shell stays on one weight.
  */
 import type { SVGProps } from 'react';
+import { ChatRoundDotsIcon as SolarChatRoundDotsIcon } from '@solar-icons/react/linear/chat-round-dots';
+import { PaperclipIcon as SolarPaperclipIcon } from '@solar-icons/react/linear/paperclip';
+import { SmileCircleIcon as SolarSmileCircleIcon } from '@solar-icons/react/linear/smile-circle';
+import { ReplyIcon as SolarReplyIcon } from '@solar-icons/react/linear/reply';
+import { PinIcon as SolarPinIcon } from '@solar-icons/react/linear/pin';
+import { SendSquareIcon as SolarSendSquareIcon } from '@solar-icons/react/linear/send-square';
+import { ForwardIcon as SolarForwardIcon } from '@solar-icons/react/linear/forward';
+import { CopyIcon as SolarCopyIcon } from '@solar-icons/react/linear/copy';
+import { MenuDotsIcon as SolarMenuDotsIcon } from '@solar-icons/react/linear/menu-dots';
+import { BellOffIcon as SolarBellOffIcon } from '@solar-icons/react/linear/bell-off';
+import { CheckReadIcon as SolarCheckReadIcon } from '@solar-icons/react/linear/check-read';
+import { CloseIcon as SolarCloseIcon } from '@solar-icons/react/linear/close';
+import { PenIcon as SolarPenIcon } from '@solar-icons/react/linear/pen';
+import { TrashBinMinimalisticIcon as SolarTrashBinMinimalisticIcon } from '@solar-icons/react/linear/trash-bin-minimalistic';
+import { CloudCrossIcon as SolarCloudCrossIcon } from '@solar-icons/react/linear/cloud-cross';
+import { AddIcon as SolarAddIcon } from '@solar-icons/react/linear/add';
+import { FlagIcon as SolarFlagIcon } from '@solar-icons/react/linear/flag';
+import { DownloadMinimalisticIcon as SolarDownloadMinimalisticIcon } from '@solar-icons/react/linear/download-minimalistic';
+import { ArrowLeftIcon as SolarArrowLeftIcon } from '@solar-icons/react/linear/arrow-left';
+import { RefreshIcon as SolarRefreshIcon } from '@solar-icons/react/linear/refresh';
+import { DangerCircleIcon as SolarDangerCircleIcon } from '@solar-icons/react/linear/danger-circle';
+import { ChecklistMinimalisticIcon as SolarChecklistMinimalisticIcon } from '@solar-icons/react/linear/checklist-minimalistic';
 import { AltArrowDownIcon as SolarAltArrowDownIcon } from '@solar-icons/react/linear/alt-arrow-down';
 import { AltArrowLeftIcon as SolarAltArrowLeftIcon } from '@solar-icons/react/linear/alt-arrow-left';
 import { AltArrowRightIcon as SolarAltArrowRightIcon } from '@solar-icons/react/linear/alt-arrow-right';
@@ -57,7 +79,6 @@ import { StructureIcon as SolarStructureIcon } from '@solar-icons/react/linear/s
 import { SunIcon as SolarSunIcon } from '@solar-icons/react/linear/sun';
 import { TagIcon as SolarTagIcon } from '@solar-icons/react/linear/tag';
 import { TransferHorizontalIcon as SolarTransferHorizontalIcon } from '@solar-icons/react/linear/transfer-horizontal';
-import { TrashBinMinimalisticIcon as SolarTrashBinMinimalisticIcon } from '@solar-icons/react/linear/trash-bin-minimalistic';
 import { UserIdIcon as SolarUserIdIcon } from '@solar-icons/react/linear/user-id';
 import { UserRoundedIcon as SolarUserRoundedIcon } from '@solar-icons/react/linear/user-rounded';
 import { UsersGroupRoundedIcon as SolarUsersGroupRoundedIcon } from '@solar-icons/react/linear/users-group-rounded';
@@ -111,7 +132,6 @@ import { HandStarsIcon as SolarHandStarsIcon } from '@solar-icons/react/linear/h
 import { InboxOutIcon as SolarInboxOutIcon } from '@solar-icons/react/linear/inbox-out';
 import { PrinterIcon as SolarPrinterIcon } from '@solar-icons/react/linear/printer';
 import { RestartIcon as SolarRestartIcon } from '@solar-icons/react/linear/restart';
-import { PenIcon as SolarPenIcon } from '@solar-icons/react/linear/pen';
 import { CardReceiveIcon as SolarCardReceiveIcon } from '@solar-icons/react/linear/card-receive';
 import { CardTransferIcon as SolarCardTransferIcon } from '@solar-icons/react/linear/card-transfer';
 import { WiFiRouterIcon as SolarWiFiRouterIcon } from '@solar-icons/react/linear/wi-fi-router';
@@ -331,3 +351,25 @@ export const MedalStarIcon = adapt(SolarMedalStarIcon);
 export const FileUserIcon = adapt(SolarFileUserIcon);
 export const ArchiveIcon = adapt(SolarArchiveIcon);
 export const IdCardIcon = adapt(SolarUserIdIcon);
+
+// Communication & Collaboration (chat, channels, announcements).
+export const ChatIcon = adapt(SolarChatRoundDotsIcon);
+export const PaperclipIcon = adapt(SolarPaperclipIcon);
+export const SmileIcon = adapt(SolarSmileCircleIcon);
+export const ReplyIcon = adapt(SolarReplyIcon);
+export const PinIcon = adapt(SolarPinIcon);
+export const SendIcon = adapt(SolarSendSquareIcon);
+export const ForwardIcon = adapt(SolarForwardIcon);
+export const CopyIcon = adapt(SolarCopyIcon);
+export const MenuDotsIcon = adapt(SolarMenuDotsIcon);
+export const BellOffIcon = adapt(SolarBellOffIcon);
+export const CheckReadIcon = adapt(SolarCheckReadIcon);
+export const XMarkIcon = adapt(SolarCloseIcon);
+export const OfflineIcon = adapt(SolarCloudCrossIcon);
+export const PlusIcon = adapt(SolarAddIcon);
+export const FlagIcon = adapt(SolarFlagIcon);
+export const DownloadIcon = adapt(SolarDownloadMinimalisticIcon);
+export const ArrowLeftIcon = adapt(SolarArrowLeftIcon);
+export const RefreshIcon = adapt(SolarRefreshIcon);
+export const DangerCircleIcon = adapt(SolarDangerCircleIcon);
+export const TaskIcon = adapt(SolarChecklistMinimalisticIcon);

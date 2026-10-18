@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\CommitteeType;
 use App\Enums\Performance\AgreementStatus;
 use App\Enums\Performance\AppealDecision;
+use App\Enums\Performance\CalibrationStatus;
 use App\Enums\Performance\CascadeMode;
 use App\Enums\Performance\CycleStatus;
 use App\Enums\Performance\PlanStatus;
@@ -1335,4 +1336,127 @@ test('validation messages follow the client locale cookie and header', function 
         ->put(route('performance.strategic-goals.update', $goal), ['weight_percent' => 0])
         ->assertSessionHasErrors('weight_percent');
     expect(app()->getLocale())->toBeIn(SetClientLocale::SUPPORTED);
+});
+
+// ── Hardening (end-to-end audit, October 2026) ───────────────────────────────
+
+test('an item measured by document evidence or survey scores from the entered figure', function (): void {
+    epCascade();
+    epActivateCycle();
+    $agreement = epAgreement($this->e1);
+    $item = $agreement->items()->first();
+    $item->forceFill(['data_source_type' => 'DOCUMENT_EVIDENCE'])->save();
+
+    app(KpiActualService::class)->recordForItem($item->fresh(), ['period_start' => '2026-01-01', 'period_end' => '2026-06-30', 'actual_value' => '900'], $this->manager);
+
+    $trace = app(EmployeeScoreCalculator::class)->trace($agreement->fresh());
+    expect($trace['items'][0]['achievement'])->toBe('90.0000')
+        ->and(KpiActual::query()->where('employee_performance_item_id', $item->id)->first()?->source_type?->value)->toBe('DOCUMENT_EVIDENCE');
+});
+
+test('calibration confirms the score in force at finalization, not the one copied when the result was added', function (): void {
+    epCascade();
+    epActivateCycle();
+    $agreement = epAgreement($this->e1);
+    $result = epYearEnd($agreement); // 88
+    $calibration = app(PerformanceCalibrationService::class);
+    $session = $calibration->createSession($this->cycle, ['organization_id' => $this->orgA->id, 'title' => 'HR calibration'], $this->admin);
+    $calibration->addResults($session, [$result->id], $this->admin);
+
+    // More output arrives and the result is recalculated before the panel sits: 1000 / 1000 → 96.
+    app(KpiActualService::class)->recordForItem($agreement->items()->first(), ['period_start' => '2026-07-01', 'period_end' => '2026-12-31', 'actual_value' => '100'], $this->manager);
+    app(PerformanceResultService::class)->calculate($agreement->fresh(), $this->manager);
+    expect((string) $result->fresh()->final_score)->toBe('96.0000');
+
+    $calibration->finalize($session->fresh(), $this->approver); // undecided item = confirmed as it stands now
+
+    $result->refresh();
+    expect((string) $result->final_score)->toBe('96.0000')
+        ->and((string) $result->adjustments()->where('adjustment_type', 'CALIBRATION')->value('original_score'))->toBe('96.0000')
+        ->and((string) $session->items()->first()->manager_score)->toBe('96.0000')
+        ->and(AuditLog::query()->where('event_type', 'performance_calibrated')->count())->toBeGreaterThanOrEqual(3); // created, results added, finalized
+});
+
+test('calibration cannot finalize a result that is not ready for finalization', function (): void {
+    epCascade();
+    epActivateCycle();
+    $agreement = epAgreement($this->e1);
+    app(KpiActualService::class)->recordForItem($agreement->items()->first(), ['period_start' => '2026-01-01', 'period_end' => '2026-06-30', 'actual_value' => '900'], $this->manager);
+    $result = app(PerformanceResultService::class)->calculate($agreement->fresh(), $this->manager); // no year-end review yet
+    $calibration = app(PerformanceCalibrationService::class);
+    $session = $calibration->createSession($this->cycle, ['organization_id' => $this->orgA->id, 'title' => 'Early'], $this->admin);
+    $calibration->addResults($session, [$result->id], $this->admin);
+
+    expect(fn () => $calibration->finalize($session->fresh(), $this->approver))->toThrow(ValidationException::class);
+    expect(PerformanceResultService::isFinal($result->fresh()))->toBeFalse()
+        ->and($session->fresh()->status)->not->toBe(CalibrationStatus::Finalized);
+});
+
+test('a finalized agreement cannot be closed, and only an eligible manager can be named on a new one', function (): void {
+    epCascade();
+    epActivateCycle();
+    $agreement = epAgreement($this->e1);
+    $result = epYearEnd($agreement);
+    app(PerformanceResultService::class)->finalize($result, $this->approver);
+    expect($agreement->fresh()->status)->toBe(AgreementStatus::Finalized);
+    expect(fn () => app(EmployeeAgreementService::class)->close($agreement->fresh(), '2026-10-31', 'tidy up', $this->admin))->toThrow(ValidationException::class);
+    expect($agreement->fresh()->status)->toBe(AgreementStatus::Finalized);
+
+    // The outsider covers another team: naming them as manager would hand them the confidential record.
+    $assignment = EmployeeAssignment::query()->where('employee_id', $this->e2->id)->where('is_current', true)->firstOrFail();
+    expect(fn () => app(EmployeeAgreementService::class)->create($this->e2, $assignment, $this->cycle->fresh(), $this->manager, $this->outsider))->toThrow(ValidationException::class);
+    expect(fn () => app(EmployeeAgreementService::class)->create($this->e2, $assignment, $this->cycle->fresh(), $this->manager, $this->u2))->toThrow(ValidationException::class);
+    $created = app(EmployeeAgreementService::class)->create($this->e2, $assignment, $this->cycle->fresh(), $this->manager, $this->admin);
+    expect($created->manager_user_id)->toBe($this->admin->id);
+});
+
+test('the employee never receives the calibration or adjustment reasoning hidden in the stored trace', function (): void {
+    epCascade();
+    epActivateCycle();
+    $agreement = epAgreement($this->e1);
+    $result = epYearEnd($agreement);
+    $calibration = app(PerformanceCalibrationService::class);
+    $session = $calibration->createSession($this->cycle, ['organization_id' => $this->orgA->id, 'title' => 'HR calibration'], $this->admin);
+    $calibration->addResults($session, [$result->id], $this->admin);
+    $calibration->decide($session->items()->first(), '85', 'Aligned with peers across teams', $this->admin);
+    $calibration->finalize($session->fresh(), $this->approver);
+    app(PerformanceResultService::class)->release($result->fresh(), $this->approver);
+
+    $employeeJson = json_encode($this->actingAs($this->u1)->get(route('employee.performance.index'))->viewData('page')['props']);
+    $managerJson = json_encode($this->actingAs($this->manager)->get(route('performance.agreements.show', $agreement))->viewData('page')['props']);
+    expect($employeeJson)->toContain('85.0000')->not->toContain('Aligned with peers')
+        ->and($managerJson)->toContain('Aligned with peers');
+});
+
+test('a withdrawn daily-activity approval removes the synced figure', function (): void {
+    epKpi('DA-CASES', 'HIGHER_IS_BETTER', 'SUM', 'DAILY_ACTIVITY');
+    epCascade();
+    epActivateCycle();
+    $agreement = epAgreement($this->e1);
+    $item = $agreement->items()->first();
+    $item->forceFill(['data_source_type' => 'DAILY_ACTIVITY', 'target_value' => 100])->save();
+    $log = (new DailyActivityLog)->forceFill(['employee_id' => $this->e1->id, 'employee_assignment_id' => $agreement->employee_assignment_id, 'organization_id' => $this->orgA->id, 'organization_unit_id' => $this->team->id, 'activity_date' => '2026-02-02', 'status' => 'approved']);
+    $log->save();
+    (new DailyActivityItem)->forceFill(['daily_activity_log_id' => $log->id, 'title' => 'Transfer cases', 'progress_status' => 'completed', 'quantity' => 5, 'employee_performance_item_id' => $item->id])->save();
+
+    $from = Carbon::parse('2026-02-01');
+    $to = Carbon::parse('2026-02-28');
+    expect((string) app(KpiActualService::class)->syncDailyActivity($item, $from, $to)->actual_value)->toBe('5.0000');
+
+    $log->forceFill(['status' => 'returned_for_correction'])->save();
+    expect(app(KpiActualService::class)->syncDailyActivity($item, $from, $to))->toBeNull()
+        ->and(KpiActual::query()->where('employee_performance_item_id', $item->id)->count())->toBe(0);
+});
+
+test('files are served under the management middleware, the employee downloads their own under My Portal, and the kill switch covers every route', function (): void {
+    $routes = Route::getRoutes();
+    expect($routes->getByName('performance.evidence.download')->gatherMiddleware())->toContain('mfa')->toContain('admin.access')->toContain('verified')
+        ->and($routes->getByName('employee.performance.evidence.download'))->not->toBeNull()
+        ->and($routes->getByName('performance.appeals.attachment')->gatherMiddleware())->toContain('mfa');
+
+    epSetting('enabled', false);
+    $this->actingAs($this->admin)->get(route('performance.agreements.index'))->assertNotFound();
+    $this->actingAs($this->admin)->post(route('performance.cycles.store'), [])->assertNotFound();
+    $this->actingAs($this->u1)->get(route('employee.performance.index'))->assertNotFound();
+    $this->actingAs($this->admin)->get(route('performance.settings.index'))->assertOk();
 });

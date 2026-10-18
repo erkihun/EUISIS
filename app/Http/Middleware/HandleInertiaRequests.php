@@ -65,6 +65,15 @@ class HandleInertiaRequests extends Middleware
             // Module feature flags (config/features.php): hide out-of-scope modules.
             'features' => Features::shared(),
 
+            // Communication unread total for the sidebar badge (cached briefly by CommunicationInbox).
+            'communication' => function () use ($user): ?array {
+                if ($user === null || ! app(\App\Services\Communication\CommunicationSettings::class)->enabled() || ! $user->can('communication.access')) {
+                    return null;
+                }
+
+                return ['unread' => app(\App\Services\Communication\CommunicationInbox::class)->totals($user)['total']];
+            },
+
             'locale' => $locale,
             // The language the server wrote this page's own text in (SetClientLocale), read when the page renders.
             // The browser reloads once when it shows another language (LocaleContext).

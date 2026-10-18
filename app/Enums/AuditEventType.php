@@ -809,4 +809,33 @@ enum AuditEventType: string
      */
     case SituationRoomEmployeeBreakdownViewed = 'situation_room.employee_breakdown_viewed';
     case SituationRoomExported = 'situation_room.exported';
+    // Communication & Collaboration: metadata only, never message content (docs/communication-module.md).
+    case CommunicationGroupCreated = 'communication.group_created';
+    case CommunicationGroupArchived = 'communication.group_archived';
+    case CommunicationChannelCreated = 'communication.channel_created';
+    case CommunicationChannelUpdated = 'communication.channel_updated';
+    case CommunicationChannelArchived = 'communication.channel_archived';
+    case CommunicationMemberAdded = 'communication.member_added';
+    case CommunicationMemberRemoved = 'communication.member_removed';
+    case CommunicationMemberRoleChanged = 'communication.member_role_changed';
+    case CommunicationMembershipsSynced = 'communication.memberships_synced';
+    case CommunicationAnnouncementCreated = 'communication.announcement_created';
+    case CommunicationAnnouncementUpdated = 'communication.announcement_updated';
+    case CommunicationAnnouncementTargetsChanged = 'communication.announcement_targets_changed';
+    case CommunicationAnnouncementPublished = 'communication.announcement_published';
+    case CommunicationAnnouncementCancelled = 'communication.announcement_cancelled';
+    case CommunicationAnnouncementExpired = 'communication.announcement_expired';
+    case CommunicationAcknowledgementsExported = 'communication.acknowledgements_exported';
+    case CommunicationMessageModeratorDeleted = 'communication.message_moderator_deleted';
+    case CommunicationReportCreated = 'communication.report_created';
+    case CommunicationReportReviewed = 'communication.report_reviewed';
+    case CommunicationReportedContentAccessed = 'communication.reported_content_accessed';
+    case CommunicationAccessRequested = 'communication.access_requested';
+    case CommunicationAccessDecided = 'communication.access_decided';
+    case CommunicationAccessRevoked = 'communication.access_revoked';
+    case CommunicationAccessUsed = 'communication.access_used';
+    case CommunicationAttachmentDownloaded = 'communication.attachment_downloaded';
+    case CommunicationSettingsUpdated = 'communication.settings_updated';
+    case CommunicationTaskCreated = 'communication.task_created';
+    case CommunicationUserBlocked = 'communication.user_blocked';
 }

@@ -20,7 +20,7 @@ export default function AppealsIndex({ appeals }: { appeals: Paginator<AppealRow
                 <Section title={t('performance.appeals.title')}>
                     {appeals.data.length === 0 ? <Empty>{t('performance.appeals.empty')}</Empty> : (
                         <Table head={<>
-                            <th className={thCls}>#</th>
+                            <th className={thCls}>{t('performance.reports.columns.appeal_no')}</th>
                             <th className={thCls}>{t('performance.fields.employee')}</th>
                             <th className={thCls}>{t('performance.fields.score')}</th>
                             <th className={thCls}>{t('performance.fields.status')}</th>

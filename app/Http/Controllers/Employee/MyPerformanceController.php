@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Employee;
 
-use App\Enums\Performance\ReviewType;
 use App\Enums\Performance\AgreementStatus;
 use App\Enums\Performance\AppealStatus;
 use App\Enums\Performance\ResultStatus;
+use App\Enums\Performance\ReviewType;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Performance\EmployeeAgreementController;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\PerformanceAppeal;
 use App\Models\PerformanceCheckin;
+use App\Models\PerformanceEvidence;
 use App\Models\PerformanceResult;
 use App\Services\Performance\DevelopmentPlanService;
 use App\Services\Performance\EmployeeAgreementService;
@@ -24,8 +25,10 @@ use App\Services\Performance\PerformancePresenter;
 use App\Services\Performance\PerformanceReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * My Portal → My Performance. Only the signed-in employee's own records;
@@ -160,5 +163,17 @@ class MyPerformanceController extends Controller
     private function saved(): RedirectResponse
     {
         return back()->with('flash', ['message' => __('performance.saved'), 'type' => 'success']);
+    }
+
+    /** The employee's own evidence file; a manager's copy is served under the management routes. */
+    public function downloadEvidence(Request $request, PerformanceEvidence $evidence): StreamedResponse
+    {
+        $user = $request->user();
+        abort_unless($evidence->file_path !== null && $this->access->isOwn($user, $evidence->agreement) && $user->can('employee_performance_agreements.view_own'), 403);
+
+        return Storage::disk('local')->download($evidence->file_path, $evidence->original_name ?? 'evidence', [
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 }

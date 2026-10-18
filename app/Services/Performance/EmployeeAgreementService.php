@@ -20,6 +20,7 @@ use App\Models\EmployeePerformanceItem;
 use App\Models\Kpi;
 use App\Models\KpiTarget;
 use App\Models\PerformanceCycle;
+use App\Models\PerformanceObjective;
 use App\Models\PerformancePlan;
 use App\Models\PositionCompetency;
 use App\Models\User;
@@ -68,6 +69,11 @@ final class EmployeeAgreementService
     public function create(Employee $employee, EmployeeAssignment $assignment, PerformanceCycle $cycle, User $actor, ?User $manager = null, bool $temporary = false): EmployeePerformanceAgreement
     {
         $this->access->authorize($assignment->employee_id === $employee->getKey() && $this->canManageAssignment($actor, $assignment));
+        // The named manager gains the line manager's confidential view, so they must
+        // already be entitled to manage this assignment (coverage or scope), never the employee.
+        if ($manager !== null && ! $manager->is($actor) && ! $this->canManageAssignment($manager, $assignment)) {
+            throw ValidationException::withMessages(['manager_user_id' => __('performance.errors.manager_not_eligible')]);
+        }
 
         $currentAssignmentId = $employee->newQuery()->whereKey($employee->getKey())->value('current_assignment_id');
         if ($assignment->assignment_status !== AssignmentStatus::Active
@@ -211,12 +217,17 @@ final class EmployeeAgreementService
             throw ValidationException::withMessages(['kpi_id' => __('performance.errors.kpi_other_organization')]);
         }
 
+        $allowedPlans = array_filter([$agreement->performance_plan_id, $agreement->plan?->parent_plan_id]);
         if (! empty($data['position_target_id'])) {
             $target = KpiTarget::query()->with('plan')->find($data['position_target_id']);
-            $allowedPlans = array_filter([$agreement->performance_plan_id, $agreement->plan?->parent_plan_id]);
             if ($target === null || ! in_array($target->performance_plan_id, $allowedPlans, true) || $target->kpi_id !== $kpi->getKey()) {
                 throw ValidationException::withMessages(['position_target_id' => __('performance.errors.parent_target_invalid')]);
             }
+            $data['objective_id'] = $target->objective_id ?? ($data['objective_id'] ?? null);
+        }
+        // An objective must come from the agreement's own plan lineage; the page renders its cascade trace.
+        if (! empty($data['objective_id']) && ! PerformanceObjective::query()->whereKey($data['objective_id'])->whereIn('performance_plan_id', $allowedPlans)->exists()) {
+            throw ValidationException::withMessages(['objective_id' => __('performance.errors.objective_invalid')]);
         }
 
         $item = $agreement->allItems()->create([
@@ -349,6 +360,8 @@ final class EmployeeAgreementService
         if ($agreement->status === AgreementStatus::Closed) {
             return $agreement;
         }
+        // Only a live agreement closes; a finalized one keeps its frozen result and a draft is deleted or declined.
+        $this->assertStatus($agreement, [AgreementStatus::Agreed, AgreementStatus::Active, AgreementStatus::UnderReview]);
 
         $end = Carbon::parse($endDate);
         if ($end->lt($agreement->effective_from)) {
@@ -433,6 +446,10 @@ final class EmployeeAgreementService
     /** @param array<string, mixed> $attributes */
     private function move(EmployeePerformanceAgreement $agreement, AgreementStatus $to, User $actor, array $attributes = [], ?string $reason = null): EmployeePerformanceAgreement
     {
+        if (PerformanceCycleService::isReadOnly($agreement->cycle)) {
+            throw ValidationException::withMessages(['status' => __('performance.errors.cycle_read_only')]);
+        }
+
         return DB::transaction(function () use ($agreement, $to, $actor, $attributes, $reason): EmployeePerformanceAgreement {
             /** @var EmployeePerformanceAgreement $locked */
             $locked = EmployeePerformanceAgreement::query()->whereKey($agreement->getKey())->lockForUpdate()->firstOrFail();
