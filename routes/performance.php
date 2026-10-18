@@ -107,7 +107,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access', 
         Route::post('/appeals/{appeal}/decide', [PerformanceAppealController::class, 'decide'])->whereUuid('appeal')->name('appeals.decide');
 
         Route::get('/reports', [PerformanceReportController::class, 'index'])->middleware('throttle:60,1')->name('reports.index');
-        Route::get('/reports/export', [PerformanceReportController::class, 'export'])->middleware('throttle:10,1')->name('reports.export');
+        // Its own counter: an unprefixed throttle counts per user across every route, so browsing reports used up the export budget.
+        Route::get('/reports/export', [PerformanceReportController::class, 'export'])->middleware('throttle:10,1,performance-export')->name('reports.export');
 
         Route::get('/settings', [PerformanceSettingController::class, 'index'])->name('settings.index');
         Route::patch('/settings', [PerformanceSettingController::class, 'update'])->name('settings.update');

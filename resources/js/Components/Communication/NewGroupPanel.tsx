@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type JSX } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { buttonClassName } from '@/Components/ui';
 import { communicationApi, firstError, statusOf } from '@/lib/communication/api';
 import { tr } from '@/lib/communication/format';
 import PeoplePicker from '@/Components/Communication/PeoplePicker';
@@ -67,7 +68,7 @@ export default function NewGroupPanel({ onBack, onCreated }: { onBack: () => voi
                 <button
                     type="submit"
                     disabled={saving || !title.trim() || people.length === 0}
-                    className="h-9 w-full rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40"
+                    className={buttonClassName({ variant: 'primary', className: 'w-full' })}
                 >
                     {saving ? t('communication.newGroup.creating') : t('communication.newGroup.create')}
                 </button>

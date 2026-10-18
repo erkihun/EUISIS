@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent, type JSX } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { buttonClassName } from '@/Components/ui';
 import { useConfirm } from '@/Components/ConfirmProvider';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { toast } from '@/lib/toast';
@@ -500,7 +501,7 @@ function SettingsTab({ detail, onChanged, onArchive }: { detail: ConversationDet
                     </fieldset>
                 )}
                 {error && <p role="alert" className="text-xs text-[color:var(--color-danger,#b42318)]">{error}</p>}
-                <button type="submit" disabled={saving || !title.trim()} className="h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40">
+                <button type="submit" disabled={saving || !title.trim()} className={buttonClassName({ variant: 'primary' })}>
                     {t('communication.manage.save')}
                 </button>
             </form>

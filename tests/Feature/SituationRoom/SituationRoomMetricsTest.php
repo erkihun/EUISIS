@@ -9,6 +9,7 @@ use App\Services\SituationRoom\SituationPermissions;
 use App\Services\SituationRoom\SituationRoomService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -20,10 +21,14 @@ use Tests\Support\SituationRoomScenario;
  */
 
 beforeEach(function (): void {
+    // The scenario seeds feedback at the start of the month; from the 15th it would all be "open over 14 days".
+    Carbon::setTestNow(now()->startOfMonth()->addDays(5)->setTime(12, 0));
     app()->setLocale('en');
     $this->s = SituationRoomScenario::build();
     $this->viewer = $this->s->viewer(SituationPermissions::all(), 'bureau');
 });
+
+afterEach(fn () => Carbon::setTestNow());
 
 /** @return array<string, array<string, mixed>> panels by key */
 function srRun(string $category, array $query = []): array

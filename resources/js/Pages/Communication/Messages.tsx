@@ -1,6 +1,7 @@
 import { Head, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type JSX } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 import { communicationApi } from '@/lib/communication/api';
 import { channels, connectRealtime, listen } from '@/lib/communication/realtime';
@@ -165,7 +166,7 @@ export default function Messages(props: Props): JSX.Element {
     const activeTitle = items.find((c) => c.id === activeId)?.title;
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<PageHeader title={t('communication.messagesTitle')} backHref={route('communication.index')} />}>
             <Head title={activeTitle ? `${activeTitle} · ${t('communication.messagesTitle')}` : t('communication.messagesTitle')} />
             <div
                 ref={box}

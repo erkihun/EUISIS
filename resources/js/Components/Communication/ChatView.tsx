@@ -625,7 +625,7 @@ export default function ChatView(props: Props): JSX.Element {
                                 {outgoing.map((item) => (
                                     <li key={item.clientId} className="mt-2 flex justify-end px-3 sm:px-5">
                                         <div className="flex max-w-[min(36rem,85%)] flex-col items-end">
-                                            <div className={`rounded-2xl rounded-se-sm border px-3.5 py-2 text-sm leading-relaxed text-[color:var(--app-foreground)] ${item.status === 'failed' ? 'border-[color:var(--tone-danger-border,#f2b8b5)] bg-[color:var(--tone-danger-bg,#fef3f2)]' : 'border-dashed border-[color:color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] bg-[color:color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]'}`}>
+                                            <div className={`rounded-panel rounded-se-sm border px-3.5 py-2 text-sm leading-relaxed text-[color:var(--app-foreground)] ${item.status === 'failed' ? 'border-[color:var(--tone-danger-border,#f2b8b5)] bg-[color:var(--tone-danger-bg,#fef3f2)]' : 'border-dashed border-[color:color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] bg-[color:color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]'}`}>
                                                 {item.body && <MessageText body={item.body} mentions={[]} currentUserId={currentUserId} />}
                                                 {item.attachments.map((file) => (
                                                     <span key={file.id} className="mt-1 flex items-center gap-1.5 text-xs"><PaperclipIcon className="h-3.5 w-3.5" aria-hidden="true" />{file.name}</span>
@@ -719,7 +719,7 @@ function MessagesSkeleton(): JSX.Element {
         <ul aria-hidden="true" className="animate-pulse space-y-3 px-5 py-4">
             {rows.map(([width, own], index) => (
                 <li key={index} className={`flex ${own ? 'justify-end' : 'justify-start'}`}>
-                    <span className={`block h-9 ${width} rounded-2xl ${own ? 'bg-[color:var(--color-primary)]/15' : 'bg-[color:var(--app-surface-muted)]'}`} />
+                    <span className={`block h-9 ${width} rounded-panel ${own ? 'bg-[color:var(--color-primary)]/15' : 'bg-[color:var(--app-surface-muted)]'}`} />
                 </li>
             ))}
         </ul>

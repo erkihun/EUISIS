@@ -38,7 +38,15 @@ use Inertia\Testing\AssertableInertia;
 test('SBH-001 a plain employee cannot open admin pages by URL', function (): void {
     // Assessment records is the participant workflow linked from My Performance ("Peer assessments"):
     // it lists only the records the user takes part in; its administrative data is checked below.
-    $selfService = ['vacancy-applications/my', 'grievances/my', 'grievances/create', 'assessments/records'];
+    $selfService = ['vacancy-applications/my', 'grievances/my', 'grievances/create', 'assessments/records',
+        // Communication is every employee's (CommunicationRoles::EMPLOYEE_PERMISSIONS): chat, channels,
+        // announcements addressed to them, their tasks and preferences, and the realtime handshake.
+        // Its staff pages (settings, moderation, investigations, reports, announcement and channel
+        // management) stay out of this list and must still refuse a plain employee.
+        'communication', 'communication/summary', 'communication/messages', 'communication/channels', 'communication/announcements',
+        'communication/tasks', 'communication/preferences', 'communication/api/conversations', 'communication/api/directory',
+        'communication/api/channels', 'communication/api/announcements/feed', 'communication/api/tasks', 'communication/api/blocks',
+        'broadcasting/auth'];
 
     $user = User::factory()->create(['status' => 'active']);
     $user->assignRole(DailyActivityRoles::EMPLOYEE_ROLE);

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type JSX } from 'react';
 import Modal from '@/Components/Modal';
 import { useLocale } from '@/hooks/useLocale';
+import { buttonClassName } from '@/Components/ui';
 import { toast } from '@/lib/toast';
 import { communicationApi, firstError } from '@/lib/communication/api';
 import type { ReportCategory } from '@/types/communication';
@@ -65,7 +66,7 @@ export default function ReportDialog({ target, onClose }: { target: ReportTarget
                 </div>
                 <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] px-5 py-3">
                     <button type="button" onClick={onClose} className="h-9 rounded-control px-3 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">{t('common.cancel')}</button>
-                    <button type="submit" disabled={saving || !category} className="h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40">
+                    <button type="submit" disabled={saving || !category} className={buttonClassName({ variant: 'primary' })}>
                         {t('communication.report.submit')}
                     </button>
                 </div>

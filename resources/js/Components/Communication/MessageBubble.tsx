@@ -79,7 +79,7 @@ function MessageBubble(props: Props): JSX.Element {
                     <span className="mb-0.5 px-1 text-xs font-semibold text-[color:var(--app-muted-foreground)]">{message.sender?.name}</span>
                 )}
 
-                <div className={`relative rounded-2xl px-3.5 py-2 text-sm leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.02)] ${surface} ${own ? (continued ? 'rounded-se-md' : 'rounded-se-sm') : (continued ? 'rounded-ss-md' : 'rounded-ss-sm')}`}>
+                <div className={`relative rounded-panel px-3.5 py-2 text-sm leading-relaxed shadow-[0_1px_0_rgba(0,0,0,0.02)] ${surface} ${own ? (continued ? 'rounded-se-md' : 'rounded-se-sm') : (continued ? 'rounded-ss-md' : 'rounded-ss-sm')}`}>
                     {message.forwarded && !message.deleted && (
                         <span className={`mb-1 flex items-center gap-1 text-[11px] italic ${own ? 'text-[color:var(--app-muted-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
                             <ForwardIcon className="h-3 w-3" aria-hidden="true" /> {t('communication.chat.forwarded')}

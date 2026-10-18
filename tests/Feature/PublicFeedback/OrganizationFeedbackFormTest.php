@@ -635,8 +635,9 @@ it('refuses a choice belonging to another question and malformed answers', funct
     'written answer as a list' => [['improvement' => ['a', 'b']], [], 'answers.improvement'],
     'overall rating out of range' => [[], ['rating' => 6], 'rating'],
     'overall rating not whole' => [[], ['rating' => '3.5'], 'rating'],
-    'service date in the future' => [[], ['service_date' => now()->addDay()->toDateString()], 'service_date'],
-    'service date in another format' => [[], ['service_date' => now()->format('d/m/Y')], 'service_date'],
+    // Dates are built when the case runs: Pest collects datasets before the app sets its own timezone.
+    'service date in the future' => [[], fn (): array => ['service_date' => now()->addDay()->toDateString()], 'service_date'],
+    'service date in another format' => [[], fn (): array => ['service_date' => now()->format('d/m/Y')], 'service_date'],
     'unknown time band' => [[], ['service_time_band' => 'midnight'], 'service_time_band'],
     'service id that is not a uuid' => [[], ['service_id' => '1 OR 1=1'], 'service_id'],
 ]);
