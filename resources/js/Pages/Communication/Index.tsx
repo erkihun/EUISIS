@@ -29,7 +29,7 @@ type Props = PageProps<{
     contacts: (Person & { conversation_id: string | null })[];
     announcements: AnnouncementRow[];
     pendingAcknowledgements: AnnouncementRow[];
-    can: { message: boolean; createGroup: boolean; browseChannels: boolean; createAnnouncement: boolean };
+    can: { message: boolean; createGroup: boolean; browseChannels: boolean; createAnnouncement: boolean; tasks: boolean; moderate: boolean; investigations: boolean; settings: boolean };
 }>;
 
 const has = (name: string) => (route() as unknown as { has: (n: string) => boolean }).has(name);
@@ -71,8 +71,8 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                     <PlusIcon className="h-4 w-4" aria-hidden="true" />{t('communication.dashboard.newMessage')}
                 </Link>
             )}
-            {can.createGroup && has('communication.groups.create') && (
-                <Link href={route('communication.groups.create')} className={buttonClassName({ variant: 'secondary', className: 'gap-1.5' })}>
+            {can.createGroup && (
+                <Link href={`${route('communication.messages.index')}?compose=group`} className={buttonClassName({ variant: 'secondary', className: 'gap-1.5' })}>
                     <Users className="h-4 w-4" aria-hidden="true" />{t('communication.dashboard.createGroup')}
                 </Link>
             )}
@@ -111,6 +111,16 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                             : <span key={key} className={cls}>{content}</span>;
                     })}
                 </nav>
+
+                {(
+                    <nav aria-label={t('communication.title')} className="-mt-2 flex flex-wrap gap-x-5 gap-y-1 px-1 text-sm">
+                        <Link href={route('communication.preferences.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.links.preferences')}</Link>
+                        {can.tasks && <Link href={route('communication.tasks.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.tasks')}</Link>}
+                        {can.moderate && <Link href={route('communication.moderation.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.moderation')}</Link>}
+                        {can.investigations && <Link href={route('communication.investigations.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.navMore.investigations')}</Link>}
+                        {can.settings && <Link href={route('communication.settings.index')} className="font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.links.settings')}</Link>}
+                    </nav>
+                )}
 
                 {pendingAcknowledgements.length > 0 && (
                     <Section title={t('communication.dashboard.pendingAcknowledgements')} count={pendingAcknowledgements.length} tone="warning">

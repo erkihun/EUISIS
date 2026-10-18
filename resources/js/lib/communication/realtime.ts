@@ -57,6 +57,17 @@ export function listen(channel: string, handlers: Record<string, Listener>): () 
     };
 }
 
+let connecting: Promise<boolean> | null = null;
+
+/** Starts the socket once per page load; resolves false when realtime is not configured or fails to load. */
+export function connectRealtime(): Promise<boolean> {
+    if (echo()) return Promise.resolve(true);
+    connecting ??= import('@/lib/communication/echo')
+        .then(({ createEcho }) => createEcho())
+        .catch(() => false);
+    return connecting;
+}
+
 export const channels = {
     conversation: (id: string) => `communication.conversation.${id}`,
     user: (id: number) => `communication.user.${id}`,

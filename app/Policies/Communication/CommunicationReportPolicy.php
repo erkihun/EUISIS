@@ -21,11 +21,11 @@ class CommunicationReportPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('communication.moderate');
+        return $user->checkPermissionTo('communication.moderate');
     }
 
     public function review(User $user, CommunicationReport $report): bool
     {
-        return $user->can('communication.moderate') && $report->reporter_id !== $user->getKey();
+        return $user->checkPermissionTo('communication.moderate') && $report->reporter_id !== $user->getKey();
     }
 }

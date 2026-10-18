@@ -811,6 +811,7 @@ enum AuditEventType: string
     case SituationRoomExported = 'situation_room.exported';
     // Communication & Collaboration: metadata only, never message content (docs/communication-module.md).
     case CommunicationGroupCreated = 'communication.group_created';
+    case CommunicationGroupUpdated = 'communication.group_updated';
     case CommunicationGroupArchived = 'communication.group_archived';
     case CommunicationChannelCreated = 'communication.channel_created';
     case CommunicationChannelUpdated = 'communication.channel_updated';
@@ -836,6 +837,7 @@ enum AuditEventType: string
     case CommunicationAccessUsed = 'communication.access_used';
     case CommunicationAttachmentDownloaded = 'communication.attachment_downloaded';
     case CommunicationSettingsUpdated = 'communication.settings_updated';
+    case CommunicationRetentionApplied = 'communication.retention_applied';
     case CommunicationTaskCreated = 'communication.task_created';
     case CommunicationUserBlocked = 'communication.user_blocked';
 }

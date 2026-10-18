@@ -74,6 +74,11 @@ class CommunicationController extends Controller
                 'createGroup' => $user->can('groups.create') && $this->settings->allowEmployeeGroups(),
                 'browseChannels' => $user->can('channels.view'),
                 'createAnnouncement' => $user->can('announcements.create'),
+                'tasks' => $user->can('communication.tasks.create') || \App\Models\Communication\CommunicationTask::query()->where('assigned_to', $user->getKey())->exists(),
+                // Read from roles: the Super Admin bypass does not open moderation or investigations.
+                'moderate' => $user->checkPermissionTo('communication.moderate'),
+                'settings' => $user->can('communication.settings.manage'),
+                'investigations' => $user->checkPermissionTo('communication.break_glass.request') || $user->checkPermissionTo('communication.break_glass.approve') || $user->checkPermissionTo('communication.audit'),
             ],
         ]);
     }

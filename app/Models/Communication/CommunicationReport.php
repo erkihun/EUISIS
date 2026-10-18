@@ -48,4 +48,9 @@ class CommunicationReport extends Model
     {
         return $this->belongsTo(User::class, 'reported_user_id');
     }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
 }

@@ -6,6 +6,23 @@ declare(strict_types=1);
 // የገጽ ጽሑፍ በ resources/js/i18n/{en,am}/communication.ts ውስጥ ነው።
 return [
     'errors' => [
+        'assignee_not_member' => 'ተግባሩን በዚህ ውይይት ውስጥ ላለ ሰው ይመድቡ።',
+        'due_in_past' => 'የማብቂያ ቀኑ ወደፊት መሆን አለበት።',
+        'report_closed' => 'ይህ ሪፖርት ተዘግቷል።',
+        'block_self' => 'ራስዎን ማገድ አይችሉም።',
+        'investigation_target_invalid' => 'ያለ ውይይት ወይም ሰው ይምረጡ (ራስዎን አይደለም)።',
+        'investigation_hours' => 'ፈቃዱ ከ1 እስከ :max ሰዓት ሊሰጥ ይችላል።',
+        'expiry_in_past' => 'የሚያበቃበት ጊዜ ወደፊት መሆን አለበት።',
+        'expiry_before_publish' => 'ማስታወቂያው ከመታተሙ በፊት ጊዜው ያልፋል። የሚያበቃበትን ጊዜ ወይም የሚታተምበትን ሰዓት ይቀይሩ።',
+        'too_many_attachments' => 'አንድ ማስታወቂያ ቢበዛ 10 ፋይሎች ሊኖሩት ይችላል።',
+        'members_unavailable' => 'ከእነዚህ ሰዎች አንዳንዶቹን መጨመር አይቻልም።',
+        'too_many_members' => 'አንድ ቡድን ቢበዛ :max አባላት ሊኖሩት ይችላል።',
+        'unit_outside_organization' => 'የሥራ ክፍሉ የተመረጠው ተቋም አካል መሆን አለበት።',
+        'not_a_member' => 'ይህ ሰው አባል አይደለም።',
+        'use_leave' => 'ከውይይቱ ራስዎ ለመውጣት "ውጣ"ን ይጠቀሙ።',
+        'cannot_remove_owner' => 'ባለቤቱ ሊወገድ አይችልም። ባለቤቱ መጀመሪያ ባለቤትነቱን ማስተላለፍ ይችላል።',
+        'mandatory_member' => 'የዚህ ቻናል አባልነት ተቋሙን ይከተላል፤ እዚህ ሊቀየር አይችልም።',
+        'removed_from_channel' => 'አስተዳዳሪ ከዚህ ቻናል አስወግደዎታል። እንደገና እንዲጨምርዎት አስተዳዳሪን ይጠይቁ።',
         'recipient_unavailable' => 'ከዚህ ሰው ጋር ውይይት መጀመር አይችሉም።',
         'empty_message' => 'መልዕክት ይጻፉ ወይም ፋይል ያያይዙ።',
         'parent_invalid' => 'መመለስ የሚችሉት በዚህ ውይይት ውስጥ ላለ መልዕክት ብቻ ነው።',
@@ -44,12 +61,13 @@ return [
     ],
 
     'system' => [
+        'member_joined' => ':actor ተቀላቀሉ።',
         'member_added' => ':actor :subjectን ጨመሩ።',
         'member_removed' => ':actor :subjectን አስወገዱ።',
         'member_left' => ':actor ወጡ።',
         'group_created' => ':actor ቡድኑን ፈጠሩ።',
         'channel_created' => ':actor ቻናሉን ፈጠሩ።',
-        'task_created' => ':actor ከመልዕክት ተግባር ፈጠሩ።',
+        'task_created' => ':actor ለ:subject ተግባር ፈጠሩ።',
     ],
 
     'notifications' => [
@@ -71,6 +89,23 @@ return [
     ],
 
     'flash' => [
+        'preferences_saved' => 'ምርጫዎችዎ ተቀምጠዋል።',
+        'access_requested' => 'ጥያቄው ተልኳል። ምንም ነገር ከመነበቡ በፊት በሌላ ሰው መጽደቅ አለበት።',
+        'access_approved' => 'ፈቃዱ ለተወሰነ ጊዜ ጸድቋል።',
+        'access_rejected' => 'ጥያቄው ውድቅ ተደርጓል።',
+        'access_revoked' => 'ፈቃዱ አብቅቷል።',
+        'announcement_saved' => 'ማስታወቂያው በረቂቅነት ተቀምጧል።',
+        'announcement_saved_for_publisher' => 'ተቀምጧል። በዚህ ወሰን የማተም ፈቃድ ያለው ሰው ያትመዋል።',
+        'announcement_published' => 'ማስታወቂያው ታትሟል።',
+        'announcement_scheduled' => 'ማስታወቂያው ቀጠሮ ተይዞለታል።',
+        'announcement_cancelled' => 'ማስታወቂያው ተሰርዟል።',
+        'announcement_acknowledged' => 'እናመሰግናለን። ማረጋገጫዎ ተመዝግቧል።',
         'settings_saved' => 'የኮሙኒኬሽን ቅንብሮች ተቀምጠዋል።',
+    ],
+    'targets' => [
+        'city' => 'በከተማ አስተዳደሩ ያሉ ሁሉም',
+    ],
+    'tasks' => [
+        'untitled' => 'ከመልዕክት የተፈጠረ ተግባር',
     ],
 ];

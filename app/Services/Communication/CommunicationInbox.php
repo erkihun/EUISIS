@@ -41,6 +41,7 @@ final class CommunicationInbox
             ->selectSub(fn ($q) => $q->from('messages')->selectRaw('count(*)')
                 ->whereColumn('messages.conversation_id', 'conversation_members.conversation_id')
                 ->whereNull('messages.deleted_at')
+                ->where('messages.type', '<>', 'SYSTEM')
                 ->where(fn ($s) => $s->whereNull('messages.sender_id')->orWhere('messages.sender_id', '<>', $userId))
                 ->where(fn ($r) => $r->whereNull('conversation_members.last_read_message_id')
                     ->orWhereColumn('messages.id', '>', 'conversation_members.last_read_message_id')), 'unread_count');

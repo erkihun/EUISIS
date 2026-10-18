@@ -211,6 +211,14 @@ class AppServiceProvider extends ServiceProvider
         EmployeeAssignment::observe(EmployeeAssignmentCardImpactObserver::class);
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);
+        // Automatic Communication channel membership follows assignments and account status.
+        EmployeeAssignment::observe(\App\Observers\EmployeeAssignmentCommunicationObserver::class);
+        \App\Models\Employee::saved(fn (\App\Models\Employee $employee) => app(\App\Observers\EmployeeAssignmentCommunicationObserver::class)->employeeSaved($employee));
+        \App\Models\User::saved(function (\App\Models\User $user): void {
+            if ($user->employee_id !== null && $user->wasChanged('status')) {
+                \App\Jobs\Communication\SyncEmployeeCommunicationMemberships::dispatch((string) $user->employee_id)->afterCommit();
+            }
+        });
         $this->configureViteAssetMode();
         // No Vite::prefetch(): with 500+ page chunks it downloaded the whole 8 MB
         // bundle on every full page load, which is what made phones crawl. Pages
@@ -321,10 +329,16 @@ class AppServiceProvider extends ServiceProvider
             $target = $arguments[0] ?? null;
             // Private communication is never opened by role (docs/communication-module.md §Privacy):
             // the policy decides, by membership or an approved break-glass grant.
-            if ($target instanceof \App\Models\Communication\Conversation
-                || $target instanceof \App\Models\Communication\Message
-                || $target instanceof \App\Models\Communication\MessageAttachment
-                || $target instanceof \App\Models\Communication\CommunicationAccessRequest) {
+            // Reported content and investigation access follow the same rule, whether the check is on a
+            // record or on the class (viewAny, create).
+            $private = [
+                \App\Models\Communication\Conversation::class,
+                \App\Models\Communication\Message::class,
+                \App\Models\Communication\MessageAttachment::class,
+                \App\Models\Communication\CommunicationAccessRequest::class,
+                \App\Models\Communication\CommunicationReport::class,
+            ];
+            if ((is_object($target) && in_array($target::class, $private, true)) || (is_string($target) && in_array($target, $private, true))) {
                 return null;
             }
             if ($target instanceof User && $target->is($user)

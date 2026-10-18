@@ -5,11 +5,11 @@ import { clock, fileSize, tr } from '@/lib/communication/format';
 import MessageText from '@/Components/Communication/MessageText';
 import EmojiPicker from '@/Components/Communication/EmojiPicker';
 import {
-    CopyIcon, DownloadIcon, ForwardIcon, MenuDotsIcon, PaperclipIcon, PenIcon, PinIcon, ReplyIcon, SmileIcon, TrashIcon,
+    CopyIcon, DownloadIcon, FlagIcon, ForwardIcon, MenuDotsIcon, TaskIcon, PaperclipIcon, PenIcon, PinIcon, ReplyIcon, SmileIcon, TrashIcon,
 } from '@/Components/NavIcons';
 import type { Attachment, MessageItem } from '@/types/communication';
 
-export type BubbleAbilities = { reply: boolean; react: boolean; edit: boolean; delete: boolean; pin: boolean; forward: boolean };
+export type BubbleAbilities = { reply: boolean; react: boolean; edit: boolean; delete: boolean; pin: boolean; forward: boolean; task: boolean; report: boolean };
 
 type Props = {
     message: MessageItem;
@@ -29,6 +29,8 @@ type Props = {
     onForward: (message: MessageItem) => void;
     onPin: (message: MessageItem, add: boolean) => void;
     onJump: (messageId: string) => void;
+    onTask: (message: MessageItem) => void;
+    onReport: (message: MessageItem) => void;
 };
 
 function MessageBubble(props: Props): JSX.Element {
@@ -42,7 +44,7 @@ function MessageBubble(props: Props): JSX.Element {
         return (
             <li id={`m-${message.id}`} className="my-3 flex justify-center px-4">
                 <span className="rounded-full bg-[color:var(--app-surface-muted)] px-3 py-1 text-center text-xs text-[color:var(--app-muted-foreground)]">
-                    {message.body}
+                    {systemText(message, t)}
                 </span>
             </li>
         );
@@ -187,6 +189,12 @@ function MessageBubble(props: Props): JSX.Element {
                                     {can.pin && (
                                         <MenuItem onClick={() => { setMenu(false); props.onPin(message, !pinned); }}><PinIcon className="h-4 w-4" />{pinned ? t('communication.actions.unpin') : t('communication.actions.pin')}</MenuItem>
                                     )}
+                                    {can.task && (
+                                        <MenuItem onClick={() => { setMenu(false); props.onTask(message); }}><TaskIcon className="h-4 w-4" />{t('communication.actions.task')}</MenuItem>
+                                    )}
+                                    {can.report && (
+                                        <MenuItem onClick={() => { setMenu(false); props.onReport(message); }}><FlagIcon className="h-4 w-4" />{t('communication.actions.report')}</MenuItem>
+                                    )}
                                     {can.edit && (
                                         <MenuItem onClick={() => { setMenu(false); props.onEdit(message); }}><PenIcon className="h-4 w-4" />{t('communication.actions.edit')}</MenuItem>
                                     )}
@@ -303,4 +311,13 @@ function AttachmentView({ file, own }: { file: Attachment; own: boolean }): JSX.
     return file.downloadable
         ? <a href={communicationApi.downloadUrl(file.id)} className={`${box} hover:opacity-90`} aria-label={`${t('communication.actions.download')} ${file.name}`}>{body}</a>
         : <span className={box}>{body}</span>;
+}
+
+/** A system note in the reader's language, from the stored event and names. */
+function systemText(message: MessageItem, t: (key: string) => string): string {
+    const event = message.metadata?.system_event;
+    if (!event) return message.body ?? '';
+    const key = `communication.system.${event}`;
+    const text = t(key);
+    return text === key ? '' : tr(text, { actor: String(message.metadata?.actor_name ?? ''), subject: String(message.metadata?.subject_name ?? '') });
 }

@@ -50,6 +50,7 @@ class MessagesController extends Controller
                 'upload' => $user->can('attachments.upload'),
                 'forward' => $user->can('messages.forward') && $this->settings->allowForwarding(),
                 'createGroup' => $user->can('groups.create') && $this->settings->allowEmployeeGroups(),
+                'browseChannels' => $user->can('channels.view'),
                 'createTask' => $user->can('communication.tasks.create'),
                 'report' => $user->can('communication.reports.create'),
             ],

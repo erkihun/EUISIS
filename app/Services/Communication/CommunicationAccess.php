@@ -106,7 +106,7 @@ final class CommunicationAccess
      */
     public function investigationGrant(User $user, Conversation $conversation): ?CommunicationAccessRequest
     {
-        if (! $user->can('communication.break_glass.request')) {
+        if (! $user->checkPermissionTo('communication.break_glass.request')) {
             return null;
         }
 

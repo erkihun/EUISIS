@@ -18,6 +18,12 @@ class ChannelCreated implements ShouldBroadcast
     /** Broadcast only once the transaction that caused it has committed. */
     public bool $afterCommit = true;
 
+    /** Realtime can run on its own worker (config communication.broadcast_queue); null keeps the default queue. */
+    public function broadcastQueue(): ?string
+    {
+        return config('communication.broadcast_queue');
+    }
+
     public function __construct(public readonly string $channelId, public readonly string $conversationId, public readonly array $memberIds)
     {
     }
