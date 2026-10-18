@@ -119,14 +119,14 @@ function UnitNode({
                 className={`flex items-center gap-2 rounded-lg py-1.5 pr-2 text-sm ${
                     selectedUnitId === unit.id
                         ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
-                        : 'text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'
+                        : 'text-(--app-foreground) hover:bg-(--app-surface-muted)'
                 }`}
                 style={{ paddingLeft: `${12 + depth * 16}px` }}
             >
                 <button
                     type="button"
                     onClick={() => onToggle(expansionId)}
-                    className="flex h-5 w-5 items-center justify-center text-[color:var(--app-muted-foreground)]"
+                    className="flex h-5 w-5 items-center justify-center text-(--app-muted-foreground)"
                     aria-label={isExpanded ? t('organizationUnits.collapseOrganization') : t('organizationUnits.expandOrganization')}
                 >
                     {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -138,20 +138,20 @@ function UnitNode({
                 >
                     {localizedName(unit.name_en, unit.name_am, locale)}
                 </button>
-                <span className="font-mono text-[10px] text-[color:var(--app-muted-foreground)]">{unit.code}</span>
+                <span className="font-mono text-[10px] text-(--app-muted-foreground)">{unit.code}</span>
                 <StatusBadge status={unit.status} label={t(`common.${unit.status}`)} className="px-1.5 py-0 text-[10px]" />
             </div>
 
             {isExpanded && (
                 <div role="group">
                     <p
-                        className="py-1 text-[10px] font-semibold text-[color:var(--app-muted-foreground)]"
+                        className="py-1 text-[10px] font-semibold text-(--app-muted-foreground)"
                         style={{ paddingLeft: `${48 + depth * 16}px` }}
                     >
                         {t('organizationUnits.positions')}
                     </p>
                     {unit.positions.length === 0 ? (
-                        <p className="py-1 text-xs text-[color:var(--app-muted-foreground)]" style={{ paddingLeft: `${48 + depth * 16}px` }}>
+                        <p className="py-1 text-xs text-(--app-muted-foreground)" style={{ paddingLeft: `${48 + depth * 16}px` }}>
                             {t('organizations.noPositionsFound')}
                         </p>
                     ) : unit.positions.map((position) => (
@@ -159,12 +159,12 @@ function UnitNode({
                             key={position.id}
                             type="button"
                             onClick={() => onSelectPosition(organizationId, position.id)}
-                            className={`flex w-full items-center gap-2 rounded-lg py-1.5 pr-2 text-left text-xs ${selectedPositionId === position.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}
+                            className={`flex w-full items-center gap-2 rounded-lg py-1.5 pr-2 text-left text-xs ${selectedPositionId === position.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' : 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted)'}`}
                             style={{ paddingLeft: `${48 + depth * 16}px` }}
                         >
                             <Users className="h-3.5 w-3.5 flex-none" />
                             <span className="min-w-0 flex-1 truncate">{localizedName(position.standard_name, position.standard_name_am, locale)}</span>
-                            {position.code && <span className="font-mono text-[10px] text-[color:var(--app-muted-foreground)]">{position.code}</span>}
+                            {position.code && <span className="font-mono text-[10px] text-(--app-muted-foreground)">{position.code}</span>}
                             <StatusBadge status={position.status} label={t(`common.${position.status}`)} className="px-1.5 py-0 text-[10px]" />
                             <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${position.occupancy_status === 'occupied' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'}`}>
                                 {t(`organizations.${position.occupancy_status}`)}
@@ -230,9 +230,9 @@ export default function ScopedOrganizationStructure({
     }
 
     return (
-        <div className="flex h-full flex-col rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-            <div className="flex items-center justify-between gap-3 border-b border-[color:var(--app-border)] px-4 py-3">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+        <div className="flex h-full flex-col rounded-panel border border-(--app-border) bg-(--app-surface)">
+            <div className="flex items-center justify-between gap-3 border-b border-(--app-border) px-4 py-3">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">
                     {isScoped ? t('organizationUnits.yourOrganizationStructure') : t('organizations.organizationStructure')}
                 </h2>
                 {selectedPositionId && (
@@ -243,7 +243,7 @@ export default function ScopedOrganizationStructure({
             </div>
             <div className="px-3 py-2">
                 <div className="relative">
-                    <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
+                    <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-(--app-muted-foreground)" />
                     <input
                         type="search"
                         value={search}
@@ -256,8 +256,8 @@ export default function ScopedOrganizationStructure({
             <div className="flex-1 space-y-3 overflow-y-auto p-2" role="tree">
                 {filteredOrganizations.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <Building2 className="h-8 w-8 text-[color:var(--app-muted-foreground)]" />
-                        <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('organizationUnits.noOrganizationStructureFound')}</p>
+                        <Building2 className="h-8 w-8 text-(--app-muted-foreground)" />
+                        <p className="mt-2 text-xs text-(--app-muted-foreground)">{t('organizationUnits.noOrganizationStructureFound')}</p>
                     </div>
                 ) : filteredOrganizations.map((organization) => {
                     const expansionId = `organization:${organization.id}`;
@@ -265,22 +265,22 @@ export default function ScopedOrganizationStructure({
 
                     return (
                         <section key={organization.id} role="treeitem" aria-expanded={isExpanded}>
-                            <div className={`flex items-center gap-2 rounded-lg px-2 py-2 ${selectedOrganizationId === organization.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' : 'hover:bg-[color:var(--app-surface-muted)]'}`}>
-                                <button type="button" onClick={() => toggle(expansionId)} className="text-[color:var(--app-muted-foreground)]">
+                            <div className={`flex items-center gap-2 rounded-lg px-2 py-2 ${selectedOrganizationId === organization.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' : 'hover:bg-(--app-surface-muted)'}`}>
+                                <button type="button" onClick={() => toggle(expansionId)} className="text-(--app-muted-foreground)">
                                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                 </button>
                                 <button type="button" onClick={() => onSelectOrganization(organization.id)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
                                     <Building2 className="h-4 w-4 flex-none" />
                                     <span className="truncate text-sm font-semibold">{localizedName(organization.name_en, organization.name_am, locale)}</span>
                                 </button>
-                                <span className="font-mono text-[10px] text-[color:var(--app-muted-foreground)]">{organization.code}</span>
+                                <span className="font-mono text-[10px] text-(--app-muted-foreground)">{organization.code}</span>
                                 <StatusBadge status={organization.status} label={t(`common.${organization.status}`)} className="px-1.5 py-0 text-[10px]" />
                             </div>
                             {isExpanded && (
                                 <div role="group">
-                                    <p className="px-10 pt-2 text-[10px] font-semibold text-[color:var(--app-muted-foreground)]">{t('organizationUnits.organizationUnits')}</p>
+                                    <p className="px-10 pt-2 text-[10px] font-semibold text-(--app-muted-foreground)">{t('organizationUnits.organizationUnits')}</p>
                                     {organization.units.length === 0 ? (
-                                        <p className="px-10 py-3 text-xs text-[color:var(--app-muted-foreground)]">{t('organizationUnits.noOrganizationUnitsFound')}</p>
+                                        <p className="px-10 py-3 text-xs text-(--app-muted-foreground)">{t('organizationUnits.noOrganizationUnitsFound')}</p>
                                     ) : organization.units.map((unit) => (
                                         <UnitNode
                                             key={unit.id}

@@ -76,7 +76,7 @@ export default function AnalyticsIndex({ filters, types, report, organizations, 
                     </FilterField>
                 </FilterPanel>
 
-                <div className="overflow-x-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className="overflow-x-auto rounded-card border border-(--app-border) bg-(--app-surface)">
                     {report.rows.length === 0 ? <EmptyState title={tt('noResults')} /> : (
                         <table className={tableClassName}>
                             <thead className={tableHeadClassName}>

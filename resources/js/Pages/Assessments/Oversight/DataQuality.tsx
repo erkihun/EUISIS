@@ -35,7 +35,7 @@ export default function OversightDataQuality(props: Props) {
                 <>
                     {summary.cycle.length > 0 && (
                         <Section title={t('assessmentOversight.cycleIssues')}>
-                            <ul className="space-y-1 text-sm">{summary.cycle.map((i) => <li key={i.code} className="flex items-center gap-2"><SeverityBadge severity={i.severity} />{t(`assessmentOversight.rules.${i.code}`)} — <span className="text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.hints.${i.code}`)}</span></li>)}</ul>
+                            <ul className="space-y-1 text-sm">{summary.cycle.map((i) => <li key={i.code} className="flex items-center gap-2"><SeverityBadge severity={i.severity} />{t(`assessmentOversight.rules.${i.code}`)} — <span className="text-(--app-muted-foreground)">{t(`assessmentOversight.hints.${i.code}`)}</span></li>)}</ul>
                         </Section>
                     )}
                     <Section title={t('assessmentOversight.rulesTitle')} flush>
@@ -46,16 +46,16 @@ export default function OversightDataQuality(props: Props) {
                             <th className={thCls}>{t('assessmentOversight.howToResolve')}</th>
                         </>}>
                             {rules.map(([code, rule]) => (
-                                <tr key={code} className={filters.code === code ? 'bg-[color:var(--app-surface-muted)]' : undefined}>
+                                <tr key={code} className={filters.code === code ? 'bg-(--app-surface-muted)' : undefined}>
                                     <td className={tdCls}>
                                         {rule.count > 0
-                                            ? <Link className="font-medium text-[color:var(--color-primary)] hover:underline" href={oversightHref('assessment-oversight.data-quality', cycle, { code, organization_id: filters.organization_id })}>{t(`assessmentOversight.rules.${code}`)}</Link>
-                                            : <span className="text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.rules.${code}`)}</span>}
-                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{code}</div>
+                                            ? <Link className="font-medium text-primary hover:underline" href={oversightHref('assessment-oversight.data-quality', cycle, { code, organization_id: filters.organization_id })}>{t(`assessmentOversight.rules.${code}`)}</Link>
+                                            : <span className="text-(--app-muted-foreground)">{t(`assessmentOversight.rules.${code}`)}</span>}
+                                        <div className="text-xs text-(--app-muted-foreground)">{code}</div>
                                     </td>
                                     <td className={tdCls}><SeverityBadge severity={rule.severity} /></td>
                                     <td className={`${tdCls} tabular-nums`}>{rule.count}</td>
-                                    <td className={`${tdCls} text-xs text-[color:var(--app-muted-foreground)]`}>{t(`assessmentOversight.hints.${code}`)}</td>
+                                    <td className={`${tdCls} text-xs text-(--app-muted-foreground)`}>{t(`assessmentOversight.hints.${code}`)}</td>
                                 </tr>
                             ))}
                         </Table>

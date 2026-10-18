@@ -478,12 +478,12 @@ export default function ChatView(props: Props): JSX.Element {
     if (loadError) {
         return (
             <section className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-                <DangerCircleIcon className="h-8 w-8 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                <p className="text-sm text-[color:var(--app-foreground)]">{loadError === 'notFound' ? t('communication.errors.notFound') : t('communication.errors.loadFailed')}</p>
+                <DangerCircleIcon className="h-8 w-8 text-(--app-muted-foreground)" aria-hidden="true" />
+                <p className="text-sm text-(--app-foreground)">{loadError === 'notFound' ? t('communication.errors.notFound') : t('communication.errors.loadFailed')}</p>
                 <div className="flex gap-2">
-                    <button type="button" onClick={props.onBack} className="h-8 rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium lg:hidden">{t('communication.chat.back')}</button>
+                    <button type="button" onClick={props.onBack} className="h-8 rounded-control border border-(--app-border) px-3 text-xs font-medium lg:hidden">{t('communication.chat.back')}</button>
                     {loadError === 'failed' && (
-                        <button type="button" onClick={() => window.location.reload()} className="inline-flex h-8 items-center gap-1.5 rounded-control bg-[color:var(--color-primary)] px-3 text-xs font-medium text-white">
+                        <button type="button" onClick={() => window.location.reload()} className="inline-flex h-8 items-center gap-1.5 rounded-control bg-primary px-3 text-xs font-medium text-white">
                             <RefreshIcon className="h-4 w-4" aria-hidden="true" />{t('communication.chat.retry')}
                         </button>
                     )}
@@ -504,20 +504,20 @@ export default function ChatView(props: Props): JSX.Element {
         if (tab) setRequestedTab({ tab, nonce: Date.now() });
         props.onToggleDetails(tab ? true : !detailsOpen);
     };
-    const headerButton = 'flex h-9 w-9 items-center justify-center rounded-control transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]';
+    const headerButton = 'flex h-9 w-9 items-center justify-center rounded-control transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary';
 
     let previous: MessageItem | null = null;
     const newDividerAt = unreadFrom.current ? messages.find((m) => m.id > unreadFrom.current! && m.sender?.id !== currentUserId)?.id ?? null : null;
 
     return (
         <div className="flex h-full min-h-0">
-            <section aria-label={detail?.title ?? t('communication.chat.scrollRegion')} className="relative flex min-w-0 flex-1 flex-col bg-[color:var(--app-background)]">
-                <header className="flex h-14 shrink-0 items-center gap-2 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-2 sm:px-4">
+            <section aria-label={detail?.title ?? t('communication.chat.scrollRegion')} className="relative flex min-w-0 flex-1 flex-col bg-(--app-background)">
+                <header className="flex h-14 shrink-0 items-center gap-2 border-b border-(--app-border) bg-(--app-surface) px-2 sm:px-4">
                     <button
                         type="button"
                         onClick={props.onBack}
                         aria-label={t('communication.chat.back')}
-                        className="flex h-9 w-9 items-center justify-center rounded-control text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] lg:hidden"
+                        className="flex h-9 w-9 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) lg:hidden"
                     >
                         <ArrowLeftIcon className="h-5 w-5" />
                     </button>
@@ -525,21 +525,21 @@ export default function ChatView(props: Props): JSX.Element {
                         <>
                             <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} online={detail.other_user?.online ?? null} size="sm" />
                             <div className="min-w-0 flex-1">
-                                <h2 className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{detail.title}</h2>
-                                <p className="truncate text-xs text-[color:var(--app-muted-foreground)]" aria-live="polite">{typingText ?? subtitle}</p>
+                                <h2 className="truncate text-sm font-semibold text-(--app-foreground)">{detail.title}</h2>
+                                <p className="truncate text-xs text-(--app-muted-foreground)" aria-live="polite">{typingText ?? subtitle}</p>
                             </div>
                         </>
                     ) : (
                         <div className="flex flex-1 animate-pulse items-center gap-2" aria-hidden="true">
-                            <span className="h-8 w-8 rounded-full bg-[color:var(--app-surface-muted)]" />
-                            <span className="h-3 w-40 rounded bg-[color:var(--app-surface-muted)]" />
+                            <span className="h-8 w-8 rounded-full bg-(--app-surface-muted)" />
+                            <span className="h-3 w-40 rounded-sm bg-(--app-surface-muted)" />
                         </div>
                     )}
                     <div className="flex shrink-0 items-center gap-0.5">
-                        <button type="button" onClick={() => openDetails('search')} aria-label={t('communication.chat.searchInChat')} title={t('communication.chat.searchInChat')} className={`${headerButton} text-[color:var(--app-muted-foreground)]`}>
+                        <button type="button" onClick={() => openDetails('search')} aria-label={t('communication.chat.searchInChat')} title={t('communication.chat.searchInChat')} className={`${headerButton} text-(--app-muted-foreground)`}>
                             <SearchIcon className="h-5 w-5" aria-hidden="true" />
                         </button>
-                        <button type="button" onClick={() => openDetails('pinned')} aria-label={t('communication.chat.pinnedMessages')} title={t('communication.chat.pinnedMessages')} className={`${headerButton} hidden text-[color:var(--app-muted-foreground)] sm:flex`}>
+                        <button type="button" onClick={() => openDetails('pinned')} aria-label={t('communication.chat.pinnedMessages')} title={t('communication.chat.pinnedMessages')} className={`${headerButton} hidden text-(--app-muted-foreground) sm:flex`}>
                             <PinIcon className="h-5 w-5" aria-hidden="true" />
                         </button>
                         <button
@@ -548,7 +548,7 @@ export default function ChatView(props: Props): JSX.Element {
                             aria-label={detailsOpen ? t('communication.chat.hideDetails') : t('communication.chat.details')}
                             aria-expanded={detailsOpen}
                             title={detailsOpen ? t('communication.chat.hideDetails') : t('communication.chat.details')}
-                            className={`${headerButton} ${detailsOpen ? 'bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]' : 'text-[color:var(--app-muted-foreground)]'}`}
+                            className={`${headerButton} ${detailsOpen ? 'bg-(--app-surface-muted) text-primary' : 'text-(--app-muted-foreground)'}`}
                         >
                             <SidebarIcon className="h-5 w-5 -scale-x-100" aria-hidden="true" />
                         </button>
@@ -556,7 +556,7 @@ export default function ChatView(props: Props): JSX.Element {
                 </header>
 
                 {(!online || (realtimeEnabled && everConnected && rt !== 'connected' && !loading)) && (
-                    <div role="status" className="flex shrink-0 items-center gap-2 border-b border-[color:var(--tone-warning-border,#fedf89)] bg-[color:var(--tone-warning-bg,#fffaeb)] px-4 py-1.5 text-xs text-[color:var(--app-foreground)]">
+                    <div role="status" className="flex shrink-0 items-center gap-2 border-b border-(--tone-warning-border,#fedf89) bg-(--tone-warning-bg,#fffaeb) px-4 py-1.5 text-xs text-(--app-foreground)">
                         <OfflineIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                         {!online ? t('communication.chat.offline') : t('communication.chat.reconnecting')}
                     </div>
@@ -569,25 +569,25 @@ export default function ChatView(props: Props): JSX.Element {
                     aria-label={t('communication.chat.scrollRegion')}
                     aria-busy={loading}
                     tabIndex={0}
-                    className="comm-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain py-3 focus:outline-none"
+                    className="comm-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain py-3 focus:outline-hidden"
                 >
                     {loading ? <MessagesSkeleton /> : (
                         <>
                             <div className="flex justify-center py-2">
                                 {nextBefore ? (
-                                    <button type="button" onClick={() => void loadOlder()} disabled={loadingOlder} className="h-7 rounded-full px-3 text-xs font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)] disabled:opacity-60">
+                                    <button type="button" onClick={() => void loadOlder()} disabled={loadingOlder} className="h-7 rounded-full px-3 text-xs font-medium text-primary hover:bg-(--app-surface-muted) disabled:opacity-60">
                                         {loadingOlder ? t('communication.chat.loadingOlder') : t('communication.chat.loadOlder')}
                                     </button>
                                 ) : messages.length > 0 ? (
-                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.chat.beginning')}</span>
+                                    <span className="text-xs text-(--app-muted-foreground)">{t('communication.chat.beginning')}</span>
                                 ) : null}
                             </div>
 
                             {messages.length === 0 && outgoing.length === 0 && detail && (
                                 <div className="mx-auto mt-10 flex max-w-xs flex-col items-center gap-3 px-6 text-center">
                                     <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} size="lg" />
-                                    <p className="text-sm font-medium text-[color:var(--app-foreground)]">{detail.title}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.chat.beginning')}</p>
+                                    <p className="text-sm font-medium text-(--app-foreground)">{detail.title}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{t('communication.chat.beginning')}</p>
                                 </div>
                             )}
 
@@ -604,17 +604,17 @@ export default function ChatView(props: Props): JSX.Element {
                                     return (
                                         <Fragment key={message.id}>
                                             {newDay && (
-                                                <li className="sticky top-0 z-[5] flex justify-center py-2" role="separator">
-                                                    <span className="rounded-full border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-0.5 text-[11px] font-medium text-[color:var(--app-muted-foreground)] shadow-sm">
+                                                <li className="sticky top-0 z-5 flex justify-center py-2" role="separator">
+                                                    <span className="rounded-full border border-(--app-border) bg-(--app-surface) px-3 py-0.5 text-[11px] font-medium text-(--app-muted-foreground) shadow-xs">
                                                         {dayLabel(message.created_at, locale, system, t('communication.chat.today'), t('communication.chat.yesterday'))}
                                                     </span>
                                                 </li>
                                             )}
                                             {message.id === newDividerAt && (
                                                 <li className="my-2 flex items-center gap-3 px-5" role="separator" aria-label={t('communication.chat.newMessages')}>
-                                                    <span className="h-px flex-1 bg-[color:var(--color-danger,#b42318)]/40" />
-                                                    <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--color-danger,#b42318)]">{t('communication.chat.newMessages')}</span>
-                                                    <span className="h-px flex-1 bg-[color:var(--color-danger,#b42318)]/40" />
+                                                    <span className="h-px flex-1 bg-(--color-danger,#b42318)/40" />
+                                                    <span className="text-[11px] font-semibold uppercase tracking-wide text-(--color-danger,#b42318)">{t('communication.chat.newMessages')}</span>
+                                                    <span className="h-px flex-1 bg-(--color-danger,#b42318)/40" />
                                                 </li>
                                             )}
                                             <MessageBubble
@@ -644,17 +644,17 @@ export default function ChatView(props: Props): JSX.Element {
                                 {outgoing.map((item) => (
                                     <li key={item.clientId} className="mt-2 flex justify-end px-3 sm:px-5">
                                         <div className="flex max-w-[min(36rem,85%)] flex-col items-end">
-                                            <div className={`rounded-panel rounded-se-sm border px-3.5 py-2 text-sm leading-relaxed text-[color:var(--app-foreground)] ${item.status === 'failed' ? 'border-[color:var(--tone-danger-border,#f2b8b5)] bg-[color:var(--tone-danger-bg,#fef3f2)]' : 'border-dashed border-[color:color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] bg-[color:color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]'}`}>
+                                            <div className={`rounded-panel rounded-se-sm border px-3.5 py-2 text-sm leading-relaxed text-(--app-foreground) ${item.status === 'failed' ? 'border-(--tone-danger-border,#f2b8b5) bg-(--tone-danger-bg,#fef3f2)' : 'border-dashed border-[color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]'}`}>
                                                 {item.body && <MessageText body={item.body} mentions={[]} currentUserId={currentUserId} />}
                                                 {item.attachments.map((file) => (
                                                     <span key={file.id} className="mt-1 flex items-center gap-1.5 text-xs"><PaperclipIcon className="h-3.5 w-3.5" aria-hidden="true" />{file.name}</span>
                                                 ))}
                                             </div>
-                                            <span className="mt-0.5 flex items-center gap-2 px-1 text-[11px] text-[color:var(--app-muted-foreground)]" aria-live="polite">
+                                            <span className="mt-0.5 flex items-center gap-2 px-1 text-[11px] text-(--app-muted-foreground)" aria-live="polite">
                                                 {item.status === 'sending' ? t('communication.chat.sending') : (
                                                     <>
-                                                        <span className="font-medium text-[color:var(--color-danger,#b42318)]">{t('communication.chat.failed')}</span>
-                                                        <button type="button" onClick={() => void deliver(item)} className="font-medium text-[color:var(--color-primary)] underline-offset-2 hover:underline">{t('communication.chat.retry')}</button>
+                                                        <span className="font-medium text-(--color-danger,#b42318)">{t('communication.chat.failed')}</span>
+                                                        <button type="button" onClick={() => void deliver(item)} className="font-medium text-primary underline-offset-2 hover:underline">{t('communication.chat.retry')}</button>
                                                         <button type="button" onClick={() => setOutgoing((current) => current.filter((o) => o.clientId !== item.clientId))} className="hover:underline">{t('communication.chat.discard')}</button>
                                                     </>
                                                 )}
@@ -671,15 +671,15 @@ export default function ChatView(props: Props): JSX.Element {
                     <button
                         type="button"
                         onClick={() => { stickToBottom.current = true; scrollToBottom(true); }}
-                        className="absolute bottom-28 end-5 z-10 inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 text-xs font-medium text-[color:var(--app-foreground)] shadow-md hover:bg-[color:var(--app-surface-muted)]"
+                        className="absolute bottom-28 inset-e-5 z-10 inline-flex h-9 items-center gap-1.5 rounded-full border border-(--app-border) bg-(--app-surface) px-3 text-xs font-medium text-(--app-foreground) shadow-md hover:bg-(--app-surface-muted)"
                     >
                         {t('communication.chat.jumpToLatest')}
-                        {unseen > 0 && <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--color-primary)] px-1.5 text-[11px] font-semibold tabular-nums text-white">{unseen}</span>}
+                        {unseen > 0 && <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold tabular-nums text-white">{unseen}</span>}
                     </button>
                 )}
 
                 {detail && (detail.archived ? (
-                    <p className="flex shrink-0 items-center justify-center gap-2 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4 text-xs text-[color:var(--app-muted-foreground)]">
+                    <p className="flex shrink-0 items-center justify-center gap-2 border-t border-(--app-border) bg-(--app-surface) px-4 py-4 text-xs text-(--app-muted-foreground)">
                         {t('communication.chat.archived')}
                     </p>
                 ) : detail.can.post && can.message ? (
@@ -700,7 +700,7 @@ export default function ChatView(props: Props): JSX.Element {
                         onTyping={onTyping}
                     />
                 ) : (
-                    <p className="flex shrink-0 items-center justify-center gap-2 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4 text-xs text-[color:var(--app-muted-foreground)]">
+                    <p className="flex shrink-0 items-center justify-center gap-2 border-t border-(--app-border) bg-(--app-surface) px-4 py-4 text-xs text-(--app-muted-foreground)">
                         <ChatIcon className="h-4 w-4" aria-hidden="true" />{t('communication.chat.cannotPost')}
                     </p>
                 ))}
@@ -709,7 +709,7 @@ export default function ChatView(props: Props): JSX.Element {
             {detailsOpen && detail && (
                 <>
                     <button type="button" aria-hidden="true" tabIndex={-1} onClick={() => props.onToggleDetails(false)} className="fixed inset-0 z-30 bg-slate-950/40 xl:hidden" />
-                    <div className="fixed inset-y-0 end-0 z-40 w-[min(22rem,90vw)] border-s border-[color:var(--app-border)] shadow-2xl xl:static xl:z-auto xl:w-80 xl:shrink-0 xl:shadow-none">
+                    <div className="fixed inset-y-0 inset-e-0 z-40 w-[min(22rem,90vw)] border-s border-(--app-border) shadow-2xl xl:static xl:z-auto xl:w-80 xl:shrink-0 xl:shadow-none">
                         <DetailsPanel
                             detail={detail}
                             currentUserId={currentUserId}
@@ -739,7 +739,7 @@ function MessagesSkeleton(): JSX.Element {
         <ul aria-hidden="true" className="animate-pulse space-y-3 px-5 py-4">
             {rows.map(([width, own], index) => (
                 <li key={index} className={`flex ${own ? 'justify-end' : 'justify-start'}`}>
-                    <span className={`block h-9 ${width} rounded-panel ${own ? 'bg-[color:var(--color-primary)]/15' : 'bg-[color:var(--app-surface-muted)]'}`} />
+                    <span className={`block h-9 ${width} rounded-panel ${own ? 'bg-primary/15' : 'bg-(--app-surface-muted)'}`} />
                 </li>
             ))}
         </ul>

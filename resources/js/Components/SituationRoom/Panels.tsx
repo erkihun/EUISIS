@@ -45,7 +45,7 @@ export function PanelCard({ panel, options }: { panel: SrPanel; options: PanelOp
     if (panel.type === 'kpis') {
         return (
             <section aria-labelledby={titleId}>
-                <h2 id={titleId} className={cx('mb-2 font-semibold text-[color:var(--app-foreground)]', options.wall ? 'text-xl' : 'text-sm')}>{sr(panel.title)}</h2>
+                <h2 id={titleId} className={cx('mb-2 font-semibold text-(--app-foreground)', options.wall ? 'text-xl' : 'text-sm')}>{sr(panel.title)}</h2>
                 <KpiTiles items={panel.data.items} wall={options.wall} />
             </section>
         );
@@ -55,11 +55,11 @@ export function PanelCard({ panel, options }: { panel: SrPanel; options: PanelOp
         <Card className={cx('flex h-full flex-col p-4', options.wall && 'p-6')} aria-labelledby={titleId} role="region">
             <header className="mb-3 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <h2 id={titleId} className={cx('font-semibold text-[color:var(--app-foreground)]', options.wall ? 'text-xl' : 'text-sm')}>{sr(panel.title)}</h2>
-                    {panel.description && !options.wall && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{sr(panel.description)}</p>}
+                    <h2 id={titleId} className={cx('font-semibold text-(--app-foreground)', options.wall ? 'text-xl' : 'text-sm')}>{sr(panel.title)}</h2>
+                    {panel.description && !options.wall && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{sr(panel.description)}</p>}
                 </div>
                 {panel.href && !options.wall && (
-                    <Link href={panel.href} className="shrink-0 text-xs font-medium text-[color:var(--color-primary)] hover:underline">{sr('ui.open')}</Link>
+                    <Link href={panel.href} className="shrink-0 text-xs font-medium text-primary hover:underline">{sr('ui.open')}</Link>
                 )}
             </header>
 
@@ -70,9 +70,9 @@ export function PanelCard({ panel, options }: { panel: SrPanel; options: PanelOp
             </div>
 
             {!options.wall && (
-                <footer className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--app-border)] pt-2 text-xs text-[color:var(--app-muted-foreground)]">
+                <footer className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-(--app-border) pt-2 text-xs text-(--app-muted-foreground)">
                     <span>{sr('ui.source', { source: sr(panel.source) })}</span>
-                    {actionHref && <Link href={actionHref} className="font-medium text-[color:var(--color-primary)] hover:underline">{sr('ui.record_action')}</Link>}
+                    {actionHref && <Link href={actionHref} className="font-medium text-primary hover:underline">{sr('ui.record_action')}</Link>}
                 </footer>
             )}
         </Card>
@@ -153,21 +153,21 @@ export function KpiTiles({ items, wall = false }: { items: SrKpiItem[]; wall?: b
             {items.map((item) => {
                 const body: ReactNode = (
                     <>
-                        <p className={cx('font-medium text-[color:var(--app-muted-foreground)]', wall ? 'text-base' : 'text-xs')}>{sr(item.label)}</p>
-                        <p className={cx('mt-1 font-semibold tabular-nums text-[color:var(--app-foreground)]', wall ? 'text-5xl' : 'text-2xl')}>
-                            {item.state === 'not_configured' ? <span className="text-base font-medium text-[color:var(--app-muted-foreground)]">{sr('ui.not_configured')}</span> : formatKpi(item, sr)}
+                        <p className={cx('font-medium text-(--app-muted-foreground)', wall ? 'text-base' : 'text-xs')}>{sr(item.label)}</p>
+                        <p className={cx('mt-1 font-semibold tabular-nums text-(--app-foreground)', wall ? 'text-5xl' : 'text-2xl')}>
+                            {item.state === 'not_configured' ? <span className="text-base font-medium text-(--app-muted-foreground)">{sr('ui.not_configured')}</span> : formatKpi(item, sr)}
                         </p>
-                        {item.previous !== undefined && !wall && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{sr('ui.previous', { value: Number(item.previous).toLocaleString() })}</p>}
+                        {item.previous !== undefined && !wall && <p className="mt-1 text-xs text-(--app-muted-foreground)">{sr('ui.previous', { value: Number(item.previous).toLocaleString() })}</p>}
                         {item.state && item.state !== 'not_configured' && (
                             <StatusBadge tone={STATE_TONE[item.state]} className="mt-2">{sr(item.state === 'attention' ? 'ui.attention' : 'ui.clear')}</StatusBadge>
                         )}
-                        {item.definition && !wall && <p className="mt-1 text-[11px] leading-snug text-[color:var(--app-muted-foreground)]">{sr(item.definition)}</p>}
+                        {item.definition && !wall && <p className="mt-1 text-[11px] leading-snug text-(--app-muted-foreground)">{sr(item.definition)}</p>}
                     </>
                 );
-                const tile = cx('block h-full rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3', wall && 'p-5');
+                const tile = cx('block h-full rounded-card border border-(--app-border) bg-(--app-surface) p-3', wall && 'p-5');
 
                 return item.href && !wall
-                    ? <Link key={item.key} href={item.href} className={cx(tile, 'transition-colors hover:border-[color:var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]')}>{body}</Link>
+                    ? <Link key={item.key} href={item.href} className={cx(tile, 'transition-colors hover:border-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary')}>{body}</Link>
                     : <div key={item.key} className={tile}>{body}</div>;
             })}
         </div>
@@ -184,9 +184,9 @@ export function PanelNotice({ reason }: { reason: SrReason }) {
     const { sr } = useSituationLabels();
 
     return (
-        <div className="flex h-full min-h-24 flex-col justify-center gap-1 rounded-card bg-[color:var(--app-surface-muted)] p-3" role={reason === 'ERROR' ? 'alert' : undefined}>
+        <div className="flex h-full min-h-24 flex-col justify-center gap-1 rounded-card bg-(--app-surface-muted) p-3" role={reason === 'ERROR' ? 'alert' : undefined}>
             <StatusBadge tone={NOTICE_TONE[reason] ?? 'neutral'} className="self-start">{sr(`reasons.${reason}.title`)}</StatusBadge>
-            <p className="text-xs text-[color:var(--app-muted-foreground)]">{sr(`reasons.${reason}.description`)}</p>
+            <p className="text-xs text-(--app-muted-foreground)">{sr(`reasons.${reason}.description`)}</p>
         </div>
     );
 }

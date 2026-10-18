@@ -59,10 +59,10 @@ export default function PublicTransferAnnouncements({ announcements }: Props) {
                                     <li key={a.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
                                         <div className="min-w-0">
                                             <p className="text-sm text-gray-600 dark:text-slate-400">{pick(a, 'organization_name') || '—'}</p>
-                                            <h2 className="mt-0.5 text-base font-semibold leading-snug [overflow-wrap:anywhere]">
+                                            <h2 className="mt-0.5 text-base font-semibold leading-snug wrap-anywhere">
                                                 <Link
                                                     href={route('public.transfer-announcements.show', { announcement: a.id })}
-                                                    className="text-gray-900 hover:text-[color:var(--color-primary)] hover:underline dark:text-slate-100"
+                                                    className="text-gray-900 hover:text-primary hover:underline dark:text-slate-100"
                                                 >
                                                     {pick(a, 'position_title') || '—'}
                                                 </Link>

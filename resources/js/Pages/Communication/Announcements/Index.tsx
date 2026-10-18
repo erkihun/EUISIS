@@ -88,10 +88,10 @@ export default function AnnouncementsIndex({ feed: initialFeed, managed: initial
         <AuthenticatedLayout mode="communication" header={<PageHeader title={t('communication.announcements.title')} description={t('communication.announcements.description')} actions={actions} />}>
             <Head title={t('communication.announcements.title')} />
 
-            <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                <div className="flex flex-col gap-3 border-b border-[color:var(--app-border)] p-3 md:flex-row md:items-center">
+            <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+                <div className="flex flex-col gap-3 border-b border-(--app-border) p-3 md:flex-row md:items-center">
                     {can.manage && (
-                        <div role="tablist" aria-label={t('communication.announcements.title')} className="flex rounded-control bg-[color:var(--app-surface-muted)] p-0.5">
+                        <div role="tablist" aria-label={t('communication.announcements.title')} className="flex rounded-control bg-(--app-surface-muted) p-0.5">
                             {(['feed', 'manage'] as const).map((value) => (
                                 <button
                                     key={value}
@@ -99,7 +99,7 @@ export default function AnnouncementsIndex({ feed: initialFeed, managed: initial
                                     role="tab"
                                     aria-selected={tab === value}
                                     onClick={() => setTab(value)}
-                                    className={`h-8 rounded-[calc(var(--radius-control)-2px)] px-3 text-xs font-medium ${tab === value ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm' : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'}`}
+                                    className={`h-8 rounded-[calc(var(--radius-control)-2px)] px-3 text-xs font-medium ${tab === value ? 'bg-(--app-surface) text-(--app-foreground) shadow-xs' : 'text-(--app-muted-foreground) hover:text-(--app-foreground)'}`}
                                 >
                                     {t(`communication.announcements.tabs.${value}`)}
                                 </button>
@@ -122,17 +122,17 @@ export default function AnnouncementsIndex({ feed: initialFeed, managed: initial
                 <div aria-busy={loading}>
                     {!rows || rows.data.length === 0 ? (
                         <div className="flex flex-col items-center gap-2 px-6 py-14 text-center">
-                            <MegaphoneIcon className="h-6 w-6 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                            <p className="max-w-sm text-sm text-[color:var(--app-muted-foreground)]">{emptyText}</p>
+                            <MegaphoneIcon className="h-6 w-6 text-(--app-muted-foreground)" aria-hidden="true" />
+                            <p className="max-w-sm text-sm text-(--app-muted-foreground)">{emptyText}</p>
                         </div>
                     ) : (
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {rows.data.map((item) => <Row key={item.id} item={item} manage={tab === 'manage'} />)}
                         </ul>
                     )}
                     {rows?.next_cursor && (
-                        <div className="border-t border-[color:var(--app-border)] p-3">
-                            <button type="button" disabled={loading} onClick={() => void more()} className="h-8 w-full rounded-control text-xs font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)] disabled:opacity-50">
+                        <div className="border-t border-(--app-border) p-3">
+                            <button type="button" disabled={loading} onClick={() => void more()} className="h-8 w-full rounded-control text-xs font-medium text-primary hover:bg-(--app-surface-muted) disabled:opacity-50">
                                 {t('communication.announcements.loadMore')}
                             </button>
                         </div>
@@ -149,7 +149,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
             type="button"
             aria-pressed={active}
             onClick={onClick}
-            className={`h-7 rounded-full px-3 text-xs font-medium transition-colors ${active ? 'bg-[color:var(--app-foreground)] text-[color:var(--app-background)]' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]'}`}
+            className={`h-7 rounded-full px-3 text-xs font-medium transition-colors ${active ? 'bg-(--app-foreground) text-(--app-background)' : 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)'}`}
         >
             {children}
         </button>
@@ -166,16 +166,16 @@ function Row({ item, manage }: { item: AnnouncementSummary; manage: boolean }): 
 
     return (
         <li>
-            <Link href={route('communication.announcements.show', item.id)} className="flex gap-3 px-4 py-3.5 hover:bg-[color:var(--app-surface-muted)]">
+            <Link href={route('communication.announcements.show', item.id)} className="flex gap-3 px-4 py-3.5 hover:bg-(--app-surface-muted)">
                 <span className="mt-0.5 shrink-0"><PriorityMark priority={item.priority} withLabel={false} /></span>
                 <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                        <span className={`text-sm ${unread ? 'font-semibold' : 'font-medium'} text-[color:var(--app-foreground)]`}>{item.title}</span>
+                        <span className={`text-sm ${unread ? 'font-semibold' : 'font-medium'} text-(--app-foreground)`}>{item.title}</span>
                         {item.priority !== 'NORMAL' && <PriorityMark priority={item.priority} withLabel />}
                         {manage && <StatusPill status={item.status} />}
                     </span>
-                    {item.excerpt && <span className="mt-0.5 line-clamp-2 block text-xs text-[color:var(--app-muted-foreground)]">{item.excerpt}</span>}
-                    <span className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[color:var(--app-muted-foreground)]">
+                    {item.excerpt && <span className="mt-0.5 line-clamp-2 block text-xs text-(--app-muted-foreground)">{item.excerpt}</span>}
+                    <span className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-(--app-muted-foreground)">
                         <span className="tabular-nums">{when}</span>
                         {item.has_attachments && <span className="inline-flex items-center gap-1"><PaperclipIcon className="h-3 w-3" aria-hidden="true" />{t('communication.announcements.files')}</span>}
                         {!manage && item.acknowledgement_required && (item.acknowledged
@@ -187,7 +187,7 @@ function Row({ item, manage }: { item: AnnouncementSummary; manage: boolean }): 
                         )}
                     </span>
                 </span>
-                {unread && <span aria-label={t('communication.announcements.unread')} className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[color:var(--color-primary)]" />}
+                {unread && <span aria-label={t('communication.announcements.unread')} className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />}
             </Link>
         </li>
     );
@@ -196,11 +196,11 @@ function Row({ item, manage }: { item: AnnouncementSummary; manage: boolean }): 
 export function StatusPill({ status }: { status: AnnouncementStatus }): JSX.Element {
     const { t } = useLocale();
     const tone: Record<AnnouncementStatus, string> = {
-        DRAFT: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
-        SCHEDULED: 'bg-[color:var(--tone-info-bg,#eff8ff)] text-[color:var(--color-primary)]',
-        PUBLISHED: 'bg-[color:var(--tone-success-bg,#ecfdf3)] text-emerald-800 dark:text-emerald-200',
-        EXPIRED: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
-        CANCELLED: 'bg-[color:var(--tone-danger-bg,#fef3f2)] text-[color:var(--color-danger,#b42318)]',
+        DRAFT: 'bg-(--app-surface-muted) text-(--app-muted-foreground)',
+        SCHEDULED: 'bg-(--tone-info-bg,#eff8ff) text-primary',
+        PUBLISHED: 'bg-(--tone-success-bg,#ecfdf3) text-emerald-800 dark:text-emerald-200',
+        EXPIRED: 'bg-(--app-surface-muted) text-(--app-muted-foreground)',
+        CANCELLED: 'bg-(--tone-danger-bg,#fef3f2) text-(--color-danger,#b42318)',
     };
     return <span className={`inline-flex h-5 items-center rounded-full px-2 text-[10px] font-semibold uppercase tracking-wide ${tone[status]}`}>{t(`communication.announcements.statuses.${status}`)}</span>;
 }

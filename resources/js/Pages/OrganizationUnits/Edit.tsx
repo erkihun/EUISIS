@@ -70,16 +70,16 @@ export default function OrganizationUnitsEdit({
                         e.preventDefault();
                         patch(route('organization-units.update', unit.id));
                     }}
-                    className="w-full space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
+                    className="w-full space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-4 sm:p-6 lg:p-8"
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Organization — locked */}
                         <div>
                             <FormLabel>{`${t('organizationUnits.organization')} *`}</FormLabel>
-                            <div className={`${inputCls} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
+                            <div className={`${inputCls} bg-(--app-surface-muted) text-(--app-muted-foreground)`}>
                                 {unit.organization?.name_en ?? unit.organization_id}
                                 {unit.organization?.code && (
-                                    <span className="ml-1 font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                    <span className="ml-1 font-mono text-xs text-(--app-muted-foreground)">
                                         ({unit.organization.code})
                                     </span>
                                 )}
@@ -251,7 +251,7 @@ export default function OrganizationUnitsEdit({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
+                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-(--app-border) pt-5">
                         <Button type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('common.saveChanges')}
                         </Button>

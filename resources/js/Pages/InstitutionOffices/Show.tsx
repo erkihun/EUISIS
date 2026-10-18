@@ -137,17 +137,17 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
 
             <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
                 {/* Main details */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">
                                 {office.office_code}
                             </p>
-                            <h3 className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">
+                            <h3 className="mt-1 text-2xl font-semibold text-(--app-foreground)">
                                 {office.name_en ?? office.office_code}
                             </h3>
                             {office.name_am && (
-                                <p className="mt-0.5 text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-0.5 text-sm text-(--app-muted-foreground)">
                                     {office.name_am}
                                 </p>
                             )}
@@ -163,31 +163,31 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                     <dl className="mt-6 grid gap-4 sm:grid-cols-2">
                         {fields.map(({ label, value }) => (
                             <div key={label}>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">
                                     {label}
                                 </dt>
-                                <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">{value}</dd>
+                                <dd className="mt-1 text-sm text-(--app-foreground)">{value}</dd>
                             </div>
                         ))}
                     </dl>
 
                     {office.notes && (
-                        <div className="mt-4 rounded-lg bg-[color:var(--app-surface-muted)] p-3">
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                        <div className="mt-4 rounded-lg bg-(--app-surface-muted) p-3">
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">
                                 {t('institutionOffices.notes')}
                             </p>
-                            <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{office.notes}</p>
+                            <p className="mt-1 text-sm text-(--app-foreground)">{office.notes}</p>
                         </div>
                     )}
                 </section>
 
                 {/* Child offices */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h3 className="font-semibold text-(--app-foreground)">
                         {t('institutionOffices.childOffices')} ({office.child_offices_count})
                     </h3>
                     {office.children.length === 0 ? (
-                        <p className="mt-4 text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="mt-4 text-sm text-(--app-muted-foreground)">
                             {t('institutionOffices.noOffices')}
                         </p>
                     ) : (
@@ -195,7 +195,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                             {office.children.map((child) => (
                                 <li
                                     key={child.id}
-                                    className="flex items-center justify-between rounded-lg border border-[color:var(--app-border)] px-3 py-2"
+                                    className="flex items-center justify-between rounded-lg border border-(--app-border) px-3 py-2"
                                 >
                                     <div>
                                         <Link

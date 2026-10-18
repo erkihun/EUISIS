@@ -52,7 +52,7 @@ export default function OversightSetup({ cycles, policies, reasons, types, emplo
                         </>}>
                             {cycles.data.map((c) => (
                                 <tr key={c.id}>
-                                    <td className={tdCls}><span className="font-medium">{named(c, locale)}</span><div className="text-xs text-[color:var(--app-muted-foreground)]">{c.code}</div></td>
+                                    <td className={tdCls}><span className="font-medium">{named(c, locale)}</span><div className="text-xs text-(--app-muted-foreground)">{c.code}</div></td>
                                     <td className={tdCls}>{named(c.type, locale)}</td>
                                     <td className={`${tdCls} text-xs`}><LocalizedDateDisplay value={c.period_start} /> – <LocalizedDateDisplay value={c.period_end} /></td>
                                     <td className={`${tdCls} tabular-nums`}>{c.organizations_count}</td>
@@ -99,8 +99,8 @@ function Policies({ policies }: { policies: Policy[] }) {
                     {editing === p.id ? <BandEditor policy={p} onDone={() => setEditing(null)} /> : (
                         <>
                             <ul className="text-sm">
-                                {p.bands.length === 0 && <li className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.setup.noBands')}</li>}
-                                {p.bands.map((b) => <li key={b.code} className="flex justify-between border-b border-[color:var(--app-border)] py-1"><span>{(locale === 'am' && b.label_am) || b.label_en}</span><span className="tabular-nums text-[color:var(--app-muted-foreground)]">{b.min_inclusive ? '[' : '('}{Number(b.min_score)} – {Number(b.max_score)}{b.max_inclusive ? ']' : ')'}</span></li>)}
+                                {p.bands.length === 0 && <li className="text-(--app-muted-foreground)">{t('assessmentOversight.setup.noBands')}</li>}
+                                {p.bands.map((b) => <li key={b.code} className="flex justify-between border-b border-(--app-border) py-1"><span>{(locale === 'am' && b.label_am) || b.label_en}</span><span className="tabular-nums text-(--app-muted-foreground)">{b.min_inclusive ? '[' : '('}{Number(b.min_score)} – {Number(b.max_score)}{b.max_inclusive ? ']' : ')'}</span></li>)}
                             </ul>
                             {p.problems.length > 0 && <ul className="mt-2 list-disc ps-5 text-sm text-red-700">{p.problems.map((x) => <li key={x}>{x}</li>)}</ul>}
                         </>
@@ -155,7 +155,7 @@ function BandEditor({ policy, onDone }: { policy: Policy; onDone: () => void }) 
                 <button className={smallPrimaryBtn} disabled={form.processing}>{t('assessmentOversight.actions.save')}</button>
                 <button type="button" className={smallBtn} onClick={onDone}>{t('assessmentOversight.actions.cancel')}</button>
             </div>
-            <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.setup.bandsNote')}</p>
+            <p className="text-xs text-(--app-muted-foreground)">{t('assessmentOversight.setup.bandsNote')}</p>
         </form>
     );
 }
@@ -188,7 +188,7 @@ function Reasons({ reasons }: { reasons: Reason[] }) {
                         <button className={primaryBtn} disabled={form.processing}>{t('assessmentOversight.actions.save')}</button>
                         {form.data.id && <button type="button" className={secondaryBtn} onClick={() => form.setData(blank)}>{t('assessmentOversight.actions.cancel')}</button>}
                     </div>
-                    <p className="text-xs text-[color:var(--app-muted-foreground)] sm:col-span-3">{t('assessmentOversight.setup.excludesHelp')}</p>
+                    <p className="text-xs text-(--app-muted-foreground) sm:col-span-3">{t('assessmentOversight.setup.excludesHelp')}</p>
                 </form>
             </Section>
             <Section title={t('assessmentOversight.setup.tabs.reasons')} flush>
@@ -202,7 +202,7 @@ function Reasons({ reasons }: { reasons: Reason[] }) {
                 </>}>
                     {reasons.map((r) => (
                         <tr key={r.id}>
-                            <td className={`${tdCls} font-mono text-xs`}>{r.code}{r.is_system && <span className="ms-1 text-[color:var(--app-muted-foreground)]">({t('assessmentOversight.system')})</span>}</td>
+                            <td className={`${tdCls} font-mono text-xs`}>{r.code}{r.is_system && <span className="ms-1 text-(--app-muted-foreground)">({t('assessmentOversight.system')})</span>}</td>
                             <td className={tdCls}>{named(r, locale)}</td>
                             <td className={tdCls}>{t(`assessmentOversight.reasonSources.${r.source}`)}</td>
                             <td className={tdCls}>{r.excludes_from_denominator ? '✓' : '—'}</td>

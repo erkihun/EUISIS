@@ -27,7 +27,7 @@ export default function GradeLevelsEdit({ gradeLevel }: Props) {
         <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('gradeLevels.editGradeLevel')} />}>
             <Head title={t('gradeLevels.editGradeLevel')} />
             <form
-                className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+                className="space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
                 onSubmit={submit}
             >
                 <div className="max-w-sm space-y-1.5">
@@ -53,7 +53,7 @@ export default function GradeLevelsEdit({ gradeLevel }: Props) {
                     </button>
                     <Link
                         href={route('grade-levels.show', gradeLevel.id)}
-                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
+                        className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground)"
                     >
                         {t('common.cancel')}
                     </Link>

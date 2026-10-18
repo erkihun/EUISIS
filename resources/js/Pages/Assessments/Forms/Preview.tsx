@@ -26,7 +26,7 @@ export default function AssessmentFormPreview({ form, version }: Props) {
     const [view, setView] = useState<'evaluator' | 'official'>('evaluator');
     // One blank score column per expected evaluator, as on the paper form.
     const evaluatorColumns = Math.max(1, version.evaluators.reduce((sum, scheme) => sum + scheme.required_count, 0));
-    const toggle = (active: boolean) => `${secondaryBtn} ${active ? 'ring-2 ring-[color:var(--color-primary)]' : ''}`;
+    const toggle = (active: boolean) => `${secondaryBtn} ${active ? 'ring-2 ring-primary' : ''}`;
     const pick = (en: string | null | undefined, am: string | null | undefined) => (locale === 'am' && am) || en || am || '';
     const total = version.sections.reduce((sum, section) => sum + section.criteria.reduce((subtotal, criterion) => subtotal + Number(criterion.options.find((option) => option.id === picked[criterion.id])?.score ?? 0), 0), 0);
     const max = Number(version.computed_max ?? 0);
@@ -42,47 +42,47 @@ export default function AssessmentFormPreview({ form, version }: Props) {
             </div>} />}>
             <Head title={t('assessments.actions.preview')} />
             <style>{'@media print { @page { size: A4 landscape; margin: 10mm; } body * { visibility: hidden; } .official-print, .official-print * { visibility: visible; } .official-print { display: block !important; position: absolute; left: 0; top: 0; width: 100%; } }'}</style>
-            <div className={view === 'official' ? 'official-print overflow-x-auto rounded-panel border border-[color:var(--app-border)] print:rounded-none print:border-0' : 'official-print hidden'}>
+            <div className={view === 'official' ? 'official-print overflow-x-auto rounded-panel border border-(--app-border) print:rounded-none print:border-0' : 'official-print hidden'}>
                 <OfficialAssessmentSheet code={form.code} title={{ en: version.name_en, am: version.name_am }} sections={version.sections}
                     columns={Array.from({ length: evaluatorColumns }, () => null)} />
             </div>
             <div className={`${pageCls} max-w-4xl ${view === 'official' ? 'hidden' : ''}`}>
                 <p role="note" className="rounded-panel border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('assessments.previewNote')}</p>
-                {pick(version.instructions_en, version.instructions_am) && <p className="whitespace-pre-line text-sm text-[color:var(--app-foreground)]">{pick(version.instructions_en, version.instructions_am)}</p>}
+                {pick(version.instructions_en, version.instructions_am) && <p className="whitespace-pre-line text-sm text-(--app-foreground)">{pick(version.instructions_en, version.instructions_am)}</p>}
 
                 {version.sections.map((section, si) => (
                     <Section key={section.id} title={`${si + 1}. ${pick(section.title_en, section.title_am)}`} description={pick(section.description_en, section.description_am) || undefined}
-                        actions={<span className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.sectionMax')}: {Number(section.computed_max)}</span>}>
+                        actions={<span className="text-xs text-(--app-muted-foreground)">{t('assessments.sectionMax')}: {Number(section.computed_max)}</span>}>
                         <div className="space-y-5">
                             {section.criteria.map((criterion, ci) => (
                                 <fieldset key={criterion.id}>
-                                    <legend className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                                    <legend className="text-sm font-semibold text-(--app-foreground)">
                                         {si + 1}.{ci + 1} {pick(criterion.title_en, criterion.title_am)}{criterion.is_required && <span className="text-red-600"> *</span>}
                                     </legend>
-                                    {pick(criterion.description_en, criterion.description_am) && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{pick(criterion.description_en, criterion.description_am)}</p>}
+                                    {pick(criterion.description_en, criterion.description_am) && <p className="mt-1 text-sm text-(--app-muted-foreground)">{pick(criterion.description_en, criterion.description_am)}</p>}
                                     <div className="mt-2 space-y-1.5">
                                         {criterion.options.map((option) => (
-                                            <label key={option.id} className="flex cursor-pointer items-start gap-3 rounded-lg border border-[color:var(--app-border)] px-3 py-2 text-sm hover:bg-[color:var(--app-surface-muted)]">
+                                            <label key={option.id} className="flex cursor-pointer items-start gap-3 rounded-lg border border-(--app-border) px-3 py-2 text-sm hover:bg-(--app-surface-muted)">
                                                 <input type="radio" name={criterion.id} className="mt-0.5" checked={picked[criterion.id] === option.id} onChange={() => setPicked({ ...picked, [criterion.id]: option.id })} />
                                                 <span className="min-w-0 flex-1">
                                                     {pick(option.label_en, option.label_am) && <span className="block font-medium">{pick(option.label_en, option.label_am)}</span>}
-                                                    <span className="block text-[color:var(--app-foreground)]">{pick(option.description_en, option.description_am)}</span>
+                                                    <span className="block text-(--app-foreground)">{pick(option.description_en, option.description_am)}</span>
                                                 </span>
-                                                <span className="shrink-0 tabular-nums text-[color:var(--app-muted-foreground)]">{Number(option.score)}</span>
+                                                <span className="shrink-0 tabular-nums text-(--app-muted-foreground)">{Number(option.score)}</span>
                                             </label>
                                         ))}
                                     </div>
                                     {criterion.comment_mode !== 'disabled' && <textarea rows={2} aria-label={t('assessments.fields.comment')} placeholder={`${t('assessments.fields.comment')}${criterion.comment_mode === 'required' ? ' *' : ''}`} className={cx(textareaClassName, 'mt-2 w-full')} />}
-                                    {criterion.evidence_mode !== 'disabled' && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.evidencePreview')}{criterion.evidence_mode === 'required' ? ' *' : ''}</p>}
+                                    {criterion.evidence_mode !== 'disabled' && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('assessments.evidencePreview')}{criterion.evidence_mode === 'required' ? ' *' : ''}</p>}
                                 </fieldset>
                             ))}
                         </div>
                     </Section>
                 ))}
 
-                <div className="sticky bottom-3 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 text-sm shadow-lg backdrop-blur">
+                <div className="sticky bottom-3 rounded-panel border border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 text-sm shadow-lg backdrop-blur-sm">
                     {t('assessments.previewTotal')}: <span className="font-semibold tabular-nums">{Math.round(total * 10000) / 10000} / {max}</span>
-                    {max > 0 && <span className="ms-2 text-[color:var(--app-muted-foreground)]">({Math.round((total / max) * 10000) / 100}%)</span>}
+                    {max > 0 && <span className="ms-2 text-(--app-muted-foreground)">({Math.round((total / max) * 10000) / 100}%)</span>}
                 </div>
             </div>
         </AuthenticatedLayout>

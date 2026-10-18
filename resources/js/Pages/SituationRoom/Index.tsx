@@ -34,10 +34,10 @@ export default function SituationRoomIndex({ categories, filters, query, scope, 
 
                 <section aria-labelledby="sr-headlines" className="space-y-3">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                        <h2 id="sr-headlines" className="text-base font-semibold text-[color:var(--app-foreground)]">{sr('categories.overview.title')}</h2>
+                        <h2 id="sr-headlines" className="text-base font-semibold text-(--app-foreground)">{sr('categories.overview.title')}</h2>
                         {result && <Freshness generatedAt={result.generated_at} cachedFor={result.cached_for} />}
                     </div>
-                    <Deferred data="result" fallback={<p className="text-sm text-[color:var(--app-muted-foreground)]" role="status">{sr('ui.loading')}</p>}>
+                    <Deferred data="result" fallback={<p className="text-sm text-(--app-muted-foreground)" role="status">{sr('ui.loading')}</p>}>
                         <>
                             {kpis && kpis.type === 'kpis' && <KpiTiles items={kpis.data.items} />}
                         </>
@@ -55,18 +55,18 @@ export default function SituationRoomIndex({ categories, filters, query, scope, 
                     if (items.length === 0) return null;
                     return (
                         <section key={section} aria-labelledby={`sr-section-${section}`} className="space-y-3">
-                            <h2 id={`sr-section-${section}`} className="text-sm font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{sr(`sections.${section}`)}</h2>
+                            <h2 id={`sr-section-${section}`} className="text-sm font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{sr(`sections.${section}`)}</h2>
                             <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                                 {items.map((category) => (
                                     <li key={category.key}>
-                                        <Link href={category.href} data={query} className="group block h-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)]">
-                                            <Card className="flex h-full items-start gap-3 p-4 transition-colors group-hover:border-[color:var(--color-primary)]">
-                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]">
+                                        <Link href={category.href} data={query} className="group block h-full focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                                            <Card className="flex h-full items-start gap-3 p-4 transition-colors group-hover:border-primary">
+                                                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-(--app-surface-muted) text-primary">
                                                     <CategoryIcon name={category.icon} className="h-6 w-6" />
                                                 </span>
                                                 <span className="min-w-0">
-                                                    <span className="block font-semibold text-[color:var(--app-foreground)]">{sr(`categories.${category.key}.title`)}</span>
-                                                    <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">{sr(`categories.${category.key}.description`)}</span>
+                                                    <span className="block font-semibold text-(--app-foreground)">{sr(`categories.${category.key}.title`)}</span>
+                                                    <span className="mt-1 block text-xs text-(--app-muted-foreground)">{sr(`categories.${category.key}.description`)}</span>
                                                 </span>
                                             </Card>
                                         </Link>

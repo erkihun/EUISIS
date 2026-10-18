@@ -71,7 +71,7 @@ load.
 - No `<link rel="preload">`. Fonts are cached after the first visit, and
   preloading Ethiopic on English pages would waste bandwidth.
 
-### Tailwind (`tailwind.config.js`)
+### Tailwind (`@theme` in `resources/css/app.css`)
 
 | Utility | Meaning |
 |---|---|
@@ -80,9 +80,11 @@ load.
 | `font-id-card` | `var(--font-id-card)` |
 | `font-mono` | Tailwind default. Use only for codes, keys and technical data |
 
-> The project runs Tailwind 3.4 (`tailwind.config.js`), not Tailwind 4's
-> `@theme`. The tokens are ordinary CSS variables, so a later move to
-> Tailwind 4 only changes where they are registered.
+> The project runs Tailwind 4. The keys are registered in an
+> `@theme inline reference` block in `resources/css/app.css`: `inline` makes a
+> utility use the token itself (`font-family: var(--font-ui)`), so a `lang`
+> switch on any element applies there, and `reference` keeps Tailwind from
+> emitting `--font-ui: var(--font-ui)` copies, which would be invalid.
 
 ## Weights
 

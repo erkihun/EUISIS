@@ -21,8 +21,8 @@ export default function JobDescriptionForm({ show, onClose, title, url, profiles
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.draftJdHint')}</p>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">{tt('positionDesign.draftJdHint')}</p>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField id="jd-from" label={tt('fields.effectiveFrom')} required error={errors.effective_from}>{({ id }) => <LocalizedDatePicker id={id} className="w-full" value={form.data.effective_from} onChange={(iso) => form.setData('effective_from', iso)} />}</FormField>
                     <FormField id="jd-to" label={tt('fields.effectiveTo')} error={errors.effective_to}>{({ id }) => <LocalizedDatePicker id={id} className="w-full" value={form.data.effective_to} min={form.data.effective_from || undefined} onChange={(iso) => form.setData('effective_to', iso)} />}</FormField>

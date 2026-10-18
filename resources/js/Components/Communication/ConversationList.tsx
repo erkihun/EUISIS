@@ -37,7 +37,7 @@ export default function ConversationList(props: Props): JSX.Element {
     return (
         <div className="flex h-full min-h-0 flex-col">
             <div className="flex items-center gap-2 px-3 pb-2 pt-3">
-                <h2 className="flex-1 text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.messagesTitle')}</h2>
+                <h2 className="flex-1 text-base font-semibold text-(--app-foreground)">{t('communication.messagesTitle')}</h2>
                 {props.canStart && (
                     <div className="relative">
                         <Button
@@ -56,7 +56,7 @@ export default function ConversationList(props: Props): JSX.Element {
                                 <MenuItem onClick={() => { setMenu(false); props.onNew('message'); }}><ChatIcon className="h-4 w-4" />{t('communication.start.message')}</MenuItem>
                                 {props.canGroup && <MenuItem onClick={() => { setMenu(false); props.onNew('group'); }}><Users className="h-4 w-4" />{t('communication.start.group')}</MenuItem>}
                                 {props.canBrowseChannels && (
-                                    <Link role="menuitem" href={route('communication.channels.index')} className="flex w-full items-center gap-2.5 px-3 py-1.5 text-start text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] focus:bg-[color:var(--app-surface-muted)] focus:outline-none">
+                                    <Link role="menuitem" href={route('communication.channels.index')} className="flex w-full items-center gap-2.5 px-3 py-1.5 text-start text-sm text-(--app-foreground) hover:bg-(--app-surface-muted) focus:bg-(--app-surface-muted) focus:outline-hidden">
                                         <HashIcon className="h-4 w-4" />{t('communication.start.channel')}
                                     </Link>
                                 )}
@@ -69,13 +69,13 @@ export default function ConversationList(props: Props): JSX.Element {
             <div className="px-3">
                 <label className="relative block">
                     <span className="sr-only">{t('communication.list.search')}</span>
-                    <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                    <SearchIcon className="pointer-events-none absolute inset-s-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                     <input
                         type="search"
                         value={search}
                         onChange={(event) => props.onSearch(event.target.value)}
                         placeholder={t('communication.list.search')}
-                        className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15"
+                        className="h-9 w-full rounded-control border border-(--app-border) bg-(--app-background) ps-8 pe-2 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15"
                     />
                 </label>
                 <div role="tablist" aria-label={t('communication.list.label')} className="mt-2 flex gap-1 overflow-x-auto pb-2">
@@ -86,7 +86,7 @@ export default function ConversationList(props: Props): JSX.Element {
                             role="tab"
                             aria-selected={filter === value}
                             onClick={() => props.onFilter(value)}
-                            className={`h-7 shrink-0 rounded-full px-3 text-xs font-medium transition-colors ${filter === value ? 'bg-[color:var(--app-foreground)] text-[color:var(--app-background)]' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]'}`}
+                            className={`h-7 shrink-0 rounded-full px-3 text-xs font-medium transition-colors ${filter === value ? 'bg-(--app-foreground) text-(--app-background)' : 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)'}`}
                         >
                             {t(`communication.filters.${value ?? 'all'}`)}
                         </button>
@@ -94,11 +94,11 @@ export default function ConversationList(props: Props): JSX.Element {
                 </div>
             </div>
 
-            <nav aria-label={t('communication.list.label')} className="comm-scroll min-h-0 flex-1 overflow-y-auto border-t border-[color:var(--app-border)]">
+            <nav aria-label={t('communication.list.label')} className="comm-scroll min-h-0 flex-1 overflow-y-auto border-t border-(--app-border)">
                 {loading && items.length === 0 ? (
                     <ListSkeleton />
                 ) : items.length === 0 ? (
-                    <p className="px-4 py-10 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                    <p className="px-4 py-10 text-center text-sm text-(--app-muted-foreground)">
                         {search || filter ? t('communication.list.emptyFilter') : t('communication.list.empty')}
                     </p>
                 ) : (
@@ -112,7 +112,7 @@ export default function ConversationList(props: Props): JSX.Element {
                             type="button"
                             disabled={loading}
                             onClick={props.onLoadMore}
-                            className="h-8 w-full rounded-control text-xs font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)] disabled:opacity-50"
+                            className="h-8 w-full rounded-control text-xs font-medium text-primary hover:bg-(--app-surface-muted) disabled:opacity-50"
                         >
                             {t('communication.list.loadMore')}
                         </button>
@@ -143,7 +143,7 @@ const Row = memo(function Row({ item, active, onSelect }: { item: ConversationSu
                 type="button"
                 onClick={() => onSelect(item.id)}
                 aria-current={active ? 'page' : undefined}
-                className={`flex w-full items-center gap-3 px-3 py-2.5 text-start transition-colors focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)] ${active ? 'bg-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))]' : 'hover:bg-[color:var(--app-surface-muted)]'}`}
+                className={`flex w-full items-center gap-3 px-3 py-2.5 text-start transition-colors focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-primary ${active ? 'bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))]' : 'hover:bg-(--app-surface-muted)'}`}
             >
                 <Avatar
                     name={item.title}
@@ -154,22 +154,22 @@ const Row = memo(function Row({ item, active, onSelect }: { item: ConversationSu
                 />
                 <span className="min-w-0 flex-1">
                     <span className="flex items-baseline gap-2">
-                        <span className={`min-w-0 flex-1 truncate text-sm ${unread ? 'font-semibold text-[color:var(--app-foreground)]' : 'font-medium text-[color:var(--app-foreground)]'}`}>
+                        <span className={`min-w-0 flex-1 truncate text-sm ${unread ? 'font-semibold text-(--app-foreground)' : 'font-medium text-(--app-foreground)'}`}>
                             {item.title}
                         </span>
-                        <span className={`shrink-0 text-[11px] tabular-nums ${unread ? 'font-semibold text-[color:var(--color-primary)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                        <span className={`shrink-0 text-[11px] tabular-nums ${unread ? 'font-semibold text-primary' : 'text-(--app-muted-foreground)'}`}>
                             {listTime(item.last_message_at, locale, system)}
                         </span>
                     </span>
                     <span className="mt-0.5 flex items-center gap-2">
-                        <span className={`flex min-w-0 flex-1 items-center gap-1 truncate text-xs ${unread ? 'text-[color:var(--app-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                        <span className={`flex min-w-0 flex-1 items-center gap-1 truncate text-xs ${unread ? 'text-(--app-foreground)' : 'text-(--app-muted-foreground)'}`}>
                             {last?.has_attachments && !last.deleted && <PaperclipIcon className="h-3 w-3 shrink-0" aria-hidden="true" />}
                             <span className={`truncate ${last?.deleted ? 'italic' : ''}`}>{preview}</span>
                         </span>
-                        {item.muted && <BellOffIcon className="h-3.5 w-3.5 shrink-0 text-[color:var(--app-muted-foreground)]" aria-label={t('communication.list.muted')} />}
+                        {item.muted && <BellOffIcon className="h-3.5 w-3.5 shrink-0 text-(--app-muted-foreground)" aria-label={t('communication.list.muted')} />}
                         {unread && (
                             <span
-                                className={`inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${item.muted ? 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]' : 'bg-[color:var(--color-primary)] text-white'}`}
+                                className={`inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${item.muted ? 'bg-(--app-surface-muted) text-(--app-muted-foreground)' : 'bg-primary text-white'}`}
                                 aria-label={tr(t('communication.list.unread'), { n: item.unread_count })}
                             >
                                 {item.unread_count > 99 ? '99+' : item.unread_count}
@@ -187,10 +187,10 @@ export function ListSkeleton({ rows = 7 }: { rows?: number }): JSX.Element {
         <ul aria-hidden="true" className="animate-pulse">
             {Array.from({ length: rows }, (_, index) => (
                 <li key={index} className="flex items-center gap-3 px-3 py-3">
-                    <span className="h-10 w-10 shrink-0 rounded-full bg-[color:var(--app-surface-muted)]" />
+                    <span className="h-10 w-10 shrink-0 rounded-full bg-(--app-surface-muted)" />
                     <span className="flex-1 space-y-2">
-                        <span className="block h-3 w-2/3 rounded bg-[color:var(--app-surface-muted)]" />
-                        <span className="block h-2.5 w-5/6 rounded bg-[color:var(--app-surface-muted)]" />
+                        <span className="block h-3 w-2/3 rounded-sm bg-(--app-surface-muted)" />
+                        <span className="block h-2.5 w-5/6 rounded-sm bg-(--app-surface-muted)" />
                     </span>
                 </li>
             ))}

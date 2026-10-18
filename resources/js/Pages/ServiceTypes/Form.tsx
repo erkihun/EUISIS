@@ -41,7 +41,7 @@ export default function ServiceTypeForm({
 
     return (
         <form
-            className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+            className="space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
             onSubmit={onSubmit}
         >
             <div className="grid gap-4 md:grid-cols-2">
@@ -59,10 +59,10 @@ export default function ServiceTypeForm({
                     />
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                    <label className="text-sm font-medium text-(--app-foreground)">
                         {t('common.status')}
                     </label>
-                    <label className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm text-[color:var(--app-foreground)]">
+                    <label className="flex items-center gap-2 rounded-lg border border-(--app-border-strong) px-3 py-2 text-sm text-(--app-foreground)">
                         <input
                             type="checkbox"
                             checked={form.data.is_active}
@@ -73,7 +73,7 @@ export default function ServiceTypeForm({
                     {renderError('is_active')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                    <label className="text-sm font-medium text-(--app-foreground)">
                         {t('serviceTypes.englishName')}
                     </label>
                     <input
@@ -84,7 +84,7 @@ export default function ServiceTypeForm({
                     {renderError('name_en')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                    <label className="text-sm font-medium text-(--app-foreground)">
                         {t('serviceTypes.amharicName')}
                     </label>
                     <input
@@ -97,7 +97,7 @@ export default function ServiceTypeForm({
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                <label className="text-sm font-medium text-(--app-foreground)">
                     {t('serviceTypes.description')}
                 </label>
                 <textarea
@@ -118,7 +118,7 @@ export default function ServiceTypeForm({
                 </button>
                 <Link
                     href={cancelHref}
-                    className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
+                    className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground)"
                 >
                     {t('common.cancel')}
                 </Link>

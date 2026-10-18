@@ -33,12 +33,12 @@ export default function Avatar({ name, userId, hasPhoto = false, kind = 'DIRECT'
                 : <span aria-hidden="true">{initials(name)}</span>;
 
     return (
-        <span className={`${box} ${kind === 'DIRECT' ? 'bg-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-[color:var(--app-foreground)]' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
+        <span className={`${box} ${kind === 'DIRECT' ? 'bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-(--app-foreground)' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>
             {inner}
             {online !== null && (
                 <span
                     aria-hidden="true"
-                    className={`absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full ring-2 ring-[color:var(--app-surface)] ${online ? 'bg-emerald-500' : 'bg-[color:var(--app-border-strong)]'}`}
+                    className={`absolute -bottom-0.5 -inset-e-0.5 h-3 w-3 rounded-full ring-2 ring-(--app-surface) ${online ? 'bg-emerald-500' : 'bg-(--app-border-strong)'}`}
                 />
             )}
         </span>

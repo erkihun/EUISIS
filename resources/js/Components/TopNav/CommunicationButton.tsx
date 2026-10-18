@@ -36,20 +36,20 @@ export default function CommunicationButton() {
                 aria-current={active ? 'page' : undefined}
                 className={[
                     'relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors duration-150',
-                    'hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--app-surface)]',
-                    active ? 'bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]' : 'text-[color:var(--app-muted-foreground)]',
+                    'hover:bg-(--app-surface-muted) hover:text-(--app-foreground)',
+                    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-(--app-surface)',
+                    active ? 'bg-(--app-surface-muted) text-primary' : 'text-(--app-muted-foreground)',
                 ].join(' ')}
             >
                 <ChatIcon className="h-5 w-5" aria-hidden="true" />
                 {badge && (
-                    <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-4 text-white ring-2 ring-[color:var(--app-surface)]">
+                    <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-4 text-white ring-2 ring-(--app-surface)">
                         {badge}
                     </span>
                 )}
             </Link>
             {/* Tooltip: on hover and on keyboard focus, below the bar so the header never clips it. */}
-            <span role="tooltip" className="pointer-events-none absolute right-1/2 top-full z-50 mt-2 hidden translate-x-1/2 whitespace-nowrap rounded bg-[color:var(--app-foreground)] px-2 py-1 text-xs text-[color:var(--app-background)] shadow-lg group-hover:block group-focus-within:block">
+            <span role="tooltip" className="pointer-events-none absolute right-1/2 top-full z-50 mt-2 hidden translate-x-1/2 whitespace-nowrap rounded-sm bg-(--app-foreground) px-2 py-1 text-xs text-(--app-background) shadow-lg group-hover:block group-focus-within:block">
                 {label}
             </span>
         </span>

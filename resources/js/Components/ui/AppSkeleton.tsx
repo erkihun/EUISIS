@@ -9,7 +9,7 @@ export function AppSkeleton({ className = '' }: SkeletonProps) {
     return (
         <div
             aria-hidden="true"
-            className={`animate-pulse rounded bg-gray-200 dark:bg-slate-700 ${className}`}
+            className={`animate-pulse rounded-sm bg-gray-200 dark:bg-slate-700 ${className}`}
         />
     );
 }

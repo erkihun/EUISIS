@@ -37,7 +37,7 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
 
     function cell(row: Row, column: string): React.ReactNode {
         const value = row[column];
-        if (value === null || value === undefined || value === '') return <span className="text-[color:var(--app-muted-foreground)]">—</span>;
+        if (value === null || value === undefined || value === '') return <span className="text-(--app-muted-foreground)">—</span>;
         if (column === 'severity') return <span className={badgeClassName(SEVERITY_TONES[value as keyof typeof SEVERITY_TONES] ?? 'neutral')}>{tt(`validation.severity.${value}`)}</span>;
         if (STATUS_COLUMNS.includes(column)) return <StatusPill status={String(value)} />;
         if (column === 'position_code' && row.position_id) return <Link href={route('organization-design.position-design.show', String(row.position_id))} className={actionLinkClassName({ size: 'sm' })}>{String(value)}</Link>;
@@ -80,7 +80,7 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
                 </FilterPanel>
 
                 <TableCard title={tt(`reports.names.${report}`)}>
-                    <div className="flex flex-wrap items-center gap-2 px-5 pb-3 text-xs text-[color:var(--app-muted-foreground)]">
+                    <div className="flex flex-wrap items-center gap-2 px-5 pb-3 text-xs text-(--app-muted-foreground)">
                         <span>{tt(`reports.help.${report}`)}</span>
                         <span className={badgeClassName('neutral')}>{tt('reports.rows').replace(':count', String(result.rows.length))}</span>
                         <span className={badgeClassName('neutral')}>{tt('reports.organizationsCovered').replace(':count', String(result.organizations))}</span>
@@ -106,8 +106,8 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
 
                 {can.export && (
                     <Card>
-                        <CardHeader><CardTitle>{tt('reports.exports')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('reports.exportsHelp')}</p></CardHeader>
-                        {exports.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('reports.noExports')}</p> : (
+                        <CardHeader><CardTitle>{tt('reports.exports')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('reports.exportsHelp')}</p></CardHeader>
+                        {exports.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('reports.noExports')}</p> : (
                             <Table>
                                 <THead>
                                     <tr>
@@ -122,11 +122,11 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
                                 <TBody>
                                     {exports.map((e) => (
                                         <Tr key={e.id}>
-                                            <Td>{tt(`reports.names.${e.report}`)} <span className="font-mono text-xs uppercase text-[color:var(--app-muted-foreground)]">{e.format}</span></Td>
+                                            <Td>{tt(`reports.names.${e.report}`)} <span className="font-mono text-xs uppercase text-(--app-muted-foreground)">{e.format}</span></Td>
                                             <Td muted>{e.organization ? `${e.organization.code} · ${nameOf(e.organization, locale)}` : tt('reports.allOrganizations')}</Td>
                                             <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={e.created_at} withTime /></Td>
                                             <Td align="right">{e.row_count ?? '—'}</Td>
-                                            <Td><span className={badgeClassName(EXPORT_TONES[e.status] ?? 'neutral')}>{tt(`reports.statuses.${e.status}`)}</span>{e.error && <p className="text-xs text-[color:var(--app-muted-foreground)]">{e.error}</p>}</Td>
+                                            <Td><span className={badgeClassName(EXPORT_TONES[e.status] ?? 'neutral')}>{tt(`reports.statuses.${e.status}`)}</span>{e.error && <p className="text-xs text-(--app-muted-foreground)">{e.error}</p>}</Td>
                                             <Td align="right">
                                                 <div className="flex justify-end">
                                                     <AppActionMenu

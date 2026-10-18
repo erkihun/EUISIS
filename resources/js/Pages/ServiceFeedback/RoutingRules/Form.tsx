@@ -167,7 +167,7 @@ export default function RuleForm({ record, organizations, categories, canManageC
                         {({ id, describedBy, invalid }) => <Input id={id} type="number" min={0} max={1000} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.priority} onChange={(e) => form.setData('priority', Number(e.target.value))} />}
                     </FormField>
                     <label className="flex items-center gap-2 self-end pb-2 text-sm">
-                        <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
+                        <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />
                         {t('serviceFeedback.qrActive')}
                     </label>
                     <FormField id="rule-from" label={t('serviceFeedback.effectiveFrom')} error={errors.effective_from}>
@@ -177,7 +177,7 @@ export default function RuleForm({ record, organizations, categories, canManageC
                         {({ id }) => <LocalizedDatePicker id={id} value={form.data.effective_to} min={form.data.effective_from || undefined} onChange={(value) => form.setData('effective_to', value)} />}
                     </FormField>
                 </div>
-                <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] px-6 py-4">
+                <div className="flex justify-end gap-2 border-t border-(--app-border) px-6 py-4">
                     <Button as={Link} href={route('service-feedback.routing-rules.index')} variant="outline">{t('common.cancel')}</Button>
                     <Button type="submit" variant="primary" loading={form.processing}>{t('common.save')}</Button>
                 </div>

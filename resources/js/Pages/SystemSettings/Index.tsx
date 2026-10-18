@@ -443,8 +443,8 @@ function GroupFormPanel({
         <form ref={formRef} onSubmit={submit} className="space-y-5">
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <h2 className="text-lg font-semibold text-[color:var(--app-foreground)]">{t(`settings.tabs.${section}`)}</h2>
-                    <p className="mt-1 max-w-2xl text-sm text-[color:var(--app-muted-foreground)]">{t(`settings.descriptions.${section}`)}</p>
+                    <h2 className="text-lg font-semibold text-(--app-foreground)">{t(`settings.tabs.${section}`)}</h2>
+                    <p className="mt-1 max-w-2xl text-sm text-(--app-muted-foreground)">{t(`settings.descriptions.${section}`)}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                     <div className="flex items-center gap-2">
@@ -454,7 +454,7 @@ function GroupFormPanel({
                                 reason={isDirty ? t('settings.saveBeforeTest') : t('settings.testChannelHelp')} />
                         )}
                     </div>
-                    {canTest && isDirty && <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('settings.saveBeforeTest')}</p>}
+                    {canTest && isDirty && <p className="text-xs text-(--app-muted-foreground)">{t('settings.saveBeforeTest')}</p>}
                 </div>
             </header>
 
@@ -497,10 +497,10 @@ function GroupFormPanel({
                 // Pinned to the bottom of the window only while there is something to save.
                 <div className={cx('z-10 -mx-1 px-1 pb-4 pt-1', isDirty && 'sticky bottom-0')}>
                     <div className={cx(
-                        'flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] border px-4 py-3 shadow-lg backdrop-blur-md',
+                        'flex flex-wrap items-center justify-between gap-3 rounded-card border px-4 py-3 shadow-lg backdrop-blur-md',
                         isDirty
                             ? 'border-amber-300 bg-amber-50/95 dark:border-amber-500/40 dark:bg-amber-950/90'
-                            : 'border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_92%,transparent)]',
+                            : 'border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_92%,transparent)]',
                     )}>
                         <p aria-live="polite" className="flex min-w-0 items-center gap-2 text-sm">
                             {isDirty ? (
@@ -511,7 +511,7 @@ function GroupFormPanel({
                             ) : (
                                 <>
                                     <CheckCircle aria-hidden="true" className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                    <span className="text-[color:var(--app-muted-foreground)]">{t('settings.allSaved')}</span>
+                                    <span className="text-(--app-muted-foreground)">{t('settings.allSaved')}</span>
                                 </>
                             )}
                         </p>
@@ -559,34 +559,34 @@ function MfaCard({ fields, renderField, roles, disabled, enabled, requiredForAll
                 <div className="space-y-3 px-5 py-4">
                     <div className="flex flex-wrap items-end justify-between gap-3">
                         <div className="min-w-0">
-                            <p id="mfa-roles-label" className="text-sm font-medium text-[color:var(--app-foreground)]">
+                            <p id="mfa-roles-label" className="text-sm font-medium text-(--app-foreground)">
                                 {t('settings.mfa.requireRoles')}
                                 {!requiredForAll && selected.length > 0 && (
-                                    <span className="ms-2 font-normal tabular-nums text-[color:var(--app-muted-foreground)]">{t('settings.mfa.selectedCount').replace('{{count}}', String(selected.length))}</span>
+                                    <span className="ms-2 font-normal tabular-nums text-(--app-muted-foreground)">{t('settings.mfa.selectedCount').replace('{{count}}', String(selected.length))}</span>
                                 )}
                             </p>
-                            <p className="mt-1 text-xs leading-5 text-[color:var(--app-muted-foreground)]">{requiredForAll ? t('settings.mfa.requireAllActive') : t('settings.mfa.selectRoles')}</p>
+                            <p className="mt-1 text-xs leading-5 text-(--app-muted-foreground)">{requiredForAll ? t('settings.mfa.requireAllActive') : t('settings.mfa.selectRoles')}</p>
                         </div>
                         {roles.length > 8 && <SearchInput value={query} onChange={setQuery} label={t('settings.mfa.filterRoles')} placeholder={t('settings.mfa.filterRoles')} className="w-full sm:w-64" />}
                     </div>
                     {roles.length === 0 || shown.length === 0 ? (
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{roles.length === 0 ? t('settings.mfa.noRoles') : t('settings.mfa.noRolesMatch')}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{roles.length === 0 ? t('settings.mfa.noRoles') : t('settings.mfa.noRolesMatch')}</p>
                     ) : (
                         <div role="group" aria-labelledby="mfa-roles-label" className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                             {shown.map((role) => {
                                 const checked = requiredForAll || selected.includes(role.id);
                                 return (
                                     <label key={role.id} className={cx(
-                                        'flex min-w-0 items-start gap-2.5 rounded-[var(--radius-control)] border px-3 py-2 text-sm transition-colors',
-                                        checked ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)]/5' : 'border-[color:var(--app-border)]',
-                                        rolesDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-[color:var(--app-surface-muted)]',
+                                        'flex min-w-0 items-start gap-2.5 rounded-control border px-3 py-2 text-sm transition-colors',
+                                        checked ? 'border-primary bg-primary/5' : 'border-(--app-border)',
+                                        rolesDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:bg-(--app-surface-muted)',
                                     )}>
                                         <input type="checkbox" checked={checked} disabled={rolesDisabled}
                                             onChange={() => onSelectedChange(selected.includes(role.id) ? selected.filter((id) => id !== role.id) : [...selected, role.id])}
-                                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" />
+                                            className="mt-0.5 h-4 w-4 shrink-0 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary" />
                                         <span className="min-w-0 flex-1">
-                                            <span className="block break-words leading-5 text-[color:var(--app-foreground)]">{role.name}</span>
-                                            <span className="block text-xs tabular-nums text-[color:var(--app-muted-foreground)]">
+                                            <span className="block wrap-break-word leading-5 text-(--app-foreground)">{role.name}</span>
+                                            <span className="block text-xs tabular-nums text-(--app-muted-foreground)">
                                                 {role.guard_name !== 'web' && `${role.guard_name} · `}{t('settings.mfa.usersCount').replace('{{count}}', String(role.users_count))}
                                             </span>
                                         </span>

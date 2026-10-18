@@ -150,7 +150,7 @@ export function ConfigurationHealthPanel({ health }: { health: Health }) {
 
     return (
         <section aria-labelledby="cafeteria-health" className="space-y-3">
-            <h2 id="cafeteria-health" className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteriaPolicy.healthTitle')}</h2>
+            <h2 id="cafeteria-health" className="text-base font-semibold text-(--app-foreground)">{t('cafeteriaPolicy.healthTitle')}</h2>
             {problems === 0 && health.expiring.length === 0 && <Alert tone="success">{t('cafeteriaPolicy.healthOk')}</Alert>}
             {problems > 0 && (
                 <Alert tone="danger">

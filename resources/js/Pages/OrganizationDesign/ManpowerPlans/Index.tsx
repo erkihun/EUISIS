@@ -73,8 +73,8 @@ export default function ManpowerPlansIndex({ plans, filters, organizations, meth
                                     <Tr key={p.id}>
                                         <Td className="font-mono text-xs">{p.reference_number}</Td>
                                         <Td>
-                                            <Link href={route('organization-design.manpower-plans.show', p.id)} className="font-medium text-[color:var(--app-foreground)] hover:underline">{titleOf(p, locale)}</Link>
-                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{p.prepared_by ?? '—'}</p>
+                                            <Link href={route('organization-design.manpower-plans.show', p.id)} className="font-medium text-(--app-foreground) hover:underline">{titleOf(p, locale)}</Link>
+                                            <p className="text-xs text-(--app-muted-foreground)">{p.prepared_by ?? '—'}</p>
                                         </Td>
                                         <Td muted>{nameOf(p.organization, locale)}</Td>
                                         <Td muted>{p.methodology ? `${p.methodology.code} v${p.methodology.version_no}` : '—'}</Td>

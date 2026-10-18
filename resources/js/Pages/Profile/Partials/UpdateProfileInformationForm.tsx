@@ -30,11 +30,11 @@ export default function UpdateProfileInformation({
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-[color:var(--app-foreground)]">
+                <h2 className="text-lg font-medium text-(--app-foreground)">
                     Profile Information
                 </h2>
 
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">
                     Update your account's profile information and email address.
                 </p>
             </header>
@@ -74,13 +74,13 @@ export default function UpdateProfileInformation({
 
                 {mustVerifyEmail && user?.email_verified_at === null && (
                     <div>
-                        <p className="mt-2 text-sm text-[color:var(--app-foreground)]">
+                        <p className="mt-2 text-sm text-(--app-foreground)">
                             Your email address is unverified.
                             <Link
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
-                                className="rounded-md text-sm text-[color:var(--app-muted-foreground)] underline hover:text-[color:var(--app-foreground)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                                className="rounded-md text-sm text-(--app-muted-foreground) underline hover:text-(--app-foreground) focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                             >
                                 Click here to re-send the verification email.
                             </Link>
@@ -105,7 +105,7 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="text-sm text-(--app-muted-foreground)">
                             Saved.
                         </p>
                     </Transition>

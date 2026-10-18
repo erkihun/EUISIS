@@ -159,8 +159,8 @@ export default function TransferApplicationShow({ application, can }: Props) {
 
             {rejectOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-md rounded-card bg-[color:var(--app-surface)] p-6 shadow-xl">
-                        <h3 className="mb-3 text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.reject')}</h3>
+                    <div className="w-full max-w-md rounded-card bg-(--app-surface) p-6 shadow-xl">
+                        <h3 className="mb-3 text-base font-semibold text-(--app-foreground)">{t('transfers.reject')}</h3>
                         <textarea
                             rows={4}
                             className={cx(textareaClassName, 'w-full')}
@@ -188,23 +188,23 @@ export default function TransferApplicationShow({ application, can }: Props) {
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                 {/* Left: details */}
                 <div className="space-y-6">
-                    <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
                         <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                            <h3 className="font-semibold text-(--app-foreground)">
                                 {(useAmharic ? application.announcement?.position?.title_am : null) ?? application.announcement?.position?.title_en ?? '-'}
                             </h3>
                             <StatusBadge status={application.status} />
                         </div>
                         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                            <div><dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('transfers.releasingOrganization')}</dt><dd className="mt-1 text-[color:var(--app-foreground)]">{orgName(application.releasingOrganization)}</dd></div>
-                            <div><dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('transfers.receivingOrganization')}</dt><dd className="mt-1 text-[color:var(--app-foreground)]">{orgName(application.receivingOrganization)}</dd></div>
-                            <div><dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.submittedAt')}</dt><dd className="mt-1 text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={application.submitted_at} fallback="-" /></dd></div>
+                            <div><dt className="text-xs font-medium text-(--app-muted-foreground)">{t('transfers.releasingOrganization')}</dt><dd className="mt-1 text-(--app-foreground)">{orgName(application.releasingOrganization)}</dd></div>
+                            <div><dt className="text-xs font-medium text-(--app-muted-foreground)">{t('transfers.receivingOrganization')}</dt><dd className="mt-1 text-(--app-foreground)">{orgName(application.receivingOrganization)}</dd></div>
+                            <div><dt className="text-xs font-medium text-(--app-muted-foreground)">{t('common.submittedAt')}</dt><dd className="mt-1 text-(--app-foreground)"><LocalizedDateDisplay value={application.submitted_at} fallback="-" /></dd></div>
                         </dl>
 
                         {application.applicant_notes && (
                             <div className="mt-4">
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('transfers.applicantNotes')}</p>
-                                <p className="mt-1 whitespace-pre-line text-sm text-[color:var(--app-foreground)]">{application.applicant_notes}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('transfers.applicantNotes')}</p>
+                                <p className="mt-1 whitespace-pre-line text-sm text-(--app-foreground)">{application.applicant_notes}</p>
                             </div>
                         )}
                         {application.rejected_reason && (
@@ -217,14 +217,14 @@ export default function TransferApplicationShow({ application, can }: Props) {
 
                     {/* Approval chain */}
                     {application.approvals.length > 0 && (
-                        <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                            <h4 className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">{t('transfers.approvalChain')}</h4>
+                        <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                            <h4 className="mb-3 text-sm font-semibold text-(--app-foreground)">{t('transfers.approvalChain')}</h4>
                             <div className="space-y-2">
                                 {application.approvals.map((approval) => (
-                                    <div key={approval.id} className="flex items-center justify-between rounded-lg border border-[color:var(--app-border)] px-4 py-3">
+                                    <div key={approval.id} className="flex items-center justify-between rounded-lg border border-(--app-border) px-4 py-3">
                                         <div>
-                                            <p className="text-sm font-medium text-[color:var(--app-foreground)]">{APPROVAL_TYPE_LABELS[approval.approval_type] ?? approval.approval_type}</p>
-                                            {approval.approver && <p className="text-xs text-[color:var(--app-muted-foreground)]">{approval.approver.name} · <LocalizedDateDisplay value={approval.decided_at} /></p>}
+                                            <p className="text-sm font-medium text-(--app-foreground)">{APPROVAL_TYPE_LABELS[approval.approval_type] ?? approval.approval_type}</p>
+                                            {approval.approver && <p className="text-xs text-(--app-muted-foreground)">{approval.approver.name} · <LocalizedDateDisplay value={approval.decided_at} /></p>}
                                         </div>
                                         <StatusBadge status={approval.status} />
                                     </div>
@@ -235,20 +235,20 @@ export default function TransferApplicationShow({ application, can }: Props) {
                 </div>
 
                 {/* Right: review history */}
-                <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h4 className="mb-3 font-semibold text-[color:var(--app-foreground)]">{t('transfers.reviewHistory')}</h4>
+                <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                    <h4 className="mb-3 font-semibold text-(--app-foreground)">{t('transfers.reviewHistory')}</h4>
                     {application.screening_reviews.length === 0 ? (
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('common.noResults')}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{t('common.noResults')}</p>
                     ) : (
                         <ul className="space-y-3">
                             {application.screening_reviews.map((review) => (
-                                <li key={review.id} className="rounded-lg border border-[color:var(--app-border)] p-3">
+                                <li key={review.id} className="rounded-lg border border-(--app-border) p-3">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{SCREEN_ACTION_LABELS[review.action] ?? review.action}</span>
-                                        <LocalizedDateDisplay value={review.created_at} className="text-xs text-[color:var(--app-muted-foreground)]" />
+                                        <span className="text-xs font-semibold uppercase text-(--app-muted-foreground)">{SCREEN_ACTION_LABELS[review.action] ?? review.action}</span>
+                                        <LocalizedDateDisplay value={review.created_at} className="text-xs text-(--app-muted-foreground)" />
                                     </div>
-                                    {review.reviewer && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{review.reviewer.name}</p>}
-                                    {review.notes && <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{review.notes}</p>}
+                                    {review.reviewer && <p className="mt-1 text-xs text-(--app-muted-foreground)">{review.reviewer.name}</p>}
+                                    {review.notes && <p className="mt-1 text-sm text-(--app-foreground)">{review.notes}</p>}
                                 </li>
                             ))}
                         </ul>

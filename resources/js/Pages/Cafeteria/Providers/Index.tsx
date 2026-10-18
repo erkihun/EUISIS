@@ -94,13 +94,13 @@ export default function ProvidersIndex({
                                 <tbody className={tableBodyClassName}>
                                     {providers.map((p) => (
                                         <tr key={p.id} className={tableRowClassName}>
-                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{p.code}</td>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>{p.code}</td>
                                             <td className={cx(tableCellClassName, 'font-medium')}>
-                                                <Link href={route('cafeteria.providers.show', p.id)} className="text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] hover:underline dark:hover:text-blue-400">
+                                                <Link href={route('cafeteria.providers.show', p.id)} className="text-(--app-foreground) hover:text-primary hover:underline dark:hover:text-blue-400">
                                                     {p.name_en}
                                                 </Link>
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{p.phone_number ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{p.phone_number ?? '—'}</td>
                                             <td className={tableCellClassName}>
                                                 <StatusBadge status={p.is_active ? 'active' : 'inactive'} label={p.is_active ? t('common.active') : t('common.inactive')} />
                                             </td>

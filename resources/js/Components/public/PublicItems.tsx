@@ -81,7 +81,7 @@ export function AnnouncementItem({ item }: { item: AnnouncementSummary }) {
     return (
         <article className={`${publicCardInteractiveClass} h-full`}>
             <PublicCardDecor />
-            <Link href={route('public.announcements.show', item.slug)} className="relative flex min-w-0 flex-col gap-4 focus:outline-none">
+            <Link href={route('public.announcements.show', item.slug)} className="relative flex min-w-0 flex-col gap-4 focus:outline-hidden">
                 {item.image_url && (
                     <img
                         src={item.image_url}
@@ -98,16 +98,16 @@ export function AnnouncementItem({ item }: { item: AnnouncementSummary }) {
                         {item.published_at && <LocalizedDateDisplay value={item.published_at} />}
                         {item.category && <span>{item.category}</span>}
                         {item.is_featured && (
-                            <span className="font-semibold text-[color:var(--color-primary)]">{t('publicSite.featured')}</span>
+                            <span className="font-semibold text-primary">{t('publicSite.featured')}</span>
                         )}
                     </div>
-                    <h3 className="mt-2 text-base font-semibold leading-snug text-gray-900 [overflow-wrap:anywhere] group-hover:text-[color:var(--color-primary)] dark:text-slate-100">
+                    <h3 className="mt-2 text-base font-semibold leading-snug text-gray-900 wrap-anywhere group-hover:text-primary dark:text-slate-100">
                         {title}
                     </h3>
                     {summary && (
                         <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-gray-600 dark:text-slate-400">{summary}</p>
                     )}
-                    <span className="mt-3 inline-block text-sm font-semibold text-[color:var(--color-primary)]">
+                    <span className="mt-3 inline-block text-sm font-semibold text-primary">
                         {t('publicSite.readMore')}
                         <span className="sr-only">: {title}</span>
                     </span>
@@ -132,7 +132,7 @@ export function ServiceItem({ item }: { item: ServiceSummary }) {
             <div className="relative flex flex-1 flex-col">
                 <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                        <h3 className="text-sm font-semibold leading-snug text-gray-900 [overflow-wrap:anywhere] dark:text-slate-100">
+                        <h3 className="text-sm font-semibold leading-snug text-gray-900 wrap-anywhere dark:text-slate-100">
                             {name}
                         </h3>
                         {description && (
@@ -144,7 +144,7 @@ export function ServiceItem({ item }: { item: ServiceSummary }) {
                     </span>
                 </div>
                 {item.has_details && (
-                    <span className="mt-auto pt-3 text-sm font-semibold text-[color:var(--color-primary)]">
+                    <span className="mt-auto pt-3 text-sm font-semibold text-primary">
                         {t('publicSite.viewDetails')}
                         <span className="sr-only">: {name}</span>
                     </span>
@@ -203,14 +203,14 @@ export function PublicSearchBar({ routeName, search, category, categories, searc
                     aria-label={t('publicSite.category')}
                     value={selected}
                     onChange={(event) => setSelected(event.target.value)}
-                    className="!min-h-12 w-full !text-base sm:w-48"
+                    className="min-h-12! w-full text-base! sm:w-48"
                 >
                     <option value="">{t('publicSite.allCategories')}</option>
                     {categories.map((value) => <option key={value} value={value}>{value}</option>)}
                 </Select>
             )}
             <div className="flex flex-wrap gap-2">
-                <Button type="submit" variant="outline" className="!min-h-12 flex-1 sm:flex-none">{t('publicSite.search')}</Button>
+                <Button type="submit" variant="outline" className="min-h-12! flex-1 sm:flex-none">{t('publicSite.search')}</Button>
                 {hasFilters && (
                     <Link href={route(routeName)} className={`${publicButtonSecondary} px-4 py-2`}>
                         {t('publicSite.reset')}

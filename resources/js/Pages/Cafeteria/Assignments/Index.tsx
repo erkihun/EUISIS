@@ -30,7 +30,7 @@ export default function AssignmentsIndex({ rows, meta, filters, organizations, p
         { id: 'provider', header: t('cafeteriaPolicy.provider'), cell: ({ row }) => label(row.original.provider) },
         { id: 'scope', header: t('cafeteriaPolicy.scope'), cell: ({ row }) => scopeOf(row.original) },
         { id: 'policies', header: t('cafeteriaPolicy.navPolicies'), cell: ({ row }) => (
-            <Link href={route('cafeteria.policies.create', { assignment_id: row.original.id })} className="text-[color:var(--color-primary)] hover:underline">{row.original.policy_count}</Link>
+            <Link href={route('cafeteria.policies.create', { assignment_id: row.original.id })} className="text-primary hover:underline">{row.original.policy_count}</Link>
         ) },
         { id: 'from', header: t('cafeteriaPolicy.effectiveFrom'), cell: ({ row }) => <LocalizedDateDisplay value={row.original.effective_from} /> },
         { id: 'to', header: t('cafeteriaPolicy.effectiveTo'), cell: ({ row }) => row.original.effective_to ? <LocalizedDateDisplay value={row.original.effective_to} /> : t('cafeteriaPolicy.openEnded') },

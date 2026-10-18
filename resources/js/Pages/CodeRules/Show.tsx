@@ -105,41 +105,41 @@ export default function CodeRulesShow({
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_360px]">
                 <section className="space-y-6">
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.entityType')}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.entityType')}</p>
                                 <div className="mt-2"><CodeRuleEntityTypeBadge entityType={codeRule.entity_type} /></div>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.status')}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('common.status')}</p>
                                 <div className="mt-2"><CodeRuleStatusBadge isActive={codeRule.is_active} /></div>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.scope')}</p>
-                                <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{codeRule.scope_label ?? t('codeRules.globalRule')}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.scope')}</p>
+                                <p className="mt-1 text-sm text-(--app-foreground)">{codeRule.scope_label ?? t('codeRules.globalRule')}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.resetFrequency')}</p>
-                                <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{t(`codeRules.resetFrequencies.${codeRule.reset_frequency}` as Parameters<typeof t>[0])}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.resetFrequency')}</p>
+                                <p className="mt-1 text-sm text-(--app-foreground)">{t(`codeRules.resetFrequencies.${codeRule.reset_frequency}` as Parameters<typeof t>[0])}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.prefix')}</p>
-                                <p className="mt-1 font-mono text-sm text-[color:var(--app-foreground)]">{codeRule.prefix ?? '—'}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.prefix')}</p>
+                                <p className="mt-1 font-mono text-sm text-(--app-foreground)">{codeRule.prefix ?? '—'}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.suffix')}</p>
-                                <p className="mt-1 font-mono text-sm text-[color:var(--app-foreground)]">{codeRule.suffix ?? '—'}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.suffix')}</p>
+                                <p className="mt-1 font-mono text-sm text-(--app-foreground)">{codeRule.suffix ?? '—'}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.sequenceLength')}</p>
-                                <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{codeRule.sequence_length}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.sequenceLength')}</p>
+                                <p className="mt-1 text-sm text-(--app-foreground)">{codeRule.sequence_length}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.sequenceScopeStrategy')}</p>
-                                <p className="mt-1 flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.sequenceScopeStrategy')}</p>
+                                <p className="mt-1 flex items-center gap-2 text-sm text-(--app-foreground)">
                                     {strategyLabel}
-                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${isGlobal ? 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}`}>
+                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${isGlobal ? 'bg-(--app-surface-muted) text-(--app-foreground)' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}`}>
                                         {isGlobal ? t('codeRules.globalSequenceBadge') : t('codeRules.scopedSequenceBadge')}
                                     </span>
                                 </p>
@@ -147,28 +147,28 @@ export default function CodeRulesShow({
                         </div>
 
                         <div className="mt-6">
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.format')}</p>
-                            <p className="mt-1 font-mono text-sm text-[color:var(--app-foreground)]">{codeRule.format}</p>
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.format')}</p>
+                            <p className="mt-1 font-mono text-sm text-(--app-foreground)">{codeRule.format}</p>
                         </div>
 
                         <div className="mt-6 grid gap-4 md:grid-cols-2">
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.descriptionEn')}</p>
-                                <p className="mt-1 text-sm leading-6 text-[color:var(--app-foreground)]">{codeRule.description_en ?? '—'}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.descriptionEn')}</p>
+                                <p className="mt-1 text-sm leading-6 text-(--app-foreground)">{codeRule.description_en ?? '—'}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.descriptionAm')}</p>
-                                <p className="mt-1 text-sm leading-6 text-[color:var(--app-foreground)]">{codeRule.description_am ?? '—'}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.descriptionAm')}</p>
+                                <p className="mt-1 text-sm leading-6 text-(--app-foreground)">{codeRule.description_am ?? '—'}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Sequence Counters */}
                     {can.viewSequences && (
-                        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                            <h3 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">{t('codeRules.sequenceCounters')}</h3>
+                        <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                            <h3 className="mb-4 text-sm font-semibold text-(--app-foreground)">{t('codeRules.sequenceCounters')}</h3>
                             {sequences.length === 0 ? (
-                                <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('codeRules.noSequencesYet')}</p>
+                                <p className="text-sm text-(--app-muted-foreground)">{t('codeRules.noSequencesYet')}</p>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className={tableClassName}>
@@ -184,10 +184,10 @@ export default function CodeRulesShow({
                                         <tbody className={tableBodyClassName}>
                                             {sequences.map((seq) => (
                                                 <tr key={seq.id}>
-                                                    <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{seq.scope_key}</td>
-                                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{seq.next_number}</td>
-                                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{seq.last_number ?? '—'}</td>
-                                                    <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{seq.last_generated_code ?? '—'}</td>
+                                                    <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>{seq.scope_key}</td>
+                                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{seq.next_number}</td>
+                                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{seq.last_number ?? '—'}</td>
+                                                    <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>{seq.last_generated_code ?? '—'}</td>
                                                     {can.resetSequence && (
                                                         <td className={tableCellClassName}>
                                                             <button
@@ -216,7 +216,7 @@ export default function CodeRulesShow({
                     )}
 
                     <div>
-                        <h3 className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">{t('codeRules.logs')}</h3>
+                        <h3 className="mb-3 text-sm font-semibold text-(--app-foreground)">{t('codeRules.logs')}</h3>
                         <CodeGenerationLogsTable logs={generationLogs} />
                     </div>
                 </section>
@@ -226,8 +226,8 @@ export default function CodeRulesShow({
                         preview={codeRule.preview}
                         usesRandomToken={usesRandomToken(codeRule.format)}
                     />
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <div className="space-y-3 text-sm text-[color:var(--app-foreground)]">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <div className="space-y-3 text-sm text-(--app-foreground)">
                             <div className="flex items-center justify-between gap-3">
                                 <span>{t('codeRules.manualOverride')}</span>
                                 <span>{codeRule.allow_manual_override ? t('common.yes') : t('common.no')}</span>

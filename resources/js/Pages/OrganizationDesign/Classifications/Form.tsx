@@ -74,12 +74,12 @@ export default function ClassificationForm({ scheme, revision, record }: Props) 
                     <FormField id="cl-name-en" label={tt('fields.nameEn')} required error={errors.name_en}>{({ id }) => <Input id={id} value={form.data.name_en} onChange={(e) => form.setData('name_en', e.target.value)} />}</FormField>
                     <FormField id="cl-name-am" label={tt('fields.nameAm')} error={errors.name_am}>{({ id }) => <Input id={id} value={form.data.name_am} onChange={(e) => form.setData('name_am', e.target.value)} />}</FormField>
                     <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                        <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
+                        <input type="checkbox" className="rounded-sm border-(--app-border-strong) text-primary focus:ring-primary" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
                         <span>{tt('fields.isActive')}</span>
                     </label>
                     <FieldError>{errors.parent_id}</FieldError>
                 </div>
-                <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] px-6 py-4">
+                <div className="flex justify-end gap-2 border-t border-(--app-border) px-6 py-4">
                     <Button as={Link} href={listHref} variant="outline">{tt('actions.cancel')}</Button>
                     <Button type="submit" variant="primary" loading={form.processing}>{tt('actions.save')}</Button>
                 </div>

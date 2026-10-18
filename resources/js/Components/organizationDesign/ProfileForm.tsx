@@ -37,7 +37,7 @@ export default function ProfileForm({ show, onClose, title, initial, url, method
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     {text('purpose_en', tt('positionDesign.purposeEn'))}
                     {text('purpose_am', tt('positionDesign.purposeAm'))}

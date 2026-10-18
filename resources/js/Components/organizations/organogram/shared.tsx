@@ -95,12 +95,12 @@ export function OrganizationBox({ tree, compact = false }: { tree: OrganogramTre
 
     return (
         <div
-            className={`rounded-card border-2 border-[color:var(--color-primary)] bg-blue-50 text-center dark:border-[color:var(--color-primary)] dark:bg-blue-950/50 ${
+            className={`rounded-card border-2 border-primary bg-blue-50 text-center dark:border-primary dark:bg-blue-950/50 ${
                 compact ? 'w-48 px-3 py-2' : 'w-64 px-4 py-3'
             }`}
         >
             <p className="truncate font-mono text-[11px] text-blue-700 dark:text-blue-300">{organization.code}</p>
-            <p className={`truncate font-bold text-[color:var(--app-foreground)] ${compact ? 'text-xs' : 'text-sm'}`}>
+            <p className={`truncate font-bold text-(--app-foreground) ${compact ? 'text-xs' : 'text-sm'}`}>
                 {localizedName(organization.name_en, organization.name_am, locale)}
             </p>
             {organization.type && !compact && (
@@ -136,11 +136,11 @@ export function UnitBox({
             {unit.code && (
                 <p className="truncate font-mono text-[10px] text-violet-700 dark:text-violet-400">{unit.code}</p>
             )}
-            <p className={`truncate font-semibold text-[color:var(--app-foreground)] ${compact ? 'text-[11px]' : 'text-sm'}`}>
+            <p className={`truncate font-semibold text-(--app-foreground) ${compact ? 'text-[11px]' : 'text-sm'}`}>
                 {localizedName(unit.name_en, unit.name_am, locale)}
             </p>
             {unit.unit_type?.name_en && !compact && (
-                <p className="truncate text-[10px] text-[color:var(--app-muted-foreground)]">
+                <p className="truncate text-[10px] text-(--app-muted-foreground)">
                     {localizedName(unit.unit_type.name_en, unit.unit_type.name_am, locale)}
                 </p>
             )}
@@ -222,7 +222,7 @@ export function EmployeeBox({ position, compact = false }: { position: Organogra
                 <p className="truncate font-mono text-[10px] text-emerald-700 dark:text-emerald-400">
                     {employee.employee_number}
                 </p>
-                <p className={`truncate font-semibold text-[color:var(--app-foreground)] ${compact ? 'text-[11px]' : 'text-xs'}`}>
+                <p className={`truncate font-semibold text-(--app-foreground) ${compact ? 'text-[11px]' : 'text-xs'}`}>
                     {employee.full_name}
                 </p>
                 {!compact && (
@@ -271,11 +271,11 @@ export function PositionBox({
             {position.code && (
                 <p className="truncate font-mono text-[10px] text-amber-700 dark:text-amber-400">{position.code}</p>
             )}
-            <p className={`truncate font-semibold text-[color:var(--app-foreground)] ${compact ? 'text-[11px]' : 'text-xs'}`}>
+            <p className={`truncate font-semibold text-(--app-foreground) ${compact ? 'text-[11px]' : 'text-xs'}`}>
                 {localizedName(position.name_en, position.name_am, locale)}
             </p>
             {position.bpr_name && !compact && (
-                <p className="truncate text-[10px] text-[color:var(--app-muted-foreground)]">{position.bpr_name}</p>
+                <p className="truncate text-[10px] text-(--app-muted-foreground)">{position.bpr_name}</p>
             )}
             <span className="mt-1 inline-block">
                 <OccupancyBadge occupancy={position.occupancy} />

@@ -156,18 +156,18 @@ export default function FeedbackFilterBar({
 
     // The compact 30px height leaves no room for the forms plugin's 8px top and bottom padding:
     // the option text was cut off at the bottom. The select centres its text without it.
-    const selectCls = 'h-[var(--control-h-sm)] py-0 w-full sm:w-auto sm:min-w-[10.5rem] sm:max-w-[14rem]';
+    const selectCls = 'h-(--control-h-sm) py-0 w-full sm:w-auto sm:min-w-42 sm:max-w-56';
 
     return (
         <section
             aria-label={t('common.filter')}
             className={embedded
-                ? 'border-b border-[color:var(--app-border)] px-4 py-3'
-                : 'rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3'}
+                ? 'border-b border-(--app-border) px-4 py-3'
+                : 'rounded-panel border border-(--app-border) bg-(--app-surface) p-3'}
         >
             <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center">
                 {presets && (
-                    <div role="group" aria-label={t('serviceFeedback.period')} className="flex gap-0.5 self-start rounded-lg bg-[color:var(--app-surface-muted)] p-[3px]">
+                    <div role="group" aria-label={t('serviceFeedback.period')} className="flex gap-0.5 self-start rounded-lg bg-(--app-surface-muted) p-[3px]">
                         {presetOptions.map((option) => {
                             const active = activePreset === option.id;
                             return (
@@ -179,10 +179,10 @@ export default function FeedbackFilterBar({
                                         ? { date_from: undefined, date_to: undefined }
                                         : { date_from: windowStart(option.id), date_to: undefined })}
                                     className={cx(
-                                        'h-7 whitespace-nowrap rounded-md px-3 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
+                                        'h-7 whitespace-nowrap rounded-md px-3 text-[13px] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary',
                                         active
-                                            ? 'bg-[color:var(--app-surface)] font-semibold text-[color:var(--app-foreground)] shadow-sm ring-1 ring-[color:var(--app-border)]'
-                                            : 'font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+                                            ? 'bg-(--app-surface) font-semibold text-(--app-foreground) shadow-xs ring-1 ring-(--app-border)'
+                                            : 'font-medium text-(--app-muted-foreground) hover:text-(--app-foreground)',
                                     )}
                                 >
                                     {option.label}
@@ -194,7 +194,7 @@ export default function FeedbackFilterBar({
 
                 {search && (
                     <div className="relative min-w-0 lg:min-w-[16rem] lg:flex-1">
-                        <SearchIcon aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
+                        <SearchIcon aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" />
                         <Input
                             type="search"
                             value={query}
@@ -202,7 +202,7 @@ export default function FeedbackFilterBar({
                             placeholder={t('serviceFeedback.searchPlaceholder')}
                             aria-label={t('serviceFeedback.searchLabel')}
                             maxLength={100}
-                            className="h-[var(--control-h-sm)] pl-9"
+                            className="h-(--control-h-sm) pl-9"
                         />
                     </div>
                 )}
@@ -284,32 +284,32 @@ export default function FeedbackFilterBar({
                     )}
 
                     {/* Ethiopian calendar in Amharic, Gregorian in English; the value is always Gregorian ISO. */}
-                    <div className="w-full sm:w-[11rem]" aria-label={t('serviceFeedback.dateFrom')} role="group">
+                    <div className="w-full sm:w-44" aria-label={t('serviceFeedback.dateFrom')} role="group">
                         <LocalizedDatePicker
                             id="filter-date-from"
                             value={filters.date_from ?? ''}
                             max={filters.date_to || undefined}
                             placeholder={t('serviceFeedback.dateFrom')}
                             onChange={(iso) => apply({ date_from: iso })}
-                            className="h-[var(--control-h-sm)] text-[13px]"
+                            className="h-(--control-h-sm) text-[13px]"
                         />
                     </div>
-                    <div className="w-full sm:w-[11rem]" aria-label={t('serviceFeedback.dateTo')} role="group">
+                    <div className="w-full sm:w-44" aria-label={t('serviceFeedback.dateTo')} role="group">
                         <LocalizedDatePicker
                             id="filter-date-to"
                             value={filters.date_to ?? ''}
                             min={filters.date_from || undefined}
                             placeholder={t('serviceFeedback.dateTo')}
                             onChange={(iso) => apply({ date_to: iso })}
-                            className="h-[var(--control-h-sm)] text-[13px]"
+                            className="h-(--control-h-sm) text-[13px]"
                         />
                     </div>
                 </div>
             </div>
 
             {chips.length > 0 && (
-                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[color:var(--app-border)] pt-3 text-[13px]">
-                    <span className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.filteredBy')}</span>
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-(--app-border) pt-3 text-[13px]">
+                    <span className="text-(--app-muted-foreground)">{t('serviceFeedback.filteredBy')}</span>
                     {chips.map((chip) => (
                         <button
                             key={chip.key}
@@ -319,7 +319,7 @@ export default function FeedbackFilterBar({
                                 apply({ [chip.key]: undefined });
                             }}
                             aria-label={`${t('serviceFeedback.removeFilter')}: ${chip.label}`}
-                            className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full border border-[color:var(--color-primary-200)] bg-[color:var(--color-primary-50)] pl-3 pr-2 text-xs font-medium text-[color:var(--color-primary-800)] transition-colors hover:border-[color:var(--color-primary-300)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:border-[color:var(--color-primary-800)] dark:bg-[color:var(--color-primary-950)] dark:text-[color:var(--color-primary-200)]"
+                            className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-full border border-primary-200 bg-primary-50 pl-3 pr-2 text-xs font-medium text-primary-800 transition-colors hover:border-primary-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:border-primary-800 dark:bg-primary-950 dark:text-primary-200"
                         >
                             <span className="truncate">{chip.label}</span>
                             <X aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
@@ -328,7 +328,7 @@ export default function FeedbackFilterBar({
                     <button
                         type="button"
                         onClick={clearAll}
-                        className="h-7 rounded-md px-2 text-xs font-semibold text-[color:var(--color-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                        className="h-7 rounded-md px-2 text-xs font-semibold text-primary hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                     >
                         {t('serviceFeedback.clearAll')}
                     </button>

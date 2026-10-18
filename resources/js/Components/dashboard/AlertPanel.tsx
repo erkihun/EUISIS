@@ -38,7 +38,7 @@ export default function AlertPanel({ alerts, t }: Props) {
                             <p className="text-sm font-semibold">{t(alert.titleKey)}</p>
                             <p className="mt-1 text-sm opacity-90">{t(alert.descriptionKey)}</p>
                         </div>
-                        <span className="rounded-full bg-[color:color-mix(in_srgb,var(--app-surface)_70%,transparent)] px-2.5 py-0.5 text-sm font-semibold">
+                        <span className="rounded-full bg-[color-mix(in_srgb,var(--app-surface)_70%,transparent)] px-2.5 py-0.5 text-sm font-semibold">
                             {alert.count}
                         </span>
                     </div>

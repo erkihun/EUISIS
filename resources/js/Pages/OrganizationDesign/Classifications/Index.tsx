@@ -111,13 +111,13 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
 
                 <Card>
                     <CardHeader><CardTitle>{tt('classifications.batches')}</CardTitle></CardHeader>
-                    {batches.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('classifications.noBatches')}</p> : (
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                    {batches.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('classifications.noBatches')}</p> : (
+                        <ul className="divide-y divide-(--app-border)">
                             {batches.map((b) => (
                                 <li key={b.id} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
                                     <div className="min-w-0 flex-1">
-                                        <p className="font-medium text-[color:var(--app-foreground)]">{b.file_name} <span className="font-normal text-[color:var(--app-muted-foreground)]">· {b.revision}</span></p>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="font-medium text-(--app-foreground)">{b.file_name} <span className="font-normal text-(--app-muted-foreground)">· {b.revision}</span></p>
+                                        <p className="text-xs text-(--app-muted-foreground)">
                                             {tt('classifications.batchCounts').replace(':created', String(b.created_rows)).replace(':updated', String(b.updated_rows)).replace(':unchanged', String(b.unchanged_rows)).replace(':failed', String(b.failed_rows))}
                                             {' · '}{b.uploaded_by ?? '—'} · <LocalizedDateDisplay value={b.at} withTime />
                                         </p>
@@ -135,10 +135,10 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
             {report && (
                 <Modal show onClose={() => setReport(null)} maxWidth="2xl">
                     <div className="p-6">
-                        <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('classifications.errors')} · {report.file_name}</h2>
-                        <ul className="mt-4 max-h-96 divide-y divide-[color:var(--app-border)] overflow-y-auto text-sm">
+                        <h2 className="text-base font-semibold text-(--app-foreground)">{tt('classifications.errors')} · {report.file_name}</h2>
+                        <ul className="mt-4 max-h-96 divide-y divide-(--app-border) overflow-y-auto text-sm">
                             {(report.error_report ?? []).map((e, i) => (
-                                <li key={i} className="flex gap-3 py-2"><span className="w-20 shrink-0 font-mono text-xs text-[color:var(--app-muted-foreground)]">{tt('classifications.line')} {e.line}</span><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{e.column}</span><span>{e.message}</span></li>
+                                <li key={i} className="flex gap-3 py-2"><span className="w-20 shrink-0 font-mono text-xs text-(--app-muted-foreground)">{tt('classifications.line')} {e.line}</span><span className="font-mono text-xs text-(--app-muted-foreground)">{e.column}</span><span>{e.message}</span></li>
                             ))}
                         </ul>
                         <div className="mt-6 flex justify-end"><Button variant="outline" onClick={() => setReport(null)}>{t('common.close')}</Button></div>
@@ -163,8 +163,8 @@ function ImportForm({ scheme, revision, onClose }: { scheme: string; revision: s
     return (
         <Modal show onClose={onClose} maxWidth="lg">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('classifications.import')}</h2>
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{tt('classifications.importHelp')}</p>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{tt('classifications.import')}</h2>
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">{tt('classifications.importHelp')}</p>
                 <div className="mt-5 space-y-4">
                     <FormField id="imp-scheme" label={tt('classifications.scheme')} required error={errors.scheme}>
                         {({ id }) => <Select id={id} value={form.data.scheme} onChange={(e) => form.setData('scheme', e.target.value)}>{SCHEMES.map((s) => <option key={s} value={s}>{tt(`classifications.schemes.${s}`)}</option>)}</Select>}
@@ -174,7 +174,7 @@ function ImportForm({ scheme, revision, onClose }: { scheme: string; revision: s
                     </FormField>
                     <FileUpload id="imp-file" label={tt('classifications.file')} accept=".csv,text/csv" maxSizeMb={5} value={form.data.file} error={errors.file} onChange={(file) => form.setData('file', file)} />
                     <label className="flex items-start gap-2 text-sm">
-                        <input type="checkbox" className="mt-0.5 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={form.data.dry_run} onChange={(e) => form.setData('dry_run', e.target.checked)} />
+                        <input type="checkbox" className="mt-0.5 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary" checked={form.data.dry_run} onChange={(e) => form.setData('dry_run', e.target.checked)} />
                         <span>{tt('classifications.dryRun')}</span>
                     </label>
                 </div>

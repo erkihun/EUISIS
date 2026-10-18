@@ -25,9 +25,9 @@ export const secondaryBtn = buttonClassName({ variant: 'outline' });
 
 export const dangerBtn = buttonClassName({ variant: 'destructiveOutline' });
 
-export const panelCls = 'rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
+export const panelCls = 'rounded-panel border border-(--app-border) bg-(--app-surface)';
 
-export const labelCls = 'mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+export const labelCls = 'mb-1 block text-xs font-medium text-(--app-muted-foreground)';
 
 export function formatBytes(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;

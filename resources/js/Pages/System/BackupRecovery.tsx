@@ -13,7 +13,7 @@ function TabLabel({ label, count, tone = 'neutral' }: { label: string; count?: n
     return (
         <span className="inline-flex items-center gap-1.5">
             {label}
-            {count ? <span className={cx('min-w-[1.25rem] rounded-full px-1.5 text-center text-[11px] font-semibold tabular-nums', toneClasses[tone].soft, toneClasses[tone].text)}>{count}</span> : null}
+            {count ? <span className={cx('min-w-5 rounded-full px-1.5 text-center text-[11px] font-semibold tabular-nums', toneClasses[tone].soft, toneClasses[tone].text)}>{count}</span> : null}
         </span>
     );
 }

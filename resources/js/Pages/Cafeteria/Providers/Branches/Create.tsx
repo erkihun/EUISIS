@@ -7,7 +7,7 @@ import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrgOption = { id: string; name_en: string; name_am: string | null; code: string };
 
 const inputCls = cx(inputClassName, 'w-full');
-const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)] mb-1';
+const labelCls = 'block text-sm font-medium text-(--app-foreground) mb-1';
 
 export default function CreateBranch({
     provider,
@@ -46,7 +46,7 @@ export default function CreateBranch({
         >
             <div>
                 <form onSubmit={submit} className="space-y-5">
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 space-y-4">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6 space-y-4">
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -105,7 +105,7 @@ export default function CreateBranch({
                     </div>
 
                     <div className="flex justify-end gap-3">
-                        <a href={route('cafeteria.providers.show', provider.id)} className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                        <a href={route('cafeteria.providers.show', provider.id)} className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                             {t('common.cancel')}
                         </a>
                         <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>

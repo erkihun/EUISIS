@@ -36,9 +36,9 @@ export default function SubsidyRulesEdit({ rule }: { rule: Rule }) {
     return (
         <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.editSubsidyRule')} />}>
             <Head title={t('cafeteria.editSubsidyRule')} />
-            <form onSubmit={submit} className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                <div className="border-b border-[color:var(--app-border)] px-6 py-4">
-                    <p className="font-mono text-sm text-[color:var(--app-muted-foreground)]">{rule.code}</p>
+            <form onSubmit={submit} className="overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface)">
+                <div className="border-b border-(--app-border) px-6 py-4">
+                    <p className="font-mono text-sm text-(--app-muted-foreground)">{rule.code}</p>
                 </div>
                 <div className="grid gap-5 p-6 md:grid-cols-2">
                     <Field label={t('cafeteria.nameEn')} error={form.errors.name_en}><input className={inputCls} value={form.data.name_en} onChange={(e) => form.setData('name_en', e.target.value)} required /></Field>
@@ -47,13 +47,13 @@ export default function SubsidyRulesEdit({ rule }: { rule: Rule }) {
                     <Field label={t('cafeteria.effectiveFrom')} error={form.errors.effective_from}><LocalizedDatePicker className={inputCls} value={form.data.effective_from} onChange={(iso) => form.setData('effective_from', iso)} required /></Field>
                     <Field label={t('cafeteria.effectiveTo')} error={form.errors.effective_to}><LocalizedDatePicker className={inputCls} value={form.data.effective_to} onChange={(iso) => form.setData('effective_to', iso)} /></Field>
                     <div className="flex items-center gap-4 pt-6">
-                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.exclude_weekends} onChange={(e) => form.setData('exclude_weekends', e.target.checked)} className="h-4 w-4 rounded" />{t('cafeteria.excludeWeekends')}</label>
-                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded" />{t('cafeteria.isActive')}</label>
+                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.exclude_weekends} onChange={(e) => form.setData('exclude_weekends', e.target.checked)} className="h-4 w-4 rounded-sm" />{t('cafeteria.excludeWeekends')}</label>
+                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded-sm" />{t('cafeteria.isActive')}</label>
                     </div>
                     <div className="md:col-span-2"><Field label={t('cafeteria.notes')} error={form.errors.notes}><textarea className={`${inputCls} min-h-20 resize-y`} value={form.data.notes} onChange={(e) => form.setData('notes', e.target.value)} /></Field></div>
                 </div>
-                <div className="flex justify-end gap-3 border-t border-[color:var(--app-border)] px-6 py-4">
-                    <Link href={route('cafeteria.subsidy-rules.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">{t('common.cancel')}</Link>
+                <div className="flex justify-end gap-3 border-t border-(--app-border) px-6 py-4">
+                    <Link href={route('cafeteria.subsidy-rules.index')} className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">{t('common.cancel')}</Link>
                     <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>{t('common.save')}</button>
                 </div>
             </form>

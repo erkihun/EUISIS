@@ -148,7 +148,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                 <Card className="p-5">
                     <h2 className="font-semibold">{t('serviceFeedback.byStatus')}</h2>
                     <ul className="mt-3 flex flex-wrap gap-2">
-                        {STATUS_ORDER.map((status) => <li key={status} className="inline-flex items-center gap-2 rounded-full border border-[color:var(--app-border)] px-3 py-1 text-sm"><FeedbackStatusBadge status={status} /><span className="font-semibold tabular-nums">{(summary.by_status[status] ?? 0).toLocaleString()}</span></li>)}
+                        {STATUS_ORDER.map((status) => <li key={status} className="inline-flex items-center gap-2 rounded-full border border-(--app-border) px-3 py-1 text-sm"><FeedbackStatusBadge status={status} /><span className="font-semibold tabular-nums">{(summary.by_status[status] ?? 0).toLocaleString()}</span></li>)}
                     </ul>
                 </Card>
 
@@ -163,7 +163,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                 <section aria-labelledby="tip-off-analytics" className="space-y-4">
                     <div>
                         <h2 id="tip-off-analytics" className="text-lg font-semibold">{t('serviceFeedback.tipOffAnalyticsTitle')}</h2>
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.tipOffAnalyticsNote')}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.tipOffAnalyticsNote')}</p>
                     </div>
                     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <Stat label={t('serviceFeedback.tipOffTotal')} value={tipOffs.total} />
@@ -206,7 +206,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                                 <TBody>
                                     {employeeTargetedTipOffs.map((row) => (
                                         <Tr key={row.employee_id}>
-                                            <Td>{row.full_name ?? '—'}{row.employee_number && <span className="ml-2 text-xs text-[color:var(--app-muted-foreground)]">{row.employee_number}</span>}</Td>
+                                            <Td>{row.full_name ?? '—'}{row.employee_number && <span className="ml-2 text-xs text-(--app-muted-foreground)">{row.employee_number}</span>}</Td>
                                             <Td align="right" numeric>{row.total.toLocaleString()}</Td>
                                             {TIP_BUCKETS.map((bucket) => <Td key={bucket} align="right" numeric>{row[bucket].toLocaleString()}</Td>)}
                                         </Tr>
@@ -252,7 +252,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                                                 {row.error && <div className="mt-1 text-xs text-red-600">{row.error}</div>}
                                             </Td>
                                             <Td align="right" numeric>{row.row_count ?? '—'}</Td>
-                                            <Td align="right">{row.status === 'ready' && <a href={route('service-feedback.submission-reports.download', row.id)} className="text-sm font-medium text-[color:var(--color-primary)] underline underline-offset-4">{t('serviceFeedback.download')}</a>}</Td>
+                                            <Td align="right">{row.status === 'ready' && <a href={route('service-feedback.submission-reports.download', row.id)} className="text-sm font-medium text-primary underline underline-offset-4">{t('serviceFeedback.download')}</a>}</Td>
                                         </Tr>
                                     ))}
                                 </TBody>
@@ -268,7 +268,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
 function Stat({ label, value, tone }: { label: string; value: number; tone?: 'warning' }) {
     return (
         <Card className="p-4">
-            <p className="text-sm text-[color:var(--app-muted-foreground)]">{label}</p>
+            <p className="text-sm text-(--app-muted-foreground)">{label}</p>
             <p className={cx('mt-1 text-2xl font-semibold tabular-nums', tone === 'warning' && 'text-amber-700 dark:text-amber-300')}>{value.toLocaleString()}</p>
         </Card>
     );
@@ -280,7 +280,7 @@ function Breakdown<T extends NamePair>({ title, rows, name, extra, empty }: { ti
     return (
         <Card className="p-5">
             <h2 className="font-semibold">{title}</h2>
-            {rows.length === 0 ? <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{empty}</p> : (
+            {rows.length === 0 ? <p className="mt-3 text-sm text-(--app-muted-foreground)">{empty}</p> : (
                 <ul className="mt-3 space-y-3">
                     {rows.map((row) => (
                         <li key={row.id ?? 'none'}>
@@ -288,8 +288,8 @@ function Breakdown<T extends NamePair>({ title, rows, name, extra, empty }: { ti
                                 <span className="truncate font-medium">{name(row)}</span>
                                 <span className="font-semibold tabular-nums">{row.total.toLocaleString()}</span>
                             </div>
-                            <div className="mt-1 h-1.5 rounded-full bg-[color:var(--app-surface-muted)]"><div className="h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${Math.round((row.total / max) * 100)}%` }} /></div>
-                            {extra && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{extra(row)}</p>}
+                            <div className="mt-1 h-1.5 rounded-full bg-(--app-surface-muted)"><div className="h-1.5 rounded-full bg-primary" style={{ width: `${Math.round((row.total / max) * 100)}%` }} /></div>
+                            {extra && <p className="mt-1 text-xs text-(--app-muted-foreground)">{extra(row)}</p>}
                         </li>
                     ))}
                 </ul>

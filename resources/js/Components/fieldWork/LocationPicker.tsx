@@ -79,12 +79,12 @@ export default function LocationPicker({ lat, lng, radius, config, onChange }: P
         );
     };
 
-    const fallback = <div className="flex h-72 w-full items-center justify-center rounded-lg border border-dashed border-[color:var(--app-border)] p-4 text-center text-sm text-[color:var(--app-muted-foreground)] sm:h-80">{t('fieldWork.fields.mapUnavailable')}</div>;
+    const fallback = <div className="flex h-72 w-full items-center justify-center rounded-lg border border-dashed border-(--app-border) p-4 text-center text-sm text-(--app-muted-foreground) sm:h-80">{t('fieldWork.fields.mapUnavailable')}</div>;
 
     return (
         <div className="space-y-2">
             <MapBoundary fallback={fallback}>
-                <Suspense fallback={<div aria-busy="true" className="flex h-72 w-full animate-pulse items-center justify-center rounded-lg bg-[color:var(--app-surface-muted)] text-sm text-[color:var(--app-muted-foreground)] sm:h-80">{t('fieldWork.fields.mapLoading')}</div>}>
+                <Suspense fallback={<div aria-busy="true" className="flex h-72 w-full animate-pulse items-center justify-center rounded-lg bg-(--app-surface-muted) text-sm text-(--app-muted-foreground) sm:h-80">{t('fieldWork.fields.mapLoading')}</div>}>
                     <LocationMap config={config} point={point} radius={valid && radiusNum > 0 ? radiusNum : null} label={t('fieldWork.fields.mapLabel')} onPick={place} />
                 </Suspense>
             </MapBoundary>
@@ -99,7 +99,7 @@ export default function LocationPicker({ lat, lng, radius, config, onChange }: P
                         {t('fieldWork.fields.clearLocation')}
                     </button>
                 )}
-                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('fieldWork.fields.mapHint')}</p>
+                <p className="text-xs text-(--app-muted-foreground)">{t('fieldWork.fields.mapHint')}</p>
             </div>
             {notice && <p role="status" className="text-xs text-amber-800 dark:text-amber-300">{notice}</p>}
         </div>

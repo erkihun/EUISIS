@@ -242,7 +242,7 @@ export default function CafeteriaForm({ form, mode, organizations, payees, netwo
             </FormSection>
 
             <div className="flex justify-end gap-3">
-                <Link href={cancelHref} className="rounded-[var(--radius-control)] border border-[color:var(--app-border)] px-4 py-2 text-sm font-medium hover:bg-[color:var(--app-surface-muted)]">{tt('cancel')}</Link>
+                <Link href={cancelHref} className="rounded-control border border-(--app-border) px-4 py-2 text-sm font-medium hover:bg-(--app-surface-muted)">{tt('cancel')}</Link>
                 <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>{tt('save')}</button>
             </div>
         </form>

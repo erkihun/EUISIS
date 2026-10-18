@@ -39,8 +39,8 @@ export default function SituationRoomCategory({ categories, category, filters, q
                                     data={query}
                                     aria-current={c.key === category.key ? 'page' : undefined}
                                     className={c.key === category.key
-                                        ? 'block rounded-control bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white'
-                                        : 'block rounded-control border border-[color:var(--app-border)] px-3 py-1.5 text-xs text-[color:var(--app-foreground)] hover:border-[color:var(--color-primary)]'}
+                                        ? 'block rounded-control bg-primary px-3 py-1.5 text-xs font-medium text-white'
+                                        : 'block rounded-control border border-(--app-border) px-3 py-1.5 text-xs text-(--app-foreground) hover:border-primary'}
                                 >
                                     {sr(`categories.${c.key}.title`)}
                                 </Link>

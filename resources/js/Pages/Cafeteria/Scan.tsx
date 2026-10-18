@@ -208,12 +208,12 @@ function loadScanHistory(): ScanHistoryEntry[] {
     }
 }
 
-const muted = 'text-[color:var(--app-muted-foreground)]';
+const muted = 'text-(--app-muted-foreground)';
 
 function PanelHeader({ id, title, aside }: { id: string; title: string; aside?: ReactNode }) {
     return (
-        <div className="flex min-h-[3.25rem] flex-wrap items-center justify-between gap-2 border-b border-[color:var(--app-border)] px-4 py-2.5">
-            <h2 id={id} className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+        <div className="flex min-h-13 flex-wrap items-center justify-between gap-2 border-b border-(--app-border) px-4 py-2.5">
+            <h2 id={id} className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
             {aside}
         </div>
     );
@@ -425,7 +425,7 @@ export default function CafeteriaScan({
             }
         >
             <Head title={t('cafeteria.scanTerminal')} />
-            <div data-cafeteria-terminal className="space-y-4 text-[color:var(--app-foreground)]">
+            <div data-cafeteria-terminal className="space-y-4 text-(--app-foreground)">
                 <Card className="p-0" aria-label={t('cafeteria.selectedProvider')}>
                     <div className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] xl:items-end">
                         <FormField id="scan-provider" label={t('cafeteria.selectProvider')} error={form.errors.provider_id}>
@@ -447,21 +447,21 @@ export default function CafeteriaScan({
                                 </Select>
                             )}
                         </FormField>
-                        <p className={cx('flex h-[var(--control-h-md)] items-center gap-2 text-sm sm:col-span-2 xl:col-span-1', muted)}>
+                        <p className={cx('flex h-(--control-h-md) items-center gap-2 text-sm sm:col-span-2 xl:col-span-1', muted)}>
                             <CalendarIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                             <LocalizedDateDisplay value={todayDateStr} />
                         </p>
                     </div>
                     {selectedProvider && (
-                        <details className="group border-t border-[color:var(--app-border)] px-4 py-2.5">
-                            <summary className={cx('flex cursor-pointer list-none items-center gap-1.5 break-words text-xs leading-5 hover:text-[color:var(--app-foreground)] focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)] [&::-webkit-details-marker]:hidden', muted)}>
+                        <details className="group border-t border-(--app-border) px-4 py-2.5">
+                            <summary className={cx('flex cursor-pointer list-none items-center gap-1.5 wrap-break-word text-xs leading-5 hover:text-(--app-foreground) focus-visible:outline-2 focus-visible:outline-primary [&::-webkit-details-marker]:hidden', muted)}>
                                 <ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-90" aria-hidden="true" />
                                 {t('cafeteria.providerDetails')} · {selectedOrganizationName || selectedProviderName}
                             </summary>
                             {provider_locked && <p className={cx('mt-2 text-xs', muted)}>{t('cafeteria.providerScopedNotice')}</p>}
                             <dl className="mt-3 grid gap-x-6 gap-y-3 pb-1 sm:grid-cols-2 xl:grid-cols-3">
                                 {selectedProviderDetails.map((detail) => <div key={detail.label} className="min-w-0 text-xs">
-                                    <dt className={muted}>{detail.label}</dt><dd className="mt-0.5 break-words font-medium">{detail.value}</dd>
+                                    <dt className={muted}>{detail.label}</dt><dd className="mt-0.5 wrap-break-word font-medium">{detail.value}</dd>
                                 </div>)}
                             </dl>
                         </details>
@@ -473,34 +473,34 @@ export default function CafeteriaScan({
                         <PanelHeader id="capture-heading" title={t('cafeteria.scanCredential')}
                             aside={<span aria-live="polite"><StatusBadge tone={captureStatus.tone}>{captureStatus.label}</StatusBadge></span>} />
                         <div className="space-y-4 p-4">
-                            <div className="flex gap-1 rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] p-1" role="group" aria-label={t('cafeteria.scanCredential')}>
+                            <div className="flex gap-1 rounded-control bg-(--app-surface-muted) p-1" role="group" aria-label={t('cafeteria.scanCredential')}>
                                 {(['qr', 'nfc'] as const).map((method) => (
                                     <button key={method} type="button" disabled={camera.starting || busy} aria-pressed={credentialMethod === method}
                                         onClick={() => void changeMethod(method)}
-                                        className={cx('h-9 flex-1 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] disabled:opacity-60',
-                                            credentialMethod === method ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm' : cx(muted, 'hover:text-[color:var(--app-foreground)]'))}>
+                                        className={cx('h-9 flex-1 rounded-[calc(var(--radius-control)-2px)] text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60',
+                                            credentialMethod === method ? 'bg-(--app-surface) text-(--app-foreground) shadow-xs' : cx(muted, 'hover:text-(--app-foreground)'))}>
                                         {method === 'qr' ? t('nfc.scanMethodQr') : t('nfc.scanMethodNfc')}
                                     </button>
                                 ))}
                             </div>
 
                             {credentialMethod === 'nfc' ? <NfcTapPanel disabled={!form.data.provider_id} onCredential={(credential) => postCredential({ nfc_credential: credential })} /> : <>
-                                <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-slate-950">
+                                <div className="relative overflow-hidden rounded-card bg-slate-950">
                                     {/* The decoder uses video element dimensions: never crop or force its height. */}
                                     <div id={camera.regionId} className="mx-auto min-h-[240px] w-full max-w-[340px] [&_video]:h-auto [&_video]:w-full" />
                                     {!camera.active && (
                                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
                                             {camera.starting || busy
                                                 ? <span aria-hidden="true" className="h-9 w-9 animate-spin rounded-full border-4 border-white/20 border-t-white" />
-                                                : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--app-surface)_10%,transparent)] text-[color:var(--app-muted-foreground)]"><QrCodeIcon className="h-7 w-7" aria-hidden="true" /></span>}
-                                            <p className="max-w-xs text-sm leading-6 text-[color:var(--app-muted-foreground)]">
+                                                : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--app-surface)_10%,transparent)] text-(--app-muted-foreground)"><QrCodeIcon className="h-7 w-7" aria-hidden="true" /></span>}
+                                            <p className="max-w-xs text-sm leading-6 text-(--app-muted-foreground)">
                                                 {busy ? t('cafeteria.processingScan') : camera.starting ? t('cafeteria.startingCamera') : t('cafeteria.cameraReady')}
                                             </p>
                                         </div>
                                     )}
                                 </div>
                                 {camera.error && (
-                                    <p role="alert" className="flex gap-2 rounded-[var(--radius-control)] bg-red-50 p-3 text-sm leading-5 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-400/25">
+                                    <p role="alert" className="flex gap-2 rounded-control bg-red-50 p-3 text-sm leading-5 text-red-800 ring-1 ring-inset ring-red-600/20 dark:bg-red-950/40 dark:text-red-200 dark:ring-red-400/25">
                                         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />{camera.error}
                                     </p>
                                 )}
@@ -511,7 +511,7 @@ export default function CafeteriaScan({
                                     </Button>
                                     <Button variant="outline" onClick={() => void stopCamera()} disabled={!camera.active}>{t('cafeteria.stopCamera')}</Button>
                                 </div>
-                                <form onSubmit={submit} className="border-t border-[color:var(--app-border)] pt-4">
+                                <form onSubmit={submit} className="border-t border-(--app-border) pt-4">
                                     <FormField id="scan-token" label={t('cafeteria.enterQrToken')} error={form.errors.qr_token}>
                                         {({ id, describedBy, invalid }) => (
                                             <div className="flex gap-2">
@@ -562,7 +562,7 @@ function LatestResult({ result }: { result: ScanResult }) {
 
     return (
         <div className="space-y-5 p-4">
-            <div role="status" aria-live="polite" className={cx('flex items-start gap-3 rounded-[var(--radius-card)] p-4 ring-1 ring-inset', OUTCOME_BANNER[tone])}>
+            <div role="status" aria-live="polite" className={cx('flex items-start gap-3 rounded-card p-4 ring-1 ring-inset', OUTCOME_BANNER[tone])}>
                 <Icon className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
                 <div className="min-w-0">
                     <p className="text-base font-semibold">{tone === 'denied' ? t('cafeteria.statusDenied') : tone === 'extra' ? t('cafeteria.statusExtraScan') : t('cafeteria.statusAllowed')}</p>
@@ -574,10 +574,10 @@ function LatestResult({ result }: { result: ScanResult }) {
                 <div>
                     <div className="flex items-center gap-4">
                         <UserAvatar key={employee.employee_number} src={employee.photo_url} name={employee.full_name} size={64}
-                            className="shrink-0 rounded-panel !bg-[color:var(--app-surface-muted)] !text-[color:var(--app-foreground)]" />
+                            className="shrink-0 rounded-panel bg-(--app-surface-muted)! text-(--app-foreground)!" />
                         <div className="min-w-0">
-                            <h3 className="break-words text-lg font-semibold leading-7">{employee.full_name}</h3>
-                            <p className={cx('mt-0.5 break-words font-mono text-sm', muted)}>{employee.employee_number}</p>
+                            <h3 className="wrap-break-word text-lg font-semibold leading-7">{employee.full_name}</h3>
+                            <p className={cx('mt-0.5 wrap-break-word font-mono text-sm', muted)}>{employee.employee_number}</p>
                         </div>
                     </div>
                     <dl className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -588,14 +588,14 @@ function LatestResult({ result }: { result: ScanResult }) {
                             [t('cafeteria.cardNo'), result.card_number],
                         ].filter(([, value]) => value).map(([label, value]) => <div key={label} className="min-w-0">
                             <dt className={cx('text-xs', muted)}>{label}</dt>
-                            <dd className="mt-0.5 break-words text-sm">{value}</dd>
+                            <dd className="mt-0.5 wrap-break-word text-sm">{value}</dd>
                         </div>)}
                     </dl>
                 </div>
             )}
 
             {result.allowed && result.week_start && (
-                <div className="border-t border-[color:var(--app-border)] pt-4">
+                <div className="border-t border-(--app-border) pt-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <h3 className="text-sm font-semibold">{t('cafeteria.weeklyWindowTitle')}</h3>
                         <p className={cx('text-xs', muted)}><LocalizedDateDisplay value={result.week_start} /> – <LocalizedDateDisplay value={result.week_end} /></p>
@@ -606,7 +606,7 @@ function LatestResult({ result }: { result: ScanResult }) {
                             [t('cafeteria.employeePayableAmount'), result.employee_payable?.toFixed(2)],
                             [t('cafeteria.consumedDays'), result.consumed_days_count != null && result.available_days_count != null ? `${result.consumed_days_count} / ${result.available_days_count}` : null],
                             [t('cafeteria.remainingWeekBalance'), result.remaining_after?.toFixed(2)],
-                        ].map(([label, value]) => <div key={label} className="rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] px-3 py-2.5">
+                        ].map(([label, value]) => <div key={label} className="rounded-control bg-(--app-surface-muted) px-3 py-2.5">
                             <dt className={cx('text-xs leading-5', muted)}>{label}</dt>
                             <dd className="mt-0.5 text-lg font-semibold tabular-nums">{value ?? '—'}</dd>
                         </div>)}
@@ -630,27 +630,27 @@ function TodayScanList({ scans, state }: { scans: TodayScan[]; state: LoadState 
     }
 
     return (
-        <ul className="max-h-[440px] divide-y divide-[color:var(--app-border)] overflow-y-auto">
+        <ul className="max-h-[440px] divide-y divide-(--app-border) overflow-y-auto">
             {scans.map((scan) => {
                 const status = SCAN_STATUS[scan.status ?? ''];
                 return (
                     <li key={scan.id} className="flex gap-3 px-4 py-3">
                         <UserAvatar src={scan.employee?.photo_url} name={scan.employee?.display_name ?? '?'} size={36}
-                            className="mt-0.5 shrink-0 !bg-[color:var(--app-surface-muted)] !text-[color:var(--app-foreground)]" />
+                            className="mt-0.5 shrink-0 bg-(--app-surface-muted)! text-(--app-foreground)!" />
                         <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                                <p className="min-w-0 break-words text-sm font-medium">{scan.employee?.display_name ?? t('cafeteria.employeeName')}</p>
+                                <p className="min-w-0 wrap-break-word text-sm font-medium">{scan.employee?.display_name ?? t('cafeteria.employeeName')}</p>
                                 <span className={cx('shrink-0 text-xs tabular-nums', muted)}>{scan.scanned_at ? formatTime(scan.scanned_at, locale) : '—'}</span>
                             </div>
-                            <p className={cx('mt-0.5 break-words text-xs', muted)}>
+                            <p className={cx('mt-0.5 wrap-break-word text-xs', muted)}>
                                 {[scan.employee?.employee_number, scan.employee?.organization_unit_name ?? scan.employee?.organization_name, scan.employee?.position_title].filter(Boolean).join(' · ')}
                             </p>
                             <div className={cx('mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs', muted)}>
                                 <StatusBadge tone={status?.tone ?? 'neutral'}>{status ? t(status.key) : '—'}</StatusBadge>
                                 {scan.is_extra_scan && <StatusBadge tone="warning">{t('cafeteria.extraScanBadge')}</StatusBadge>}
                                 <span>{scan.usage_mode === 'use_remaining_week' ? t('cafeteria.usageModeRemainingWeek') : t('cafeteria.usageModeSingleDay')}</span>
-                                <span>{t('cafeteria.subsidyApplied')}: <span className="tabular-nums text-[color:var(--app-foreground)]">{scan.subsidy_amount_applied.toFixed(2)}</span></span>
-                                <span>{t('cafeteria.consumedDays')}: <span className="tabular-nums text-[color:var(--app-foreground)]">{scan.consumed_days_count}</span></span>
+                                <span>{t('cafeteria.subsidyApplied')}: <span className="tabular-nums text-(--app-foreground)">{scan.subsidy_amount_applied.toFixed(2)}</span></span>
+                                <span>{t('cafeteria.consumedDays')}: <span className="tabular-nums text-(--app-foreground)">{scan.consumed_days_count}</span></span>
                             </div>
                         </div>
                     </li>
@@ -683,11 +683,11 @@ function ServiceCalendar({ meta, scannedDates, today }: { meta: CalendarDay[]; s
         ? ['እሁ', 'ሰኞ', 'ማክ', 'ረቡ', 'ሐሙ', 'ዓር', 'ቅዳ']
         : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
     const cells = buildCalendarCells(year, month, isEthiopian);
-    const navButton = cx('flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]', muted);
+    const navButton = cx('flex h-8 w-8 items-center justify-center rounded-control transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary', muted);
 
     return (
         <Card className="overflow-hidden p-0">
-            <div className="flex items-center justify-between gap-2 border-b border-[color:var(--app-border)] px-3 py-2.5">
+            <div className="flex items-center justify-between gap-2 border-b border-(--app-border) px-3 py-2.5">
                 <button type="button" onClick={() => shift(-1)} className={navButton} aria-label={t('cafeteria.previousMonth')}>
                     <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                 </button>
@@ -730,9 +730,9 @@ function ServiceCalendar({ meta, scannedDates, today }: { meta: CalendarDay[]; s
                         } else if (dayMeta?.is_available) {
                             cellCls = 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-950/40 dark:text-blue-300';
                         } else if (dayMeta !== undefined && !dayMeta.is_open) {
-                            cellCls = 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] opacity-70';
+                            cellCls = 'bg-(--app-surface-muted) text-(--app-muted-foreground) opacity-70';
                         } else {
-                            cellCls = 'text-[color:var(--app-foreground)]';
+                            cellCls = 'text-(--app-foreground)';
                         }
 
                         return (
@@ -740,13 +740,13 @@ function ServiceCalendar({ meta, scannedDates, today }: { meta: CalendarDay[]; s
                                 key={dateStr || `cell-${idx}`}
                                 title={dayMeta?.label}
                                 aria-current={isToday ? 'date' : undefined}
-                                className={cx('relative mx-auto my-0.5 flex h-8 w-8 flex-col items-center justify-center rounded-[var(--radius-control)] text-[13px]',
-                                    isToday && 'ring-2 ring-[color:var(--color-primary)] ring-offset-1 ring-offset-[color:var(--app-surface)]', cellCls)}
+                                className={cx('relative mx-auto my-0.5 flex h-8 w-8 flex-col items-center justify-center rounded-control text-[13px]',
+                                    isToday && 'ring-2 ring-primary ring-offset-1 ring-offset-(--app-surface)', cellCls)}
                             >
                                 <span className="leading-none">{day}</span>
                                 {isConsumed && (
                                     scanCount <= 1 ? (
-                                        <CheckCircle className={cx('absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-[color:var(--app-surface)]', isToday ? 'text-emerald-500' : 'text-emerald-600')} />
+                                        <CheckCircle className={cx('absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-(--app-surface)', isToday ? 'text-emerald-500' : 'text-emerald-600')} />
                                     ) : (
                                         <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] font-bold text-white">
                                             {scanCount}
@@ -759,17 +759,17 @@ function ServiceCalendar({ meta, scannedDates, today }: { meta: CalendarDay[]; s
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-[color:var(--app-border)] px-4 py-3">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-(--app-border) px-4 py-3">
                 {[
                     ['bg-blue-50 ring-1 ring-inset ring-blue-200 dark:bg-blue-950/40 dark:ring-blue-800', t('cafeteria.calendar_available')],
                     ['bg-emerald-700', t('cafeteria.calendar_consumed')],
-                    ['bg-[color:var(--app-surface-muted)] ring-1 ring-inset ring-[color:var(--app-border)]', t('cafeteria.calendar_closed')],
+                    ['bg-(--app-surface-muted) ring-1 ring-inset ring-(--app-border)', t('cafeteria.calendar_closed')],
                     ['bg-amber-100 dark:bg-amber-950/50', t('cafeteria.calendar_public_holiday')],
                     ['bg-purple-100 dark:bg-purple-950/50', t('cafeteria.calendar_special_open_day')],
                     ['bg-red-100 dark:bg-red-950/50', t('cafeteria.calendar_employee_leave')],
                 ].map(([color, label]) => (
                     <span key={label} className={cx('inline-flex items-center gap-1.5 text-[11px]', muted)}>
-                        <span className={cx('h-2.5 w-2.5 shrink-0 rounded-sm', color)} aria-hidden="true" />
+                        <span className={cx('h-2.5 w-2.5 shrink-0 rounded-xs', color)} aria-hidden="true" />
                         {label}
                     </span>
                 ))}

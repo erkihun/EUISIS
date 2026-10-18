@@ -24,7 +24,7 @@ export default function SettlementsIndex({ rows, meta, filters, providers, can }
 
     const columns: ColumnDef<SettlementSummary, unknown>[] = [
         { id: 'number', header: t('cafeteriaPolicy.settlementNumber'), cell: ({ row }) => (
-            <Link href={route('cafeteria.settlements.show', row.original.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{row.original.settlement_number}</Link>
+            <Link href={route('cafeteria.settlements.show', row.original.id)} className="font-medium text-primary hover:underline">{row.original.settlement_number}</Link>
         ) },
         { id: 'provider', header: t('cafeteriaPolicy.provider'), cell: ({ row }) => label(row.original.provider) },
         { id: 'period', header: t('cafeteriaPolicy.period'), cell: ({ row }) => <><LocalizedDateDisplay value={row.original.period_start} /> — <LocalizedDateDisplay value={row.original.period_end} /></> },

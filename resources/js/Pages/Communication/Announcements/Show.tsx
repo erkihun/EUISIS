@@ -18,7 +18,7 @@ type Props = PageProps<{ announcement: AnnouncementDetail }>;
 
 const BANNER: Record<string, string> = {
     URGENT: 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100',
-    EMERGENCY: 'border-[color:var(--tone-danger-border,#f2b8b5)] bg-[color:var(--tone-danger-bg,#fef3f2)] text-[color:var(--color-danger,#b42318)]',
+    EMERGENCY: 'border-(--tone-danger-border,#f2b8b5) bg-(--tone-danger-bg,#fef3f2) text-(--color-danger,#b42318)',
 };
 
 export default function AnnouncementShow({ announcement: a }: Props): JSX.Element {
@@ -70,27 +70,27 @@ export default function AnnouncementShow({ announcement: a }: Props): JSX.Elemen
                         </div>
                     )}
 
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 sm:p-6">
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--app-muted-foreground)]">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5 sm:p-6">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-(--app-muted-foreground)">
                             {a.priority !== 'URGENT' && a.priority !== 'EMERGENCY' && <PriorityMark priority={a.priority} />}
                             {a.manage && <StatusPill status={a.status} />}
                             {a.published_at && <span>{tr(t('communication.announcements.published'), { date: dateTime(a.published_at, locale, system) })}</span>}
                             {a.publisher && <span>{tr(t('communication.announcements.by'), { name: a.publisher })}</span>}
                             {a.expires_at && <span>{tr(t('communication.announcements.expires'), { date: dateTime(a.expires_at, locale, system) })}</span>}
                         </div>
-                        <div className="mt-4 max-w-[70ch] whitespace-pre-wrap break-words text-[15px] leading-7 text-[color:var(--app-foreground)]">{a.body}</div>
+                        <div className="mt-4 max-w-[70ch] whitespace-pre-wrap wrap-break-word text-[15px] leading-7 text-(--app-foreground)">{a.body}</div>
 
                         {a.attachments.length > 0 && (
-                            <div className="mt-6 border-t border-[color:var(--app-border)] pt-4">
-                                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t('communication.announcements.files')}</h2>
+                            <div className="mt-6 border-t border-(--app-border) pt-4">
+                                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{t('communication.announcements.files')}</h2>
                                 <ul className="grid gap-2 sm:grid-cols-2">
                                     {a.attachments.map((file) => (
                                         <li key={file.id}>
                                             <a href={file.downloadable ? communicationApi.announcementFileUrl(file.id) : undefined} aria-disabled={!file.downloadable}
-                                                className="flex items-center gap-2.5 rounded-control border border-[color:var(--app-border)] px-3 py-2 text-sm hover:bg-[color:var(--app-surface-muted)]">
-                                                <PaperclipIcon className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                                                <span className="min-w-0 flex-1 truncate text-[color:var(--app-foreground)]">{file.name}</span>
-                                                <span className="shrink-0 text-xs text-[color:var(--app-muted-foreground)]">{file.downloadable ? fileSize(file.size) : t('communication.chat.attachmentWaiting')}</span>
+                                                className="flex items-center gap-2.5 rounded-control border border-(--app-border) px-3 py-2 text-sm hover:bg-(--app-surface-muted)">
+                                                <PaperclipIcon className="h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />
+                                                <span className="min-w-0 flex-1 truncate text-(--app-foreground)">{file.name}</span>
+                                                <span className="shrink-0 text-xs text-(--app-muted-foreground)">{file.downloadable ? fileSize(file.size) : t('communication.chat.attachmentWaiting')}</span>
                                             </a>
                                         </li>
                                     ))}
@@ -100,7 +100,7 @@ export default function AnnouncementShow({ announcement: a }: Props): JSX.Elemen
                     </div>
 
                     {a.acknowledgement_required && a.status === 'PUBLISHED' && (a.can.acknowledge || a.acknowledged) && (
-                        <div className={`flex flex-col gap-3 rounded-panel border p-5 sm:flex-row sm:items-center ${a.acknowledged ? 'border-[color:var(--tone-success-border,#abefc6)] bg-[color:var(--tone-success-bg,#ecfdf3)]' : 'border-[color:var(--tone-warning-border,#fedf89)] bg-[color:var(--tone-warning-bg,#fffaeb)]'}`}>
+                        <div className={`flex flex-col gap-3 rounded-panel border p-5 sm:flex-row sm:items-center ${a.acknowledged ? 'border-(--tone-success-border,#abefc6) bg-(--tone-success-bg,#ecfdf3)' : 'border-(--tone-warning-border,#fedf89) bg-(--tone-warning-bg,#fffaeb)'}`}>
                             {a.acknowledged ? (
                                 <p className="flex items-center gap-2 text-sm font-medium text-emerald-800 dark:text-emerald-200">
                                     <CheckReadIcon className="h-5 w-5" aria-hidden="true" />
@@ -108,7 +108,7 @@ export default function AnnouncementShow({ announcement: a }: Props): JSX.Elemen
                                 </p>
                             ) : (
                                 <>
-                                    <p className="flex-1 text-sm text-[color:var(--app-foreground)]">{t('communication.announcements.acknowledgeHelp')}</p>
+                                    <p className="flex-1 text-sm text-(--app-foreground)">{t('communication.announcements.acknowledgeHelp')}</p>
                                     <button type="button" disabled={busy} onClick={acknowledge} className={buttonClassName({ variant: 'primary', className: 'shrink-0' })}>
                                         {t('communication.announcements.acknowledge')}
                                     </button>
@@ -139,31 +139,31 @@ function ManagePanel({ a }: { a: AnnouncementDetail }): JSX.Element {
     return (
         <aside className="space-y-5">
             {a.status === 'CANCELLED' && m.cancelled_at && (
-                <p className="rounded-control border border-[color:var(--tone-danger-border,#f2b8b5)] bg-[color:var(--tone-danger-bg,#fef3f2)] px-4 py-3 text-sm text-[color:var(--color-danger,#b42318)]">
+                <p className="rounded-control border border-(--tone-danger-border,#f2b8b5) bg-(--tone-danger-bg,#fef3f2) px-4 py-3 text-sm text-(--color-danger,#b42318)">
                     {tr(t('communication.announcements.cancelled'), { date: dateTime(m.cancelled_at, locale, system), reason: m.cancel_reason ?? '' })}
                 </p>
             )}
             {a.status === 'SCHEDULED' && m.publish_at && (
-                <p className="rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm text-[color:var(--app-foreground)]">
+                <p className="rounded-control border border-(--app-border) bg-(--app-surface) px-4 py-3 text-sm text-(--app-foreground)">
                     {tr(t('communication.announcements.scheduledFor'), { date: dateTime(m.publish_at, locale, system) })}
                 </p>
             )}
 
-            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.announcements.targetsTitle')}</h2>
+            <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">{t('communication.announcements.targetsTitle')}</h2>
                 <ul className="mt-2 flex flex-wrap gap-1.5">
                     {m.targets.map((target) => (
-                        <li key={`${target.type}:${target.id}`} className="rounded-full border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-2.5 py-1 text-xs text-[color:var(--app-foreground)]">
-                            <span className="text-[color:var(--app-muted-foreground)]">{t(`communication.announcements.targetTypes.${target.type}`)}</span>
+                        <li key={`${target.type}:${target.id}`} className="rounded-full border border-(--app-border) bg-(--app-surface-muted) px-2.5 py-1 text-xs text-(--app-foreground)">
+                            <span className="text-(--app-muted-foreground)">{t(`communication.announcements.targetTypes.${target.type}`)}</span>
                             {target.type !== 'CITY' && <>: {target.label}</>}
                         </li>
                     ))}
                 </ul>
-                <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-[color:var(--app-border)] pt-4 sm:grid-cols-4 xl:grid-cols-2">
+                <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-(--app-border) pt-4 sm:grid-cols-4 xl:grid-cols-2">
                     {stats.map(([label, value]) => (
                         <div key={label}>
-                            <dt className="text-[11px] text-[color:var(--app-muted-foreground)]">{label}</dt>
-                            <dd className="text-lg font-semibold tabular-nums text-[color:var(--app-foreground)]">{value === null ? '—' : value.toLocaleString()}</dd>
+                            <dt className="text-[11px] text-(--app-muted-foreground)">{label}</dt>
+                            <dd className="text-lg font-semibold tabular-nums text-(--app-foreground)">{value === null ? '—' : value.toLocaleString()}</dd>
                         </div>
                     ))}
                 </dl>
@@ -194,50 +194,50 @@ function Recipients({ id, withAck }: { id: string; withAck: boolean }): JSX.Elem
         return () => window.clearTimeout(timer);
     }, [load, q]);
 
-    const when = (iso: string | null) => (iso ? dateTime(iso, locale, system) : <span className="text-[color:var(--app-muted-foreground)]">{t('communication.announcements.report.notYet')}</span>);
+    const when = (iso: string | null) => (iso ? dateTime(iso, locale, system) : <span className="text-(--app-muted-foreground)">{t('communication.announcements.report.notYet')}</span>);
 
     return (
-        <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-            <div className="space-y-2 border-b border-[color:var(--app-border)] p-3">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.announcements.report.recipients')}</h2>
+        <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+            <div className="space-y-2 border-b border-(--app-border) p-3">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">{t('communication.announcements.report.recipients')}</h2>
                 <div className="flex flex-wrap gap-1">
                     {filters.map((value) => (
                         <button key={value} type="button" aria-pressed={status === value} onClick={() => setStatus(value)}
-                            className={`h-7 rounded-full px-2.5 text-[11px] font-medium ${status === value ? 'bg-[color:var(--app-foreground)] text-[color:var(--app-background)]' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>
+                            className={`h-7 rounded-full px-2.5 text-[11px] font-medium ${status === value ? 'bg-(--app-foreground) text-(--app-background)' : 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted)'}`}>
                             {t(`communication.announcements.report.filters.${value}`)}
                         </button>
                     ))}
                 </div>
                 <label className="relative block">
                     <span className="sr-only">{t('communication.announcements.report.search')}</span>
-                    <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                    <SearchIcon className="pointer-events-none absolute inset-s-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                     <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('communication.announcements.report.search')}
-                        className="h-8 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-xs text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none" />
+                        className="h-8 w-full rounded-control border border-(--app-border) bg-(--app-background) ps-8 pe-2 text-xs text-(--app-foreground) focus:border-primary focus:outline-hidden" />
                 </label>
             </div>
             {rows === null ? (
-                <p className="px-4 py-6 text-center text-xs text-[color:var(--app-muted-foreground)]">{t('communication.announcements.report.counting')}</p>
+                <p className="px-4 py-6 text-center text-xs text-(--app-muted-foreground)">{t('communication.announcements.report.counting')}</p>
             ) : rows.length === 0 ? (
-                <p className="px-4 py-6 text-center text-xs text-[color:var(--app-muted-foreground)]">{t('communication.announcements.report.none')}</p>
+                <p className="px-4 py-6 text-center text-xs text-(--app-muted-foreground)">{t('communication.announcements.report.none')}</p>
             ) : (
-                <ul className="comm-scroll max-h-[28rem] divide-y divide-[color:var(--app-border)] overflow-y-auto">
+                <ul className="comm-scroll max-h-112 divide-y divide-(--app-border) overflow-y-auto">
                     {rows.map((row) => (
                         <li key={row.id} className="px-3 py-2">
-                            <p className="flex items-baseline justify-between gap-2 text-sm text-[color:var(--app-foreground)]">
+                            <p className="flex items-baseline justify-between gap-2 text-sm text-(--app-foreground)">
                                 <span className="truncate">{row.name}</span>
-                                {row.employee_number && <span className="shrink-0 text-[11px] tabular-nums text-[color:var(--app-muted-foreground)]">{row.employee_number}</span>}
+                                {row.employee_number && <span className="shrink-0 text-[11px] tabular-nums text-(--app-muted-foreground)">{row.employee_number}</span>}
                             </p>
-                            <p className="mt-0.5 grid grid-cols-2 gap-2 text-[11px] text-[color:var(--app-foreground)]">
-                                <span><span className="text-[color:var(--app-muted-foreground)]">{t('communication.announcements.report.columns.viewed')}: </span>{when(row.viewed_at)}</span>
-                                {withAck && <span><span className="text-[color:var(--app-muted-foreground)]">{t('communication.announcements.report.columns.acknowledged')}: </span>{when(row.acknowledged_at)}</span>}
+                            <p className="mt-0.5 grid grid-cols-2 gap-2 text-[11px] text-(--app-foreground)">
+                                <span><span className="text-(--app-muted-foreground)">{t('communication.announcements.report.columns.viewed')}: </span>{when(row.viewed_at)}</span>
+                                {withAck && <span><span className="text-(--app-muted-foreground)">{t('communication.announcements.report.columns.acknowledged')}: </span>{when(row.acknowledged_at)}</span>}
                             </p>
                         </li>
                     ))}
                 </ul>
             )}
             {next && (
-                <div className="border-t border-[color:var(--app-border)] p-2">
-                    <button type="button" onClick={() => load(next)} className="h-8 w-full rounded-control text-xs font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)]">
+                <div className="border-t border-(--app-border) p-2">
+                    <button type="button" onClick={() => load(next)} className="h-8 w-full rounded-control text-xs font-medium text-primary hover:bg-(--app-surface-muted)">
                         {t('communication.announcements.loadMore')}
                     </button>
                 </div>

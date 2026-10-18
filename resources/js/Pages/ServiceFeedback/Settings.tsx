@@ -64,15 +64,15 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityPolic
 
                 <Card className="space-y-5 p-5">
                     <h2 className="font-semibold">{t('serviceFeedback.settingsAvailability')}</h2>
-                    <ul className="divide-y divide-[color:var(--app-border)]">
+                    <ul className="divide-y divide-(--app-border)">
                         {SWITCHES.map((item) => (
                             <li key={item.key} className="flex items-start justify-between gap-4 py-3">
                                 <label htmlFor={`setting-${item.key}`} className="text-sm">
-                                    <span className="block font-medium text-[color:var(--app-foreground)]">{t(`serviceFeedback.${item.label}`)}</span>
-                                    <span className="block text-[color:var(--app-muted-foreground)]">{t(`serviceFeedback.${item.hint}`)}</span>
+                                    <span className="block font-medium text-(--app-foreground)">{t(`serviceFeedback.${item.label}`)}</span>
+                                    <span className="block text-(--app-muted-foreground)">{t(`serviceFeedback.${item.hint}`)}</span>
                                     {errors[item.key] && <span role="alert" className="block text-red-600">{errors[item.key]}</span>}
                                 </label>
-                                <input id={`setting-${item.key}`} type="checkbox" role="switch" aria-checked={form.data[item.key]} checked={form.data[item.key]} onChange={(e) => form.setData(item.key, e.target.checked)} className="mt-1 h-5 w-5 shrink-0 rounded border-[color:var(--app-border-strong)]" />
+                                <input id={`setting-${item.key}`} type="checkbox" role="switch" aria-checked={form.data[item.key]} checked={form.data[item.key]} onChange={(e) => form.setData(item.key, e.target.checked)} className="mt-1 h-5 w-5 shrink-0 rounded-sm border-(--app-border-strong)" />
                             </li>
                         ))}
                     </ul>
@@ -81,31 +81,31 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityPolic
                 <Card className="space-y-4 p-5">
                     <h2 className="font-semibold">{t('serviceFeedback.settingsIdentity')}</h2>
                     {/* Fixed business policy (PublicSubmissionPolicy), shown so administrators know what the public is asked. */}
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingIdentityMatrixHint')}</p>
-                    <ul className="divide-y divide-[color:var(--app-border)] rounded-lg border border-[color:var(--app-border)]">
+                    <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.settingIdentityMatrixHint')}</p>
+                    <ul className="divide-y divide-(--app-border) rounded-lg border border-(--app-border)">
                         {identityPolicy.map((policy) => (
                             <li key={policy.type} className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
-                                <span className="font-medium text-[color:var(--app-foreground)]">{t(`serviceFeedback.${TYPE_LABEL[policy.type]}`)}</span>
-                                <span className="text-right text-[color:var(--app-muted-foreground)]">
+                                <span className="font-medium text-(--app-foreground)">{t(`serviceFeedback.${TYPE_LABEL[policy.type]}`)}</span>
+                                <span className="text-right text-(--app-muted-foreground)">
                                     {t(policy.anonymous_allowed ? 'serviceFeedback.identityRuleOptional' : 'serviceFeedback.identityRuleRequired')}
                                 </span>
                             </li>
                         ))}
                     </ul>
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingIdentityPrivacyNote')}</p>
-                    <label htmlFor="setting-acknowledgement" className="flex items-start justify-between gap-4 border-t border-[color:var(--app-border)] pt-4 text-sm">
+                    <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.settingIdentityPrivacyNote')}</p>
+                    <label htmlFor="setting-acknowledgement" className="flex items-start justify-between gap-4 border-t border-(--app-border) pt-4 text-sm">
                         <span>
-                            <span className="block font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.settingAcknowledgement')}</span>
-                            <span className="block text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingAcknowledgementHint')}</span>
+                            <span className="block font-medium text-(--app-foreground)">{t('serviceFeedback.settingAcknowledgement')}</span>
+                            <span className="block text-(--app-muted-foreground)">{t('serviceFeedback.settingAcknowledgementHint')}</span>
                             {errors.acknowledgement_enabled && <span role="alert" className="block text-red-600">{errors.acknowledgement_enabled}</span>}
                         </span>
-                        <input id="setting-acknowledgement" type="checkbox" role="switch" aria-checked={form.data.acknowledgement_enabled} checked={form.data.acknowledgement_enabled} onChange={(e) => form.setData('acknowledgement_enabled', e.target.checked)} className="mt-1 h-5 w-5 shrink-0 rounded border-[color:var(--app-border-strong)]" />
+                        <input id="setting-acknowledgement" type="checkbox" role="switch" aria-checked={form.data.acknowledgement_enabled} checked={form.data.acknowledgement_enabled} onChange={(e) => form.setData('acknowledgement_enabled', e.target.checked)} className="mt-1 h-5 w-5 shrink-0 rounded-sm border-(--app-border-strong)" />
                     </label>
                 </Card>
 
                 <Card className="space-y-4 p-5">
                     <h2 className="font-semibold">{t('serviceFeedback.settingsAbuse')}</h2>
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingsAbuseHint')}</p>
+                    <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.settingsAbuseHint')}</p>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <FormField id="setting-rate-source" label={t('serviceFeedback.settingRatePerSource')} error={errors.rate_limit_per_source} required>
                             {({ id, describedBy, invalid }) => <Input id={id} type="number" min={1} max={100} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.rate_limit_per_source} onChange={(e) => form.setData('rate_limit_per_source', Number(e.target.value))} />}
@@ -118,7 +118,7 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityPolic
 
                 <Card className="space-y-4 p-5">
                     <h2 className="font-semibold">{t('situationRoom.rulesTitle')}</h2>
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.rulesIntro')}</p>
+                    <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.rulesIntro')}</p>
                     <div className="grid gap-4 sm:grid-cols-2">
                         {RULES.map((rule) => (
                             <FormField key={rule.key} id={`setting-${rule.key}`} label={t(`situationRoom.rule_${rule.key}`)} description={t('situationRoom.ruleOffHint')} error={errors[rule.key]}>
@@ -128,8 +128,8 @@ export default function PublicFeedbackSettings({ feedbackSettings, identityPolic
                     </div>
                 </Card>
 
-                <Card className="space-y-2 p-5 text-sm text-[color:var(--app-muted-foreground)]">
-                    <h2 className="font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.settingsNotDecided')}</h2>
+                <Card className="space-y-2 p-5 text-sm text-(--app-muted-foreground)">
+                    <h2 className="font-semibold text-(--app-foreground)">{t('serviceFeedback.settingsNotDecided')}</h2>
                     <p>{t('serviceFeedback.settingsNotDecidedHint')}</p>
                 </Card>
 

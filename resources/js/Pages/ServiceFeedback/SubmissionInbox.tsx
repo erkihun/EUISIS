@@ -53,30 +53,30 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
         header={<PageHeader
             title={title}
             description={t('serviceFeedback.submissionInboxIntro')}
-            actions={canManageRouting && <Link href={route('service-feedback.routing-rules.index')} className="inline-flex min-h-11 items-center text-sm font-semibold text-[color:var(--color-primary)] underline underline-offset-4">{t('serviceFeedback.routingRulesTitle')}</Link>}
+            actions={canManageRouting && <Link href={route('service-feedback.routing-rules.index')} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary underline underline-offset-4">{t('serviceFeedback.routingRulesTitle')}</Link>}
         />}
     >
         <Head title={title} />
         <div className="space-y-5">
-            {needsAttention > 0 && !filters.status && <div role="status" className="rounded-[var(--radius-card)] border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+            {needsAttention > 0 && !filters.status && <div role="status" className="rounded-card border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
                 {t('serviceFeedback.unroutedNotice').replace(':count', needsAttention.toLocaleString())}{' '}
                 <Link href={href('unrouted', false)} className="font-semibold underline underline-offset-4">{t('serviceFeedback.statusUnrouted')}</Link>
             </div>}
 
-            <nav aria-label={t('serviceFeedback.submissionCounts')} className="-mx-4 overflow-x-auto border-b border-[color:var(--app-border)] px-4 sm:mx-0 sm:px-0">
+            <nav aria-label={t('serviceFeedback.submissionCounts')} className="-mx-4 overflow-x-auto border-b border-(--app-border) px-4 sm:mx-0 sm:px-0">
                 <ul className="flex min-w-max gap-1">
                     {tabs.map((tab) => {
                         const active = tab.id === (filters.status ?? '');
                         const attention = tab.id === 'unrouted' && tab.count > 0;
                         return <li key={tab.id || 'all'}>
                             <Link href={href(tab.id, filters.mine)} preserveScroll aria-current={active ? 'page' : undefined}
-                                className={cx('-mb-px inline-flex h-11 items-center gap-2 border-b-2 px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
-                                    active ? 'border-[color:var(--color-primary)] font-semibold text-[color:var(--color-primary)]' : 'border-transparent font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]')}>
+                                className={cx('-mb-px inline-flex h-11 items-center gap-2 border-b-2 px-3 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary',
+                                    active ? 'border-primary font-semibold text-primary' : 'border-transparent font-medium text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
                                 {tab.label}
-                                <span className={cx('inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-xs font-semibold tabular-nums',
+                                <span className={cx('inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold tabular-nums',
                                     attention ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200'
-                                        : active ? 'bg-[color:var(--color-primary-100)] text-[color:var(--color-primary)] dark:bg-[color:var(--color-primary-900)] dark:text-[color:var(--color-primary-200)]'
-                                            : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]')}>{tab.count.toLocaleString()}</span>
+                                        : active ? 'bg-primary-100 text-primary dark:bg-primary-900 dark:text-primary-200'
+                                            : 'bg-(--app-surface-muted) text-(--app-muted-foreground)')}>{tab.count.toLocaleString()}</span>
                             </Link>
                         </li>;
                     })}
@@ -87,7 +87,7 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
                 <div role="group" aria-label={t('serviceFeedback.tipTypeLabel')} className="flex flex-wrap gap-2 text-sm">
                     {([null, 'CORRUPTION', 'IMPROPER_PRACTICE', 'UNCLASSIFIED_LEGACY'] as const).map((tipType) => (
                         <Link key={tipType ?? 'all'} href={href(filters.status ?? '', filters.mine, tipType)} preserveScroll aria-current={filters.tip_type === tipType ? 'true' : undefined}
-                            className={cx('inline-flex min-h-9 items-center rounded-full border px-3 font-medium', filters.tip_type === tipType ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white' : 'border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]')}>
+                            className={cx('inline-flex min-h-9 items-center rounded-full border px-3 font-medium', filters.tip_type === tipType ? 'border-primary bg-primary text-white' : 'border-(--app-border) text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
                             {t(TIP_FILTER_LABEL[tipType ?? 'ALL'])}
                         </Link>
                     ))}
@@ -95,28 +95,28 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
             )}
 
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.showingRange').replace(':total', entries.total.toLocaleString()).replace(':from', String(entries.from ?? 0)).replace(':to', String(entries.to ?? 0))}</p>
-                <div role="group" aria-label={t('serviceFeedback.queueFilter')} className="inline-flex rounded-[var(--radius-control)] border border-[color:var(--app-border)] p-0.5 text-sm">
+                <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.showingRange').replace(':total', entries.total.toLocaleString()).replace(':from', String(entries.from ?? 0)).replace(':to', String(entries.to ?? 0))}</p>
+                <div role="group" aria-label={t('serviceFeedback.queueFilter')} className="inline-flex rounded-control border border-(--app-border) p-0.5 text-sm">
                     {[{ mine: false, key: 'queueAll' }, { mine: true, key: 'queueMine' }].map((option) => <Link key={option.key} href={href(filters.status ?? '', option.mine)} preserveScroll aria-current={filters.mine === option.mine ? 'true' : undefined}
-                        className={cx('inline-flex min-h-9 items-center rounded-[calc(var(--radius-control)-2px)] px-3 font-medium', filters.mine === option.mine ? 'bg-[color:var(--color-primary)] text-white' : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]')}>{t(`serviceFeedback.${option.key}`)}</Link>)}
+                        className={cx('inline-flex min-h-9 items-center rounded-[calc(var(--radius-control)-2px)] px-3 font-medium', filters.mine === option.mine ? 'bg-primary text-white' : 'text-(--app-muted-foreground) hover:text-(--app-foreground)')}>{t(`serviceFeedback.${option.key}`)}</Link>)}
                 </div>
             </div>
 
-            <section className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
                 <h2 className="sr-only">{title}</h2>
                 {entries.data.length === 0 ? <Card className="border-0"><EmptyState title={t('serviceFeedback.noSubmissions')} /></Card>
-                    : <ul className="divide-y divide-[color:var(--app-border)]">{entries.data.map((entry) => <li key={entry.id}>
-                        <Link href={route('service-submissions.show', { type, submission: entry.id })} className="block p-4 hover:bg-[color:var(--app-surface-muted)] focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[color:var(--color-primary)]">
+                    : <ul className="divide-y divide-(--app-border)">{entries.data.map((entry) => <li key={entry.id}>
+                        <Link href={route('service-submissions.show', { type, submission: entry.id })} className="block p-4 hover:bg-(--app-surface-muted) focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <span className="font-semibold">
-                                    <span className="mr-2 rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t(entry.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee')}</span>{' '}
+                                    <span className="mr-2 rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-xs font-medium text-(--app-muted-foreground)">{t(entry.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee')}</span>{' '}
                                     {entry.target_name ?? entry.employee ?? entry.employee_number ?? '—'}
-                                    {type === 'suggestion' && <span className="ml-2 rounded-full border border-[color:var(--app-border)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t(TIP_FILTER_LABEL[entry.tip_type ?? 'UNCLASSIFIED_LEGACY'])}</span>}
+                                    {type === 'suggestion' && <span className="ml-2 rounded-full border border-(--app-border) px-2 py-0.5 text-xs font-medium text-(--app-muted-foreground)">{t(TIP_FILTER_LABEL[entry.tip_type ?? 'UNCLASSIFIED_LEGACY'])}</span>}
                                 </span>
                                 <FeedbackStatusBadge status={entry.status} />
                             </div>
-                            <p className="mt-1 line-clamp-2 text-sm text-[color:var(--app-muted-foreground)]">{entry.message}</p>
-                            <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-[color:var(--app-muted-foreground)]">
+                            <p className="mt-1 line-clamp-2 text-sm text-(--app-muted-foreground)">{entry.message}</p>
+                            <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-(--app-muted-foreground)">
                                 {entry.reference && <span className="font-mono">{entry.reference}</span>}
                                 {entry.organization && <span>{entry.organization}</span>}
                                 <LocalizedDateDisplay value={entry.submitted_at ?? entry.created_at} withTime />

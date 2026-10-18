@@ -15,7 +15,7 @@ export type CompetencyRow = { competency_id: string; minimum_level_id: string; i
 export type QualificationRow = { education_level_id: string; field_of_study: string | null; certification: string | null; license: string | null; experience_years: number; is_mandatory: boolean; education_level?: LevelOption | null };
 export type Requirements = { occupations: OccupationRow[]; competencies: CompetencyRow[]; qualifications: QualificationRow[] };
 
-const checkbox = 'rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]';
+const checkbox = 'rounded-sm border-(--app-border-strong) text-primary focus:ring-primary';
 
 /** The three requirement sets of an activity or task, replaced together. */
 export default function RequirementsForm({ subjectType, subjectId, title, requirements, catalog, onClose }: {
@@ -46,9 +46,9 @@ export default function RequirementsForm({ subjectType, subjectId, title, requir
     }
 
     const section = (heading: string, onAdd: () => void, body: React.ReactNode) => (
-        <section className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3">
+        <section className="rounded-card border border-(--app-border) p-3">
             <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{heading}</h3>
+                <h3 className="text-sm font-semibold text-(--app-foreground)">{heading}</h3>
                 <Button type="button" size="sm" variant="outline" onClick={onAdd}>{tt('requirements.addRow')}</Button>
             </div>
             <div className="mt-2 space-y-2">{body}</div>
@@ -58,9 +58,9 @@ export default function RequirementsForm({ subjectType, subjectId, title, requir
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('requirements.edit')} · {title}</h2>
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{tt('requirements.help')}</p>
-                {emptyCatalog && <p className="mt-2 text-sm text-[color:var(--app-warning,inherit)]">{tt('requirements.noCatalog')}</p>}
+                <h2 className="text-base font-semibold text-(--app-foreground)">{tt('requirements.edit')} · {title}</h2>
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">{tt('requirements.help')}</p>
+                {emptyCatalog && <p className="mt-2 text-sm text-(--app-warning,inherit)">{tt('requirements.noCatalog')}</p>}
 
                 <div className="mt-5 space-y-4">
                     {section(tt('requirements.occupations'), () => form.setData('occupations', [...form.data.occupations, { occupation_id: catalog.occupations[0]?.id ?? '', profession_id: '', specialization_id: '', is_primary: form.data.occupations.length === 0 }]),
@@ -133,20 +133,20 @@ export default function RequirementsForm({ subjectType, subjectId, title, requir
 export function RequirementsSummary({ requirements }: { requirements: Requirements }) {
     const { locale, tt } = useDesignText();
     const total = requirements.occupations.length + requirements.competencies.length + requirements.qualifications.length;
-    if (total === 0) return <p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('requirements.none')}</p>;
+    if (total === 0) return <p className="text-xs text-(--app-muted-foreground)">{tt('requirements.none')}</p>;
     const label = (x: Named | null | undefined) => (x ? nameOf(x, locale) : '—');
     return (
         <dl className="grid gap-1 text-xs sm:grid-cols-3">
             <div>
-                <dt className="font-medium text-[color:var(--app-muted-foreground)]">{tt('requirements.occupations')}</dt>
+                <dt className="font-medium text-(--app-muted-foreground)">{tt('requirements.occupations')}</dt>
                 {requirements.occupations.map((r, i) => <dd key={i}>{r.occupation?.isco_code ? `${r.occupation.isco_code} · ` : ''}{label(r.occupation)}{r.profession ? ` › ${label(r.profession)}` : ''}{r.specialization ? ` › ${label(r.specialization)}` : ''}{r.is_primary ? ` (${tt('requirements.primary')})` : ''}</dd>)}
             </div>
             <div>
-                <dt className="font-medium text-[color:var(--app-muted-foreground)]">{tt('requirements.competencies')}</dt>
+                <dt className="font-medium text-(--app-muted-foreground)">{tt('requirements.competencies')}</dt>
                 {requirements.competencies.map((r, i) => <dd key={i}>{label(r.competency)} ≥ {r.minimum_level ? `${r.minimum_level.rank} ${nameOf(r.minimum_level, locale)}` : '—'}{r.is_mandatory ? '' : ` (${tt('requirements.optional')})`}</dd>)}
             </div>
             <div>
-                <dt className="font-medium text-[color:var(--app-muted-foreground)]">{tt('requirements.qualifications')}</dt>
+                <dt className="font-medium text-(--app-muted-foreground)">{tt('requirements.qualifications')}</dt>
                 {requirements.qualifications.map((r, i) => <dd key={i}>{label(r.education_level)}{r.field_of_study ? ` · ${r.field_of_study}` : ''}{r.experience_years ? ` · ${tt('requirements.years').replace(':count', String(r.experience_years))}` : ''}{r.certification ? ` · ${r.certification}` : ''}</dd>)}
             </div>
         </dl>

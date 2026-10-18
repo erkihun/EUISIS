@@ -39,7 +39,8 @@ function adminUiCounts(): array
         // Table cells, tables and table sections take the table kit's classes.
         'static table class' => '/<(table|thead|tbody|th|td)\b[^>]*?\sclassName="/',
         // Primary, destructive and outline buttons take buttonClassName / <Button>.
-        'hand-rolled primary button' => '/<button\b[^>]*?className="[^"]*bg-\[color:var\(--color-primary\)\]/',
+        // Tailwind 4 spells the brand fill `bg-primary` (or `bg-(--color-primary)`).
+        'hand-rolled primary button' => '/<button\b[^>]*?className="[^"]*\bbg-(?:primary|\(--color-primary\))(?![\w\/-])/',
         'hand-rolled destructive button' => '/<button\b[^>]*?className="[^"]*\bbg-red-(600|700)\b/',
         // Text-like inputs, selects and textareas take inputClassName / selectClassName / textareaClassName.
         'hand-rolled select or textarea' => '/<(select|textarea)\b[^>]*?className="[^"]*\bborder\b/',

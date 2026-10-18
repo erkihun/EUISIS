@@ -426,7 +426,7 @@ export default function QrScanner({ onDecoded, autoStart = false }: Props) {
                                 type="button"
                                 onClick={toggleTorch}
                                 aria-pressed={torchOn}
-                                className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition hover:bg-black/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-sm transition hover:bg-black/75 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white"
                             >
                                 <span className="sr-only">{t('idChecker.toggleTorch')}</span>
                                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden="true">

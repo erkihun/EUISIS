@@ -27,7 +27,7 @@ export type ReferralRow = {
     mine: boolean;
 };
 
-const PANEL = 'space-y-4 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5';
+const PANEL = 'space-y-4 rounded-panel border border-(--app-border) bg-(--app-surface) p-5';
 const REFERRAL_TONE: Record<ReferralRow['status'], string> = { requested: 'pending', accepted: 'active', declined: 'rejected', withdrawn: 'inactive' };
 
 /** Investigation subjects of a complaint (brief §61–62): named employees, never a change of target. */
@@ -54,22 +54,22 @@ export function SubjectsPanel({ submissionId, subjects, canManage }: { submissio
     return (
         <section className={PANEL}>
             <h2 className="font-semibold">{t('serviceFeedback.subjectsTitle')}</h2>
-            <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.subjectsHint')}</p>
+            <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.subjectsHint')}</p>
             {subjects.length === 0
-                ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noSubjects')}</p>
-                : <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+                ? <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noSubjects')}</p>
+                : <ul className="divide-y divide-(--app-border) text-sm">
                     {subjects.map((subject) => (
                         <li key={subject.id} className="flex items-start justify-between gap-3 py-2">
                             <div>
                                 <div className="font-medium">{subject.employee.full_name ?? subject.employee.employee_number}</div>
-                                <div className="text-xs text-[color:var(--app-muted-foreground)]">{[subject.employee.employee_number, subject.subject_role].filter(Boolean).join(' · ')} · {subject.added_by ?? t('common.system')} · <LocalizedDateDisplay value={subject.added_at} /></div>
+                                <div className="text-xs text-(--app-muted-foreground)">{[subject.employee.employee_number, subject.subject_role].filter(Boolean).join(' · ')} · {subject.added_by ?? t('common.system')} · <LocalizedDateDisplay value={subject.added_at} /></div>
                             </div>
                             {canManage && <button type="button" className={actionLinkClassName({ tone: 'danger' })} onClick={() => remove(subject)}>{t('common.delete')}</button>}
                         </li>
                     ))}
                 </ul>}
             {canManage && (
-                <form onSubmit={submit} className="grid gap-3 border-t border-[color:var(--app-border)] pt-4">
+                <form onSubmit={submit} className="grid gap-3 border-t border-(--app-border) pt-4">
                     <FormField id="subject-employee" label={t('serviceFeedback.filterEmployee')} error={form.errors.employee_id} required>
                         {({ id }) => <SearchableSelect id={id} label={t('serviceFeedback.filterEmployee')} value={form.data.employee_id} loadOptions={searchEmployees} onChange={(value) => form.setData('employee_id', value)} placeholder={t('serviceFeedback.searchEmployee')} />}
                     </FormField>
@@ -103,17 +103,17 @@ export function ReferralsPanel({ submissionId, referrals, canRefer, canDecide }:
             <h2 className="font-semibold">{t('serviceFeedback.referralTitle')}</h2>
             <Alert tone="info">{t('serviceFeedback.referralBoundaryNote')}</Alert>
             {referrals.length === 0
-                ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noReferrals')}</p>
+                ? <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noReferrals')}</p>
                 : <ul className="space-y-3 text-sm">
                     {referrals.map((referral) => (
-                        <li key={referral.id} className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3">
+                        <li key={referral.id} className="rounded-card border border-(--app-border) p-3">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <StatusBadge status={REFERRAL_TONE[referral.status]} label={t(`serviceFeedback.referral_${referral.status}`)} />
-                                <span className="text-xs text-[color:var(--app-muted-foreground)]">{referral.requested_by ?? t('common.system')} · <LocalizedDateDisplay value={referral.requested_at} withTime /></span>
+                                <span className="text-xs text-(--app-muted-foreground)">{referral.requested_by ?? t('common.system')} · <LocalizedDateDisplay value={referral.requested_at} withTime /></span>
                             </div>
                             {referral.notes && <p className="mt-2 whitespace-pre-wrap">{referral.notes}</p>}
-                            {referral.decided_at && <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t(`serviceFeedback.referral_${referral.status}`)} · {referral.decided_by ?? t('common.system')} · <LocalizedDateDisplay value={referral.decided_at} withTime />{referral.decision_notes && <> · {referral.decision_notes}</>}</p>}
-                            {referral.disciplinary_case_id && <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.referralLinkedCase')}</p>}
+                            {referral.decided_at && <p className="mt-2 text-xs text-(--app-muted-foreground)">{t(`serviceFeedback.referral_${referral.status}`)} · {referral.decided_by ?? t('common.system')} · <LocalizedDateDisplay value={referral.decided_at} withTime />{referral.decision_notes && <> · {referral.decision_notes}</>}</p>}
+                            {referral.disciplinary_case_id && <p className="mt-2 text-xs text-(--app-muted-foreground)">{t('serviceFeedback.referralLinkedCase')}</p>}
                             {referral.status === 'requested' && (
                                 <div className="mt-3 flex flex-wrap gap-2">
                                     {canDecide && !referral.mine && <>
@@ -127,7 +127,7 @@ export function ReferralsPanel({ submissionId, referrals, canRefer, canDecide }:
                     ))}
                 </ul>}
             {canRefer && open === null && (
-                <form onSubmit={request} className="space-y-3 border-t border-[color:var(--app-border)] pt-4">
+                <form onSubmit={request} className="space-y-3 border-t border-(--app-border) pt-4">
                     <FormField id="referral-notes" label={t('serviceFeedback.referralNotes')} description={t('serviceFeedback.referralNotesHint')} error={form.errors.notes} required>
                         {({ id, describedBy, invalid }) => <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid} rows={3} maxLength={2000} value={form.data.notes} onChange={(e) => form.setData('notes', e.target.value)} />}
                     </FormField>

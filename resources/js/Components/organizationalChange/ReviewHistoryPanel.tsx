@@ -24,25 +24,25 @@ export default function ReviewHistoryPanel({ reviews, history }: Props): JSX.Ele
 
     return (
         <div className="grid gap-4 lg:grid-cols-2">
-            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                <header className="border-b border-[color:var(--app-border)] px-4 py-3">
-                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+            <section className="rounded-panel border border-(--app-border) bg-(--app-surface)">
+                <header className="border-b border-(--app-border) px-4 py-3">
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">
                         {t('organizationalChangeRequests.timeline.reviewHistory')}
                     </h2>
                 </header>
                 {reviews.length === 0 ? (
-                    <p className="px-4 py-3 text-sm text-[color:var(--app-muted-foreground)]">—</p>
+                    <p className="px-4 py-3 text-sm text-(--app-muted-foreground)">—</p>
                 ) : (
-                    <ul className="divide-y divide-[color:var(--app-border)]">
+                    <ul className="divide-y divide-(--app-border)">
                         {reviews.map(review => (
                             <li key={review.id} className="px-4 py-3">
                                 <div className="flex flex-wrap items-baseline justify-between gap-2">
-                                    <span className="text-sm font-medium text-[color:var(--app-foreground)]">
+                                    <span className="text-sm font-medium text-(--app-foreground)">
                                         {t(`organizationalChangeRequests.actions.${toCamel(review.action)}`) === `organizationalChangeRequests.actions.${toCamel(review.action)}`
                                             ? review.action
                                             : t(`organizationalChangeRequests.actions.${toCamel(review.action)}`)}
                                     </span>
-                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                    <span className="text-xs text-(--app-muted-foreground)">
                                         {review.reviewer?.name ?? '—'}
                                         {' · '}
                                         {review.reviewed_at ? <LocalizedDateDisplay value={review.reviewed_at} withTime /> : ''}
@@ -50,7 +50,7 @@ export default function ReviewHistoryPanel({ reviews, history }: Props): JSX.Ele
                                     </span>
                                 </div>
                                 {review.comment && (
-                                    <p className="mt-1 whitespace-pre-line text-sm text-[color:var(--app-muted-foreground)]">{review.comment}</p>
+                                    <p className="mt-1 whitespace-pre-line text-sm text-(--app-muted-foreground)">{review.comment}</p>
                                 )}
                             </li>
                         ))}
@@ -58,21 +58,21 @@ export default function ReviewHistoryPanel({ reviews, history }: Props): JSX.Ele
                 )}
             </section>
 
-            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                <header className="border-b border-[color:var(--app-border)] px-4 py-3">
-                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+            <section className="rounded-panel border border-(--app-border) bg-(--app-surface)">
+                <header className="border-b border-(--app-border) px-4 py-3">
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">
                         {t('organizationalChangeRequests.timeline.implementationHistory')}
                     </h2>
                 </header>
-                <ul className="divide-y divide-[color:var(--app-border)]">
+                <ul className="divide-y divide-(--app-border)">
                     {history.map(entry => (
                         <li key={entry.id} className="flex flex-wrap items-baseline justify-between gap-2 px-4 py-2.5">
-                            <span className="text-sm text-[color:var(--app-foreground)]">
+                            <span className="text-sm text-(--app-foreground)">
                                 {entry.to_status
                                     ? t(`organizationalChangeRequests.statuses.${entry.to_status}`)
                                     : entry.action}
                             </span>
-                            <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                            <span className="text-xs text-(--app-muted-foreground)">
                                 {entry.actor?.name ?? '—'}
                                 {' · '}
                                 {entry.created_at ? <LocalizedDateDisplay value={entry.created_at} withTime /> : ''}

@@ -77,7 +77,7 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
 
                     <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-12 lg:gap-6">
                         {/* Scanner first: this page exists to point a camera at a code. */}
-                        <section aria-labelledby="scan-heading" className={`${publicCardClass} min-w-0 !p-3 sm:!p-5 lg:col-span-7`}>
+                        <section aria-labelledby="scan-heading" className={`${publicCardClass} min-w-0 p-3! sm:p-5! lg:col-span-7`}>
                             <PublicCardDecor glow={false} />
                             <h2 id="scan-heading" className="sr-only">{t('home.verifyScanQr')}</h2>
 
@@ -114,7 +114,7 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
                         <div className="flex min-w-0 flex-col gap-4 lg:col-span-5">
                             {/* Manual entry stays available: cameras get denied, and a
                                 damaged code still has a readable reference printed on it. */}
-                            <form onSubmit={handleSubmit} className={`${publicCardClass} min-w-0 !p-3 sm:!p-5`}>
+                            <form onSubmit={handleSubmit} className={`${publicCardClass} min-w-0 p-3! sm:p-5!`}>
                                 <PublicCardDecor glow={false} />
                                 <label htmlFor="card-ref" className="block text-sm font-semibold text-gray-900 dark:text-slate-100">
                                     <span className="lg:hidden">{t('home.verifyEnterReference')}</span>
@@ -132,12 +132,12 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
                                         value={value}
                                         onChange={(e) => setValue(e.target.value)}
                                         placeholder={t('home.verifyInputPlaceholder')}
-                                        className="h-12 min-w-0 flex-1 w-full basis-auto shrink-0 rounded-[10px] border border-gray-300 bg-white px-3 text-base text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/30 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 sm:w-0 sm:shrink lg:w-full lg:flex-none"
+                                        className="h-12 min-w-0 flex-1 w-full basis-auto shrink-0 rounded-[10px] border border-gray-300 bg-white px-3 text-base text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/30 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 sm:w-0 sm:shrink lg:w-full lg:flex-none"
                                     />
                                     <button
                                         type="submit"
                                         disabled={!value.trim()}
-                                        className="inline-flex min-h-12 w-full shrink-0 items-center justify-center whitespace-normal rounded-[10px] border border-[color:var(--color-primary)] bg-white px-5 py-2 text-base font-bold text-[color:var(--color-primary)] transition-colors hover:bg-[color:var(--color-primary-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-50 dark:bg-slate-900 dark:hover:bg-slate-800 sm:w-auto lg:w-full"
+                                        className="inline-flex min-h-12 w-full shrink-0 items-center justify-center whitespace-normal rounded-[10px] border border-primary bg-white px-5 py-2 text-base font-bold text-primary transition-colors hover:bg-primary-50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 dark:bg-slate-900 dark:hover:bg-slate-800 sm:w-auto lg:w-full"
                                     >
                                         {t('home.verifyButton')}
                                     </button>
@@ -149,9 +149,9 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
                                 <ShieldIcon />
                                 <span>{t('home.verifyPrivacyShort')}</span>
                             </p>
-                            <section aria-labelledby="how-heading" className="hidden rounded-[14px] border border-[color:var(--color-primary-100)] bg-[color:var(--color-primary-50)] p-5 lg:block dark:border-slate-800 dark:bg-slate-900">
+                            <section aria-labelledby="how-heading" className="hidden rounded-[14px] border border-primary-100 bg-primary-50 p-5 lg:block dark:border-slate-800 dark:bg-slate-900">
                                 <h2 id="how-heading" className="text-[15px] font-bold text-gray-900 dark:text-slate-100">{t('home.verifyHowTitle')}</h2>
-                                <ol className="mt-3 list-decimal space-y-2 ps-5 text-sm leading-relaxed text-gray-700 marker:font-semibold marker:text-[color:var(--color-primary)] dark:text-slate-300">
+                                <ol className="mt-3 list-decimal space-y-2 ps-5 text-sm leading-relaxed text-gray-700 marker:font-semibold marker:text-primary dark:text-slate-300">
                                     <li>{t('home.verifyHowStep1')}</li>
                                     <li>{t('home.verifyHowStep2')}</li>
                                     <li>{t('home.verifyHowStep3')}</li>

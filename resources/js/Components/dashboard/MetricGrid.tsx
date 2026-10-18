@@ -67,7 +67,7 @@ export default function MetricGrid({
             <div className="grid grid-cols-1 gap-3 min-[375px]:grid-cols-2 xl:grid-cols-12">
                 {Children.map(children, (child, index) => (
                     <div
-                        className={`min-w-0 sm:col-span-1 [&>*]:h-full ${featuredSpan(itemCount, index)}`}
+                        className={`min-w-0 sm:col-span-1 *:h-full ${featuredSpan(itemCount, index)}`}
                     >
                         {child}
                     </div>

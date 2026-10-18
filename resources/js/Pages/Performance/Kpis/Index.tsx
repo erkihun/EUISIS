@@ -178,8 +178,8 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                             {kpis.data.map((kpi) => (
                                 <tr key={kpi.id}>
                                     <td className={tdCls}>
-                                        <p className="font-medium text-[color:var(--app-foreground)]"><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{kpi.code}</span> {nameOf(kpi, locale)}</p>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('measurement', kpi.measurement_type)}{kpi.unit_of_measure ? ` · ${kpi.unit_of_measure}` : ''}{kpi.organization_id === null ? ` · ${t('performance.kpis.globalOwner')}` : ''}{kpi.in_use ? ` · ${t('performance.kpis.inUse')}` : ''}</p>
+                                        <p className="font-medium text-(--app-foreground)"><span className="font-mono text-xs text-(--app-muted-foreground)">{kpi.code}</span> {nameOf(kpi, locale)}</p>
+                                        <p className="text-xs text-(--app-muted-foreground)">{label('measurement', kpi.measurement_type)}{kpi.unit_of_measure ? ` · ${kpi.unit_of_measure}` : ''}{kpi.organization_id === null ? ` · ${t('performance.kpis.globalOwner')}` : ''}{kpi.in_use ? ` · ${t('performance.kpis.inUse')}` : ''}</p>
                                     </td>
                                     <td className={tdCls}>{label('direction', kpi.direction)}</td>
                                     <td className={tdCls}>{label('aggregation', kpi.aggregation_method)}</td>

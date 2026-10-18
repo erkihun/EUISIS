@@ -79,20 +79,20 @@ export default function PasswordPolicyChecklist({
     const icon = { pass: '✓', fail: '○', server: '•' } as const;
     const tone = {
         pass: 'text-emerald-700 dark:text-emerald-400',
-        fail: 'text-[color:var(--app-muted-foreground)]',
-        server: 'text-[color:var(--app-muted-foreground)]',
+        fail: 'text-(--app-muted-foreground)',
+        server: 'text-(--app-muted-foreground)',
     } as const;
 
     return (
-        <div className={`rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-3 text-xs ${className}`}>
-            <p className="mb-2 text-[color:var(--app-foreground)]">{label('guidance')}</p>
+        <div className={`rounded-lg border border-(--app-border) bg-(--app-surface-muted) p-3 text-xs ${className}`}>
+            <p className="mb-2 text-(--app-foreground)">{label('guidance')}</p>
             <ul className="space-y-1" aria-live="polite">
                 {items.map((item) => (
                     <li key={item.key} className={`flex items-start gap-2 ${tone[item.state]}`}>
                         <span aria-hidden="true" className="w-3 shrink-0 text-center font-bold">{icon[item.state]}</span>
                         <span>
                             {item.text}
-                            {item.state === 'server' && <span className="text-[color:var(--app-muted-foreground)]"> — {label('checkedOnSave')}</span>}
+                            {item.state === 'server' && <span className="text-(--app-muted-foreground)"> — {label('checkedOnSave')}</span>}
                             <span className="sr-only"> ({label(`state_${item.state}`)})</span>
                         </span>
                     </li>

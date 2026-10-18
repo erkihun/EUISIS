@@ -71,7 +71,7 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
     // DECIMAL(14,4) from the server; people read "12", not "12.0000".
     const num = (value: string | number | null) => (value == null ? null : String(Number(value)));
 
-    const ioSummary = (rows: IoRow[]) => rows.length === 0 ? <span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('processes.noIo')}</span> : (
+    const ioSummary = (rows: IoRow[]) => rows.length === 0 ? <span className="text-xs text-(--app-muted-foreground)">{tt('processes.noIo')}</span> : (
         <ul className="flex flex-wrap gap-1">
             {rows.map((r, i) => <li key={r.id ?? i} className={badgeClassName(r.kind === 'output' ? 'success' : r.kind === 'dependency' ? 'warning' : 'neutral')}>{tt(`processes.kinds.${r.kind}`)}: {(locale === 'am' && r.label_am) || r.label_en}</li>)}
         </ul>
@@ -79,12 +79,12 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
 
     const standards = (rows: StandardRow[], subjectType: 'activity' | 'task', subjectId: string) => (
         <div className="mt-2 space-y-1">
-            {rows.length === 0 && <p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('processes.noStandards')}</p>}
+            {rows.length === 0 && <p className="text-xs text-(--app-muted-foreground)">{tt('processes.noStandards')}</p>}
             {rows.map((s) => (
                 <div key={s.id} className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="font-medium">v{s.version_no}</span>
                     <StatusPill status={s.status} />
-                    <span className="text-[color:var(--app-muted-foreground)]">
+                    <span className="text-(--app-muted-foreground)">
                         {s.planned_quantity != null && <>{t('workStandards.quantity')} {num(s.planned_quantity)} {s.quantity_unit} · </>}
                         {s.planned_time_minutes != null && <>{t('workStandards.time')} {num(s.planned_time_minutes)} · </>}
                         {s.planned_quality != null && <>{t('workStandards.quality')} {num(s.planned_quality)} {s.quality_unit} · </>}
@@ -101,12 +101,12 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
     );
 
     const renderTask = (task: TaskNode) => (
-        <li key={task.id} className="rounded-[var(--radius-control)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
+        <li key={task.id} className="rounded-control border border-(--app-border) bg-(--app-surface) p-3">
             <div className="flex flex-wrap items-start gap-2">
-                <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{task.code}</span>
+                <span className="font-mono text-xs text-(--app-muted-foreground)">{task.code}</span>
                 <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-[color:var(--app-foreground)]">{nameOf(task, locale)}{!task.is_active && <span className={`ml-2 ${badgeClassName('neutral')}`}>{tt('status.inactive')}</span>}</p>
-                    {task.required_output && <p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('fields.requiredOutput')}: {task.required_output}</p>}
+                    <p className="text-sm font-medium text-(--app-foreground)">{nameOf(task, locale)}{!task.is_active && <span className={`ml-2 ${badgeClassName('neutral')}`}>{tt('status.inactive')}</span>}</p>
+                    {task.required_output && <p className="text-xs text-(--app-muted-foreground)">{tt('fields.requiredOutput')}: {task.required_output}</p>}
                     <div className="mt-1">{ioSummary(task.io)}</div>
                     {standards(task.standards, 'task', task.id)}
                     <div className="mt-2"><RequirementsSummary requirements={task.requirements} /></div>
@@ -127,15 +127,15 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
         const isCollapsed = collapsed.has(node.id);
         return (
             <li key={node.id}>
-                <div className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3" style={{ marginLeft: `${node.depth * 16}px` }}>
+                <div className="rounded-card border border-(--app-border) p-3" style={{ marginLeft: `${node.depth * 16}px` }}>
                     <div className="flex flex-wrap items-start gap-2">
                         {(node.children.length > 0 || node.tasks.length > 0) && (
-                            <button type="button" className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]" aria-expanded={!isCollapsed} onClick={() => toggle(node.id)}>{isCollapsed ? '▸' : '▾'}</button>
+                            <button type="button" className="mt-0.5 text-xs text-(--app-muted-foreground)" aria-expanded={!isCollapsed} onClick={() => toggle(node.id)}>{isCollapsed ? '▸' : '▾'}</button>
                         )}
-                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{node.code}</span>
+                        <span className="font-mono text-xs text-(--app-muted-foreground)">{node.code}</span>
                         <div className="min-w-0 flex-1">
-                            <p className="text-sm font-semibold text-[color:var(--app-foreground)]">{nameOf(node, locale)}{!node.is_active && <span className={`ml-2 ${badgeClassName('neutral')}`}>{tt('status.inactive')}</span>}</p>
-                            {(locale === 'am' ? node.description_am : node.description_en) && <p className="text-xs text-[color:var(--app-muted-foreground)]">{locale === 'am' ? node.description_am : node.description_en}</p>}
+                            <p className="text-sm font-semibold text-(--app-foreground)">{nameOf(node, locale)}{!node.is_active && <span className={`ml-2 ${badgeClassName('neutral')}`}>{tt('status.inactive')}</span>}</p>
+                            {(locale === 'am' ? node.description_am : node.description_en) && <p className="text-xs text-(--app-muted-foreground)">{locale === 'am' ? node.description_am : node.description_en}</p>}
                             <div className="mt-1">{ioSummary(node.io)}</div>
                             {standards(node.standards, 'activity', node.id)}
                             <div className="mt-2"><RequirementsSummary requirements={node.requirements} /></div>
@@ -151,7 +151,7 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
                             </span>
                         )}
                     </div>
-                    {!isCollapsed && node.tasks.length > 0 && <ul className="mt-3 space-y-2 border-l-2 border-[color:var(--app-border)] pl-3">{node.tasks.map(renderTask)}</ul>}
+                    {!isCollapsed && node.tasks.length > 0 && <ul className="mt-3 space-y-2 border-l-2 border-(--app-border) pl-3">{node.tasks.map(renderTask)}</ul>}
                 </div>
                 {!isCollapsed && node.children.length > 0 && <ul className="mt-2 space-y-2">{node.children.map(renderActivity)}</ul>}
             </li>
@@ -160,7 +160,7 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
 
     return (
         <div>
-            {tree.length === 0 ? <p className="px-2 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('processes.noActivities')}</p> : <ul className="space-y-2">{tree.map(renderActivity)}</ul>}
+            {tree.length === 0 ? <p className="px-2 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('processes.noActivities')}</p> : <ul className="space-y-2">{tree.map(renderActivity)}</ul>}
             {can.update && <div className="mt-3"><Button size="sm" variant="primary" onClick={() => setEditing({ kind: 'activity', record: null, parentId: null })}>{tt('processes.addActivity')}</Button></div>}
 
             {editing?.kind === 'activity' && <ActivityForm processId={processId} record={editing.record} parentId={editing.parentId} parents={allActivities} onClose={() => setEditing(null)} />}
@@ -201,7 +201,7 @@ function ActivityForm({ processId, record, parentId, parents, onClose }: { proce
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{record ? tt('processes.editActivity') : tt('processes.addActivity')}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{record ? tt('processes.editActivity') : tt('processes.addActivity')}</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField id="act-code" label={tt('fields.code')} required error={errors.code}>{({ id }) => <Input id={id} value={form.data.code} maxLength={40} onChange={(e) => form.setData('code', e.target.value.toUpperCase())} />}</FormField>
                     <FormField id="act-seq" label={tt('fields.sequence')} error={errors.sequence}>{({ id }) => <Input id={id} type="number" min={0} value={form.data.sequence} onChange={(e) => form.setData('sequence', e.target.value)} />}</FormField>
@@ -218,7 +218,7 @@ function ActivityForm({ processId, record, parentId, parents, onClose }: { proce
                     <FormField id="act-desc-en" label={tt('fields.descriptionEn')} className="sm:col-span-2" error={errors.description_en}>{({ id }) => <Textarea id={id} value={form.data.description_en} onChange={(e) => form.setData('description_en', e.target.value)} />}</FormField>
                     <FormField id="act-desc-am" label={tt('fields.descriptionAm')} className="sm:col-span-2" error={errors.description_am}>{({ id }) => <Textarea id={id} value={form.data.description_am} onChange={(e) => form.setData('description_am', e.target.value)} />}</FormField>
                     <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                        <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
+                        <input type="checkbox" className="rounded-sm border-(--app-border-strong) text-primary focus:ring-primary" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
                         <span>{tt('fields.isActive')}</span>
                     </label>
                 </div>
@@ -260,7 +260,7 @@ function TaskForm({ record, activityId, onClose }: { record: TaskNode | null; ac
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{record ? tt('processes.editTask') : tt('processes.addTask')}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{record ? tt('processes.editTask') : tt('processes.addTask')}</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField id="task-code" label={tt('fields.code')} required error={errors.code}>{({ id }) => <Input id={id} value={form.data.code} maxLength={40} onChange={(e) => form.setData('code', e.target.value.toUpperCase())} />}</FormField>
                     <FormField id="task-seq" label={tt('fields.sequence')} error={errors.sequence}>{({ id }) => <Input id={id} type="number" min={0} value={form.data.sequence} onChange={(e) => form.setData('sequence', e.target.value)} />}</FormField>
@@ -270,7 +270,7 @@ function TaskForm({ record, activityId, onClose }: { record: TaskNode | null; ac
                     <FormField id="task-desc-en" label={tt('fields.descriptionEn')} className="sm:col-span-2" error={errors.description_en}>{({ id }) => <Textarea id={id} value={form.data.description_en} onChange={(e) => form.setData('description_en', e.target.value)} />}</FormField>
                     <FormField id="task-desc-am" label={tt('fields.descriptionAm')} className="sm:col-span-2" error={errors.description_am}>{({ id }) => <Textarea id={id} value={form.data.description_am} onChange={(e) => form.setData('description_am', e.target.value)} />}</FormField>
                     <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                        <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
+                        <input type="checkbox" className="rounded-sm border-(--app-border-strong) text-primary focus:ring-primary" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
                         <span>{tt('fields.isActive')}</span>
                     </label>
                 </div>
@@ -302,11 +302,11 @@ export function IoForm({ subjectType, subjectId, rows, title, kinds, activities,
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('processes.editIo')} · {title}</h2>
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{tt('processes.ioHelp')}</p>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{tt('processes.editIo')} · {title}</h2>
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">{tt('processes.ioHelp')}</p>
                 <ul className="mt-5 space-y-3">
                     {form.data.items.map((item, index) => (
-                        <li key={index} className="grid gap-2 rounded-[var(--radius-control)] border border-[color:var(--app-border)] p-3 sm:grid-cols-[9rem_1fr_1fr_auto]">
+                        <li key={index} className="grid gap-2 rounded-control border border-(--app-border) p-3 sm:grid-cols-[9rem_1fr_1fr_auto]">
                             <FormField id={`io-kind-${index}`} label={tt('fields.kind')} error={errors[`items.${index}.kind`]}>
                                 {({ id }) => <Select id={id} value={item.kind} onChange={(e) => setItem(index, { kind: e.target.value })}>{kinds.map((k) => <option key={k} value={k}>{tt(`processes.kinds.${k}`)}</option>)}</Select>}
                             </FormField>

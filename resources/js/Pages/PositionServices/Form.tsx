@@ -121,7 +121,7 @@ export default function PositionServiceForm({
 
                 <form
                     onSubmit={submit}
-                    className="space-y-5 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5"
+                    className="space-y-5 rounded-card border border-(--app-border) bg-(--app-surface) p-5"
                 >
                     <Field label={t('serviceFeedback.filterOrganization')} error={undefined}>
                         <select
@@ -219,7 +219,7 @@ export default function PositionServiceForm({
                         />
                     </Field>
 
-                    <div className="space-y-3 border-t border-[color:var(--app-border)] pt-4">
+                    <div className="space-y-3 border-t border-(--app-border) pt-4">
                         <Checkbox
                             checked={data.is_active}
                             onChange={(value) => setData('is_active', value)}
@@ -248,7 +248,7 @@ export default function PositionServiceForm({
 }
 
 const selectCls =
-    'mt-1 block w-full rounded-lg border-[color:var(--app-border-strong)] py-2 text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:opacity-60 text-[color:var(--app-foreground)]';
+    'mt-1 block w-full rounded-lg border-(--app-border-strong) py-2 text-sm focus:border-primary focus:ring-primary disabled:opacity-60 text-(--app-foreground)';
 
 function Field({
     label,
@@ -263,7 +263,7 @@ function Field({
 }): JSX.Element {
     return (
         <div>
-            <label className="block text-sm font-medium text-[color:var(--app-foreground)]">{label}</label>
+            <label className="block text-sm font-medium text-(--app-foreground)">{label}</label>
             {children}
             {hint && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{hint}</p>}
             {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
@@ -288,11 +288,11 @@ function Checkbox({
                 type="checkbox"
                 checked={checked}
                 onChange={(e) => onChange(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                className="mt-0.5 h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
             />
             <span>
-                <span className="block text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
-                {hint && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{hint}</span>}
+                <span className="block text-sm font-medium text-(--app-foreground)">{label}</span>
+                {hint && <span className="block text-xs text-(--app-muted-foreground)">{hint}</span>}
             </span>
         </label>
     );

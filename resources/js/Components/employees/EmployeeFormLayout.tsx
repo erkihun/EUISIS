@@ -14,9 +14,9 @@ import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Component
 /** Shared control styling. Exported so the pages style their own inputs identically. */
 export const inputCls = cx(inputClassName, 'w-full');
 
-export const labelCls = 'mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+export const labelCls = 'mb-1 block text-xs font-medium text-(--app-muted-foreground)';
 
-export const helpCls = 'mt-1 text-xs text-[color:var(--app-muted-foreground)]';
+export const helpCls = 'mt-1 text-xs text-(--app-muted-foreground)';
 
 /**
  * A titled card holding one group of fields.
@@ -50,19 +50,19 @@ export function FormCard({
     wide?: boolean;
 }>) {
     return (
-        <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--app-border)] bg-gray-50/70 px-5 py-4 dark:bg-slate-950/40">
+        <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-(--app-border) bg-gray-50/70 px-5 py-4 dark:bg-slate-950/40">
                 <div className="flex min-w-0 items-start gap-3">
                     <span
-                        className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[color:var(--color-primary)] dark:bg-blue-500/10 dark:text-[color:var(--color-primary)]"
+                        className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-primary dark:bg-blue-500/10 dark:text-primary"
                         aria-hidden="true"
                     >
                         {icon}
                     </span>
                     <div className="min-w-0">
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
                         {description && (
-                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>
+                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{description}</p>
                         )}
                     </div>
                 </div>
@@ -136,8 +136,8 @@ export function ReadOnlyValue({
     return (
         <div className="min-w-0">
             <dt className={labelCls}>{label}</dt>
-            <dd className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{value}</dd>
-            {code && <dd className="mt-0.5 truncate font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{code}</dd>}
+            <dd className="truncate text-sm font-semibold text-(--app-foreground)">{value}</dd>
+            {code && <dd className="mt-0.5 truncate font-mono text-[11px] text-(--app-muted-foreground)">{code}</dd>}
         </div>
     );
 }
@@ -180,11 +180,11 @@ export function FormActions({
     const { t } = useLocale();
 
     return (
-        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6">
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                 <Link
                     href={cancelHref}
-                    className="rounded-lg px-4 py-2 text-center text-sm font-medium text-[color:var(--app-foreground)] transition hover:bg-[color:var(--app-surface-muted)]"
+                    className="rounded-lg px-4 py-2 text-center text-sm font-medium text-(--app-foreground) transition hover:bg-(--app-surface-muted)"
                 >
                     {t('common.cancel')}
                 </Link>

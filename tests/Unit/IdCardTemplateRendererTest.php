@@ -164,7 +164,7 @@ it('keeps portrait sections independently manageable and omits removed back cont
         ->toContain("layoutStyle(cardTemplate, 'header')")
         ->toContain("layoutStyle(cardTemplate, 'employee_name')")
         ->toContain("layoutStyle(cardTemplate, 'employee_position')")
-        ->toContain('whitespace-normal break-words')
+        ->toContain('whitespace-normal wrap-break-word')
         ->toContain('lang="am"')
         ->toContain('lang="en"')
         ->toContain('organizationLogoUrl ?? cardTemplate?.logo_primary_url')

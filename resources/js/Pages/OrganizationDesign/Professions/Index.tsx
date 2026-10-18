@@ -58,20 +58,20 @@ export default function ProfessionsIndex({ occupations, filters, occupationOptio
                     <Card key={o.id}>
                         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <CardTitle><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{o.isco_code ?? o.code}</span> {nameOf({ name_en: o.name_en ?? o.code, name_am: o.name_am }, locale)}</CardTitle>
-                                {o.isco_group && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('professions.iscoReference')}: {o.isco_group.code} · {nameOf(o.isco_group, locale)} ({o.isco_group.revision})</p>}
+                                <CardTitle><span className="font-mono text-xs text-(--app-muted-foreground)">{o.isco_code ?? o.code}</span> {nameOf({ name_en: o.name_en ?? o.code, name_am: o.name_am }, locale)}</CardTitle>
+                                {o.isco_group && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('professions.iscoReference')}: {o.isco_group.code} · {nameOf(o.isco_group, locale)} ({o.isco_group.revision})</p>}
                             </div>
                             {can.manage && <Button size="sm" variant="outline" onClick={() => setEditing({ kind: 'profession', record: null, occupationId: o.id })}>{tt('professions.addProfession')}</Button>}
                         </CardHeader>
-                        {o.professions.length === 0 ? <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">{tt('professions.noProfessions')}</p> : (
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                        {o.professions.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('professions.noProfessions')}</p> : (
+                            <ul className="divide-y divide-(--app-border)">
                                 {o.professions.map((p) => (
                                     <li key={p.id} className="px-5 py-3">
                                         <div className="flex flex-wrap items-start gap-3">
-                                            <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{p.code}</span>
+                                            <span className="font-mono text-xs text-(--app-muted-foreground)">{p.code}</span>
                                             <div className="min-w-0 flex-1">
-                                                <p className="text-sm font-medium text-[color:var(--app-foreground)]">{nameOf(p, locale)}</p>
-                                                {(locale === 'am' ? p.description_am : p.description_en) && <p className="text-xs text-[color:var(--app-muted-foreground)]">{locale === 'am' ? p.description_am : p.description_en}</p>}
+                                                <p className="text-sm font-medium text-(--app-foreground)">{nameOf(p, locale)}</p>
+                                                {(locale === 'am' ? p.description_am : p.description_en) && <p className="text-xs text-(--app-muted-foreground)">{locale === 'am' ? p.description_am : p.description_en}</p>}
                                             </div>
                                             <StatusPill status={p.is_active ? 'active' : 'inactive'} />
                                             {can.manage && (
@@ -82,10 +82,10 @@ export default function ProfessionsIndex({ occupations, filters, occupationOptio
                                             )}
                                         </div>
                                         {p.specializations.length > 0 && (
-                                            <ul className="mt-2 space-y-1 border-l-2 border-[color:var(--app-border)] pl-3">
+                                            <ul className="mt-2 space-y-1 border-l-2 border-(--app-border) pl-3">
                                                 {p.specializations.map((s) => (
                                                     <li key={s.id} className="flex flex-wrap items-center gap-3 text-sm">
-                                                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{s.code}</span>
+                                                        <span className="font-mono text-xs text-(--app-muted-foreground)">{s.code}</span>
                                                         <span className="min-w-0 flex-1">{nameOf(s, locale)}</span>
                                                         <StatusPill status={s.is_active ? 'active' : 'inactive'} />
                                                         {can.manage && <button type="button" className={actionLinkClassName()} onClick={() => setEditing({ kind: 'specialization', record: s, professionId: p.id })}>{t('common.edit')}</button>}

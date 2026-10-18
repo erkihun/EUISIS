@@ -127,14 +127,14 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
         : `${detail.channel_info ? t(`communication.channels.types.${detail.channel_info.type}`) : t(`communication.types.${detail.type}`)} · ${tr(t('communication.details.memberCount'), { n: detail.member_count })}`;
 
     return (
-        <aside aria-label={t('communication.chat.details')} className="flex h-full min-h-0 flex-col bg-[color:var(--app-surface)]">
-            <div className="flex items-center justify-between gap-2 border-b border-[color:var(--app-border)] px-4 py-3">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.chat.details')}</h2>
+        <aside aria-label={t('communication.chat.details')} className="flex h-full min-h-0 flex-col bg-(--app-surface)">
+            <div className="flex items-center justify-between gap-2 border-b border-(--app-border) px-4 py-3">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">{t('communication.chat.details')}</h2>
                 <button
                     type="button"
                     onClick={onClose}
                     aria-label={t('communication.chat.hideDetails')}
-                    className="flex h-8 w-8 items-center justify-center rounded-control text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                    className="flex h-8 w-8 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                 >
                     <XMarkIcon className="h-4 w-4" />
                 </button>
@@ -144,15 +144,15 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                 <section className="flex flex-col items-center gap-2 px-4 pb-4 pt-5 text-center">
                     <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} online={detail.other_user?.online ?? null} size="lg" />
                     <div>
-                        <p className="text-sm font-semibold text-[color:var(--app-foreground)]">{detail.title}</p>
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{subtitle}</p>
+                        <p className="text-sm font-semibold text-(--app-foreground)">{detail.title}</p>
+                        <p className="text-xs text-(--app-muted-foreground)">{subtitle}</p>
                         {other && other.online === false && other.last_seen_at && (
-                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tr(t('communication.list.lastSeen'), { time: formatRelative(other.last_seen_at, locale) ?? '' })}</p>
+                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tr(t('communication.list.lastSeen'), { time: formatRelative(other.last_seen_at, locale) ?? '' })}</p>
                         )}
                     </div>
-                    {detail.description && <p className="max-w-prose text-xs leading-relaxed text-[color:var(--app-muted-foreground)]">{detail.description}</p>}
+                    {detail.description && <p className="max-w-prose text-xs leading-relaxed text-(--app-muted-foreground)">{detail.description}</p>}
                     {detail.channel_info && (detail.channel_info.organization || detail.channel_info.auto_membership) && (
-                        <p className="max-w-prose text-[11px] leading-relaxed text-[color:var(--app-muted-foreground)]">
+                        <p className="max-w-prose text-[11px] leading-relaxed text-(--app-muted-foreground)">
                             {[detail.channel_info.unit, detail.channel_info.organization].filter(Boolean).join(' · ') || t('communication.channels.cityWide')}
                             {detail.channel_info.type === 'SYSTEM_MANAGED' ? ` — ${t('communication.manage.mandatory')}` : detail.channel_info.auto_membership ? ` — ${t('communication.manage.automatic')}` : ''}
                         </p>
@@ -162,30 +162,30 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                             type="button"
                             onClick={() => onMute(!detail.muted)}
                             aria-pressed={detail.muted}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="inline-flex h-8 items-center gap-1.5 rounded-control border border-(--app-border) px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {detail.muted ? <BellIcon className="h-4 w-4" aria-hidden="true" /> : <BellOffIcon className="h-4 w-4" aria-hidden="true" />}
                             {detail.muted ? t('communication.actions.unmute') : t('communication.actions.mute')}
                         </button>
                         {direct && other && (
-                            <button type="button" onClick={() => void toggleBlock()} className="inline-flex h-8 items-center rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                            <button type="button" onClick={() => void toggleBlock()} className="inline-flex h-8 items-center rounded-control border border-(--app-border) px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                 {detail.blocked_by_me ? t('communication.block.unblock') : t('communication.block.block')}
                             </button>
                         )}
                         {!direct && (
-                            <button type="button" onClick={onReport} className="inline-flex h-8 items-center rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                            <button type="button" onClick={onReport} className="inline-flex h-8 items-center rounded-control border border-(--app-border) px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                 {t('communication.actions.report')}
                             </button>
                         )}
                         {detail.can.leave && !detail.archived && (
-                            <button type="button" onClick={() => void leave()} className="inline-flex h-8 items-center rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                            <button type="button" onClick={() => void leave()} className="inline-flex h-8 items-center rounded-control border border-(--app-border) px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                 {t('communication.manage.leave')}
                             </button>
                         )}
                     </div>
                 </section>
 
-                <div role="tablist" aria-label={t('communication.chat.details')} className="sticky top-0 z-10 flex border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-2">
+                <div role="tablist" aria-label={t('communication.chat.details')} className="sticky top-0 z-10 flex border-b border-(--app-border) bg-(--app-surface) px-2">
                     {tabs.map((value) => (
                         <button
                             key={value}
@@ -193,7 +193,7 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                             role="tab"
                             aria-selected={tab === value}
                             onClick={() => setTab(value)}
-                            className={`-mb-px flex-1 border-b-2 px-1.5 py-2 text-xs font-medium transition-colors ${tab === value ? 'border-[color:var(--color-primary)] text-[color:var(--app-foreground)]' : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'}`}
+                            className={`-mb-px flex-1 border-b-2 px-1.5 py-2 text-xs font-medium transition-colors ${tab === value ? 'border-primary text-(--app-foreground)' : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)'}`}
                         >
                             {tabLabel(value)}
                         </button>
@@ -205,7 +205,7 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
 
                     {tab === 'files' && (
                         files === null ? <PanelSkeleton /> : files.length === 0 ? (
-                            <p className="px-2 py-6 text-center text-xs text-[color:var(--app-muted-foreground)]">{t('communication.details.noFiles')}</p>
+                            <p className="px-2 py-6 text-center text-xs text-(--app-muted-foreground)">{t('communication.details.noFiles')}</p>
                         ) : (
                             <>
                                 <ul>
@@ -214,18 +214,18 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                                             <a
                                                 href={file.downloadable ? communicationApi.downloadUrl(file.id) : undefined}
                                                 aria-disabled={!file.downloadable}
-                                                className="flex items-center gap-2.5 rounded-control px-2 py-1.5 hover:bg-[color:var(--app-surface-muted)]"
+                                                className="flex items-center gap-2.5 rounded-control px-2 py-1.5 hover:bg-(--app-surface-muted)"
                                             >
-                                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]">
+                                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--app-surface-muted) text-(--app-muted-foreground)">
                                                     <PaperclipIcon className="h-4 w-4" aria-hidden="true" />
                                                 </span>
                                                 <span className="min-w-0 flex-1">
-                                                    <span className="block truncate text-sm text-[color:var(--app-foreground)]">{file.name}</span>
-                                                    <span className="block truncate text-[11px] text-[color:var(--app-muted-foreground)]">
+                                                    <span className="block truncate text-sm text-(--app-foreground)">{file.name}</span>
+                                                    <span className="block truncate text-[11px] text-(--app-muted-foreground)">
                                                         {[fileSize(file.size), file.uploaded_by, listTime(file.created_at, locale, system)].filter(Boolean).join(' · ')}
                                                     </span>
                                                 </span>
-                                                {file.downloadable && <DownloadIcon className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />}
+                                                {file.downloadable && <DownloadIcon className="h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />}
                                             </a>
                                         </li>
                                     ))}
@@ -234,7 +234,7 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
                                     <button
                                         type="button"
                                         onClick={() => communicationApi.files(detail.id, filesNext).then((page) => { setFiles((current) => [...(current ?? []), ...page.data]); setFilesNext(page.next_before); })}
-                                        className="mt-1 h-8 w-full rounded-control text-xs font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)]"
+                                        className="mt-1 h-8 w-full rounded-control text-xs font-medium text-primary hover:bg-(--app-surface-muted)"
                                     >
                                         {t('communication.list.loadMore')}
                                     </button>
@@ -245,17 +245,17 @@ export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClo
 
                     {tab === 'pinned' && (
                         pins === null ? <PanelSkeleton /> : pins.length === 0 ? (
-                            <p className="px-2 py-6 text-center text-xs text-[color:var(--app-muted-foreground)]">{t('communication.details.noPins')}</p>
+                            <p className="px-2 py-6 text-center text-xs text-(--app-muted-foreground)">{t('communication.details.noPins')}</p>
                         ) : (
                             <ul className="space-y-1">
                                 {pins.map((pin) => (
                                     <li key={pin.message.id}>
-                                        <button type="button" onClick={() => onJump(pin.message.id)} className="block w-full rounded-control px-2 py-2 text-start hover:bg-[color:var(--app-surface-muted)]">
-                                            <span className="block text-xs font-semibold text-[color:var(--app-foreground)]">{pin.message.sender?.name}</span>
-                                            <span className="line-clamp-3 text-sm text-[color:var(--app-foreground)]">
+                                        <button type="button" onClick={() => onJump(pin.message.id)} className="block w-full rounded-control px-2 py-2 text-start hover:bg-(--app-surface-muted)">
+                                            <span className="block text-xs font-semibold text-(--app-foreground)">{pin.message.sender?.name}</span>
+                                            <span className="line-clamp-3 text-sm text-(--app-foreground)">
                                                 {pin.message.deleted ? t('communication.chat.deleted') : (pin.message.body ? bodyForEditing(pin.message).text : t('communication.list.attachment'))}
                                             </span>
-                                            {pin.pinned_by && <span className="mt-0.5 block text-[11px] text-[color:var(--app-muted-foreground)]">{tr(t('communication.details.pinnedBy'), { name: pin.pinned_by })}</span>}
+                                            {pin.pinned_by && <span className="mt-0.5 block text-[11px] text-(--app-muted-foreground)">{tr(t('communication.details.pinnedBy'), { name: pin.pinned_by })}</span>}
                                         </button>
                                     </li>
                                 ))}
@@ -344,20 +344,20 @@ function MembersTab({ detail, currentUserId, onChanged }: { detail: Conversation
         <div className="space-y-2">
             {detail.can.addMembers && !detail.archived && (
                 adding ? (
-                    <div className="space-y-2 rounded-control border border-[color:var(--app-border)] p-2">
+                    <div className="space-y-2 rounded-control border border-(--app-border) p-2">
                         <PeoplePicker selected={picked} onChange={setPicked} excludeIds={detail.members.map((m) => m.id)} autoFocus />
                         <div className="flex justify-end gap-2">
-                            <button type="button" onClick={() => { setAdding(false); setPicked([]); }} className="h-8 rounded-control px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                            <button type="button" onClick={() => { setAdding(false); setPicked([]); }} className="h-8 rounded-control px-3 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                 {t('communication.channels.cancel')}
                             </button>
-                            <button type="button" disabled={busy || picked.length === 0} onClick={() => void addPeople()} className="h-8 rounded-control bg-[color:var(--color-primary)] px-3 text-xs font-medium text-white hover:opacity-90 disabled:opacity-40">
+                            <button type="button" disabled={busy || picked.length === 0} onClick={() => void addPeople()} className="h-8 rounded-control bg-primary px-3 text-xs font-medium text-white hover:opacity-90 disabled:opacity-40">
                                 {busy ? t('communication.members.adding') : tr(t('communication.members.addSelected'), { n: picked.length })}
                             </button>
                         </div>
                     </div>
                 ) : (
-                    <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-2.5 rounded-control px-2 py-2 text-sm font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)]">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-[color:var(--app-border-strong)]"><UserPlusIcon className="h-4 w-4" aria-hidden="true" /></span>
+                    <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-2.5 rounded-control px-2 py-2 text-sm font-medium text-primary hover:bg-(--app-surface-muted)">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-(--app-border-strong)"><UserPlusIcon className="h-4 w-4" aria-hidden="true" /></span>
                         {t('communication.members.add')}
                     </button>
                 )
@@ -366,9 +366,9 @@ function MembersTab({ detail, currentUserId, onChanged }: { detail: Conversation
             {!complete && (
                 <label className="relative block px-1">
                     <span className="sr-only">{t('communication.members.search')}</span>
-                    <SearchIcon className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                    <SearchIcon className="pointer-events-none absolute inset-s-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                     <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('communication.members.search')}
-                        className="h-8 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-xs text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none" />
+                        className="h-8 w-full rounded-control border border-(--app-border) bg-(--app-background) ps-8 pe-2 text-xs text-(--app-foreground) focus:border-primary focus:outline-hidden" />
                 </label>
             )}
 
@@ -390,7 +390,7 @@ function MembersTab({ detail, currentUserId, onChanged }: { detail: Conversation
                 </ul>
             )}
             {!complete && paged?.next && (
-                <button type="button" onClick={() => load(q, paged.next)} className="h-8 w-full rounded-control text-xs font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)]">
+                <button type="button" onClick={() => load(q, paged.next)} className="h-8 w-full rounded-control text-xs font-medium text-primary hover:bg-(--app-surface-muted)">
                     {t('communication.list.loadMore')}
                 </button>
             )}
@@ -413,15 +413,15 @@ function MemberLine({ member, me, myRole, can, mandatory, busy, onRemove, onRole
         <li className="flex items-center gap-2.5 rounded-control px-2 py-1.5">
             <Avatar name={member.name} userId={member.id} hasPhoto={member.has_photo} online={member.online} size="sm" />
             <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm text-[color:var(--app-foreground)]">
-                    {member.name}{me && <span className="text-[color:var(--app-muted-foreground)]"> ({t('communication.members.you')})</span>}
+                <span className="block truncate text-sm text-(--app-foreground)">
+                    {member.name}{me && <span className="text-(--app-muted-foreground)"> ({t('communication.members.you')})</span>}
                 </span>
-                <span className="block truncate text-[11px] text-[color:var(--app-muted-foreground)]">
+                <span className="block truncate text-[11px] text-(--app-muted-foreground)">
                     {[member.position ?? member.unit, member.source === 'AUTO' ? t('communication.details.sources.AUTO') : null].filter(Boolean).join(' · ')}
                 </span>
             </span>
             {member.role !== 'member' && (
-                <span className="shrink-0 rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[10px] font-medium text-[color:var(--app-muted-foreground)]">
+                <span className="shrink-0 rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-[10px] font-medium text-(--app-muted-foreground)">
                     {t(`communication.details.roles.${member.role}`)}
                 </span>
             )}
@@ -433,7 +433,7 @@ function MemberLine({ member, me, myRole, can, mandatory, busy, onRemove, onRole
                         onClick={() => setMenu((v) => !v)}
                         aria-expanded={menu}
                         aria-label={tr(t('communication.members.actions'), { name: member.name })}
-                        className="flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                     >
                         <MenuDotsIcon className="h-4 w-4" />
                     </button>
@@ -460,7 +460,7 @@ function SettingsTab({ detail, onChanged, onArchive }: { detail: ConversationDet
     const [policy, setPolicy] = useState<PostingPolicy>(channel?.posting_policy ?? 'ALL_MEMBERS');
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const field = 'w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15';
+    const field = 'w-full rounded-control border border-(--app-border) bg-(--app-background) px-2.5 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15';
 
     const save = async (event: FormEvent) => {
         event.preventDefault();
@@ -485,40 +485,40 @@ function SettingsTab({ detail, onChanged, onArchive }: { detail: ConversationDet
         <div className="space-y-6 px-2 py-2">
             <form onSubmit={save} className="space-y-3">
                 <label className="block space-y-1">
-                    <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.manage.name')}</span>
+                    <span className="text-xs font-medium text-(--app-foreground)">{t('communication.manage.name')}</span>
                     <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={channel ? 80 : 120} className={`${field} h-9`} />
                 </label>
                 {channel && (
                     <label className="block space-y-1">
-                        <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.manage.nameAm')}</span>
+                        <span className="text-xs font-medium text-(--app-foreground)">{t('communication.manage.nameAm')}</span>
                         <input value={nameAm} onChange={(e) => setNameAm(e.target.value)} maxLength={80} lang="am" className={`${field} h-9`} />
                     </label>
                 )}
                 <label className="block space-y-1">
-                    <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.manage.description')}</span>
+                    <span className="text-xs font-medium text-(--app-foreground)">{t('communication.manage.description')}</span>
                     <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} rows={3} className={`${field} resize-none py-2`} />
                 </label>
                 {channel && (
                     <fieldset className="space-y-1.5">
-                        <legend className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.manage.postingPolicy')}</legend>
+                        <legend className="text-xs font-medium text-(--app-foreground)">{t('communication.manage.postingPolicy')}</legend>
                         {(['ALL_MEMBERS', 'ADMINS_ONLY'] as const).map((value) => (
-                            <label key={value} className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                                <input type="radio" name="posting_policy" value={value} checked={policy === value} onChange={() => setPolicy(value)} className="h-4 w-4 text-[color:var(--color-primary)]" />
+                            <label key={value} className="flex items-center gap-2 text-sm text-(--app-foreground)">
+                                <input type="radio" name="posting_policy" value={value} checked={policy === value} onChange={() => setPolicy(value)} className="h-4 w-4 text-primary" />
                                 {t(`communication.manage.postingPolicies.${value}`)}
                             </label>
                         ))}
                     </fieldset>
                 )}
-                {error && <p role="alert" className="text-xs text-[color:var(--color-danger,#b42318)]">{error}</p>}
+                {error && <p role="alert" className="text-xs text-(--color-danger,#b42318)">{error}</p>}
                 <Button type="submit" variant="primary" disabled={saving || !title.trim()} loading={saving}>
                     {t('communication.manage.save')}
                 </Button>
             </form>
 
             {detail.can.archive && !detail.archived && (
-                <div className="space-y-1.5 border-t border-[color:var(--app-border)] pt-4">
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.manage.archiveMessage')}</p>
-                    <button type="button" onClick={onArchive} className="h-8 rounded-control border border-[color:var(--tone-danger-border,#f2b8b5)] px-3 text-xs font-medium text-[color:var(--color-danger,#b42318)] hover:bg-[color:var(--tone-danger-bg,#fef3f2)]">
+                <div className="space-y-1.5 border-t border-(--app-border) pt-4">
+                    <p className="text-xs text-(--app-muted-foreground)">{t('communication.manage.archiveMessage')}</p>
+                    <button type="button" onClick={onArchive} className="h-8 rounded-control border border-(--tone-danger-border,#f2b8b5) px-3 text-xs font-medium text-(--color-danger,#b42318) hover:bg-(--tone-danger-bg,#fef3f2)">
                         {t('communication.manage.archive')}
                     </button>
                 </div>
@@ -530,7 +530,7 @@ function SettingsTab({ detail, onChanged, onArchive }: { detail: ConversationDet
 function PanelSkeleton(): JSX.Element {
     return (
         <div aria-hidden="true" className="animate-pulse space-y-2 px-2 py-2">
-            {[0, 1, 2].map((key) => <div key={key} className="h-9 rounded-control bg-[color:var(--app-surface-muted)]" />)}
+            {[0, 1, 2].map((key) => <div key={key} className="h-9 rounded-control bg-(--app-surface-muted)" />)}
         </div>
     );
 }
@@ -561,14 +561,14 @@ function SearchTab({ conversationId, onJump }: { conversationId: string; onJump:
     const highlight = (text: string) => {
         const at = term ? text.toLowerCase().indexOf(term) : -1;
         if (at < 0) return text;
-        return <>{text.slice(0, at)}<mark className="rounded bg-[color:color-mix(in_srgb,var(--color-primary)_25%,transparent)] px-0.5 text-[color:var(--app-foreground)]">{text.slice(at, at + term.length)}</mark>{text.slice(at + term.length)}</>;
+        return <>{text.slice(0, at)}<mark className="rounded-sm bg-[color-mix(in_srgb,var(--color-primary)_25%,transparent)] px-0.5 text-(--app-foreground)">{text.slice(at, at + term.length)}</mark>{text.slice(at + term.length)}</>;
     };
 
     return (
         <div className="space-y-2">
             <label className="relative block px-1">
                 <span className="sr-only">{t('communication.search.label')}</span>
-                <SearchIcon className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                <SearchIcon className="pointer-events-none absolute inset-s-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                 {/* eslint-disable-next-line jsx-a11y/no-autofocus -- the tab exists to type a search */}
                 <input
                     type="search"
@@ -576,23 +576,23 @@ function SearchTab({ conversationId, onJump }: { conversationId: string; onJump:
                     value={q}
                     onChange={(e) => setQ(e.target.value)}
                     placeholder={t('communication.search.placeholder')}
-                    className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15"
+                    className="h-9 w-full rounded-control border border-(--app-border) bg-(--app-background) ps-8 pe-2 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15"
                 />
             </label>
             {results === null ? (
-                <p className="px-2 py-6 text-center text-xs text-[color:var(--app-muted-foreground)]">{loading ? t('communication.search.searching') : t('communication.search.hint')}</p>
+                <p className="px-2 py-6 text-center text-xs text-(--app-muted-foreground)">{loading ? t('communication.search.searching') : t('communication.search.hint')}</p>
             ) : results.length === 0 ? (
-                <p className="px-2 py-6 text-center text-xs text-[color:var(--app-muted-foreground)]">{t('communication.search.empty')}</p>
+                <p className="px-2 py-6 text-center text-xs text-(--app-muted-foreground)">{t('communication.search.empty')}</p>
             ) : (
                 <ul className="space-y-1" aria-live="polite">
                     {results.map((message) => (
                         <li key={message.id}>
-                            <button type="button" onClick={() => onJump(message.id)} className="block w-full rounded-control px-2 py-2 text-start hover:bg-[color:var(--app-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]">
+                            <button type="button" onClick={() => onJump(message.id)} className="block w-full rounded-control px-2 py-2 text-start hover:bg-(--app-surface-muted) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary">
                                 <span className="flex items-baseline justify-between gap-2">
-                                    <span className="truncate text-xs font-semibold text-[color:var(--app-foreground)]">{message.sender?.name}</span>
-                                    <span className="shrink-0 text-[11px] text-[color:var(--app-muted-foreground)]">{listTime(message.created_at, locale, system)}</span>
+                                    <span className="truncate text-xs font-semibold text-(--app-foreground)">{message.sender?.name}</span>
+                                    <span className="shrink-0 text-[11px] text-(--app-muted-foreground)">{listTime(message.created_at, locale, system)}</span>
                                 </span>
-                                <span className="line-clamp-3 text-sm text-[color:var(--app-foreground)]">{highlight(bodyForEditing(message).text)}</span>
+                                <span className="line-clamp-3 text-sm text-(--app-foreground)">{highlight(bodyForEditing(message).text)}</span>
                             </button>
                         </li>
                     ))}

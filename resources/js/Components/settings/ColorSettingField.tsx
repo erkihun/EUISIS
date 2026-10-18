@@ -22,14 +22,14 @@ export default function ColorSettingField({ label, description, value, error, di
     return (
         <FieldRow htmlFor={id} label={label} description={description} error={error} errorId={errorId}>
             <div className="flex items-center gap-2">
-                <label className="relative h-[var(--control-h-md)] w-12 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)] focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]">
+                <label className="relative h-(--control-h-md) w-12 shrink-0 cursor-pointer overflow-hidden rounded-control border border-(--app-border-strong) focus-within:ring-2 focus-within:ring-primary">
                     <span className="sr-only">{label}</span>
                     <span aria-hidden="true" className="absolute inset-1 rounded-[calc(var(--radius-control)-3px)]" style={{ backgroundColor: valid ? value : 'transparent' }} />
                     <input type="color" value={valid ? value : '#000000'} disabled={disabled} onChange={(event) => onChange(event.target.value.toUpperCase())}
                         className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed" />
                 </label>
                 <Input id={id} value={value} disabled={disabled} maxLength={7} spellCheck={false} aria-describedby={errorId} aria-invalid={Boolean(error) || (value !== '' && !valid)}
-                    onChange={(event) => onChange(event.target.value.toUpperCase())} className="max-w-[9rem] font-mono uppercase" />
+                    onChange={(event) => onChange(event.target.value.toUpperCase())} className="max-w-36 font-mono uppercase" />
             </div>
         </FieldRow>
     );

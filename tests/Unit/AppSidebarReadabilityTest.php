@@ -13,13 +13,13 @@ it('keeps admin sidebar labels and states readable', function (): void {
         ->toContain('var(--sidebar-accent) 18%')
         ->and($sidebar)
         ->toContain('text-[15px] font-medium')
-        ->toContain('whitespace-normal break-words')
+        ->toContain('whitespace-normal wrap-break-word')
         // Collapsed groups render as a flyout before the inline panel is reached, so the panel
         // only needs its own open state.
         ->toContain('if (collapsed) {')
         ->toContain('hidden={!isOpen}')
         // Sub-cluster labels use the muted token whose contrast the CSS above guarantees.
-        ->toContain('font-semibold text-[color:var(--sidebar-muted)]')
+        ->toContain('font-semibold text-(--sidebar-muted)')
         ->and($colors)
         ->toContain('contrastRatio(background, dark) >= contrastRatio(background, light)')
         ->toContain('contrastRatio(brand, background) >= 4.5');

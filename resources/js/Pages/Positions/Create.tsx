@@ -76,7 +76,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                     </p>
                     <Link
                         href={cancelHref}
-                        className="mt-4 inline-block rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
+                        className="mt-4 inline-block rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground)"
                     >
                         {t('common.back')}
                     </Link>
@@ -89,7 +89,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
         <AuthenticatedLayout header={<PageHeader title={t('positions.createPosition')} />}>
             <Head title={t('positions.createPosition')} />
             <form
-                className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+                className="space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
                 onSubmit={submit}
             >
                 <div className="grid gap-4 md:grid-cols-2">
@@ -123,7 +123,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                         {selectedOrganizationId ? (
                             <>
                                 <input type="hidden" name="organization_id" value={form.data.organization_id} />
-                                <div className={`${inputCls} cursor-not-allowed bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
+                                <div className={`${inputCls} cursor-not-allowed bg-(--app-surface-muted) text-(--app-muted-foreground)`}>
                                     {selectedOrg
                                         ? localizedName(selectedOrg.name_en, selectedOrg.name_am, locale)
                                         : '—'}
@@ -153,7 +153,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                         {selectedOrganizationUnitId ? (
                             <>
                                 <input type="hidden" name="organization_unit_id" value={form.data.organization_unit_id} />
-                                <div className={`${inputCls} cursor-not-allowed bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
+                                <div className={`${inputCls} cursor-not-allowed bg-(--app-surface-muted) text-(--app-muted-foreground)`}>
                                     {(() => {
                                         const u = organizationUnits.find((u) => u.id === form.data.organization_unit_id);
                                         return u
@@ -187,8 +187,8 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                             <div className="grid gap-3 md:grid-cols-2">
                                 <div className="space-y-1">
                                     <FormLabel>{t('positions.ownerOrganization')}</FormLabel>
-                                    <div className={`${inputCls} cursor-not-allowed bg-[color:color-mix(in_srgb,var(--app-surface)_60%,transparent)]`}>
-                                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{selectedUnit.owner_organization?.code}</span>
+                                    <div className={`${inputCls} cursor-not-allowed bg-[color-mix(in_srgb,var(--app-surface)_60%,transparent)]`}>
+                                        <span className="font-mono text-xs text-(--app-muted-foreground)">{selectedUnit.owner_organization?.code}</span>
                                         {' — '}
                                         {selectedUnit.owner_organization
                                             ? localizedName(selectedUnit.owner_organization.name_en, selectedUnit.owner_organization.name_am, locale)
@@ -197,8 +197,8 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                                 </div>
                                 <div className="space-y-1">
                                     <FormLabel>{t('positions.hostOrganization')}</FormLabel>
-                                    <div className={`${inputCls} cursor-not-allowed bg-[color:color-mix(in_srgb,var(--app-surface)_60%,transparent)]`}>
-                                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{selectedUnit.host_organization.code}</span>
+                                    <div className={`${inputCls} cursor-not-allowed bg-[color-mix(in_srgb,var(--app-surface)_60%,transparent)]`}>
+                                        <span className="font-mono text-xs text-(--app-muted-foreground)">{selectedUnit.host_organization.code}</span>
                                         {' — '}
                                         {localizedName(selectedUnit.host_organization.name_en, selectedUnit.host_organization.name_am, locale)}
                                     </div>
@@ -280,7 +280,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                 </div>
 
                 {/* Active */}
-                <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
                     <input
                         type="checkbox"
                         checked={form.data.is_active}
@@ -299,7 +299,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                     </button>
                     <Link
                         href={cancelHref}
-                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
+                        className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground)"
                     >
                         {t('common.cancel')}
                     </Link>

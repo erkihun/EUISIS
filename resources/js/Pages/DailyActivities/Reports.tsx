@@ -73,7 +73,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
 
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <label className="flex w-full items-center gap-2 text-sm sm:w-auto">
-                        <span className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.reports.type')}</span>
+                        <span className="text-(--app-muted-foreground)">{t('dailyActivities.reports.type')}</span>
                         <select
                             className={`${compactInputCls} flex-1 sm:flex-none`}
                             value={type}
@@ -95,7 +95,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
 
                 <ActivityFilters key={type} routeName="daily-activities.reports" filters={filters} options={options} fields={FIELDS[type] ?? []} keep={{ type }} />
 
-                <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                <p className="text-xs text-(--app-muted-foreground)">
                     <LocalizedDateDisplay value={report.from} /> – <LocalizedDateDisplay value={report.to} />
                     {' · '}{fill(t('dailyActivities.reports.rows'), { count: report.truncated ? `${report.total}+` : report.total })}
                 </p>
@@ -109,7 +109,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                 {report.too_broad ? (
                     <p role="status" className="rounded-panel border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('dailyActivities.reports.tooBroad')}</p>
                 ) : report.rows.length === 0 ? (
-                    <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{t('dailyActivities.reports.empty')}</p>
+                    <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{t('dailyActivities.reports.empty')}</p>
                 ) : (
                     // A report is inherently tabular; only the table scrolls sideways, never the page.
                     <div className={`${panelCls} overflow-x-auto`}>
@@ -117,7 +117,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     {report.columns.map((column) => (
-                                        <th key={column} className={`px-3 py-2 text-xs font-medium text-[color:var(--app-muted-foreground)] ${NUMERIC.has(column) ? 'text-right' : 'text-left'}`}>
+                                        <th key={column} className={`px-3 py-2 text-xs font-medium text-(--app-muted-foreground) ${NUMERIC.has(column) ? 'text-right' : 'text-left'}`}>
                                             {t(`dailyActivities.reports.columns.${column}`)}
                                         </th>
                                     ))}
@@ -127,7 +127,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                                 {report.rows.map((row, index) => (
                                     <tr key={index} className={tableRowClassName}>
                                         {report.columns.map((column) => (
-                                            <td key={column} className={`max-w-xs px-3 py-1.5 align-top text-sm text-[color:var(--app-foreground)] ${NUMERIC.has(column) ? 'text-right tabular-nums' : 'break-words'}`}>
+                                            <td key={column} className={`max-w-xs px-3 py-1.5 align-top text-sm text-(--app-foreground) ${NUMERIC.has(column) ? 'text-right tabular-nums' : 'wrap-break-word'}`}>
                                                 {cell(column, row[column] ?? null)}
                                             </td>
                                         ))}
@@ -138,7 +138,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                     </div>
                 )}
 
-                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('dailyActivities.notAttendance')}</p>
+                <p className="text-xs text-(--app-muted-foreground)">{t('dailyActivities.notAttendance')}</p>
             </div>
         </AuthenticatedLayout>
     );

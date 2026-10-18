@@ -136,7 +136,7 @@ export default function OrganizationUnitsIndex({
                     {displayOrg ? (
                         <div className="space-y-4">
                             {/* Selected org header card */}
-                            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                            <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                                 <div className="flex flex-wrap items-center gap-4">
                                     {displayOrg.has_logo && displayOrg.logo_url ? (
                                         <img
@@ -151,7 +151,7 @@ export default function OrganizationUnitsIndex({
                                     )}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
+                                            <h2 className="text-base font-semibold text-(--app-foreground)">
                                                 {displayOrgName}
                                             </h2>
                                             <StatusBadge
@@ -159,7 +159,7 @@ export default function OrganizationUnitsIndex({
                                                 label={t(`common.${displayOrg.status}`)}
                                             />
                                         </div>
-                                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-[color:var(--app-muted-foreground)]">
+                                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-(--app-muted-foreground)">
                                             {displayOrg.type && (
                                                 <span>
                                                     {localizedName(
@@ -189,9 +189,9 @@ export default function OrganizationUnitsIndex({
                             />
                         </div>
                     ) : (
-                        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-panel border border-dashed border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-16 text-center">
-                            <Building2 className="h-10 w-10 text-[color:var(--app-muted-foreground)]" />
-                            <p className="mt-3 text-sm font-medium text-[color:var(--app-muted-foreground)]">
+                        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-panel border border-dashed border-(--app-border) bg-(--app-surface) px-6 py-16 text-center">
+                            <Building2 className="h-10 w-10 text-(--app-muted-foreground)" />
+                            <p className="mt-3 text-sm font-medium text-(--app-muted-foreground)">
                                 {t('organizationUnits.selectOrganizationToViewUnits')}
                             </p>
                         </div>

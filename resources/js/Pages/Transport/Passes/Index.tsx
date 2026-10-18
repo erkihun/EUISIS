@@ -81,7 +81,7 @@ export default function Index({
                     </select>
                     <button
                         type="submit"
-                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                        className="rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-hover"
                     >
                         {t('common.filter')}
                     </button>
@@ -142,7 +142,7 @@ export default function Index({
                                             <td className="px-4 py-3 text-right">
                                                 <Link
                                                     href={route('transport.passes.edit', item.id)}
-                                                    className="text-xs text-[color:var(--color-primary)] hover:underline"
+                                                    className="text-xs text-primary hover:underline"
                                                 >
                                                     {t('common.edit')}
                                                 </Link>
@@ -165,7 +165,7 @@ export default function Index({
                                 }
                                 className={`rounded px-3 py-1 ${
                                     meta.current_page === page
-                                        ? 'bg-[color:var(--color-primary)] text-white'
+                                        ? 'bg-primary text-white'
                                         : 'border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400'
                                 }`}
                             >

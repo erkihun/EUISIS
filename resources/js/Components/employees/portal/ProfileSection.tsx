@@ -123,11 +123,11 @@ export default function ProfileSection({ profile, policy, l, pick }: {
             {/* Who this is: always the signed-in employee, never chosen by URL. */}
             <div className="flex items-center gap-3">
                 {typeof profile.photo_url === 'string'
-                    ? <img src={profile.photo_url} alt="" width={56} height={56} decoding="async" className="h-14 w-14 rounded-full object-cover ring-1 ring-[color:var(--app-border-strong)]" />
-                    : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--app-surface-muted)] text-lg font-semibold text-[color:var(--app-muted-foreground)]">{initials || '—'}</span>}
+                    ? <img src={profile.photo_url} alt="" width={56} height={56} decoding="async" className="h-14 w-14 rounded-full object-cover ring-1 ring-(--app-border-strong)" />
+                    : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-(--app-surface-muted) text-lg font-semibold text-(--app-muted-foreground)">{initials || '—'}</span>}
                 <div className="min-w-0">
-                    <p className="truncate text-base font-semibold text-[color:var(--app-foreground)]">{text(profile.full_name)}</p>
-                    <p className="truncate text-sm text-[color:var(--app-muted-foreground)]">
+                    <p className="truncate text-base font-semibold text-(--app-foreground)">{text(profile.full_name)}</p>
+                    <p className="truncate text-sm text-(--app-muted-foreground)">
                         {[text(profile.employee_number), pick(text(profile.position), text(profile.position_am))].filter(Boolean).join(' · ')}
                     </p>
                 </div>
@@ -139,10 +139,10 @@ export default function ProfileSection({ profile, policy, l, pick }: {
                         {/* Photo */}
                         <div className="flex flex-wrap items-center gap-4">
                             {photoSrc
-                                ? <img src={photoSrc} alt={l('fields.photo')} width={80} height={96} decoding="async" className="h-24 w-20 rounded-lg object-cover ring-1 ring-[color:var(--app-border-strong)]" />
-                                : <span className="flex h-24 w-20 items-center justify-center rounded-lg bg-[color:var(--app-surface-muted)] text-xs text-[color:var(--app-muted-foreground)]">{l('not_set')}</span>}
+                                ? <img src={photoSrc} alt={l('fields.photo')} width={80} height={96} decoding="async" className="h-24 w-20 rounded-lg object-cover ring-1 ring-(--app-border-strong)" />
+                                : <span className="flex h-24 w-20 items-center justify-center rounded-lg bg-(--app-surface-muted) text-xs text-(--app-muted-foreground)">{l('not_set')}</span>}
                             <div className="min-w-0 flex-1 space-y-1.5">
-                                <p className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <p className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-(--app-muted-foreground)">
                                     {l('fields.photo')}
                                     {printed('photo') && <PrintedChip label={l('printed_on_card')} />}
                                 </p>
@@ -150,9 +150,9 @@ export default function ProfileSection({ profile, policy, l, pick }: {
                                     {l('choose_photo')}
                                     <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => choosePhoto(e.target.files?.[0] ?? null)} />
                                 </label>
-                                <p className="text-xs text-[color:var(--app-muted-foreground)]">{l('photo_help')}</p>
+                                <p className="text-xs text-(--app-muted-foreground)">{l('photo_help')}</p>
                                 {form.data.photo && (
-                                    <p className="text-xs text-[color:var(--app-foreground)]">
+                                    <p className="text-xs text-(--app-foreground)">
                                         {l('photo_selected')}
                                         {printed('photo') && <span className="block text-amber-800 dark:text-amber-300">{l('card_warning')}</span>}
                                         <button type="button" onClick={() => choosePhoto(null)} className={`${linkBtn} ms-2 text-xs`}>{l('cancel')}</button>
@@ -163,18 +163,18 @@ export default function ProfileSection({ profile, policy, l, pick }: {
 
                         {/* Verified contacts: changed through their own code flow, not this form. */}
                         <div>
-                            <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{l('contact_details')}</h3>
-                            <div className="mt-2 divide-y divide-[color:var(--app-border)]">
+                            <h3 className="text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{l('contact_details')}</h3>
+                            <div className="mt-2 divide-y divide-(--app-border)">
                                 <ContactChange field="email" value={text(profile.email)} printed={printed('email')} l={l} />
                                 <ContactChange field="phone" value={text(profile.phone)} printed={printed('phone')} l={l} />
                             </div>
-                            <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{l('contact_note')}</p>
+                            <p className="mt-2 text-xs text-(--app-muted-foreground)">{l('contact_note')}</p>
                         </div>
 
                         {directInput('address', { maxLength: 1000, multiline: true })}
 
                         <div>
-                            <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{l('emergency_contact')}</h3>
+                            <h3 className="text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{l('emergency_contact')}</h3>
                             <div className="mt-2 grid gap-3 sm:grid-cols-3">
                                 {directInput('emergency_contact_name', { maxLength: 255 })}
                                 {directInput('emergency_contact_phone', { type: 'tel', inputMode: 'tel', maxLength: 30 })}
@@ -183,7 +183,7 @@ export default function ProfileSection({ profile, policy, l, pick }: {
                         </div>
 
                         <div>
-                            <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{l('preferences')}</h3>
+                            <h3 className="text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{l('preferences')}</h3>
                             <div className="mt-2 grid gap-3 sm:grid-cols-2 sm:items-end">
                                 <div>
                                     <label htmlFor="pf-language" className={labelCls}>{l('fields.preferred_language')}</label>
@@ -192,8 +192,8 @@ export default function ProfileSection({ profile, policy, l, pick }: {
                                         <option value="am">{l('languages.am')}</option>
                                     </select>
                                 </div>
-                                <label className="flex min-h-10 items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                                    <input type="checkbox" className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" checked={form.data.notification_preferences.email} onChange={(e) => form.setData('notification_preferences', { email: e.target.checked })} />
+                                <label className="flex min-h-10 items-center gap-2 text-sm text-(--app-foreground)">
+                                    <input type="checkbox" className="h-4 w-4 rounded-sm border-(--app-border-strong)" checked={form.data.notification_preferences.email} onChange={(e) => form.setData('notification_preferences', { email: e.target.checked })} />
                                     {l('fields.notification_preferences')}
                                 </label>
                             </div>
@@ -201,7 +201,7 @@ export default function ProfileSection({ profile, policy, l, pick }: {
 
                         <FieldErrors errors={form.errors as Record<string, string | undefined>} />
 
-                        <div className="flex justify-end border-t border-[color:var(--app-border)] pt-3">
+                        <div className="flex justify-end border-t border-(--app-border) pt-3">
                             <button className={`${primaryBtn} w-full sm:w-auto`} disabled={form.processing || !form.isDirty}>{l('save')}</button>
                         </div>
                     </div>

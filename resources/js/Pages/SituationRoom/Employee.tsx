@@ -72,22 +72,22 @@ export default function SituationRoomEmployee({ scope, filters, employee, submis
                                         <div className="flex flex-wrap items-center gap-2">
                                             <StatusBadge tone={row.type === 'complaint' ? 'warning' : row.type === 'suggestion' ? 'info' : 'neutral'}>{t(`situationRoom.type_${row.type}`)}</StatusBadge>
                                             <StatusBadge tone={row.resolved ? 'success' : 'neutral'}>{t(`situationRoom.status_${STATUS_BUCKET[row.status] ?? row.status}`)}</StatusBadge>
-                                            {row.reference && <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{row.reference}</span>}
+                                            {row.reference && <span className="font-mono text-xs text-(--app-muted-foreground)">{row.reference}</span>}
                                         </div>
-                                        <Link href={submissionHref(row)} className="text-sm font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline">{t('situationRoom.openSubmission')}</Link>
+                                        <Link href={submissionHref(row)} className="text-sm font-medium text-primary underline-offset-4 hover:underline">{t('situationRoom.openSubmission')}</Link>
                                     </div>
                                     <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                                        <div><dt className="text-[color:var(--app-muted-foreground)]">{t('situationRoom.submittedColumn')}</dt><dd>{date(row.submitted_at)}</dd></div>
-                                        <div><dt className="text-[color:var(--app-muted-foreground)]">{t('situationRoom.recordedAtColumn')}</dt><dd>{local(row.organization_en, row.organization_am)}</dd></div>
-                                        <div><dt className="text-[color:var(--app-muted-foreground)]">{t('situationRoom.categoryLabel')}</dt><dd>{row.category_en || row.category_am ? local(row.category_en, row.category_am) : t('situationRoom.uncategorized')}</dd></div>
-                                        <div><dt className="text-[color:var(--app-muted-foreground)]">{t('situationRoom.serviceColumn')}</dt><dd>{row.service ?? '—'}</dd></div>
-                                        {row.rating !== null && <div><dt className="text-[color:var(--app-muted-foreground)]">{t('situationRoom.ratingColumn')}</dt><dd>{fmt(t('situationRoom.starsLabel'), { stars: row.rating })}</dd></div>}
-                                        {row.resolved_at && <div><dt className="text-[color:var(--app-muted-foreground)]">{t('situationRoom.resolvedColumn')}</dt><dd>{date(row.resolved_at)}</dd></div>}
+                                        <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.submittedColumn')}</dt><dd>{date(row.submitted_at)}</dd></div>
+                                        <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.recordedAtColumn')}</dt><dd>{local(row.organization_en, row.organization_am)}</dd></div>
+                                        <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.categoryLabel')}</dt><dd>{row.category_en || row.category_am ? local(row.category_en, row.category_am) : t('situationRoom.uncategorized')}</dd></div>
+                                        <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.serviceColumn')}</dt><dd>{row.service ?? '—'}</dd></div>
+                                        {row.rating !== null && <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.ratingColumn')}</dt><dd>{fmt(t('situationRoom.starsLabel'), { stars: row.rating })}</dd></div>}
+                                        {row.resolved_at && <div><dt className="text-(--app-muted-foreground)">{t('situationRoom.resolvedColumn')}</dt><dd>{date(row.resolved_at)}</dd></div>}
                                     </dl>
                                     {can.viewDetail && (row.subject || row.message) && (
-                                        <div className="mt-3 rounded-[var(--radius-card)] bg-[color:var(--app-surface-muted)] p-3 text-sm">
+                                        <div className="mt-3 rounded-card bg-(--app-surface-muted) p-3 text-sm">
                                             {row.subject && <p className="font-medium">{row.subject}</p>}
-                                            {row.message && <p className="mt-1 whitespace-pre-line break-words">{row.message}</p>}
+                                            {row.message && <p className="mt-1 whitespace-pre-line wrap-break-word">{row.message}</p>}
                                         </div>
                                     )}
                                 </Card>

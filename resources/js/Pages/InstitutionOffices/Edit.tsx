@@ -108,8 +108,8 @@ export default function InstitutionOfficesEdit({
             <Head title={t('institutionOffices.edit')} />
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                    <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                    <h3 className="mb-4 font-semibold text-(--app-foreground)">
                         {t('institutionOffices.institution')}
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -169,8 +169,8 @@ export default function InstitutionOfficesEdit({
                     </div>
                 </section>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                    <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                    <h3 className="mb-4 font-semibold text-(--app-foreground)">
                         {t('institutionOffices.officeName')}
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -217,8 +217,8 @@ export default function InstitutionOfficesEdit({
                     </div>
                 </section>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                    <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                    <h3 className="mb-4 font-semibold text-(--app-foreground)">
                         {t('institutionOffices.parentOffice')}
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -231,9 +231,9 @@ export default function InstitutionOfficesEdit({
                                     setData('is_head_office', e.target.checked);
                                     if (e.target.checked) setData('parent_office_id', '');
                                 }}
-                                className="h-4 w-4 rounded border-[color:var(--app-border-strong)]"
+                                className="h-4 w-4 rounded-sm border-(--app-border-strong)"
                             />
-                            <label htmlFor="is_head_office" className="text-sm font-medium text-[color:var(--app-foreground)]">
+                            <label htmlFor="is_head_office" className="text-sm font-medium text-(--app-foreground)">
                                 {t('institutionOffices.isHeadOffice')}
                             </label>
                         </div>
@@ -278,8 +278,8 @@ export default function InstitutionOfficesEdit({
                     </div>
                 </section>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                    <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                    <h3 className="mb-4 font-semibold text-(--app-foreground)">
                         {t('institutionOffices.status')}
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -337,8 +337,8 @@ export default function InstitutionOfficesEdit({
                     </div>
                 </section>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                    <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                    <h3 className="mb-4 font-semibold text-(--app-foreground)">
                         {t('institutionOffices.address')}
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
@@ -400,7 +400,7 @@ export default function InstitutionOfficesEdit({
                 <div className="flex items-center justify-end gap-3">
                     <Link
                         href={route('institution-offices.show', office.id)}
-                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                        className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                     >
                         {t('common.cancel')}
                     </Link>

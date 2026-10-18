@@ -241,19 +241,19 @@ function ActionCard({ action, options, canManage }: { action: ActionRow; options
                         {pastDue && <StatusBadge tone="danger">{t('situationRoom.pastDue')}</StatusBadge>}
                     </div>
                     <h3 className="mt-2 font-semibold">{action.title}</h3>
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{name(action.organization)}{action.source_type && ` · ${t(`situationRoom.source_${action.source_type}`)}`}</p>
-                    {action.action_text && <p className="mt-2 whitespace-pre-line break-words text-sm">{action.action_text}</p>}
+                    <p className="text-sm text-(--app-muted-foreground)">{name(action.organization)}{action.source_type && ` · ${t(`situationRoom.source_${action.source_type}`)}`}</p>
+                    {action.action_text && <p className="mt-2 whitespace-pre-line wrap-break-word text-sm">{action.action_text}</p>}
                 </div>
                 <dl className="grid gap-1 text-sm sm:text-end">
-                    <div><dt className="inline text-[color:var(--app-muted-foreground)]">{t('situationRoom.ownerLabel')}: </dt><dd className="inline">{ownerName}</dd></div>
-                    <div><dt className="inline text-[color:var(--app-muted-foreground)]">{t('situationRoom.dueDateLabel')}: </dt><dd className="inline">{date(action.due_date)}</dd></div>
-                    {action.created_by && <div className="text-xs text-[color:var(--app-muted-foreground)]">{fmt(t('situationRoom.createdBy'), { name: action.created_by })}</div>}
+                    <div><dt className="inline text-(--app-muted-foreground)">{t('situationRoom.ownerLabel')}: </dt><dd className="inline">{ownerName}</dd></div>
+                    <div><dt className="inline text-(--app-muted-foreground)">{t('situationRoom.dueDateLabel')}: </dt><dd className="inline">{date(action.due_date)}</dd></div>
+                    {action.created_by && <div className="text-xs text-(--app-muted-foreground)">{fmt(t('situationRoom.createdBy'), { name: action.created_by })}</div>}
                 </dl>
             </div>
 
             {canManage && !editing && <Button variant="outline" size="sm" className="mt-3" onClick={() => setEditing(true)}>{t('situationRoom.updateAction')}</Button>}
             {editing && (
-                <form onSubmit={submit} className="mt-4 grid gap-3 border-t border-[color:var(--app-border)] pt-4 md:grid-cols-4">
+                <form onSubmit={submit} className="mt-4 grid gap-3 border-t border-(--app-border) pt-4 md:grid-cols-4">
                     <div>
                         <FormLabel htmlFor={`sra-status-${action.id}`}>{t('situationRoom.actionStatusLabel')}</FormLabel>
                         <Select id={`sra-status-${action.id}`} value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
@@ -288,14 +288,14 @@ function ActionCard({ action, options, canManage }: { action: ActionRow; options
 
             {action.events.length > 0 && (
                 <details className="mt-3 text-sm">
-                    <summary className="cursor-pointer text-[color:var(--app-muted-foreground)]">{t('situationRoom.historyLabel')} ({action.events.length})</summary>
-                    <ol className="mt-2 space-y-1.5 border-s border-[color:var(--app-border)] ps-3">
+                    <summary className="cursor-pointer text-(--app-muted-foreground)">{t('situationRoom.historyLabel')} ({action.events.length})</summary>
+                    <ol className="mt-2 space-y-1.5 border-s border-(--app-border) ps-3">
                         {action.events.map((event) => (
                             <li key={event.id}>
                                 <span className="font-medium">{t(`situationRoom.event_${event.event}`)}</span>
                                 {(event.from || event.to) && <span> · {event.event === 'status_changed' ? [event.from, event.to].map((s) => (s ? t(`situationRoom.action_status_${s}`) : '—')).join(' → ') : event.event === 'due_date_changed' ? [event.from, event.to].map((d) => date(d)).join(' → ') : [event.from, event.to].filter(Boolean).join(' → ')}</span>}
-                                {event.note && <p className="whitespace-pre-line break-words text-[color:var(--app-muted-foreground)]">{event.note}</p>}
-                                <p className="text-xs text-[color:var(--app-muted-foreground)]">{dateTime(event.occurred_at)}{event.actor && ` · ${event.actor}`}</p>
+                                {event.note && <p className="whitespace-pre-line wrap-break-word text-(--app-muted-foreground)">{event.note}</p>}
+                                <p className="text-xs text-(--app-muted-foreground)">{dateTime(event.occurred_at)}{event.actor && ` · ${event.actor}`}</p>
                             </li>
                         ))}
                     </ol>

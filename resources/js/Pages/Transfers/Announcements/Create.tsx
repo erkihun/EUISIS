@@ -98,7 +98,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
         post(route('transfer-announcements.store'));
     };
 
-    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const labelCls = 'block text-sm font-medium text-(--app-foreground)';
     const inputCls = cx(inputClassName, 'mt-1 block w-full');
     const errorCls = 'mt-1 text-xs text-red-500';
 
@@ -110,7 +110,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                     title={t('transfers.createAnnouncement')}
                     description={t('transfers.createAnnouncementHint')}
                     actions={<>
-                        <a href={route('transfer-announcements.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                        <a href={route('transfer-announcements.index')} className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                             {t('common.cancel')}
                         </a>
                         <button type="submit" form="transfer-announcement-draft" disabled={processing} className={buttonClassName({ variant: 'primary' })}>
@@ -123,18 +123,18 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
             <Head title={t('transfers.createAnnouncement')} />
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-                <form id="transfer-announcement-draft" onSubmit={submit} className="space-y-6 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                <form id="transfer-announcement-draft" onSubmit={submit} className="space-y-6 rounded-card border border-(--app-border) bg-(--app-surface) p-6">
 
-                    <section className="border-b border-[color:var(--app-border)] pb-5">
-                        <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.announcementInformation')}</h2>
-                        <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('transfers.draftAnnouncementHint')}</p>
+                    <section className="border-b border-(--app-border) pb-5">
+                        <h2 className="text-base font-semibold text-(--app-foreground)">{t('transfers.announcementInformation')}</h2>
+                        <p className="mt-1 text-sm text-(--app-muted-foreground)">{t('transfers.draftAnnouncementHint')}</p>
                     </section>
 
                     {/* ── Positions ── */}
                     <section className="space-y-4" aria-labelledby="vacant-positions-heading">
                         {positionsTruncated && <p role="status" className="text-xs text-amber-700 dark:text-amber-300">{t('transfers.positionsTruncated').replace(':count', String(positions.length))}</p>}
                         <div className="flex items-center justify-between">
-                            <h3 id="vacant-positions-heading" className="text-base font-semibold text-[color:var(--app-foreground)]">
+                            <h3 id="vacant-positions-heading" className="text-base font-semibold text-(--app-foreground)">
                                 {t('transfers.includedPositions')}
                             </h3>
                             <button
@@ -158,9 +158,9 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
 
 
                             return (
-                                <div key={index} className="rounded-lg border border-[color:var(--app-border)] p-4">
+                                <div key={index} className="rounded-lg border border-(--app-border) p-4">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                                        <span className="text-sm font-semibold text-(--app-foreground)">
                                             {t('transfers.positionLine')} {index + 1}
                                         </span>
                                         {data.positions.length > 1 && (
@@ -220,7 +220,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                                             <label className={labelCls}>{t('transfers.gradeLevel')}</label>
                                             <input
                                                 type="text"
-                                                className={`${inputCls} bg-[color:var(--app-surface-muted)]`}
+                                                className={`${inputCls} bg-(--app-surface-muted)`}
                                                 value={row.grade_level}
                                                 readOnly
                                                 placeholder="—"
@@ -274,9 +274,9 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                         })}
 
                         {/* Computed total */}
-                        <div className="flex items-center justify-end gap-2 rounded-lg bg-[color:var(--app-surface-muted)] px-4 py-2">
-                            <span className="text-sm text-[color:var(--app-muted-foreground)]">{t('transfers.totalVacancies')}:</span>
-                            <span className="text-sm font-semibold text-[color:var(--app-foreground)]">{totalVacancies}</span>
+                        <div className="flex items-center justify-end gap-2 rounded-lg bg-(--app-surface-muted) px-4 py-2">
+                            <span className="text-sm text-(--app-muted-foreground)">{t('transfers.totalVacancies')}:</span>
+                            <span className="text-sm font-semibold text-(--app-foreground)">{totalVacancies}</span>
                         </div>
                     </section>
 
@@ -309,7 +309,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                             <button
                                 type="button"
                                 onClick={() => setData('eligibility_rules', [...data.eligibility_rules, { type: 'employment_status', operator: 'equals', value: 'active' }])}
-                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                className="text-xs text-primary hover:underline dark:text-primary"
                             >
                                 + {t('transfers.addEligibilityRule')}
                             </button>
@@ -341,7 +341,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                             <button
                                 type="button"
                                 onClick={() => setData('required_documents', [...data.required_documents, ''])}
-                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                className="text-xs text-primary hover:underline dark:text-primary"
                             >
                                 + {t('transfers.addDocument')}
                             </button>
@@ -370,10 +370,10 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                     </section>
 
                     {/* ── Submit ── */}
-                    <div className="flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-4">
+                    <div className="flex items-center justify-end gap-3 border-t border-(--app-border) pt-4">
                         <a
                             href={route('transfer-announcements.index')}
-                            className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </a>
@@ -386,20 +386,20 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                         </button>
                     </div>
                 </form>
-                <aside className="self-start rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 xl:sticky xl:top-6">
-                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] pb-4">
-                        <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.draftSummary')}</h2>
+                <aside className="self-start rounded-card border border-(--app-border) bg-(--app-surface) p-5 xl:sticky xl:top-6">
+                    <div className="flex items-center justify-between border-b border-(--app-border) pb-4">
+                        <h2 className="text-base font-semibold text-(--app-foreground)">{t('transfers.draftSummary')}</h2>
                         <span className={badgeClassName('warning')}>{t('transfers.statusDraft')}</span>
                     </div>
                     <dl className="mt-4 space-y-3 text-sm">
-                        <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.includedPositions')}</dt><dd className="font-semibold text-[color:var(--app-foreground)]">{data.positions.filter((row) => row.position_id).length}</dd></div>
-                        <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.totalVacancies')}</dt><dd className="font-semibold text-[color:var(--app-foreground)]">{totalVacancies}</dd></div>
-                        <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.openingDate')}</dt><dd className="font-medium text-[color:var(--app-foreground)]">{data.opening_date || '—'}</dd></div>
-                        <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.closingDate')}</dt><dd className="font-medium text-[color:var(--app-foreground)]">{data.closing_date || '—'}</dd></div>
+                        <div className="flex justify-between gap-4"><dt className="text-(--app-muted-foreground)">{t('transfers.includedPositions')}</dt><dd className="font-semibold text-(--app-foreground)">{data.positions.filter((row) => row.position_id).length}</dd></div>
+                        <div className="flex justify-between gap-4"><dt className="text-(--app-muted-foreground)">{t('transfers.totalVacancies')}</dt><dd className="font-semibold text-(--app-foreground)">{totalVacancies}</dd></div>
+                        <div className="flex justify-between gap-4"><dt className="text-(--app-muted-foreground)">{t('transfers.openingDate')}</dt><dd className="font-medium text-(--app-foreground)">{data.opening_date || '—'}</dd></div>
+                        <div className="flex justify-between gap-4"><dt className="text-(--app-muted-foreground)">{t('transfers.closingDate')}</dt><dd className="font-medium text-(--app-foreground)">{data.closing_date || '—'}</dd></div>
                     </dl>
-                    <div className="mt-5 border-t border-[color:var(--app-border)] pt-4 text-sm">
-                        <p className="font-medium text-[color:var(--app-foreground)]">{t('transfers.validationSummary')}</p>
-                        <ul className="mt-2 space-y-1.5 text-[color:var(--app-muted-foreground)]">
+                    <div className="mt-5 border-t border-(--app-border) pt-4 text-sm">
+                        <p className="font-medium text-(--app-foreground)">{t('transfers.validationSummary')}</p>
+                        <ul className="mt-2 space-y-1.5 text-(--app-muted-foreground)">
                             <li>{data.positions.every((row) => row.organization_id && row.position_id) ? '✓' : '•'} {t('transfers.includedPositions')}</li>
                             <li>{data.opening_date && data.closing_date ? '✓' : '•'} {t('transfers.applicationPeriod')}</li>
                             <li>{data.eligibility_rules.length ? '✓' : '•'} {t('transfers.eligibilityRules')}</li>

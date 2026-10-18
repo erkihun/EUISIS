@@ -13,7 +13,7 @@ export default function CodeGenerationLogsTable({ logs }: { logs: CodeGeneration
     const { t } = useLocale();
 
     return (
-        <div className="overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+        <div className="overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface)">
             <table className={cx(tableClassName, 'min-w-full text-left')}>
                 <thead className={tableHeadClassName}>
                     <tr>

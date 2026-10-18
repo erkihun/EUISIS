@@ -72,13 +72,13 @@ function WallBody({ scope, refresh_seconds, rotation_seconds, privacy, result }:
     const scopeName = scope.breadcrumb.length > 0 ? label(scope.breadcrumb[scope.breadcrumb.length - 1].label) : sr(scope.unrestricted ? 'ui.scope_all' : 'ui.scope_mine');
 
     return (
-        <div className="flex min-h-dvh flex-col bg-[color:var(--app-background)] text-[color:var(--app-foreground)]">
+        <div className="flex min-h-dvh flex-col bg-(--app-background) text-(--app-foreground)">
             <Head title={sr('wall.title')} />
 
-            <header className="flex flex-wrap items-center gap-3 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 sm:px-6">
+            <header className="flex flex-wrap items-center gap-3 border-b border-(--app-border) bg-(--app-surface) px-4 py-3 sm:px-6">
                 <div className="min-w-0 flex-1">
                     <h1 className="truncate text-xl font-semibold sm:text-2xl">{current ? sr(`categories.${current.category}.title`) : sr('title')}</h1>
-                    <p className="truncate text-sm text-[color:var(--app-muted-foreground)]">{scopeName} · {sr('wall.aggregates_only')}</p>
+                    <p className="truncate text-sm text-(--app-muted-foreground)">{scopeName} · {sr('wall.aggregates_only')}</p>
                 </div>
                 {screens.length > 1 && (
                     <div className="flex items-center gap-2" role="group" aria-label={sr('wall.screen', { current: (index % screens.length) + 1, total: screens.length })}>
@@ -98,12 +98,12 @@ function WallBody({ scope, refresh_seconds, rotation_seconds, privacy, result }:
                 <Deferred data="result" fallback={<PanelSkeleton label={sr('ui.loading')} />}>
                     {current
                         ? <PanelGrid panels={current.panels} options={{ smallCell: privacy.small_cell, wall: true }} />
-                        : <p className="text-lg text-[color:var(--app-muted-foreground)]">{sr('wall.nothing')}</p>}
+                        : <p className="text-lg text-(--app-muted-foreground)">{sr('wall.nothing')}</p>}
                 </Deferred>
             </main>
 
             {result && (
-                <footer className="border-t border-[color:var(--app-border)] px-4 py-2 text-sm text-[color:var(--app-muted-foreground)] sm:px-6">
+                <footer className="border-t border-(--app-border) px-4 py-2 text-sm text-(--app-muted-foreground) sm:px-6">
                     {sr('ui.computed_at', { time: formatDateTimeDisplay(result.generated_at, system, locale) })} · {sr('wall.refreshes', { minutes: Math.max(1, Math.round(refresh_seconds / 60)) })}
                 </footer>
             )}

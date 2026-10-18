@@ -46,10 +46,10 @@ export default function FormatTokenGroup({
     const categoryLabel = labelKey ? t(labelKey) : category;
 
     return (
-        <div className="border-b border-[color:var(--app-border)] last:border-0">
+        <div className="border-b border-(--app-border) last:border-0">
             <button
                 type="button"
-                className="flex w-full items-center justify-between px-1 py-2 text-xs font-semibold text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                className="flex w-full items-center justify-between px-1 py-2 text-xs font-semibold text-(--app-muted-foreground) hover:text-(--app-foreground)"
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
             >

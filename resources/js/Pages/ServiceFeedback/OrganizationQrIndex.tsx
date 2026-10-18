@@ -50,8 +50,8 @@ export default function OrganizationQrIndex({ organizations }: Props) {
                             {organizations.map((row) => (
                                 <Tr key={row.id}>
                                     <Td>
-                                        <div className="font-medium text-[color:var(--app-foreground)]">{name(row)}</div>
-                                        <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{row.code}{row.status !== 'active' && <> · {t('serviceFeedback.organizationInactive')}</>}</div>
+                                        <div className="font-medium text-(--app-foreground)">{name(row)}</div>
+                                        <div className="font-mono text-xs text-(--app-muted-foreground)">{row.code}{row.status !== 'active' && <> · {t('serviceFeedback.organizationInactive')}</>}</div>
                                     </Td>
                                     <Td><StatusBadge status={qrStatus(row)} label={qrLabel(row)} /></Td>
                                     <Td align="right" numeric>{row.qr ? row.qr.scan_count.toLocaleString() : '—'}</Td>

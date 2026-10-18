@@ -32,7 +32,7 @@ function FormShell({ onSubmit, processing, cancelHref, submitLabel, children }: 
         <form onSubmit={onSubmit} noValidate>
             <Card className="space-y-6">
                 {children}
-                <div className="flex flex-wrap justify-end gap-2 border-t border-[color:var(--app-border)] pt-4">
+                <div className="flex flex-wrap justify-end gap-2 border-t border-(--app-border) pt-4">
                     <Link href={cancelHref} className={buttonClassName({ variant: 'outline' })}>{t('transport.cancel')}</Link>
                     <Button type="submit" variant="primary" disabled={processing}>{submitLabel}</Button>
                 </div>
@@ -44,8 +44,8 @@ function FormShell({ onSubmit, processing, cancelHref, submitLabel, children }: 
 function Section({ title, description, children }: { title?: string; description?: string; children: ReactNode }) {
     return (
         <fieldset className="space-y-4">
-            {title && <legend className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</legend>}
-            {description && <p className="-mt-2 text-sm text-[color:var(--app-muted-foreground)]">{description}</p>}
+            {title && <legend className="text-sm font-semibold text-(--app-foreground)">{title}</legend>}
+            {description && <p className="-mt-2 text-sm text-(--app-muted-foreground)">{description}</p>}
             <div className="grid gap-4 sm:grid-cols-2">{children}</div>
         </fieldset>
     );
@@ -399,7 +399,7 @@ export function ProviderForm({ provider }: { provider?: TransportProvider }) {
                         <input type="checkbox" className="h-4 w-4" checked={form.data.create_provider_user} onChange={(e) => form.setData('create_provider_user', e.target.checked)} />
                         {t('transport.portalAccount')}
                     </label>
-                    <p className="-mt-2 text-sm text-[color:var(--app-muted-foreground)]">{t('transport.portalAccountHelp')}</p>
+                    <p className="-mt-2 text-sm text-(--app-muted-foreground)">{t('transport.portalAccountHelp')}</p>
                     {form.data.create_provider_user && (
                         <div className="grid gap-4 sm:grid-cols-2">
                             <TextField label={t('transport.userName')} required value={form.data.user_name} onChange={(v) => form.setData('user_name', v)} error={form.errors.user_name} />
@@ -446,8 +446,8 @@ export function PassForm({ pass, today, providers = [], routes = [] }: { pass?: 
                     {employee ? (
                         <>
                             <p className="text-sm font-medium">{t('transport.employee')}</p>
-                            <div className="flex flex-wrap items-center justify-between gap-2 rounded-[var(--radius-control)] border border-[color:var(--app-border)] px-3 py-2 text-sm">
-                                <span>{employee.full_name} <span className="text-[color:var(--app-muted-foreground)]">({employee.employee_number}{employee.organization ? ` · ${name(employee.organization)}` : ''})</span></span>
+                            <div className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-(--app-border) px-3 py-2 text-sm">
+                                <span>{employee.full_name} <span className="text-(--app-muted-foreground)">({employee.employee_number}{employee.organization ? ` · ${name(employee.organization)}` : ''})</span></span>
                                 <Button type="button" variant="ghost" size="sm" onClick={() => { setEmployee(null); form.setData('employee_id', ''); }}>{t('transport.change')}</Button>
                             </div>
                         </>

@@ -70,9 +70,9 @@ function PermissionGroup({
     }
 
     return (
-        <div className="rounded-card border border-[color:var(--app-border)] p-4">
+        <div className="rounded-card border border-(--app-border) p-4">
             <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                <h3 className="text-xs font-semibold text-(--app-muted-foreground)">
                     {permissionGroupLabel(t, group)}
                     <span className={badgeClassName('info', 'ml-2')}>
                         {permissions.filter((p) => selected.includes(p.name)).length}/{permissions.length}
@@ -91,19 +91,19 @@ function PermissionGroup({
                 {permissions.map((perm) => (
                     <label
                         key={perm.name}
-                        className="flex items-start gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-[color:var(--app-surface-muted)] aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
+                        className="flex items-start gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-(--app-surface-muted) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent"
                         aria-disabled={disabled}
                     >
                         <input
                             type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed"
+                            className="mt-0.5 h-4 w-4 shrink-0 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary disabled:cursor-not-allowed"
                             checked={selected.includes(perm.name)}
                             disabled={disabled}
                             onChange={() => onToggle(perm.name)}
                         />
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1">
-                                <span className="break-all font-mono text-xs text-[color:var(--app-foreground)]">{perm.name}</span>
+                                <span className="break-all font-mono text-xs text-(--app-foreground)">{perm.name}</span>
                                 {CRITICAL.has(perm.name) && (
                                     <span
                                         title={t('permissions.criticalPermissionWarning')}
@@ -114,10 +114,10 @@ function PermissionGroup({
                                 )}
                             </div>
                             {label(perm) !== perm.name && (
-                                <p className="text-xs font-medium text-[color:var(--app-foreground)]">{label(perm)}</p>
+                                <p className="text-xs font-medium text-(--app-foreground)">{label(perm)}</p>
                             )}
                             {description(perm) && (
-                                <p className="line-clamp-2 text-xs text-[color:var(--app-muted-foreground)]">{description(perm)}</p>
+                                <p className="line-clamp-2 text-xs text-(--app-muted-foreground)">{description(perm)}</p>
                             )}
                         </div>
                     </label>
@@ -190,10 +190,10 @@ export default function EditRole({
 
             <div className="w-full">
                 <form onSubmit={submit} className="space-y-5">
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                         <div className="grid max-w-3xl gap-5 md:grid-cols-2">
                             <div>
-                            <label className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <label className="block text-xs font-medium text-(--app-muted-foreground)">
                                 {t('roles.roleName')}
                             </label>
                             <div className="mt-1">
@@ -210,7 +210,7 @@ export default function EditRole({
                             )}
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <label className="block text-xs font-medium text-(--app-muted-foreground)">
                                     {t('roles.scopeType')}
                                 </label>
                                 <select
@@ -221,7 +221,7 @@ export default function EditRole({
                                     <option value="scoped">{t('roles.scopedRole')}</option>
                                     <option value="global" disabled={!can.manageGlobalRoles}>{t('roles.globalRole')}</option>
                                 </select>
-                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-1 text-xs text-(--app-muted-foreground)">
                                     {form.data.scope_type === 'scoped'
                                         ? t('roles.scopedRoleHelp')
                                         : t('roles.globalRoleHelp')}
@@ -231,11 +231,11 @@ export default function EditRole({
                         </div>
                     </div>
 
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                            <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                            <h2 className="text-sm font-semibold text-(--app-foreground)">
                                 {t('roles.permissionsSection')}
-                                <span className="ml-2 text-xs font-normal text-[color:var(--app-muted-foreground)]">
+                                <span className="ml-2 text-xs font-normal text-(--app-muted-foreground)">
                                     ({form.data.permissions.length} {t('permissions.usedByRoles').toLowerCase()})
                                 </span>
                             </h2>
@@ -276,7 +276,7 @@ export default function EditRole({
                     <div className="flex items-center justify-end gap-3">
                         <Link
                             href={route('roles.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </Link>

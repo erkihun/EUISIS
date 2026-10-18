@@ -61,8 +61,8 @@ export default function MandateForm({ show, onClose, title, help, initial, url, 
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                {help && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{help}</p>}
+                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
+                {help && <p className="mt-1 text-sm text-(--app-muted-foreground)">{help}</p>}
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     {organizations && (

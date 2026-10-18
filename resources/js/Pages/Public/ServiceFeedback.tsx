@@ -97,7 +97,7 @@ function EmployeePhoto({ url, size }: { url: string | null | undefined; size: ke
     }, []);
 
     return (
-        <span className={`relative block shrink-0 overflow-hidden bg-[color:var(--app-surface-muted)] ring-1 ring-[color:var(--app-border)] ${frame.box}`}>
+        <span className={`relative block shrink-0 overflow-hidden bg-(--app-surface-muted) ring-1 ring-(--app-border) ${frame.box}`}>
             {url && state !== 'failed' ? (
                 <>
                     <img
@@ -113,10 +113,10 @@ function EmployeePhoto({ url, size }: { url: string | null | undefined; size: ke
                         onError={() => setState('failed')}
                         className={`h-full w-full object-cover object-[50%_25%] transition-opacity duration-200 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
                     />
-                    {state === 'loading' && <span className="absolute inset-0 animate-pulse bg-[color:var(--app-border)] opacity-60" aria-hidden="true" />}
+                    {state === 'loading' && <span className="absolute inset-0 animate-pulse bg-(--app-border) opacity-60" aria-hidden="true" />}
                 </>
             ) : (
-                <span className="flex h-full w-full items-center justify-center text-[color:var(--app-muted-foreground)]" aria-hidden="true">
+                <span className="flex h-full w-full items-center justify-center text-(--app-muted-foreground)" aria-hidden="true">
                     <UserIcon className={frame.icon} />
                 </span>
             )}
@@ -132,11 +132,11 @@ function TargetMark({ target, size }: { target: TargetDisplay; size: 'md' | 'lg'
     const box = size === 'lg' ? 'h-14 w-14 rounded-2xl' : 'h-11 w-11 rounded-xl';
 
     if (target.logo_url) {
-        return <img src={target.logo_url} alt="" className={`${box} shrink-0 border border-[color:var(--app-border)] bg-white object-contain p-1`} />;
+        return <img src={target.logo_url} alt="" className={`${box} shrink-0 border border-(--app-border) bg-white object-contain p-1`} />;
     }
 
     return (
-        <span className={`${box} flex shrink-0 items-center justify-center bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]`} aria-hidden="true">
+        <span className={`${box} flex shrink-0 items-center justify-center bg-(--app-surface-muted) text-primary`} aria-hidden="true">
             <Building2 className={size === 'lg' ? 'h-7 w-7' : 'h-6 w-6'} />
         </span>
     );
@@ -151,9 +151,9 @@ function EmployeeIdentityCard({ target }: { target: TargetDisplay }) {
     return (
         <div className={`${cardClass} flex flex-col items-center px-5 pb-5 pt-6 text-center`}>
             <EmployeePhoto key={target.photo_url ?? 'none'} url={target.photo_url} size="lg" />
-            <h2 className="mt-4 text-xl font-bold leading-snug text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{target.display_name}</h2>
+            <h2 className="mt-4 text-xl font-bold leading-snug text-(--app-foreground) wrap-anywhere">{target.display_name}</h2>
             {target.position_title && (
-                <p className={`mt-1 text-base leading-snug ${mutedClass} [overflow-wrap:anywhere]`}>{target.position_title}</p>
+                <p className={`mt-1 text-base leading-snug ${mutedClass} wrap-anywhere`}>{target.position_title}</p>
             )}
         </div>
     );
@@ -169,11 +169,11 @@ function TargetCard({ target, intro }: { target: TargetDisplay; intro?: string }
             <div className="flex items-center gap-3">
                 <TargetMark target={target} size={intro ? 'lg' : 'md'} />
                 <div className="min-w-0">
-                    <p className="font-semibold leading-snug text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{target.display_name}</p>
+                    <p className="font-semibold leading-snug text-(--app-foreground) wrap-anywhere">{target.display_name}</p>
                     {detail !== '' && <p className={`mt-0.5 text-sm leading-snug ${mutedClass}`}>{detail}</p>}
                 </div>
             </div>
-            {intro && <p className={`mt-3 border-t border-[color:var(--app-border)] pt-3 text-sm ${mutedClass}`}>{intro}</p>}
+            {intro && <p className={`mt-3 border-t border-(--app-border) pt-3 text-sm ${mutedClass}`}>{intro}</p>}
         </div>
     );
 }
@@ -232,8 +232,8 @@ function FormScreen({ formRef, onSubmit, requirements, processing, progress, sub
             <FeedbackActionBar>
                 {uploading && (
                     <div className="mb-2" role="status" aria-live="polite">
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]">
-                            <div className="h-full rounded-full bg-[color:var(--color-primary)] transition-[width]" style={{ width: `${progress}%` }} />
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--app-surface-muted)">
+                            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${progress}%` }} />
                         </div>
                         <p className={`mt-1 text-center text-xs ${mutedClass}`}>{t('serviceFeedback.uploadProgress').replace('{percent}', String(progress))}</p>
                     </div>
@@ -298,7 +298,7 @@ function TipOffForm({ target, serviceTypes, categories, links, formToken, requir
             <TipTypeChooser tipTypes={tipTypes} value={data.tip_type} onChange={(value) => { setData('tip_type', value); clearErrors('tip_type'); }} error={errors.tip_type} />
 
             <div role="group" aria-labelledby="tip-details-title" className={`${cardClass} space-y-4`}>
-                <p id="tip-details-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.tipDetailsTitle')}</p>
+                <p id="tip-details-title" className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.tipDetailsTitle')}</p>
                 <div data-field>
                     <label htmlFor="entry-message" className={labelClass}>
                         {t('serviceFeedback.suggestionText')}
@@ -309,8 +309,8 @@ function TipOffForm({ target, serviceTypes, categories, links, formToken, requir
                     {errors.message && <p role="alert" className={errorClass}>{errors.message}</p>}
                 </div>
 
-                <details className="group rounded-xl border border-[color:var(--app-border)] p-3" open={Boolean(errors.incident_date || errors.incident_location || errors.involved_parties || errors.position_service_id || errors.category_id)}>
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-[color:var(--app-foreground)]">
+                <details className="group rounded-xl border border-(--app-border) p-3" open={Boolean(errors.incident_date || errors.incident_location || errors.involved_parties || errors.position_service_id || errors.category_id)}>
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-(--app-foreground)">
                         {t('serviceFeedback.tipMoreDetails')}
                         <ChevronRight className="h-5 w-5 transition-transform group-open:rotate-90" aria-hidden="true" />
                     </summary>
@@ -355,12 +355,12 @@ function TipOffForm({ target, serviceTypes, categories, links, formToken, requir
 
             <div role="group" aria-labelledby="tipster-title" className={`${cardClass} space-y-4`}>
                 <div>
-                    <p id="tipster-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.tipsterTitle')}</p>
+                    <p id="tipster-title" className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.tipsterTitle')}</p>
                     <p className={`mt-1 text-xs leading-relaxed ${mutedClass}`}>{t('serviceFeedback.tipsterHint')}</p>
                 </div>
                 <IdentityFields requirements={requirements} data={data} set={(field, value) => { setData(field as 'client_name', value); clearErrors(field as 'client_name'); }} errors={errors} />
-                <details className="group rounded-xl border border-[color:var(--app-border)] p-3">
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-[color:var(--app-foreground)]">
+                <details className="group rounded-xl border border-(--app-border) p-3">
+                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-(--app-foreground)">
                         {t('serviceFeedback.tipsterAddressToggle')}
                         <ChevronRight className="h-5 w-5 transition-transform group-open:rotate-90" aria-hidden="true" />
                     </summary>
@@ -418,7 +418,7 @@ function ComplaintForm({ target, serviceTypes, categories, links, formToken, req
             )}
 
             <div role="group" aria-labelledby="when-where-title" className={`${cardClass} space-y-4`}>
-                <p id="when-where-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.sectionWhenWhere')}</p>
+                <p id="when-where-title" className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.sectionWhenWhere')}</p>
                 <div data-field>
                     <label htmlFor="incident-date" className={labelClass}>{t('serviceFeedback.incidentDate')}</label>
                     <div className="mt-2"><LocalizedDatePicker id="incident-date" value={data.incident_date} onChange={(iso) => setData('incident_date', iso)} className="min-h-12 rounded-xl text-base" /></div>
@@ -489,7 +489,7 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, requir
 
             {/* The rating is the whole point here: one large, centred question with big stars. */}
             <div className={`${cardClass} px-2 py-6 text-center`} data-field>
-                <h2 className="text-lg font-bold text-[color:var(--app-foreground)]">{t('serviceFeedback.feedbackQuestion')}</h2>
+                <h2 className="text-lg font-bold text-(--app-foreground)">{t('serviceFeedback.feedbackQuestion')}</h2>
                 <div className="mt-4 flex items-center justify-center gap-1" role="radiogroup" aria-required="true" aria-label={t('serviceFeedback.satisfactionRating')} onMouseLeave={() => setHoveredRating(null)}>
                     {RATING_VALUES.map((value) => (
                         <button
@@ -504,7 +504,7 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, requir
                                 clearErrors('rating');
                             }}
                             onMouseEnter={() => setHoveredRating(value)}
-                            className="rounded-xl p-1 transition-transform active:scale-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                            className="rounded-xl p-1 transition-transform active:scale-90 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                         >
                             <StarIcon filled={value <= activeRating} />
                         </button>
@@ -553,9 +553,9 @@ function ReferenceCard({ reference }: { reference: string }) {
         <div className={`${cardClass} w-full text-left`}>
             <p className={`text-xs font-medium ${mutedClass}`}>{t('serviceFeedback.referenceNumber')}</p>
             <div className="mt-1 flex items-center justify-between gap-3">
-                <span className="font-mono text-lg font-bold tracking-wide text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{reference}</span>
+                <span className="font-mono text-lg font-bold tracking-wide text-(--app-foreground) wrap-anywhere">{reference}</span>
                 {canCopy && (
-                    <button type="button" onClick={copy} className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-[color:var(--app-border-strong)] px-4 text-sm font-semibold text-[color:var(--app-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)]">
+                    <button type="button" onClick={copy} className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-(--app-border-strong) px-4 text-sm font-semibold text-(--app-foreground) transition-colors hover:bg-(--app-surface-muted)">
                         {copied ? t('common.copied') : t('common.copy')}
                     </button>
                 )}
@@ -617,7 +617,7 @@ function ReceiptScreen({ kind, receipt, links, target, enabledTypes, call }: {
                         <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                 </span>
-                <h2 className="mt-5 text-xl font-bold text-[color:var(--app-foreground)]">{t(KINDS[kind].submitted)}</h2>
+                <h2 className="mt-5 text-xl font-bold text-(--app-foreground)">{t(KINDS[kind].submitted)}</h2>
                 <p className={`mt-2 max-w-xs text-sm leading-relaxed ${mutedClass}`}>{t(KINDS[kind].detail)}</p>
 
                 <div className="mt-8 w-full space-y-3">
@@ -627,19 +627,19 @@ function ReceiptScreen({ kind, receipt, links, target, enabledTypes, call }: {
                         {receipt?.tip_type && (
                             <div className="flex justify-between gap-4">
                                 <dt className={`shrink-0 ${mutedClass}`}>{t('serviceFeedback.tipTypeLabel')}</dt>
-                                <dd className="text-right font-medium text-[color:var(--app-foreground)]">{t(TIP_TYPE_COPY[receipt.tip_type].label)}</dd>
+                                <dd className="text-right font-medium text-(--app-foreground)">{t(TIP_TYPE_COPY[receipt.tip_type].label)}</dd>
                             </div>
                         )}
                         {receipt?.target_name && (
                             <div className="flex justify-between gap-4">
                                 <dt className={`shrink-0 ${mutedClass}`}>{t('serviceFeedback.receiptAbout')}</dt>
-                                <dd className="text-right font-medium text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{receipt.target_name}</dd>
+                                <dd className="text-right font-medium text-(--app-foreground) wrap-anywhere">{receipt.target_name}</dd>
                             </div>
                         )}
                         {receipt?.submitted_at && (
                             <div className="flex justify-between gap-4">
                                 <dt className={`shrink-0 ${mutedClass}`}>{t('serviceFeedback.receiptSubmittedAt')}</dt>
-                                <dd className="text-right font-medium text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={receipt.submitted_at} withTime /></dd>
+                                <dd className="text-right font-medium text-(--app-foreground)"><LocalizedDateDisplay value={receipt.submitted_at} withTime /></dd>
                             </div>
                         )}
                     </dl>
@@ -661,7 +661,7 @@ function UnavailableScreen() {
                 <span className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300" aria-hidden="true">
                     <AlertTriangle className="h-8 w-8" />
                 </span>
-                <h2 className="mt-5 text-lg font-bold text-[color:var(--app-foreground)]">{t('serviceFeedback.linkUnavailable')}</h2>
+                <h2 className="mt-5 text-lg font-bold text-(--app-foreground)">{t('serviceFeedback.linkUnavailable')}</h2>
                 <p className={`mt-2 max-w-xs text-sm leading-relaxed ${mutedClass}`}>{t('serviceFeedback.linkUnavailableDetail')}</p>
             </div>
         </FeedbackAppLayout>
@@ -685,7 +685,7 @@ function ChoiceScreen({ target, links, enabledTypes, call }: { target: TargetDis
                     : <EmployeeIdentityCard target={target} />}
 
                 <section aria-labelledby="choose-type">
-                    <h2 id="choose-type" className={`px-1 text-base font-bold text-[color:var(--app-foreground)] ${organization ? '' : 'text-center'}`}>
+                    <h2 id="choose-type" className={`px-1 text-base font-bold text-(--app-foreground) ${organization ? '' : 'text-center'}`}>
                         {t(organization ? 'serviceFeedback.chooseType' : 'serviceFeedback.employeeChoosePrompt')}
                     </h2>
                     <ul className="mt-3 space-y-3">
@@ -696,13 +696,13 @@ function ChoiceScreen({ target, links, enabledTypes, call }: { target: TargetDis
                                 <li key={kind}>
                                     <Link
                                         href={hrefs[kind]}
-                                        className="flex min-h-[84px] items-center gap-4 rounded-2xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 shadow-sm transition active:scale-[0.99] hover:border-[color:var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)]"
+                                        className="flex min-h-[84px] items-center gap-4 rounded-2xl border border-(--app-border) bg-(--app-surface) p-4 shadow-xs transition active:scale-[0.99] hover:border-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                                     >
                                         <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${tone}`} aria-hidden="true">
                                             <Icon className="h-6 w-6" />
                                         </span>
                                         <span className="min-w-0 flex-1">
-                                            <span className="block text-base font-semibold text-[color:var(--app-foreground)]">{t(label)}</span>
+                                            <span className="block text-base font-semibold text-(--app-foreground)">{t(label)}</span>
                                             <span className={`mt-0.5 block text-sm leading-snug ${mutedClass}`}>{t(hint)}</span>
                                         </span>
                                         <ChevronRight className={`h-5 w-5 shrink-0 ${mutedClass}`} aria-hidden="true" />

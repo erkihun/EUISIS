@@ -71,7 +71,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
             <Head title={establishment.establishment_number} />
 
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                     <StatusBadge status={establishment.status} />
                     <dl className="mt-4 grid gap-4 sm:grid-cols-2 text-sm">
                         {[
@@ -84,53 +84,53 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             { label: t('positionEstablishments.approvedBy'), value: establishment.approved_by?.name ?? '—' },
                         ].map(({ label, value }) => (
                             <div key={label}>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-                                <dd className="mt-1 text-[color:var(--app-foreground)]">{value}</dd>
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+                                <dd className="mt-1 text-(--app-foreground)">{value}</dd>
                             </div>
                         ))}
                         <div>
-                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('positionEstablishments.effectiveFrom')}</dt>
-                            <dd className="mt-1 text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={establishment.effective_from} /></dd>
+                            <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('positionEstablishments.effectiveFrom')}</dt>
+                            <dd className="mt-1 text-(--app-foreground)"><LocalizedDateDisplay value={establishment.effective_from} /></dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('positionEstablishments.effectiveTo')}</dt>
-                            <dd className="mt-1 text-[color:var(--app-foreground)]">
+                            <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('positionEstablishments.effectiveTo')}</dt>
+                            <dd className="mt-1 text-(--app-foreground)">
                                 {establishment.effective_to ? <LocalizedDateDisplay value={establishment.effective_to} /> : t('common.current')}
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('positionEstablishments.approvedAt')}</dt>
-                            <dd className="mt-1 text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={establishment.approved_at} /></dd>
+                            <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('positionEstablishments.approvedAt')}</dt>
+                            <dd className="mt-1 text-(--app-foreground)"><LocalizedDateDisplay value={establishment.approved_at} /></dd>
                         </div>
                     </dl>
                     {establishment.notes && (
                         <div className="mt-4">
-                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('positionEstablishments.notes')}</dt>
-                            <dd className="mt-1 text-sm text-[color:var(--app-foreground)] whitespace-pre-line">{establishment.notes}</dd>
+                            <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('positionEstablishments.notes')}</dt>
+                            <dd className="mt-1 text-sm text-(--app-foreground) whitespace-pre-line">{establishment.notes}</dd>
                         </div>
                     )}
                 </section>
 
                 <div className="space-y-6">
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('positionEstablishments.activeOccupancies')}</h3>
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="font-semibold text-(--app-foreground)">{t('positionEstablishments.activeOccupancies')}</h3>
                         {establishment.occupancies.filter(o => o.status === 'active').length === 0 ? (
-                            <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('common.none')}</p>
+                            <p className="mt-3 text-sm text-(--app-muted-foreground)">{t('common.none')}</p>
                         ) : (
                             <ul className="mt-3 space-y-1 text-sm">
                                 {establishment.occupancies.filter(o => o.status === 'active').map(o => (
                                     <li key={o.id} className="flex justify-between">
                                         <span>{o.employee?.name_en ?? '—'}</span>
-                                        <span className="text-[color:var(--app-muted-foreground)]">{o.occupied_from}</span>
+                                        <span className="text-(--app-muted-foreground)">{o.occupied_from}</span>
                                     </li>
                                 ))}
                             </ul>
                         )}
                     </section>
 
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                         <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('vacancies.announcements')}</h3>
+                            <h3 className="font-semibold text-(--app-foreground)">{t('vacancies.announcements')}</h3>
                             {establishment.status === 'approved' && (
                                 <Link
                                     href={route('vacancy-announcements.create') + `?establishment=${establishment.id}`}
@@ -141,12 +141,12 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             )}
                         </div>
                         {establishment.vacancy_announcements.length === 0 ? (
-                            <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('common.none')}</p>
+                            <p className="mt-3 text-sm text-(--app-muted-foreground)">{t('common.none')}</p>
                         ) : (
                             <ul className="mt-3 space-y-1.5 text-sm">
                                 {establishment.vacancy_announcements.map(a => (
                                     <li key={a.id} className="flex items-center justify-between">
-                                        <Link href={route('vacancy-announcements.show', a.id)} className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                        <Link href={route('vacancy-announcements.show', a.id)} className="text-primary hover:underline dark:text-primary">
                                             {a.title_en}
                                         </Link>
                                         <StatusBadge status={a.status} />

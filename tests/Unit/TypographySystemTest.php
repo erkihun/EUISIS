@@ -74,7 +74,7 @@ it('ships only self-hosted woff2 faces at weights 400 to 700', function (): void
         ->and($fonts)->toContain('font-display: swap')
         ->and($fonts)->not->toMatch('#https?://#')
         ->and($urls[1])->each->toMatch('/node_modules\/@fontsource\/(inter|abyssinica-sil|noto-sans-ethiopic)\/files\/[\w-]+\.woff2/')
-        ->and(typographySource('resources/css/app.css'))->toContain("@import './fonts.css';");
+        ->and(typographySource('resources/css/app.css'))->toContain("@import './fonts.css' layer(base);");
 
     foreach ($urls[1] as $url) {
         expect(file_exists(__DIR__.'/../../resources/css/'.trim($url, "'\"")))->toBeTrue("Missing font file {$url}");
@@ -82,15 +82,20 @@ it('ships only self-hosted woff2 faces at weights 400 to 700', function (): void
 });
 
 it('maps Tailwind font-sans and the semantic sizes to the tokens', function (): void {
-    $config = typographySource('tailwind.config.js');
+    // Tailwind 4: the theme lives in app.css. `inline` makes utilities use the
+    // language-switched variables themselves, as Tailwind 3 did.
+    $css = typographySource('resources/css/app.css');
+    preg_match('/@theme inline reference \{([^}]*)\}/s', $css, $theme);
 
-    expect($config)
-        ->toContain("sans: ['var(--font-ui)']")
-        ->toContain("document: ['var(--font-document)']")
-        ->toContain("'page-title'")
-        ->toContain("xs: ['var(--fs-xs)', { lineHeight: 'var(--lh-xs)' }]")
+    expect($theme[1] ?? '')
+        ->toContain('--font-sans: var(--font-ui);')
+        ->toContain('--font-document: var(--font-document);')
+        ->toContain('--text-page-title: 1.375rem;')
+        ->toContain('--text-xs: var(--fs-xs);')
+        ->toContain('--text-xs--line-height: var(--lh-xs);')
+        ->and($css)
         // 800/900 are not shipped.
-        ->toContain("black: '700'")
+        ->toContain('--font-weight-black: 700;')
         ->not->toContain('Figtree');
 });
 

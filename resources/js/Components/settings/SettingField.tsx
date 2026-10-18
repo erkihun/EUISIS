@@ -107,7 +107,7 @@ export default function SettingField({ field, locale, value, error, disabled = f
         );
     } else if (field.type === 'integer') {
         control = (
-            <Input {...common} type="number" inputMode="numeric" min={ruleBound(field, 'min')} max={ruleBound(field, 'max')} className="max-w-[12rem] tabular-nums"
+            <Input {...common} type="number" inputMode="numeric" min={ruleBound(field, 'min')} max={ruleBound(field, 'max')} className="max-w-48 tabular-nums"
                 value={value === null || value === undefined ? '' : String(value)}
                 onChange={(event) => onChange(event.target.value === '' ? null : Number(event.target.value))} />
         );
@@ -147,7 +147,7 @@ function ListInput({ id, value, disabled, describedBy, invalid, hint, onChange }
                     setText(event.target.value);
                     onChange(event.target.value.split(/[,\n]/).map((entry) => entry.trim()).filter(Boolean));
                 }} />
-            <p id={hintId} className="text-xs text-[color:var(--app-muted-foreground)]">{hint}</p>
+            <p id={hintId} className="text-xs text-(--app-muted-foreground)">{hint}</p>
         </>
     );
 }

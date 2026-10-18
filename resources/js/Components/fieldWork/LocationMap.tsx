@@ -107,5 +107,5 @@ export default function LocationMap({ config, point, radius, label, onPick }: Pr
         if (instance.getZoom() < 15 || !instance.getBounds().contains(at)) instance.setView(at, Math.max(instance.getZoom(), 16));
     }, [point?.lat, point?.lng, radius, label]);
 
-    return <div ref={box} role="application" aria-label={label} className="h-72 w-full overflow-hidden rounded-lg border border-[color:var(--app-border)] sm:h-80" />;
+    return <div ref={box} role="application" aria-label={label} className="h-72 w-full overflow-hidden rounded-lg border border-(--app-border) sm:h-80" />;
 }

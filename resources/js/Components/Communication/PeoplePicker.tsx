@@ -47,14 +47,14 @@ export default function PeoplePicker({ selected, onChange, excludeIds = [], max,
             {selected.length > 0 && (
                 <ul aria-label={t('communication.people.selected')} className="flex flex-wrap gap-1.5">
                     {selected.map((person) => (
-                        <li key={person.id} className="inline-flex h-7 items-center gap-1.5 rounded-full border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] ps-1 pe-1.5 text-xs text-[color:var(--app-foreground)]">
+                        <li key={person.id} className="inline-flex h-7 items-center gap-1.5 rounded-full border border-(--app-border) bg-(--app-surface-muted) ps-1 pe-1.5 text-xs text-(--app-foreground)">
                             <Avatar name={person.name} userId={person.id} hasPhoto={person.has_photo} size="sm" />
-                            <span className="max-w-[10rem] truncate">{person.name}</span>
+                            <span className="max-w-40 truncate">{person.name}</span>
                             <button
                                 type="button"
                                 onClick={() => onChange(selected.filter((p) => p.id !== person.id))}
                                 aria-label={tr(t('communication.people.remove'), { name: person.name })}
-                                className="rounded-full p-0.5 text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                                className="rounded-full p-0.5 text-(--app-muted-foreground) hover:text-(--app-foreground)"
                             >
                                 <XMarkIcon className="h-3.5 w-3.5" />
                             </button>
@@ -65,7 +65,7 @@ export default function PeoplePicker({ selected, onChange, excludeIds = [], max,
 
             <label htmlFor={inputId} className="relative block">
                 <span className="sr-only">{t('communication.people.search')}</span>
-                <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                <SearchIcon className="pointer-events-none absolute inset-s-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                 <input
                     id={inputId}
                     type="search"
@@ -74,16 +74,16 @@ export default function PeoplePicker({ selected, onChange, excludeIds = [], max,
                     disabled={full}
                     onChange={(event) => setQ(event.target.value)}
                     placeholder={t('communication.people.search')}
-                    className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15 disabled:opacity-60"
+                    className="h-9 w-full rounded-control border border-(--app-border) bg-(--app-background) ps-8 pe-2 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15 disabled:opacity-60"
                 />
             </label>
 
             <div aria-live="polite" aria-busy={state === 'searching'}>
-                {state === 'searching' && <p className="px-1 py-2 text-xs text-[color:var(--app-muted-foreground)]">{t('communication.newConversation.searching')}</p>}
-                {state === 'error' && <p className="px-1 py-2 text-xs text-[color:var(--color-danger,#b42318)]">{t('communication.errors.generic')}</p>}
-                {state === 'done' && visible.length === 0 && <p className="px-1 py-2 text-xs text-[color:var(--app-muted-foreground)]">{t('communication.newConversation.noResults')}</p>}
+                {state === 'searching' && <p className="px-1 py-2 text-xs text-(--app-muted-foreground)">{t('communication.newConversation.searching')}</p>}
+                {state === 'error' && <p className="px-1 py-2 text-xs text-(--color-danger,#b42318)">{t('communication.errors.generic')}</p>}
+                {state === 'done' && visible.length === 0 && <p className="px-1 py-2 text-xs text-(--app-muted-foreground)">{t('communication.newConversation.noResults')}</p>}
                 {state === 'done' && visible.length > 0 && (
-                    <ul className="max-h-64 overflow-y-auto rounded-control border border-[color:var(--app-border)] comm-scroll">
+                    <ul className="max-h-64 overflow-y-auto rounded-control border border-(--app-border) comm-scroll">
                         {visible.map((person) => {
                             const isChosen = chosen.has(person.id);
                             return (
@@ -93,16 +93,16 @@ export default function PeoplePicker({ selected, onChange, excludeIds = [], max,
                                         disabled={isChosen || full}
                                         aria-pressed={isChosen}
                                         onClick={() => onChange([...selected, person])}
-                                        className="flex w-full items-center gap-2.5 px-2.5 py-2 text-start hover:bg-[color:var(--app-surface-muted)] disabled:cursor-default disabled:opacity-60"
+                                        className="flex w-full items-center gap-2.5 px-2.5 py-2 text-start hover:bg-(--app-surface-muted) disabled:cursor-default disabled:opacity-60"
                                     >
                                         <Avatar name={person.name} userId={person.id} hasPhoto={person.has_photo} size="sm" />
                                         <span className="min-w-0 flex-1">
-                                            <span className="block truncate text-sm text-[color:var(--app-foreground)]">{person.name}</span>
-                                            <span className="block truncate text-[11px] text-[color:var(--app-muted-foreground)]">
+                                            <span className="block truncate text-sm text-(--app-foreground)">{person.name}</span>
+                                            <span className="block truncate text-[11px] text-(--app-muted-foreground)">
                                                 {[person.position, person.unit ?? person.organization].filter(Boolean).join(' · ')}
                                             </span>
                                         </span>
-                                        <span className="shrink-0 text-xs font-medium text-[color:var(--color-primary)]">
+                                        <span className="shrink-0 text-xs font-medium text-primary">
                                             {isChosen ? t('communication.people.added') : t('communication.people.add')}
                                         </span>
                                     </button>

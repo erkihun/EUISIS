@@ -733,9 +733,9 @@ interface Props {
     onToggleCollapse?: () => void;
 }
 
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--sidebar-accent)]';
-const hoverSurface = 'hover:bg-[color:var(--sidebar-hover)]';
-const selectedSurface = 'bg-[color:var(--sidebar-accent-wash)] text-[color:var(--sidebar-accent)]';
+const focusRing = 'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-(--sidebar-accent)';
+const hoverSurface = 'hover:bg-(--sidebar-hover)';
+const selectedSurface = 'bg-(--sidebar-accent-wash) text-(--sidebar-accent)';
 
 /** Exact routes win; otherwise select the nearest permitted module (index or a page's own sub-routes). */
 function activeRoute(items: NavSubItem[], current: string): string | undefined {
@@ -902,7 +902,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     function highlight(text: string): ReactNode {
         const index = normalizedQuery ? text.toLocaleLowerCase().indexOf(normalizedQuery) : -1;
         if (index < 0) return text;
-        return <>{text.slice(0, index)}<mark className="rounded-sm bg-[color:var(--sidebar-accent-wash)] font-semibold text-[color:var(--sidebar-fg)]">{text.slice(index, index + normalizedQuery.length)}</mark>{text.slice(index + normalizedQuery.length)}</>;
+        return <>{text.slice(0, index)}<mark className="rounded-xs bg-(--sidebar-accent-wash) font-semibold text-(--sidebar-fg)">{text.slice(index, index + normalizedQuery.length)}</mark>{text.slice(index + normalizedQuery.length)}</>;
     }
 
     /**
@@ -928,20 +928,20 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         focusRing, hoverSurface,
                         compact ? 'mx-auto h-10 w-10 justify-center' : nested ? 'min-h-8 px-2.5 py-1.5' : 'min-h-9 px-2.5 py-2',
                         selected ? selectedSurface + ' font-semibold'
-                            : nested ? 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]' : 'font-medium text-[color:var(--sidebar-fg)]',
+                            : nested ? 'text-(--sidebar-muted) hover:text-(--sidebar-fg)' : 'font-medium text-(--sidebar-fg)',
                     ].join(' ')}
                 >
-                    {selected && <span aria-hidden="true" className="absolute inset-y-1.5 start-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]" />}
+                    {selected && <span aria-hidden="true" className="absolute inset-y-1.5 inset-s-0 w-0.5 rounded-full bg-(--sidebar-accent)" />}
                     <Icon aria-hidden="true" className={nested && !compact
                         ? ['h-4 w-4 shrink-0', selected ? '' : 'opacity-80'].join(' ')
                         : 'h-[18px] w-[18px] shrink-0'} />
-                    {!compact && <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{highlight(label)}</span>}
+                    {!compact && <span className="min-w-0 flex-1 whitespace-normal wrap-break-word leading-snug">{highlight(label)}</span>}
                     {item.badge ? (
                         <span
                             aria-label={t('nav.unreadCount').replace(':n', String(item.badge))}
                             className={compact
-                                ? 'absolute end-1 top-1 h-2.5 w-2.5 rounded-full bg-[color:var(--color-accent)] ring-2 ring-[color:var(--sidebar-bg,transparent)]'
-                                : 'inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-accent)] px-1.5 text-[11px] font-semibold tabular-nums text-white'}
+                                ? 'absolute inset-e-1 top-1 h-2.5 w-2.5 rounded-full bg-accent ring-2 ring-(--sidebar-bg,transparent)'
+                                : 'inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold tabular-nums text-white'}
                         >
                             {compact ? null : item.badge > 99 ? '99+' : item.badge}
                         </span>
@@ -959,7 +959,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             const subItems = subgroup.items.filter((item) => items.some((match) => match.routeName === item.routeName));
             return subItems.length > 0 && (
                 <div key={subgroup.labelKey} className="py-1 first:pt-0">
-                    <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold text-[color:var(--sidebar-muted)]">{t(subgroup.labelKey)}</p>
+                    <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold text-(--sidebar-muted)">{t(subgroup.labelKey)}</p>
                     <ul className="space-y-px">{subItems.map(link)}</ul>
                 </div>
             );
@@ -970,8 +970,8 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         if (!groups.some((group) => matchingItems(group).length)) return null;
         return <div key={labelKey} className="mb-4 last:mb-0">
             {collapsed
-                ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
-                : <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase leading-relaxed tracking-[0.08em] text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
+                ? <div className="mx-3 my-2 border-t border-(--sidebar-border)" />
+                : <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase leading-relaxed tracking-[0.08em] text-(--sidebar-muted)">{t(labelKey)}</p>}
             <div className="space-y-0.5">{groups.map(renderGroup)}</div>
         </div>;
     }
@@ -992,15 +992,15 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             return (
                 <Popover key={group.key}>
                     <PopoverButton title={label} aria-label={label}
-                        className={['mx-auto flex h-10 w-10 items-center justify-center rounded-md transition-colors data-[open]:bg-[color:var(--sidebar-hover)]', focusRing, hoverSurface,
-                            selected ? selectedSurface : 'text-[color:var(--sidebar-fg)]'].join(' ')}>
+                        className={['mx-auto flex h-10 w-10 items-center justify-center rounded-md transition-colors data-open:bg-(--sidebar-hover)', focusRing, hoverSurface,
+                            selected ? selectedSurface : 'text-(--sidebar-fg)'].join(' ')}>
                         <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                     </PopoverButton>
                     <PopoverPanel anchor="right start" transition
-                        className="z-50 w-64 rounded-lg border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] p-2 text-[color:var(--sidebar-fg)] shadow-xl outline-none transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-[closed]:-translate-x-1 data-[closed]:opacity-0">
+                        className="z-50 w-64 rounded-lg border border-(--sidebar-border) bg-(--sidebar-bg) p-2 text-(--sidebar-fg) shadow-xl outline-hidden transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-closed:-translate-x-1 data-closed:opacity-0">
                         {({ close }) => (
                             <>
-                                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--sidebar-muted)]">{label}</p>
+                                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-(--sidebar-muted)">{label}</p>
                                 {renderGroupItems(group, items, close)}
                             </>
                         )}
@@ -1016,18 +1016,18 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     aria-controls={panelId}
                     onClick={() => { if (!normalizedQuery) setOpenGroups((previous) => ({ ...previous, [group.key]: !isOpen })); }}
                     className={[
-                        'flex min-h-9 w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-[color:var(--sidebar-fg)] transition-colors duration-150',
+                        'flex min-h-9 w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-(--sidebar-fg) transition-colors duration-150',
                         focusRing, hoverSurface,
                         // Only the page itself carries the selected surface; its group is marked by weight and an accent icon.
                         selected ? 'font-semibold' : 'font-medium',
                     ].join(' ')}
                 >
-                    <Icon className={['h-[18px] w-[18px] shrink-0', selected ? 'text-[color:var(--sidebar-accent)]' : ''].join(' ')} aria-hidden="true" />
-                    <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{highlight(label)}</span>
-                    <ChevronDown className={['h-3.5 w-3.5 shrink-0 text-[color:var(--sidebar-muted)] transition-transform', isOpen ? '' : '-rotate-90'].join(' ')} aria-hidden="true" />
+                    <Icon className={['h-[18px] w-[18px] shrink-0', selected ? 'text-(--sidebar-accent)' : ''].join(' ')} aria-hidden="true" />
+                    <span className="min-w-0 flex-1 whitespace-normal wrap-break-word leading-snug">{highlight(label)}</span>
+                    <ChevronDown className={['h-3.5 w-3.5 shrink-0 text-(--sidebar-muted) transition-transform', isOpen ? '' : '-rotate-90'].join(' ')} aria-hidden="true" />
                 </button>
                 <div id={panelId} hidden={!isOpen}>
-                    <div className="ms-[19px] mt-0.5 mb-1.5 border-s border-[color:var(--sidebar-border)] ps-2">
+                    <div className="ms-[19px] mt-0.5 mb-1.5 border-s border-(--sidebar-border) ps-2">
                         {renderGroupItems(group, items)}
                     </div>
                 </div>
@@ -1036,8 +1036,8 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     }
 
     return (
-        <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]">
-            <div className={collapsed ? 'flex h-16 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'app-dot-grid shrink-0 border-b border-[color:var(--sidebar-border)] px-4 py-3.5'}>
+        <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-(--sidebar-border) bg-(--sidebar-bg) text-(--sidebar-fg)">
+            <div className={collapsed ? 'flex h-16 shrink-0 items-center justify-center border-b border-(--sidebar-border)' : 'app-dot-grid shrink-0 border-b border-(--sidebar-border) px-4 py-3.5'}>
                 <div className="flex items-start gap-2">
                     <Link
                         href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
@@ -1046,13 +1046,13 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         title={collapsed ? appName : undefined}
                         className={['flex min-w-0 flex-1 gap-3 rounded-md', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
                     >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[color:var(--sidebar-bg)] p-1 ring-1 ring-[color:var(--sidebar-border)]">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-(--sidebar-bg) p-1 ring-1 ring-(--sidebar-border)">
                             <ApplicationLogo className="h-full w-full object-contain" />
                         </span>
                         {!collapsed && <div className="min-w-0">
-                            <p className="whitespace-normal break-words text-[15px] font-medium leading-snug">{appName}</p>
-                            <p className="whitespace-normal break-words text-[11px] font-semibold uppercase tracking-wide text-[color:var(--sidebar-muted)]">{shortName}</p>
-                            <p className="mt-1 whitespace-normal break-words text-xs leading-relaxed text-[color:var(--sidebar-muted)]">{orgName}</p>
+                            <p className="whitespace-normal wrap-break-word text-[15px] font-medium leading-snug">{appName}</p>
+                            <p className="whitespace-normal wrap-break-word text-[11px] font-semibold uppercase tracking-wide text-(--sidebar-muted)">{shortName}</p>
+                            <p className="mt-1 whitespace-normal wrap-break-word text-xs leading-relaxed text-(--sidebar-muted)">{orgName}</p>
                         </div>}
                     </Link>
                     {onClose && <button type="button" onClick={onClose} aria-label={t('nav.closeMenu')} className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-md', focusRing, hoverSurface].join(' ')}><X className="h-[18px] w-[18px]" aria-hidden="true" /></button>}
@@ -1065,10 +1065,10 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     aria-label={t('nav.filterMenu')}
                     title={t('nav.filterMenu')}
                     onClick={() => { focusSearchAfterExpand.current = true; onToggleCollapse?.(); }}
-                    className={['mx-auto flex h-10 w-10 items-center justify-center rounded-md text-[color:var(--sidebar-muted)]', focusRing, hoverSurface].join(' ')}
+                    className={['mx-auto flex h-10 w-10 items-center justify-center rounded-md text-(--sidebar-muted)', focusRing, hoverSurface].join(' ')}
                 ><SearchIcon className="h-[18px] w-[18px]" aria-hidden="true" /></button> : (
-                    <div className="flex items-center gap-2 rounded-md border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-hover)] px-2.5 transition-colors focus-within:border-[color:var(--sidebar-accent)] focus-within:ring-2 focus-within:ring-[color:var(--sidebar-accent-wash)]">
-                        <SearchIcon className="h-4 w-4 shrink-0 text-[color:var(--sidebar-muted)]" aria-hidden="true" />
+                    <div className="flex items-center gap-2 rounded-md border border-(--sidebar-border) bg-(--sidebar-hover) px-2.5 transition-colors focus-within:border-(--sidebar-accent) focus-within:ring-2 focus-within:ring-(--sidebar-accent-wash)">
+                        <SearchIcon className="h-4 w-4 shrink-0 text-(--sidebar-muted)" aria-hidden="true" />
                         <input
                             ref={searchRef}
                             type="search"
@@ -1078,14 +1078,14 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                             aria-label={t('nav.filterMenu')}
                             placeholder={t('nav.filterMenu')}
                             aria-keyshortcuts={onToggleCollapse ? '/' : undefined}
-                            className="peer h-9 w-full min-w-0 border-0 bg-transparent p-0 text-sm text-[color:var(--sidebar-fg)] placeholder:text-[color:var(--sidebar-muted)] focus:ring-0"
+                            className="peer h-9 w-full min-w-0 border-0 bg-transparent p-0 text-sm text-(--sidebar-fg) placeholder:text-(--sidebar-muted) focus:ring-0"
                         />
-                        {onToggleCollapse && !query && <kbd aria-hidden="true" className="shrink-0 rounded border border-[color:var(--sidebar-border)] px-1.5 font-sans text-[10px] font-medium leading-4 text-[color:var(--sidebar-muted)] peer-focus:hidden">/</kbd>}
+                        {onToggleCollapse && !query && <kbd aria-hidden="true" className="shrink-0 rounded-sm border border-(--sidebar-border) px-1.5 font-sans text-[10px] font-medium leading-4 text-(--sidebar-muted) peer-focus:hidden">/</kbd>}
                     </div>
                 )}
             </div>
 
-            <nav ref={navRef} className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6 pt-3 [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)]" aria-label={t('publicSite.mainNavigation')}>
+            <nav ref={navRef} className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6 pt-3 [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)] mask-[linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)]" aria-label={t('publicSite.mainNavigation')}>
                 {(!normalizedQuery || matches(homeNav)) && (
                     <ul className="mb-4 space-y-px">
                         {renderLink(homeNav)}
@@ -1100,18 +1100,18 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         return renderSection(section.labelKey, groups);
                     })}
                 {normalizedQuery && !matchingGroups.length && !matches(homeNav) && (
-                    <p role="status" className="px-3 py-5 text-sm leading-relaxed text-[color:var(--sidebar-muted)]">{t('nav.noResults')}</p>
+                    <p role="status" className="px-3 py-5 text-sm leading-relaxed text-(--sidebar-muted)">{t('nav.noResults')}</p>
                 )}
             </nav>
 
-            <div className="shrink-0 border-t border-[color:var(--sidebar-border)] p-2">
+            <div className="shrink-0 border-t border-(--sidebar-border) p-2">
                 {onToggleCollapse ? (
                     <button type="button" onClick={onToggleCollapse} aria-label={t(collapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')} title={collapsed ? t('nav.expandSidebar') : undefined}
-                        className={['flex min-h-10 items-center gap-3 rounded-md text-sm text-[color:var(--sidebar-muted)]', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
+                        className={['flex min-h-10 items-center gap-3 rounded-md text-sm text-(--sidebar-muted)', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
                         <ChevronRight className={collapsed ? 'h-4 w-4' : 'h-4 w-4 rotate-180'} aria-hidden="true" />
                         {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
                     </button>
-                ) : <p className="px-3 py-2 text-xs text-[color:var(--sidebar-muted)]">{t(isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
+                ) : <p className="px-3 py-2 text-xs text-(--sidebar-muted)">{t(isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
                 {/* Non-production environments are flagged where every page shows it, so test data is never mistaken for live. */}
                 {environmentLabel && environmentLabel.toLowerCase() !== 'production' && (collapsed
                     ? <span title={environmentLabel} aria-label={environmentLabel} className="mx-auto mb-1 mt-1 block h-2 w-2 rounded-full bg-amber-400" />

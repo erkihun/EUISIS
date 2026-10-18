@@ -27,14 +27,14 @@ export default function CardLifecycleFunnel({ data, t }: Props) {
                 return (
                     <div key={item.key} className="space-y-2">
                         <div className="flex items-center justify-between gap-3 text-sm">
-                            <span className="font-medium text-[color:var(--app-foreground)]">
+                            <span className="font-medium text-(--app-foreground)">
                                 {t(`dashboard.cardLifecycle.${item.key}`)}
                             </span>
-                            <span className="font-semibold text-[color:var(--app-foreground)]">{item.value}</span>
+                            <span className="font-semibold text-(--app-foreground)">{item.value}</span>
                         </div>
-                        <div className="h-10 rounded-card bg-[color:var(--app-surface-muted)] p-1">
+                        <div className="h-10 rounded-card bg-(--app-surface-muted) p-1">
                             <div className="flex h-full items-center rounded-lg px-3 text-sm font-medium text-gray-950" style={{ width: `${width}%`, backgroundColor: series[index % series.length] }}>
-                                <span className="rounded bg-[color:color-mix(in_srgb,var(--app-surface)_90%,transparent)] px-1.5 text-gray-950">{item.value}</span>
+                                <span className="rounded-sm bg-[color-mix(in_srgb,var(--app-surface)_90%,transparent)] px-1.5 text-gray-950">{item.value}</span>
                             </div>
                         </div>
                     </div>

@@ -166,7 +166,7 @@ export default function FieldWorkForm({ employee, placement, types, destinationT
                             <span className={labelCls}>{t('fieldWork.fields.destinationType')}<span className="text-red-600"> *</span></span>
                             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('fieldWork.fields.destinationType')}>
                                 {destinationTypes.map((type) => (
-                                    <label key={type} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${d.destination_type === type ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]' : 'border-gray-300 text-gray-700 dark:border-slate-700 dark:text-slate-300'}`}>
+                                    <label key={type} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm ${d.destination_type === type ? 'border-primary text-primary' : 'border-gray-300 text-gray-700 dark:border-slate-700 dark:text-slate-300'}`}>
                                         <input type="radio" name="destination_type" value={type} checked={d.destination_type === type} onChange={() => form.setData('destination_type', type)} />
                                         {t(`fieldWork.destinationTypes.${type}`)}
                                     </label>

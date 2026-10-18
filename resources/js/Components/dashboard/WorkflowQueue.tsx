@@ -21,14 +21,14 @@ export default function WorkflowQueue({ items, t }: Props) {
     return (
         <div className="space-y-3">
             {items.map((item) => (
-                <div key={item.key} className="flex items-center justify-between rounded-panel border border-[color:var(--app-border)] px-4 py-3">
+                <div key={item.key} className="flex items-center justify-between rounded-panel border border-(--app-border) px-4 py-3">
                     <div>
-                        <p className="text-sm font-medium text-[color:var(--app-foreground)]">{t(item.labelKey)}</p>
-                        <p className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{item.count}</p>
+                        <p className="text-sm font-medium text-(--app-foreground)">{t(item.labelKey)}</p>
+                        <p className="mt-1 text-2xl font-semibold text-(--app-foreground)">{item.count}</p>
                     </div>
                     <a
                         href={item.href}
-                        className="inline-flex h-9 items-center justify-center rounded-lg bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white transition hover:bg-[color:var(--color-primary-hover)]"
+                        className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary-hover"
                     >
                         {t('dashboard.viewDetails')}
                     </a>

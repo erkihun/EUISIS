@@ -69,14 +69,14 @@ export default function PositionDesignIndex({ positions, filters, organizations 
                                     <Tr key={p.id}>
                                         <Td className="font-mono text-xs">{p.job_position_code}</Td>
                                         <Td>
-                                            <Link href={route('organization-design.position-design.show', p.id)} className="font-medium text-[color:var(--app-foreground)] hover:underline">{titleOf(p, locale)}</Link>
-                                            {p.grade_level && <p className="text-xs text-[color:var(--app-muted-foreground)]">{p.grade_level}</p>}
+                                            <Link href={route('organization-design.position-design.show', p.id)} className="font-medium text-(--app-foreground) hover:underline">{titleOf(p, locale)}</Link>
+                                            {p.grade_level && <p className="text-xs text-(--app-muted-foreground)">{p.grade_level}</p>}
                                         </Td>
                                         <Td muted>{nameOf(p.organization, locale)}</Td>
                                         <Td muted>{p.unit ? `${p.unit.code} · ${nameOf(p.unit, locale)}` : '—'}</Td>
                                         <Td muted>{p.occupation ? `${p.occupation.isco_code ?? p.occupation.code} · ${nameOf(p.occupation, locale)}` : '—'}</Td>
-                                        <Td>{p.profile_status ? <StatusPill status={p.profile_status} /> : <span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.none')}</span>}</Td>
-                                        <Td>{p.job_description_status ? <StatusPill status={p.job_description_status} /> : <span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.none')}</span>}</Td>
+                                        <Td>{p.profile_status ? <StatusPill status={p.profile_status} /> : <span className="text-xs text-(--app-muted-foreground)">{tt('positionDesign.none')}</span>}</Td>
+                                        <Td>{p.job_description_status ? <StatusPill status={p.job_description_status} /> : <span className="text-xs text-(--app-muted-foreground)">{tt('positionDesign.none')}</span>}</Td>
                                         <Td align="right">
                                             <div className="flex justify-end">
                                                 <AppActionMenu

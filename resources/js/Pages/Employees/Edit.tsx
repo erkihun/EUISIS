@@ -275,13 +275,13 @@ export default function EmployeesEdit({
                         <div className="md:col-span-2">
                             <label className={labelCls}>{t('employees.photo')}</label>
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                                <div className="flex-shrink-0 self-start">
+                                <div className="shrink-0 self-start">
                                     {showCurrentPhoto && employee.photo_url ? (
                                         <div className="flex flex-col items-center gap-1">
                                             <img
                                                 src={employee.photo_url}
                                                 alt=""
-                                                className="h-20 w-16 rounded-lg border border-[color:var(--app-border)] object-cover"
+                                                className="h-20 w-16 rounded-lg border border-(--app-border) object-cover"
                                             />
                                             <button
                                                 type="button"
@@ -309,7 +309,7 @@ export default function EmployeesEdit({
                                             </button>
                                         </div>
                                     ) : (
-                                        <div className="flex h-20 w-16 items-center justify-center rounded-lg border-2 border-dashed border-[color:var(--app-border-strong)] text-[color:var(--app-muted-foreground)]">
+                                        <div className="flex h-20 w-16 items-center justify-center rounded-lg border-2 border-dashed border-(--app-border-strong) text-(--app-muted-foreground)">
                                             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                             </svg>
@@ -338,7 +338,7 @@ export default function EmployeesEdit({
                                             type="file"
                                             accept="image/jpeg,image/png,image/webp"
                                             onChange={handlePhotoChange}
-                                            className="w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm text-[color:var(--app-foreground)] file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
+                                            className="w-full rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-sm text-(--app-foreground) file:mr-3 file:rounded-sm file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
                                         />
                                     )}
                                     <p className={helpCls}>{t('employees.photoHint')}</p>
@@ -456,7 +456,7 @@ export default function EmployeesEdit({
                           * history and the position-occupancy rules intact.
                           */}
                         <div className="md:col-span-2">
-                            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4">
+                            <div className="rounded-card border border-(--app-border) bg-(--app-surface-muted) p-4">
                                 <dl className="grid gap-4 sm:grid-cols-3">
                                     <ReadOnlyValue
                                         label={t('employees.currentOrganization')}

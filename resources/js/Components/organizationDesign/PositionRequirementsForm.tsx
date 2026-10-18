@@ -8,7 +8,7 @@ export type PositionCompetencyRow = { competency_id: string; minimum_level_id: s
 export type PositionQualificationRow = { education_level_id: string; field_of_study: string; certification: string; license: string; experience_years: number; is_mandatory: boolean };
 export type PositionRequirementCatalog = { competencies: CompetencyOption[]; levels: LevelOption[]; educationLevels: LevelOption[] };
 
-const checkbox = 'rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]';
+const checkbox = 'rounded-sm border-(--app-border-strong) text-primary focus:ring-primary';
 
 /** The written (manual) requirements of a position, replaced as sets; derived rows are untouched. */
 export default function PositionRequirementsForm({ positionId, competencies, qualifications, catalog, onClose }: {
@@ -32,9 +32,9 @@ export default function PositionRequirementsForm({ positionId, competencies, qua
     }
 
     const section = (heading: string, addLabel: string, onAdd: () => void, body: React.ReactNode) => (
-        <section className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3">
+        <section className="rounded-card border border-(--app-border) p-3">
             <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{heading}</h3>
+                <h3 className="text-sm font-semibold text-(--app-foreground)">{heading}</h3>
                 <Button type="button" size="sm" variant="outline" onClick={onAdd}>{addLabel}</Button>
             </div>
             <div className="mt-2 space-y-2">{body}</div>
@@ -44,8 +44,8 @@ export default function PositionRequirementsForm({ positionId, competencies, qua
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('positionDesign.editRequirements')}</h2>
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.requirementsHelp')}</p>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{tt('positionDesign.editRequirements')}</h2>
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">{tt('positionDesign.requirementsHelp')}</p>
                 <div className="mt-5 space-y-4">
                     {section(tt('positionDesign.competencies'), tt('positionDesign.addCompetency'), () => form.setData('competencies', [...form.data.competencies, { competency_id: '', minimum_level_id: catalog.levels[0]?.id ?? '', is_mandatory: true }]),
                         form.data.competencies.map((row, i) => (

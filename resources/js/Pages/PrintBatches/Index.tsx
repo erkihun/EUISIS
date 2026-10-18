@@ -40,7 +40,7 @@ const batchStatusStyle: Record<BatchStatus, StyleEntry> = {
 };
 
 const fallbackStyle: StyleEntry = {
-    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
+    badge: 'bg-(--app-surface-muted) text-(--app-muted-foreground) ring-1 ring-(--app-border-strong)',
     dot:   'bg-gray-400',
 };
 
@@ -159,11 +159,11 @@ export default function PrintBatchesIndex({ batches, filters, can }: PageProps) 
                                         className={tableRowClassName}
                                     >
                                         <td className={tableCellClassName}>
-                                            <span className="font-mono text-sm font-semibold text-[color:var(--app-foreground)]">
+                                            <span className="font-mono text-sm font-semibold text-(--app-foreground)">
                                                 {batch.batch_number}
                                             </span>
                                             {batch.created_by && (
-                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                <p className="text-xs text-(--app-muted-foreground)">
                                                     {batch.created_by.name}
                                                 </p>
                                             )}
@@ -173,26 +173,26 @@ export default function PrintBatchesIndex({ batches, filters, can }: PageProps) 
                                         </td>
                                         <td className={tableCellClassName}>
                                             <div className="flex items-center gap-2">
-                                                <span className="font-semibold text-[color:var(--app-foreground)]">
+                                                <span className="font-semibold text-(--app-foreground)">
                                                     {batch.printed_count}
                                                 </span>
-                                                <span className="text-[color:var(--app-muted-foreground)]">/</span>
-                                                <span className="text-[color:var(--app-muted-foreground)]">
+                                                <span className="text-(--app-muted-foreground)">/</span>
+                                                <span className="text-(--app-muted-foreground)">
                                                     {batch.total_cards}
                                                 </span>
                                             </div>
                                             {/* Progress bar */}
-                                            <div className="mt-1 h-1.5 w-20 rounded-full bg-[color:var(--app-surface-muted)]">
+                                            <div className="mt-1 h-1.5 w-20 rounded-full bg-(--app-surface-muted)">
                                                 <div
                                                     className="h-1.5 rounded-full bg-blue-500 transition-all"
                                                     style={{ width: `${batch.total_cards > 0 ? (batch.printed_count / batch.total_cards) * 100 : 0}%` }}
                                                 />
                                             </div>
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={batch.printed_at} withTime />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={batch.created_at} withTime />
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>

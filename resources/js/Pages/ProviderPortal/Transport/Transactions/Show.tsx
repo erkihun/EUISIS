@@ -24,8 +24,8 @@ export default function Show({ transaction }: { transaction: TransportTransactio
                     <dl className="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
                         {rows.map(([term, value]) => (
                             <div key={term} className="min-w-0">
-                                <dt className="text-[color:var(--app-muted-foreground)]">{term}</dt>
-                                <dd className="mt-0.5 break-words">{value}</dd>
+                                <dt className="text-(--app-muted-foreground)">{term}</dt>
+                                <dd className="mt-0.5 wrap-break-word">{value}</dd>
                             </div>
                         ))}
                     </dl>

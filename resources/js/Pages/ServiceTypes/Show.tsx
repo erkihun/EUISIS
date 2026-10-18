@@ -68,45 +68,45 @@ export default function ServiceTypesShow({
             <Head title={serviceType.name_en} />
 
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 lg:col-span-2">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6 lg:col-span-2">
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.code')}</p>
-                            <p className="mt-1 font-mono text-sm text-[color:var(--app-foreground)]">{serviceType.code}</p>
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">{t('serviceTypes.code')}</p>
+                            <p className="mt-1 font-mono text-sm text-(--app-foreground)">{serviceType.code}</p>
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.status')}</p>
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">{t('common.status')}</p>
                             <div className="mt-1">
                                 <StatusBadge status={serviceType.is_active ? 'active' : 'inactive'} />
                             </div>
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.englishName')}</p>
-                            <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{serviceType.name_en}</p>
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">{t('serviceTypes.englishName')}</p>
+                            <p className="mt-1 text-sm text-(--app-foreground)">{serviceType.name_en}</p>
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.amharicName')}</p>
-                            <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{serviceType.name_am ?? '—'}</p>
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">{t('serviceTypes.amharicName')}</p>
+                            <p className="mt-1 text-sm text-(--app-foreground)">{serviceType.name_am ?? '—'}</p>
                         </div>
                     </div>
                     <div className="mt-6">
-                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.description')}</p>
-                        <p className="mt-1 text-sm leading-6 text-[color:var(--app-foreground)]">{serviceType.description ?? '—'}</p>
+                        <p className="text-xs font-medium text-(--app-muted-foreground)">{t('serviceTypes.description')}</p>
+                        <p className="mt-1 text-sm leading-6 text-(--app-foreground)">{serviceType.description ?? '—'}</p>
                     </div>
                 </section>
 
                 <aside className="space-y-4">
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.providersCount')}</p>
-                        <p className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{serviceType.providers_count ?? 0}</p>
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <p className="text-xs font-medium text-(--app-muted-foreground)">{t('serviceTypes.providersCount')}</p>
+                        <p className="mt-1 text-2xl font-semibold text-(--app-foreground)">{serviceType.providers_count ?? 0}</p>
                     </div>
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.rulesCount')}</p>
-                        <p className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{serviceType.rules_count ?? 0}</p>
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <p className="text-xs font-medium text-(--app-muted-foreground)">{t('serviceTypes.rulesCount')}</p>
+                        <p className="mt-1 text-2xl font-semibold text-(--app-foreground)">{serviceType.rules_count ?? 0}</p>
                     </div>
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('serviceTypes.entitlementsCount')}</p>
-                        <p className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{serviceType.entitlements_count ?? 0}</p>
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <p className="text-xs font-medium text-(--app-muted-foreground)">{t('serviceTypes.entitlementsCount')}</p>
+                        <p className="mt-1 text-2xl font-semibold text-(--app-foreground)">{serviceType.entitlements_count ?? 0}</p>
                     </div>
                 </aside>
             </div>

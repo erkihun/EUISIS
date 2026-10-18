@@ -99,15 +99,15 @@ export default function NfcTapPanel({
     };
 
     return (
-        <div className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 text-[color:var(--app-foreground)]">
+        <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-5 text-(--app-foreground)">
             <div className="flex flex-col items-center gap-3 py-6 text-center">
                 <span
                     className={cx('flex h-16 w-16 items-center justify-center rounded-full',
                         state === 'waiting'
-                            ? 'bg-[color:var(--color-primary)]/10 text-[color:var(--color-primary)] motion-safe:animate-pulse'
+                            ? 'bg-primary/10 text-primary motion-safe:animate-pulse'
                             : state === 'error' || state === 'unsupported'
                               ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300'
-                              : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]')}
+                              : 'bg-(--app-surface-muted) text-(--app-muted-foreground)')}
                 >
                     <NfcIcon className="h-8 w-8" />
                 </span>
@@ -128,7 +128,7 @@ export default function NfcTapPanel({
              * applies every card, employee and service rule.
              */}
             <form
-                className="mt-2 flex flex-wrap items-end gap-2 border-t border-[color:var(--app-border)] pt-4"
+                className="mt-2 flex flex-wrap items-end gap-2 border-t border-(--app-border) pt-4"
                 onSubmit={(event) => {
                     event.preventDefault();
                     const value = CREDENTIAL_PATTERN.exec(manual.trim())?.[0];
@@ -145,7 +145,7 @@ export default function NfcTapPanel({
                 }}
             >
                 <label className="min-w-0 flex-1 basis-48">
-                    <span className="mb-1.5 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                    <span className="mb-1.5 block text-xs font-medium text-(--app-muted-foreground)">
                         {t('nfc.credentialId')}
                     </span>
                     <Input

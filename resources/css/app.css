@@ -1,4 +1,13 @@
-@import '@euisis/ui/tokens.css';
+/*
+ * Tailwind CSS 4. The layer order is declared first so the design tokens and
+ * fonts can sit in `base` ahead of Tailwind's own reset, where Tailwind 3
+ * placed them. Everything after the header is unlayered, as it was after
+ * `@tailwind utilities` in Tailwind 3, so these rules keep winning over
+ * utilities.
+ */
+@layer theme, base, components, utilities;
+
+@import '@euisis/ui/tokens.css' layer(base);
 
 /*
  * ── Typography ────────────────────────────────────────────────
@@ -9,11 +18,128 @@
  * switches on the `lang` attribute (see the typography tokens below), so no
  * component chooses a font family itself. Full rules: docs/ui-typography.md.
  */
-@import './fonts.css';
+@import './fonts.css' layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+
+/* Laravel's pagination views live in vendor/, which automatic detection skips; the separate cafeteria app has its own build. */
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source not '../../external-apps';
+
+/* `dark` follows the `.dark` class on <html> (the theme toggle), not the OS setting. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Theme keys that point at the app's own runtime variables (fonts and sizes
+ * switched by `lang`, the brand colours an admin can change, radii and
+ * control heights). `inline` makes each utility use the variable itself, as
+ * Tailwind 3 did, so a value switched on any element applies there;
+ * `reference` keeps Tailwind from emitting `--x: var(--x)` copies, which
+ * would be self-referencing and invalid.
+ */
+@theme inline reference {
+  --font-sans: var(--font-ui);
+  --font-ui: var(--font-ui);
+  --font-document: var(--font-document);
+  --font-id-card: var(--font-id-card);
+
+  --text-xs: var(--fs-xs);
+  --text-xs--line-height: var(--lh-xs);
+  --text-sm: 0.875rem;
+  --text-sm--line-height: var(--lh-sm);
+  --text-base: 1rem;
+  --text-base--line-height: var(--lh-base);
+  --text-page-title: 1.375rem;
+  --text-page-title--line-height: var(--lh-title);
+  --text-page-title--font-weight: 700;
+  --text-section-title: 1.125rem;
+  --text-section-title--line-height: var(--lh-section);
+  --text-section-title--font-weight: 600;
+  --text-body: 0.875rem;
+  --text-body--line-height: var(--lh-sm);
+  --text-label: 0.875rem;
+  --text-label--line-height: var(--lh-sm);
+  --text-label--font-weight: 500;
+  --text-table: 0.8125rem;
+  --text-table--line-height: var(--lh-table);
+  --text-helper: var(--fs-helper);
+  --text-helper--line-height: var(--lh-helper);
+
+  --color-primary: var(--color-primary);
+  --color-primary-50: var(--color-primary-50);
+  --color-primary-100: var(--color-primary-100);
+  --color-primary-200: var(--color-primary-200);
+  --color-primary-300: var(--color-primary-300);
+  --color-primary-400: var(--color-primary-400);
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-600: var(--color-primary-600);
+  --color-primary-700: var(--color-primary-700);
+  --color-primary-800: var(--color-primary-800);
+  --color-primary-900: var(--color-primary-900);
+  --color-primary-950: var(--color-primary-950);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-light: var(--color-primary-light);
+
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-light: var(--color-accent-light);
+
+  --color-surface: var(--app-surface);
+  --color-surface-muted: var(--app-surface-muted);
+  --color-app-bg: var(--app-background);
+  --color-app-border: var(--app-border);
+  --color-app-border-strong: var(--app-border-strong);
+  --color-muted-foreground: var(--app-muted-foreground);
+
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-panel: var(--radius-panel);
+
+  --height-control-sm: var(--control-h-sm);
+  --height-control-md: var(--control-h-md);
+  --height-control-lg: var(--control-h-lg);
+}
+
+/* Literal theme values. */
+@theme {
+  /* Only 400–700 are shipped; the heaviest utilities are pinned to the heaviest real face. */
+  --font-weight-extrabold: 700;
+  --font-weight-black: 700;
+
+  /* Tailwind's stock blue repointed at the institutional navy (see the note in the design tokens below). */
+  --color-blue-50: #eef1fa;
+  --color-blue-100: #dde3f5;
+  --color-blue-200: #bcc7eb;
+  --color-blue-300: #8f9fd8;
+  --color-blue-400: #5d72bf;
+  --color-blue-500: #33499f;
+  --color-blue-600: #1d3084;
+  --color-blue-700: #122170;
+  --color-blue-800: #0f1c5c;
+  --color-blue-900: #0d1749;
+  --color-blue-950: #070d2c;
+}
+
+/*
+ * Tailwind 3 defaults that Tailwind 4 changed, kept so nothing moves:
+ * borders default to gray-200 (v4: currentColor) and buttons show a pointer.
+ */
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentcolor);
+    }
+
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+        cursor: pointer;
+    }
+}
 
 /* ── Design tokens ─────────────────────────────────────────────
  *
@@ -424,19 +550,19 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
  * goes back to white, so nested content still reads as a layer.
  * Mock: Claude Design canvas "EUISIS Admin Colorful Cards", direction A.
  */
-:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex),
+:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]):is(.bg-white, [class*="bg-(--app-surface)"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex),
 :root:not(.dark) .admin-shell #main-content .app-card {
     background-color: var(--app-card);
     border-color: var(--app-card-border);
 }
 
-:root:not(.dark) .admin-shell #main-content :is(a, button):is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(.inline-flex):hover,
+:root:not(.dark) .admin-shell #main-content :is(a, button):is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]):is(.bg-white, [class*="bg-(--app-surface)"]):not(.inline-flex):hover,
 :root:not(.dark) .admin-shell #main-content a.app-card:hover {
     background-color: var(--app-card-hover);
 }
 
 /* A card inside a card: back to white. */
-:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"], .app-card) :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex) {
+:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"], .app-card) :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]):is(.bg-white, [class*="bg-(--app-surface)"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex) {
     background-color: var(--app-surface);
     border-color: var(--app-border);
 }
@@ -444,20 +570,20 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 /* Inside a tonal card: table headers and footers take a deeper tint, table
    rows are see-through, hairlines use the card border, and grey-500 text is
    darkened to keep 4.5:1 on the tint. */
-:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(thead, tfoot, div, section, footer, tr).bg-gray-50,
-:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(thead, tfoot, div, footer, tr)[class*="bg-[color:var(--app-surface-muted)]"] {
+:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(thead, tfoot, div, section, footer, tr).bg-gray-50,
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(thead, tfoot, div, footer, tr)[class*="bg-(--app-surface-muted)"] {
     background-color: var(--app-card-inset);
 }
-:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(table, tbody, tr, td).bg-white {
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(table, tbody, tr, td).bg-white {
     background-color: transparent;
 }
-:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(.border-gray-100, .border-gray-200, tbody > tr) {
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(.border-gray-100, .border-gray-200, tbody > tr) {
     border-color: var(--app-card-border);
 }
-:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(.divide-gray-100, .divide-gray-200, [class*="divide-[color:var(--app-border)]"]) > :not([hidden]) ~ :not([hidden]) {
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(.divide-gray-100, .divide-gray-200, [class*="divide-(--app-border)"]) > :not([hidden]) ~ :not([hidden]) {
     border-color: var(--app-card-border);
 }
-:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) .text-gray-500 {
+:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) .text-gray-500 {
     color: var(--app-card-muted-text);
 }
 

@@ -29,16 +29,16 @@ export default function HierarchyVersionSummary({
 
     return (
         <div className="space-y-4">
-            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+            <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div>
-                        <p className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                        <p className="text-xs font-semibold text-(--app-muted-foreground)">
                             {t('hierarchyVersions.hierarchyTree')}
                         </p>
-                        <h2 className="mt-2 text-2xl font-semibold text-[color:var(--app-foreground)]">
+                        <h2 className="mt-2 text-2xl font-semibold text-(--app-foreground)">
                             {version.version_name}
                         </h2>
-                        <p className="mt-2 text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="mt-2 text-sm text-(--app-muted-foreground)">
                             {version.effective_from ?? '-'} {t('common.to')} {version.effective_to ?? '-'}
                         </p>
                     </div>
@@ -48,9 +48,9 @@ export default function HierarchyVersionSummary({
 
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {cards.map((card) => (
-                    <div key={card.label} className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{card.label}</p>
-                        <p className="mt-2 text-2xl font-semibold text-[color:var(--app-foreground)]">{card.value}</p>
+                    <div key={card.label} className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
+                        <p className="text-xs font-medium text-(--app-muted-foreground)">{card.label}</p>
+                        <p className="mt-2 text-2xl font-semibold text-(--app-foreground)">{card.value}</p>
                     </div>
                 ))}
             </div>

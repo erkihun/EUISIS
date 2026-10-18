@@ -44,15 +44,15 @@ export default function SearchPicker<T extends { id: string }>({ url, label, pla
 
     return (
         <div>
-            <label htmlFor={id} className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</label>
+            <label htmlFor={id} className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">{label}</label>
             <input id={id} className={inputCls} value={term} placeholder={placeholder} autoComplete="off" onChange={(e) => setTerm(e.target.value)} />
-            {term.trim().length > 0 && term.trim().length < 2 && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('fieldWork.form.minChars')}</p>}
-            {term.trim().length >= 2 && !loading && visible.length === 0 && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('fieldWork.form.noResults')}</p>}
+            {term.trim().length > 0 && term.trim().length < 2 && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('fieldWork.form.minChars')}</p>}
+            {term.trim().length >= 2 && !loading && visible.length === 0 && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('fieldWork.form.noResults')}</p>}
             {visible.length > 0 && (
-                <ul className="mt-1 max-h-56 overflow-y-auto rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-sm" role="listbox" aria-label={label}>
+                <ul className="mt-1 max-h-56 overflow-y-auto rounded-lg border border-(--app-border) bg-(--app-surface) text-sm" role="listbox" aria-label={label}>
                     {visible.map((row) => (
                         <li key={row.id}>
-                            <button type="button" className="block w-full px-3 py-2 text-left hover:bg-[color:var(--app-surface-muted)]" onClick={() => { onPick(row); setTerm(''); setRows([]); }}>
+                            <button type="button" className="block w-full px-3 py-2 text-left hover:bg-(--app-surface-muted)" onClick={() => { onPick(row); setTerm(''); setRows([]); }}>
                                 {render(row)}
                             </button>
                         </li>

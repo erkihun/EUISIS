@@ -29,9 +29,9 @@ export default function IdCardTemplateSettingField({
     return (
         <div className="space-y-3 px-5 py-4">
             <div>
-                <span className="text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
+                <span className="text-sm font-medium text-(--app-foreground)">{label}</span>
                 {description && (
-                    <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>
+                    <p className="mt-1 text-xs text-(--app-muted-foreground)">{description}</p>
                 )}
             </div>
 
@@ -49,16 +49,16 @@ export default function IdCardTemplateSettingField({
                             className={[
                                 'rounded-card border p-3 text-left transition',
                                 isSelected
-                                    ? 'border-[color:var(--color-primary)] bg-blue-50 ring-2 ring-[color:var(--color-primary)]/20 dark:bg-blue-950/30'
-                                    : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)] hover:border-blue-300',
+                                    ? 'border-primary bg-blue-50 ring-2 ring-primary/20 dark:bg-blue-950/30'
+                                    : 'border-(--app-border) bg-(--app-surface) hover:border-blue-300',
                                 disabled ? 'cursor-not-allowed opacity-60' : '',
                             ].join(' ')}
                         >
                             <TemplateThumbnail template={template} />
-                            <span className="mt-2 block text-sm font-semibold text-[color:var(--app-foreground)]">
+                            <span className="mt-2 block text-sm font-semibold text-(--app-foreground)">
                                 {t(`settings.idCardTemplates.${template}.name`)}
                             </span>
-                            <span className="mt-0.5 block text-xs leading-5 text-[color:var(--app-muted-foreground)]">
+                            <span className="mt-0.5 block text-xs leading-5 text-(--app-muted-foreground)">
                                 {t(`settings.idCardTemplates.${template}.description`)}
                             </span>
                         </button>
@@ -81,22 +81,22 @@ function TemplateThumbnail({ template }: { template: IdCardTemplate }) {
     return (
         <span
             className={[
-                'relative block aspect-[85.6/54] overflow-hidden shadow-sm',
+                'relative block aspect-[85.6/54] overflow-hidden shadow-xs',
                 template === 'modern' ? 'rounded-card' : template === 'minimal' ? 'rounded-md' : 'rounded-lg',
             ].join(' ')}
             style={{ background }}
             aria-hidden="true"
         >
-            <span className="absolute inset-x-0 top-0 h-3 bg-[color:color-mix(in_srgb,var(--app-surface)_15%,transparent)]" />
+            <span className="absolute inset-x-0 top-0 h-3 bg-[color-mix(in_srgb,var(--app-surface)_15%,transparent)]" />
             <span
                 className={[
-                    'absolute left-2 top-5 block bg-[color:color-mix(in_srgb,var(--app-surface)_80%,transparent)]',
-                    template === 'modern' ? 'h-7 w-7 rounded-full' : 'h-8 w-6 rounded-sm',
+                    'absolute left-2 top-5 block bg-[color-mix(in_srgb,var(--app-surface)_80%,transparent)]',
+                    template === 'modern' ? 'h-7 w-7 rounded-full' : 'h-8 w-6 rounded-xs',
                 ].join(' ')}
             />
-            <span className="absolute left-11 right-3 top-6 h-1.5 rounded bg-[color:color-mix(in_srgb,var(--app-surface)_80%,transparent)]" />
-            <span className="absolute left-11 right-6 top-10 h-1 rounded bg-[color:color-mix(in_srgb,var(--app-surface)_45%,transparent)]" />
-            {template === 'modern' && <span className="absolute -right-3 -top-3 h-14 w-14 rounded-full border-[8px] border-white/10" />}
+            <span className="absolute left-11 right-3 top-6 h-1.5 rounded-sm bg-[color-mix(in_srgb,var(--app-surface)_80%,transparent)]" />
+            <span className="absolute left-11 right-6 top-10 h-1 rounded-sm bg-[color-mix(in_srgb,var(--app-surface)_45%,transparent)]" />
+            {template === 'modern' && <span className="absolute -right-3 -top-3 h-14 w-14 rounded-full border-8 border-white/10" />}
         </span>
     );
 }

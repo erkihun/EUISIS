@@ -20,13 +20,13 @@ export default function Form({ grievance: g, categories, evidenceTypes, allowedE
             <FormRow label={t('grievances.common.description')} error={form.errors.description}><textarea className={inputCls} required rows={8} maxLength={20000} value={form.data.description} onChange={e => form.setData('description', e.target.value)} /></FormRow>
             <FormRow label={t('grievancePortal.respondent')} error={form.errors.respondent_description}><textarea className={inputCls} rows={3} maxLength={2000} value={form.data.respondent_description} onChange={e => form.setData('respondent_description', e.target.value)} /></FormRow>
             <FormRow label={t('grievancePortal.requested_remedy')} help={t('grievancePortal.requested_remedy_help')} error={form.errors.requested_remedy}><textarea className={inputCls} rows={3} maxLength={5000} value={form.data.requested_remedy} onChange={e => form.setData('requested_remedy', e.target.value)} /></FormRow>
-            <fieldset className="space-y-4 rounded-lg border border-[color:var(--app-border)] p-4">
+            <fieldset className="space-y-4 rounded-lg border border-(--app-border) p-4">
                 <legend className="px-1 text-sm font-semibold">{t('grievancePortal.prior_step')}</legend>
-                <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('grievancePortal.prior_step_help')}</p>
+                <p className="text-sm text-(--app-muted-foreground)">{t('grievancePortal.prior_step_help')}</p>
                 <div className="grid gap-4 sm:grid-cols-2"><FormRow label={t('grievancePortal.immediate_supervisor_name')} error={form.errors.immediate_supervisor_name}><input className={inputCls} maxLength={255} value={form.data.immediate_supervisor_name} onChange={e => form.setData('immediate_supervisor_name', e.target.value)} /></FormRow><FormRow label={t('grievancePortal.written_issue_raised_at')} error={form.errors.written_issue_raised_at}><DatePicker value={form.data.written_issue_raised_at} onChange={v => form.setData('written_issue_raised_at', v)} /></FormRow></div>
                 <details className="text-sm" open={!!(form.data.late_submission_reason || form.data.cause_ended_at)}>
                     <summary className="cursor-pointer font-medium">{t('grievancePortal.late_filing')}</summary>
-                    <p className="mt-2 text-[color:var(--app-muted-foreground)]">{t('grievancePortal.late_filing_help')}</p>
+                    <p className="mt-2 text-(--app-muted-foreground)">{t('grievancePortal.late_filing_help')}</p>
                     <div className="mt-3 grid gap-4 sm:grid-cols-2"><FormRow label={t('grievancePortal.late_submission_reason')} error={form.errors.late_submission_reason}><textarea className={inputCls} rows={2} maxLength={2000} value={form.data.late_submission_reason} onChange={e => form.setData('late_submission_reason', e.target.value)} /></FormRow><FormRow label={t('grievancePortal.cause_ended_at')} error={form.errors.cause_ended_at}><DatePicker value={form.data.cause_ended_at} onChange={v => form.setData('cause_ended_at', v)} /></FormRow></div>
                 </details>
             </fieldset>

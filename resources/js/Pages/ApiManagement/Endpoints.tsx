@@ -42,7 +42,7 @@ const METHOD_COLORS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
     active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
     deprecated: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-    disabled: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
+    disabled: 'bg-(--app-surface-muted) text-(--app-muted-foreground)',
 };
 
 /**
@@ -127,7 +127,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                 </select>
             </div>
 
-            <section className="overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <section className="overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface)">
                 <table className={cx(tableClassName, 'min-w-full text-left')}>
                     <thead className={tableHeadClassName}>
                         <tr>
@@ -144,7 +144,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                     <tbody className={tableBodyClassName}>
                         {visible.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
+                                <td colSpan={8} className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>
                                     {t('apiManagement.noEndpoints')}
                                 </td>
                             </tr>
@@ -155,7 +155,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                         <span
                                             className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${
                                                 METHOD_COLORS[endpoint.method] ??
-                                                'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]'
+                                                'bg-(--app-surface-muted) text-(--app-foreground)'
                                             }`}
                                         >
                                             {endpoint.method}
@@ -170,7 +170,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                             />
                                         </div>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'font-mono text-(--app-muted-foreground)')}>
                                         {endpoint.route_name ?? '—'}
                                     </td>
                                     <td className={cx(tableCellClassName, 'text-xs')}>
@@ -182,7 +182,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                     </td>
                                     <td className={tableCellClassName}>
                                         {endpoint.required_scope ? (
-                                            <code className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-foreground)]">
+                                            <code className="rounded-sm bg-(--app-surface-muted) px-1.5 py-0.5 font-mono text-[11px] text-(--app-foreground)">
                                                 {endpoint.required_scope}
                                             </code>
                                         ) : (
@@ -191,10 +191,10 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                             </span>
                                         )}
                                     </td>
-                                    <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'font-mono text-(--app-muted-foreground)')}>
                                         {endpoint.rate_limit ?? '—'}
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>{endpoint.version ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>{endpoint.version ?? '—'}</td>
                                     <td className={tableCellClassName}>
                                         <span
                                             className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${

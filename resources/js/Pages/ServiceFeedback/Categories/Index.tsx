@@ -114,10 +114,10 @@ export default function CategoriesIndex({ categories, filters, organizations, ca
                                     <Tr key={row.id}>
                                         <Td><span className="font-mono text-xs">{row.code}</span></Td>
                                         <Td>
-                                            <div className="font-medium text-[color:var(--app-foreground)]">
+                                            <div className="font-medium text-(--app-foreground)">
                                                 {row.can_manage ? <Link href={route('service-feedback.categories.edit', row.id)} className="hover:underline">{name(row)}</Link> : name(row)}
                                             </div>
-                                            {row.is_referenced && <div className="text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.categoryReferenced')}</div>}
+                                            {row.is_referenced && <div className="text-xs text-(--app-muted-foreground)">{t('serviceFeedback.categoryReferenced')}</div>}
                                         </Td>
                                         <Td>{scopeLabel(row)}</Td>
                                         <Td>{row.submission_types.map((type) => t(`serviceFeedback.${SUBMISSION_TYPES.find((s) => s.value === type)?.key ?? 'adminTypeFeedback'}`)).join(', ')}</Td>

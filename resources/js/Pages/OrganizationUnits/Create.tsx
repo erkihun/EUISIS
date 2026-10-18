@@ -98,7 +98,7 @@ export default function OrganizationUnitsCreate({
                         e.preventDefault();
                         post(route('organization-units.store'));
                     }}
-                    className="w-full space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
+                    className="w-full space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-4 sm:p-6 lg:p-8"
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Organization */}
@@ -106,9 +106,9 @@ export default function OrganizationUnitsCreate({
                             <FormLabel>{`${t('organizationUnits.organization')} *`}</FormLabel>
                             {selectedOrg ? (
                                 <>
-                                    <div className={`${inputCls} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
+                                    <div className={`${inputCls} bg-(--app-surface-muted) text-(--app-muted-foreground)`}>
                                         {localizedName(selectedOrg)}{' '}
-                                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({selectedOrg.code})</span>
+                                        <span className="font-mono text-xs text-(--app-muted-foreground)">({selectedOrg.code})</span>
                                     </div>
                                     <input type="hidden" name="organization_id" value={selectedOrg.id} />
                                 </>
@@ -176,13 +176,13 @@ export default function OrganizationUnitsCreate({
                                         ))}
                                     </select>
                                     {noParentUnits && (
-                                        <p className="mt-1 text-xs text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">
+                                        <p className="mt-1 text-xs text-primary dark:text-primary">
                                             {t('organizationUnits.noParentUnitsYetHint')}
                                         </p>
                                     )}
                                 </>
                             ) : (
-                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-1 text-xs text-(--app-muted-foreground)">
                                     {t('organizationUnits.selectOrganization')}
                                 </p>
                             )}
@@ -313,7 +313,7 @@ export default function OrganizationUnitsCreate({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
+                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-(--app-border) pt-5">
                         <Button type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('organizationUnits.createOrganizationUnit')}
                         </Button>

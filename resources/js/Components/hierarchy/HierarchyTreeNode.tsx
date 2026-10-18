@@ -132,7 +132,7 @@ export default function HierarchyTreeNode({
                 className="group relative rounded-panel"
             >
                 <div
-                    className="relative z-20 flex min-h-[4.25rem] flex-col gap-3 rounded-panel border border-transparent bg-[color:var(--app-surface)] px-3 py-3 transition hover:border-[color:var(--app-border)] hover:bg-gray-50/80 dark:hover:bg-slate-800/60 lg:flex-row lg:items-center"
+                    className="relative z-20 flex min-h-17 flex-col gap-3 rounded-panel border border-transparent bg-(--app-surface) px-3 py-3 transition hover:border-(--app-border) hover:bg-gray-50/80 dark:hover:bg-slate-800/60 lg:flex-row lg:items-center"
                     style={{ marginLeft: `${rowMarginLeft}px` }}
                 >
                     <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -143,7 +143,7 @@ export default function HierarchyTreeNode({
                                     onClick={() => onToggle(nodeKey)}
                                     aria-label={isExpanded ? t('hierarchyVersions.collapseNode') : t('hierarchyVersions.expandNode')}
                                     title={isExpanded ? t('hierarchyVersions.hideChildren') : t('hierarchyVersions.showChildren')}
-                                    className="flex h-6 w-6 items-center justify-center rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-[color:var(--app-muted-foreground)] hover:border-blue-200 hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:hover:border-blue-900/40 dark:hover:bg-blue-950/30 dark:hover:text-blue-200"
+                                    className="flex h-6 w-6 items-center justify-center rounded-lg border border-(--app-border) bg-(--app-surface) text-(--app-muted-foreground) hover:border-blue-200 hover:bg-blue-50 hover:text-primary-hover focus:outline-hidden focus:ring-2 focus:ring-primary/20 dark:hover:border-blue-900/40 dark:hover:bg-blue-950/30 dark:hover:text-blue-200"
                                 >
                                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                 </button>
@@ -159,11 +159,11 @@ export default function HierarchyTreeNode({
                                 <span className={`rounded-md px-1.5 py-0.5 font-mono text-[11px] font-semibold ${isOrgUnit ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-200'}`}>
                                     {position}
                                 </span>
-                                <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">
+                                <p className="truncate text-sm font-semibold text-(--app-foreground)">
                                     {displayName}
                                 </p>
                                 {node.code && (
-                                    <span className="rounded-md bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-muted-foreground)]">
+                                    <span className="rounded-md bg-(--app-surface-muted) px-1.5 py-0.5 font-mono text-[11px] text-(--app-muted-foreground)">
                                         {node.code}
                                     </span>
                                 )}
@@ -180,7 +180,7 @@ export default function HierarchyTreeNode({
                                     </span>
                                 )}
                                 {typeName && (
-                                    <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--app-muted-foreground)]">
+                                    <span className="rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-[11px] font-medium text-(--app-muted-foreground)">
                                         {typeName}
                                     </span>
                                 )}
@@ -189,7 +189,7 @@ export default function HierarchyTreeNode({
                                 <span className={badgeClassName('warning')}>
                                     {t('hierarchyVersions.hierarchyLevel')}: {depth}
                                 </span>
-                                <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--app-muted-foreground)]">
+                                <span className="rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-[11px] font-medium text-(--app-muted-foreground)">
                                     {t('hierarchyVersions.childCount')}: {node.child_count}
                                 </span>
                                 {node.meta?.position_count !== undefined && node.meta.position_count > 0 && (
@@ -203,7 +203,7 @@ export default function HierarchyTreeNode({
                                     </span>
                                 )}
                                 {(node.effective_from || node.effective_to) && (
-                                    <span className="text-[11px] text-[color:var(--app-muted-foreground)]">
+                                    <span className="text-[11px] text-(--app-muted-foreground)">
                                         {node.effective_from ?? '-'}
                                         {node.effective_from && node.effective_to ? ' - ' : ''}
                                         {node.effective_to ?? ''}
@@ -219,7 +219,7 @@ export default function HierarchyTreeNode({
                                 href={route('organization-units.show', { organizationUnit: node.organization_id })}
                                 aria-label={t('common.details')}
                                 title={t('common.details')}
-                                className="inline-flex h-8 items-center gap-1.5 rounded-card border border-emerald-300 px-2.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                                className="inline-flex h-8 items-center gap-1.5 rounded-card border border-emerald-300 px-2.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
                             >
                                 <EyeIcon className="h-3.5 w-3.5" />
                                 <span>{t('common.details')}</span>
@@ -230,7 +230,7 @@ export default function HierarchyTreeNode({
                                     href={route('organizations.show', { organization: node.organization_id })}
                                     aria-label={t('common.details')}
                                     title={t('common.details')}
-                                    className="inline-flex h-8 items-center gap-1.5 rounded-card border border-[color:var(--app-border-strong)] px-2.5 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20"
+                                    className="inline-flex h-8 items-center gap-1.5 rounded-card border border-(--app-border-strong) px-2.5 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted) focus:outline-hidden focus:ring-2 focus:ring-primary/20"
                                 >
                                     <EyeIcon className="h-3.5 w-3.5" />
                                     <span>{t('common.details')}</span>

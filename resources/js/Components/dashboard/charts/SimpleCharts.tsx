@@ -12,7 +12,7 @@ const BarChartImpl = lazy(() => import('./SimpleChartsImpl').then((m) => ({ defa
 const LineChartImpl = lazy(() => import('./SimpleChartsImpl').then((m) => ({ default: m.SimpleLineChartImpl })));
 
 export function ChartPlaceholder({ height }: { height: number }) {
-    return <div aria-hidden="true" className="w-full animate-pulse rounded-card bg-[color:var(--app-surface-muted)]" style={{ height }} />;
+    return <div aria-hidden="true" className="w-full animate-pulse rounded-card bg-(--app-surface-muted)" style={{ height }} />;
 }
 
 export function SimpleBarChart(props: SimpleBarChartProps) {

@@ -2,7 +2,7 @@ import { useLocale } from '@/hooks/useLocale';
 
 import { cx, inputClassName } from '@/Components/ui';
 const inputCls = cx(inputClassName, 'w-full');
-const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
 interface FormData {
     code: string;
@@ -111,11 +111,11 @@ export default function OrganizationUnitTypeForm({ data, errors, onChange }: Pro
                 <input
                     id="is_active"
                     type="checkbox"
-                    className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                    className="h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
                     checked={data.is_active}
                     onChange={(e) => onChange('is_active', e.target.checked)}
                 />
-                <label htmlFor="is_active" className="text-sm text-[color:var(--app-foreground)]">
+                <label htmlFor="is_active" className="text-sm text-(--app-foreground)">
                     {t('organizationUnitTypes.isActive')}
                 </label>
             </div>

@@ -25,13 +25,13 @@ export default function OrganizationFormDetails({ details }: { details: Organiza
     const { t } = useLocale();
     const field = (label: string, value: ReactNode) => (
         <div className="min-w-0">
-            <dt className="text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 font-medium text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{value}</dd>
+            <dt className="text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 font-medium text-(--app-foreground) wrap-anywhere">{value}</dd>
         </div>
     );
 
     return (
-        <section aria-labelledby="organization-form-heading" className="space-y-4 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+        <section aria-labelledby="organization-form-heading" className="space-y-4 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
             <h2 id="organization-form-heading" className="text-lg font-semibold">{t('serviceFeedback.orgFormSection')}</h2>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
                 {field(t('serviceFeedback.serviceReceived'), details.service ? (
@@ -46,19 +46,19 @@ export default function OrganizationFormDetails({ details }: { details: Organiza
                 {field(t('serviceFeedback.serviceTime'), details.service_time_band ? t(`serviceFeedback.timeBand_${details.service_time_band}`) : '—')}
             </dl>
             {details.questionnaire_version !== null && (
-                <div className="border-t border-[color:var(--app-border)] pt-4">
+                <div className="border-t border-(--app-border) pt-4">
                     <h3 className="text-sm font-semibold">
                         {t('serviceFeedback.questionnaireAnswers')}
-                        <span className="ms-2 font-normal text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.answeredVersion').replace('{n}', String(details.questionnaire_version))}</span>
+                        <span className="ms-2 font-normal text-(--app-muted-foreground)">{t('serviceFeedback.answeredVersion').replace('{n}', String(details.questionnaire_version))}</span>
                     </h3>
                     {details.answers.length === 0 ? (
-                        <p className="mt-2 text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noAnswers')}</p>
+                        <p className="mt-2 text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noAnswers')}</p>
                     ) : (
-                        <dl className="mt-2 divide-y divide-[color:var(--app-border)] text-sm">
+                        <dl className="mt-2 divide-y divide-(--app-border) text-sm">
                             {details.answers.map((answer) => (
                                 <div key={answer.code} className="flex flex-col gap-1 py-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                                    <dt className="text-[color:var(--app-muted-foreground)]">{answer.question}</dt>
-                                    <dd className="font-medium text-[color:var(--app-foreground)] sm:text-right [overflow-wrap:anywhere] whitespace-pre-wrap">
+                                    <dt className="text-(--app-muted-foreground)">{answer.question}</dt>
+                                    <dd className="font-medium text-(--app-foreground) sm:text-right wrap-anywhere whitespace-pre-wrap">
                                         {answer.rating !== null
                                             ? `${answer.rating}/5 · ${t(`serviceFeedback.rating${answer.rating}`)}`
                                             : answer.type === 'yes_no' ? t(answer.value === 'yes' ? 'common.yes' : 'common.no') : answer.value}

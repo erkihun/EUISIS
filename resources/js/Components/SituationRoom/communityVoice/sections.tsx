@@ -36,9 +36,9 @@ export function KpiRow({ kpis }: { kpis: Kpis }) {
                 const previous = kpis.previous[card.key];
                 return (
                     <Card key={card.key} className="p-4" title={card.hint}>
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{card.label}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{card.label}</p>
                         <p className="mt-1 text-2xl font-semibold tabular-nums">{current.toLocaleString()}</p>
-                        <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{changeText(t, current, previous)}</p>
+                        <p className="mt-1 text-xs text-(--app-muted-foreground)">{changeText(t, current, previous)}</p>
                     </Card>
                 );
             })}
@@ -92,7 +92,7 @@ export function InstitutionSection({ institutions, scope, filters }: { instituti
         <Section id="sr-institutions" title={t('situationRoom.institutionsTitle')} intro={t('situationRoom.institutionsIntro')}>
             {scope.hierarchyPublished === false && <Alert tone="warning" className="mb-4">{t('situationRoom.hierarchyNotPublished')}</Alert>}
             {institutions.rows.length === 0 ? (
-                <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.noChildren')}</p>
+                <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.noChildren')}</p>
             ) : (
                 <>
                     <div aria-hidden="true"><StackedBarChart data={data} labelKey="label" series={series} emptyTitle={t('situationRoom.summary_no_submissions')} /></div>
@@ -113,7 +113,7 @@ export function InstitutionSection({ institutions, scope, filters }: { instituti
                             <TBody>
                                 {institutions.rows.map((row) => (
                                     <Tr key={row.id}>
-                                        <Td><Link href={institutionHref(row.id, filters, scope)} className="font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline">{name(row)}</Link></Td>
+                                        <Td><Link href={institutionHref(row.id, filters, scope)} className="font-medium text-primary underline-offset-4 hover:underline">{name(row)}</Link></Td>
                                         <Td align="right" numeric>{row.feedback.toLocaleString()}</Td>
                                         <Td align="right" numeric>{row.suggestion.toLocaleString()}</Td>
                                         <Td align="right" numeric>{row.complaint.toLocaleString()}</Td>
@@ -166,25 +166,25 @@ export function AttentionSection({ items, rules, scope, filters, canManageAction
 
     return (
         <Section id="sr-attention" title={t('situationRoom.attentionTitle')}>
-            {items.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.attentionEmpty')}</p> : (
+            {items.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.attentionEmpty')}</p> : (
                 <ul className="space-y-3">
                     {items.map((item, index) => (
-                        <li key={`${item.code}-${index}`} className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3">
+                        <li key={`${item.code}-${index}`} className="rounded-card border border-(--app-border) p-3">
                             <div className="flex items-start gap-2">
                                 <StatusBadge tone={item.tone === 'warning' ? 'warning' : 'info'}>{t(item.tone === 'warning' ? 'situationRoom.toneWarning' : 'situationRoom.toneInfo')}</StatusBadge>
                                 <p className="text-sm">{text(item)}</p>
                             </div>
                             <div className="mt-2 flex flex-wrap gap-3 text-sm">
-                                <Link href={route(scope.node ? 'situation-room.organization' : 'situation-room.community-voice', { ...viewQuery(scope, filters, item.filters), ...(scope.node ? { organization: scope.node.id } : {}) })} className="font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline">{t('situationRoom.showMatching')}</Link>
+                                <Link href={route(scope.node ? 'situation-room.organization' : 'situation-room.community-voice', { ...viewQuery(scope, filters, item.filters), ...(scope.node ? { organization: scope.node.id } : {}) })} className="font-medium text-primary underline-offset-4 hover:underline">{t('situationRoom.showMatching')}</Link>
                                 {canManageActions && scope.node && (
-                                    <Link href={route('situation-room.actions.index', { organization: scope.node.id, new: 1, source_type: 'attention', source_reference: item.code })} className="font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline">{t('situationRoom.recordAction')}</Link>
+                                    <Link href={route('situation-room.actions.index', { organization: scope.node.id, new: 1, source_type: 'attention', source_reference: item.code })} className="font-medium text-primary underline-offset-4 hover:underline">{t('situationRoom.recordAction')}</Link>
                                 )}
                             </div>
                         </li>
                     ))}
                 </ul>
             )}
-            {rulesOff && <p className="mt-4 text-xs text-[color:var(--app-muted-foreground)]">{t('situationRoom.attentionRulesOff')}</p>}
+            {rulesOff && <p className="mt-4 text-xs text-(--app-muted-foreground)">{t('situationRoom.attentionRulesOff')}</p>}
         </Section>
     );
 }
@@ -225,7 +225,7 @@ export function CategorySection({ categories }: { categories: CategoryRow[] }) {
 
     return (
         <Section id="sr-categories" title={t('situationRoom.categoriesTitle')}>
-            {categories.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.summary_no_submissions')}</p> : (
+            {categories.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.summary_no_submissions')}</p> : (
                 <ul className="space-y-3">
                     {categories.slice(0, 10).map((row) => (
                         <MeterRow key={row.id ?? 'none'} label={row.uncategorized ? t('situationRoom.uncategorized') : name(row)} value={row.total} max={max}
@@ -243,7 +243,7 @@ export function ServiceSection({ services }: { services: ServiceRow[] }) {
 
     return (
         <Section id="sr-services" title={t('situationRoom.servicesTitle')}>
-            {services.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.servicesEmpty')}</p> : (
+            {services.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.servicesEmpty')}</p> : (
                 <ul className="space-y-3">
                     {services.map((row) => (
                         <MeterRow key={row.id} label={[row.service_no, row.name].filter(Boolean).join(' · ') || '—'} value={row.total} max={max}
@@ -266,18 +266,18 @@ export function ResolutionSection({ resolution, targets }: { resolution: Resolut
             </ul>
             <dl className="mt-5 grid gap-2 text-sm sm:grid-cols-3">
                 {TYPES.map((type) => (
-                    <div key={type} className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3">
+                    <div key={type} className="rounded-card border border-(--app-border) p-3">
                         <dt className="font-medium">{t(`situationRoom.type_${type}`)}</dt>
-                        <dd className="mt-1 text-[color:var(--app-muted-foreground)]">{fmt(t('situationRoom.resolvedVsUnresolved'), resolution.by_type[type] ?? { resolved: 0, unresolved: 0 })}</dd>
+                        <dd className="mt-1 text-(--app-muted-foreground)">{fmt(t('situationRoom.resolvedVsUnresolved'), resolution.by_type[type] ?? { resolved: 0, unresolved: 0 })}</dd>
                     </div>
                 ))}
             </dl>
             <h3 className="mt-5 text-sm font-semibold">{t('situationRoom.targetsTitle')}</h3>
             <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
                 {Object.entries(targets).map(([target, counts]) => (
-                    <div key={target} className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3">
+                    <div key={target} className="rounded-card border border-(--app-border) p-3">
                         <dt className="font-medium">{t(`situationRoom.target_${target}`)}</dt>
-                        <dd className="mt-1 text-[color:var(--app-muted-foreground)]">{TYPES.map((type) => `${t(`situationRoom.type_${type}`)} ${(counts[type] ?? 0).toLocaleString()}`).join(' · ')}</dd>
+                        <dd className="mt-1 text-(--app-muted-foreground)">{TYPES.map((type) => `${t(`situationRoom.type_${type}`)} ${(counts[type] ?? 0).toLocaleString()}`).join(' · ')}</dd>
                     </div>
                 ))}
             </dl>
@@ -291,7 +291,7 @@ export function RatingsSection({ ratings }: { ratings: Ratings }) {
 
     return (
         <Section id="sr-ratings" title={t('situationRoom.ratingsTitle')} intro={ratings.average !== null ? fmt(t('situationRoom.ratingsAverage'), { average: ratings.average.toFixed(2), total: ratings.total }) : undefined}>
-            {ratings.total === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.ratingsEmpty')}</p> : (
+            {ratings.total === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.ratingsEmpty')}</p> : (
                 <ul className="space-y-3">
                     {[5, 4, 3, 2, 1].map((stars) => <MeterRow key={stars} label={fmt(t('situationRoom.starsLabel'), { stars })} value={ratings.distribution[String(stars)] ?? 0} max={max} />)}
                 </ul>
@@ -310,11 +310,11 @@ export function SupportingSection({ cards, configuration }: { cards: Record<stri
     const labelFor = (card: string, key: string) => (card === 'field_work' && key === 'approved' ? t('situationRoom.approved_field_work') : t(`situationRoom.${key}`));
 
     return (
-        <details className="group rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-            <summary className="cursor-pointer list-none p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]">
+        <details className="group rounded-card border border-(--app-border) bg-(--app-surface)">
+            <summary className="cursor-pointer list-none p-5 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary">
                 <span className="font-semibold">{t('situationRoom.supportingTitle')}</span>
-                <span className="ms-2 text-sm text-[color:var(--app-muted-foreground)]" aria-hidden="true">▾</span>
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.supportingIntro')}</p>
+                <span className="ms-2 text-sm text-(--app-muted-foreground)" aria-hidden="true">▾</span>
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">{t('situationRoom.supportingIntro')}</p>
             </summary>
             <div className="grid gap-4 px-5 pb-5 sm:grid-cols-2 xl:grid-cols-3">
                 <Card className="p-4">
@@ -328,15 +328,15 @@ export function SupportingSection({ cards, configuration }: { cards: Record<stri
                         )}
                     </ul>
                 </Card>
-                {entries.length === 0 && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.supportingEmpty')}</p>}
+                {entries.length === 0 && <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.supportingEmpty')}</p>}
                 {entries.map(([card, data]) => (
                     <Card key={card} className="p-4">
                         <h3 className="text-sm font-semibold">{fmt(t(`situationRoom.card_${card}`), { days: typeof data.days === 'number' ? data.days : 7 })}</h3>
-                        {data.error ? <p className="mt-2 text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.cardError')}</p> : (
+                        {data.error ? <p className="mt-2 text-sm text-(--app-muted-foreground)">{t('situationRoom.cardError')}</p> : (
                             <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
                                 {Object.entries(data).filter(([key]) => key !== 'days' && key !== 'error').map(([key, value]) => (
                                     <div key={key}>
-                                        <dt className="text-[color:var(--app-muted-foreground)]">{labelFor(card, key)}</dt>
+                                        <dt className="text-(--app-muted-foreground)">{labelFor(card, key)}</dt>
                                         <dd className="text-lg font-semibold tabular-nums">{Number(value).toLocaleString()}</dd>
                                     </div>
                                 ))}
@@ -376,14 +376,14 @@ export function ExportsSection({ exports, scope, filters }: { exports: ExportRow
                 </form>
             )}
         >
-            {exports.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.noExports')}</p> : (
-                <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+            {exports.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.noExports')}</p> : (
+                <ul className="divide-y divide-(--app-border) text-sm">
                     {exports.map((row) => (
                         <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                             <span>{dateTime(row.created_at)} · <span className="uppercase">{row.format}</span>{row.row_count !== null && ` · ${fmt(t('situationRoom.rowsColumn'), {})} ${row.row_count}`}</span>
                             <span className="flex items-center gap-3">
                                 <StatusBadge tone={row.status === 'ready' ? 'success' : row.status === 'failed' ? 'danger' : 'neutral'}>{t(`situationRoom.export_${row.status}`)}</StatusBadge>
-                                {row.status === 'ready' && <a href={route('situation-room.exports.download', row.id)} className={cx('font-medium text-[color:var(--color-primary)] underline underline-offset-4')}>{t('situationRoom.download')}</a>}
+                                {row.status === 'ready' && <a href={route('situation-room.exports.download', row.id)} className={cx('font-medium text-primary underline underline-offset-4')}>{t('situationRoom.download')}</a>}
                             </span>
                         </li>
                     ))}

@@ -50,7 +50,7 @@ type Props = {
 const HANDLER_TYPE_KEY: Record<AssignmentRow['handler_type'], string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole' };
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-    return <div><dt className="text-[color:var(--app-muted-foreground)]">{label}</dt><dd className="mt-0.5">{children}</dd></div>;
+    return <div><dt className="text-(--app-muted-foreground)">{label}</dt><dd className="mt-0.5">{children}</dd></div>;
 }
 
 /**
@@ -68,9 +68,9 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
         <div className="space-y-5">
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t(entry.target_type === 'organization' ? 'serviceFeedback.targetInstitutionHeading' : 'serviceFeedback.serviceProvidedBy')}</p>
-                    <h2 className="text-xl font-semibold [overflow-wrap:anywhere]">{entry.target_name ?? entry.employee ?? entry.employee_number ?? '—'}</h2>
-                    {entry.target_code && <p className="text-sm text-[color:var(--app-muted-foreground)]">{entry.target_code}</p>}
+                    <p className="text-sm text-(--app-muted-foreground)">{t(entry.target_type === 'organization' ? 'serviceFeedback.targetInstitutionHeading' : 'serviceFeedback.serviceProvidedBy')}</p>
+                    <h2 className="text-xl font-semibold wrap-anywhere">{entry.target_name ?? entry.employee ?? entry.employee_number ?? '—'}</h2>
+                    {entry.target_code && <p className="text-sm text-(--app-muted-foreground)">{entry.target_code}</p>}
                     {entry.reference && <p className="mt-1 font-mono text-sm">{entry.reference}</p>}
                 </div>
                 <FeedbackStatusBadge status={entry.status} className="text-sm" />
@@ -104,14 +104,14 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                             <Field label={t('serviceFeedback.incidentDate')}><LocalizedDateDisplay value={entry.incident_date} /></Field>
                             <Field label={t('serviceFeedback.incidentLocation')}>{entry.incident_location ?? '—'}</Field>
                         </dl>
-                        <div className="border-t border-[color:var(--app-border)] pt-4">
+                        <div className="border-t border-(--app-border) pt-4">
                             <h3 className="text-sm font-semibold">{entry.subject ?? t(type === 'complaint' ? 'serviceFeedback.complaintDescription' : 'serviceFeedback.suggestionText')}</h3>
-                            <p className="mt-2 whitespace-pre-wrap break-words text-sm">{entry.message}</p>
+                            <p className="mt-2 whitespace-pre-wrap wrap-break-word text-sm">{entry.message}</p>
                         </div>
                         {entry.involved_parties && (
-                            <div className="border-t border-[color:var(--app-border)] pt-4">
+                            <div className="border-t border-(--app-border) pt-4">
                                 <h3 className="text-sm font-semibold">{t('serviceFeedback.involvedParties')}</h3>
-                                <p className="mt-2 whitespace-pre-wrap break-words text-sm">{entry.involved_parties}</p>
+                                <p className="mt-2 whitespace-pre-wrap wrap-break-word text-sm">{entry.involved_parties}</p>
                             </div>
                         )}
                     </section>
@@ -120,15 +120,15 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
 
                     {entry.attachments_hidden && entry.attachment_count > 0 && <section className={PANEL}>
                         <h2 className="font-semibold">{t('serviceFeedback.attachments')}</h2>
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.attachmentsHidden').replace(':count', String(entry.attachment_count))}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.attachmentsHidden').replace(':count', String(entry.attachment_count))}</p>
                     </section>}
                     {entry.attachments.length > 0 && <section className={PANEL}>
                         {/* Submitted evidence: what the citizen sent, not verified proof. Each download is audited. */}
                         <h2 className="font-semibold">{t('serviceFeedback.submittedEvidence')}</h2>
                         <ul className="space-y-2">{entry.attachments.map((file) => (
                             <li key={file.id} className="text-sm">
-                                <a href={route('service-submissions.attachments.download', { type, submission: entry.id, attachment: file.id })} className="font-medium text-[color:var(--color-primary)] underline underline-offset-4">{file.name}</a>
-                                <span className="ml-2 text-[color:var(--app-muted-foreground)]">
+                                <a href={route('service-submissions.attachments.download', { type, submission: entry.id, attachment: file.id })} className="font-medium text-primary underline underline-offset-4">{file.name}</a>
+                                <span className="ml-2 text-(--app-muted-foreground)">
                                     {file.kind ? t(EVIDENCE_LABEL[file.kind]) : ''} · {Math.ceil(file.size / 1024)} KB
                                     {file.scan_status === 'not_scanned' && <> · {t('serviceFeedback.evidenceNotScanned')}</>}
                                 </span>
@@ -138,16 +138,16 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
 
                     <section className={PANEL}>
                         <h2 className="font-semibold">{t('serviceFeedback.statusHistory')}</h2>
-                        {history.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noHistory')}</p>
-                            : <ol className="relative space-y-4 border-s border-[color:var(--app-border)] ps-5">
+                        {history.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noHistory')}</p>
+                            : <ol className="relative space-y-4 border-s border-(--app-border) ps-5">
                                 {history.map((row) => <li key={row.id} className="relative">
-                                    <span aria-hidden="true" className="absolute -start-[1.45rem] top-1.5 h-2.5 w-2.5 rounded-full bg-[color:var(--color-primary)]" />
+                                    <span aria-hidden="true" className="absolute inset-s-[-1.45rem] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
                                     <div className="flex flex-wrap items-center gap-2 text-sm">
                                         {row.from_status && <><FeedbackStatusBadge status={row.from_status} /><span aria-hidden="true">→</span></>}
                                         <FeedbackStatusBadge status={row.to_status} />
-                                        <span className="text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={row.transitioned_at} withTime /></span>
+                                        <span className="text-(--app-muted-foreground)"><LocalizedDateDisplay value={row.transitioned_at} withTime /></span>
                                     </div>
-                                    <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{row.actor ?? t('common.system')}{row.reason ? <> · {row.reason}</> : row.to_status === 'unrouted' ? <> · {t('serviceFeedback.reasonNoRoutingRule')}</> : row.to_status === 'assigned' && !row.actor ? <> · {t('serviceFeedback.viaRoutingRule')}</> : null}</p>
+                                    <p className="mt-1 text-xs text-(--app-muted-foreground)">{row.actor ?? t('common.system')}{row.reason ? <> · {row.reason}</> : row.to_status === 'unrouted' ? <> · {t('serviceFeedback.reasonNoRoutingRule')}</> : row.to_status === 'assigned' && !row.actor ? <> · {t('serviceFeedback.viaRoutingRule')}</> : null}</p>
                                 </li>)}
                             </ol>}
                     </section>
@@ -161,13 +161,13 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                         </div>
                         {currentAssignment ? <div className="space-y-1 text-sm">
                             <div className="font-medium">{currentAssignment.handler}</div>
-                            <div className="text-[color:var(--app-muted-foreground)]">{t(`serviceFeedback.${HANDLER_TYPE_KEY[currentAssignment.handler_type]}`)} · {currentAssignment.via_rule ? t('serviceFeedback.viaRoutingRule') : currentAssignment.assigned_by ?? t('common.system')} · <LocalizedDateDisplay value={currentAssignment.assigned_at} withTime /></div>
-                        </div> : <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noHandler')}</p>}
+                            <div className="text-(--app-muted-foreground)">{t(`serviceFeedback.${HANDLER_TYPE_KEY[currentAssignment.handler_type]}`)} · {currentAssignment.via_rule ? t('serviceFeedback.viaRoutingRule') : currentAssignment.assigned_by ?? t('common.system')} · <LocalizedDateDisplay value={currentAssignment.assigned_at} withTime /></div>
+                        </div> : <p className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noHandler')}</p>}
                         {assignments.length > 1 && <details className="text-sm">
-                            <summary className="cursor-pointer font-medium text-[color:var(--color-primary)]">{t('serviceFeedback.assignmentHistory')}</summary>
-                            <ul className="mt-2 space-y-2">{assignments.map((row) => <li key={row.id} className="rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] p-2">
-                                <div className="font-medium">{row.handler} <span className="font-normal text-[color:var(--app-muted-foreground)]">({t(`serviceFeedback.${HANDLER_TYPE_KEY[row.handler_type]}`)})</span></div>
-                                <div className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={row.assigned_at} withTime />{row.ended_at && <> → <LocalizedDateDisplay value={row.ended_at} withTime /></>} · {row.via_rule ? t('serviceFeedback.viaRoutingRule') : row.assigned_by ?? t('common.system')}{row.reason && <> · {row.reason}</>}</div>
+                            <summary className="cursor-pointer font-medium text-primary">{t('serviceFeedback.assignmentHistory')}</summary>
+                            <ul className="mt-2 space-y-2">{assignments.map((row) => <li key={row.id} className="rounded-control bg-(--app-surface-muted) p-2">
+                                <div className="font-medium">{row.handler} <span className="font-normal text-(--app-muted-foreground)">({t(`serviceFeedback.${HANDLER_TYPE_KEY[row.handler_type]}`)})</span></div>
+                                <div className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={row.assigned_at} withTime />{row.ended_at && <> → <LocalizedDateDisplay value={row.ended_at} withTime /></>} · {row.via_rule ? t('serviceFeedback.viaRoutingRule') : row.assigned_by ?? t('common.system')}{row.reason && <> · {row.reason}</>}</div>
                             </li>)}</ul>
                         </details>}
                     </section>
@@ -185,7 +185,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
     </AuthenticatedLayout>;
 }
 
-const PANEL = 'space-y-4 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5';
+const PANEL = 'space-y-4 rounded-panel border border-(--app-border) bg-(--app-surface) p-5';
 
 /** Keyed by the current status by its parent, so its default choice follows every change. */
 function TransitionForm({ type, submissionId, allowedTransitions }: { type: 'suggestion' | 'complaint'; submissionId: string; allowedTransitions: string[] }) {

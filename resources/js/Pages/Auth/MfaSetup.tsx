@@ -68,7 +68,7 @@ export default function MfaSetup() {
                                 {recoveryCodes.map((code) => (
                                     <li
                                         key={code}
-                                        className="rounded bg-white px-2 py-1 dark:bg-slate-950"
+                                        className="rounded-sm bg-white px-2 py-1 dark:bg-slate-950"
                                     >
                                         {code}
                                     </li>
@@ -110,7 +110,7 @@ export default function MfaSetup() {
                                 maxLength={6}
                                 value={data.code}
                                 onChange={(e) => setData('code', e.target.value)}
-                                className={`w-full rounded-card border px-4 py-2.5 text-center font-mono text-lg tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 ${
+                                className={`w-full rounded-card border px-4 py-2.5 text-center font-mono text-lg tracking-widest text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 ${
                                     errors.code
                                         ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
                                         : 'border-slate-300 bg-white dark:border-slate-700'
@@ -128,7 +128,7 @@ export default function MfaSetup() {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex w-full items-center justify-center rounded-card bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+                            className="flex w-full items-center justify-center rounded-card bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
                         >
                             {processing ? '…' : t('auth.mfaConfirmSetup')}
                         </button>

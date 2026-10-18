@@ -34,7 +34,7 @@ export default function PoliciesIndex({ rows, meta, filters, organizations, prov
 
     const columns: ColumnDef<PolicySummary, unknown>[] = [
         { id: 'organization', header: t('cafeteriaPolicy.organization'), cell: ({ row }) => (
-            <Link href={route('cafeteria.policies.show', row.original.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{label(row.original.organization)}</Link>
+            <Link href={route('cafeteria.policies.show', row.original.id)} className="font-medium text-primary hover:underline">{label(row.original.organization)}</Link>
         ) },
         { id: 'scope', header: `${t('cafeteriaPolicy.network')} / ${t('cafeteriaPolicy.cafeteria')}`, cell: ({ row }) => label(row.original.cafeteria ?? row.original.network, t('cafeteriaPolicy.scopeProvider')) },
         { id: 'provider', header: t('cafeteriaPolicy.provider'), cell: ({ row }) => label(row.original.provider) },

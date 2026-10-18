@@ -49,21 +49,21 @@ export default function DailyActivitiesMissing({ rows, filters, truncated, optio
                 )}
 
                 {rows.data.length === 0 ? (
-                    <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{t('dailyActivities.missing.empty')}</p>
+                    <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{t('dailyActivities.missing.empty')}</p>
                 ) : (
-                    <ul className={`${panelCls} divide-y divide-[color:var(--app-border)]`}>
+                    <ul className={`${panelCls} divide-y divide-(--app-border)`}>
                         {rows.data.map((row) => (
                             <li key={`${row.employee_number}-${row.date}`} className="grid gap-1 px-3 py-2 text-sm sm:grid-cols-[8rem_1fr_1fr_auto] sm:items-center sm:gap-3">
-                                <LocalizedDateDisplay value={row.date} className="font-medium text-[color:var(--app-foreground)]" />
-                                <span className="min-w-0 text-[color:var(--app-foreground)]">
-                                    {row.employee} <span className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee_number}</span>
+                                <LocalizedDateDisplay value={row.date} className="font-medium text-(--app-foreground)" />
+                                <span className="min-w-0 text-(--app-foreground)">
+                                    {row.employee} <span className="text-xs text-(--app-muted-foreground)">{row.employee_number}</span>
                                 </span>
-                                <span className="min-w-0 truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                <span className="min-w-0 truncate text-xs text-(--app-muted-foreground)">
                                     {[row.organization_unit, row.position].filter(Boolean).join(' · ')}
                                 </span>
                                 <span>
                                     {row.day_status === 'draft'
-                                        ? <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('dailyActivities.missing.staleDraft')}</span>
+                                        ? <span className="text-xs text-(--app-muted-foreground)">{t('dailyActivities.missing.staleDraft')}</span>
                                         : <DayStatusBadge status="missing" />}
                                 </span>
                             </li>

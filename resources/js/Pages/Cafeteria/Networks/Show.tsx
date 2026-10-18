@@ -31,11 +31,11 @@ export default function NetworkShow({ network, tree, access, can }: {
 
     const Branch = ({ node, depth }: { node: Node; depth: number }) => (
         <li>
-            <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] px-2 py-1.5 hover:bg-[color:var(--app-surface-muted)]" style={{ marginInlineStart: depth * 20 }}>
-                <span aria-hidden="true" className="text-[color:var(--app-muted-foreground)]">{depth === 0 ? '■' : '└'}</span>
+            <div className="flex flex-wrap items-center gap-2 rounded-control px-2 py-1.5 hover:bg-(--app-surface-muted)" style={{ marginInlineStart: depth * 20 }}>
+                <span aria-hidden="true" className="text-(--app-muted-foreground)">{depth === 0 ? '■' : '└'}</span>
                 <Link href={route('cafeteria.providers.show', node.id)} className="font-medium hover:underline">{label(node)}</Link>
-                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t(`cafeteriaPolicy.locationTypes.${node.location_type}`)} · {node.code}</span>
-                {node.opening_time && <span className="text-xs text-[color:var(--app-muted-foreground)]">{node.opening_time}–{node.closing_time}</span>}
+                <span className="text-xs text-(--app-muted-foreground)">{t(`cafeteriaPolicy.locationTypes.${node.location_type}`)} · {node.code}</span>
+                {node.opening_time && <span className="text-xs text-(--app-muted-foreground)">{node.opening_time}–{node.closing_time}</span>}
                 <StatusPill status={node.is_active ? node.operational_status : 'inactive'} />
             </div>
             {node.children.length > 0 && <ul>{node.children.map((child) => <Branch key={child.id} node={child} depth={depth + 1} />)}</ul>}
@@ -52,7 +52,7 @@ export default function NetworkShow({ network, tree, access, can }: {
                         <h2 className="text-base font-semibold">{t('cafeteriaPolicy.networkTree')}</h2>
                         <StatusPill status={network.status} />
                     </div>
-                    {network.description && <p className="mb-3 text-sm text-[color:var(--app-muted-foreground)]">{network.description}</p>}
+                    {network.description && <p className="mb-3 text-sm text-(--app-muted-foreground)">{network.description}</p>}
                     {tree.length === 0 ? <EmptyState title={t('cafeteriaPolicy.noLocations')} /> : <ul className="space-y-0.5">{tree.map((node) => <Branch key={node.id} node={node} depth={0} />)}</ul>}
                     {can.manage && (
                         <div className="mt-4 flex flex-wrap gap-2">
@@ -69,15 +69,15 @@ export default function NetworkShow({ network, tree, access, can }: {
                         {can.manageAccess && <Button as={Link} href={route('cafeteria.access.create', { network_id: network.id })} size="sm" variant="outline">{t('cafeteriaPolicy.grantAccess')}</Button>}
                     </div>
                     {access.length === 0 ? <EmptyState title={t('cafeteriaPolicy.noResults')} /> : (
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {access.map((a) => (
                                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
                                     <div>
                                         <p className="font-medium">{label(a.organization)}</p>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="text-xs text-(--app-muted-foreground)">
                                             {t('cafeteriaPolicy.primaryCafeteria')}: {label(a.primary_cafeteria)} · {t('cafeteriaPolicy.crossLocationUsage')}: {a.allow_cross_location_usage ? t('cafeteriaPolicy.yes') : t('cafeteriaPolicy.no')}
                                         </p>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="text-xs text-(--app-muted-foreground)">
                                             <LocalizedDateDisplay value={a.effective_from} /> — {a.effective_to ? <LocalizedDateDisplay value={a.effective_to} /> : t('cafeteriaPolicy.openEnded')}
                                         </p>
                                     </div>

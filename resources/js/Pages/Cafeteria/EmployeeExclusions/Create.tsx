@@ -25,7 +25,7 @@ export default function EmployeeExclusionCreate({ exclusion_types }: { exclusion
     });
 
     const inputCls = cx(inputClassName, 'w-full');
-    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)] mb-1';
+    const labelCls = 'block text-sm font-medium text-(--app-foreground) mb-1';
     const errorCls = 'mt-1 text-xs text-red-500';
 
     function submit(e: React.FormEvent) {
@@ -37,13 +37,13 @@ export default function EmployeeExclusionCreate({ exclusion_types }: { exclusion
         <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.addExclusion')} />}>
             <Head title={t('cafeteria.addExclusion')} />
             <div>
-                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-6">
                     <form onSubmit={submit} className="space-y-5">
                         <div>
                             {selected ? (
                                 <>
                                     <span className={labelCls}>{t('common.employee')} *</span>
-                                    <div className="flex items-center justify-between gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm">
+                                    <div className="flex items-center justify-between gap-2 rounded-lg border border-(--app-border-strong) px-3 py-2 text-sm">
                                         <span>{selected.full_name} ({selected.employee_number})</span>
                                         <button type="button" className={actionLinkClassName()} onClick={() => { setSelected(null); setData('employee_id', ''); }}>
                                             {t('common.change')}
@@ -82,8 +82,8 @@ export default function EmployeeExclusionCreate({ exclusion_types }: { exclusion
                             </div>
                         </div>
 
-                        <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                            <input type="checkbox" className="h-4 w-4 rounded" checked={data.is_open_ended} onChange={e => { setData('is_open_ended', e.target.checked); if (e.target.checked) setData('ends_on', ''); }} />
+                        <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
+                            <input type="checkbox" className="h-4 w-4 rounded-sm" checked={data.is_open_ended} onChange={e => { setData('is_open_ended', e.target.checked); if (e.target.checked) setData('ends_on', ''); }} />
                             {t('cafeteria.isOpenEnded')}
                         </label>
 
@@ -102,7 +102,7 @@ export default function EmployeeExclusionCreate({ exclusion_types }: { exclusion
                         </div>
 
                         <div className="flex justify-end gap-3 pt-2">
-                            <a href={route('cafeteria.employee-exclusions.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">{t('common.cancel')}</a>
+                            <a href={route('cafeteria.employee-exclusions.index')} className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">{t('common.cancel')}</a>
                             <button type="submit" disabled={processing} className={buttonClassName({ variant: 'primary' })}>
                                 {processing ? t('common.saving') : t('common.save')}
                             </button>

@@ -26,7 +26,7 @@ export default function CourtCasesIndex(): JSX.Element {
             <Head title={t('courtCases.title')} />
             <div className="min-w-0 space-y-4">
                 
-                <p className="flex items-start gap-2 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="flex items-start gap-2 rounded-card border border-(--app-border) bg-(--app-surface) px-4 py-3 text-sm text-(--app-muted-foreground)">
                     <InfoIcon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>{withBrand(t('courtCases.notice'))}</span>
                 </p>

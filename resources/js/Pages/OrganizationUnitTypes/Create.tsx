@@ -6,7 +6,7 @@ import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 const inputCls = cx(inputClassName, 'w-full');
-const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
 function Field({
     label,
@@ -59,7 +59,7 @@ export default function OrganizationUnitTypesCreate() {
             <div>
                 <form
                     onSubmit={submit}
-                    className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+                    className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
                 >
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
@@ -132,23 +132,23 @@ export default function OrganizationUnitTypesCreate() {
                             <input
                                 id="is_active"
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                                className="h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
                                 checked={form.data.is_active}
                                 onChange={(e) => form.setData('is_active', e.target.checked)}
                             />
                             <label
                                 htmlFor="is_active"
-                                className="text-sm text-[color:var(--app-foreground)]"
+                                className="text-sm text-(--app-foreground)"
                             >
                                 {t('organizationUnitTypes.isActive')}
                             </label>
                         </div>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
+                    <div className="mt-6 flex items-center justify-end gap-3 border-t border-(--app-border) pt-5">
                         <Link
                             href={route('organization-unit-types.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </Link>

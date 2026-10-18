@@ -92,8 +92,8 @@ export default function QuestionnaireIndex({ versions, hasDraft }: { versions: V
                                 {versions.map((version) => (
                                     <Tr key={version.id}>
                                         <Td>
-                                            <Link href={route('service-feedback.questionnaire.edit', version.id)} className="font-medium text-[color:var(--app-foreground)] hover:underline">{name(version)}</Link>
-                                            <div className="text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.questionnaireVersionN').replace('{n}', String(version.version_no))}</div>
+                                            <Link href={route('service-feedback.questionnaire.edit', version.id)} className="font-medium text-(--app-foreground) hover:underline">{name(version)}</Link>
+                                            <div className="text-xs text-(--app-muted-foreground)">{t('serviceFeedback.questionnaireVersionN').replace('{n}', String(version.version_no))}</div>
                                         </Td>
                                         <Td><StatusBadge status={BADGE[version.status]} label={t(`serviceFeedback.questionnaireStatus_${version.status}`)} /></Td>
                                         <Td align="right">{version.question_count}</Td>

@@ -82,13 +82,13 @@ export default function ServiceForm({ show, onClose, title, help, initial, url, 
         const current = form.data[key];
         form.setData(key, current.includes(id) ? current.filter((x) => x !== id) : [...current, id]);
     };
-    const checkbox = 'mt-0.5 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]';
+    const checkbox = 'mt-0.5 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary';
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                {help && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{help}</p>}
+                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
+                {help && <p className="mt-1 text-sm text-(--app-muted-foreground)">{help}</p>}
 
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     {lookups.organizations && (
@@ -179,17 +179,17 @@ export default function ServiceForm({ show, onClose, title, help, initial, url, 
 
                     {!lookups.organizations && (
                         <fieldset className="sm:col-span-2">
-                            <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{tt('services.justifiedBy')}</legend>
-                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('services.justifiedByHelp')}</p>
+                            <legend className="text-sm font-medium text-(--app-foreground)">{tt('services.justifiedBy')}</legend>
+                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('services.justifiedByHelp')}</p>
                             {lookups.functions.length === 0 ? (
                                 <Alert tone="warning" className="mt-2">{tt('services.noFunctionsAvailable')}</Alert>
                             ) : (
-                                <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-[var(--radius-control)] border border-[color:var(--app-border)] p-2">
+                                <ul className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-control border border-(--app-border) p-2">
                                     {lookups.functions.map((f) => (
                                         <li key={f.id}>
-                                            <label className="flex cursor-pointer items-start gap-2 rounded px-2 py-1 text-sm hover:bg-[color:var(--app-surface-muted)]" style={{ paddingLeft: `${8 + f.depth * 16}px` }}>
+                                            <label className="flex cursor-pointer items-start gap-2 rounded-sm px-2 py-1 text-sm hover:bg-(--app-surface-muted)" style={{ paddingLeft: `${8 + f.depth * 16}px` }}>
                                                 <input type="checkbox" className={checkbox} checked={form.data.function_ids.includes(f.id)} onChange={() => toggle('function_ids', f.id)} />
-                                                <span className="min-w-0"><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{f.code}</span> {titleOf(f, locale)}</span>
+                                                <span className="min-w-0"><span className="font-mono text-xs text-(--app-muted-foreground)">{f.code}</span> {titleOf(f, locale)}</span>
                                             </label>
                                         </li>
                                     ))}
@@ -201,14 +201,14 @@ export default function ServiceForm({ show, onClose, title, help, initial, url, 
 
                     {!lookups.organizations && lookups.isicOptions.length > 0 && (
                         <fieldset className="sm:col-span-2">
-                            <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{tt('services.isic')}</legend>
-                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('services.isicHelp')}</p>
-                            <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto rounded-[var(--radius-control)] border border-[color:var(--app-border)] p-2">
+                            <legend className="text-sm font-medium text-(--app-foreground)">{tt('services.isic')}</legend>
+                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('services.isicHelp')}</p>
+                            <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto rounded-control border border-(--app-border) p-2">
                                 {lookups.isicOptions.map((a) => (
                                     <li key={a.id}>
-                                        <label className="flex cursor-pointer items-start gap-2 rounded px-2 py-1 text-sm hover:bg-[color:var(--app-surface-muted)]">
+                                        <label className="flex cursor-pointer items-start gap-2 rounded-sm px-2 py-1 text-sm hover:bg-(--app-surface-muted)">
                                             <input type="checkbox" className={checkbox} checked={form.data.isic_activity_ids.includes(a.id)} onChange={() => toggle('isic_activity_ids', a.id)} />
-                                            <span className="min-w-0"><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{a.isic_code}</span> {nameOf(a, locale)}</span>
+                                            <span className="min-w-0"><span className="font-mono text-xs text-(--app-muted-foreground)">{a.isic_code}</span> {nameOf(a, locale)}</span>
                                         </label>
                                     </li>
                                 ))}

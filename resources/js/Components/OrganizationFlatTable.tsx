@@ -97,25 +97,25 @@ export default function OrganizationFlatTable({ rows, emptyText }: { rows: OrgRo
                             <td className={tableCellClassName}>
                                 <Link
                                     href={route('organizations.show', org.id)}
-                                    className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                    className="font-medium text-primary hover:text-primary-hover dark:text-primary dark:hover:text-primary-hover"
                                 >
                                     {org.code}
                                 </Link>
                             </td>
                             <td className={tableCellClassName}>{localizedName(org.name_en, org.name_am, locale)}</td>
-                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                 {org.type ? localizedName(org.type.name_en, org.type.name_am, locale) : '\u2014'}
                             </td>
-                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                 {categoryLabel(org.type?.category)}
                             </td>
-                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                 {org.parent_label ?? '\u2014'}
                             </td>
                             <td className={tableCellClassName}>
                                 <StatusBadge status={org.status} label={t(`common.${org.status}`)} />
                             </td>
-                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                 <LocalizedDateDisplay value={org.created_at} />
                             </td>
                             <td className={cx(tableCellClassName, 'text-right')}>

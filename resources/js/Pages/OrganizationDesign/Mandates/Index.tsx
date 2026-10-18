@@ -81,10 +81,10 @@ export default function MandatesIndex({ mandates, filters, organizations, instru
                             <TBody>
                                 {mandates.data.map((m) => (
                                     <Tr key={m.id}>
-                                        <Td className="font-mono text-xs">{m.code} <span className="text-[color:var(--app-muted-foreground)]">v{m.version_no}</span></Td>
+                                        <Td className="font-mono text-xs">{m.code} <span className="text-(--app-muted-foreground)">v{m.version_no}</span></Td>
                                         <Td>
-                                            <Link href={route('organization-design.mandates.show', m.id)} className="font-medium text-[color:var(--app-foreground)] hover:underline">{titleOf(m, locale)}</Link>
-                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{m.legal_instrument_number}</p>
+                                            <Link href={route('organization-design.mandates.show', m.id)} className="font-medium text-(--app-foreground) hover:underline">{titleOf(m, locale)}</Link>
+                                            <p className="text-xs text-(--app-muted-foreground)">{m.legal_instrument_number}</p>
                                         </Td>
                                         <Td muted>{nameOf(m.organization, locale)}</Td>
                                         <Td muted>{nameOf(m.instrument_type, locale)}</Td>

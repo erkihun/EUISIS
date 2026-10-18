@@ -23,12 +23,12 @@ export default function PositionFocusedOrganogram({ tree }: { tree: OrganogramTr
             <OrganizationBox tree={tree} />
 
             {!hasDirect && groups.length === 0 ? (
-                <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('organizations.noPositionsFound')}</p>
+                <p className="text-sm text-(--app-muted-foreground)">{t('organizations.noPositionsFound')}</p>
             ) : (
                 <div className="w-full max-w-5xl space-y-5">
                     {hasDirect && (
                         <section>
-                            <h3 className="mb-2 border-b border-[color:var(--app-border)] pb-1 text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                            <h3 className="mb-2 border-b border-(--app-border) pb-1 text-xs font-semibold text-(--app-muted-foreground)">
                                 {t('organizations.positions')}
                             </h3>
                             <div className="flex flex-wrap gap-4">
@@ -46,7 +46,7 @@ export default function PositionFocusedOrganogram({ tree }: { tree: OrganogramTr
                         <section key={unit.id}>
                             {/* Unit is a heading, not a box — positions carry the emphasis. */}
                             <h3
-                                className="mb-2 border-b border-[color:var(--app-border)] pb-1 text-xs font-semibold text-[color:var(--app-muted-foreground)]"
+                                className="mb-2 border-b border-(--app-border) pb-1 text-xs font-semibold text-(--app-muted-foreground)"
                                 style={{ paddingLeft: `${depth * 12}px` }}
                             >
                                 {unit.code && <span className="font-mono normal-case">{unit.code} · </span>}

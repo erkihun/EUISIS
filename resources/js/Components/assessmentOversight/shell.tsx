@@ -87,13 +87,13 @@ export function OversightLayout({ title, description, active, shell, actions, ch
             <Head title={title} />
             <div className={pageCls}>
                 <div className={`${panelCls} flex flex-wrap items-center gap-3 px-4 py-3`}>
-                    <label htmlFor="ao-cycle" className="text-sm font-medium text-[color:var(--app-foreground)]">{t('assessmentOversight.cycle')}</label>
+                    <label htmlFor="ao-cycle" className="text-sm font-medium text-(--app-foreground)">{t('assessmentOversight.cycle')}</label>
                     <select id="ao-cycle" className={`${filterInputCls} min-w-64`} value={cycle?.id ?? ''} onChange={(e) => pickCycle(e.target.value)}>
                         <option value="" disabled>{t('assessmentOversight.selectCycle')}</option>
                         {cycles.map((c) => <option key={c.id} value={c.id}>{named(c, locale)} ({formatDateDisplay(c.period_start, calendar, locale)} – {formatDateDisplay(c.period_end, calendar, locale)}) · {t(`assessmentOversight.cycleStatuses.${c.status}`)}</option>)}
                     </select>
                     {cycle && <UiStatusBadge tone={cycle.eligibility_status === 'finalized' ? 'success' : 'warning'}>{t(`assessmentOversight.eligibilityStatuses.${cycle.eligibility_status}`)}</UiStatusBadge>}
-                    {cycle && <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                    {cycle && <span className="text-xs text-(--app-muted-foreground)">
                         {t('assessmentOversight.referenceDate')}: <LocalizedDateDisplay value={cycle.reference_date} />
                         {cycle.submission_deadline && <> · {t('assessmentOversight.submissionDeadline')}: <LocalizedDateDisplay value={cycle.submission_deadline} /></>}
                     </span>}
@@ -129,7 +129,7 @@ export function Kpi({ label, value, suffix = '', href, hint, tone }: { label: st
         ? `${typeof value === 'number' ? value.toLocaleString() : formatScore(value)}${suffix}` : String(value);
     const body = <AppMetricCard label={label} value={display} detail={hint}
         variant={tone && Number(value) > 0 ? tone : missing ? 'neutral' : 'primary'} />;
-    return href ? <Link href={href} className="block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2">{body}</Link> : body;
+    return href ? <Link href={href} className="block rounded-card focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">{body}</Link> : body;
 }
 
 const KPI_COLUMNS = {
@@ -142,7 +142,7 @@ const KPI_COLUMNS = {
 export function KpiGroup({ title, children, columns = 4 }: { title: string; children: ReactNode; columns?: keyof typeof KPI_COLUMNS }) {
     return (
         <section aria-label={title}>
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{title}</h2>
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{title}</h2>
             <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 ${KPI_COLUMNS[columns]}`}>{children}</div>
         </section>
     );
@@ -151,11 +151,11 @@ export function KpiGroup({ title, children, columns = 4 }: { title: string; chil
 /** Small tile with a count badge, for the dashboard's compliance panel. */
 export function IssueTile({ label, value, tone, href }: { label: string; value: number; tone: Tone; href?: string }) {
     const body = <>
-        <span className="text-sm text-[color:var(--app-foreground)]">{label}</span>
+        <span className="text-sm text-(--app-foreground)">{label}</span>
         <UiStatusBadge tone={value > 0 ? tone : 'neutral'} className="tabular-nums">{value.toLocaleString()}</UiStatusBadge>
     </>;
-    const cls = 'flex min-h-11 items-center justify-between gap-2 rounded-card border border-[color:var(--app-border)] px-4 py-3';
-    return href ? <Link href={href} className={`${cls} hover:bg-[color:var(--app-surface-muted)]`}>{body}</Link> : <div className={cls}>{body}</div>;
+    const cls = 'flex min-h-11 items-center justify-between gap-2 rounded-card border border-(--app-border) px-4 py-3';
+    return href ? <Link href={href} className={`${cls} hover:bg-(--app-surface-muted)`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
 /** Horizontal coverage bars (lowest first), as on the design canvas. */
@@ -166,8 +166,8 @@ export function CoverageBars({ rows }: { rows: Array<{ id: string; label: string
                 const width = row.value === null ? 0 : Math.max(0, Math.min(100, Number(row.value)));
                 return (
                     <li key={row.id} className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_3.5rem] items-center gap-3 text-sm">
-                        {row.href ? <Link href={row.href} className="truncate text-[color:var(--app-foreground)] hover:underline">{row.label}</Link> : <span className="truncate text-[color:var(--app-foreground)]">{row.label}</span>}
-                        <div className="h-2.5 rounded bg-[color:var(--app-surface-muted)]" role="presentation"><div className="h-2.5 rounded bg-[color:var(--color-primary)]" style={{ width: `${width}%` }} /></div>
+                        {row.href ? <Link href={row.href} className="truncate text-(--app-foreground) hover:underline">{row.label}</Link> : <span className="truncate text-(--app-foreground)">{row.label}</span>}
+                        <div className="h-2.5 rounded-sm bg-(--app-surface-muted)" role="presentation"><div className="h-2.5 rounded-sm bg-primary" style={{ width: `${width}%` }} /></div>
                         <span className="text-right tabular-nums">{pct(row.value)}</span>
                     </li>
                 );
@@ -180,7 +180,7 @@ export function CoverageBar({ value }: { value: string | null }) {
     const width = value === null ? 0 : Math.max(0, Math.min(100, Number(value)));
     return (
         <div className="flex items-center gap-2">
-            <div className="h-1.5 w-20 rounded-full bg-[color:var(--app-surface-muted)]" role="presentation"><div className="h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${width}%` }} /></div>
+            <div className="h-1.5 w-20 rounded-full bg-(--app-surface-muted)" role="presentation"><div className="h-1.5 rounded-full bg-primary" style={{ width: `${width}%` }} /></div>
             <span className="tabular-nums">{pct(value)}</span>
         </div>
     );
@@ -208,7 +208,7 @@ export function GenderTable({ gender }: { gender: Metrics['gender'] }) {
                             <tr key={g}>
                                 <td className={tableCellClassName}>{t(`assessmentOversight.genders.${g}`)}</td>
                                 {cell.suppressed
-                                    ? <td colSpan={4} className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>{t('assessmentOversight.suppressed')}</td>
+                                    ? <td colSpan={4} className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>{t('assessmentOversight.suppressed')}</td>
                                     : <>
                                         <td className={cx(tableCellClassName, 'tabular-nums')}>{cell.eligible}</td>
                                         <td className={cx(tableCellClassName, 'tabular-nums')}>{cell.assessed}</td>
@@ -241,7 +241,7 @@ const STATUS_TONES: Record<string, Tone> = {
 
 export function StatusBadge({ group, value }: { group: 'institutionStatuses' | 'outcomes' | 'submissionStatuses' | 'deadline'; value: string | null | undefined }) {
     const { t } = useLocale();
-    if (!value) return <span className="text-[color:var(--app-muted-foreground)]">—</span>;
+    if (!value) return <span className="text-(--app-muted-foreground)">—</span>;
     return <UiStatusBadge tone={STATUS_TONES[value] ?? 'neutral'}>{t(`assessmentOversight.${group}.${value}`)}</UiStatusBadge>;
 }
 

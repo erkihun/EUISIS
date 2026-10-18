@@ -97,7 +97,7 @@ export default function HierarchyVersionTree({ version, tree, edges, summary, ca
                         <div className="flex flex-wrap items-center gap-2">
                             <Link
                                 href={route('hierarchy-versions.show', { hierarchyVersion: version.id })}
-                                className="rounded-card border border-[color:var(--app-border-strong)] px-3 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                className="rounded-card border border-(--app-border-strong) px-3 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                             >
                                 {t('common.details')}
                             </Link>
@@ -128,19 +128,19 @@ export default function HierarchyVersionTree({ version, tree, edges, summary, ca
                     canAddRelation={can.createEdge}
                 />
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-5">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4 sm:p-5">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">
+                            <h3 className="text-lg font-semibold text-(--app-foreground)">
                                 {t('hierarchyVersions.treePreview')}
                             </h3>
-                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                            <p className="mt-1 text-sm text-(--app-muted-foreground)">
                                 {can.manageTree
                                     ? t('hierarchyVersions.editableDraftVersion')
                                     : t('hierarchyVersions.readOnlyVersion')}
                             </p>
                         </div>
-                        <span className="rounded-full bg-[color:var(--app-surface-muted)] px-3 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                        <span className="rounded-full bg-(--app-surface-muted) px-3 py-1 text-xs font-medium text-(--app-muted-foreground)">
                             {summary.total_organizations} {t('hierarchyVersions.totalOrganizations').toLowerCase()}
                         </span>
                     </div>

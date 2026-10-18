@@ -127,14 +127,14 @@ export default function EntitlementRulesIndex({
                                         <tr key={rule.id} className={tableRowClassName}>
                                             <td className={tableCellClassName}>
                                                 {rule.can.view ? (
-                                                    <Link href={route('entitlement-rules.show', rule.id)} className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
+                                                    <Link href={route('entitlement-rules.show', rule.id)} className="font-medium text-primary hover:text-primary-hover dark:text-primary">
                                                         {rule.name}
                                                     </Link>
                                                 ) : (
                                                     rule.name
                                                 )}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                                 {rule.service_type ? (locale === 'am' ? (rule.service_type.name_am ?? rule.service_type.name_en) : rule.service_type.name_en) : '—'}
                                             </td>
                                             <td className={cx(tableCellClassName, 'tabular-nums')}>{rule.rule_definition?.quota_limit ?? '—'}</td>

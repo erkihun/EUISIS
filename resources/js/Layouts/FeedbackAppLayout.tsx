@@ -41,15 +41,15 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
                 <meta head-key="referrer" name="referrer" content="no-referrer" />
             </Head>
 
-            <div className="min-h-dvh bg-[color:var(--app-surface-muted)]" style={bottomSpacing(dockHeight)}>
-                <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-[color:var(--app-background)] sm:border-x sm:border-[color:var(--app-border)] sm:shadow-xl">
-                    <header className="sticky top-0 z-30 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] pt-[env(safe-area-inset-top)]">
+            <div className="min-h-dvh bg-(--app-surface-muted)" style={bottomSpacing(dockHeight)}>
+                <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col bg-(--app-background) sm:border-x sm:border-(--app-border) sm:shadow-xl">
+                    <header className="sticky top-0 z-30 border-b border-(--app-border) bg-(--app-surface) pt-[env(safe-area-inset-top)]">
                         <div className="flex h-14 items-center gap-1 px-2">
                             {backHref ? (
                                 <Link
                                     href={backHref}
                                     aria-label={backLabel}
-                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[color:var(--app-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]"
+                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-(--app-foreground) transition-colors hover:bg-(--app-surface-muted) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary"
                                 >
                                     <ChevronLeft className="h-6 w-6" aria-hidden="true" />
                                 </Link>
@@ -57,12 +57,12 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
                                 <span className="flex h-11 w-11 shrink-0 items-center justify-center" aria-hidden="true">
                                     {logoUrl
                                         ? <img src={logoUrl} alt="" width={32} height={32} decoding="async" className="h-8 w-8 object-contain" />
-                                        : <QrCodeIcon className="h-6 w-6 text-[color:var(--color-primary)]" />}
+                                        : <QrCodeIcon className="h-6 w-6 text-primary" />}
                                 </span>
                             )}
                             <div className="min-w-0 flex-1 px-1">
-                                <h1 className="truncate text-[15px] font-semibold leading-tight text-[color:var(--app-foreground)]">{title}</h1>
-                                <p className="truncate text-xs leading-tight text-[color:var(--app-muted-foreground)]">{subtitle || brandName}</p>
+                                <h1 className="truncate text-[15px] font-semibold leading-tight text-(--app-foreground)">{title}</h1>
+                                <p className="truncate text-xs leading-tight text-(--app-muted-foreground)">{subtitle || brandName}</p>
                             </div>
                             <LanguageSwitcher variant="toolbar" />
                             <ThemeToggle variant="toolbar" />
@@ -74,7 +74,7 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
                     </main>
 
                     {/* The dock covers the bottom of the screen, so the end of every screen scrolls clear of it. */}
-                    <div className="h-[var(--feedback-dock-height,0px)] shrink-0" aria-hidden="true" />
+                    <div className="h-(--feedback-dock-height,0px) shrink-0" aria-hidden="true" />
                 </div>
 
                 {dock && (
@@ -149,7 +149,7 @@ export function FeedbackActionBar({ children }: { children: ReactNode }) {
     return (
         <>
             <div className="mt-auto h-[calc(4.25rem+var(--feedback-action-bar-padding))] shrink-0" aria-hidden="true" />
-            <div className="fixed inset-x-0 bottom-[var(--feedback-dock-height,0px)] z-30 mx-auto w-full max-w-md border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 pb-[var(--feedback-action-bar-padding)] pt-3 shadow-[0_-1px_8px_rgba(15,23,42,0.06)] sm:border-x sm:border-[color:var(--app-border)]">
+            <div className="fixed inset-x-0 bottom-(--feedback-dock-height,0px) z-30 mx-auto w-full max-w-md border-t border-(--app-border) bg-(--app-surface) px-4 pb-(--feedback-action-bar-padding) pt-3 shadow-[0_-1px_8px_rgba(15,23,42,0.06)] sm:border-x sm:border-(--app-border)">
                 {children}
             </div>
         </>

@@ -158,14 +158,14 @@ export default function PermissionsIndex({
                 hasActiveFilters={hasActiveFilters}
                 className="mb-4"
                 actions={(
-                    <div className="flex items-center rounded-[var(--radius-control)] border border-[color:var(--app-border)]">
+                    <div className="flex items-center rounded-control border border-(--app-border)">
                         {(['grouped', 'table'] as const).map((mode) => (
                             <button
                                 key={mode}
                                 type="button"
                                 aria-pressed={view === mode}
                                 onClick={() => setView(mode)}
-                                className={cx('px-3 py-1.5 text-xs font-medium transition-colors first:rounded-l-[var(--radius-control)] last:rounded-r-[var(--radius-control)]', view === mode ? 'bg-[color:var(--color-primary)] text-[color:var(--color-on-primary,#fff)]' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]')}
+                                className={cx('px-3 py-1.5 text-xs font-medium transition-colors first:rounded-l-control last:rounded-r-control', view === mode ? 'bg-primary text-(--color-on-primary,#fff)' : 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted)')}
                             >
                                 {mode === 'grouped' ? t('permissions.groupedView') : t('permissions.tableView')}
                             </button>
@@ -248,7 +248,7 @@ function CriticalBadge({ t }: { t: (key: string) => string }) {
 
 function GroupBadge({ group }: { group: string }) {
     return (
-        <span className="inline-flex rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+        <span className="inline-flex rounded-full bg-(--app-surface-muted) px-2 py-0.5 text-xs font-medium text-(--app-muted-foreground)">
             {group}
         </span>
     );
@@ -292,7 +292,7 @@ function TableView({
     t: (key: string) => string;
 }) {
     return (
-        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+        <div className="rounded-card border border-(--app-border) bg-(--app-surface)">
             <div className="overflow-x-auto">
                 <table className={cx(tableClassName, 'min-w-full text-left')}>
                     <thead className={tableHeadClassName}>
@@ -324,21 +324,21 @@ function TableView({
                             >
                                 <td className={tableCellClassName}>
                                     <div className="flex flex-wrap items-center gap-1.5">
-                                        <span className="font-medium text-[color:var(--app-foreground)]">{label(p)}</span>
+                                        <span className="font-medium text-(--app-foreground)">{label(p)}</span>
                                         {p.is_system && <SystemBadge t={t} />}
                                         {CRITICAL.has(p.name) && <CriticalBadge t={t} />}
                                     </div>
                                 </td>
-                                <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>{p.name}</td>
-                                <td className={cx(tableCellClassName, 'max-w-xs text-xs text-[color:var(--app-muted-foreground)]')}>
+                                <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>{p.name}</td>
+                                <td className={cx(tableCellClassName, 'max-w-xs text-xs text-(--app-muted-foreground)')}>
                                     <span className="line-clamp-2">{description(p) ?? '—'}</span>
                                 </td>
                                 <td className={tableCellClassName}>
                                     {p.group && <GroupBadge group={permissionGroupLabel(t, p.group)} />}
                                 </td>
-                                <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>{p.guard_name}</td>
-                                <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>{p.roles_count ?? 0}</td>
-                                <td className={cx(tableCellClassName, 'whitespace-nowrap text-xs text-[color:var(--app-muted-foreground)]')}>
+                                <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>{p.guard_name}</td>
+                                <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>{p.roles_count ?? 0}</td>
+                                <td className={cx(tableCellClassName, 'whitespace-nowrap text-xs text-(--app-muted-foreground)')}>
                                     <LocalizedDateDisplay value={p.created_at} />
                                 </td>
                                 <td className={tableCellClassName}>
@@ -383,19 +383,19 @@ function GroupedView({
                 return (
                     <div
                         key={group}
-                        className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]"
+                        className="overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface)"
                     >
                         <button
                             type="button"
                             onClick={() => toggle(group)}
                             aria-expanded={!isCollapsed}
-                            className="flex w-full items-center justify-between gap-3 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-3 text-left hover:bg-[color:var(--app-surface-muted)]"
+                            className="flex w-full items-center justify-between gap-3 border-b border-(--app-border) bg-(--app-surface-muted) px-4 py-3 text-left hover:bg-(--app-surface-muted)"
                         >
                             <span className="flex min-w-0 items-center gap-2">
                                 {isCollapsed
-                                    ? <ChevronRight className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                                    : <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />}
-                                <span className="min-w-0 break-words text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                                    ? <ChevronRight className="h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />
+                                    : <ChevronDown className="h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />}
+                                <span className="min-w-0 wrap-break-word text-xs font-semibold text-(--app-muted-foreground)">
                                     {permissionGroupLabel(t, group)}
                                 </span>
                             </span>
@@ -404,21 +404,21 @@ function GroupedView({
                             </span>
                         </button>
                         {!isCollapsed && (
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                            <ul className="divide-y divide-(--app-border)">
                                 {perms.map((p) => (
-                                    <li key={p.id} className="px-4 py-3.5 transition-colors hover:bg-[color:var(--app-surface-muted)]">
+                                    <li key={p.id} className="px-4 py-3.5 transition-colors hover:bg-(--app-surface-muted)">
                                         <div className="flex flex-wrap items-start justify-between gap-3">
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex flex-wrap items-center gap-1.5">
-                                                    <p className="text-sm font-semibold leading-5 text-[color:var(--app-foreground)]">
+                                                    <p className="text-sm font-semibold leading-5 text-(--app-foreground)">
                                                         {label(p)}
                                                     </p>
                                                     {p.is_system && <SystemBadge t={t} />}
                                                     {CRITICAL.has(p.name) && <CriticalBadge t={t} />}
                                                 </div>
-                                                <p className="mt-1 break-all font-mono text-xs text-[color:var(--app-muted-foreground)]">{p.name}</p>
+                                                <p className="mt-1 break-all font-mono text-xs text-(--app-muted-foreground)">{p.name}</p>
                                                 {description(p) && (
-                                                    <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-[color:var(--app-muted-foreground)]">
+                                                    <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-(--app-muted-foreground)">
                                                         {description(p)}
                                                     </p>
                                                 )}

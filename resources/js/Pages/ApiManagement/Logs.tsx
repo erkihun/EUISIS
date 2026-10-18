@@ -71,21 +71,21 @@ export default function ApiManagementLogs({ logs, filters, applications }: Props
                     <tbody className={tableBodyClassName}>
                         {logs.data.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>{t('apiManagement.noLogs')}</td>
+                                <td colSpan={5} className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>{t('apiManagement.noLogs')}</td>
                             </tr>
                         ) : logs.data.map((log) => (
                             <tr key={log.id} className={tableRowClassName}>
-                                <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{log.application?.name ?? '—'}</td>
-                                <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>
+                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{log.application?.name ?? '—'}</td>
+                                <td className={cx(tableCellClassName, 'font-mono text-(--app-muted-foreground)')}>
                                     <span className="font-semibold">{log.method}</span> {log.endpoint}
                                 </td>
-                                <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>{log.ip_address ?? '—'}</td>
+                                <td className={cx(tableCellClassName, 'font-mono text-(--app-muted-foreground)')}>{log.ip_address ?? '—'}</td>
                                 <td className={tableCellClassName}>
                                     <span className={badgeClassName(log.success ? 'success' : 'danger')}>
                                         {log.status_code}{log.failure_reason ? ` · ${log.failure_reason}` : ''}
                                     </span>
                                 </td>
-                                <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={log.requested_at} withTime /></td>
+                                <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}><LocalizedDateDisplay value={log.requested_at} withTime /></td>
                             </tr>
                         ))}
                     </tbody>

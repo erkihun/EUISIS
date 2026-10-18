@@ -12,7 +12,7 @@ const colorMap: Record<string, string> = {
 export default function IsicActivityLevelBadge({ level }: { level: Level }) {
     const { t } = useLocale();
     const label = t(`isicActivities.${level}`);
-    const cls = colorMap[level] ?? 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]';
+    const cls = colorMap[level] ?? 'bg-(--app-surface-muted) text-(--app-foreground)';
     return (
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>{label === `isicActivities.${level}` ? level : label}</span>
     );

@@ -91,7 +91,7 @@ export default function CyclesIndex({ cycles, organizations, canCreateGlobal, ca
                             <Field label={t('performance.fields.nameAm')} htmlFor="c-am" error={form.errors.name_am}><input id="c-am" className={inputCls} value={form.data.name_am} onChange={(e) => form.setData('name_am', e.target.value)} /></Field>
                             {existing ? (
                                 <Field label={t('performance.fields.organization')}>
-                                    <p className="py-2 text-sm text-[color:var(--app-foreground)]">{existing.organization ? nameOf(existing.organization, locale) : t('performance.cycles.global')}</p>
+                                    <p className="py-2 text-sm text-(--app-foreground)">{existing.organization ? nameOf(existing.organization, locale) : t('performance.cycles.global')}</p>
                                 </Field>
                             ) : (
                                 <Field label={t('performance.fields.organization')} htmlFor="c-org" error={form.errors.organization_id}>
@@ -130,14 +130,14 @@ export default function CyclesIndex({ cycles, organizations, canCreateGlobal, ca
                         {cycles.data.map((cycle) => (
                             <tr key={cycle.id}>
                                 <td className={tdCls}>
-                                    <p className="font-medium text-[color:var(--app-foreground)]">{nameOf(cycle, locale)}{cycle.is_current && <span className="ms-2 text-xs font-normal text-emerald-700 dark:text-emerald-400">{t('performance.cycles.current')}</span>}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]"><span className="font-mono">{cycle.code}</span> · {cycle.organization ? nameOf(cycle.organization, locale) : t('performance.cycles.global')}</p>
+                                    <p className="font-medium text-(--app-foreground)">{nameOf(cycle, locale)}{cycle.is_current && <span className="ms-2 text-xs font-normal text-emerald-700 dark:text-emerald-400">{t('performance.cycles.current')}</span>}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)"><span className="font-mono">{cycle.code}</span> · {cycle.organization ? nameOf(cycle.organization, locale) : t('performance.cycles.global')}</p>
                                 </td>
                                 <td className={`${tdCls} whitespace-nowrap`}><LocalizedDateDisplay value={cycle.start_date} /> – <LocalizedDateDisplay value={cycle.end_date} /></td>
                                 <td className={`${tdCls} whitespace-nowrap text-xs`}>{window(cycle.planning)}</td>
                                 <td className={`${tdCls} whitespace-nowrap text-xs`}>{window(cycle.midyear)}</td>
                                 <td className={`${tdCls} whitespace-nowrap text-xs`}>{window(cycle.yearend)}</td>
-                                <td className={tdCls}><Pill group="cycle" value={cycle.status} />{cycle.read_only && <span className="ms-2 text-xs text-[color:var(--app-muted-foreground)]">{t('performance.cycles.readOnly')}</span>}</td>
+                                <td className={tdCls}><Pill group="cycle" value={cycle.status} />{cycle.read_only && <span className="ms-2 text-xs text-(--app-muted-foreground)">{t('performance.cycles.readOnly')}</span>}</td>
                                 {(canMove || can.update) && (
                                     <td className={`${tdCls} text-right`}>
                                         <div className="flex flex-wrap items-center justify-end gap-3">

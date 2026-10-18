@@ -110,13 +110,13 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
             </AppFilterBar>
 
             {rows.length === 0 ? (
-                <p className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="rounded-panel border border-dashed border-(--app-border-strong) bg-(--app-surface) py-12 text-center text-sm text-(--app-muted-foreground)">
                     {t('nfc.noLogs')}
                 </p>
             ) : (
                 <>
                     {/* Desktop table */}
-                    <div className="hidden overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] md:block">
+                    <div className="hidden overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface) md:block">
                         <table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
@@ -134,14 +134,14 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                             <tbody className={tableBodyClassName}>
                                 {rows.map((row) => (
                                     <tr key={row.credential_id} className={tableRowClassName}>
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>
                                             {row.credential_id.slice(0, 18)}…
                                         </td>
                                         <td className={tableCellClassName}>
                                             {row.card ? (
                                                 <Link
                                                     href={route('id-cards.show', row.card.id)}
-                                                    className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                    className="text-primary hover:underline dark:text-primary"
                                                 >
                                                     {row.card.card_number}
                                                 </Link>
@@ -150,26 +150,26 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                                             )}
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <span className="block text-[color:var(--app-foreground)]">
+                                            <span className="block text-(--app-foreground)">
                                                 {row.employee?.full_name ?? '—'}
                                             </span>
-                                            <span className="block text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="block text-xs text-(--app-muted-foreground)">
                                                 {row.employee?.employee_number}
                                             </span>
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {localizedName(row.organization) || '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {typeLabel(row.credential_type)}
                                         </td>
                                         <td className={tableCellClassName}>
                                             <NfcStatusBadge status={row.status} />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.issued_at ? <LocalizedDateDisplay value={row.issued_at} /> : '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.last_used_at ? (
                                                 <LocalizedDateDisplay value={row.last_used_at} />
                                             ) : (
@@ -197,26 +197,26 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                             <Link
                                 key={row.credential_id}
                                 href={route('nfc-management.credentials.show', row.credential_id)}
-                                className="block rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
+                                className="block rounded-panel border border-(--app-border) bg-(--app-surface) p-4"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="truncate font-medium text-[color:var(--app-foreground)]">
+                                        <p className="truncate font-medium text-(--app-foreground)">
                                             {row.employee?.full_name ?? row.card?.card_number ?? '—'}
                                         </p>
-                                        <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="truncate text-xs text-(--app-muted-foreground)">
                                             {row.card?.card_number} · {typeLabel(row.credential_type)}
                                         </p>
                                     </div>
                                     <NfcStatusBadge status={row.status} />
                                 </div>
-                                <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-[color:var(--app-muted-foreground)]">
+                                <dl className="mt-3 grid grid-cols-2 gap-2 text-xs text-(--app-muted-foreground)">
                                     <div>
-                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('nfc.issuedDate')}</dt>
+                                        <dt className="text-(--app-muted-foreground)">{t('nfc.issuedDate')}</dt>
                                         <dd>{row.issued_at ? <LocalizedDateDisplay value={row.issued_at} /> : '—'}</dd>
                                     </div>
                                     <div>
-                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('nfc.lastUsed')}</dt>
+                                        <dt className="text-(--app-muted-foreground)">{t('nfc.lastUsed')}</dt>
                                         <dd>
                                             {row.last_used_at ? (
                                                 <LocalizedDateDisplay value={row.last_used_at} />

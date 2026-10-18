@@ -66,7 +66,7 @@ export default function PlanLineForm({ planId, organizationId, record, units, pr
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{record?.id ? tt('plans.editLine') : tt('plans.addLine')}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{record?.id ? tt('plans.editLine') : tt('plans.addLine')}</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField id="line-subject" label={tt('plans.unitOrProposal')}>
                         {({ id }) => (
@@ -102,7 +102,7 @@ export default function PlanLineForm({ planId, organizationId, record, units, pr
                     </FormField>
 
                     <fieldset className="sm:col-span-2">
-                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{tt('plans.inputs')}</legend>
+                        <legend className="text-sm font-medium text-(--app-foreground)">{tt('plans.inputs')}</legend>
                         <div className="mt-2 grid gap-3 sm:grid-cols-3">
                             {Object.entries(inputSchema).map(([key, rule]) => (
                                 <FormField key={key} id={`line-input-${key}`} label={tt(`methodologies.inputNames.${key}`)} error={errors[`inputs.${key}`]} description={`${rule.min ?? '−∞'} – ${rule.max ?? '∞'}`}>

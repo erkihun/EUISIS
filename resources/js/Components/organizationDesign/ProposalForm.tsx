@@ -50,7 +50,7 @@ export default function ProposalForm({ studyId, record, parentProposedId, units,
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{record?.id ? tt('studies.editProposal') : tt('studies.addProposal')}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{record?.id ? tt('studies.editProposal') : tt('studies.addProposal')}</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField {...field('proposal_type', tt('fields.proposalType'), true)}>
                         {({ id }) => <Select id={id} value={form.data.proposal_type} onChange={(e) => form.setData('proposal_type', e.target.value)}>{proposalTypes.map((p) => <option key={p} value={p}>{tt(`studies.proposalTypes.${p}`)}</option>)}</Select>}

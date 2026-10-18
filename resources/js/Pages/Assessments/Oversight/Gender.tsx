@@ -21,7 +21,7 @@ export default function OversightGender(props: Props) {
     return (
         <OversightLayout title={t('assessmentOversight.nav.gender')} description={t('assessmentOversight.genderHelp')} active="gender" shell={props}
             actions={cycle && can.export ? <ExportButtons report="gender" cycle={cycle} filters={props.filters} /> : undefined}>
-            {cycle && cycle.small_group_threshold === null && <p role="note" className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.needsDecision.small_group_threshold')}</p>}
+            {cycle && cycle.small_group_threshold === null && <p role="note" className="text-xs text-(--app-muted-foreground)">{t('assessmentOversight.needsDecision.small_group_threshold')}</p>}
             {totals && (
                 <div className="grid gap-4 xl:grid-cols-2">
                     <Section title={t('assessmentOversight.scopeTotal')}><GenderTable gender={totals.gender} /></Section>

@@ -102,20 +102,20 @@ export default function CategoryForm({ record, organizations, canManageCityWide 
                     </FormField>
 
                     <fieldset className="space-y-1.5">
-                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.appliesToTypes')}</legend>
+                        <legend className="text-sm font-medium text-(--app-foreground)">{t('serviceFeedback.appliesToTypes')}</legend>
                         {SUBMISSION_TYPES.map((item) => (
                             <label key={item.value} className="flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={form.data.submission_types.includes(item.value)} onChange={() => form.setData('submission_types', toggle(form.data.submission_types, item.value))} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
+                                <input type="checkbox" checked={form.data.submission_types.includes(item.value)} onChange={() => form.setData('submission_types', toggle(form.data.submission_types, item.value))} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />
                                 {t(`serviceFeedback.${item.key}`)}
                             </label>
                         ))}
                         {errors.submission_types && <p role="alert" className="text-sm text-red-600">{errors.submission_types}</p>}
                     </fieldset>
                     <fieldset className="space-y-1.5">
-                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.appliesToTargets')}</legend>
+                        <legend className="text-sm font-medium text-(--app-foreground)">{t('serviceFeedback.appliesToTargets')}</legend>
                         {TARGET_TYPES.map((item) => (
                             <label key={item.value} className="flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={form.data.target_types.includes(item.value)} onChange={() => form.setData('target_types', toggle(form.data.target_types, item.value))} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
+                                <input type="checkbox" checked={form.data.target_types.includes(item.value)} onChange={() => form.setData('target_types', toggle(form.data.target_types, item.value))} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />
                                 {t(`serviceFeedback.${item.key}`)}
                             </label>
                         ))}
@@ -126,11 +126,11 @@ export default function CategoryForm({ record, organizations, canManageCityWide 
                         {({ id, describedBy, invalid }) => <Input id={id} type="number" min={0} max={9999} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.sort_order} onChange={(e) => form.setData('sort_order', Number(e.target.value))} />}
                     </FormField>
                     <label className="flex items-center gap-2 self-end pb-2 text-sm">
-                        <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
+                        <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />
                         {t('serviceFeedback.qrActive')}
                     </label>
                 </div>
-                <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] px-6 py-4">
+                <div className="flex justify-end gap-2 border-t border-(--app-border) px-6 py-4">
                     <Button as={Link} href={route('service-feedback.categories.index')} variant="outline">{t('common.cancel')}</Button>
                     <Button type="submit" variant="primary" loading={form.processing}>{t('common.save')}</Button>
                 </div>

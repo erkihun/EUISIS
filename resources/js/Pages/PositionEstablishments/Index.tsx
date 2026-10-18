@@ -99,16 +99,16 @@ export default function PositionEstablishmentsIndex({ establishments, filters, f
                                             <td className={tableCellClassName}>
                                                 <Link
                                                     href={route('position-establishments.show', e.id)}
-                                                    className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                    className="font-mono text-primary hover:underline dark:text-primary"
                                                 >
                                                     {e.establishment_number}
                                                 </Link>
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{e.organization?.name_en ?? '—'}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{e.position?.title_en ?? '—'}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{e.approved_slots}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{e.organization?.name_en ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{e.position?.title_en ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{e.approved_slots}</td>
                                             <td className={tableCellClassName}><StatusBadge status={e.status} /></td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={e.effective_from} /></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={e.effective_from} /></td>
                                         </tr>
                                     ))}
                                 </tbody>

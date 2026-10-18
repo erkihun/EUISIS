@@ -65,9 +65,9 @@ export const toneClasses: Record<Tone, { soft: string; text: string; solid: stri
     warning: { soft: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-700 dark:text-amber-300', solid: 'bg-amber-500' },
     danger: { soft: 'bg-red-50 dark:bg-red-950/40', text: 'text-red-700 dark:text-red-300', solid: 'bg-red-600 dark:bg-red-500' },
     info: {
-        soft: 'bg-[color:var(--color-primary-50)] dark:bg-[color:var(--color-primary-950)]',
-        text: 'text-[color:var(--color-primary-700)] dark:text-[color:var(--color-primary-200)]',
-        solid: 'bg-[color:var(--color-primary)]',
+        soft: 'bg-primary-50 dark:bg-primary-950',
+        text: 'text-primary-700 dark:text-primary-200',
+        solid: 'bg-primary',
     },
     neutral: { soft: 'bg-gray-100 dark:bg-slate-800', text: 'text-gray-600 dark:text-slate-300', solid: 'bg-gray-400 dark:bg-slate-500' },
 };

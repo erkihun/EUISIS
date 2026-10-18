@@ -117,7 +117,7 @@ export default function IdCardPreview({ card, can }: PageProps) {
                         <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                             <a
                                 href={route('print-batches.create')}
-                                className="block w-full rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-center text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className="block w-full rounded-lg bg-primary px-4 py-2 text-center text-sm font-medium text-white hover:bg-primary-hover"
                             >
                                 {t('idCards.createPrintBatch')}
                             </a>

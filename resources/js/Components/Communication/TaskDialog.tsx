@@ -66,7 +66,7 @@ export default function TaskDialog({ message, detail, onClose }: { message: Mess
         }
     };
 
-    const field = 'w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15';
+    const field = 'w-full rounded-control border border-(--app-border) bg-(--app-background) px-2.5 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15';
     const preview = message?.body ? bodyForEditing(message).text : '';
     const visible = detail?.members_complete && q.trim().length >= 2
         ? people.filter((p) => p.name.toLowerCase().includes(q.trim().toLowerCase()))
@@ -75,32 +75,32 @@ export default function TaskDialog({ message, detail, onClose }: { message: Mess
     return (
         <Modal show={message !== null} onClose={onClose} maxWidth="lg">
             <form onSubmit={submit} className="flex max-h-[85vh] flex-col">
-                <div className="border-b border-[color:var(--app-border)] px-5 py-4">
-                    <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.tasks.create.title')}</h2>
-                    {preview && <p className="mt-1 line-clamp-2 text-xs text-[color:var(--app-muted-foreground)]">“{preview}”</p>}
+                <div className="border-b border-(--app-border) px-5 py-4">
+                    <h2 className="text-base font-semibold text-(--app-foreground)">{t('communication.tasks.create.title')}</h2>
+                    {preview && <p className="mt-1 line-clamp-2 text-xs text-(--app-muted-foreground)">“{preview}”</p>}
                 </div>
                 <div className="comm-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
                     <label className="block space-y-1">
-                        <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.tasks.create.taskTitle')}</span>
+                        <span className="text-xs font-medium text-(--app-foreground)">{t('communication.tasks.create.taskTitle')}</span>
                         <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={200} placeholder={preview.slice(0, 120)} className={`${field} h-9`} />
-                        <span className="block text-[11px] text-[color:var(--app-muted-foreground)]">{t('communication.tasks.create.taskTitleHelp')}</span>
+                        <span className="block text-[11px] text-(--app-muted-foreground)">{t('communication.tasks.create.taskTitleHelp')}</span>
                     </label>
 
                     <fieldset className="space-y-1.5">
-                        <legend className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.tasks.create.assignee')}</legend>
-                        <p className="text-[11px] text-[color:var(--app-muted-foreground)]">{t('communication.tasks.create.assigneeHelp')}</p>
+                        <legend className="text-xs font-medium text-(--app-foreground)">{t('communication.tasks.create.assignee')}</legend>
+                        <p className="text-[11px] text-(--app-muted-foreground)">{t('communication.tasks.create.assigneeHelp')}</p>
                         <label className="relative block">
                             <span className="sr-only">{t('communication.tasks.create.searchMembers')}</span>
-                            <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                            <SearchIcon className="pointer-events-none absolute inset-s-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                             <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('communication.tasks.create.searchMembers')} className={`${field} h-8 ps-8 text-xs`} />
                         </label>
-                        <ul className="comm-scroll max-h-48 overflow-y-auto rounded-control border border-[color:var(--app-border)]">
+                        <ul className="comm-scroll max-h-48 overflow-y-auto rounded-control border border-(--app-border)">
                             {visible.map((person) => (
                                 <li key={person.id}>
-                                    <label className={`flex cursor-pointer items-center gap-2.5 px-2.5 py-1.5 ${assignee === person.id ? 'bg-[color:color-mix(in_srgb,var(--color-primary)_10%,var(--app-surface))]' : 'hover:bg-[color:var(--app-surface-muted)]'}`}>
-                                        <input type="radio" name="assignee" checked={assignee === person.id} onChange={() => setAssignee(person.id)} className="h-4 w-4 text-[color:var(--color-primary)]" />
+                                    <label className={`flex cursor-pointer items-center gap-2.5 px-2.5 py-1.5 ${assignee === person.id ? 'bg-[color-mix(in_srgb,var(--color-primary)_10%,var(--app-surface))]' : 'hover:bg-(--app-surface-muted)'}`}>
+                                        <input type="radio" name="assignee" checked={assignee === person.id} onChange={() => setAssignee(person.id)} className="h-4 w-4 text-primary" />
                                         <Avatar name={person.name} userId={person.id} hasPhoto={person.has_photo} size="sm" />
-                                        <span className="min-w-0 flex-1 truncate text-sm text-[color:var(--app-foreground)]">{person.name}</span>
+                                        <span className="min-w-0 flex-1 truncate text-sm text-(--app-foreground)">{person.name}</span>
                                     </label>
                                 </li>
                             ))}
@@ -109,25 +109,25 @@ export default function TaskDialog({ message, detail, onClose }: { message: Mess
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <label className="block space-y-1">
-                            <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.tasks.create.priority')}</span>
+                            <span className="text-xs font-medium text-(--app-foreground)">{t('communication.tasks.create.priority')}</span>
                             <select value={priority} onChange={(e) => setPriority(e.target.value as TaskPriority)} className={`${field} h-9`}>
                                 {PRIORITIES.map((p) => <option key={p} value={p}>{t(`communication.tasks.priorities.${p}`)}</option>)}
                             </select>
                         </label>
                         <div className="space-y-1">
-                            <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.tasks.create.due')}</span>
+                            <span className="text-xs font-medium text-(--app-foreground)">{t('communication.tasks.create.due')}</span>
                             <LocalizedDatePicker value={due} onChange={setDue} min={dayKey(new Date().toISOString())} />
                         </div>
                     </div>
 
                     <label className="block space-y-1">
-                        <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.tasks.create.notes')}</span>
+                        <span className="text-xs font-medium text-(--app-foreground)">{t('communication.tasks.create.notes')}</span>
                         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} rows={3} className={`${field} resize-none py-2`} />
                     </label>
-                    {error && <p role="alert" className="text-xs text-[color:var(--color-danger,#b42318)]">{error}</p>}
+                    {error && <p role="alert" className="text-xs text-(--color-danger,#b42318)">{error}</p>}
                 </div>
-                <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] px-5 py-3">
-                    <button type="button" onClick={onClose} className="h-9 rounded-control px-3 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">{t('common.cancel')}</button>
+                <div className="flex justify-end gap-2 border-t border-(--app-border) px-5 py-3">
+                    <button type="button" onClick={onClose} className="h-9 rounded-control px-3 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">{t('common.cancel')}</button>
                     <Button type="submit" variant="primary" disabled={saving || assignee === null} loading={saving}>
                         {t('communication.tasks.create.submit')}
                     </Button>

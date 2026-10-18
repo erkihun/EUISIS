@@ -19,12 +19,12 @@ export default function PortalList<T extends { id: string }>({ rows, columns, cr
             {rows.length === 0 ? <EmptyState title={t('transport.noRecords')} /> : (
                 <>
                 {/* Phones: one card per record; wider screens: the table. */}
-                <ul className="divide-y divide-[color:var(--app-border)] sm:hidden">
+                <ul className="divide-y divide-(--app-border) sm:hidden">
                     {rows.map((row) => (
                         <li key={row.id} className="space-y-2 px-4 py-3">
                             {columns.map((column) => (
                                 <div key={column.header} className="flex items-start justify-between gap-3 text-sm">
-                                    <span className="shrink-0 text-[color:var(--app-muted-foreground)]">{column.header}</span>
+                                    <span className="shrink-0 text-(--app-muted-foreground)">{column.header}</span>
                                     <span className="min-w-0 text-right">{column.cell(row)}</span>
                                 </div>
                             ))}

@@ -26,8 +26,8 @@ type HistoryItem = { id: string; event: string; actor: string | null; reason: st
 function Detail({ term, children }: { term: string; children: ReactNode }) {
     return (
         <div className="grid gap-1 py-2 sm:grid-cols-3 sm:gap-4">
-            <dt className="text-sm text-[color:var(--app-muted-foreground)]">{term}</dt>
-            <dd className="text-sm text-[color:var(--app-foreground)] sm:col-span-2">{children}</dd>
+            <dt className="text-sm text-(--app-muted-foreground)">{term}</dt>
+            <dd className="text-sm text-(--app-foreground) sm:col-span-2">{children}</dd>
         </div>
     );
 }
@@ -65,7 +65,7 @@ export default function ProviderUserShow({ account, history, can }: { account: A
                     <div className="space-y-4 lg:col-span-2">
                         <Card>
                             <CardHeader><CardTitle>{t('providerUsers.details')}</CardTitle></CardHeader>
-                            <dl className="divide-y divide-[color:var(--app-border)] px-4 pb-2 sm:px-6">
+                            <dl className="divide-y divide-(--app-border) px-4 pb-2 sm:px-6">
                                 <Detail term={t('providerUsers.name')}>{account.name}</Detail>
                                 <Detail term={t('providerUsers.email')}>{account.email ?? '—'}</Detail>
                                 <Detail term={t('providerUsers.username')}>{account.username ?? '—'}</Detail>
@@ -74,7 +74,7 @@ export default function ProviderUserShow({ account, history, can }: { account: A
                                     {account.provider ? (
                                         <span>
                                             {label(account.provider)}
-                                            {account.provider.code && <span className="text-[color:var(--app-muted-foreground)]"> ({account.provider.code})</span>}
+                                            {account.provider.code && <span className="text-(--app-muted-foreground)"> ({account.provider.code})</span>}
                                             {account.provider.status !== 'active' && <StatusBadge tone="warning" className="ml-2">{t('providerUsers.statuses.inactive')}</StatusBadge>}
                                         </span>
                                     ) : '—'}
@@ -103,10 +103,10 @@ export default function ProviderUserShow({ account, history, can }: { account: A
 
                         <Card>
                             <CardHeader><CardTitle>{t('providerUsers.sectionAccess')}</CardTitle></CardHeader>
-                            <dl className="divide-y divide-[color:var(--app-border)] px-4 pb-2 sm:px-6">
+                            <dl className="divide-y divide-(--app-border) px-4 pb-2 sm:px-6">
                                 <Detail term={t('providerUsers.role')}>
                                     {t(`providerUsers.roles.${account.provider_role}`)}
-                                    <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t(`providerUsers.roleHelp.${account.provider_role}`)}</span>
+                                    <span className="block text-xs text-(--app-muted-foreground)">{t(`providerUsers.roleHelp.${account.provider_role}`)}</span>
                                 </Detail>
                                 <Detail term={t('providerUsers.grantedPermissions')}>
                                     {account.provider_role !== 'operator'
@@ -122,13 +122,13 @@ export default function ProviderUserShow({ account, history, can }: { account: A
                             <CardHeader><CardTitle>{t('providerUsers.history')}</CardTitle></CardHeader>
                             <div className="px-4 pb-4 sm:px-6">
                                 {history.length === 0 ? (
-                                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('providerUsers.historyEmpty')}</p>
+                                    <p className="text-sm text-(--app-muted-foreground)">{t('providerUsers.historyEmpty')}</p>
                                 ) : (
                                     <ol className="space-y-3">
                                         {history.map((item) => (
-                                            <li key={item.id} className="border-l-2 border-[color:var(--app-border)] pl-3">
-                                                <p className="text-sm font-medium text-[color:var(--app-foreground)]">{eventLabel(item.event)}</p>
-                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <li key={item.id} className="border-l-2 border-(--app-border) pl-3">
+                                                <p className="text-sm font-medium text-(--app-foreground)">{eventLabel(item.event)}</p>
+                                                <p className="text-xs text-(--app-muted-foreground)">
                                                     <LocalizedDateDisplay value={item.at} withTime /> · {item.actor ?? t('providerUsers.system')}
                                                     {item.reason && item.reason !== item.event ? ` · ${item.reason}` : ''}
                                                 </p>
@@ -151,12 +151,12 @@ export default function ProviderUserShow({ account, history, can }: { account: A
                                     <Alert tone="warning">{t('providerUsers.mustChangePassword')}</Alert>
                                 )}
                                 <div>
-                                    <p className="text-[color:var(--app-muted-foreground)]">{t('providerUsers.lastLogin')}</p>
+                                    <p className="text-(--app-muted-foreground)">{t('providerUsers.lastLogin')}</p>
                                     <LocalizedDateDisplay value={account.last_login_at} withTime fallback={t('providerUsers.never')} />
-                                    {account.last_login_ip && <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('providerUsers.lastLoginIp')}: {account.last_login_ip}</p>}
+                                    {account.last_login_ip && <p className="text-xs text-(--app-muted-foreground)">{t('providerUsers.lastLoginIp')}: {account.last_login_ip}</p>}
                                 </div>
                                 <div>
-                                    <p className="text-[color:var(--app-muted-foreground)]">{t('providerUsers.portalAddress')}</p>
+                                    <p className="text-(--app-muted-foreground)">{t('providerUsers.portalAddress')}</p>
                                     <code className="select-all break-all text-xs">{route('provider.portal.login')}</code>
                                 </div>
                             </div>

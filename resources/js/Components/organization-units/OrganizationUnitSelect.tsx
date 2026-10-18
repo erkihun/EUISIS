@@ -57,7 +57,7 @@ export default function OrganizationUnitSelect({
     return (
         <div>
             {label && (
-                <label className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">
+                <label className="mb-1 block text-sm font-medium text-(--app-foreground)">
                     {selectLabel}
                 </label>
             )}
@@ -67,11 +67,11 @@ export default function OrganizationUnitSelect({
                 disabled={disabled || loading || !organizationId}
                 className={[
                     'w-full rounded-md border px-3 py-2 text-sm',
-                    'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)]',
-                    'focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]',
+                    'bg-(--app-surface) text-(--app-foreground)',
+                    'focus:outline-hidden focus:ring-2 focus:ring-primary',
                     error
                         ? 'border-red-400'
-                        : 'border-[color:var(--app-border-strong)]',
+                        : 'border-(--app-border-strong)',
                 ].join(' ')}
             >
                 {nullable && (
@@ -95,7 +95,7 @@ export default function OrganizationUnitSelect({
             </select>
 
             {showRootHint && organizationId && !loading && !hasOptions && (
-                <p className="mt-1 text-xs text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">
+                <p className="mt-1 text-xs text-primary dark:text-primary">
                     {t('organizationUnits.thisWillBeRootUnit')}
                 </p>
             )}

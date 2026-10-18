@@ -56,10 +56,10 @@ it('does not truncate dashboard metric labels', function (): void {
     $stat = file_get_contents(__DIR__.'/../../resources/js/Components/dashboard/StatTile.tsx');
 
     expect($kpi)
-        ->toContain('whitespace-normal break-words')
+        ->toContain('whitespace-normal wrap-break-word')
         ->not->toContain('mt-1.5 truncate')
         ->and($stat)
-        ->toContain('whitespace-normal break-words')
+        ->toContain('whitespace-normal wrap-break-word')
         ->not->toContain('<dt className="truncate');
 });
 
@@ -103,7 +103,7 @@ it('uses a compact responsive operations layout with real actions and attention 
         ->toContain('dark:text-white')
         ->not->toContain('bg-slate-950')
         ->and($activity)
-        ->toContain('divide-y divide-[color:var(--app-border)]')
+        ->toContain('divide-y divide-(--app-border)')
         ->not->toContain('rounded-card border')
         ->and($scope)
         ->toContain("'activity_limit' => 8");

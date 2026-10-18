@@ -61,13 +61,13 @@ export default function Support({ sections, faqs, meta }: Props) {
     const location = pick(office, 'location');
 
     const rows = [
-        email && { label: t('publicSite.email'), value: <a href={`mailto:${email}`} className="text-[color:var(--color-primary)] hover:underline">{email}</a> },
-        phone && { label: t('publicSite.phone'), value: <a href={`tel:${phone.replace(/\s+/g, '')}`} className="text-[color:var(--color-primary)] hover:underline">{phone}</a> },
+        email && { label: t('publicSite.email'), value: <a href={`mailto:${email}`} className="text-primary hover:underline">{email}</a> },
+        phone && { label: t('publicSite.phone'), value: <a href={`tel:${phone.replace(/\s+/g, '')}`} className="text-primary hover:underline">{phone}</a> },
         hours && { label: t('publicSite.officeHours'), value: hours },
         location && { label: t('publicSite.location'), value: location },
         helpCenter && {
             label: t('publicSite.helpCenter'),
-            value: <a href={helpCenter} className="text-[color:var(--color-primary)] hover:underline [overflow-wrap:anywhere]" rel="noopener noreferrer">{helpCenter}</a>,
+            value: <a href={helpCenter} className="text-primary hover:underline wrap-anywhere" rel="noopener noreferrer">{helpCenter}</a>,
         },
     ].filter(Boolean) as Array<{ label: string; value: React.ReactNode }>;
 
@@ -119,7 +119,7 @@ export default function Support({ sections, faqs, meta }: Props) {
                                 {rows.map((row) => (
                                     <div key={row.label} className="py-3">
                                         <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{row.label}</dt>
-                                        <dd className="mt-0.5 text-sm text-gray-900 [overflow-wrap:anywhere] dark:text-slate-100">{row.value}</dd>
+                                        <dd className="mt-0.5 text-sm text-gray-900 wrap-anywhere dark:text-slate-100">{row.value}</dd>
                                     </div>
                                 ))}
                             </dl>
@@ -141,9 +141,9 @@ const iconProps = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', s
 
 /** Where visitors most often need to go. Feedback has no page of its own: it starts from the employee's QR code. */
 const HELP_ROUTES: HelpRoute[] = [
-    { name: 'Verify', routeName: 'public.verify', link: 'home.heroCtaVerify', tone: 'bg-blue-50 text-[color:var(--color-primary)] dark:bg-slate-800 dark:text-blue-300', icon: <svg {...iconProps}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h3v3h-3zM17 20h3v-3" /></svg> },
+    { name: 'Verify', routeName: 'public.verify', link: 'home.heroCtaVerify', tone: 'bg-blue-50 text-primary dark:bg-slate-800 dark:text-blue-300', icon: <svg {...iconProps}><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h3v3h-3zM17 20h3v-3" /></svg> },
     { name: 'Portal', routeName: 'employee.login', link: 'home.heroCtaPortal', tone: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300', icon: <svg {...iconProps}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0116 0" /></svg> },
-    { name: 'Feedback', tone: 'bg-orange-50 text-[color:var(--color-accent)] dark:bg-slate-800 dark:text-orange-300', icon: <svg {...iconProps}><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" /></svg> },
+    { name: 'Feedback', tone: 'bg-orange-50 text-accent dark:bg-slate-800 dark:text-orange-300', icon: <svg {...iconProps}><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" /></svg> },
     { name: 'Services', routeName: 'public.services', link: 'home.heroCtaServices', tone: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200', icon: <svg {...iconProps}><path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9h18" /></svg> },
 ];
 
@@ -155,7 +155,7 @@ function HelpCard({ name, routeName, link, tone, icon }: HelpRoute) {
             <span className="flex min-w-0 flex-col gap-1.5">
                 <span className="text-[15px] font-semibold text-gray-900 dark:text-slate-100">{t(`publicSite.help${name}Title`)}</span>
                 <span className="text-[13px] leading-relaxed text-gray-600 dark:text-slate-400">{t(`publicSite.help${name}Desc`)}</span>
-                {link && <span className="text-[13px] font-semibold text-[color:var(--color-primary)]">{t(link)} <span aria-hidden="true">→</span></span>}
+                {link && <span className="text-[13px] font-semibold text-primary">{t(link)} <span aria-hidden="true">→</span></span>}
             </span>
         </>
     );
@@ -169,8 +169,8 @@ function HelpCard({ name, routeName, link, tone, icon }: HelpRoute) {
 function FaqItem({ question, children }: { question: string; children: ReactNode }) {
     return (
         <details className={`${publicCardClass} group py-2`}>
-            <summary className="relative flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm font-semibold text-gray-900 marker:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:text-slate-100 [&::-webkit-details-marker]:hidden">
-                <span className="[overflow-wrap:anywhere]">{question}</span>
+            <summary className="relative flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm font-semibold text-gray-900 marker:hidden focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:text-slate-100 [&::-webkit-details-marker]:hidden">
+                <span className="wrap-anywhere">{question}</span>
                 <span aria-hidden="true" className="shrink-0 text-gray-400 transition-transform group-open:rotate-45">+</span>
             </summary>
             {children}

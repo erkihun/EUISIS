@@ -33,27 +33,27 @@ type Figure = { label: string; value: number; warn?: boolean; href?: string };
 function FigureCell({ label, value, warn = false, href }: Figure) {
     const content = (
         <>
-            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
+            <dt className="text-xs text-(--app-muted-foreground)">{label}</dt>
             <dd className={cx('mt-1 flex items-center gap-1 text-2xl font-semibold tabular-nums',
-                warn ? 'text-amber-700 dark:text-amber-400' : 'text-[color:var(--app-foreground)]')}>
+                warn ? 'text-amber-700 dark:text-amber-400' : 'text-(--app-foreground)')}>
                 {value}
-                {href && <ChevronRight className="h-4 w-4 text-[color:var(--app-muted-foreground)] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
+                {href && <ChevronRight className="h-4 w-4 text-(--app-muted-foreground) transition-transform group-hover:translate-x-0.5" aria-hidden="true" />}
             </dd>
         </>
     );
     return href
-        ? <Link href={href} className="group block px-4 py-3 transition-colors hover:bg-[color:var(--app-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)]">{content}</Link>
+        ? <Link href={href} className="group block px-4 py-3 transition-colors hover:bg-(--app-surface-muted) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary">{content}</Link>
         : <div className="px-4 py-3">{content}</div>;
 }
 
 function FigureGroup({ title, aside, figures, columns }: { title: string; aside?: JSX.Element; figures: Figure[]; columns: string }) {
     return (
         <Card className="overflow-hidden p-0">
-            <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--app-border)] px-4 py-2.5">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                {aside && <span className="text-xs text-[color:var(--app-muted-foreground)]">{aside}</span>}
+            <div className="flex items-baseline justify-between gap-3 border-b border-(--app-border) px-4 py-2.5">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
+                {aside && <span className="text-xs text-(--app-muted-foreground)">{aside}</span>}
             </div>
-            <dl className={cx('grid divide-[color:var(--app-border)]', columns)}>
+            <dl className={cx('grid divide-(--app-border)', columns)}>
                 {figures.map((figure) => <div key={figure.label}><FigureCell {...figure} /></div>)}
             </dl>
         </Card>
@@ -80,11 +80,11 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
         { label: t('dailyActivities.dashboard.returned'), value: returned },
     ];
 
-    const th = 'px-4 py-2.5 text-left text-xs font-medium text-[color:var(--app-muted-foreground)]';
-    const td = 'px-4 py-2.5 text-sm tabular-nums text-[color:var(--app-foreground)]';
+    const th = 'px-4 py-2.5 text-left text-xs font-medium text-(--app-muted-foreground)';
+    const td = 'px-4 py-2.5 text-sm tabular-nums text-(--app-foreground)';
     // Zero reads as a quiet dash-weight value; non-zero missing registrations stand out.
     const count = (value: number, alert = false) => (
-        <span className={value === 0 ? 'text-[color:var(--app-muted-foreground)]' : alert ? 'font-medium text-red-700 dark:text-red-400' : ''}>{value}</span>
+        <span className={value === 0 ? 'text-(--app-muted-foreground)' : alert ? 'font-medium text-red-700 dark:text-red-400' : ''}>{value}</span>
     );
 
     return (
@@ -104,7 +104,7 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
 
                 <section className="grid gap-4 lg:grid-cols-[minmax(0,28rem)_1fr]">
                     <Card className="overflow-hidden p-0">
-                        <h2 className="border-b border-[color:var(--app-border)] px-4 py-2.5 text-sm font-semibold text-[color:var(--app-foreground)]">{t('dailyActivities.dashboard.lastSevenDays')}</h2>
+                        <h2 className="border-b border-(--app-border) px-4 py-2.5 text-sm font-semibold text-(--app-foreground)">{t('dailyActivities.dashboard.lastSevenDays')}</h2>
                         <div className="overflow-x-auto">
                         <table className={tableClassName}>
                             <thead className={tableHeadClassName}>
@@ -133,9 +133,9 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
 
                     <div className="min-w-0">
                         <div className="mb-2 flex items-center justify-between gap-3">
-                            <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                            <h2 className="text-sm font-semibold text-(--app-foreground)">
                                 {t('dailyActivities.dashboard.awaitingReview')}
-                                {reviewRequired && pendingReview > 0 && <span className="ms-2 font-normal tabular-nums text-[color:var(--app-muted-foreground)]">({pendingReview})</span>}
+                                {reviewRequired && pendingReview > 0 && <span className="ms-2 font-normal tabular-nums text-(--app-muted-foreground)">({pendingReview})</span>}
                             </h2>
                             {reviewRequired && reviewQueue && (
                                 <Link href={reviewQueue} className={actionLinkClassName({ size: 'sm', className: 'inline-flex items-center gap-1' })}>

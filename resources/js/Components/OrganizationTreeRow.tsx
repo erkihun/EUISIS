@@ -69,7 +69,7 @@ export default function OrganizationTreeRow({ node, expanded, onToggle, can, del
                             onClick={() => onToggle(node.id)}
                             aria-expanded={expanded}
                             aria-label={expanded ? 'Collapse organization' : 'Expand organization'}
-                            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)] transition hover:border-blue-300 hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:hover:border-[color:var(--color-primary)] dark:hover:bg-slate-800 dark:hover:text-[color:var(--color-primary-hover)]"
+                            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-(--app-border) text-(--app-muted-foreground) transition hover:border-blue-300 hover:bg-blue-50 hover:text-primary-hover focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:hover:border-primary dark:hover:bg-slate-800 dark:hover:text-primary-hover"
                         >
                             {expanded ? (
                                 <ChevronDown className="h-3.5 w-3.5" />
@@ -86,7 +86,7 @@ export default function OrganizationTreeRow({ node, expanded, onToggle, can, del
                     )}
                     <Link
                         href={route('organizations.show', node.id)}
-                        className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                        className="font-medium text-primary hover:text-primary-hover dark:text-primary dark:hover:text-primary-hover"
                     >
                         {node.code}
                     </Link>
@@ -101,21 +101,21 @@ export default function OrganizationTreeRow({ node, expanded, onToggle, can, del
                             title={node.branding_primary_color}
                         />
                     )}
-                    <span className="text-[color:var(--app-foreground)]">{organizationName}</span>
+                    <span className="text-(--app-foreground)">{organizationName}</span>
                     {node.children_count > 0 && (
-                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="text-xs text-(--app-muted-foreground)">
                             {node.children_count} sub
                         </span>
                     )}
                 </div>
             </td>
-            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+            <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                 {typeName ?? '-'}
             </td>
             <td className={tableCellClassName}>
                 <StatusBadge status={node.status} />
             </td>
-            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+            <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                 <LocalizedDateDisplay value={node.created_at} />
             </td>
             <td className={cx(tableCellClassName, 'text-right')}>

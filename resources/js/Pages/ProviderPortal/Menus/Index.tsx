@@ -14,7 +14,7 @@ const STATUS_CLS: Record<string, string> = {
     closed:     'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
-const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400/20';
+const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-hidden focus:ring-1 focus:ring-orange-400/20';
 
 export default function MenusIndex({ providers, selected_provider_id, menus, filters }: {
     providers: Provider[];
@@ -39,7 +39,7 @@ export default function MenusIndex({ providers, selected_provider_id, menus, fil
                     actions={
                         <Link
                             href={route('provider.portal.menus.create')}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-orange-600"
                         >
                             + {t('providerPortal.newMenu')}
                         </Link>

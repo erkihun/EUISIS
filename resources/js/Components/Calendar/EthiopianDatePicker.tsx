@@ -170,12 +170,12 @@ export default function EthiopianDatePicker({
                 disabled={disabled}
                 onClick={toggleOpen}
                 aria-expanded={open}
-                className={`flex w-full items-center justify-between rounded-md border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-gray-300 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
+                className={`flex w-full items-center justify-between rounded-md border border-(--app-border-strong) bg-(--app-surface) px-3 py-2 text-sm shadow-xs focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 dark:text-gray-300 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
             >
-                <span className={displayValue ? '' : 'text-[color:var(--app-muted-foreground)]'}>
+                <span className={displayValue ? '' : 'text-(--app-muted-foreground)'}>
                     {displayValue || placeholder || t('calendar.selectDate')}
                 </span>
-                <svg className="h-4 w-4 text-[color:var(--app-muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 text-(--app-muted-foreground)" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             </button>
@@ -184,18 +184,18 @@ export default function EthiopianDatePicker({
                 <div
                     ref={popupRef}
                     lang={locale}
-                    className="fixed z-[1000] overflow-y-auto rounded-md border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-lg"
+                    className="fixed z-1000 overflow-y-auto rounded-md border border-(--app-border) bg-(--app-surface) text-(--app-foreground) shadow-lg"
                     style={{ ...popupPosition, width: '280px', maxWidth: 'calc(100vw - 16px)', maxHeight: 'calc(100vh - 16px)' }}
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-3 py-2">
-                        <button type="button" onClick={prevMonth} className="rounded p-1 hover:bg-[color:var(--app-surface-muted)]">
+                    <div className="flex items-center justify-between border-b border-(--app-border) px-3 py-2">
+                        <button type="button" onClick={prevMonth} className="rounded-sm p-1 hover:bg-(--app-surface-muted)">
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                         </button>
-                        <span className="text-sm font-medium text-[color:var(--app-foreground)]">
+                        <span className="text-sm font-medium text-(--app-foreground)">
                             {months[viewMonth]} {viewYear}{locale === 'en' ? ' E.C.' : ''}
                         </span>
-                        <button type="button" onClick={nextMonth} className="rounded p-1 hover:bg-[color:var(--app-surface-muted)]">
+                        <button type="button" onClick={nextMonth} className="rounded-sm p-1 hover:bg-(--app-surface-muted)">
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </button>
                     </div>
@@ -203,7 +203,7 @@ export default function EthiopianDatePicker({
                     {/* Weekday headers */}
                     <div className="grid grid-cols-7 px-2 pt-2">
                         {weekdays.map((wd) => (
-                            <div key={wd} className="text-center text-xs font-medium text-[color:var(--app-muted-foreground)]">{wd}</div>
+                            <div key={wd} className="text-center text-xs font-medium text-(--app-muted-foreground)">{wd}</div>
                         ))}
                     </div>
 
@@ -228,8 +228,8 @@ export default function EthiopianDatePicker({
                                     className={`rounded py-1 text-center text-sm transition-colors
                                         ${isSelected ? 'bg-indigo-600 text-white' : ''}
                                         ${!isSelected && isToday ? 'border border-indigo-400 text-indigo-600 dark:text-indigo-400' : ''}
-                                        ${!isSelected && !isToday && !disabled2 ? 'hover:bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]' : ''}
-                                        ${disabled2 ? 'cursor-not-allowed text-[color:var(--app-muted-foreground)]' : 'cursor-pointer'}
+                                        ${!isSelected && !isToday && !disabled2 ? 'hover:bg-(--app-surface-muted) text-(--app-foreground)' : ''}
+                                        ${disabled2 ? 'cursor-not-allowed text-(--app-muted-foreground)' : 'cursor-pointer'}
                                     `}
                                 >
                                     {day}
@@ -239,7 +239,7 @@ export default function EthiopianDatePicker({
                     </div>
 
                     {/* Today / Clear */}
-                    <div className="flex justify-between border-t border-[color:var(--app-border)] px-3 py-2">
+                    <div className="flex justify-between border-t border-(--app-border) px-3 py-2">
                         <button
                             type="button"
                             onClick={() => {
@@ -261,7 +261,7 @@ export default function EthiopianDatePicker({
                             <button
                                 type="button"
                                 onClick={() => { onChange(''); setOpen(false); }}
-                                className="text-xs text-[color:var(--app-muted-foreground)] hover:underline"
+                                className="text-xs text-(--app-muted-foreground) hover:underline"
                             >
                                 {t('calendar.clear')}
                             </button>

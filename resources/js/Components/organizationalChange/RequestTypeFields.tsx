@@ -16,7 +16,7 @@ type Props = {
 };
 
 const inputCls = cx(inputClassName, 'w-full min-w-0');
-const labelCls = 'block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block space-y-1.5 text-xs font-medium text-(--app-muted-foreground)';
 
 /**
  * The type-specific half of the request form.

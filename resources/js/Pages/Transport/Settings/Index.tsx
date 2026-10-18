@@ -22,12 +22,12 @@ export default function Index({ transportSettings }: { transportSettings: Settin
         <AuthenticatedLayout header={<PageHeader title={t('transport.settings')} description={t('transport.settingsIntro')} />}>
             <Head title={t('transport.settings')} />
             <form onSubmit={submit}>
-                <Card className="divide-y divide-[color:var(--app-border)] p-0">
+                <Card className="divide-y divide-(--app-border) p-0">
                     {KEYS.map((key) => (
                         <label key={key} className="flex cursor-pointer items-start justify-between gap-4 p-4">
                             <span className="min-w-0">
                                 <span className="block text-sm font-medium">{label('settingLabels', key)}</span>
-                                <span className="mt-0.5 block text-sm text-[color:var(--app-muted-foreground)]">{label('settingHelp', key)}</span>
+                                <span className="mt-0.5 block text-sm text-(--app-muted-foreground)">{label('settingHelp', key)}</span>
                                 {form.errors[key] && <span className="mt-1 block text-sm text-red-600">{form.errors[key]}</span>}
                             </span>
                             <input type="checkbox" role="switch" className="mt-1 h-5 w-5 shrink-0" checked={form.data[key]} onChange={(e) => form.setData(key, e.target.checked)} />

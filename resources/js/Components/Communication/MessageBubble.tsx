@@ -43,7 +43,7 @@ function MessageBubble(props: Props): JSX.Element {
     if (message.type === 'SYSTEM') {
         return (
             <li id={`m-${message.id}`} className="my-3 flex justify-center px-4">
-                <span className="rounded-full bg-[color:var(--app-surface-muted)] px-3 py-1 text-center text-xs text-[color:var(--app-muted-foreground)]">
+                <span className="rounded-full bg-(--app-surface-muted) px-3 py-1 text-center text-xs text-(--app-muted-foreground)">
                     {systemText(message, t)}
                 </span>
             </li>
@@ -67,8 +67,8 @@ function MessageBubble(props: Props): JSX.Element {
     // runtime and white text on it is not legible for every choice.
     // Soft edges rather than hard borders: a faint ring on one's own, a light lift on the others'.
     const surface = own
-        ? 'bg-[color:color-mix(in_srgb,var(--color-primary)_14%,var(--app-surface))] dark:bg-[color:color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] text-[color:var(--app-foreground)] ring-1 ring-inset ring-[color:color-mix(in_srgb,var(--color-primary)_18%,transparent)]'
-        : 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-[0_1px_2px_rgba(15,23,42,0.08)] ring-1 ring-inset ring-[color:color-mix(in_srgb,var(--app-border)_70%,transparent)]';
+        ? 'bg-[color-mix(in_srgb,var(--color-primary)_14%,var(--app-surface))] dark:bg-[color-mix(in_srgb,var(--color-primary)_30%,var(--app-surface))] text-(--app-foreground) ring-1 ring-inset ring-[color-mix(in_srgb,var(--color-primary)_18%,transparent)]'
+        : 'bg-(--app-surface) text-(--app-foreground) shadow-[0_1px_2px_rgba(15,23,42,0.08)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--app-border)_70%,transparent)]';
 
     return (
         <li
@@ -77,12 +77,12 @@ function MessageBubble(props: Props): JSX.Element {
         >
             <div className={`relative flex max-w-[min(36rem,85%)] flex-col ${own ? 'items-end' : 'items-start'}`}>
                 {showSender && !own && (
-                    <span className="mb-0.5 px-1 text-xs font-semibold text-[color:var(--app-muted-foreground)]">{message.sender?.name}</span>
+                    <span className="mb-0.5 px-1 text-xs font-semibold text-(--app-muted-foreground)">{message.sender?.name}</span>
                 )}
 
                 <div className={`relative rounded-panel px-3.5 py-2 text-sm leading-relaxed ${surface} ${own ? (continued ? 'rounded-se-md' : 'rounded-se-sm') : (continued ? 'rounded-ss-md' : 'rounded-ss-sm')}`}>
                     {message.forwarded && !message.deleted && (
-                        <span className={`mb-1 flex items-center gap-1 text-[11px] italic ${own ? 'text-[color:var(--app-muted-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                        <span className={`mb-1 flex items-center gap-1 text-[11px] italic ${own ? 'text-(--app-muted-foreground)' : 'text-(--app-muted-foreground)'}`}>
                             <ForwardIcon className="h-3 w-3" aria-hidden="true" /> {t('communication.chat.forwarded')}
                         </span>
                     )}
@@ -91,7 +91,7 @@ function MessageBubble(props: Props): JSX.Element {
                         <button
                             type="button"
                             onClick={() => message.parent && props.onJump(message.parent.id)}
-                            className={`mb-1.5 block w-full rounded-lg border px-2 py-1 text-start text-xs ${own ? 'border-[color:var(--app-border)] bg-[color:var(--app-surface)]/70 text-[color:var(--app-foreground)]' : 'border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}
+                            className={`mb-1.5 block w-full rounded-lg border px-2 py-1 text-start text-xs ${own ? 'border-(--app-border) bg-(--app-surface)/70 text-(--app-foreground)' : 'border-(--app-border) bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}
                         >
                             <span className="block font-semibold">{message.parent.sender_name}</span>
                             <span className="line-clamp-2">
@@ -101,7 +101,7 @@ function MessageBubble(props: Props): JSX.Element {
                     )}
 
                     {message.deleted ? (
-                        <span className={`italic ${own ? 'text-[color:var(--app-muted-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>{t('communication.chat.deleted')}</span>
+                        <span className={`italic ${own ? 'text-(--app-muted-foreground)' : 'text-(--app-muted-foreground)'}`}>{t('communication.chat.deleted')}</span>
                     ) : (
                         <>
                             {message.body && <MessageText body={message.body} mentions={message.mentions} currentUserId={currentUserId} />}
@@ -113,7 +113,7 @@ function MessageBubble(props: Props): JSX.Element {
                         </>
                     )}
 
-                    <span className={`mt-0.5 flex items-center justify-end gap-1.5 text-[11px] tabular-nums ${own ? 'text-[color:var(--app-muted-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                    <span className={`mt-0.5 flex items-center justify-end gap-1.5 text-[11px] tabular-nums ${own ? 'text-(--app-muted-foreground)' : 'text-(--app-muted-foreground)'}`}>
                         {pinned && <PinIcon className="h-3 w-3" aria-label={t('communication.actions.pin')} />}
                         {message.edited_at && !message.deleted && <span>{t('communication.chat.edited')}</span>}
                         <time dateTime={message.created_at ?? undefined}>{time}</time>
@@ -132,7 +132,7 @@ function MessageBubble(props: Props): JSX.Element {
                                     aria-pressed={mine}
                                     aria-label={tr(t('communication.actions.reactedBy'), { emoji: reaction.emoji, n: reaction.count })}
                                     onClick={() => props.onReact(message, reaction.emoji, !mine)}
-                                    className={`inline-flex h-6 items-center gap-1 rounded-full border px-1.5 text-xs tabular-nums transition-colors ${mine ? 'border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-[color:var(--app-foreground)]' : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:border-[color:var(--app-border-strong)]'}`}
+                                    className={`inline-flex h-6 items-center gap-1 rounded-full border px-1.5 text-xs tabular-nums transition-colors ${mine ? 'border-primary bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-(--app-foreground)' : 'border-(--app-border) bg-(--app-surface) text-(--app-foreground) hover:border-(--app-border-strong)'}`}
                                 >
                                     <span aria-hidden="true">{reaction.emoji}</span>
                                     {reaction.count}
@@ -142,11 +142,11 @@ function MessageBubble(props: Props): JSX.Element {
                     </div>
                 )}
 
-                {status && <span className="mt-0.5 px-1 text-[11px] text-[color:var(--app-muted-foreground)]">{status}</span>}
+                {status && <span className="mt-0.5 px-1 text-[11px] text-(--app-muted-foreground)">{status}</span>}
 
                 {actionable && (
                     <div
-                        className={`absolute top-0 z-10 flex -translate-y-1/2 items-center rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-0.5 opacity-0 shadow-sm transition-opacity focus-within:opacity-100 group-hover:opacity-100 ${picker || menu ? 'opacity-100' : ''} ${own ? 'start-0' : 'end-0'}`}
+                        className={`absolute top-0 z-10 flex -translate-y-1/2 items-center rounded-control border border-(--app-border) bg-(--app-surface) p-0.5 opacity-0 shadow-xs transition-opacity focus-within:opacity-100 group-hover:opacity-100 ${picker || menu ? 'opacity-100' : ''} ${own ? 'inset-s-0' : 'inset-e-0'}`}
                     >
                         {can.react && (
                             <div className="relative">
@@ -223,7 +223,7 @@ function ToolbarButton({ label, onClick, expanded, children }: { label: string; 
             aria-label={label}
             aria-expanded={expanded}
             onClick={onClick}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary"
         >
             {children}
         </button>
@@ -254,7 +254,7 @@ export function ActionMenu({ onClose, align = 'end', children }: { onClose: () =
             ref={ref}
             role="menu"
             onKeyDown={keys}
-            className={`absolute top-full z-30 mt-1 min-w-[11rem] rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] py-1 shadow-lg ${align === 'end' ? 'end-0' : 'start-0'}`}
+            className={`absolute top-full z-30 mt-1 min-w-44 rounded-control border border-(--app-border) bg-(--app-surface) py-1 shadow-lg ${align === 'end' ? 'inset-e-0' : 'inset-s-0'}`}
         >
             {children}
         </div>
@@ -267,7 +267,7 @@ export function MenuItem({ onClick, danger = false, children }: { onClick: () =>
             type="button"
             role="menuitem"
             onClick={onClick}
-            className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-start text-sm focus:bg-[color:var(--app-surface-muted)] focus:outline-none hover:bg-[color:var(--app-surface-muted)] ${danger ? 'text-[color:var(--color-danger,#b42318)]' : 'text-[color:var(--app-foreground)]'}`}
+            className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-start text-sm focus:bg-(--app-surface-muted) focus:outline-hidden hover:bg-(--app-surface-muted) ${danger ? 'text-(--color-danger,#b42318)' : 'text-(--app-foreground)'}`}
         >
             {children}
         </button>
@@ -295,19 +295,19 @@ function AttachmentView({ file, own }: { file: Attachment; own: boolean }): JSX.
     const meta = `${file.extension.toUpperCase()} · ${fileSize(file.size)}`;
     const body = (
         <>
-            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${own ? 'bg-[color:var(--app-surface)]' : 'bg-[color:var(--app-surface-muted)]'}`}>
+            <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${own ? 'bg-(--app-surface)' : 'bg-(--app-surface-muted)'}`}>
                 <PaperclipIcon className="h-4 w-4" aria-hidden="true" />
             </span>
             <span className="min-w-0 flex-1">
                 <span className="block truncate font-medium">{file.name}</span>
-                <span className={`block text-xs ${own ? 'text-[color:var(--app-muted-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                <span className={`block text-xs ${own ? 'text-(--app-muted-foreground)' : 'text-(--app-muted-foreground)'}`}>
                     {file.downloadable ? meta : `${meta} · ${t('communication.chat.attachmentWaiting')}`}
                 </span>
             </span>
             {file.downloadable && <DownloadIcon className="h-4 w-4 shrink-0 opacity-70" aria-hidden="true" />}
         </>
     );
-    const box = `flex w-64 max-w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-start ${own ? 'bg-[color:var(--app-surface)]/70' : 'bg-[color:var(--app-surface-muted)]/60'}`;
+    const box = `flex w-64 max-w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-start ${own ? 'bg-(--app-surface)/70' : 'bg-(--app-surface-muted)/60'}`;
 
     return file.downloadable
         ? <a href={communicationApi.downloadUrl(file.id)} className={`${box} hover:opacity-90`} aria-label={`${t('communication.actions.download')} ${file.name}`}>{body}</a>

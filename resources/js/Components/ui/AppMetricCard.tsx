@@ -16,7 +16,7 @@ interface AppMetricCardProps {
 }
 
 const variantStyles: Record<Variant, { icon: string; value: string }> = {
-    primary:  { icon: 'bg-blue-100 text-[color:var(--color-primary)] dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]', value: 'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]' },
+    primary:  { icon: 'bg-blue-100 text-primary dark:bg-blue-900/30 dark:text-primary', value: 'text-primary dark:text-primary' },
     success:  { icon: 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400', value: 'text-green-700 dark:text-green-400' },
     warning:  { icon: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400', value: 'text-amber-700 dark:text-amber-400' },
     danger:   { icon: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400', value: 'text-red-600 dark:text-red-400' },
@@ -46,8 +46,8 @@ export default function AppMetricCard({
         return (
             <div className="overflow-hidden rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <div className="animate-pulse space-y-3">
-                    <div className="h-3 w-24 rounded bg-gray-200 dark:bg-slate-700" />
-                    <div className="h-7 w-16 rounded bg-gray-200 dark:bg-slate-700" />
+                    <div className="h-3 w-24 rounded-sm bg-gray-200 dark:bg-slate-700" />
+                    <div className="h-7 w-16 rounded-sm bg-gray-200 dark:bg-slate-700" />
                 </div>
             </div>
         );
