@@ -531,6 +531,7 @@ const communication = {
     },
 
     navMore: { tasks: 'የእኔ ተግባራት', moderation: 'የይዘት ግምገማ', investigations: 'የምርመራ ፈቃድ' },
+    workspace: { overview: 'አጠቃላይ እይታ', more: 'ተጨማሪ' },
 
     settings: {
         title: 'የኮሙኒኬሽን ቅንብሮች',

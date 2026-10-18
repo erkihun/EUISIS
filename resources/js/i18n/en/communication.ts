@@ -531,6 +531,7 @@ const communication = {
     },
 
     navMore: { tasks: 'My tasks', moderation: 'Moderation', investigations: 'Investigation access' },
+    workspace: { overview: 'Overview', more: 'More' },
 
     settings: {
         title: 'Communication settings',

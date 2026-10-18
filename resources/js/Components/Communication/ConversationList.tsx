@@ -5,8 +5,8 @@ import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { listTime, tr } from '@/lib/communication/format';
 import Avatar from '@/Components/Communication/Avatar';
 import { ActionMenu, MenuItem } from '@/Components/Communication/MessageBubble';
-import { BellOffIcon, ChatIcon, HashIcon, PaperclipIcon, PlusIcon, SearchIcon, Users } from '@/Components/NavIcons';
-import type { ConversationSummary, ConversationType } from '@/types/communication';
+import { BellOffIcon, ChatIcon, HashIcon, MegaphoneIcon, MenuDotsIcon, PaperclipIcon, PlusIcon, SearchIcon, Users } from '@/Components/NavIcons';
+import type { ConversationSummary, ConversationType, WorkspaceLinks } from '@/types/communication';
 
 type Props = {
     items: ConversationSummary[];
@@ -23,6 +23,8 @@ type Props = {
     onSelect: (id: string) => void;
     onLoadMore: () => void;
     onNew: (kind: 'message' | 'group') => void;
+    /** The workspace's own navigation; Communication has no sidebar entry. */
+    links?: WorkspaceLinks;
 };
 
 const FILTERS: (ConversationType | null)[] = [null, 'DIRECT', 'GROUP', 'CHANNEL'];
@@ -31,12 +33,38 @@ export default function ConversationList(props: Props): JSX.Element {
     const { items, activeId, filter, search, loading, hasMore } = props;
     const { t } = useLocale();
     const [menu, setMenu] = useState(false);
+    const [more, setMore] = useState(false);
     const many = props.canGroup || props.canBrowseChannels;
 
     return (
         <div className="flex h-full min-h-0 flex-col">
             <div className="flex items-center gap-2 px-3 pb-2 pt-3">
                 <h2 className="flex-1 text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.messagesTitle')}</h2>
+                {props.links && (
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setMore((v) => !v)}
+                            aria-expanded={more}
+                            aria-haspopup="menu"
+                            aria-label={t('communication.workspace.more')}
+                            title={t('communication.workspace.more')}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-control text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                        >
+                            <MenuDotsIcon className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                        {more && (
+                            <ActionMenu onClose={() => setMore(false)}>
+                                <WorkspaceLink href={route('communication.index')}>{t('communication.workspace.overview')}</WorkspaceLink>
+                                <WorkspaceLink href={route('communication.preferences.index')}>{t('communication.links.preferences')}</WorkspaceLink>
+                                {props.links.tasks && <WorkspaceLink href={route('communication.tasks.index')}>{t('communication.navMore.tasks')}</WorkspaceLink>}
+                                {props.links.moderate && <WorkspaceLink href={route('communication.moderation.index')}>{t('communication.navMore.moderation')}</WorkspaceLink>}
+                                {props.links.investigations && <WorkspaceLink href={route('communication.investigations.index')}>{t('communication.navMore.investigations')}</WorkspaceLink>}
+                                {props.links.settings && <WorkspaceLink href={route('communication.settings.index')}>{t('communication.links.settings')}</WorkspaceLink>}
+                            </ActionMenu>
+                        )}
+                    </div>
+                )}
                 {props.canStart && (
                     <div className="relative">
                         <button
@@ -90,6 +118,15 @@ export default function ConversationList(props: Props): JSX.Element {
                         </button>
                     ))}
                 </div>
+                {props.links?.announcements && (
+                    <Link
+                        href={route('communication.announcements.index')}
+                        className="mb-2 flex items-center gap-2 rounded-control px-2 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                    >
+                        <MegaphoneIcon className="h-4 w-4 text-[color:var(--color-primary)]" aria-hidden="true" />
+                        {t('communication.totals.announcements')}
+                    </Link>
+                )}
             </div>
 
             <nav aria-label={t('communication.list.label')} className="comm-scroll min-h-0 flex-1 overflow-y-auto border-t border-[color:var(--app-border)]">
@@ -193,5 +230,13 @@ export function ListSkeleton({ rows = 7 }: { rows?: number }): JSX.Element {
                 </li>
             ))}
         </ul>
+    );
+}
+
+function WorkspaceLink({ href, children }: { href: string; children: React.ReactNode }): JSX.Element {
+    return (
+        <Link role="menuitem" href={href} className="flex w-full items-center gap-2.5 px-3 py-1.5 text-start text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] focus:bg-[color:var(--app-surface-muted)] focus:outline-none">
+            {children}
+        </Link>
     );
 }

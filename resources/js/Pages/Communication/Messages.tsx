@@ -10,7 +10,7 @@ import NewGroupPanel from '@/Components/Communication/NewGroupPanel';
 import ChatView from '@/Components/Communication/ChatView';
 import { ChatIcon } from '@/Components/NavIcons';
 import type { PageProps } from '@/types';
-import type { ConversationPage, ConversationSummary, ConversationType, MessagesAbilities, MessagesLimits } from '@/types/communication';
+import type { ConversationPage, ConversationSummary, ConversationType, MessagesAbilities, MessagesLimits, WorkspaceLinks } from '@/types/communication';
 
 type Props = PageProps<{
     initialConversations: ConversationPage;
@@ -20,20 +20,26 @@ type Props = PageProps<{
     reactions: string[];
     can: MessagesAbilities;
     realtime: { enabled: boolean };
+    workspace: WorkspaceLinks;
 }>;
 
 const LIST_POLL_MS = 15000;
 
 const urlFor = (id: string | null) => (id ? route('communication.messages.show', id) : route('communication.messages.index'));
 
-/** Fills the space below the app header, whatever the header and banners measure. */
+/**
+ * Fills the space below the app header, whatever the header and banners
+ * measure, so the page never scrolls: only the conversation list and the
+ * messages do. The bottom gap matches the focus-mode padding of the layout.
+ */
 function useFillHeight(): [React.RefObject<HTMLDivElement>, number | null] {
     const ref = useRef<HTMLDivElement>(null);
     const [height, setHeight] = useState<number | null>(null);
     useLayoutEffect(() => {
         const measure = () => {
             const top = ref.current?.getBoundingClientRect().top ?? 0;
-            setHeight(Math.max(420, window.innerHeight - top - 28));
+            const gap = window.innerWidth >= 1024 ? 16 : window.innerWidth >= 640 ? 12 : 0;
+            setHeight(Math.max(420, window.innerHeight - top - gap));
         };
         measure();
         window.addEventListener('resize', measure);
@@ -165,12 +171,12 @@ export default function Messages(props: Props): JSX.Element {
     const activeTitle = items.find((c) => c.id === activeId)?.title;
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout mode="communication">
             <Head title={activeTitle ? `${activeTitle} · ${t('communication.messagesTitle')}` : t('communication.messagesTitle')} />
             <div
                 ref={box}
                 style={height ? { height } : undefined}
-                className="-mx-4 -mt-2 flex min-h-[420px] overflow-hidden border-y border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:mx-0 sm:mt-0 sm:rounded-panel sm:border"
+                className="flex min-h-[420px] overflow-hidden border-y border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:rounded-panel sm:border"
             >
                 <div className={`w-full shrink-0 border-e border-[color:var(--app-border)] bg-[color:var(--app-surface)] lg:block lg:w-80 ${activeId ? 'hidden' : 'block'}`}>
                     {composing === 'group' && can.createGroup ? (
@@ -193,6 +199,7 @@ export default function Messages(props: Props): JSX.Element {
                             onSelect={select}
                             onLoadMore={() => void loadMore()}
                             onNew={(kind) => setComposing(kind)}
+                            links={props.workspace}
                         />
                     )}
                 </div>

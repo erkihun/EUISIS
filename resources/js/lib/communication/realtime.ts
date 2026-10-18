@@ -11,7 +11,8 @@ type Listener = (payload: Record<string, unknown>) => void;
 
 type EchoChannel = {
     listen: (event: string, callback: Listener) => EchoChannel;
-    stopListening: (event: string) => EchoChannel;
+    /** With a callback, only that handler is removed (others on the same event keep listening). */
+    stopListening: (event: string, callback?: Listener) => EchoChannel;
 };
 
 type EchoLike = {
@@ -44,16 +45,34 @@ export function onRealtimeState(callback: (state: RealtimeState) => void): () =>
     return () => connection.unbind?.('state_change', handler);
 }
 
-/** Listens on a private channel; returns an unsubscribe that leaves the channel. */
+/*
+ * Several parts of a page share one channel (the top-bar badge and the
+ * Messages workspace both use the person's own channel), so the channel is
+ * left only when its last listener goes; leaving earlier would silently cut
+ * the others off.
+ */
+const subscribers = new Map<string, number>();
+
+/** Listens on a private channel; returns an unsubscribe that leaves the channel once nobody else listens. */
 export function listen(channel: string, handlers: Record<string, Listener>): () => void {
     const instance = echo();
     if (!instance) return () => {};
     const subscription = instance.private(channel);
+    subscribers.set(channel, (subscribers.get(channel) ?? 0) + 1);
     for (const [event, handler] of Object.entries(handlers)) subscription.listen(`.${event}`, handler);
 
+    let done = false;
     return () => {
-        for (const event of Object.keys(handlers)) subscription.stopListening(`.${event}`);
-        instance.leave(channel);
+        if (done) return;
+        done = true;
+        for (const [event, handler] of Object.entries(handlers)) subscription.stopListening(`.${event}`, handler);
+        const left = (subscribers.get(channel) ?? 1) - 1;
+        if (left > 0) {
+            subscribers.set(channel, left);
+        } else {
+            subscribers.delete(channel);
+            instance.leave(channel);
+        }
     };
 }
 

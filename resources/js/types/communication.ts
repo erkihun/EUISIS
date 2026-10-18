@@ -161,6 +161,15 @@ export type MessagesAbilities = {
     report: boolean;
 };
 
+/** Workspace navigation the person may open (announcements, tasks, moderation, investigations, settings). */
+export type WorkspaceLinks = {
+    announcements: boolean;
+    tasks: boolean;
+    moderate: boolean;
+    investigations: boolean;
+    settings: boolean;
+};
+
 export type AnnouncementPriority = 'NORMAL' | 'IMPORTANT' | 'URGENT' | 'EMERGENCY';
 export type AnnouncementStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'EXPIRED' | 'CANCELLED';
 export type AnnouncementTargetType = 'CITY' | 'ORGANIZATION' | 'ORGANIZATION_SUBTREE' | 'ORGANIZATION_UNIT' | 'EMPLOYEE' | 'ROLE' | 'GROUP';

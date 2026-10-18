@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Communication;
 
 use App\Http\Controllers\Controller;
+use App\Models\Communication\CommunicationTask;
 use App\Models\Communication\Conversation;
 use App\Services\Communication\CommunicationInbox;
 use App\Services\Communication\CommunicationSettings;
@@ -56,6 +57,15 @@ class MessagesController extends Controller
             ],
             'realtime' => [
                 'enabled' => ! in_array(config('broadcasting.default'), [null, 'null', 'log'], true),
+            ],
+            // The workspace's own navigation (Communication is not a sidebar item): what this person may open.
+            'workspace' => [
+                'announcements' => $user->can('announcements.view'),
+                'tasks' => $user->can('communication.tasks.create') || CommunicationTask::query()->where('assigned_to', $user->getKey())->exists(),
+                // Read from roles: the Super Admin bypass does not open moderation or investigations.
+                'moderate' => $user->checkPermissionTo('communication.moderate'),
+                'investigations' => $user->checkPermissionTo('communication.break_glass.request') || $user->checkPermissionTo('communication.break_glass.approve') || $user->checkPermissionTo('communication.audit'),
+                'settings' => $user->can('communication.settings.manage'),
             ],
         ]);
     }

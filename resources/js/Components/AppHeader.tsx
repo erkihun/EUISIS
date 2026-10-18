@@ -5,7 +5,7 @@ import { MenuIcon, ChevronDown, LogOut, SettingsIcon, SearchIcon as Search, Side
 import ThemeToggle from '@/Components/ThemeToggle';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import UserAvatar from '@/Components/UserAvatar';
-import MessagesButton from '@/Components/MessagesButton';
+import CommunicationButton from '@/Components/TopNav/CommunicationButton';
 import NotificationBell from '@/Components/NotificationBell';
 import AppCommandPalette from '@/Components/ui/AppCommandPalette';
 import { useLocale } from '@/hooks/useLocale';
@@ -81,10 +81,10 @@ export default function AppHeader({ onMenuClick, onToggleSidebar, sidebarCollaps
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-                    <LanguageSwitcher variant="toolbar" />
-                    <ThemeToggle variant="toolbar" />
-                    <MessagesButton />
+                    <CommunicationButton />
                     <NotificationBell />
+                    <ThemeToggle variant="toolbar" />
+                    <LanguageSwitcher variant="toolbar" />
                     <span aria-hidden="true" className="mx-1 hidden h-6 w-px bg-[color:var(--app-border)] sm:block" />
                     <Menu>
                         <MenuButton

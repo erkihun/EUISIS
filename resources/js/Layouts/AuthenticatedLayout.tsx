@@ -28,7 +28,19 @@ export default function Authenticated({
     children,
     variant = 'default',
     contentWidth = 'full',
-}: PropsWithChildren<{ header?: ReactNode; variant?: 'default' | 'portal'; contentWidth?: ContentWidth }>) {
+    mode = 'default',
+}: PropsWithChildren<{
+    header?: ReactNode;
+    variant?: 'default' | 'portal';
+    contentWidth?: ContentWidth;
+    /**
+     * 'communication' is the focus mode of the Communication workspace: the
+     * desktop sidebar drops to its icon rail (without touching the person's
+     * saved preference), breadcrumbs and the page measure go, and the content
+     * area is left to the workspace. Same shell, auth, theme, locale and menus.
+     */
+    mode?: 'default' | 'communication';
+}>) {
     const { locale, t } = useLocale();
     const { getBoolean, getString } = useSystemSettings();
     const { url: pageUrl } = usePage();
@@ -63,7 +75,15 @@ export default function Authenticated({
         return sidebarCompactDefault;
     });
 
+    const focus = mode === 'communication';
+    const [focusExpanded, setFocusExpanded] = useState(false);
+    const collapsed = focus ? !focusExpanded : sidebarCollapsed;
+
     const toggleSidebarCollapse = () => {
+        if (focus) {
+            setFocusExpanded((open) => !open);
+            return;
+        }
         setSidebarCollapsed((prev) => {
             const next = !prev;
             try { localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next)); } catch {}
@@ -139,11 +159,11 @@ export default function Authenticated({
                     className={[
                         'fixed inset-y-0 left-0 z-30 flex h-screen flex-col',
                         'transition-[width] duration-200 ease-in-out overflow-hidden',
-                        sidebarCollapsed ? 'w-16' : 'w-[17.5rem]',
+                        collapsed ? 'w-16' : 'w-[17.5rem]',
                     ].join(' ')}
                 >
                     <AppSidebar
-                        collapsed={sidebarCollapsed}
+                        collapsed={collapsed}
                         onToggleCollapse={toggleSidebarCollapse}
                     />
                 </div>
@@ -172,10 +192,10 @@ export default function Authenticated({
                 className={[
                     'flex min-h-screen flex-col',
                     'transition-[margin-left] duration-200 ease-in-out',
-                    sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[17.5rem]',
+                    collapsed ? 'lg:ml-16' : 'lg:ml-[17.5rem]',
                 ].join(' ')}
             >
-                <AppHeader onMenuClick={() => setSidebarOpen(true)} onToggleSidebar={toggleSidebarCollapse} sidebarCollapsed={sidebarCollapsed} />
+                <AppHeader onMenuClick={() => setSidebarOpen(true)} onToggleSidebar={toggleSidebarCollapse} sidebarCollapsed={collapsed} />
 
                 {maintenanceEnabled && maintenanceMessage && (
                     <div
@@ -196,13 +216,20 @@ export default function Authenticated({
                     </div>
                 )}
 
-                <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8">
-                    <div className={CONTENT_WIDTH}>
-                        {!header && showBreadcrumbs && <Breadcrumbs className="mb-4" />}
+                {focus ? (
+                    <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none sm:p-3 lg:p-4">
                         <TemporaryPasswordNotice />
-                        {contentWidth === 'form' ? <div className={FORM_WIDTH}>{children}</div> : children}
-                    </div>
-                </main>
+                        {children}
+                    </main>
+                ) : (
+                    <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8">
+                        <div className={CONTENT_WIDTH}>
+                            {!header && showBreadcrumbs && <Breadcrumbs className="mb-4" />}
+                            <TemporaryPasswordNotice />
+                            {contentWidth === 'form' ? <div className={FORM_WIDTH}>{children}</div> : children}
+                        </div>
+                    </main>
+                )}
             </div>
         </div>
         </LocalizedUiProvider>

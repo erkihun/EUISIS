@@ -129,7 +129,7 @@ export function newClientId(): string {
     return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `c-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-/** Tells the sidebar badge (and the dashboard) to refresh its counts. */
+/** Tells the top-bar Messages badge (and the dashboard) to refresh its counts. */
 export function announceTotalsChanged(): void {
     window.dispatchEvent(new CustomEvent('communication:totals-changed'));
 }
