@@ -23,7 +23,7 @@ A city with full compliance writes up to roughly 47 million headers a year (180,
 | Requirement | Configuration |
 |---|---|
 | Scheduler | `* * * * * php artisan schedule:run` (cron). `daily-activities:send-reminders` runs every 15 minutes with `withoutOverlapping()`. Each run is idempotent: the reminder table claims each (employee, date, type) once. |
-| Queue worker | `php artisan queue:work --tries=3 --max-time=3600` under a supervisor (see `docs/runbook/deployment-and-rollback.md`). Daily Activity notifications are queued; saving, submitting and reviewing never depend on the queue. |
+| Queue worker | `php artisan queue:work --queue=notifications --tries=3 --max-time=3600` under a supervisor, next to the `default` and `long` workers (see `docs/production-runbook.md`). Daily Activity notifications are queued on `notifications`; saving, submitting and reviewing never depend on the queue. |
 | Monitoring | Watch `queue:failed`, scheduler output for `daily-activities:send-reminders`, notification-failure warnings in the log (employee id and kind only, never activity text), and slow-query logs for `daily_activity_*` tables. |
 | Backup | `daily_activity_*` tables are covered by the PostgreSQL backup and point-in-time recovery strategy. Evidence lives on the private `local` disk under `daily-activity/` and must be in the private-storage backup set. There is no module-specific backup. |
 | Retention | No application path deletes a submitted, reviewed or approved log. Drafts are never purged automatically. |

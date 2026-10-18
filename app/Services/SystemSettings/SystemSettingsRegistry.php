@@ -478,8 +478,8 @@ class SystemSettingsRegistry
                     validationRules: ['nullable', 'email', 'max:160'], sortOrder: 70),
                 'mail_from_name' => self::field(type: 'string', default: null, labelEn: 'Mail From Name', labelAm: 'የላኪ ስም', validationRules: ['nullable', 'string', 'max:160'], sortOrder: 80),
                 'email_test_recipient' => self::field(type: 'email', default: null, labelEn: 'Email Test Recipient', labelAm: 'የኢሜይል ሙከራ ተቀባይ',
-                    descriptionEn: '"Send test" sends here. If blank, it goes to your own account email.',
-                    descriptionAm: '"ሙከራ ላክ" ወደዚህ ይልካል። ባዶ ከሆነ ወደ እርስዎ የመለያ ኢሜይል ይሄዳል።',
+                    descriptionEn: '"Test Channel" sends here. If blank, it goes to your own account email.',
+                    descriptionAm: '"ቻናል ይሞክሩ" ወደዚህ ይልካል። ባዶ ከሆነ ወደ እርስዎ የመለያ ኢሜይል ይሄዳል።',
                     validationRules: ['nullable', 'email', 'max:160'], sortOrder: 90),
             ],
 

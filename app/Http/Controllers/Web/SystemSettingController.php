@@ -171,8 +171,9 @@ class SystemSettingController extends Controller
     {
         $this->updateGroupAction->execute(
             SystemSettingsRegistry::GROUP_EMAIL,
-            $request->validated(),
+            $request->safe()->except('clear'),
             $request->user(),
+            $request->validated('clear') ?? [],
         );
 
         return back()->with('flash', ['message' => __('settings.messages.email_updated'), 'type' => 'success']);
@@ -299,6 +300,9 @@ class SystemSettingController extends Controller
             ?: $this->settingsService->get('email', 'email_test_recipient')
             ?: $request->user()?->email;
 
+        // "log" accepts every message and delivers none.
+        $mailer = (string) config('mail.default');
+
         return $this->handleTestChannelResult(
             $request,
             channel: 'email',
@@ -310,6 +314,7 @@ class SystemSettingController extends Controller
 
                 return null;
             },
+            notSent: $mailer === 'log' ? __('settings.messages.test_email_not_sent', ['mailer' => $mailer]) : null,
         );
     }
 
@@ -358,10 +363,6 @@ class SystemSettingController extends Controller
     }
 
     /**
-     * @param  (callable(string): ?string)|null  $send  Delivers a test message;
-     *                                                   returns an error, or null when delivered.
-     */
-    /**
      * The mail settings this server actually uses, and where each comes from.
      * A blank field on the page falls back to the server's .env, so the form
      * alone cannot tell an administrator what the mailer will do. No secrets:
@@ -393,11 +394,18 @@ class SystemSettingController extends Controller
         ];
     }
 
+    /**
+     * @param  (callable(string): ?string)|null  $send  Delivers a test message;
+     *                                                   returns an error, or null when delivered.
+     * @param  string|null  $notSent  Shown instead of "delivered" when the transport
+     *                                accepts the message but sends nothing.
+     */
     private function handleTestChannelResult(
         Request $request,
         string $channel,
         ?string $target,
         ?callable $send = null,
+        ?string $notSent = null,
     ): RedirectResponse {
         $configured = $target !== null && $target !== '';
         $error = null;
@@ -422,7 +430,7 @@ class SystemSettingController extends Controller
                 'channel' => $channel,
                 'configured' => $configured,
                 'target' => $configured ? 'configured' : 'not_configured',
-                'delivered' => $configured && $send !== null ? $error === null : null,
+                'delivered' => $configured && $send !== null ? $error === null && $notSent === null : null,
             ],
             reason: 'system_settings_test_channel',
         );
@@ -441,8 +449,12 @@ class SystemSettingController extends Controller
             ]);
         }
 
-        return back()->with('flash', $error === null
-            ? ['message' => __('settings.messages.test_channel_sent', ['channel' => ucfirst($channel), 'target' => $target]), 'type' => 'success']
-            : ['message' => __('settings.messages.test_channel_failed', ['channel' => ucfirst($channel), 'error' => $error]), 'type' => 'error']);
+        if ($error !== null) {
+            return back()->with('flash', ['message' => __('settings.messages.test_channel_failed', ['channel' => ucfirst($channel), 'error' => $error]), 'type' => 'error']);
+        }
+
+        return back()->with('flash', $notSent !== null
+            ? ['message' => $notSent, 'type' => 'warning']
+            : ['message' => __('settings.messages.test_channel_sent', ['channel' => ucfirst($channel), 'target' => $target]), 'type' => 'success']);
     }
 }

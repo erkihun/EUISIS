@@ -3,10 +3,15 @@
 declare(strict_types=1);
 
 use App\Contracts\SmsGateway;
+use App\Enums\AuditEventType;
+use App\Models\AuditLog;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Providers\AppServiceProvider;
 use App\Services\SystemSettings\SystemSettingsService;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Queue\Jobs\SyncJob;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Testing\AssertableInertia;
 
@@ -139,4 +144,87 @@ it('sends the test email to the admin when no test recipient is saved', function
     $this->actingAs($admin)->post(route('system-settings.test-email'))
         ->assertSessionHas('flash.type', 'success')
         ->assertSessionHas('flash.message', fn (string $message): bool => str_contains($message, $admin->email));
+});
+
+/** What a queue worker does before each job. */
+function startQueuedJob(): void
+{
+    event(new JobProcessing('sync', new SyncJob(app(), json_encode(['uuid' => 'test', 'displayName' => 'Test', 'job' => 'Test', 'data' => []]), 'sync', 'default')));
+}
+
+it('lets a running queue worker send with email settings saved after it started', function (): void {
+    mailSetting('mail_from_address', 'old@example.test', 'email');
+    mailSetting('mail_host', 'old-smtp.example.test');
+    applyMailSettings();
+    $mailerBefore = Mail::mailer('smtp');
+
+    // An administrator saves new settings while the worker keeps running.
+    mailSetting('mail_from_address', 'new@example.test', 'email');
+    mailSetting('mail_host', 'new-smtp.example.test');
+    app(SystemSettingsService::class)->clearCache();
+    startQueuedJob();
+
+    expect(config('mail.from.address'))->toBe('new@example.test')
+        ->and(config('mail.mailers.smtp.host'))->toBe('new-smtp.example.test')
+        // The mailer built with the old host is dropped, so the next message connects anew.
+        ->and(Mail::mailer('smtp'))->not->toBe($mailerBefore);
+});
+
+it('leaves the mail configuration alone between jobs while the settings are unchanged', function (): void {
+    applyMailSettings();
+    $mailer = Mail::mailer('smtp');
+    config(['mail.default' => 'array']);
+
+    startQueuedJob();
+
+    expect(config('mail.default'))->toBe('array')
+        ->and(Mail::mailer('smtp'))->toBe($mailer);
+});
+
+it('falls back to the server configuration, not an earlier saved value, when a field is cleared', function (): void {
+    $serverHost = config('mail.mailers.smtp.host');
+    mailSetting('mail_host', 'saved.example.test');
+    applyMailSettings();
+    expect(config('mail.mailers.smtp.host'))->toBe('saved.example.test');
+
+    mailSetting('mail_host', null);
+    app(SystemSettingsService::class)->clearCache();
+    startQueuedJob();
+
+    expect(config('mail.mailers.smtp.host'))->toBe((string) $serverHost);
+});
+
+it('says the test email was not sent when the mailer only writes to the log', function (): void {
+    config(['mail.default' => 'log']);
+
+    $this->actingAs(channelTester())
+        ->post(route('system-settings.test-email'), ['recipient' => 'admin@example.test'])
+        ->assertSessionHas('flash.type', 'warning')
+        ->assertSessionHas('flash.message', __('settings.messages.test_email_not_sent', ['mailer' => 'log']));
+
+    expect(AuditLog::query()->where('event_type', AuditEventType::NotificationChannelTested)->sole()->new_values['delivered'])->toBeFalse();
+});
+
+it('removes a saved mail password only when asked, and keeps it on a blank entry', function (): void {
+    $admin = emailAdmin();
+    $password = fn (): ?string => SystemSetting::query()->where('group', 'email')->where('key', 'mail_password')->value('value');
+
+    $this->actingAs($admin)->patch(route('system-settings.email.update'), emailForm(['mail_username' => 'relay@example.test', 'mail_password' => 'app-password']))
+        ->assertSessionHasNoErrors();
+    expect(Crypt::decryptString((string) $password()))->toBe('app-password');
+
+    // A blank entry is "keep the saved value".
+    $this->actingAs($admin)->patch(route('system-settings.email.update'), emailForm(['mail_password' => '']))->assertSessionHasNoErrors();
+    expect($password())->not->toBeNull();
+
+    $this->actingAs($admin)->patch(route('system-settings.email.update'), emailForm(['clear' => ['mail_username', 'mail_password']]))
+        ->assertSessionHasNoErrors();
+    expect($password())->toBeNull()
+        ->and(SystemSetting::query()->where('group', 'email')->where('key', 'mail_username')->value('value'))->toBeNull()
+        ->and(AuditLog::query()->where('event_type', AuditEventType::SettingUpdated)->latest('created_at')->latest('id')->first()->new_values['values']['mail_password'])->toBe('not_configured');
+});
+
+it('only removes saved mail credentials', function (): void {
+    $this->actingAs(emailAdmin())->patch(route('system-settings.email.update'), emailForm(['clear' => ['mail_host']]))
+        ->assertSessionHasErrors('clear.0');
 });

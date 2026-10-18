@@ -147,6 +147,7 @@ use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\SituationRoom\SituationMemo;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
+use App\Support\Mail\RuntimeMailSettings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
@@ -154,6 +155,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
@@ -175,6 +177,7 @@ class AppServiceProvider extends ServiceProvider
         // One instance per request: validation, rendering and storage read the same questionnaire version.
         $this->app->scoped(PublicFeedbackQuestionnaire::class);
 
+        $this->app->singleton(RuntimeMailSettings::class);
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);
@@ -213,6 +216,16 @@ class AppServiceProvider extends ServiceProvider
         // bundle on every full page load, which is what made phones crawl. Pages
         // load their own chunk on demand (a few KB each, cached for a year).
         $this->applyRuntimeSystemSettings();
+
+        // A worker boots once and runs for an hour or more: pick up email
+        // settings an administrator saved since, before each job sends.
+        Queue::before(function (): void {
+            try {
+                $this->app->make(RuntimeMailSettings::class)->apply();
+            } catch (Throwable) {
+                // The job still runs with the settings already in effect.
+            }
+        });
 
         // GET /up is the load balancer health check. It also proves the database
         // and the cache store answer: a listener that throws turns it into a 500,
@@ -449,10 +462,6 @@ class AppServiceProvider extends ServiceProvider
             // docs/session-management.md.
             $idleTimeout = max(5, min(1440, (int) $settingsService->get('security', 'session_timeout_minutes', (int) config('security.session.idle_timeout_minutes', 120))));
             $forceHttps = filter_var($settingsService->get('security', 'force_https', false), FILTER_VALIDATE_BOOLEAN);
-            $mailPort = (int) $settingsService->get('email', 'mail_port', config('mail.mailers.smtp.port', 587));
-            $mailEncryption = $this->normalizeMailEncryption(
-                $settingsService->get('email', 'mail_encryption', config('mail.mailers.smtp.encryption')),
-            );
 
             config([
                 'app.name' => $appName,
@@ -461,20 +470,9 @@ class AppServiceProvider extends ServiceProvider
                 'app.timezone' => $timezone,
                 'security.session.idle_timeout_minutes' => $idleTimeout,
                 'session.lifetime' => SessionActivityService::storageLifetimeMinutes($idleTimeout),
-                'mail.default' => (string) $settingsService->get('email', 'mail_mailer', config('mail.default', 'smtp')),
-                'mail.mailers.smtp.host' => (string) $settingsService->get('email', 'mail_host', config('mail.mailers.smtp.host')),
-                'mail.mailers.smtp.port' => $mailPort,
-                'mail.mailers.smtp.username' => $settingsService->get('email', 'mail_username', config('mail.mailers.smtp.username')),
-                'mail.mailers.smtp.password' => $settingsService->get('email', 'mail_password', config('mail.mailers.smtp.password')),
-                'mail.mailers.smtp.encryption' => $mailEncryption,
-                // Laravel 12 ignores "encryption" and connects by "scheme", so
-                // the setting has to become one, or MAIL_SCHEME in .env wins
-                // and can contradict the port chosen here.
-                'mail.mailers.smtp.scheme' => $this->mailScheme($mailEncryption, $mailPort),
-                'mail.mailers.smtp.auto_tls' => $mailEncryption !== null,
-                'mail.from.address' => (string) $settingsService->get('email', 'mail_from_address', config('mail.from.address')),
-                'mail.from.name' => (string) $settingsService->get('email', 'mail_from_name', config('mail.from.name', $appName)),
             ]);
+
+            $this->app->make(RuntimeMailSettings::class)->apply();
 
             date_default_timezone_set($timezone);
 
@@ -484,25 +482,5 @@ class AppServiceProvider extends ServiceProvider
         } catch (Throwable) {
             // Runtime settings should never block app boot.
         }
-    }
-
-    /**
-     * SSL, or port 465, is a TLS connection from the first byte ("smtps").
-     * TLS on 587 or 25 is a plain connection upgraded with STARTTLS, which
-     * the "smtp" scheme does on its own. Implicit TLS on 587 (smtps with
-     * port 587) never completes a handshake, and every message fails.
-     */
-    private function mailScheme(?string $encryption, int $port): string
-    {
-        return $encryption === 'ssl' || $port === 465 ? 'smtps' : 'smtp';
-    }
-
-    private function normalizeMailEncryption(mixed $value): ?string
-    {
-        if ($value === null || $value === '' || $value === 'none') {
-            return null;
-        }
-
-        return (string) $value;
     }
 }

@@ -25,6 +25,7 @@ return [
         'mail_port_465' => 'Port 465 needs SSL. Choose SSL, or use port 587 with TLS.',
         'test_email_subject' => ':app test email',
         'test_email_body' => 'This is a test message from :app. If you received it, email delivery works.',
+        'test_email_not_sent' => 'The mailer is ":mailer", so the test message was not sent to anyone. Choose "SMTP server" under Mail Mailer, save, then test again.',
         'test_sms_body' => ':app test message: SMS delivery works.',
         'test_sms_refused' => 'The SMS gateway did not accept the message. Check the SMS settings and the spend limit.',
     ],
