@@ -5,7 +5,7 @@
  */
 import axios, { type AxiosProgressEvent } from 'axios';
 import type {
-    Attachment, ConversationDetail, ConversationPage, MessageItem, MessagePage, Person, Reaction, Totals,
+    AnnouncementFile, AnnouncementPage, Attachment, ChannelPage, Recipient, TargetOption, ConversationDetail, ConversationMemberRow, ConversationPage, MemberRole, MessageItem, MessagePage, Person, Reaction, ScopeOption, Totals,
 } from '@/types/communication';
 
 const r = (name: string, params?: unknown): string => (route as unknown as (n: string, p?: unknown) => string)(`communication.${name}`, params);
@@ -48,6 +48,46 @@ export const communicationApi = {
     startDirect: (userId: number) => axios.post<{ id: string }>(r('api.conversations.store'), { user_id: userId }).then((res) => res.data.id),
     summary: () => axios.get<Totals>(r('summary')).then((res) => res.data),
     heartbeat: () => axios.post(r('api.presence')),
+
+    // Groups and channels
+    createGroup: (payload: { title: string; description?: string | null; member_ids: number[] }) =>
+        axios.post<{ id: string }>(r('api.groups.store'), payload).then((res) => res.data.id),
+    updateConversation: (id: string, payload: { title?: string; name_am?: string | null; description?: string | null; posting_policy?: string }) =>
+        axios.patch(r('api.conversations.update', id), payload),
+    archive: (id: string) => axios.post(r('api.conversations.archive', id)),
+    leave: (id: string) => axios.post(r('api.conversations.leave', id)),
+    members: (id: string, params: { q?: string | null; cursor?: string | null } = {}) =>
+        axios.get<{ data: ConversationMemberRow[]; next_cursor: string | null }>(r('api.members.index', [id, Object.fromEntries(Object.entries(params).filter(([, v]) => v))])).then((res) => res.data),
+    addMembers: (id: string, userIds: number[]) => axios.post<{ added: number }>(r('api.members.store', id), { user_ids: userIds }).then((res) => res.data.added),
+    removeMember: (id: string, userId: number) => axios.delete(r('api.members.destroy', [id, userId])),
+    changeRole: (id: string, userId: number, role: MemberRole) => axios.patch(r('api.members.role', [id, userId]), { role }),
+    channels: (params: { filter?: 'all' | 'mine'; q?: string | null; cursor?: string | null } = {}) =>
+        axios.get<ChannelPage>(r('api.channels.browse', Object.fromEntries(Object.entries(params).filter(([, v]) => v)))).then((res) => res.data),
+    createChannel: (payload: Record<string, unknown>) =>
+        axios.post<{ id: string; conversation_id: string }>(r('api.channels.store'), payload).then((res) => res.data),
+    joinChannel: (channelId: string) => axios.post<{ conversation_id: string }>(r('api.channels.join', channelId)).then((res) => res.data.conversation_id),
+    scopeOrganizations: (q: string) => axios.get<{ data: ScopeOption[] }>(r('api.channels.organizations', { q })).then((res) => res.data.data),
+    // Announcements
+    announcementFeed: (filter: 'all' | 'unread' | 'acknowledge', cursor?: string | null) =>
+        axios.get<AnnouncementPage>(r('api.announcements.feed', Object.fromEntries(Object.entries({ filter, cursor }).filter(([, v]) => v)))).then((res) => res.data),
+    managedAnnouncements: (status?: string | null, cursor?: string | null) =>
+        axios.get<AnnouncementPage>(r('api.announcements.managed', Object.fromEntries(Object.entries({ status, cursor }).filter(([, v]) => v)))).then((res) => res.data),
+    recipients: (id: string, params: { status?: string; q?: string | null; cursor?: string | null }) =>
+        axios.get<{ data: Recipient[]; next_cursor: string | null }>(r('api.announcements.recipients', [id, Object.fromEntries(Object.entries(params).filter(([, v]) => v))])).then((res) => res.data),
+    audience: (targets: { type: string; id: string | null }[]) =>
+        axios.post<{ count: number }>(r('api.announcements.audience'), { targets }).then((res) => res.data.count),
+    targetOptions: (type: string, q: string, organizationId?: string | null) =>
+        axios.get<{ data: TargetOption[] }>(r('api.announcements.targets', Object.fromEntries(Object.entries({ type, q, organization_id: organizationId }).filter(([, v]) => v)))).then((res) => res.data.data),
+    uploadAnnouncementFile: (id: string, file: File) => {
+        const form = new FormData();
+        form.append('file', file);
+        return axios.post<{ data: AnnouncementFile }>(r('api.announcements.attachments.store', id), form, { headers: { Accept: 'application/json' } }).then((res) => res.data.data);
+    },
+    deleteAnnouncementFile: (fileId: string) => axios.delete(r('api.announcements.attachments.destroy', fileId)),
+    announcementFileUrl: (fileId: string) => r('announcements.files.download', fileId),
+
+    scopeUnits: (organizationId: string, q: string) =>
+        axios.get<{ data: ScopeOption[] }>(r('api.channels.units', { organization_id: organizationId, q })).then((res) => res.data.data),
 };
 
 /** First validation message from a 422, or null. */

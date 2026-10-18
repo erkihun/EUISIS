@@ -1,9 +1,11 @@
-import { memo, type JSX } from 'react';
+import { memo, useState, type JSX } from 'react';
+import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { listTime, tr } from '@/lib/communication/format';
 import Avatar from '@/Components/Communication/Avatar';
-import { BellOffIcon, PaperclipIcon, PlusIcon, SearchIcon } from '@/Components/NavIcons';
+import { ActionMenu, MenuItem } from '@/Components/Communication/MessageBubble';
+import { BellOffIcon, ChatIcon, HashIcon, PaperclipIcon, PlusIcon, SearchIcon, Users } from '@/Components/NavIcons';
 import type { ConversationSummary, ConversationType } from '@/types/communication';
 
 type Props = {
@@ -14,11 +16,13 @@ type Props = {
     loading: boolean;
     hasMore: boolean;
     canStart: boolean;
+    canGroup: boolean;
+    canBrowseChannels: boolean;
     onFilter: (filter: ConversationType | null) => void;
     onSearch: (value: string) => void;
     onSelect: (id: string) => void;
     onLoadMore: () => void;
-    onNew: () => void;
+    onNew: (kind: 'message' | 'group') => void;
 };
 
 const FILTERS: (ConversationType | null)[] = [null, 'DIRECT', 'GROUP', 'CHANNEL'];
@@ -26,20 +30,37 @@ const FILTERS: (ConversationType | null)[] = [null, 'DIRECT', 'GROUP', 'CHANNEL'
 export default function ConversationList(props: Props): JSX.Element {
     const { items, activeId, filter, search, loading, hasMore } = props;
     const { t } = useLocale();
+    const [menu, setMenu] = useState(false);
+    const many = props.canGroup || props.canBrowseChannels;
 
     return (
         <div className="flex h-full min-h-0 flex-col">
             <div className="flex items-center gap-2 px-3 pb-2 pt-3">
                 <h2 className="flex-1 text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.messagesTitle')}</h2>
                 {props.canStart && (
-                    <button
-                        type="button"
-                        onClick={props.onNew}
-                        className="inline-flex h-8 items-center gap-1.5 rounded-control bg-[color:var(--color-primary)] px-2.5 text-xs font-medium text-white hover:opacity-90"
-                    >
-                        <PlusIcon className="h-4 w-4" aria-hidden="true" />
-                        {t('communication.dashboard.newMessage')}
-                    </button>
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => (many ? setMenu((v) => !v) : props.onNew('message'))}
+                            aria-expanded={many ? menu : undefined}
+                            aria-haspopup={many ? 'menu' : undefined}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-control bg-[color:var(--color-primary)] px-2.5 text-xs font-medium text-white hover:opacity-90"
+                        >
+                            <PlusIcon className="h-4 w-4" aria-hidden="true" />
+                            {many ? t('communication.start.label') : t('communication.dashboard.newMessage')}
+                        </button>
+                        {menu && (
+                            <ActionMenu onClose={() => setMenu(false)}>
+                                <MenuItem onClick={() => { setMenu(false); props.onNew('message'); }}><ChatIcon className="h-4 w-4" />{t('communication.start.message')}</MenuItem>
+                                {props.canGroup && <MenuItem onClick={() => { setMenu(false); props.onNew('group'); }}><Users className="h-4 w-4" />{t('communication.start.group')}</MenuItem>}
+                                {props.canBrowseChannels && (
+                                    <Link role="menuitem" href={route('communication.channels.index')} className="flex w-full items-center gap-2.5 px-3 py-1.5 text-start text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] focus:bg-[color:var(--app-surface-muted)] focus:outline-none">
+                                        <HashIcon className="h-4 w-4" />{t('communication.start.channel')}
+                                    </Link>
+                                )}
+                            </ActionMenu>
+                        )}
+                    </div>
                 )}
             </div>
 

@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Communication\AnnouncementController;
 use App\Http\Controllers\Communication\AttachmentController;
+use App\Http\Controllers\Communication\ChannelController;
 use App\Http\Controllers\Communication\CommunicationController;
 use App\Http\Controllers\Communication\ConversationController;
 use App\Http\Controllers\Communication\DirectoryController;
+use App\Http\Controllers\Communication\GroupController;
+use App\Http\Controllers\Communication\MemberController;
 use App\Http\Controllers\Communication\MessageController;
 use App\Http\Controllers\Communication\MessagesController;
 use App\Http\Middleware\EnsureCommunicationEnabled;
@@ -29,6 +33,21 @@ Route::middleware(['auth', 'mfa', 'force.password', 'admin.access', EnsureCommun
         Route::get('/messages', [MessagesController::class, 'index'])->name('messages.index');
         Route::get('/messages/{conversation}', [MessagesController::class, 'index'])->whereUuid('conversation')->name('messages.show');
 
+        Route::get('/channels', [ChannelController::class, 'index'])->name('channels.index');
+
+        // Announcements: the reader's feed and page, authoring and reports.
+        Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
+        Route::get('/announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
+        Route::post('/announcements', [AnnouncementController::class, 'store'])->middleware('throttle:30,1')->name('announcements.store');
+        Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show'])->whereUuid('announcement')->name('announcements.show');
+        Route::get('/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->whereUuid('announcement')->name('announcements.edit');
+        Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->whereUuid('announcement')->middleware('throttle:30,1')->name('announcements.update');
+        Route::post('/announcements/{announcement}/publish', [AnnouncementController::class, 'publish'])->whereUuid('announcement')->name('announcements.publish');
+        Route::post('/announcements/{announcement}/cancel', [AnnouncementController::class, 'cancel'])->whereUuid('announcement')->name('announcements.cancel');
+        Route::post('/announcements/{announcement}/acknowledge', [AnnouncementController::class, 'acknowledge'])->whereUuid('announcement')->middleware('throttle:60,1')->name('announcements.acknowledge');
+        Route::get('/announcements/{announcement}/export', [AnnouncementController::class, 'export'])->whereUuid('announcement')->middleware('throttle:10,1')->name('announcements.export');
+        Route::get('/announcement-files/{attachment}', [AnnouncementController::class, 'downloadAttachment'])->whereUuid('attachment')->name('announcements.files.download');
+
         Route::prefix('api')->name('api.')->group(function (): void {
             Route::get('/conversations', [ConversationController::class, 'index'])->name('conversations.index');
             Route::post('/conversations', [ConversationController::class, 'store'])->middleware('throttle:communication-start')->name('conversations.store');
@@ -49,6 +68,29 @@ Route::middleware(['auth', 'mfa', 'force.password', 'admin.access', EnsureCommun
             Route::post('/messages/{message}/pin', [MessageController::class, 'pin'])->whereUuid('message')->name('messages.pin');
             Route::delete('/messages/{message}/pin', [MessageController::class, 'pin'])->whereUuid('message')->name('messages.unpin');
             Route::post('/messages/{message}/forward', [MessageController::class, 'forward'])->whereUuid('message')->middleware('throttle:communication-send')->name('messages.forward');
+
+            // Groups and channels: creation, settings, membership.
+            Route::post('/groups', [GroupController::class, 'store'])->middleware('throttle:communication-group')->name('groups.store');
+            Route::patch('/conversations/{conversation}', [GroupController::class, 'update'])->whereUuid('conversation')->name('conversations.update');
+            Route::post('/conversations/{conversation}/archive', [GroupController::class, 'archive'])->whereUuid('conversation')->name('conversations.archive');
+            Route::get('/conversations/{conversation}/members', [MemberController::class, 'index'])->whereUuid('conversation')->name('members.index');
+            Route::post('/conversations/{conversation}/members', [MemberController::class, 'store'])->whereUuid('conversation')->middleware('throttle:communication-group')->name('members.store');
+            Route::delete('/conversations/{conversation}/members/{user}', [MemberController::class, 'destroy'])->whereUuid('conversation')->whereNumber('user')->name('members.destroy');
+            Route::patch('/conversations/{conversation}/members/{user}', [MemberController::class, 'role'])->whereUuid('conversation')->whereNumber('user')->name('members.role');
+            Route::post('/conversations/{conversation}/leave', [MemberController::class, 'leave'])->whereUuid('conversation')->name('conversations.leave');
+            Route::get('/channels', [ChannelController::class, 'browse'])->middleware('throttle:communication-search')->name('channels.browse');
+            Route::post('/channels', [ChannelController::class, 'store'])->middleware('throttle:communication-channel')->name('channels.store');
+            Route::post('/channels/{channel}/join', [ChannelController::class, 'join'])->whereUuid('channel')->name('channels.join');
+            Route::get('/channel-scopes/organizations', [ChannelController::class, 'organizations'])->middleware('throttle:communication-search')->name('channels.organizations');
+            Route::get('/channel-scopes/units', [ChannelController::class, 'units'])->middleware('throttle:communication-search')->name('channels.units');
+
+            Route::get('/announcements/feed', [AnnouncementController::class, 'feed'])->name('announcements.feed');
+            Route::get('/announcements/managed', [AnnouncementController::class, 'managed'])->name('announcements.managed');
+            Route::post('/announcements/audience', [AnnouncementController::class, 'audienceCount'])->middleware('throttle:communication-search')->name('announcements.audience');
+            Route::get('/announcements/target-options', [AnnouncementController::class, 'targetOptions'])->middleware('throttle:communication-search')->name('announcements.targets');
+            Route::get('/announcements/{announcement}/recipients', [AnnouncementController::class, 'recipients'])->whereUuid('announcement')->name('announcements.recipients');
+            Route::post('/announcements/{announcement}/attachments', [AnnouncementController::class, 'storeAttachment'])->whereUuid('announcement')->middleware('throttle:communication-upload')->name('announcements.attachments.store');
+            Route::delete('/announcement-files/{attachment}', [AnnouncementController::class, 'destroyAttachment'])->whereUuid('attachment')->name('announcements.attachments.destroy');
 
             Route::get('/attachments/{attachment}', [AttachmentController::class, 'download'])->whereUuid('attachment')->name('attachments.download');
             Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])->whereUuid('attachment')->name('attachments.destroy');

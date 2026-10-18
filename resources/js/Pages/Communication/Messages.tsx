@@ -3,9 +3,10 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type JSX } f
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { communicationApi } from '@/lib/communication/api';
-import { channels, listen } from '@/lib/communication/realtime';
+import { channels, connectRealtime, listen } from '@/lib/communication/realtime';
 import ConversationList from '@/Components/Communication/ConversationList';
 import NewConversationPanel from '@/Components/Communication/NewConversationPanel';
+import NewGroupPanel from '@/Components/Communication/NewGroupPanel';
 import ChatView from '@/Components/Communication/ChatView';
 import { ChatIcon } from '@/Components/NavIcons';
 import type { PageProps } from '@/types';
@@ -52,9 +53,20 @@ export default function Messages(props: Props): JSX.Element {
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(false);
     const [activeId, setActiveId] = useState<string | null>(props.activeConversationId);
-    const [composing, setComposing] = useState(() => typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('compose'));
+    const [composing, setComposing] = useState<null | 'message' | 'group'>(() => {
+        if (typeof window === 'undefined') return null;
+        const value = new URLSearchParams(window.location.search).get('compose');
+        return value === null ? null : value === 'group' ? 'group' : 'message';
+    });
     const [detailsOpen, setDetailsOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth >= 1280);
     const [box, height] = useFillHeight();
+    const [socket, setSocket] = useState(false);
+
+    // The socket is an addition: until it connects (or when it is off) everything polls.
+    useEffect(() => {
+        if (realtime.enabled) void connectRealtime().then(setSocket);
+    }, [realtime.enabled]);
+
     const first = useRef(true);
 
     const fetchFirstPage = useCallback(async (opts: { filter: ConversationType | null; q: string }) => {
@@ -91,9 +103,9 @@ export default function Messages(props: Props): JSX.Element {
     useEffect(() => {
         const timer = window.setInterval(refreshList, LIST_POLL_MS);
         window.addEventListener('communication:totals-changed', refreshList);
-        const stop = realtime.enabled ? listen(channels.user(userId), { 'conversation.created': refreshList, 'member.added': refreshList }) : () => {};
+        const stop = socket ? listen(channels.user(userId), { 'conversation.created': refreshList, 'member.added': refreshList }) : () => {};
         return () => { window.clearInterval(timer); window.removeEventListener('communication:totals-changed', refreshList); stop(); };
-    }, [refreshList, realtime.enabled, userId]);
+    }, [refreshList, socket, userId]);
 
     // Presence heartbeat while the workspace is open.
     useEffect(() => {
@@ -115,7 +127,7 @@ export default function Messages(props: Props): JSX.Element {
 
     const select = useCallback((id: string | null) => {
         setActiveId(id);
-        setComposing(false);
+        setComposing(null);
         if (window.location.href !== urlFor(id)) window.history.pushState(window.history.state, '', urlFor(id));
     }, []);
 
@@ -160,8 +172,10 @@ export default function Messages(props: Props): JSX.Element {
                 className="-mx-4 -mt-2 flex min-h-[420px] overflow-hidden border-y border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:mx-0 sm:mt-0 sm:rounded-panel sm:border"
             >
                 <div className={`w-full shrink-0 border-e border-[color:var(--app-border)] bg-[color:var(--app-surface)] lg:block lg:w-80 ${activeId ? 'hidden' : 'block'}`}>
-                    {composing ? (
-                        <NewConversationPanel onBack={() => setComposing(false)} onStarted={started} />
+                    {composing === 'group' && can.createGroup ? (
+                        <NewGroupPanel onBack={() => setComposing(null)} onCreated={started} />
+                    ) : composing ? (
+                        <NewConversationPanel onBack={() => setComposing(null)} onStarted={started} />
                     ) : (
                         <ConversationList
                             items={items}
@@ -171,11 +185,13 @@ export default function Messages(props: Props): JSX.Element {
                             loading={loading}
                             hasMore={cursor !== null}
                             canStart={can.message}
+                            canGroup={can.createGroup}
+                            canBrowseChannels={can.browseChannels}
                             onFilter={setFilter}
                             onSearch={setSearch}
                             onSelect={select}
                             onLoadMore={() => void loadMore()}
-                            onNew={() => setComposing(true)}
+                            onNew={(kind) => setComposing(kind)}
                         />
                     )}
                 </div>
@@ -189,11 +205,12 @@ export default function Messages(props: Props): JSX.Element {
                             limits={limits}
                             can={can}
                             reactions={reactions}
-                            realtimeEnabled={realtime.enabled}
+                            realtimeEnabled={socket}
                             detailsOpen={detailsOpen}
                             onToggleDetails={setDetailsOpen}
                             onBack={() => select(null)}
                             onActivity={onActivity}
+                            onGone={(id) => { setItems((current) => current.filter((c) => c.id !== id)); select(null); }}
                         />
                     ) : (
                         <div className="flex h-full flex-col items-center justify-center gap-3 bg-[color:var(--app-background)] px-6 text-center">
@@ -205,7 +222,7 @@ export default function Messages(props: Props): JSX.Element {
                             {can.message && (
                                 <button
                                     type="button"
-                                    onClick={() => setComposing(true)}
+                                    onClick={() => setComposing('message')}
                                     className="mt-1 h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90"
                                 >
                                     {t('communication.dashboard.newMessage')}

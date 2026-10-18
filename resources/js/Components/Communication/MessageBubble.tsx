@@ -42,7 +42,7 @@ function MessageBubble(props: Props): JSX.Element {
         return (
             <li id={`m-${message.id}`} className="my-3 flex justify-center px-4">
                 <span className="rounded-full bg-[color:var(--app-surface-muted)] px-3 py-1 text-center text-xs text-[color:var(--app-muted-foreground)]">
-                    {message.body}
+                    {systemText(message, t)}
                 </span>
             </li>
         );
@@ -303,4 +303,13 @@ function AttachmentView({ file, own }: { file: Attachment; own: boolean }): JSX.
     return file.downloadable
         ? <a href={communicationApi.downloadUrl(file.id)} className={`${box} hover:opacity-90`} aria-label={`${t('communication.actions.download')} ${file.name}`}>{body}</a>
         : <span className={box}>{body}</span>;
+}
+
+/** A system note in the reader's language, from the stored event and names. */
+function systemText(message: MessageItem, t: (key: string) => string): string {
+    const event = message.metadata?.system_event;
+    if (!event) return message.body ?? '';
+    const key = `communication.system.${event}`;
+    const text = t(key);
+    return text === key ? '' : tr(text, { actor: String(message.metadata?.actor_name ?? ''), subject: String(message.metadata?.subject_name ?? '') });
 }

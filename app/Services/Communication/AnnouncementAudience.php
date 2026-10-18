@@ -85,6 +85,66 @@ final class AnnouncementAudience
         return $this->scopeReaching(Announcement::query()->whereKey($announcement->getKey()), $user)->exists();
     }
 
+    /**
+     * Everyone an announcement reaches: active users who may read
+     * announcements, matched from its targets (the reverse of keysFor). Used
+     * for the audience count, notifications and the acknowledgement report.
+     *
+     * @param  iterable<array{type: string, id: ?string}>|null  $targets  defaults to the announcement's stored targets
+     * @return Builder<User>
+     */
+    public function recipients(?Announcement $announcement, ?iterable $targets = null): Builder
+    {
+        $rows = collect($targets ?? $announcement?->targets()->get(['target_type', 'target_id'])->map(fn ($t) => ['type' => $t->target_type instanceof AnnouncementTargetType ? $t->target_type->value : (string) $t->target_type, 'id' => $t->target_id]) ?? []);
+        $by = fn (AnnouncementTargetType $type) => $rows->where('type', $type->value)->pluck('id')->filter()->map(fn ($id) => (string) $id)->values()->all();
+
+        $query = User::query()->permission('announcements.view')->where('users.status', 'active');
+        if ($rows->contains('type', AnnouncementTargetType::City->value)) {
+            return $query;
+        }
+
+        $orgs = $by(AnnouncementTargetType::Organization);
+        foreach ($by(AnnouncementTargetType::OrganizationSubtree) as $root) {
+            array_push($orgs, ...$this->hierarchy->organizationDescendants($root));
+        }
+        $units = [];
+        foreach ($by(AnnouncementTargetType::OrganizationUnit) as $root) {
+            array_push($units, ...$this->hierarchy->unitDescendants($root));
+        }
+        $employees = $by(AnnouncementTargetType::Employee);
+        $roles = $by(AnnouncementTargetType::Role);
+        $groups = $by(AnnouncementTargetType::Group);
+        if ($orgs === [] && $units === [] && $employees === [] && $roles === [] && $groups === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function (Builder $q) use ($orgs, $units, $employees, $roles, $groups): void {
+            if ($orgs !== [] || $units !== []) {
+                $q->orWhereIn('users.employee_id', \App\Models\Employee::query()->select('employees.id')
+                    ->join('employee_assignments', 'employee_assignments.id', '=', 'employees.current_assignment_id')
+                    // Only the lists that have ids: an empty placeholder is not a valid uuid on PostgreSQL.
+                    ->where(function ($p) use ($orgs, $units): void {
+                        if ($orgs !== []) {
+                            $p->orWhereIn('employee_assignments.organization_id', array_values(array_unique($orgs)));
+                        }
+                        if ($units !== []) {
+                            $p->orWhereIn('employee_assignments.organization_unit_id', array_values(array_unique($units)));
+                        }
+                    }));
+            }
+            if ($employees !== []) {
+                $q->orWhereIn('users.employee_id', $employees);
+            }
+            if ($roles !== []) {
+                $q->orWhereIn('users.id', \Illuminate\Support\Facades\DB::table(config('permission.table_names.model_has_roles', 'model_has_roles'))
+                    ->select('model_id')->where('model_type', User::class)->whereIn('role_id', array_map('intval', $roles)));
+            }
+            if ($groups !== []) {
+                $q->orWhereIn('users.id', ConversationMember::query()->select('user_id')->whereIn('conversation_id', $groups)->whereNull('left_at'));
+            }
+        });
+    }
+
     public function forget(): void
     {
         $this->keys = [];

@@ -52,3 +52,9 @@ export function initials(name: string | null | undefined): string {
 
     return (words.slice(0, 2).map((w) => Array.from(w)[0] ?? '').join('') || '?').toUpperCase();
 }
+
+/** Date (in the interface's calendar) and clock time, for announcement dates. */
+export function dateTime(iso: string | null | undefined, locale: string, system: CalendarSystem): string {
+    if (!iso) return '';
+    return `${formatDateDisplay(dayKey(iso), system, locale)} ${clock(iso, locale)}`;
+}

@@ -6,6 +6,17 @@ declare(strict_types=1);
 // Page text lives in resources/js/i18n/{en,am}/communication.ts.
 return [
     'errors' => [
+        'expiry_in_past' => 'The expiry must be in the future.',
+        'expiry_before_publish' => 'The announcement would expire before it is published. Change the expiry or the time.',
+        'too_many_attachments' => 'An announcement can have at most 10 files.',
+        'members_unavailable' => 'Some of these people cannot be added.',
+        'too_many_members' => 'A group can have at most :max members.',
+        'unit_outside_organization' => 'The unit must belong to the chosen organization.',
+        'not_a_member' => 'This person is not a member.',
+        'use_leave' => 'Use "Leave" to leave a conversation yourself.',
+        'cannot_remove_owner' => 'The owner cannot be removed. The owner can hand over ownership first.',
+        'mandatory_member' => 'Membership of this channel follows the organization and cannot be changed here.',
+        'removed_from_channel' => 'An admin removed you from this channel. Ask an admin to add you again.',
         'recipient_unavailable' => 'You cannot start a conversation with this person.',
         'empty_message' => 'Write a message or attach a file.',
         'parent_invalid' => 'You can only reply to a message in this conversation.',
@@ -44,6 +55,7 @@ return [
     ],
 
     'system' => [
+        'member_joined' => ':actor joined.',
         'member_added' => ':actor added :subject.',
         'member_removed' => ':actor removed :subject.',
         'member_left' => ':actor left.',
@@ -71,6 +83,15 @@ return [
     ],
 
     'flash' => [
+        'announcement_saved' => 'Announcement saved as a draft.',
+        'announcement_saved_for_publisher' => 'Saved. Someone who may publish in this scope will publish it.',
+        'announcement_published' => 'Announcement published.',
+        'announcement_scheduled' => 'Announcement scheduled.',
+        'announcement_cancelled' => 'Announcement withdrawn.',
+        'announcement_acknowledged' => 'Thank you. Your acknowledgement is recorded.',
         'settings_saved' => 'Communication settings saved.',
+    ],
+    'targets' => [
+        'city' => 'Everyone in the city administration',
     ],
 ];

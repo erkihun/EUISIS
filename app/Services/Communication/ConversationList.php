@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Communication;
 
 use App\Enums\Communication\ConversationType;
+use App\Enums\Communication\MessageType;
 use App\Models\Communication\Channel;
 use App\Models\Communication\CommunicationUserSetting;
 use App\Models\Communication\ConversationMember;
@@ -111,7 +112,7 @@ final class ConversationList
                 'last_message' => $last === null ? null : [
                     'sender_name' => $last->sender?->name,
                     'deleted' => $last->trashed(),
-                    'excerpt' => $last->trashed() ? null : Str::limit(self::readableBody((string) $last->body, $mentionNames), 90),
+                    'excerpt' => $last->trashed() ? null : Str::limit($last->type === MessageType::System ? self::systemText($last->metadata ?? []) : self::readableBody((string) $last->body, $mentionNames), 90),
                     'has_attachments' => $last->attachments_count > 0,
                     'type' => $last->type->value,
                 ],
@@ -125,5 +126,16 @@ final class ConversationList
         $text = preg_replace_callback('/<@(\d{1,19})>/', fn (array $m): string => '@'.($names->get((int) $m[1]) ?? ''), $body) ?? $body;
 
         return preg_replace('/<!(everyone|channel)>/', '@everyone', $text) ?? $text;
+    }
+
+    /** A system note ("X added Y") in the current language, from its stored event and names. */
+    public static function systemText(array $metadata): string
+    {
+        $event = (string) ($metadata['system_event'] ?? '');
+        $key = "communication.system.{$event}";
+
+        return $event !== '' && \Illuminate\Support\Facades\Lang::has($key)
+            ? (string) __($key, ['actor' => (string) ($metadata['actor_name'] ?? ''), 'subject' => (string) ($metadata['subject_name'] ?? '')])
+            : '';
     }
 }

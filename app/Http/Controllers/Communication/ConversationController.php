@@ -69,6 +69,7 @@ class ConversationController extends Controller
         $locale = app()->getLocale();
         $row = $this->list->present($user, collect([$this->membershipRow($user, $conversation)]), $locale)[0];
         $small = $conversation->activeMembers()->count() <= (int) config('communication.receipts_max_members', 25);
+        $channel = $conversation->type === ConversationType::Channel ? $conversation->channel()->with(['organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am'])->first() : null;
 
         $members = $small
             ? $conversation->activeMembers()->with('user:id,name,employee_id')->get()
@@ -89,13 +90,25 @@ class ConversationController extends Controller
             ])->values(),
             'members_complete' => $small,
             'my_last_read_message_id' => $member?->last_read_message_id,
+            'archived' => $conversation->isArchived(),
+            'channel_info' => $channel === null ? null : [
+                'type' => $channel->type->value,
+                'name' => $channel->name,
+                'name_am' => $channel->name_am,
+                'posting_policy' => $channel->posting_policy->value,
+                'auto_membership' => $channel->auto_membership,
+                'include_descendants' => $channel->include_descendants,
+                'organization' => $channel->organization ? ($locale === 'am' && $channel->organization->name_am ? $channel->organization->name_am : $channel->organization->name_en) : null,
+                'unit' => $channel->organizationUnit ? ($locale === 'am' && $channel->organizationUnit->name_am ? $channel->organizationUnit->name_am : $channel->organizationUnit->name_en) : null,
+            ],
             'can' => [
                 'post' => Gate::forUser($user)->allows('sendMessage', $conversation),
                 'manageMembers' => Gate::forUser($user)->allows('manageMembers', $conversation),
-                'update' => Gate::forUser($user)->allows('update', $conversation),
+                'update' => $channel ? Gate::forUser($user)->allows('update', $channel) : Gate::forUser($user)->allows('update', $conversation),
                 'changeRoles' => Gate::forUser($user)->allows('changeRoles', $conversation),
-                'archive' => Gate::forUser($user)->allows('archive', $conversation),
-                'leave' => Gate::forUser($user)->allows('leave', $conversation),
+                'archive' => $channel ? Gate::forUser($user)->allows('archive', $channel) : Gate::forUser($user)->allows('archive', $conversation),
+                'leave' => Gate::forUser($user)->allows('leave', $conversation) && $channel?->type !== \App\Enums\Communication\ChannelType::SystemManaged,
+                'addMembers' => Gate::forUser($user)->allows('manageMembers', $conversation) && (! $channel || ! $channel->auto_membership || $channel->type !== \App\Enums\Communication\ChannelType::SystemManaged),
                 'pin' => Gate::forUser($user)->allows('pin', $conversation),
                 'mentionEveryone' => $conversation->type !== ConversationType::Direct && (bool) $member?->role->canManage(),
             ],

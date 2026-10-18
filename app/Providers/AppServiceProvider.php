@@ -208,6 +208,14 @@ class AppServiceProvider extends ServiceProvider
         EmployeeAssignment::observe(EmployeeAssignmentCardImpactObserver::class);
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);
+        // Automatic Communication channel membership follows assignments and account status.
+        EmployeeAssignment::observe(\App\Observers\EmployeeAssignmentCommunicationObserver::class);
+        \App\Models\Employee::saved(fn (\App\Models\Employee $employee) => app(\App\Observers\EmployeeAssignmentCommunicationObserver::class)->employeeSaved($employee));
+        \App\Models\User::saved(function (\App\Models\User $user): void {
+            if ($user->employee_id !== null && $user->wasChanged('status')) {
+                \App\Jobs\Communication\SyncEmployeeCommunicationMemberships::dispatch((string) $user->employee_id)->afterCommit();
+            }
+        });
         $this->configureViteAssetMode();
         // No Vite::prefetch(): with 500+ page chunks it downloaded the whole 8 MB
         // bundle on every full page load, which is what made phones crawl. Pages

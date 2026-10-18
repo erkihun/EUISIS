@@ -57,6 +57,10 @@ class CommunicationNotification extends Notification implements ShouldQueue
     {
         $kind = in_array($data['kind'] ?? null, self::KINDS, true) ? $data['kind'] : 'generic';
         $params = array_map(fn ($v) => (string) $v, (array) ($data['params'] ?? []));
+        // Announcements carry both titles; Amharic readers get the Amharic one.
+        if ($locale === 'am' && filled($params['title_am'] ?? null)) {
+            $params['title'] = $params['title_am'];
+        }
 
         return [
             'title' => (string) __("communication.notifications.{$kind}.title", $params, $locale),

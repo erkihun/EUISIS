@@ -71,8 +71,8 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                     <PlusIcon className="h-4 w-4" aria-hidden="true" />{t('communication.dashboard.newMessage')}
                 </Link>
             )}
-            {can.createGroup && has('communication.groups.create') && (
-                <Link href={route('communication.groups.create')} className={buttonClassName({ variant: 'secondary', className: 'gap-1.5' })}>
+            {can.createGroup && (
+                <Link href={`${route('communication.messages.index')}?compose=group`} className={buttonClassName({ variant: 'secondary', className: 'gap-1.5' })}>
                     <Users className="h-4 w-4" aria-hidden="true" />{t('communication.dashboard.createGroup')}
                 </Link>
             )}

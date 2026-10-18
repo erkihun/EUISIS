@@ -1,0 +1,158 @@
+# Communication & Collaboration
+
+Messages, groups, channels and official announcements for employees. This
+document grows with each phase; the sections below describe what is built.
+
+## Groups and channels
+
+One conversation model serves direct messages, groups and channels; a channel
+wraps a conversation with a scope and rules. Memberships are rows in
+`conversation_members` with a `role` (owner, admin, member), a `source`
+(MANUAL, AUTO, SYSTEM) and, when they end, a `left_reason` (LEFT, REMOVED, SYNC).
+Rows are never deleted: a returning person reuses theirs.
+
+### Groups
+
+- Created by anyone with `groups.create` while the system allows employee
+  groups. The creator is the owner; members must be within the creator's
+  directory reach and not blocked either way. At most
+  `communication.max_group_members` people (default 256).
+- Owners and admins add and remove members; only the owner changes roles or
+  hands over ownership (the old owner becomes an admin). The owner cannot be
+  removed, and an admin cannot remove another admin.
+- When the owner leaves, the longest-standing admin (else member) becomes owner;
+  when the last person leaves, the group is archived. Archived conversations
+  stay readable to members and accept no posts.
+- A newcomer's read pointer starts at the latest message, so joining is not a
+  wall of unread history. System notes ("X added Y") never count as unread.
+
+### Channels
+
+| Kind | Who creates | Visible to | Membership |
+|---|---|---|---|
+| Organization (`PUBLIC_ORGANIZATION`) | `channels.create` in the organization's scope | People placed in its scope (browse and join) | Join, or automatic |
+| Official (`SYSTEM_MANAGED`) | `channels.create` + `channels.manage` in scope | Members only | Automatic and mandatory; members cannot leave |
+| Private / Project | Managers, or any user when "Employees may create channels" is on | Members only | Added by owners/admins |
+
+- A channel may be bound to an organization, a unit, or neither (city-wide), and
+  may include everything under it. Employee-created channels always belong to
+  the creator's organization and are never automatic.
+- Posting: all members, or owners and admins only. Official channels post as
+  admins only.
+- Someone an admin removed cannot rejoin an organization channel by themselves.
+
+### Automatic membership
+
+Channels with `auto_membership` hold every active user with
+`communication.access` whose current assignment falls in the channel's scope.
+
+- **Creating the channel** queues `SyncChannelMemberships`.
+- **A change to someone's assignment** (organization, unit, status, current
+  assignment) or account status queues `SyncEmployeeCommunicationMemberships`
+  for that person, after the transaction commits.
+- **`communication:sync-memberships`** runs nightly (`--queue`) and catches what
+  no save announces, such as a role losing `communication.access`.
+
+Rules: AUTO members who no longer match are removed (`SYNC`) when the channel
+says `remove_on_transfer`, and come back if they are placed in scope again.
+People who left or were removed are not re-added, except in official channels.
+MANUAL members are never removed by the sync. Each change is audited
+(`communication.memberships_synced`).
+
+## Announcements
+
+Official, one-way notices. One row per announcement and one per target; no
+row per recipient is created when it is published.
+
+### Lifecycle
+
+`DRAFT` → `SCHEDULED` (publish time set) → `PUBLISHED` → `EXPIRED` (expiry passed),
+or `CANCELLED` (withdrawn, with a reason) from scheduled or published.
+
+- Drafts and scheduled announcements can be edited; published ones cannot
+  (withdraw and publish a corrected one).
+- HR (`announcements.create`, `announcements.edit`) drafts; the organization's
+  admin (`announcements.publish`) publishes or schedules, and is recorded as the
+  publisher. Saving with "publish" without that permission keeps it as a draft.
+- `communication:publish-scheduled` (every minute) puts due announcements live;
+  `communication:expire-announcements` (every five minutes) records expiry.
+  Readers stop seeing an announcement the moment it expires either way.
+
+### Audience
+
+| Target | Reaches | Author needs |
+|---|---|---|
+| City | Everyone | the permission without organization restriction |
+| Organization | People placed in it | the organization in scope |
+| Organization and everything under it | It and its descendants | the organization in scope |
+| Unit | The unit and its sub-units | the unit's organization in scope |
+| Employee | One person | their organization in scope |
+| Role | Everyone holding the role | unrestricted scope |
+| Group | Members of a group the author belongs to | membership |
+
+A reader's audience keys (their organization and those above it, their unit
+and those above it, their employee record, roles, groups) are matched against
+the targets through an index, so a city-wide notice costs one row. The reverse
+query (`AnnouncementAudience::recipients`) counts the audience, sends
+notifications and builds the acknowledgement report.
+
+### Delivery and receipts
+
+- Every reader sees it in their feed and in the unread badge.
+- Important, urgent and emergency announcements, and any needing an
+  acknowledgement, send an in-app notification (Amharic title for Amharic
+  readers). Urgent and emergency ones are emailed when "Email urgent
+  announcements" is on; emergencies go by SMS through the budgeted SMS gateway
+  when "SMS emergency announcements" is on.
+- A receipt row is created the first time a reader meets the announcement:
+  delivered (listed in their feed), viewed (opened), acknowledged (confirmed).
+  Times only move forward; acknowledging twice changes nothing.
+- Managers see audience / delivered / viewed / acknowledged counts, a paged
+  list of recipients filtered by status, and can export it as CSV (UTF-8 with
+  BOM for Excel; cells that could be read as formulas are neutralized). Every
+  export is audited.
+- Files (up to 10) go through the same private storage and type checks as chat
+  attachments, and download only for people who may view the announcement.
+
+## Realtime
+
+HTTP is the source of truth. Realtime only tells an open page that something
+changed, so chat works (more slowly) without it.
+
+| Situation | What the page does |
+|---|---|
+| `BROADCAST_CONNECTION` is `log`/`null`, or no `VITE_REVERB_APP_KEY` | Polls: open conversation every 5 s, conversation list every 15 s, details every 30 s. |
+| Socket connected | Events update the page at once; a 30 s safety poll still runs in case broadcasts stop (for example, no queue worker). |
+| Socket dropped after being connected | Shows "Live updates paused, reconnecting…", polls every 5 s, and re-reads the conversation when the socket returns. |
+
+### Running it
+
+```bash
+php artisan reverb:start                      # WebSocket server (REVERB_HOST/PORT)
+php artisan queue:work --queue=broadcasts     # only if COMMUNICATION_BROADCAST_QUEUE=broadcasts
+```
+
+- Broadcast events are queued (`ShouldBroadcast`, after commit). With
+  `COMMUNICATION_BROADCAST_QUEUE` empty they use the default queue and any
+  normal worker delivers them; set it to a dedicated queue to keep chat quick
+  when other jobs are busy, and run a worker for that queue.
+- Typing indicators are sent immediately (`ShouldBroadcastNow`) and are never
+  stored. A failed broadcast is logged and counted; it never fails the request.
+- The socket client (`laravel-echo`, `pusher-js`) loads only on Communication
+  pages, and only when the server reports realtime as configured.
+- Rebuild the frontend after changing any `VITE_REVERB_*` value.
+
+### Channels (`routes/channels.php`)
+
+| Channel | Who may subscribe | Carries |
+|---|---|---|
+| `private-communication.conversation.{id}` | Current members who may use Communication | message sent/edited/deleted, reactions, read pointers, typing, member changes |
+| `private-communication.user.{id}` | That user only | new conversations, membership |
+| `private-communication.announcements` | Users with `announcements.view` | an announcement id and priority; the audience is checked when the page fetches it |
+
+- `/broadcasting/auth` runs behind `auth`, `mfa`, `force.password`,
+  `admin.access` and a rate limit, like the pages.
+- There is no Super Admin bypass for conversation channels. Break-glass
+  investigators read through the audited investigation views, never a live
+  subscription.
+- Payloads carry ids and the minimum needed to update the page.

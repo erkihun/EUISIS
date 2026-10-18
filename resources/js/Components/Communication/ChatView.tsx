@@ -29,11 +29,13 @@ type Props = {
     onToggleDetails: (open: boolean) => void;
     onBack: () => void;
     onActivity: (conversationId: string, patch: Partial<ConversationSummary>) => void;
+    onGone: (conversationId: string) => void;
 };
 
 type Outgoing = PendingMessage & { parentId: string | null; attachmentIds: string[] };
 
 const POLL_MS = 5000;
+const SAFETY_POLL_MS = 30000;
 const DETAIL_POLL_MS = 30000;
 const GROUP_GAP_MS = 5 * 60 * 1000;
 
@@ -144,7 +146,13 @@ export default function ChatView(props: Props): JSX.Element {
     }, [conversationId]);
 
     // ── Realtime, with HTTP polling whenever the socket is not connected ────────
-    useEffect(() => onRealtimeState(setRt), []);
+    // Reports a dropped socket only after it had been up: never connecting is not an outage, polling covers it.
+    const [everConnected, setEverConnected] = useState(false);
+    useEffect(() => {
+        setRt(realtimeState());
+        return onRealtimeState(setRt);
+    }, [realtimeEnabled]);
+    useEffect(() => { if (rt === 'connected') setEverConnected(true); }, [rt]);
 
     useEffect(() => {
         const up = () => { setOnline(true); void refreshLatest(); };
@@ -195,13 +203,15 @@ export default function ChatView(props: Props): JSX.Element {
         });
     }, [conversationId, realtimeEnabled, currentUserId, refreshDetail]);
 
-    const polling = !realtimeEnabled || rt !== 'connected';
+    // Polling is the source of truth's safety net: every 5 s without a socket, and a slow
+    // 30 s check with one, in case broadcasts stop (for example no queue worker is running).
+    const connected = realtimeEnabled && rt === 'connected';
     useEffect(() => {
-        if (!polling || loading || loadError) return;
-        const fast = window.setInterval(() => { if (document.visibilityState === 'visible') void refreshLatest(); }, POLL_MS);
+        if (loading || loadError) return;
+        const fast = window.setInterval(() => { if (document.visibilityState === 'visible') void refreshLatest(); }, connected ? SAFETY_POLL_MS : POLL_MS);
         const slow = window.setInterval(() => { if (document.visibilityState === 'visible') void refreshDetail(); }, DETAIL_POLL_MS);
         return () => { window.clearInterval(fast); window.clearInterval(slow); };
-    }, [polling, loading, loadError, refreshLatest, refreshDetail]);
+    }, [connected, loading, loadError, refreshLatest, refreshDetail]);
 
     useEffect(() => {
         if (typing.size === 0) return;
@@ -513,7 +523,7 @@ export default function ChatView(props: Props): JSX.Element {
                     </button>
                 </header>
 
-                {(!online || (realtimeEnabled && rt !== 'connected' && !loading)) && (
+                {(!online || (realtimeEnabled && everConnected && rt !== 'connected' && !loading)) && (
                     <div role="status" className="flex shrink-0 items-center gap-2 border-b border-[color:var(--tone-warning-border,#fedf89)] bg-[color:var(--tone-warning-bg,#fffaeb)] px-4 py-1.5 text-xs text-[color:var(--app-foreground)]">
                         <OfflineIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                         {!online ? t('communication.chat.offline') : t('communication.chat.reconnecting')}
@@ -634,7 +644,11 @@ export default function ChatView(props: Props): JSX.Element {
                     </button>
                 )}
 
-                {detail && (detail.can.post && can.message ? (
+                {detail && (detail.archived ? (
+                    <p className="flex shrink-0 items-center justify-center gap-2 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4 text-xs text-[color:var(--app-muted-foreground)]">
+                        {t('communication.chat.archived')}
+                    </p>
+                ) : detail.can.post && can.message ? (
                     <Composer
                         conversationId={conversationId}
                         placeholder={detail.type === 'DIRECT' ? tr(t('communication.composer.placeholderTo'), { name: detail.title }) : t('communication.composer.placeholder')}
@@ -662,7 +676,16 @@ export default function ChatView(props: Props): JSX.Element {
                 <>
                     <button type="button" aria-hidden="true" tabIndex={-1} onClick={() => props.onToggleDetails(false)} className="fixed inset-0 z-30 bg-slate-950/40 xl:hidden" />
                     <div className="fixed inset-y-0 end-0 z-40 w-[min(22rem,90vw)] border-s border-[color:var(--app-border)] shadow-2xl xl:static xl:z-auto xl:w-80 xl:shrink-0 xl:shadow-none">
-                        <DetailsPanel detail={detail} pinsVersion={pinsVersion} onClose={() => props.onToggleDetails(false)} onMute={(value) => void mute(value)} onJump={(id) => { if (window.innerWidth < 1280) props.onToggleDetails(false); void jump(id); }} />
+                        <DetailsPanel
+                            detail={detail}
+                            currentUserId={currentUserId}
+                            pinsVersion={pinsVersion}
+                            onClose={() => props.onToggleDetails(false)}
+                            onMute={(value) => void mute(value)}
+                            onJump={(id) => { if (window.innerWidth < 1280) props.onToggleDetails(false); void jump(id); }}
+                            onChanged={() => { void refreshDetail(); void refreshLatest(); announceTotalsChanged(); }}
+                            onGone={() => props.onGone(conversationId)}
+                        />
                     </div>
                 </>
             )}

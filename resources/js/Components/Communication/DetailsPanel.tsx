@@ -1,30 +1,39 @@
-import { useEffect, useState, type JSX } from 'react';
+import { useCallback, useEffect, useState, type FormEvent, type JSX } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
-import { communicationApi } from '@/lib/communication/api';
+import { toast } from '@/lib/toast';
+import { communicationApi, firstError } from '@/lib/communication/api';
 import { fileSize, listTime, tr } from '@/lib/communication/format';
 import { formatRelative } from '@/lib/relativeTime';
 import Avatar from '@/Components/Communication/Avatar';
+import PeoplePicker from '@/Components/Communication/PeoplePicker';
+import { ActionMenu, MenuItem } from '@/Components/Communication/MessageBubble';
 import { bodyForEditing } from '@/Components/Communication/MessageText';
-import { BellOffIcon, BellIcon, DownloadIcon, PaperclipIcon, XMarkIcon } from '@/Components/NavIcons';
-import type { Attachment, ConversationDetail, MessageItem } from '@/types/communication';
+import { BellOffIcon, BellIcon, DownloadIcon, MenuDotsIcon, PaperclipIcon, SearchIcon, UserPlusIcon, XMarkIcon } from '@/Components/NavIcons';
+import type { Attachment, ConversationDetail, ConversationMemberRow, MemberRole, MessageItem, Person, PostingPolicy } from '@/types/communication';
 
-type Tab = 'members' | 'files' | 'pinned';
+type Tab = 'members' | 'files' | 'pinned' | 'settings';
 type FileRow = Attachment & { uploaded_by: string | null; created_at: string | null; message_id: string };
 type PinRow = { pinned_at: string | null; pinned_by: string | null; message: MessageItem };
 
 type Props = {
     detail: ConversationDetail;
+    currentUserId: number;
     pinsVersion: number;
     onClose: () => void;
     onMute: (mute: boolean) => void;
     onJump: (messageId: string) => void;
+    onChanged: () => void;
+    onGone: () => void;
 };
 
-export default function DetailsPanel({ detail, pinsVersion, onClose, onMute, onJump }: Props): JSX.Element {
+export default function DetailsPanel({ detail, currentUserId, pinsVersion, onClose, onMute, onJump, onChanged, onGone }: Props): JSX.Element {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const system = useCalendarSystem();
-    const [tab, setTab] = useState<Tab>(detail.type === 'DIRECT' ? 'files' : 'members');
+    const direct = detail.type === 'DIRECT';
+    const [tab, setTab] = useState<Tab>(direct ? 'files' : 'members');
     const [files, setFiles] = useState<FileRow[] | null>(null);
     const [filesNext, setFilesNext] = useState<string | null>(null);
     const [pins, setPins] = useState<PinRow[] | null>(null);
@@ -45,8 +54,47 @@ export default function DetailsPanel({ detail, pinsVersion, onClose, onMute, onJ
         if (tab === 'pinned') communicationApi.pins(detail.id).then(setPins).catch(() => setPins([]));
     }, [tab, detail.id, pinsVersion]);
 
-    const other = detail.type === 'DIRECT' ? detail.members.find((m) => m.id === detail.other_user?.id) : null;
-    const tabs: Tab[] = detail.type === 'DIRECT' ? ['files', 'pinned'] : ['members', 'files', 'pinned'];
+    const other = direct ? detail.members.find((m) => m.id === detail.other_user?.id) : null;
+    const tabs: Tab[] = direct ? ['files', 'pinned'] : ['members', 'files', 'pinned', ...(detail.can.update ? ['settings' as const] : [])];
+    const tabLabel = (value: Tab) => (value === 'settings' ? t('communication.manage.settings') : t(`communication.details.${value}`));
+
+    const leave = async () => {
+        const answer = await confirm({
+            title: t('communication.manage.leaveTitle'),
+            description: detail.role === 'owner' ? t('communication.manage.leaveOwnerMessage') : t('communication.manage.leaveMessage'),
+            confirmLabel: t('communication.manage.leave'),
+            variant: 'warning',
+        });
+        if (!answer.confirmed) return;
+        try {
+            await communicationApi.leave(detail.id);
+            toast.success(t('communication.manage.left'));
+            onGone();
+        } catch (reason) {
+            toast.error(firstError(reason) ?? t('communication.errors.generic'));
+        }
+    };
+
+    const archive = async () => {
+        const answer = await confirm({
+            title: t('communication.manage.archiveTitle'),
+            description: t('communication.manage.archiveMessage'),
+            confirmLabel: t('communication.manage.archive'),
+            variant: 'danger',
+        });
+        if (!answer.confirmed) return;
+        try {
+            await communicationApi.archive(detail.id);
+            toast.success(t('communication.manage.archivedDone'));
+            onChanged();
+        } catch (reason) {
+            toast.error(firstError(reason) ?? t('communication.errors.generic'));
+        }
+    };
+
+    const subtitle = other
+        ? [other.position, other.unit ?? other.organization].filter(Boolean).join(' · ')
+        : `${detail.channel_info ? t(`communication.channels.types.${detail.channel_info.type}`) : t(`communication.types.${detail.type}`)} · ${tr(t('communication.details.memberCount'), { n: detail.member_count })}`;
 
     return (
         <aside aria-label={t('communication.chat.details')} className="flex h-full min-h-0 flex-col bg-[color:var(--app-surface)]">
@@ -67,25 +115,34 @@ export default function DetailsPanel({ detail, pinsVersion, onClose, onMute, onJ
                     <Avatar name={detail.title} kind={detail.type} userId={detail.other_user?.id} hasPhoto={detail.has_avatar} online={detail.other_user?.online ?? null} size="lg" />
                     <div>
                         <p className="text-sm font-semibold text-[color:var(--app-foreground)]">{detail.title}</p>
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
-                            {other
-                                ? [other.position, other.unit ?? other.organization].filter(Boolean).join(' · ')
-                                : `${t(`communication.types.${detail.type}`)} · ${tr(t('communication.details.memberCount'), { n: detail.member_count })}`}
-                        </p>
+                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{subtitle}</p>
                         {other && other.online === false && other.last_seen_at && (
                             <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tr(t('communication.list.lastSeen'), { time: formatRelative(other.last_seen_at, locale) ?? '' })}</p>
                         )}
                     </div>
                     {detail.description && <p className="max-w-prose text-xs leading-relaxed text-[color:var(--app-muted-foreground)]">{detail.description}</p>}
-                    <button
-                        type="button"
-                        onClick={() => onMute(!detail.muted)}
-                        aria-pressed={detail.muted}
-                        className="mt-1 inline-flex h-8 items-center gap-1.5 rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
-                    >
-                        {detail.muted ? <BellIcon className="h-4 w-4" aria-hidden="true" /> : <BellOffIcon className="h-4 w-4" aria-hidden="true" />}
-                        {detail.muted ? t('communication.actions.unmute') : t('communication.actions.mute')}
-                    </button>
+                    {detail.channel_info && (detail.channel_info.organization || detail.channel_info.auto_membership) && (
+                        <p className="max-w-prose text-[11px] leading-relaxed text-[color:var(--app-muted-foreground)]">
+                            {[detail.channel_info.unit, detail.channel_info.organization].filter(Boolean).join(' · ') || t('communication.channels.cityWide')}
+                            {detail.channel_info.type === 'SYSTEM_MANAGED' ? ` — ${t('communication.manage.mandatory')}` : detail.channel_info.auto_membership ? ` — ${t('communication.manage.automatic')}` : ''}
+                        </p>
+                    )}
+                    <div className="mt-1 flex flex-wrap justify-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => onMute(!detail.muted)}
+                            aria-pressed={detail.muted}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                        >
+                            {detail.muted ? <BellIcon className="h-4 w-4" aria-hidden="true" /> : <BellOffIcon className="h-4 w-4" aria-hidden="true" />}
+                            {detail.muted ? t('communication.actions.unmute') : t('communication.actions.mute')}
+                        </button>
+                        {detail.can.leave && !detail.archived && (
+                            <button type="button" onClick={() => void leave()} className="inline-flex h-8 items-center rounded-control border border-[color:var(--app-border)] px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                {t('communication.manage.leave')}
+                            </button>
+                        )}
+                    </div>
                 </section>
 
                 <div role="tablist" aria-label={t('communication.chat.details')} className="sticky top-0 z-10 flex border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-2">
@@ -96,35 +153,15 @@ export default function DetailsPanel({ detail, pinsVersion, onClose, onMute, onJ
                             role="tab"
                             aria-selected={tab === value}
                             onClick={() => setTab(value)}
-                            className={`-mb-px flex-1 border-b-2 px-2 py-2 text-xs font-medium transition-colors ${tab === value ? 'border-[color:var(--color-primary)] text-[color:var(--app-foreground)]' : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'}`}
+                            className={`-mb-px flex-1 border-b-2 px-1.5 py-2 text-xs font-medium transition-colors ${tab === value ? 'border-[color:var(--color-primary)] text-[color:var(--app-foreground)]' : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'}`}
                         >
-                            {t(`communication.details.${value === 'members' ? 'members' : value === 'files' ? 'files' : 'pinned'}`)}
+                            {tabLabel(value)}
                         </button>
                     ))}
                 </div>
 
                 <div role="tabpanel" className="px-2 py-2">
-                    {tab === 'members' && (
-                        <>
-                            {!detail.members_complete && <p className="px-2 pb-2 text-xs text-[color:var(--app-muted-foreground)]">{t('communication.details.partialMembers')}</p>}
-                            <ul>
-                                {detail.members.map((member) => (
-                                    <li key={member.id} className="flex items-center gap-2.5 rounded-control px-2 py-1.5">
-                                        <Avatar name={member.name} userId={member.id} hasPhoto={member.has_photo} online={member.online} size="sm" />
-                                        <span className="min-w-0 flex-1">
-                                            <span className="block truncate text-sm text-[color:var(--app-foreground)]">{member.name}</span>
-                                            <span className="block truncate text-[11px] text-[color:var(--app-muted-foreground)]">{member.position ?? member.unit ?? ''}</span>
-                                        </span>
-                                        {member.role !== 'member' && (
-                                            <span className="shrink-0 rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[10px] font-medium text-[color:var(--app-muted-foreground)]">
-                                                {t(`communication.details.roles.${member.role}`)}
-                                            </span>
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    )}
+                    {tab === 'members' && <MembersTab detail={detail} currentUserId={currentUserId} onChanged={onChanged} />}
 
                     {tab === 'files' && (
                         files === null ? <PanelSkeleton /> : files.length === 0 ? (
@@ -173,11 +210,7 @@ export default function DetailsPanel({ detail, pinsVersion, onClose, onMute, onJ
                             <ul className="space-y-1">
                                 {pins.map((pin) => (
                                     <li key={pin.message.id}>
-                                        <button
-                                            type="button"
-                                            onClick={() => onJump(pin.message.id)}
-                                            className="block w-full rounded-control px-2 py-2 text-start hover:bg-[color:var(--app-surface-muted)]"
-                                        >
+                                        <button type="button" onClick={() => onJump(pin.message.id)} className="block w-full rounded-control px-2 py-2 text-start hover:bg-[color:var(--app-surface-muted)]">
                                             <span className="block text-xs font-semibold text-[color:var(--app-foreground)]">{pin.message.sender?.name}</span>
                                             <span className="line-clamp-3 text-sm text-[color:var(--app-foreground)]">
                                                 {pin.message.deleted ? t('communication.chat.deleted') : (pin.message.body ? bodyForEditing(pin.message).text : t('communication.list.attachment'))}
@@ -189,9 +222,266 @@ export default function DetailsPanel({ detail, pinsVersion, onClose, onMute, onJ
                             </ul>
                         )
                     )}
+
+                    {tab === 'settings' && <SettingsTab detail={detail} onChanged={onChanged} onArchive={() => void archive()} />}
                 </div>
             </div>
         </aside>
+    );
+}
+
+function MembersTab({ detail, currentUserId, onChanged }: { detail: ConversationDetail; currentUserId: number; onChanged: () => void }): JSX.Element {
+    const { t } = useLocale();
+    const { confirm } = useConfirm();
+    const [adding, setAdding] = useState(false);
+    const [picked, setPicked] = useState<Person[]>([]);
+    const [busy, setBusy] = useState(false);
+    const [q, setQ] = useState('');
+    const [paged, setPaged] = useState<{ rows: ConversationMemberRow[]; next: string | null } | null>(null);
+
+    const complete = detail.members_complete;
+    const load = useCallback((query: string, cursor: string | null) => {
+        communicationApi.members(detail.id, { q: query.trim().length >= 2 ? query.trim() : null, cursor })
+            .then((page) => setPaged((current) => ({ rows: cursor && current ? [...current.rows, ...page.data] : page.data, next: page.next_cursor })))
+            .catch(() => setPaged({ rows: [], next: null }));
+    }, [detail.id]);
+
+    useEffect(() => {
+        if (complete) return;
+        const timer = window.setTimeout(() => load(q, null), q ? 250 : 0);
+        return () => window.clearTimeout(timer);
+    }, [complete, q, load, detail.member_count]);
+
+    const rows = complete ? detail.members : (paged?.rows ?? []);
+    const myRole = detail.role;
+
+    const act = async (fn: () => Promise<unknown>) => {
+        setBusy(true);
+        try {
+            await fn();
+            onChanged();
+            if (!complete) load(q, null);
+        } catch (reason) {
+            toast.error(firstError(reason) ?? t('communication.errors.generic'));
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const addPeople = () => act(async () => {
+        const added = await communicationApi.addMembers(detail.id, picked.map((p) => p.id));
+        toast.success(tr(t('communication.members.added'), { n: added }));
+        setPicked([]);
+        setAdding(false);
+    });
+
+    const remove = async (member: ConversationMemberRow) => {
+        const answer = await confirm({
+            title: tr(t('communication.manage.removeTitle'), { name: member.name }),
+            description: t('communication.manage.removeMessage'),
+            confirmLabel: t('communication.members.remove'),
+            variant: 'danger',
+        });
+        if (answer.confirmed) void act(() => communicationApi.removeMember(detail.id, member.id));
+    };
+
+    const setRole = async (member: ConversationMemberRow, role: MemberRole) => {
+        if (role === 'owner') {
+            const answer = await confirm({
+                title: tr(t('communication.manage.ownerTitle'), { name: member.name }),
+                description: t('communication.manage.ownerMessage'),
+                confirmLabel: t('communication.members.makeOwner'),
+                variant: 'warning',
+            });
+            if (!answer.confirmed) return;
+        }
+        void act(() => communicationApi.changeRole(detail.id, member.id, role));
+    };
+
+    return (
+        <div className="space-y-2">
+            {detail.can.addMembers && !detail.archived && (
+                adding ? (
+                    <div className="space-y-2 rounded-control border border-[color:var(--app-border)] p-2">
+                        <PeoplePicker selected={picked} onChange={setPicked} excludeIds={detail.members.map((m) => m.id)} autoFocus />
+                        <div className="flex justify-end gap-2">
+                            <button type="button" onClick={() => { setAdding(false); setPicked([]); }} className="h-8 rounded-control px-3 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                {t('communication.channels.cancel')}
+                            </button>
+                            <button type="button" disabled={busy || picked.length === 0} onClick={() => void addPeople()} className="h-8 rounded-control bg-[color:var(--color-primary)] px-3 text-xs font-medium text-white hover:opacity-90 disabled:opacity-40">
+                                {busy ? t('communication.members.adding') : tr(t('communication.members.addSelected'), { n: picked.length })}
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <button type="button" onClick={() => setAdding(true)} className="flex w-full items-center gap-2.5 rounded-control px-2 py-2 text-sm font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)]">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-[color:var(--app-border-strong)]"><UserPlusIcon className="h-4 w-4" aria-hidden="true" /></span>
+                        {t('communication.members.add')}
+                    </button>
+                )
+            )}
+
+            {!complete && (
+                <label className="relative block px-1">
+                    <span className="sr-only">{t('communication.members.search')}</span>
+                    <SearchIcon className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                    <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('communication.members.search')}
+                        className="h-8 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-xs text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none" />
+                </label>
+            )}
+
+            {!complete && paged === null ? <PanelSkeleton /> : (
+                <ul>
+                    {rows.map((member) => (
+                        <MemberLine
+                            key={member.id}
+                            member={member}
+                            me={member.id === currentUserId}
+                            myRole={myRole}
+                            can={detail.can}
+                            mandatory={detail.channel_info?.type === 'SYSTEM_MANAGED'}
+                            busy={busy}
+                            onRemove={() => void remove(member)}
+                            onRole={(role) => void setRole(member, role)}
+                        />
+                    ))}
+                </ul>
+            )}
+            {!complete && paged?.next && (
+                <button type="button" onClick={() => load(q, paged.next)} className="h-8 w-full rounded-control text-xs font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)]">
+                    {t('communication.list.loadMore')}
+                </button>
+            )}
+        </div>
+    );
+}
+
+function MemberLine({ member, me, myRole, can, mandatory, busy, onRemove, onRole }: {
+    member: ConversationMemberRow; me: boolean; myRole: MemberRole; can: ConversationDetail['can']; mandatory: boolean; busy: boolean;
+    onRemove: () => void; onRole: (role: MemberRole) => void;
+}): JSX.Element {
+    const { t } = useLocale();
+    const [menu, setMenu] = useState(false);
+    const roleActions = can.changeRoles && !me && member.role !== 'owner';
+    const removable = can.manageMembers && !me && member.role !== 'owner' && !(member.role === 'admin' && myRole === 'admin')
+        && !(mandatory && member.source === 'AUTO');
+    const hasActions = roleActions || removable;
+
+    return (
+        <li className="flex items-center gap-2.5 rounded-control px-2 py-1.5">
+            <Avatar name={member.name} userId={member.id} hasPhoto={member.has_photo} online={member.online} size="sm" />
+            <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm text-[color:var(--app-foreground)]">
+                    {member.name}{me && <span className="text-[color:var(--app-muted-foreground)]"> ({t('communication.members.you')})</span>}
+                </span>
+                <span className="block truncate text-[11px] text-[color:var(--app-muted-foreground)]">
+                    {[member.position ?? member.unit, member.source === 'AUTO' ? t('communication.details.sources.AUTO') : null].filter(Boolean).join(' · ')}
+                </span>
+            </span>
+            {member.role !== 'member' && (
+                <span className="shrink-0 rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[10px] font-medium text-[color:var(--app-muted-foreground)]">
+                    {t(`communication.details.roles.${member.role}`)}
+                </span>
+            )}
+            {hasActions && (
+                <div className="relative shrink-0">
+                    <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => setMenu((v) => !v)}
+                        aria-expanded={menu}
+                        aria-label={tr(t('communication.members.actions'), { name: member.name })}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                    >
+                        <MenuDotsIcon className="h-4 w-4" />
+                    </button>
+                    {menu && (
+                        <ActionMenu onClose={() => setMenu(false)}>
+                            {roleActions && member.role === 'member' && <MenuItem onClick={() => { setMenu(false); onRole('admin'); }}>{t('communication.members.makeAdmin')}</MenuItem>}
+                            {roleActions && member.role === 'admin' && <MenuItem onClick={() => { setMenu(false); onRole('member'); }}>{t('communication.members.removeAdmin')}</MenuItem>}
+                            {roleActions && <MenuItem onClick={() => { setMenu(false); onRole('owner'); }}>{t('communication.members.makeOwner')}</MenuItem>}
+                            {removable && <MenuItem danger onClick={() => { setMenu(false); onRemove(); }}>{t('communication.members.remove')}</MenuItem>}
+                        </ActionMenu>
+                    )}
+                </div>
+            )}
+        </li>
+    );
+}
+
+function SettingsTab({ detail, onChanged, onArchive }: { detail: ConversationDetail; onChanged: () => void; onArchive: () => void }): JSX.Element {
+    const { t } = useLocale();
+    const channel = detail.channel_info;
+    const [title, setTitle] = useState(channel?.name ?? detail.title);
+    const [nameAm, setNameAm] = useState(channel?.name_am ?? '');
+    const [description, setDescription] = useState(detail.description ?? '');
+    const [policy, setPolicy] = useState<PostingPolicy>(channel?.posting_policy ?? 'ALL_MEMBERS');
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const field = 'w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15';
+
+    const save = async (event: FormEvent) => {
+        event.preventDefault();
+        setSaving(true);
+        setError(null);
+        try {
+            await communicationApi.updateConversation(detail.id, {
+                title: title.trim(),
+                description: description.trim() || null,
+                ...(channel ? { name_am: nameAm.trim() || null, posting_policy: policy } : {}),
+            });
+            toast.success(t('communication.manage.saved'));
+            onChanged();
+        } catch (reason) {
+            setError(firstError(reason) ?? t('communication.errors.generic'));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6 px-2 py-2">
+            <form onSubmit={save} className="space-y-3">
+                <label className="block space-y-1">
+                    <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.manage.name')}</span>
+                    <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={channel ? 80 : 120} className={`${field} h-9`} />
+                </label>
+                {channel && (
+                    <label className="block space-y-1">
+                        <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.manage.nameAm')}</span>
+                        <input value={nameAm} onChange={(e) => setNameAm(e.target.value)} maxLength={80} lang="am" className={`${field} h-9`} />
+                    </label>
+                )}
+                <label className="block space-y-1">
+                    <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.manage.description')}</span>
+                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} rows={3} className={`${field} resize-none py-2`} />
+                </label>
+                {channel && (
+                    <fieldset className="space-y-1.5">
+                        <legend className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.manage.postingPolicy')}</legend>
+                        {(['ALL_MEMBERS', 'ADMINS_ONLY'] as const).map((value) => (
+                            <label key={value} className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                                <input type="radio" name="posting_policy" value={value} checked={policy === value} onChange={() => setPolicy(value)} className="h-4 w-4 text-[color:var(--color-primary)]" />
+                                {t(`communication.manage.postingPolicies.${value}`)}
+                            </label>
+                        ))}
+                    </fieldset>
+                )}
+                {error && <p role="alert" className="text-xs text-[color:var(--color-danger,#b42318)]">{error}</p>}
+                <button type="submit" disabled={saving || !title.trim()} className="h-9 rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40">
+                    {t('communication.manage.save')}
+                </button>
+            </form>
+
+            {detail.can.archive && !detail.archived && (
+                <div className="space-y-1.5 border-t border-[color:var(--app-border)] pt-4">
+                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.manage.archiveMessage')}</p>
+                    <button type="button" onClick={onArchive} className="h-8 rounded-control border border-[color:var(--tone-danger-border,#f2b8b5)] px-3 text-xs font-medium text-[color:var(--color-danger,#b42318)] hover:bg-[color:var(--tone-danger-bg,#fef3f2)]">
+                        {t('communication.manage.archive')}
+                    </button>
+                </div>
+            )}
+        </div>
     );
 }
 

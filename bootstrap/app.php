@@ -58,6 +58,11 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::group([], __DIR__.'/../routes/health.php');
         },
     )
+    // Channel authorization runs behind the same gates as the pages that use it,
+    // so a session that has not finished MFA or a forced password change cannot subscribe.
+    ->withBroadcasting(__DIR__.'/../routes/channels.php', [
+        'middleware' => ['web', 'auth', 'mfa', 'force.password', 'admin.access', 'throttle:120,1'],
+    ])
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend(RequestCorrelationId::class);
         $middleware->prepend(SecurityHeaders::class);
