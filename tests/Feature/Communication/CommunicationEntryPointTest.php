@@ -126,3 +126,12 @@ it('queues no broadcast while the broadcaster only logs', function (): void {
 
     Event::assertNotDispatched(UnreadCommunicationCountUpdated::class);
 });
+
+it('finds a colleague in reach by the account name as well as the employee record', function (): void {
+    $this->s->bob->forceFill(['name' => 'Robert Accountname'])->save();
+    $this->s->dave->forceFill(['name' => 'Robert Farbureau'])->save();
+
+    $found = $this->actingAs($this->s->alice)->getJson(route('communication.api.directory.search', ['q' => 'robert']))->assertOk()->json('data');
+
+    expect(array_column($found, 'id'))->toBe([$this->s->bob->id]);
+});
