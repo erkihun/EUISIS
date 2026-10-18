@@ -126,7 +126,7 @@ export default function FieldWorkForm({ employee, placement, types, destinationT
             description={t('fieldWork.notTransfer')}
             backHref={fieldWork ? route('employee.field-work.show', fieldWork.id) : route('employee.field-work.index')}
         >
-            <form onSubmit={(e) => save(e, 'draft')} className="mx-auto max-w-4xl space-y-4">
+            <form onSubmit={(e) => save(e, 'draft')} className="space-y-4">
                 {fieldWork?.status === 'returned_for_correction' && fieldWork.decision_reason && (
                     <p role="status" className="rounded-panel border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
                         {t('fieldWork.form.returnedNotice')} {fieldWork.decision_reason}
