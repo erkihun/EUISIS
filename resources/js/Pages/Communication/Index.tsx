@@ -36,10 +36,10 @@ const has = (name: string) => (route() as unknown as { has: (n: string) => boole
 const messagesUrl = (id?: string | null, type?: string) => (id ? route('communication.messages.show', id) : route('communication.messages.index') + (type ? `?type=${type}` : ''));
 
 const PRIORITY_TONE: Record<AnnouncementRow['priority'], string> = {
-    NORMAL: 'text-[color:var(--app-muted-foreground)]',
-    IMPORTANT: 'text-[color:var(--color-primary)]',
+    NORMAL: 'text-(--app-muted-foreground)',
+    IMPORTANT: 'text-primary',
     URGENT: 'text-amber-700 dark:text-amber-300',
-    EMERGENCY: 'text-[color:var(--color-danger,#b42318)]',
+    EMERGENCY: 'text-(--color-danger,#b42318)',
 };
 
 export default function CommunicationIndex(props: Props): JSX.Element {
@@ -95,19 +95,19 @@ export default function CommunicationIndex(props: Props): JSX.Element {
 
             <div className="space-y-6">
                 {/* What is unread, as one quiet line of counts that each open the right list. */}
-                <nav aria-label={t('communication.totals.unread').replace(':n', '')} className="flex flex-wrap items-center gap-x-1 gap-y-2 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-2 py-2">
+                <nav aria-label={t('communication.totals.unread').replace(':n', '')} className="flex flex-wrap items-center gap-x-1 gap-y-2 rounded-panel border border-(--app-border) bg-(--app-surface) px-2 py-2">
                     {counts.map(({ key, label, href }) => {
                         const value = totals[key];
                         const content = (
                             <>
-                                <span className={`tabular-nums text-sm font-semibold ${value > 0 ? 'text-[color:var(--app-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>{value}</span>
-                                <span className="text-xs text-[color:var(--app-muted-foreground)]">{label}</span>
-                                {value > 0 && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-primary)]" />}
+                                <span className={`tabular-nums text-sm font-semibold ${value > 0 ? 'text-(--app-foreground)' : 'text-(--app-muted-foreground)'}`}>{value}</span>
+                                <span className="text-xs text-(--app-muted-foreground)">{label}</span>
+                                {value > 0 && <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-primary" />}
                             </>
                         );
                         const cls = 'inline-flex h-9 items-center gap-2 rounded-control px-3';
                         return href
-                            ? <Link key={key} href={href} className={`${cls} hover:bg-[color:var(--app-surface-muted)]`}>{content}</Link>
+                            ? <Link key={key} href={href} className={`${cls} hover:bg-(--app-surface-muted)`}>{content}</Link>
                             : <span key={key} className={cls}>{content}</span>;
                     })}
                 </nav>
@@ -115,7 +115,7 @@ export default function CommunicationIndex(props: Props): JSX.Element {
 
                 {pendingAcknowledgements.length > 0 && (
                     <Section title={t('communication.dashboard.pendingAcknowledgements')} count={pendingAcknowledgements.length} tone="warning">
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {pendingAcknowledgements.map((item) => <AnnouncementLine key={item.id} item={item} locale={locale} system={system} />)}
                         </ul>
                     </Section>
@@ -125,28 +125,28 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                     <Section
                         title={t('communication.dashboard.activeConversations')}
                         count={conversations.length || undefined}
-                        action={<Link href={messagesUrl()} className="inline-flex items-center gap-1 text-xs font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.dashboard.openMessages')}<ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>}
+                        action={<Link href={messagesUrl()} className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">{t('communication.dashboard.openMessages')}<ChevronRight className="h-3.5 w-3.5" aria-hidden="true" /></Link>}
                     >
                         {conversations.length === 0 ? (
                             <Empty icon={<ChatIcon className="h-5 w-5" />} text={t('communication.dashboard.noConversations')}>
-                                {can.message && <Link href={`${route('communication.messages.index')}?compose=1`} className="text-sm font-medium text-[color:var(--color-primary)] hover:underline">{t('communication.dashboard.newMessage')}</Link>}
+                                {can.message && <Link href={`${route('communication.messages.index')}?compose=1`} className="text-sm font-medium text-primary hover:underline">{t('communication.dashboard.newMessage')}</Link>}
                             </Empty>
                         ) : (
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                            <ul className="divide-y divide-(--app-border)">
                                 {[...unreadConversations, ...conversations.filter((c) => !unreadConversations.includes(c))].map((item) => (
                                     <li key={item.id}>
-                                        <Link href={messagesUrl(item.id)} className="flex items-center gap-3 px-4 py-3 hover:bg-[color:var(--app-surface-muted)]">
+                                        <Link href={messagesUrl(item.id)} className="flex items-center gap-3 px-4 py-3 hover:bg-(--app-surface-muted)">
                                             <Avatar name={item.title} kind={item.type} userId={item.other_user?.id} hasPhoto={item.has_avatar} online={item.type === 'DIRECT' ? (item.other_user?.online ?? null) : null} />
                                             <span className="min-w-0 flex-1">
-                                                <span className={`block truncate text-sm ${item.unread_count > 0 ? 'font-semibold' : 'font-medium'} text-[color:var(--app-foreground)]`}>{item.title}</span>
-                                                <span className="block truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                                <span className={`block truncate text-sm ${item.unread_count > 0 ? 'font-semibold' : 'font-medium'} text-(--app-foreground)`}>{item.title}</span>
+                                                <span className="block truncate text-xs text-(--app-muted-foreground)">
                                                     {item.last_message?.deleted ? t('communication.list.deleted') : (item.last_message?.excerpt ?? (item.last_message?.has_attachments ? t('communication.list.attachment') : ''))}
                                                 </span>
                                             </span>
                                             <span className="flex shrink-0 flex-col items-end gap-1">
-                                                <span className="text-[11px] tabular-nums text-[color:var(--app-muted-foreground)]">{listTime(item.last_message_at, locale, system)}</span>
+                                                <span className="text-[11px] tabular-nums text-(--app-muted-foreground)">{listTime(item.last_message_at, locale, system)}</span>
                                                 {item.unread_count > 0 && (
-                                                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--color-primary)] px-1.5 text-[11px] font-semibold tabular-nums text-white" aria-label={tr(t('communication.list.unread'), { n: item.unread_count })}>
+                                                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold tabular-nums text-white" aria-label={tr(t('communication.list.unread'), { n: item.unread_count })}>
                                                         {item.unread_count > 99 ? '99+' : item.unread_count}
                                                     </span>
                                                 )}
@@ -163,10 +163,10 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                             {contacts.length === 0 ? <Empty text={t('communication.dashboard.noContacts')} /> : (
                                 <ul className="flex flex-wrap gap-x-2 gap-y-3 px-3 py-3">
                                     {contacts.map((person) => (
-                                        <li key={person.id} className="w-[4.5rem]">
-                                            <Link href={messagesUrl(person.conversation_id)} className="flex flex-col items-center gap-1.5 rounded-control px-1 py-1.5 text-center hover:bg-[color:var(--app-surface-muted)]">
+                                        <li key={person.id} className="w-18">
+                                            <Link href={messagesUrl(person.conversation_id)} className="flex flex-col items-center gap-1.5 rounded-control px-1 py-1.5 text-center hover:bg-(--app-surface-muted)">
                                                 <Avatar name={person.name} userId={person.id} hasPhoto={person.has_photo} online={person.online} />
-                                                <span className="line-clamp-2 text-[11px] leading-tight text-[color:var(--app-foreground)]">{person.name}</span>
+                                                <span className="line-clamp-2 text-[11px] leading-tight text-(--app-foreground)">{person.name}</span>
                                             </Link>
                                         </li>
                                     ))}
@@ -179,10 +179,10 @@ export default function CommunicationIndex(props: Props): JSX.Element {
                                 <ul className="py-1">
                                     {channels.map((item) => (
                                         <li key={item.id}>
-                                            <Link href={messagesUrl(item.id)} className="flex items-center gap-2.5 px-4 py-2 hover:bg-[color:var(--app-surface-muted)]">
-                                                <HashIcon className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                                                <span className={`min-w-0 flex-1 truncate text-sm ${item.unread_count > 0 ? 'font-semibold' : ''} text-[color:var(--app-foreground)]`}>{item.title}</span>
-                                                {item.unread_count > 0 && <span className="text-[11px] font-semibold tabular-nums text-[color:var(--color-primary)]">{item.unread_count}</span>}
+                                            <Link href={messagesUrl(item.id)} className="flex items-center gap-2.5 px-4 py-2 hover:bg-(--app-surface-muted)">
+                                                <HashIcon className="h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />
+                                                <span className={`min-w-0 flex-1 truncate text-sm ${item.unread_count > 0 ? 'font-semibold' : ''} text-(--app-foreground)`}>{item.title}</span>
+                                                {item.unread_count > 0 && <span className="text-[11px] font-semibold tabular-nums text-primary">{item.unread_count}</span>}
                                             </Link>
                                         </li>
                                     ))}
@@ -192,7 +192,7 @@ export default function CommunicationIndex(props: Props): JSX.Element {
 
                         <Section title={t('communication.dashboard.recentAnnouncements')}>
                             {announcements.length === 0 ? <Empty text={t('communication.dashboard.noAnnouncements')} /> : (
-                                <ul className="divide-y divide-[color:var(--app-border)]">
+                                <ul className="divide-y divide-(--app-border)">
                                     {announcements.map((item) => <AnnouncementLine key={item.id} item={item} locale={locale} system={system} />)}
                                 </ul>
                             )}
@@ -207,11 +207,11 @@ export default function CommunicationIndex(props: Props): JSX.Element {
 
 function Section({ title, count, action, tone, children }: { title: string; count?: number; action?: ReactNode; tone?: 'warning'; children: ReactNode }): JSX.Element {
     return (
-        <section className={`overflow-hidden rounded-panel border bg-[color:var(--app-surface)] ${tone === 'warning' ? 'border-[color:var(--tone-warning-border,#fedf89)]' : 'border-[color:var(--app-border)]'}`}>
-            <div className={`flex items-center gap-2 border-b px-4 py-2.5 ${tone === 'warning' ? 'border-[color:var(--tone-warning-border,#fedf89)] bg-[color:var(--tone-warning-bg,#fffaeb)]' : 'border-[color:var(--app-border)]'}`}>
-                <h2 className="flex-1 text-sm font-semibold text-[color:var(--app-foreground)]">
+        <section className={`overflow-hidden rounded-panel border bg-(--app-surface) ${tone === 'warning' ? 'border-(--tone-warning-border,#fedf89)' : 'border-(--app-border)'}`}>
+            <div className={`flex items-center gap-2 border-b px-4 py-2.5 ${tone === 'warning' ? 'border-(--tone-warning-border,#fedf89) bg-(--tone-warning-bg,#fffaeb)' : 'border-(--app-border)'}`}>
+                <h2 className="flex-1 text-sm font-semibold text-(--app-foreground)">
                     {title}
-                    {count !== undefined && <span className="ms-2 tabular-nums font-normal text-[color:var(--app-muted-foreground)]">{count}</span>}
+                    {count !== undefined && <span className="ms-2 tabular-nums font-normal text-(--app-muted-foreground)">{count}</span>}
                 </h2>
                 {action}
             </div>
@@ -223,8 +223,8 @@ function Section({ title, count, action, tone, children }: { title: string; coun
 function Empty({ text, icon, children }: { text: string; icon?: ReactNode; children?: ReactNode }): JSX.Element {
     return (
         <div className="flex flex-col items-center gap-2 px-6 py-8 text-center">
-            {icon && <span className="text-[color:var(--app-muted-foreground)]" aria-hidden="true">{icon}</span>}
-            <p className="text-sm text-[color:var(--app-muted-foreground)]">{text}</p>
+            {icon && <span className="text-(--app-muted-foreground)" aria-hidden="true">{icon}</span>}
+            <p className="text-sm text-(--app-muted-foreground)">{text}</p>
             {children}
         </div>
     );
@@ -237,8 +237,8 @@ function AnnouncementLine({ item, locale, system }: { item: AnnouncementRow; loc
         <>
             <MegaphoneIcon className={`mt-0.5 h-4 w-4 shrink-0 ${PRIORITY_TONE[item.priority]}`} aria-hidden="true" />
             <span className="min-w-0 flex-1">
-                <span className={`block truncate text-sm ${item.viewed === false ? 'font-semibold' : 'font-medium'} text-[color:var(--app-foreground)]`}>{item.title}</span>
-                <span className="block text-xs text-[color:var(--app-muted-foreground)]">
+                <span className={`block truncate text-sm ${item.viewed === false ? 'font-semibold' : 'font-medium'} text-(--app-foreground)`}>{item.title}</span>
+                <span className="block text-xs text-(--app-muted-foreground)">
                     {item.priority !== 'NORMAL' && <span className={`me-1.5 font-medium ${PRIORITY_TONE[item.priority]}`}>{t(`communication.priorities.${item.priority}`)}</span>}
                     {listTime(item.published_at, locale, system)}
                 </span>
@@ -248,7 +248,7 @@ function AnnouncementLine({ item, locale, system }: { item: AnnouncementRow; loc
     return (
         <li>
             {href
-                ? <Link href={href} className="flex items-start gap-3 px-4 py-3 hover:bg-[color:var(--app-surface-muted)]">{body}</Link>
+                ? <Link href={href} className="flex items-start gap-3 px-4 py-3 hover:bg-(--app-surface-muted)">{body}</Link>
                 : <div className="flex items-start gap-3 px-4 py-3">{body}</div>}
         </li>
     );

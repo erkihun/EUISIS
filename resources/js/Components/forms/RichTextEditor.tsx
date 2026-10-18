@@ -121,7 +121,7 @@ export default function RichTextEditor({
         <div
             className={cx(
                 'space-y-1.5',
-                expanded && 'fixed inset-0 z-[70] overflow-y-auto bg-[color:var(--app-background)] p-4 sm:p-8',
+                expanded && 'fixed inset-0 z-70 overflow-y-auto bg-(--app-background) p-4 sm:p-8',
                 className,
             )}
             role={expanded ? 'dialog' : undefined}
@@ -139,10 +139,10 @@ export default function RichTextEditor({
 
             <div
                 className={cx(
-                    'rich-text-field rounded-[var(--radius-control)] border bg-[color:var(--app-surface)]',
-                    'focus-within:border-[color:var(--color-primary)] focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]/20',
-                    error ? 'border-red-600 ring-red-600/20' : 'border-[color:var(--app-border-strong)]',
-                    (disabled || readOnly) && 'bg-[color:var(--app-surface-muted)]',
+                    'rich-text-field rounded-control border bg-(--app-surface)',
+                    'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20',
+                    error ? 'border-red-600 ring-red-600/20' : 'border-(--app-border-strong)',
+                    (disabled || readOnly) && 'bg-(--app-surface-muted)',
                     disabled && 'cursor-not-allowed opacity-70',
                 )}
                 data-disabled={disabled || undefined}
@@ -157,7 +157,7 @@ export default function RichTextEditor({
                         </div>
                     ) : (
                         <div className="space-y-2 p-2">
-                            <p className="text-helper text-[color:var(--app-muted-foreground)]">{t('richText.plainFallback')}</p>
+                            <p className="text-helper text-(--app-muted-foreground)">{t('richText.plainFallback')}</p>
                             <Textarea
                                 id={fieldId}
                                 value={value ?? ''}
@@ -176,7 +176,7 @@ export default function RichTextEditor({
                 >
                     <Suspense
                         fallback={(
-                            <div aria-busy="true" className="flex items-center px-3 text-sm text-[color:var(--app-muted-foreground)]" style={{ minHeight: height + 42 }}>
+                            <div aria-busy="true" className="flex items-center px-3 text-sm text-(--app-muted-foreground)" style={{ minHeight: height + 42 }}>
                                 {t('richText.loading')}
                             </div>
                         )}
@@ -210,7 +210,7 @@ export default function RichTextEditor({
             {name && <input type="hidden" name={name} value={value ?? ''} />}
             {helperText && <FormDescription id={helperId}>{helperText}</FormDescription>}
             {countId && (
-                <p id={countId} className={cx('text-helper tabular-nums', over ? 'font-medium text-red-600 dark:text-red-400' : 'text-[color:var(--app-muted-foreground)]')}>
+                <p id={countId} className={cx('text-helper tabular-nums', over ? 'font-medium text-red-600 dark:text-red-400' : 'text-(--app-muted-foreground)')}>
                     {maxLength
                         ? t('richText.charactersOfMax').replace(':count', length.toLocaleString()).replace(':max', maxLength.toLocaleString())
                         : t('richText.characters').replace(':count', length.toLocaleString())}

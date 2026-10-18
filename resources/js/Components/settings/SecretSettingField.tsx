@@ -4,7 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Input, StatusBadge } from '@euisis/ui';
 import { useId, useState } from 'react';
 
-const linkCls = 'shrink-0 text-xs font-medium text-[color:var(--color-primary)] hover:underline';
+const linkCls = 'shrink-0 text-xs font-medium text-primary hover:underline';
 
 type Props = {
     label: string;
@@ -45,13 +45,13 @@ export default function SecretSettingField({ label, description, configured, val
                 {text !== '' && (
                     <button type="button" onClick={() => setVisible((shown) => !shown)} aria-pressed={visible}
                         aria-label={visible ? t('settings.hideSecret') : t('settings.showSecret')} title={visible ? t('settings.hideSecret') : t('settings.showSecret')}
-                        className="absolute inset-y-0 right-1 my-auto flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]">
+                        className="absolute inset-y-0 right-1 my-auto flex h-8 w-8 items-center justify-center rounded-control text-(--app-muted-foreground) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary">
                         <EyeIcon className="h-4 w-4" aria-hidden="true" />
                     </button>
                 )}
             </div>
             <div className="flex items-center justify-between gap-2">
-                <p id={hintId} className="text-xs text-[color:var(--app-muted-foreground)]">
+                <p id={hintId} className="text-xs text-(--app-muted-foreground)">
                     {removing ? t('settings.secretRemoveHint') : configured ? t('settings.secretHint') : t('settings.secretNewHint')}
                 </p>
                 {!disabled && (removing ? (

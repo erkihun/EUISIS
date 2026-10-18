@@ -82,19 +82,19 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                                 <div className="space-y-5">
                                     {section.criteria.map((criterion, index) => (
                                         <fieldset key={criterion.id} disabled={!can.submit || form.processing} className="space-y-2">
-                                            <legend className="mb-2 text-sm font-semibold text-[color:var(--app-foreground)]">{si + 1}.{index + 1} {titleOf(criterion, locale)}{criterion.is_required && <span className="text-red-600"> *</span>}</legend>
+                                            <legend className="mb-2 text-sm font-semibold text-(--app-foreground)">{si + 1}.{index + 1} {titleOf(criterion, locale)}{criterion.is_required && <span className="text-red-600"> *</span>}</legend>
                                             {criterion.options.map((option) => {
                                                 const selected = String(form.data.answers[criterion.id] ?? '') === String(option.id);
                                                 const description = (locale === 'am' && option.description_am) || option.description_en;
                                                 return (
-                                                    <label key={option.id} className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-card border px-3.5 py-3 text-sm ${selected ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary-light)]/50' : 'border-[color:var(--app-border)] hover:bg-[color:var(--app-surface-muted)]'}`}>
+                                                    <label key={option.id} className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-card border px-3.5 py-3 text-sm ${selected ? 'border-primary bg-primary-light/50' : 'border-(--app-border) hover:bg-(--app-surface-muted)'}`}>
                                                         <input type="radio" name={`criterion-${criterion.id}`} value={option.id} checked={selected} required={criterion.is_required}
-                                                            onChange={() => form.setData('answers', { ...form.data.answers, [criterion.id]: String(option.id) })} className="mt-1 accent-[color:var(--color-primary)]" />
+                                                            onChange={() => form.setData('answers', { ...form.data.answers, [criterion.id]: String(option.id) })} className="mt-1 accent-primary" />
                                                         <span className="min-w-0 flex-1">
                                                             {labelOf(option) && <span className="block font-medium">{labelOf(option)}</span>}
-                                                            {description && <span className="block text-[color:var(--app-muted-foreground)]">{description}</span>}
+                                                            {description && <span className="block text-(--app-muted-foreground)">{description}</span>}
                                                         </span>
-                                                        <span className="shrink-0 tabular-nums text-[color:var(--app-muted-foreground)]">{formatScore(option.score)}</span>
+                                                        <span className="shrink-0 tabular-nums text-(--app-muted-foreground)">{formatScore(option.score)}</span>
                                                     </label>
                                                 );
                                             })}
@@ -104,8 +104,8 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                             </Section>
                         ))}
                         {can.submit && (
-                            <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur print-hidden">
-                                <span className="text-sm text-[color:var(--app-muted-foreground)]">{r('answered').replace(':answered', String(answered)).replace(':count', String(count))}</span>
+                            <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur-sm print-hidden">
+                                <span className="text-sm text-(--app-muted-foreground)">{r('answered').replace(':answered', String(answered)).replace(':count', String(count))}</span>
                                 <button disabled={form.processing || answered !== count} className={primaryBtn}>{r('submitRatings')}</button>
                             </div>
                         )}

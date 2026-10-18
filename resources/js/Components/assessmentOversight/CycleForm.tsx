@@ -109,7 +109,7 @@ export function CycleForm({ cycle, types, policies, employeeStatuses, onCancel }
                 <input type="number" min={0} className={inputCls} value={form.data.reminder_days_before} onChange={(e) => form.setData('reminder_days_before', e.target.value)} />
             </Field>
             <fieldset className="md:col-span-3" disabled={locked}>
-                <legend className="mb-1 text-sm font-medium text-[color:var(--app-foreground)]">{t('assessmentOversight.cycleForm.eligibleStatuses')}</legend>
+                <legend className="mb-1 text-sm font-medium text-(--app-foreground)">{t('assessmentOversight.cycleForm.eligibleStatuses')}</legend>
                 <div className="flex flex-wrap gap-3">
                     {employeeStatuses.map((s) => (
                         <label key={s} className="flex items-center gap-1.5 text-sm">
@@ -119,7 +119,7 @@ export function CycleForm({ cycle, types, policies, employeeStatuses, onCancel }
                         </label>
                     ))}
                 </div>
-                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.cycleForm.eligibleStatusesHelp')}</p>
+                <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('assessmentOversight.cycleForm.eligibleStatusesHelp')}</p>
             </fieldset>
             {locked && <p className="text-xs text-amber-700 md:col-span-3">{t('assessmentOversight.cycleForm.locked')}</p>}
             {Object.keys(form.errors).filter((k) => k === 'cycle').map((k) => <p key={k} className="text-sm text-red-600 md:col-span-3">{form.errors[k as keyof typeof form.errors]}</p>)}

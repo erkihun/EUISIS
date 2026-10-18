@@ -28,8 +28,8 @@ export const FormHostContext = createContext<{ onDirtyChange?: (dirty: boolean) 
 export function Switch({ id, checked, onChange, disabled, label, describedBy }: { id?: string; checked: boolean; onChange: (value: boolean) => void; disabled?: boolean; label: string; describedBy?: string }) {
     return (
         <button id={id} type="button" role="switch" aria-checked={checked} aria-label={label} aria-describedby={describedBy} disabled={disabled} onClick={() => onChange(!checked)}
-            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${checked ? 'bg-[color:var(--color-primary)]' : 'bg-gray-300 dark:bg-slate-600'}`}>
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${checked ? 'bg-primary' : 'bg-gray-300 dark:bg-slate-600'}`}>
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
         </button>
     );
 }
@@ -68,9 +68,9 @@ export function AdminLookup({ endpoint, organizationId, value, initialLabel, onC
             <option value="">{t('grievances.common.select')}</option>
             {all.map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}
         </select>
-        {state === 'loading' && <p role="status" className="text-xs text-[color:var(--app-muted-foreground)]">{t('grievances.common.loading')}</p>}
+        {state === 'loading' && <p role="status" className="text-xs text-(--app-muted-foreground)">{t('grievances.common.loading')}</p>}
         {state === 'error' && <p role="alert" className="text-xs text-red-600">{t('grievanceAdmin.lookupError')}</p>}
-        {state === 'ready' && !all.length && !disabled && <p className="text-xs text-[color:var(--app-muted-foreground)]">{t(endpoint === 'units' && !organizationId ? 'grievanceAdmin.chooseOrganization' : 'grievanceAdmin.noMatches')}</p>}
+        {state === 'ready' && !all.length && !disabled && <p className="text-xs text-(--app-muted-foreground)">{t(endpoint === 'units' && !organizationId ? 'grievanceAdmin.chooseOrganization' : 'grievanceAdmin.noMatches')}</p>}
     </div>;
 }
 
@@ -102,10 +102,10 @@ export function AdminForm({ initial, fields, url, method = 'post', editable = tr
             let control: ReactNode;
             if (field.type === 'boolean') {
                 // A switch row: label and help on the left, the switch on the right.
-                return <div key={field.key} className="flex items-start justify-between gap-4 rounded-md border border-[color:var(--app-border)] px-3 py-2.5 sm:col-span-2">
+                return <div key={field.key} className="flex items-start justify-between gap-4 rounded-md border border-(--app-border) px-3 py-2.5 sm:col-span-2">
                     <span className="min-w-0">
-                        <span id={`${fieldId}-label`} className="block text-sm font-medium text-[color:var(--app-foreground)]">{title}</span>
-                        {field.help && <span id={`${fieldId}-help`} className="block text-xs text-[color:var(--app-muted-foreground)]">{field.help}</span>}
+                        <span id={`${fieldId}-label`} className="block text-sm font-medium text-(--app-foreground)">{title}</span>
+                        {field.help && <span id={`${fieldId}-help`} className="block text-xs text-(--app-muted-foreground)">{field.help}</span>}
                         {fieldError && <span id={`${fieldId}-error`} role="alert" className="mt-1 block text-xs text-red-600">{fieldError}</span>}
                     </span>
                     <Switch id={fieldId} label={title} describedBy={field.help ? `${fieldId}-help` : undefined} checked={Boolean(value)} disabled={disabled} onChange={checked => change(field, checked)} />
@@ -124,9 +124,9 @@ export function AdminForm({ initial, fields, url, method = 'post', editable = tr
             return <div key={field.key} className={field.type === 'textarea' ? 'sm:col-span-2' : ''}><FormRow label={title} help={field.help}>{control}</FormRow>{fieldError && <p id={`${fieldId}-error`} role="alert" className="mt-1 text-xs text-red-600">{fieldError}</p>}</div>;
         })}</div>
         {children}
-        {Object.keys(errors).length > 0 && <div role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{Object.values(errors).map((error, index) => <p key={index}>{error}</p>)}</div>}
-        {editable && <div className={`flex items-center gap-3 ${host.stickyActions ? 'sticky -bottom-5 flex-row-reverse justify-start z-10 -mx-6 -mb-5 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-3' : ''}`}><button className={primaryBtn} disabled={form.processing} type="submit">{submitLabel ?? t('grievances.common.save')}</button>{onCancel && <button className={secondaryBtn} type="button" onClick={host.requestClose ?? onCancel}>{t('grievances.common.cancel')}</button>}{form.recentlySuccessful && <span role="status" className="text-sm text-emerald-700">{t('grievanceAdmin.saved')}</span>}</div>}
-        {!editable && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('grievanceAdmin.readOnly')}</p>}
+        {Object.keys(errors).length > 0 && <div role="alert" className="rounded-sm border border-red-200 bg-red-50 p-3 text-sm text-red-700">{Object.values(errors).map((error, index) => <p key={index}>{error}</p>)}</div>}
+        {editable && <div className={`flex items-center gap-3 ${host.stickyActions ? 'sticky -bottom-5 flex-row-reverse justify-start z-10 -mx-6 -mb-5 border-t border-(--app-border) bg-(--app-surface) px-6 py-3' : ''}`}><button className={primaryBtn} disabled={form.processing} type="submit">{submitLabel ?? t('grievances.common.save')}</button>{onCancel && <button className={secondaryBtn} type="button" onClick={host.requestClose ?? onCancel}>{t('grievances.common.cancel')}</button>}{form.recentlySuccessful && <span role="status" className="text-sm text-emerald-700">{t('grievanceAdmin.saved')}</span>}</div>}
+        {!editable && <p className="text-sm text-(--app-muted-foreground)">{t('grievanceAdmin.readOnly')}</p>}
     </form>;
 }
 

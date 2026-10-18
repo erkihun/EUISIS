@@ -119,7 +119,7 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
         }
     };
 
-    const field = 'w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-3 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15';
+    const field = 'w-full rounded-control border border-(--app-border) bg-(--app-background) px-3 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15';
     const heading = announcement ? t('communication.announcements.form.editTitle') : t('communication.announcements.form.createTitle');
 
     return (
@@ -160,21 +160,21 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
                     </Panel>
                     <Panel title={t('communication.announcements.form.files')}>
                         {!announcement ? (
-                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.announcements.form.filesAfterSave')}</p>
+                            <p className="text-xs text-(--app-muted-foreground)">{t('communication.announcements.form.filesAfterSave')}</p>
                         ) : (
                             <div className="space-y-2">
                                 {files.length > 0 && (
-                                    <ul className="divide-y divide-[color:var(--app-border)] rounded-control border border-[color:var(--app-border)]">
+                                    <ul className="divide-y divide-(--app-border) rounded-control border border-(--app-border)">
                                         {files.map((file) => (
                                             <li key={file.id} className="flex items-center gap-2.5 px-3 py-2 text-sm">
-                                                <PaperclipIcon className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                                                <span className="min-w-0 flex-1 truncate text-[color:var(--app-foreground)]">{file.name}</span>
-                                                <span className="shrink-0 text-xs text-[color:var(--app-muted-foreground)]">{fileSize(file.size)}</span>
+                                                <PaperclipIcon className="h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />
+                                                <span className="min-w-0 flex-1 truncate text-(--app-foreground)">{file.name}</span>
+                                                <span className="shrink-0 text-xs text-(--app-muted-foreground)">{fileSize(file.size)}</span>
                                                 <button
                                                     type="button"
                                                     aria-label={`${t('communication.announcements.form.remove')} ${file.name}`}
                                                     onClick={() => communicationApi.deleteAnnouncementFile(file.id).then(() => setFiles((c) => c.filter((x) => x.id !== file.id))).catch(() => toast.error(t('communication.errors.generic')))}
-                                                    className="rounded p-1 text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                                                    className="rounded-sm p-1 text-(--app-muted-foreground) hover:text-(--app-foreground)"
                                                 >
                                                     <XMarkIcon className="h-4 w-4" />
                                                 </button>
@@ -195,9 +195,9 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
                 <div className="space-y-6">
                     <Panel title={t('communication.announcements.form.audience')} hint={t('communication.announcements.form.audienceHelp')}>
                         <TargetBuilder types={targetTypes} value={targets} onChange={setTargets} />
-                        {errors.targets && <p className="text-xs text-[color:var(--color-danger,#b42318)]">{errors.targets}</p>}
+                        {errors.targets && <p className="text-xs text-(--color-danger,#b42318)">{errors.targets}</p>}
                         {targets.length > 0 && (
-                            <p className="text-xs font-medium text-[color:var(--app-foreground)]" aria-live="polite">
+                            <p className="text-xs font-medium text-(--app-foreground)" aria-live="polite">
                                 {estimating ? t('communication.announcements.form.estimating') : estimate !== null ? tr(t('communication.announcements.form.estimate'), { n: estimate.toLocaleString() }) : ''}
                             </p>
                         )}
@@ -206,13 +206,13 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
                     <Panel title={t('communication.announcements.form.priority')}>
                         <div className="space-y-2">
                             {priorities.map((value) => (
-                                <label key={value} className={`flex cursor-pointer items-start gap-2.5 rounded-control border px-3 py-2 ${priority === value ? 'border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]' : 'border-[color:var(--app-border)]'}`}>
-                                    <input type="radio" name="priority" value={value} checked={priority === value} onChange={() => setPriority(value)} className="mt-0.5 h-4 w-4 text-[color:var(--color-primary)]" />
+                                <label key={value} className={`flex cursor-pointer items-start gap-2.5 rounded-control border px-3 py-2 ${priority === value ? 'border-primary bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]' : 'border-(--app-border)'}`}>
+                                    <input type="radio" name="priority" value={value} checked={priority === value} onChange={() => setPriority(value)} className="mt-0.5 h-4 w-4 text-primary" />
                                     <span>
-                                        <span className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--app-foreground)]">
+                                        <span className="flex items-center gap-1.5 text-sm font-medium text-(--app-foreground)">
                                             <PriorityMark priority={value} withLabel={false} />{t(`communication.announcements.priorities.${value}`)}
                                         </span>
-                                        <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t(`communication.announcements.priorityHelp.${value}`)}</span>
+                                        <span className="block text-xs text-(--app-muted-foreground)">{t(`communication.announcements.priorityHelp.${value}`)}</span>
                                     </span>
                                 </label>
                             ))}
@@ -220,34 +220,34 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
                     </Panel>
 
                     <Panel title={t('communication.announcements.form.options')}>
-                        <label className="flex items-start gap-2.5 text-sm text-[color:var(--app-foreground)]">
-                            <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]" />
+                        <label className="flex items-start gap-2.5 text-sm text-(--app-foreground)">
+                            <input type="checkbox" checked={ack} onChange={(e) => setAck(e.target.checked)} className="mt-0.5 h-4 w-4 rounded-sm border-(--app-border-strong) text-primary" />
                             <span>
                                 {t('communication.announcements.form.acknowledgement')}
-                                <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t('communication.announcements.form.acknowledgementHelp')}</span>
+                                <span className="block text-xs text-(--app-muted-foreground)">{t('communication.announcements.form.acknowledgementHelp')}</span>
                             </span>
                         </label>
                         <div className="space-y-1">
-                            <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.announcements.form.expiresAt')}</span>
+                            <span className="text-xs font-medium text-(--app-foreground)">{t('communication.announcements.form.expiresAt')}</span>
                             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                                 <LocalizedDatePicker value={expiresDate} onChange={setExpiresDate} min={dayKey(new Date().toISOString())} />
                                 <LocalizedTimePicker value={expiresTime} onChange={setExpiresTime} />
                             </div>
-                            {errors.expires_at && <p className="text-xs text-[color:var(--color-danger,#b42318)]">{errors.expires_at}</p>}
+                            {errors.expires_at && <p className="text-xs text-(--color-danger,#b42318)">{errors.expires_at}</p>}
                         </div>
                     </Panel>
 
-                    <div className="space-y-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                    <div className="space-y-3 rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                         {canPublish ? (
                             <>
                                 {scheduling && (
                                     <div className="space-y-1">
-                                        <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.announcements.form.publishAt')}</span>
+                                        <span className="text-xs font-medium text-(--app-foreground)">{t('communication.announcements.form.publishAt')}</span>
                                         <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                                             <LocalizedDatePicker value={publishDate} onChange={setPublishDate} min={dayKey(new Date().toISOString())} />
                                             <LocalizedTimePicker value={publishTime} onChange={setPublishTime} />
                                         </div>
-                                        {errors.publish_at && <p className="text-xs text-[color:var(--color-danger,#b42318)]">{errors.publish_at}</p>}
+                                        {errors.publish_at && <p className="text-xs text-(--color-danger,#b42318)">{errors.publish_at}</p>}
                                     </div>
                                 )}
                                 <div className="flex flex-wrap gap-2">
@@ -270,11 +270,11 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
                             </>
                         ) : (
                             <>
-                                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.announcements.form.publisherNote')}</p>
+                                <p className="text-xs text-(--app-muted-foreground)">{t('communication.announcements.form.publisherNote')}</p>
                                 <button type="submit" disabled={saving !== null} className={buttonClassName({ variant: 'primary' })}>{t('communication.announcements.form.saveDraft')}</button>
                             </>
                         )}
-                        {errors.announcement && <p className="text-xs text-[color:var(--color-danger,#b42318)]">{errors.announcement}</p>}
+                        {errors.announcement && <p className="text-xs text-(--color-danger,#b42318)">{errors.announcement}</p>}
                     </div>
                 </div>
             </form>
@@ -284,10 +284,10 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
 
 function Panel({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }): JSX.Element {
     return (
-        <section className="space-y-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+        <section className="space-y-3 rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
             <div>
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                {hint && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{hint}</p>}
+                <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
+                {hint && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{hint}</p>}
             </div>
             {children}
         </section>
@@ -297,10 +297,10 @@ function Panel({ title, hint, children }: { title: string; hint?: string; childr
 function Field({ label, hint, error, children }: { label: string; hint?: string; error?: string; children: React.ReactNode }): JSX.Element {
     return (
         <label className="block space-y-1">
-            <span className="text-xs font-medium text-[color:var(--app-foreground)]">{label}</span>
+            <span className="text-xs font-medium text-(--app-foreground)">{label}</span>
             {children}
-            {hint && !error && <span className="block text-[11px] text-[color:var(--app-muted-foreground)]">{hint}</span>}
-            {error && <span className="block text-xs text-[color:var(--color-danger,#b42318)]">{error}</span>}
+            {hint && !error && <span className="block text-[11px] text-(--app-muted-foreground)">{hint}</span>}
+            {error && <span className="block text-xs text-(--color-danger,#b42318)">{error}</span>}
         </label>
     );
 }
@@ -317,13 +317,13 @@ function TargetBuilder({ types, value, onChange }: { types: AnnouncementTargetTy
     return (
         <div className="space-y-3">
             {value.length === 0 ? (
-                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.announcements.form.noTargets')}</p>
+                <p className="text-xs text-(--app-muted-foreground)">{t('communication.announcements.form.noTargets')}</p>
             ) : (
                 <ul className="flex flex-wrap gap-1.5">
                     {value.map((target) => (
-                        <li key={`${target.type}:${target.id}`} className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] py-1 ps-2.5 pe-1 text-xs text-[color:var(--app-foreground)]">
-                            <span className="truncate"><span className="text-[color:var(--app-muted-foreground)]">{t(`communication.announcements.targetTypes.${target.type}`)}:</span> {target.type === 'CITY' ? '' : target.label}</span>
-                            <button type="button" aria-label={`${t('communication.announcements.form.remove')} ${target.label}`} onClick={() => onChange(value.filter((x) => x !== target))} className="rounded-full p-0.5 text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]">
+                        <li key={`${target.type}:${target.id}`} className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-(--app-border) bg-(--app-surface-muted) py-1 ps-2.5 pe-1 text-xs text-(--app-foreground)">
+                            <span className="truncate"><span className="text-(--app-muted-foreground)">{t(`communication.announcements.targetTypes.${target.type}`)}:</span> {target.type === 'CITY' ? '' : target.label}</span>
+                            <button type="button" aria-label={`${t('communication.announcements.form.remove')} ${target.label}`} onClick={() => onChange(value.filter((x) => x !== target))} className="rounded-full p-0.5 text-(--app-muted-foreground) hover:text-(--app-foreground)">
                                 <XMarkIcon className="h-3.5 w-3.5" />
                             </button>
                         </li>
@@ -331,10 +331,10 @@ function TargetBuilder({ types, value, onChange }: { types: AnnouncementTargetTy
                 </ul>
             )}
 
-            <div className="space-y-2 rounded-control border border-dashed border-[color:var(--app-border-strong)] p-3">
+            <div className="space-y-2 rounded-control border border-dashed border-(--app-border-strong) p-3">
                 <label className="block space-y-1">
-                    <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.announcements.form.targetType')}</span>
-                    <select value={type} onChange={(e) => { setType(e.target.value as AnnouncementTargetType); setOrg(null); }} className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-2.5 text-sm text-[color:var(--app-foreground)]">
+                    <span className="text-xs font-medium text-(--app-foreground)">{t('communication.announcements.form.targetType')}</span>
+                    <select value={type} onChange={(e) => { setType(e.target.value as AnnouncementTargetType); setOrg(null); }} className="h-9 w-full rounded-control border border-(--app-border) bg-(--app-background) px-2.5 text-sm text-(--app-foreground)">
                         {types.map((value2) => <option key={value2} value={value2}>{t(`communication.announcements.targetTypes.${value2}`)}</option>)}
                     </select>
                 </label>
@@ -373,7 +373,7 @@ function OptionSearch({ type, organizationId, placeholder, onPick }: { type: Ann
 
     return (
         <div className="relative">
-            <SearchIcon className="pointer-events-none absolute start-2.5 top-[1.125rem] h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+            <SearchIcon className="pointer-events-none absolute inset-s-2.5 top-4.5 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
             <input
                 type="search"
                 value={q}
@@ -382,17 +382,17 @@ function OptionSearch({ type, organizationId, placeholder, onPick }: { type: Ann
                 onFocus={() => setOpen(true)}
                 onBlur={() => window.setTimeout(() => setOpen(false), 150)}
                 onChange={(e) => { setQ(e.target.value); setOpen(true); }}
-                className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15"
+                className="h-9 w-full rounded-control border border-(--app-border) bg-(--app-background) ps-8 pe-2 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15"
             />
             {open && options !== null && (
-                <ul className="comm-scroll absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] py-1 shadow-lg">
-                    {options.length === 0 && <li className="px-3 py-2 text-xs text-[color:var(--app-muted-foreground)]">{t('communication.newConversation.noResults')}</li>}
+                <ul className="comm-scroll absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-control border border-(--app-border) bg-(--app-surface) py-1 shadow-lg">
+                    {options.length === 0 && <li className="px-3 py-2 text-xs text-(--app-muted-foreground)">{t('communication.newConversation.noResults')}</li>}
                     {options.map((option) => (
                         <li key={option.id}>
                             <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onPick(option); setQ(''); setOpen(false); }}
-                                className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-start text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-start text-sm text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                 <span className="truncate">{option.name}</span>
-                                {option.hint && <span className="shrink-0 text-[11px] text-[color:var(--app-muted-foreground)]">{option.hint}</span>}
+                                {option.hint && <span className="shrink-0 text-[11px] text-(--app-muted-foreground)">{option.hint}</span>}
                             </button>
                         </li>
                     ))}

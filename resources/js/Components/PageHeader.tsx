@@ -27,11 +27,11 @@ export default function PageHeader({ title, description, actions, backHref }: Pr
                             {t('common.back')}
                         </Link>
                     )}
-                    <h1 className="break-words text-page-title text-[color:var(--app-foreground)]">
+                    <h1 className="wrap-break-word text-page-title text-(--app-foreground)">
                         {title}
                     </h1>
                     {description && (
-                        <p className="mt-1 break-words text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="mt-1 wrap-break-word text-sm text-(--app-muted-foreground)">
                             {description}
                         </p>
                     )}

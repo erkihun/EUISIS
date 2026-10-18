@@ -77,9 +77,9 @@ export default function OversightCycle({ cycle, participants, organizations, eli
 
                 <Section title={t('assessmentOversight.cycleSections.eligibility')} description={t('assessmentOversight.eligibilityHelp')}>
                     <div className="flex flex-wrap items-center gap-6 text-sm">
-                        <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.eligible')}</span> <b className="tabular-nums">{eligibility.eligible}</b></div>
-                        <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.excluded')}</span> <b className="tabular-nums">{eligibility.excluded}</b></div>
-                        <div><span className="text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.snapshotAt')}</span> {cycle.eligibility_snapshot_at ? <LocalizedDateDisplay value={cycle.eligibility_snapshot_at} withTime /> : '—'}</div>
+                        <div><span className="text-(--app-muted-foreground)">{t('assessmentOversight.eligible')}</span> <b className="tabular-nums">{eligibility.eligible}</b></div>
+                        <div><span className="text-(--app-muted-foreground)">{t('assessmentOversight.excluded')}</span> <b className="tabular-nums">{eligibility.excluded}</b></div>
+                        <div><span className="text-(--app-muted-foreground)">{t('assessmentOversight.snapshotAt')}</span> {cycle.eligibility_snapshot_at ? <LocalizedDateDisplay value={cycle.eligibility_snapshot_at} withTime /> : '—'}</div>
                         <span className={badgeClassName(finalized ? 'success' : 'neutral')}>{t(`assessmentOversight.eligibilityStatuses.${cycle.eligibility_status}`)}</span>
                         {pending > 0 && <div className="text-amber-700">{t('assessmentOversight.pendingExclusions')}: {pending}</div>}
                     </div>
@@ -95,8 +95,8 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                             {cycle.eligibility_snapshot_at && !building && (
                                 <button type="button" className={smallBtn} onClick={() => void finalize()}>{t('assessmentOversight.cycleActions.finalize')}</button>
                             )}
-                            {building && <span role="status" className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.cycleActions.snapshotBuilding')}</span>}
-                            {!building && participants.length === 0 && <span className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.cycleActions.snapshotNeedsInstitutions')}</span>}
+                            {building && <span role="status" className="text-sm text-(--app-muted-foreground)">{t('assessmentOversight.cycleActions.snapshotBuilding')}</span>}
+                            {!building && participants.length === 0 && <span className="text-sm text-(--app-muted-foreground)">{t('assessmentOversight.cycleActions.snapshotNeedsInstitutions')}</span>}
                         </div>
                     )}
                 </Section>
@@ -109,12 +109,12 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                         <th className={thCls}><span className="sr-only">{t('assessmentOversight.actionsLabel')}</span></th>
                     </>}>
                         {participants.length === 0 && (
-                            <tr><td colSpan={4} className={`${tdCls} text-[color:var(--app-muted-foreground)]`}>{t('assessmentOversight.noParticipants')}</td></tr>
+                            <tr><td colSpan={4} className={`${tdCls} text-(--app-muted-foreground)`}>{t('assessmentOversight.noParticipants')}</td></tr>
                         )}
                         {participants.map((p) => (
                             <tr key={p.id}>
-                                <td className={tdCls}>{named(p.organization, locale)} <span className="text-xs text-[color:var(--app-muted-foreground)]">{p.organization?.code}</span></td>
-                                <td className={tdCls}>{t(`assessmentOversight.participationStatuses.${p.status}`)}{p.exclusion_reason && <div className="text-xs text-[color:var(--app-muted-foreground)]">{p.exclusion_reason}</div>}</td>
+                                <td className={tdCls}>{named(p.organization, locale)} <span className="text-xs text-(--app-muted-foreground)">{p.organization?.code}</span></td>
+                                <td className={tdCls}>{t(`assessmentOversight.participationStatuses.${p.status}`)}{p.exclusion_reason && <div className="text-xs text-(--app-muted-foreground)">{p.exclusion_reason}</div>}</td>
                                 <td className={tdCls}>{t(`assessmentOversight.submissionStatuses.${p.submission_status}`)}</td>
                                 <td className={tdCls}>
                                     {!finalized && p.status === 'included' && (
@@ -148,7 +148,7 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                             {organizations.map((o) => (
                                 <label key={o.id} className="flex items-center gap-2 text-sm">
                                     <input type="checkbox" checked={picked.includes(o.id)} onChange={(e) => setPicked(e.target.checked ? [...picked, o.id] : picked.filter((x) => x !== o.id))} />
-                                    {named(o, locale)} <span className="text-xs text-[color:var(--app-muted-foreground)]">{o.code}</span>
+                                    {named(o, locale)} <span className="text-xs text-(--app-muted-foreground)">{o.code}</span>
                                 </label>
                             ))}
                         </div>
