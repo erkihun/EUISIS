@@ -22,9 +22,9 @@ import {
  */
 const toneStyles = {
     primary: {
-        marker: 'bg-[color:var(--color-primary)]',
+        marker: 'bg-primary',
         card: 'card-tone-info',
-        icon: 'bg-[color:var(--color-primary)] text-white dark:bg-[color:var(--color-primary)]/10 dark:text-[color:var(--color-primary)]',
+        icon: 'bg-primary text-white dark:bg-primary/10 dark:text-primary',
     },
     success: {
         marker: 'bg-emerald-500',
@@ -44,7 +44,7 @@ const toneStyles = {
     neutral: {
         marker: 'bg-slate-400 dark:bg-slate-600',
         card: 'card-tone-neutral',
-        icon: 'bg-slate-600 text-white dark:bg-slate-800 dark:text-[color:var(--app-muted-foreground)]',
+        icon: 'bg-slate-600 text-white dark:bg-slate-800 dark:text-(--app-muted-foreground)',
     },
 } as const;
 
@@ -115,13 +115,13 @@ export default function KpiCard({
             ? 'text-emerald-700 dark:text-emerald-400'
             : trendDirection === 'down'
               ? 'text-red-700 dark:text-red-400'
-              : 'text-[color:var(--app-muted-foreground)]';
+              : 'text-(--app-muted-foreground)';
 
     const body = (
-        <div className="relative z-[1] flex h-full flex-col">
+        <div className="relative z-1 flex h-full flex-col">
             <div className="flex items-start justify-between gap-4">
                 <p
-                    className="min-w-0 whitespace-normal break-words text-xs font-medium leading-relaxed text-[color:var(--app-muted-foreground)] sm:text-sm"
+                    className="min-w-0 whitespace-normal wrap-break-word text-xs font-medium leading-relaxed text-(--app-muted-foreground) sm:text-sm"
                 >
                     {title}
                 </p>
@@ -136,7 +136,7 @@ export default function KpiCard({
             </div>
 
             <p
-                className="break-words pt-3 text-2xl font-semibold leading-tight tabular-nums tracking-tight text-gray-950 sm:text-3xl dark:text-white"
+                className="wrap-break-word pt-3 text-2xl font-semibold leading-tight tabular-nums tracking-tight text-gray-950 sm:text-3xl dark:text-white"
             >
                 {value}
             </p>
@@ -152,7 +152,7 @@ export default function KpiCard({
                     </span>
                     {comparisonLabel && (
                         <span
-                            className="text-[color:var(--app-muted-foreground)]"
+                            className="text-(--app-muted-foreground)"
                         >
                             {comparisonLabel}
                         </span>
@@ -167,8 +167,8 @@ export default function KpiCard({
         'relative h-full min-w-0 overflow-hidden rounded-panel border transition-colors',
         style.card,
         featured
-            ? 'min-h-[112px] border-[color:var(--app-border)] border-s-[3px] border-s-[color:var(--color-primary)] p-4 dark:border-s-indigo-400 '
-            : 'min-h-[112px] border-[color:var(--app-border)] p-4 ',
+            ? 'min-h-[112px] border-(--app-border) border-s-[3px] border-s-primary p-4 dark:border-s-indigo-400 '
+            : 'min-h-[112px] border-(--app-border) p-4 ',
     ].join(' ');
 
     if (!href) {
@@ -178,7 +178,7 @@ export default function KpiCard({
     return (
         <Link
             href={href}
-            className={`${shell} group block hover:border-[color:var(--app-border-strong)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:hover:bg-slate-800/70 dark:focus-visible:ring-offset-slate-950`}
+            className={`${shell} group block hover:border-(--app-border-strong) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:hover:bg-slate-800/70 dark:focus-visible:ring-offset-slate-950`}
         >
             {body}
         </Link>

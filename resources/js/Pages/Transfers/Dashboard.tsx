@@ -82,8 +82,8 @@ export default function TransferDashboard({ stats, recent_transfers, can }: Prop
 
                 {/* Approval queue shortcuts */}
                 {(can.approve_release || can.approve_receiving || can.approve_final) && (
-                    <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
+                    <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="mb-4 text-sm font-semibold text-(--app-foreground)">
                             {t('transfers.approvalChain')}
                         </h3>
                         <div className="grid gap-3 sm:grid-cols-3">
@@ -120,19 +120,19 @@ export default function TransferDashboard({ stats, recent_transfers, can }: Prop
 
                 {/* Recent transfers */}
                 {recent_transfers.length > 0 && (
-                    <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
+                    <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="mb-4 text-sm font-semibold text-(--app-foreground)">
                             {t('transfers.recentTransfers')}
                         </h3>
                         <div className="space-y-2">
                             {recent_transfers.map(transfer => (
-                                <div key={transfer.id} className="flex items-center justify-between rounded-lg border border-[color:var(--app-border)] px-4 py-3">
+                                <div key={transfer.id} className="flex items-center justify-between rounded-lg border border-(--app-border) px-4 py-3">
                                     <div>
-                                        <p className="text-sm font-medium text-[color:var(--app-foreground)]">
+                                        <p className="text-sm font-medium text-(--app-foreground)">
                                             {transfer.employee?.full_name ?? '-'}
-                                            <span className="ml-2 text-xs text-[color:var(--app-muted-foreground)]">{transfer.employee?.employee_number}</span>
+                                            <span className="ml-2 text-xs text-(--app-muted-foreground)">{transfer.employee?.employee_number}</span>
                                         </p>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="text-xs text-(--app-muted-foreground)">
                                             {(useAmharic ? transfer.releasingOrganization?.name_am : transfer.releasingOrganization?.name_en) ?? transfer.releasingOrganization?.name_en}
                                             {' → '}
                                             {(useAmharic ? transfer.receivingOrganization?.name_am : transfer.receivingOrganization?.name_en) ?? transfer.receivingOrganization?.name_en}

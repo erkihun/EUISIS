@@ -113,20 +113,20 @@ export function ScopeTrail({ url, query, scope }: { url: string; query: SrQuery;
 
     return (
         <nav aria-label={sr('ui.organization')} className="flex flex-wrap items-center gap-1 text-sm">
-            <Link href={url} data={without} className="text-[color:var(--color-primary)] hover:underline">{sr(scope.unrestricted ? 'ui.scope_all' : 'ui.scope_mine')}</Link>
+            <Link href={url} data={without} className="text-primary hover:underline">{sr(scope.unrestricted ? 'ui.scope_all' : 'ui.scope_mine')}</Link>
             {scope.breadcrumb.map((step, i) => (
                 <span key={step.id} className="flex items-center gap-1">
-                    <span aria-hidden="true" className="text-[color:var(--app-muted-foreground)]">›</span>
+                    <span aria-hidden="true" className="text-(--app-muted-foreground)">›</span>
                     {i === scope.breadcrumb.length - 1
-                        ? <span aria-current="page" className="font-medium text-[color:var(--app-foreground)]">{label(step.label)}</span>
-                        : <Link href={url} data={{ ...without, organization_id: step.id }} className="text-[color:var(--color-primary)] hover:underline">{label(step.label)}</Link>}
+                        ? <span aria-current="page" className="font-medium text-(--app-foreground)">{label(step.label)}</span>
+                        : <Link href={url} data={{ ...without, organization_id: step.id }} className="text-primary hover:underline">{label(step.label)}</Link>}
                 </span>
             ))}
             {scope.children.length > 0 && (
                 <span className="ml-2 flex flex-wrap items-center gap-1">
-                    <span className="text-xs text-[color:var(--app-muted-foreground)]">{sr('ui.drill_down')}:</span>
+                    <span className="text-xs text-(--app-muted-foreground)">{sr('ui.drill_down')}:</span>
                     {scope.children.slice(0, 12).map((child) => (
-                        <Link key={child.id} href={url} data={{ ...without, organization_id: child.id }} className="rounded-control border border-[color:var(--app-border)] px-2 py-0.5 text-xs text-[color:var(--app-foreground)] hover:border-[color:var(--color-primary)]">
+                        <Link key={child.id} href={url} data={{ ...without, organization_id: child.id }} className="rounded-control border border-(--app-border) px-2 py-0.5 text-xs text-(--app-foreground) hover:border-primary">
                             {label(child.label)}
                         </Link>
                     ))}
@@ -142,7 +142,7 @@ export function Freshness({ generatedAt, cachedFor }: { generatedAt: string; cac
     const system = useCalendarSystem();
 
     return (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--app-muted-foreground)]" aria-live="polite">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-(--app-muted-foreground)" aria-live="polite">
             <span>
                 {sr('ui.computed_at', { time: formatDateTimeDisplay(generatedAt, system, locale) })}
                 {cachedFor > 0 && ` · ${sr('ui.reused_for', { minutes: Math.round(cachedFor / 60) })}`}

@@ -85,13 +85,13 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
             </div>} />}>
             <Head title={employeeName(agreement.employee, locale)} />
             <div className={pageCls}>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-[color:var(--app-muted-foreground)]">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-(--app-muted-foreground)">
                     <Pill group="agreement" value={status} />
                     <span><LocalizedDateDisplay value={agreement.effective_from} /> – <LocalizedDateDisplay value={agreement.effective_to} /></span>
                     {agreement.version > 1 && <span>v{agreement.version}</span>}
                     {agreement.is_temporary && <span>{t('performance.fields.temporary')}</span>}
                     {agreement.manager && <span>{t('performance.fields.manager')}: {agreement.manager}</span>}
-                    {agreement.plan && <Link className="text-[color:var(--color-primary)] hover:underline" href={route('performance.plans.show', agreement.plan.id)}>{t('performance.agreements.positionPlan')}: {agreement.plan.title} (v{agreement.plan.version})</Link>}
+                    {agreement.plan && <Link className="text-primary hover:underline" href={route('performance.plans.show', agreement.plan.id)}>{t('performance.agreements.positionPlan')}: {agreement.plan.title} (v{agreement.plan.version})</Link>}
                     {can.manage && LIVE.includes(status) && (
                         <span className="flex gap-2">
                             <button type="button" className={smallBtn} onClick={() => toggle('close')}>{t('performance.actions.close')}</button>
@@ -111,13 +111,13 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
 
                 {pendingAmendments.length > 0 && (
                     <Section title={t('performance.plans.amendments')}>
-                        <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+                        <ul className="divide-y divide-(--app-border) text-sm">
                             {pendingAmendments.map((a) => (
                                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                                     <div>
                                         <p className="text-xs font-medium">{agreement.items.find((i) => i.id === a.subject_id)?.kpi.code}</p>
                                         <AmendmentDiff original={a.original_values} proposed={a.proposed_values} />
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{a.reason} · <LocalizedDateDisplay value={a.effective_date} /></p>
+                                        <p className="text-xs text-(--app-muted-foreground)">{a.reason} · <LocalizedDateDisplay value={a.effective_date} /></p>
                                     </div>
                                     {can.manage && (
                                         <div className="flex gap-2">
@@ -157,8 +157,8 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
                     <Section title={t('performance.agreements.competencies')}>
                         <ul className="grid gap-2 text-sm sm:grid-cols-2">
                             {agreement.competencies.map((c) => (
-                                <li key={c.competency_id} className="flex justify-between gap-2 rounded-lg bg-[color:var(--app-surface-muted)] px-3 py-2">
-                                    <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en} <span className="text-xs text-[color:var(--app-muted-foreground)]">({formatScore(c.weight)})</span></span>
+                                <li key={c.competency_id} className="flex justify-between gap-2 rounded-lg bg-(--app-surface-muted) px-3 py-2">
+                                    <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en} <span className="text-xs text-(--app-muted-foreground)">({formatScore(c.weight)})</span></span>
                                     <span className="text-xs tabular-nums">{t('performance.fields.selfRating')}: {c.self_rating ?? '—'} · {t('performance.fields.managerRating')}: {c.manager_rating ?? '—'}</span>
                                 </li>
                             ))}
@@ -176,7 +176,7 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
                     {pendingAdjustments.length > 0 && (
                         <ul className="mb-3 space-y-2 text-sm">
                             {pendingAdjustments.map((a) => (
-                                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-2">
+                                <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-(--app-surface-muted) p-2">
                                     <span>{formatScore(a.original_score)} → {formatScore(a.adjusted_score)} · {a.reason} <Pill group="approval" value="PENDING" /></span>
                                     {can.finalize && (
                                         <span className="flex gap-2">
@@ -190,19 +190,19 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
                     )}
                     <ResultPanel result={result} hidden={agreement.result_hidden} />
                     {combined.parts.length > 1 && (
-                        <p className="mt-3 text-sm">{t('performance.agreements.combined')}: <span className="font-semibold tabular-nums">{formatScore(combined.score)}</span> <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{combined.formula}</span></p>
+                        <p className="mt-3 text-sm">{t('performance.agreements.combined')}: <span className="font-semibold tabular-nums">{formatScore(combined.score)}</span> <span className="font-mono text-xs text-(--app-muted-foreground)">{combined.formula}</span></p>
                     )}
                 </Section>
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     <Section title={t('performance.agreements.pips')} actions={can.manage && <button type="button" className={smallBtn} onClick={() => toggle('pip')}>{t('performance.actions.add')}</button>}>
                         {open === 'pip' && <PipForm agreementId={agreement.id} onDone={() => setOpen(null)} />}
-                        {agreement.improvement_plans.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p> : (
+                        {agreement.improvement_plans.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">—</p> : (
                             <ul className="space-y-2 text-sm">
                                 {agreement.improvement_plans.map((p) => (
-                                    <li key={p.id} className="rounded-lg bg-[color:var(--app-surface-muted)] p-2">
+                                    <li key={p.id} className="rounded-lg bg-(--app-surface-muted) p-2">
                                         <p>{p.identified_gap}</p>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{p.required_improvement} · <LocalizedDateDisplay value={p.start_date} /> – <LocalizedDateDisplay value={p.end_date} /> · {label('development', p.status)}</p>
+                                        <p className="text-xs text-(--app-muted-foreground)">{p.required_improvement} · <LocalizedDateDisplay value={p.start_date} /> – <LocalizedDateDisplay value={p.end_date} /> · {label('development', p.status)}</p>
                                     </li>
                                 ))}
                             </ul>
@@ -243,7 +243,7 @@ function ItemForm({ agreementId, item, planTargets, onDone }: { agreementId: str
     }
 
     return (
-        <form onSubmit={submit} className="my-3 grid gap-3 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-2 lg:grid-cols-4">
+        <form onSubmit={submit} className="my-3 grid gap-3 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-2 lg:grid-cols-4">
             {!item && (
                 <Field label={t('performance.fields.kpi')} error={errors.kpi_id ?? errors.position_target_id} className="sm:col-span-2">
                     <select className={inputCls} value={form.data.position_target_id} onChange={(e) => pickTarget(e.target.value)} required>
@@ -312,7 +312,7 @@ function CheckinForm({ agreementId, onDone }: { agreementId: string; onDone: () 
         <Field label={caption} error={form.errors[key]}><textarea rows={2} className={inputCls} value={form.data[key]} onChange={(e) => form.setData(key, e.target.value)} /></Field>
     );
     return (
-        <form onSubmit={(e) => { e.preventDefault(); form.transform(nullify); form.post(route('performance.agreements.checkins.store', agreementId), { preserveScroll: true, onSuccess: onDone }); }} className="mb-3 grid gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-2">
+        <form onSubmit={(e) => { e.preventDefault(); form.transform(nullify); form.post(route('performance.agreements.checkins.store', agreementId), { preserveScroll: true, onSuccess: onDone }); }} className="mb-3 grid gap-2 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-2">
             <Field label={t('performance.fields.checkinDate')} error={form.errors.checkin_date}><LocalizedDatePicker value={form.data.checkin_date} onChange={(v) => form.setData('checkin_date', v)} required /></Field>
             <Field label={t('performance.fields.progress')} error={form.errors.progress_status}>
                 <select className={inputCls} value={form.data.progress_status} onChange={(e) => form.setData('progress_status', e.target.value)}>
@@ -350,15 +350,15 @@ function ReviewForm({ agreement, type }: { agreement: AgreementView; type: 'MID_
     }
 
     return (
-        <form onSubmit={(e) => { e.preventDefault(); form.post(route('performance.agreements.reviews.complete', [agreement.id, slug]), { preserveScroll: true }); }} className="mt-4 space-y-3 border-t border-[color:var(--app-border)] pt-3">
+        <form onSubmit={(e) => { e.preventDefault(); form.post(route('performance.agreements.reviews.complete', [agreement.id, slug]), { preserveScroll: true }); }} className="mt-4 space-y-3 border-t border-(--app-border) pt-3">
             <Field label={t('performance.fields.managerComment')} error={errors.manager_comment}><textarea rows={3} className={inputCls} value={form.data.manager_comment} onChange={(e) => form.setData('manager_comment', e.target.value)} /></Field>
             <Field label={t('performance.fields.improvementActions')} error={errors.improvement_actions}><textarea rows={2} className={inputCls} value={form.data.improvement_actions} onChange={(e) => form.setData('improvement_actions', e.target.value)} /></Field>
             <Field label={t('performance.fields.privateNote')} error={errors.manager_private_note}><textarea rows={2} className={inputCls} value={form.data.manager_private_note} onChange={(e) => form.setData('manager_private_note', e.target.value)} /></Field>
             <fieldset>
-                <legend className="mb-1 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.enums.health.AT_RISK')}</legend>
+                <legend className="mb-1 text-xs font-medium text-(--app-muted-foreground)">{t('performance.enums.health.AT_RISK')}</legend>
                 <div className="flex flex-wrap gap-2">
                     {agreement.items.map((item) => (
-                        <label key={item.id} className="flex items-center gap-1.5 rounded-lg border border-[color:var(--app-border)] px-2 py-1 text-xs">
+                        <label key={item.id} className="flex items-center gap-1.5 rounded-lg border border-(--app-border) px-2 py-1 text-xs">
                             <input type="checkbox" checked={form.data.at_risk_item_ids.includes(item.id)} onChange={(e) => form.setData('at_risk_item_ids', e.target.checked ? [...form.data.at_risk_item_ids, item.id] : form.data.at_risk_item_ids.filter((id) => id !== item.id))} />
                             {item.kpi.code}
                         </label>
@@ -368,10 +368,10 @@ function ReviewForm({ agreement, type }: { agreement: AgreementView; type: 'MID_
             {/* Competency ratings are part of the year-end result only. */}
             {type === 'YEAR_END' && agreement.competencies.length > 0 && (
                 <fieldset className="grid gap-2 sm:grid-cols-2">
-                    <legend className="mb-1 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.fields.managerRating')} (1–{levels.length})</legend>
+                    <legend className="mb-1 text-xs font-medium text-(--app-muted-foreground)">{t('performance.fields.managerRating')} (1–{levels.length})</legend>
                     {agreement.competencies.map((c) => (
                         <label key={c.competency_id} className="flex items-center justify-between gap-2 text-xs">
-                            <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en}{c.self_rating !== null && <span className="text-[color:var(--app-muted-foreground)]"> ({t('performance.fields.selfRating')}: {c.self_rating})</span>}</span>
+                            <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en}{c.self_rating !== null && <span className="text-(--app-muted-foreground)"> ({t('performance.fields.selfRating')}: {c.self_rating})</span>}</span>
                             <select className={selectClassName} value={form.data.ratings[c.competency_id] ?? ''} onChange={(e) => { const next = { ...form.data.ratings }; if (e.target.value === '') delete next[c.competency_id]; else next[c.competency_id] = Number(e.target.value); form.setData('ratings', next); }}>
                                 <option value="">—</option>
                                 {levels.map((n) => <option key={n} value={n}>{n}</option>)}
@@ -394,7 +394,7 @@ function AdjustmentForm({ resultId, onDone }: { resultId: string; onDone: () => 
     const { t } = useLocale();
     const form = useForm({ adjusted_score: '', reason: '' });
     return (
-        <form onSubmit={(e) => { e.preventDefault(); form.post(route('performance.results.adjustments.store', resultId), { preserveScroll: true, onSuccess: onDone }); }} className="mb-3 grid gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-3">
+        <form onSubmit={(e) => { e.preventDefault(); form.post(route('performance.results.adjustments.store', resultId), { preserveScroll: true, onSuccess: onDone }); }} className="mb-3 grid gap-2 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-3">
             <Field label={t('performance.fields.score0to200')} error={form.errors.adjusted_score}><input className={inputCls} inputMode="decimal" value={form.data.adjusted_score} onChange={(e) => form.setData('adjusted_score', e.target.value)} required /></Field>
             <Field label={t('performance.fields.reason')} error={form.errors.reason} className="sm:col-span-2"><input className={inputCls} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} required /></Field>
             <div className="flex justify-end gap-2 sm:col-span-3">

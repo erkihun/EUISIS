@@ -162,7 +162,7 @@ export default function IsicActivitiesIndex({
                                             <td className={cx(tableCellClassName, 'font-mono text-xs')}>
                                                 <Link
                                                     href={route('isic-activities.show', act.id)}
-                                                    className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                                                    className="text-primary hover:text-primary-hover dark:text-primary"
                                                 >
                                                     {act.isic_code}
                                                 </Link>

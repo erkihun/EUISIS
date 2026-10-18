@@ -41,7 +41,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
         <section className={className}>
             <form onSubmit={updatePassword} className="space-y-4">
                 <div>
-                    <label htmlFor="current_password" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.currentPassword')}</label>
+                    <label htmlFor="current_password" className="block text-xs font-medium text-(--app-muted-foreground)">{t('profile.currentPassword')}</label>
                     <Input
                         id="current_password"
                         ref={currentPasswordInput}
@@ -56,7 +56,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
 
                 <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                        <label htmlFor="password" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.newPassword')}</label>
+                        <label htmlFor="password" className="block text-xs font-medium text-(--app-muted-foreground)">{t('profile.newPassword')}</label>
                         <Input
                             id="password"
                             ref={passwordInput}
@@ -70,7 +70,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                     </div>
 
                     <div>
-                        <label htmlFor="password_confirmation" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.confirmPassword')}</label>
+                        <label htmlFor="password_confirmation" className="block text-xs font-medium text-(--app-muted-foreground)">{t('profile.confirmPassword')}</label>
                         <Input
                             id="password_confirmation"
                             value={data.password_confirmation}
@@ -85,9 +85,9 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
 
                 <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[account?.name, account?.email]} />
 
-                <div className="flex items-center justify-end gap-4 border-t border-[color:var(--app-border)] pt-5">
+                <div className="flex items-center justify-end gap-4 border-t border-(--app-border) pt-5">
                     <Transition show={recentlySuccessful} enter="transition ease-in-out" enterFrom="opacity-0" leave="transition ease-in-out" leaveTo="opacity-0">
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('profile.passwordUpdated')}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{t('profile.passwordUpdated')}</p>
                     </Transition>
                     <Button disabled={processing}>{t('profile.updatePassword')}</Button>
                 </div>

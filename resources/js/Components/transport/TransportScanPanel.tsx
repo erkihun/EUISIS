@@ -98,7 +98,7 @@ export default function TransportScanPanel({ providers, routes, trips, scanRoute
 
                 {camera ? (
                     <div className="space-y-2">
-                        <Suspense fallback={<p className="text-sm text-[color:var(--app-muted-foreground)]">{t('transport.scanReady')}</p>}>
+                        <Suspense fallback={<p className="text-sm text-(--app-muted-foreground)">{t('transport.scanReady')}</p>}>
                             <QrScanner autoStart onDecoded={(value) => { setCamera(false); void record(value); }} />
                         </Suspense>
                         <Button type="button" variant="outline" onClick={() => setCamera(false)}>{t('transport.scanStop')}</Button>
@@ -133,7 +133,7 @@ export default function TransportScanPanel({ providers, routes, trips, scanRoute
                         )}
                     </Alert>
                 )}
-                {!result && !failed && <Card className="text-sm text-[color:var(--app-muted-foreground)]">{t('transport.scanReady')}</Card>}
+                {!result && !failed && <Card className="text-sm text-(--app-muted-foreground)">{t('transport.scanReady')}</Card>}
             </div>
         </div>
     );

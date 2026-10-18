@@ -2,7 +2,7 @@
 
 The tokens and component variants the admin interface is built from, as they
 exist in the code today. Values come from `packages/euisis-ui/src/tokens.css`,
-`resources/css/app.css`, `tailwind.config.js` and the kit in
+`resources/css/app.css` (including its Tailwind `@theme` blocks) and the kit in
 `packages/euisis-ui/src`. Nothing here is aspirational: if a value is not in
 one of those files, it is not in this document. Usage rules and the audit are in
 `docs/admin-ui-consistency.md`; the kit's API table is in `docs/ui-components.md`.

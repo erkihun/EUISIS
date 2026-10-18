@@ -43,12 +43,12 @@ export default function OfficialAssessmentSheet({ code, title, sections, columns
     const totals = columns.map((column) => (column === null ? null : criteria.reduce((sum, criterion) => sum + (num(column[criterion.id]) ?? 0), 0)));
     const criteriaHeader = sections.length === 1 ? pick(sections[0].title_en, sections[0].title_am) : s('criteria');
     const blank = (value: ReactNode, wide = false) => (
-        <span className={`inline-block border-b border-dotted border-black align-bottom ${wide ? 'min-w-[16rem]' : 'min-w-[9rem]'}`}>{value ?? ' '}</span>
+        <span className={`inline-block border-b border-dotted border-black align-bottom ${wide ? 'min-w-[16rem]' : 'min-w-36'}`}>{value ?? ' '}</span>
     );
     const date = (value: string | null | undefined) => (value ? <LocalizedDateDisplay value={value} /> : null);
 
     return (
-        <article className="official-assessment-sheet bg-[color:var(--app-surface)] p-4 text-[12px] leading-snug text-black">
+        <article className="official-assessment-sheet bg-(--app-surface) p-4 text-[12px] leading-snug text-black">
             <p className="text-right font-semibold">{code}</p>
             <h2 className="mt-1 text-center text-[14px] font-bold">{pick(title.en, title.am)}</h2>
             <div className="mt-3 space-y-1.5">

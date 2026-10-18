@@ -84,27 +84,27 @@ export default function StudyShow({ study, proposals, validation, impact, histor
 
     const detail = (label: string, value: React.ReactNode) => (
         <div className="min-w-0">
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 break-words text-sm text-[color:var(--app-foreground)]">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 wrap-break-word text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
         </div>
     );
 
     const renderProposal = (node: ProposalNode, depth: number) => (
         <li key={node.id}>
-            <div className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3" style={{ marginLeft: `${depth * 16}px` }}>
+            <div className="rounded-card border border-(--app-border) p-3" style={{ marginLeft: `${depth * 16}px` }}>
                 <div className="flex flex-wrap items-start gap-2">
                     <span className={badgeClassName('neutral')}>{tt(`studies.proposalTypes.${node.proposal_type}`)}</span>
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-[color:var(--app-foreground)]">{nameOf(node, locale)}</p>
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                        <p className="text-sm font-semibold text-(--app-foreground)">{nameOf(node, locale)}</p>
+                        <p className="text-xs text-(--app-muted-foreground)">
                             {node.existing_unit && <>{tt('fields.existingUnit')}: {node.existing_unit.code} · {nameOf(node.existing_unit, locale)} · </>}
                             {node.parent_existing && <>{tt('studies.parentExisting')}: {node.parent_existing.code} · </>}
                             {node.unit_type_record && <>{nameOf(node.unit_type_record, locale)} · </>}
                             {node.change_request && <>{tt('studies.changeRequest')}: <Link href={route('organizational-change-requests.show', node.change_request.id)} className={actionLinkClassName({ size: 'xs' })}>{node.change_request.request_no}</Link> · </>}
                             {node.resulting_unit && <>{tt('studies.resultingUnit')}: {node.resulting_unit.code}</>}
                         </p>
-                        {node.design_rationale && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{node.design_rationale}</p>}
-                        {impactLine(node) && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]"><span className="font-medium">{tt('impact.title')}:</span> {impactLine(node)}</p>}
+                        {node.design_rationale && <p className="mt-1 text-xs text-(--app-muted-foreground)">{node.design_rationale}</p>}
+                        {impactLine(node) && <p className="mt-1 text-xs text-(--app-muted-foreground)"><span className="font-medium">{tt('impact.title')}:</span> {impactLine(node)}</p>}
                         <div className="mt-1"><ResponsibilitiesSummary rows={node.responsibilities} /></div>
                     </div>
                     <span className={badgeClassName(PROPOSAL_TONES[node.status] ?? 'neutral')}>{tt(`studies.proposalStatuses.${node.status}`)}</span>
@@ -162,18 +162,18 @@ export default function StudyShow({ study, proposals, validation, impact, histor
                             {detail(tt('studies.approvedBy'), study.approved_by)}
                         </dl>
                         {study.status === 'under_review' && !can.approve && can.review && (
-                            <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">{tt('studies.approveByOther')}</p>
+                            <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{tt('studies.approveByOther')}</p>
                         )}
-                        {can.generate && <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">{tt('studies.adoptHelp')}</p>}
+                        {can.generate && <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{tt('studies.adoptHelp')}</p>}
                     </Card>
 
                     <Card>
                         <CardHeader className="flex items-center justify-between gap-3">
-                            <div><CardTitle>{tt('studies.proposals')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('studies.proposalsHelp')}</p></div>
+                            <div><CardTitle>{tt('studies.proposals')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('studies.proposalsHelp')}</p></div>
                             {can.update && <Button size="sm" variant="primary" onClick={() => setProposalEdit({ record: null, parentId: null })}>{tt('studies.addProposal')}</Button>}
                         </CardHeader>
                         <div className="p-3">
-                            {proposals.length === 0 ? <p className="px-2 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('studies.noProposals')}</p> : <ul className="space-y-2">{proposals.map((p) => renderProposal(p, 0))}</ul>}
+                            {proposals.length === 0 ? <p className="px-2 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('studies.noProposals')}</p> : <ul className="space-y-2">{proposals.map((p) => renderProposal(p, 0))}</ul>}
                         </div>
                     </Card>
                 </div>
@@ -182,12 +182,12 @@ export default function StudyShow({ study, proposals, validation, impact, histor
                     <ValidationReport report={validation} compact />
                     <Card>
                         <CardHeader><CardTitle>{tt('studies.history')}</CardTitle></CardHeader>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {history.map((h, i) => (
                                 <li key={i} className="px-5 py-3 text-sm">
-                                    <p className="font-medium text-[color:var(--app-foreground)]">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
-                                    {h.reason && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{h.reason}</p>}
+                                    <p className="font-medium text-(--app-foreground)">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
+                                    {h.reason && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{h.reason}</p>}
                                 </li>
                             ))}
                         </ul>

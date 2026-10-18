@@ -43,14 +43,14 @@ export default function ChangeRequestTable({
 
     if (requests.length === 0) {
         return (
-            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-8">
+            <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-8">
                 <EmptyState title={emptyMessage} />
             </section>
         );
     }
 
     return (
-        <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+        <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
             <div className="overflow-x-auto">
                 <table className={tableClassName}>
                     <thead className={cx(tableHeadClassName, 'text-left uppercase')}>
@@ -75,10 +75,10 @@ export default function ChangeRequestTable({
                                         {request.request_no}
                                     </Link>
                                 </td>
-                                <td className={`${cellCls} text-[color:var(--app-foreground)]`}>
+                                <td className={`${cellCls} text-(--app-foreground)`}>
                                     {t(`organizationalChangeRequests.types.${request.request_type}`)}
                                 </td>
-                                <td className={`${cellCls} text-[color:var(--app-foreground)]`}>
+                                <td className={`${cellCls} text-(--app-foreground)`}>
                                     {request.organization
                                         ? (am ? request.organization.name_am || request.organization.name_en : request.organization.name_en)
                                         : '—'}
@@ -89,13 +89,13 @@ export default function ChangeRequestTable({
                                         label={t(`organizationalChangeRequests.statuses.${request.status}`)}
                                     />
                                 </td>
-                                <td className={`${cellCls} text-[color:var(--app-muted-foreground)]`}>
+                                <td className={`${cellCls} text-(--app-muted-foreground)`}>
                                     {request.requested_effective_date
                                         ? <LocalizedDateDisplay value={request.requested_effective_date} />
                                         : '—'}
                                 </td>
                                 {showAssignee && (
-                                    <td className={`${cellCls} text-[color:var(--app-muted-foreground)]`}>
+                                    <td className={`${cellCls} text-(--app-muted-foreground)`}>
                                         {request.implementation_assignee?.name ?? '—'}
                                     </td>
                                 )}

@@ -27,8 +27,8 @@ type Props = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">{children}</dd>
+            <dt className="text-xs text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 text-sm text-(--app-foreground)">{children}</dd>
         </div>
     );
 }
@@ -73,8 +73,8 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
 
             <div className="grid max-w-4xl gap-4 lg:grid-cols-2">
                 {/* Read-only context */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h2 className="mb-4 text-sm font-semibold text-(--app-foreground)">
                         {t('nfc.linkedIdCard')}
                     </h2>
                     <dl className="grid gap-4 sm:grid-cols-2">
@@ -96,7 +96,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                 </section>
 
                 {/* Provisioning form */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                     {/*
                       * Reader status is reported from the bound adapter, so an
                       * operator is never shown a success state that did not
@@ -121,7 +121,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
 
                     <form onSubmit={submit} className="space-y-4">
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">
+                            <span className="mb-1 block text-sm font-medium text-(--app-foreground)">
                                 {t('nfc.selectCredentialType')}
                             </span>
                             <select
@@ -142,7 +142,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                         {needsKeyMaterial && (
                             <>
                                 <label className="block">
-                                    <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">
+                                    <span className="mb-1 block text-sm font-medium text-(--app-foreground)">
                                         {t('nfc.keyVersion')}
                                     </span>
                                     <input
@@ -154,7 +154,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                                 </label>
 
                                 <label className="block">
-                                    <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">
+                                    <span className="mb-1 block text-sm font-medium text-(--app-foreground)">
                                         {t('nfc.keyReference')}
                                     </span>
                                     <input
@@ -162,7 +162,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                                         onChange={(e) => form.setData('key_reference', e.target.value)}
                                         className={`${filterInputCls} w-full`}
                                     />
-                                    <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">
+                                    <span className="mt-1 block text-xs text-(--app-muted-foreground)">
                                         {t('nfc.keyReferenceHint')}
                                     </span>
                                     <FieldError className="mt-1">{form.errors.key_reference}</FieldError>
@@ -182,7 +182,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                             {t('nfc.provisionSubmit')}
                         </button>
 
-                        <p className="text-center text-xs text-[color:var(--app-muted-foreground)]">
+                        <p className="text-center text-xs text-(--app-muted-foreground)">
                             {t('nfc.waitingForHardware')}
                         </p>
                     </form>

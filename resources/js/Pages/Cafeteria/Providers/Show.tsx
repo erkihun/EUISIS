@@ -50,10 +50,10 @@ export default function ProviderShow({
 }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
-    const rowCls = 'flex justify-between border-b border-[color:var(--app-border)] py-3 text-sm last:border-0';
-    const thCls = 'px-4 py-3 text-left text-xs font-medium text-[color:var(--app-muted-foreground)]';
-    const tdCls = 'px-4 py-3 text-sm text-[color:var(--app-foreground)]';
-    const cardCls = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
+    const rowCls = 'flex justify-between border-b border-(--app-border) py-3 text-sm last:border-0';
+    const thCls = 'px-4 py-3 text-left text-xs font-medium text-(--app-muted-foreground)';
+    const tdCls = 'px-4 py-3 text-sm text-(--app-foreground)';
+    const cardCls = 'rounded-card border border-(--app-border) bg-(--app-surface)';
 
     async function archiveBranch(branchId: string) {
         const { confirmed } = await confirm({
@@ -81,7 +81,7 @@ export default function ProviderShow({
                         can.update ? (
                             <Link
                                 href={route('cafeteria.providers.edit', provider.id)}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                className="rounded-lg border border-(--app-border-strong) px-3 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                             >
                                 {t('common.edit')}
                             </Link>
@@ -94,19 +94,19 @@ export default function ProviderShow({
 
                 {/* Provider details */}
                 <div className={`${cardCls} px-6`}>
-                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.providerCode')}</span><span className="font-mono font-medium text-[color:var(--app-foreground)]">{provider.code}</span></div>
-                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.nameEn')}</span><span className="font-medium text-[color:var(--app-foreground)]">{provider.name_en}</span></div>
-                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.nameAm')}</span><span className="text-[color:var(--app-foreground)]">{provider.name_am ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.contactPerson')}</span><span className="text-[color:var(--app-foreground)]">{provider.contact_person ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.phoneNumber')}</span><span className="text-[color:var(--app-foreground)]">{provider.phone_number ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.location')}</span><span className="text-[color:var(--app-foreground)]">{provider.location ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.isActive')}</span><StatusBadge status={provider.is_active ? 'active' : 'inactive'} label={provider.is_active ? t('common.active') : t('common.inactive')} /></div>
+                    <div className={rowCls}><span className="text-(--app-muted-foreground)">{t('cafeteria.providerCode')}</span><span className="font-mono font-medium text-(--app-foreground)">{provider.code}</span></div>
+                    <div className={rowCls}><span className="text-(--app-muted-foreground)">{t('cafeteria.nameEn')}</span><span className="font-medium text-(--app-foreground)">{provider.name_en}</span></div>
+                    <div className={rowCls}><span className="text-(--app-muted-foreground)">{t('cafeteria.nameAm')}</span><span className="text-(--app-foreground)">{provider.name_am ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-(--app-muted-foreground)">{t('cafeteria.contactPerson')}</span><span className="text-(--app-foreground)">{provider.contact_person ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-(--app-muted-foreground)">{t('cafeteria.phoneNumber')}</span><span className="text-(--app-foreground)">{provider.phone_number ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-(--app-muted-foreground)">{t('cafeteria.location')}</span><span className="text-(--app-foreground)">{provider.location ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-(--app-muted-foreground)">{t('cafeteria.isActive')}</span><StatusBadge status={provider.is_active ? 'active' : 'inactive'} label={provider.is_active ? t('common.active') : t('common.inactive')} /></div>
                 </div>
 
                 {/* Branches */}
                 <div className={cardCls}>
-                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                    <div className="flex items-center justify-between border-b border-(--app-border) px-6 py-4">
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">
                             {t('cafeteria.branches')}
                             {branches.length > 0 && (
                                 <span className={badgeClassName('info', 'ml-2')}>
@@ -125,7 +125,7 @@ export default function ProviderShow({
                     </div>
 
                     {branches.length === 0 ? (
-                        <p className="px-6 py-5 text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="px-6 py-5 text-sm text-(--app-muted-foreground)">
                             {t('cafeteria.noBranches')}
                         </p>
                     ) : (
@@ -144,14 +144,14 @@ export default function ProviderShow({
                                 <tbody className={tableBodyClassName}>
                                     {branches.map(b => (
                                         <tr key={b.id} className={tableRowClassName}>
-                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{b.code}</td>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>{b.code}</td>
                                             <td className={tableCellClassName}>
-                                                <div className="font-medium text-[color:var(--app-foreground)]">{b.name_en}</div>
-                                                {b.name_am && <div className="text-xs text-[color:var(--app-muted-foreground)]">{b.name_am}</div>}
+                                                <div className="font-medium text-(--app-foreground)">{b.name_en}</div>
+                                                {b.name_am && <div className="text-xs text-(--app-muted-foreground)">{b.name_am}</div>}
                                             </td>
                                             <td className={tdCls}>
                                                 {b.organization ? (
-                                                    <span>{b.organization.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({b.organization.code})</span></span>
+                                                    <span>{b.organization.name_en} <span className="font-mono text-xs text-(--app-muted-foreground)">({b.organization.code})</span></span>
                                                 ) : '—'}
                                             </td>
                                             <td className={tdCls}>{b.location ?? '—'}</td>
@@ -180,8 +180,8 @@ export default function ProviderShow({
 
                 {/* Admin users — managed in Settings */}
                 <div className={cardCls}>
-                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                    <div className="flex items-center justify-between border-b border-(--app-border) px-6 py-4">
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">
                             {t('cafeteria.providerUsers')}
                         </h2>
                         {can.manageUsers && (
@@ -195,7 +195,7 @@ export default function ProviderShow({
                     </div>
 
                     {adminUsers.length === 0 ? (
-                        <p className="px-6 py-5 text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="px-6 py-5 text-sm text-(--app-muted-foreground)">
                             {t('cafeteria.noAdminUsers')}
                         </p>
                     ) : (
@@ -214,18 +214,18 @@ export default function ProviderShow({
                                     {adminUsers.map(a => (
                                         <tr key={a.id} className={tableRowClassName}>
                                             <td className={tdCls}>
-                                                <div className="font-medium text-[color:var(--app-foreground)]">{a.user.name}</div>
-                                                <div className="text-xs text-[color:var(--app-muted-foreground)]">{a.user.email}</div>
+                                                <div className="font-medium text-(--app-foreground)">{a.user.name}</div>
+                                                <div className="text-xs text-(--app-muted-foreground)">{a.user.email}</div>
                                             </td>
                                             <td className={tdCls}>
                                                 {a.branch ? (
-                                                    <span className="font-medium">{a.branch.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({a.branch.code})</span></span>
-                                                ) : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
+                                                    <span className="font-medium">{a.branch.name_en} <span className="font-mono text-xs text-(--app-muted-foreground)">({a.branch.code})</span></span>
+                                                ) : <span className="text-(--app-muted-foreground)">—</span>}
                                             </td>
                                             <td className={tdCls}>
                                                 {a.organization ? (
-                                                    <span>{a.organization.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({a.organization.code})</span></span>
-                                                ) : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
+                                                    <span>{a.organization.name_en} <span className="font-mono text-xs text-(--app-muted-foreground)">({a.organization.code})</span></span>
+                                                ) : <span className="text-(--app-muted-foreground)">—</span>}
                                             </td>
                                             <td className={tdCls}>{a.provider_role ?? 'operator'}</td>
                                             <td className={cx(tableCellClassName, 'text-center')}>

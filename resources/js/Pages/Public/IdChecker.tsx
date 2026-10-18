@@ -416,7 +416,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false, sections =
                         <section
                             ref={resultRef}
                             tabIndex={-1}
-                            className="mt-4 rounded-panel border border-emerald-200 bg-white p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-900 dark:bg-slate-900 sm:p-5"
+                            className="mt-4 rounded-panel border border-emerald-200 bg-white p-4 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-900 dark:bg-slate-900 sm:p-5"
                         >
                             <h2 className="mb-4 font-semibold text-slate-900 dark:text-slate-100">
                                 {t('idChecker.verifiedDetails')}
@@ -441,7 +441,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false, sections =
                                     // Stacked on a phone, two columns from `sm`.
                                     <div key={label} className="flex flex-col gap-0.5 py-2.5 sm:flex-row sm:justify-between sm:gap-4">
                                         <dt className="text-xs text-slate-500 dark:text-slate-400 sm:text-sm">{label}</dt>
-                                        <dd className="break-words text-sm font-medium text-slate-900 dark:text-slate-100 sm:text-right">
+                                        <dd className="wrap-break-word text-sm font-medium text-slate-900 dark:text-slate-100 sm:text-right">
                                             {value ?? '—'}
                                         </dd>
                                     </div>
@@ -463,7 +463,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false, sections =
               * the thumb instead of scrolling away below the card details.
               */}
             {awaitingOtp && (
-                <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-white/95 p-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 sm:hidden">
+                <div className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-200 bg-white/95 p-3 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/95 sm:hidden">
                     {!otpSent ? (
                         <button type="button" onClick={sendOtp} disabled={busy} className={primaryBtn}>
                             {busy ? t('idChecker.sending') : t('idChecker.sendOtp')}

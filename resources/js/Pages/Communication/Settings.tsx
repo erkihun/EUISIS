@@ -60,21 +60,21 @@ export default function CommunicationSettings({ fields, metrics }: Props): JSX.E
         <AuthenticatedLayout mode="communication" contentWidth="form" header={<PageHeader title={t('communication.settings.title')} description={t('communication.settings.description')} />}>
             <Head title={t('communication.settings.title')} />
             <div className="space-y-6">
-                <section aria-labelledby="comm-status" className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h2 id="comm-status" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.settings.status.title')}</h2>
+                <section aria-labelledby="comm-status" className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h2 id="comm-status" className="text-sm font-semibold text-(--app-foreground)">{t('communication.settings.status.title')}</h2>
                     <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
                         {status.map(([label, value]) => (
                             <div key={label}>
-                                <dt className="text-[11px] text-[color:var(--app-muted-foreground)]">{label}</dt>
-                                <dd className="text-base font-semibold tabular-nums text-[color:var(--app-foreground)]">{value}</dd>
+                                <dt className="text-[11px] text-(--app-muted-foreground)">{label}</dt>
+                                <dd className="text-base font-semibold tabular-nums text-(--app-foreground)">{value}</dd>
                             </div>
                         ))}
                     </dl>
-                    <p className="mt-4 border-t border-[color:var(--app-border)] pt-3 text-sm text-[color:var(--app-foreground)]">
+                    <p className="mt-4 border-t border-(--app-border) pt-3 text-sm text-(--app-foreground)">
                         <span className="font-medium">{t('communication.settings.status.realtime')}: </span>
                         {rt.enabled ? tr(t('communication.settings.status.realtimeOn'), { driver: rt.driver, queue: rt.queue }) : t('communication.settings.status.realtimeOff')}
-                        {rt.enabled && rt.waiting !== null && <span className="text-[color:var(--app-muted-foreground)]"> · {tr(t('communication.settings.status.waiting'), { n: rt.waiting })}</span>}
-                        {rt.failures > 0 && <span className="text-[color:var(--color-danger,#b42318)]"> · {tr(t('communication.settings.status.failures'), { n: rt.failures })}</span>}
+                        {rt.enabled && rt.waiting !== null && <span className="text-(--app-muted-foreground)"> · {tr(t('communication.settings.status.waiting'), { n: rt.waiting })}</span>}
+                        {rt.failures > 0 && <span className="text-(--color-danger,#b42318)"> · {tr(t('communication.settings.status.failures'), { n: rt.failures })}</span>}
                     </p>
                 </section>
 
@@ -83,9 +83,9 @@ export default function CommunicationSettings({ fields, metrics }: Props): JSX.E
                         const items = keys.map((k) => byKey.get(k)).filter((f): f is SettingsField => f !== undefined);
                         if (items.length === 0) return null;
                         return (
-                            <section key={section} className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{section === 'other' ? '—' : t(`communication.settings.sections.${section}`)}</h2>
-                                {section === 'retention' && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('communication.settings.retentionHelp')}</p>}
+                            <section key={section} className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                                <h2 className="text-sm font-semibold text-(--app-foreground)">{section === 'other' ? '—' : t(`communication.settings.sections.${section}`)}</h2>
+                                {section === 'retention' && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('communication.settings.retentionHelp')}</p>}
                                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                                     {items.map((field) => (
                                         <div key={field.key} className={field.type === 'multiselect' ? 'sm:col-span-2' : ''}>
@@ -97,7 +97,7 @@ export default function CommunicationSettings({ fields, metrics }: Props): JSX.E
                             </section>
                         );
                     })}
-                    <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-[color:var(--app-background)]/95 py-3 backdrop-blur">
+                    <div className="sticky bottom-0 flex items-center justify-end gap-3 border-t border-(--app-border) bg-(--app-background)/95 py-3 backdrop-blur-sm">
                         <span role="status" className="text-sm text-emerald-700 dark:text-emerald-400">{form.recentlySuccessful ? t('communication.settings.saved') : ''}</span>
                         <button type="submit" disabled={form.processing || !form.isDirty} className={buttonClassName({ variant: 'primary' })}>{t('communication.settings.save')}</button>
                     </div>

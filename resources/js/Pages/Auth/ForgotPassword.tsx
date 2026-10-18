@@ -18,7 +18,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
             {/* ── Left branding panel ───────────────────────────────────── */}
             <div className="relative hidden w-[46%] shrink-0 overflow-hidden lg:flex lg:flex-col">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-[#0c1228] to-slate-950" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-950 via-[#0c1228] to-slate-950" />
 
                 <div
                     className="pointer-events-none absolute inset-0 opacity-[0.035]"
@@ -28,14 +28,14 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     }}
                 />
 
-                <div className="pointer-events-none absolute -top-48 -left-48 h-[600px] w-[600px] rounded-full bg-[color:var(--color-primary)]/25 blur-[130px]" />
+                <div className="pointer-events-none absolute -top-48 -left-48 h-[600px] w-[600px] rounded-full bg-primary/25 blur-[130px]" />
                 <div className="pointer-events-none absolute -bottom-32 right-0 h-[400px] w-[400px] rounded-full bg-orange-600/15 blur-[100px]" />
 
                 <div className="pointer-events-none absolute -right-28 top-1/2 -translate-y-1/2">
-                    <div className="h-[520px] w-[520px] rounded-full border border-white/[0.06]" />
-                    <div className="absolute inset-[52px] rounded-full border border-white/[0.05]" />
-                    <div className="absolute inset-[104px] rounded-full border border-white/[0.04]" />
-                    <div className="absolute inset-[156px] rounded-full border border-white/[0.03]" />
+                    <div className="h-[520px] w-[520px] rounded-full border border-white/6" />
+                    <div className="absolute inset-[52px] rounded-full border border-white/5" />
+                    <div className="absolute inset-[104px] rounded-full border border-white/4" />
+                    <div className="absolute inset-[156px] rounded-full border border-white/3" />
                 </div>
 
                 <div className="relative z-10 flex h-full flex-col items-center justify-between px-10 py-10 text-center">
@@ -84,9 +84,9 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     </div>
 
                     <div className="flex w-full items-center gap-3">
-                        <div className="h-px flex-1 bg-white/[0.06]" />
+                        <div className="h-px flex-1 bg-white/6" />
                         <p className="text-[11px] text-slate-600">Government of Ethiopia · Addis Ababa City Administration</p>
-                        <div className="h-px flex-1 bg-white/[0.06]" />
+                        <div className="h-px flex-1 bg-white/6" />
                     </div>
                 </div>
             </div>
@@ -107,7 +107,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
 
                             {/* Heading */}
                             <div className="mb-7">
-                                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-[color:var(--color-primary)] shadow-md shadow-blue-600/30">
+                                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-primary shadow-md shadow-blue-600/30">
                                     <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 0 1 21.75 8.25Z" />
                                     </svg>
@@ -148,10 +148,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                             autoFocus
                                             onChange={(e) => setData('email', e.target.value)}
                                             placeholder="you@example.com"
-                                            className={`w-full rounded-card border py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+                                            className={`w-full rounded-card border py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
                                                 errors.email
                                                     ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
-                                                    : 'border-gray-300 bg-white focus:border-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-800'
+                                                    : 'border-gray-300 bg-white focus:border-primary dark:border-slate-700 dark:bg-slate-800'
                                             }`}
                                         />
                                     </div>
@@ -168,7 +168,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex w-full items-center justify-center gap-2 rounded-card bg-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-all hover:bg-[color:var(--color-primary-hover)] hover:shadow-blue-600/30 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                                    className="flex w-full items-center justify-center gap-2 rounded-card bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-all hover:bg-primary-hover hover:shadow-blue-600/30 focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                                 >
                                     {processing ? (
                                         <>

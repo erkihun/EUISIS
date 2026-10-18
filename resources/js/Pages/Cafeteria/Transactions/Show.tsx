@@ -53,9 +53,9 @@ export default function TransactionShow({ transaction }: { transaction: Transact
         extra_scan: t('cafeteria.statusExtraScan'),
     } as Record<string, string>)[s] ?? s;
 
-    const rowCls = 'flex justify-between border-b border-[color:var(--app-border)] py-3 text-sm last:border-0';
-    const labelCls = 'text-[color:var(--app-muted-foreground)]';
-    const valueCls = 'font-medium text-[color:var(--app-foreground)]';
+    const rowCls = 'flex justify-between border-b border-(--app-border) py-3 text-sm last:border-0';
+    const labelCls = 'text-(--app-muted-foreground)';
+    const valueCls = 'font-medium text-(--app-foreground)';
 
     return (
         <AuthenticatedLayout
@@ -79,7 +79,7 @@ export default function TransactionShow({ transaction }: { transaction: Transact
             <Head title={transaction.transaction_number} />
 
             <div className="space-y-4">
-                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6">
+                <div className="rounded-card border border-(--app-border) bg-(--app-surface) px-6">
                     <div className={rowCls}>
                         <span className={labelCls}>{t('cafeteria.transactionStatus')}</span>
                         <StatusBadge status={transaction.status} label={statusLabel(transaction.status)} />

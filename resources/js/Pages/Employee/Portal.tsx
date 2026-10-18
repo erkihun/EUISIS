@@ -90,7 +90,7 @@ function SectionHeading({ icon: I, title, href }: { icon: (p: IconProps) => JSX.
                 <span className="portal-section-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"><I className="h-5 w-5" aria-hidden="true" /></span> {title}
             </h2>
             {href && (
-                <Link href={href} className="flex items-center gap-0.5 text-xs text-[var(--color-primary)] hover:underline">
+                <Link href={href} className="flex items-center gap-0.5 text-xs text-primary hover:underline">
                     {t('employeePortal.viewAll')} <Ic.ArrowRight className="h-3 w-3" />
                 </Link>
             )}
@@ -128,7 +128,7 @@ function Figure({ label, value, caption, tone = 'default', href }: {
     );
 
     return href ? (
-        <Link href={href} className={`${panel} block p-4 transition-colors hover:border-[var(--color-primary)]/40`}>{body}</Link>
+        <Link href={href} className={`${panel} block p-4 transition-colors hover:border-primary/40`}>{body}</Link>
     ) : (
         <div className={`${panel} p-4`}>{body}</div>
     );
@@ -141,7 +141,7 @@ const DAY_MARK: Record<string, { symbol: string; cls: string }> = {
     missing: { symbol: '!', cls: 'bg-red-50 text-red-800 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-900' },
     returned: { symbol: '↩', cls: 'bg-amber-50 text-amber-900 ring-amber-300 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900' },
     draft: { symbol: '…', cls: 'bg-gray-50 text-gray-700 ring-gray-300 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-600' },
-    required: { symbol: '•', cls: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] ring-[var(--color-primary)]/40' },
+    required: { symbol: '•', cls: 'bg-primary/10 text-primary ring-primary/40' },
     leave: { symbol: 'L', cls: 'bg-sky-50 text-sky-800 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900' },
     public_holiday: { symbol: 'H', cls: 'bg-violet-50 text-violet-800 ring-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:ring-violet-900' },
 };
@@ -212,7 +212,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
     if (pending_requests > 0) {
         todos.push({ key: 'requests', text: fill('employeePortal.todoPendingRequests', { count: pending_requests }), href: route('employee.requests'), tone: 'info' });
     }
-    const toneDot = { bad: 'bg-red-500', warn: 'bg-amber-500', info: 'bg-[var(--color-primary)]' };
+    const toneDot = { bad: 'bg-red-500', warn: 'bg-amber-500', info: 'bg-primary' };
 
     const perf = performance;
     const perfAgreement = perf?.agreement ?? null;
@@ -230,7 +230,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
             title={t('employeePortal.title')}
             description={[displayName ? fill('employeePortal.welcome', { name: displayName }) : '', placement].filter(Boolean).join(' · ')}
             actions={daily_activity ? (
-                <Link href={route('employee.daily-activity.entry')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:opacity-90">
+                <Link href={route('employee.daily-activity.entry')} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:opacity-90">
                     <Ic.Clipboard className="h-4 w-4" /> {t('employeePortal.registerActivity')}
                 </Link>
             ) : undefined}
@@ -252,7 +252,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                                 <Link href={todo.href} className="flex min-h-14 items-center gap-3 px-5 py-3 text-sm hover:bg-gray-50 dark:hover:bg-slate-800/50">
                                     <span className={`h-2 w-2 shrink-0 rounded-full ${toneDot[todo.tone]}`} aria-hidden="true" />
                                     <span className="min-w-0 flex-1 text-gray-800 dark:text-slate-200">{todo.text}</span>
-                                    <span className="flex shrink-0 items-center gap-0.5 text-xs font-medium text-[var(--color-primary)]">
+                                    <span className="flex shrink-0 items-center gap-0.5 text-xs font-medium text-primary">
                                         {t('employeePortal.open')} <Ic.ArrowRight className="h-3 w-3" />
                                     </span>
                                 </Link>
@@ -339,7 +339,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                                             <span className="text-base font-semibold leading-none" aria-hidden="true">{mark.symbol}</span>
                                         </>
                                     );
-                                    const cls = `flex h-16 flex-col items-center justify-between rounded-control p-1.5 ring-1 ring-inset ${mark.cls} ${isToday ? 'outline outline-2 outline-offset-1 outline-[var(--color-primary)]' : ''}`;
+                                    const cls = `flex h-16 flex-col items-center justify-between rounded-control p-1.5 ring-1 ring-inset ${mark.cls} ${isToday ? 'outline-solid outline-2 outline-offset-1 outline-primary' : ''}`;
                                     const title = [label, day.items_count ? fill('employeePortal.activityItems', { count: day.items_count }) : ''].filter(Boolean).join(' · ');
                                     const registrable = !['weekend', 'public_holiday', 'leave', 'future', 'not_employed', 'not_assigned'].includes(day.status);
 
@@ -362,7 +362,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                                 <ul className="divide-y divide-gray-100 dark:divide-slate-800">
                                     {daily_activity.recent.map((day) => (
                                         <li key={day.date}>
-                                            <Link href={route('employee.daily-activity.entry', { date: day.date })} className="flex items-center justify-between gap-2 py-2 text-sm hover:text-[var(--color-primary)]">
+                                            <Link href={route('employee.daily-activity.entry', { date: day.date })} className="flex items-center justify-between gap-2 py-2 text-sm hover:text-primary">
                                                 <LocalizedDateDisplay value={day.date} className="text-gray-800 dark:text-slate-200" />
                                                 <span className="flex items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
                                                     {fill('employeePortal.activityItems', { count: day.items_count })}
@@ -434,14 +434,14 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                         {transfer_apps.length === 0 ? (
                             <p className="text-sm text-gray-500 dark:text-slate-400">
                                 {t('employeePortal.noApplications')}{' '}
-                                <Link href={route('employee.announcements')} className="text-[var(--color-primary)] hover:underline">{t('employeePortal.browseAnnouncements')}</Link>
+                                <Link href={route('employee.announcements')} className="text-primary hover:underline">{t('employeePortal.browseAnnouncements')}</Link>
                             </p>
                         ) : (
                             <ul className="divide-y divide-gray-100 dark:divide-slate-800">
                                 {transfer_apps.slice(0, 3).map((app) => (
                                     <li key={app.id} className="flex items-center gap-3 py-2">
                                         <div className="min-w-0 flex-1">
-                                            <Link href={route('employee.announcements.show', { announcement: app.announcement_id })} className="text-sm font-medium text-gray-900 hover:text-[var(--color-primary)] dark:text-slate-100">
+                                            <Link href={route('employee.announcements.show', { announcement: app.announcement_id })} className="text-sm font-medium text-gray-900 hover:text-primary dark:text-slate-100">
                                                 {name(app.position, app.position_am)}
                                             </Link>
                                             <p className="truncate text-xs text-gray-500 dark:text-slate-400">{name(app.organization, app.organization_am)}{app.submitted_at && <> · <LocalizedDateDisplay value={app.submitted_at} /></>}</p>
@@ -457,7 +457,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                                 <ul className="divide-y divide-gray-100 dark:divide-slate-800">
                                     {open_announcements.map((post) => (
                                         <li key={post.id}>
-                                            <Link href={route('employee.announcements.show', { announcement: post.id })} className="flex items-center justify-between gap-3 py-2 text-sm hover:text-[var(--color-primary)]">
+                                            <Link href={route('employee.announcements.show', { announcement: post.id })} className="flex items-center justify-between gap-3 py-2 text-sm hover:text-primary">
                                                 <span className="min-w-0">
                                                     <span className="block truncate font-medium text-gray-900 dark:text-slate-100">{name(post.position, post.position_am)}</span>
                                                     <span className="block truncate text-xs text-gray-500 dark:text-slate-400">
@@ -481,7 +481,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                         {requests.length === 0 ? (
                             <p className="text-sm text-gray-500 dark:text-slate-400">
                                 {t('employeePortal.noRequests')}{' '}
-                                <Link href={route('employee.requests')} className="text-[var(--color-primary)] hover:underline">{t('employeePortal.newRequest')}</Link>
+                                <Link href={route('employee.requests')} className="text-primary hover:underline">{t('employeePortal.newRequest')}</Link>
                             </p>
                         ) : (
                             <ul className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -508,15 +508,15 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                             {employee.photo_url ? (
                                 <img src={employee.photo_url} alt="" className="h-14 w-11 rounded-card object-cover" />
                             ) : (
-                                <div className="flex h-14 w-11 items-center justify-center rounded-card bg-[var(--color-primary)]/10">
-                                    <Ic.User className="h-7 w-7 text-[var(--color-primary)]" />
+                                <div className="flex h-14 w-11 items-center justify-center rounded-card bg-primary/10">
+                                    <Ic.User className="h-7 w-7 text-primary" />
                                 </div>
                             )}
                             <div className="min-w-0 flex-1">
                                 <p className="truncate font-semibold text-gray-900 dark:text-slate-100">{employee.full_name}</p>
                                 <p className="text-xs text-gray-500 dark:text-slate-400">#{employee.employee_number}</p>
                             </div>
-                            <Link href={route('employee.profile')} className="shrink-0 text-xs font-medium text-[var(--color-primary)] hover:underline">{t('employeePortal.myProfile')}</Link>
+                            <Link href={route('employee.profile')} className="shrink-0 text-xs font-medium text-primary hover:underline">{t('employeePortal.myProfile')}</Link>
                         </div>
                         <dl className="mt-3 space-y-2 border-t border-gray-100 pt-3 text-sm dark:border-slate-800">
                             {assignment?.organization && (
@@ -603,7 +603,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                                 {notifications.latest.map((item) => (
                                     <li key={item.id} className="text-sm">
                                         <p className="flex items-center gap-1.5 font-medium text-gray-900 dark:text-slate-100">
-                                            {!item.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-primary)]" aria-hidden="true" />}
+                                            {!item.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />}
                                             <span className="truncate">{item.title}</span>
                                         </p>
                                         <p className="line-clamp-2 text-xs text-gray-600 dark:text-slate-400">{item.message}</p>
@@ -627,7 +627,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                                         {e.quota_limit != null && e.quota_limit > 0 && (
                                             <div className="mt-1">
                                                 <div className="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
-                                                    <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: `${Math.min(100, Math.round(((e.quota_used ?? 0) / e.quota_limit) * 100))}%` }} />
+                                                    <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, Math.round(((e.quota_used ?? 0) / e.quota_limit) * 100))}%` }} />
                                                 </div>
                                                 <p className="mt-0.5 text-[11px] text-gray-500 dark:text-slate-400">{fill('employeePortal.quotaUsed', { used: e.quota_used ?? 0, limit: e.quota_limit })}</p>
                                             </div>

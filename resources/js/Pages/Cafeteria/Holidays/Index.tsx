@@ -69,9 +69,9 @@ export default function HolidaysIndex({ holidays, meta, filters, year, can }: { 
                                 <tbody className={tableBodyClassName}>
                                     {holidays.map((h) => (
                                         <tr key={h.id} className={tableRowClassName}>
-                                            <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}><LocalizedDateDisplay value={h.holiday_date} /></td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{h.name_en}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{h.name_am ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'font-medium text-(--app-foreground)')}><LocalizedDateDisplay value={h.holiday_date} /></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{h.name_en}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{h.name_am ?? '—'}</td>
                                             <td className={cx(tableCellClassName, 'text-center')}>{h.is_recurring ? '✓' : '—'}</td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
                                                 <div className="flex justify-end">

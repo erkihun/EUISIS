@@ -110,8 +110,8 @@ export default function AgreementsIndex({ agreements, filters, statuses, cycles,
                             {agreements.data.map((a) => (
                                 <tr key={a.id}>
                                     <td className={tdCls}>
-                                        <Link href={route('performance.agreements.show', a.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{employeeName(a.employee, locale)}</Link>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{a.employee.number}{a.is_temporary ? ` · ${t('performance.fields.temporary')}` : ''}{a.version > 1 ? ` · v${a.version}` : ''}</p>
+                                        <Link href={route('performance.agreements.show', a.id)} className="font-medium text-primary hover:underline">{employeeName(a.employee, locale)}</Link>
+                                        <p className="text-xs text-(--app-muted-foreground)">{a.employee.number}{a.is_temporary ? ` · ${t('performance.fields.temporary')}` : ''}{a.version > 1 ? ` · v${a.version}` : ''}</p>
                                     </td>
                                     <td className={tdCls}>{nameOf(a.unit, locale) || nameOf(a.organization, locale)}</td>
                                     <td className={tdCls}>{nameOf(a.cycle, locale)}</td>

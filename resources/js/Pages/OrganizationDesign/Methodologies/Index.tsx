@@ -73,7 +73,7 @@ export default function MethodologiesIndex({ methodologies, filters, strategies,
                             <TBody>
                                 {methodologies.data.map((m) => (
                                     <Tr key={m.id}>
-                                        <Td className="font-mono text-xs">{m.code} <span className="text-[color:var(--app-muted-foreground)]">v{m.version_no}</span></Td>
+                                        <Td className="font-mono text-xs">{m.code} <span className="text-(--app-muted-foreground)">v{m.version_no}</span></Td>
                                         <Td>{nameOf(m, locale)}</Td>
                                         <Td muted>{tt(`methodologies.strategies.${m.calculation_type}`)}</Td>
                                         <Td muted>

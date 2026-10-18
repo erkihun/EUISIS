@@ -76,8 +76,8 @@ export default function IdCardBilingualField({
     const rowClass = stacked
         ? 'leading-tight'
         : 'grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-baseline gap-x-1 leading-tight';
-    const labelClass = 'block min-w-0 break-words';
-    const valueClass = 'block min-w-0 break-words font-semibold';
+    const labelClass = 'block min-w-0 wrap-break-word';
+    const valueClass = 'block min-w-0 wrap-break-word font-semibold';
 
     return (
         <div className="min-w-0">

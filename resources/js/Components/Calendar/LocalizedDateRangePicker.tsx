@@ -57,7 +57,7 @@ export default function LocalizedDateRangePicker({
                 placeholder={t('calendar.startDate')}
                 className="flex-1"
             />
-            <span className="text-sm text-[color:var(--app-muted-foreground)] sm:shrink-0">
+            <span className="text-sm text-(--app-muted-foreground) sm:shrink-0">
                 {t('common.to')}
             </span>
             <LocalizedDatePicker

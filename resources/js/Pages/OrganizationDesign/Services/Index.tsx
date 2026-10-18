@@ -89,10 +89,10 @@ export default function ServicesIndex({ services, filters, organizations, classi
                             <TBody>
                                 {services.data.map((s) => (
                                     <Tr key={s.id}>
-                                        <Td className="font-mono text-xs">{s.code} <span className="text-[color:var(--app-muted-foreground)]">v{s.version_no}</span></Td>
+                                        <Td className="font-mono text-xs">{s.code} <span className="text-(--app-muted-foreground)">v{s.version_no}</span></Td>
                                         <Td>
-                                            <Link href={route('organization-design.services.show', s.id)} className="font-medium text-[color:var(--app-foreground)] hover:underline">{nameOf(s, locale)}</Link>
-                                            {s.owner_unit && <p className="text-xs text-[color:var(--app-muted-foreground)]">{nameOf(s.owner_unit, locale)}</p>}
+                                            <Link href={route('organization-design.services.show', s.id)} className="font-medium text-(--app-foreground) hover:underline">{nameOf(s, locale)}</Link>
+                                            {s.owner_unit && <p className="text-xs text-(--app-muted-foreground)">{nameOf(s.owner_unit, locale)}</p>}
                                         </Td>
                                         <Td muted>{nameOf(s.organization, locale)}</Td>
                                         <Td muted>{s.classification ? `${s.classification.code} · ${nameOf(s.classification, locale)}` : '—'}</Td>

@@ -212,7 +212,7 @@ export default function Composer(props: Props): JSX.Element {
 
     return (
         <div
-            className="relative border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 pb-3 pt-2 sm:px-4"
+            className="relative border-t border-(--app-border) bg-(--app-surface) px-3 pb-3 pt-2 sm:px-4"
             onDragOver={(event) => { if (canUpload && !editing && event.dataTransfer.types.includes('Files')) { event.preventDefault(); setDragging(true); } }}
             onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }}
             onDrop={(event) => {
@@ -223,20 +223,20 @@ export default function Composer(props: Props): JSX.Element {
             }}
         >
             {dragging && (
-                <div className="pointer-events-none absolute inset-1 z-20 flex items-center justify-center rounded-panel border-2 border-dashed border-[color:var(--color-primary)] bg-[color:var(--app-surface)]/90 text-sm font-medium text-[color:var(--color-primary)]">
+                <div className="pointer-events-none absolute inset-1 z-20 flex items-center justify-center rounded-panel border-2 border-dashed border-primary bg-(--app-surface)/90 text-sm font-medium text-primary">
                     {t('communication.composer.dropHere')}
                 </div>
             )}
 
             {(replyTo || editing) && (
-                <div className="mb-2 flex items-start gap-2 rounded-control bg-[color:var(--app-surface-muted)] px-3 py-2 text-xs">
-                    <ReplyIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--color-primary)]" aria-hidden="true" />
+                <div className="mb-2 flex items-start gap-2 rounded-control bg-(--app-surface-muted) px-3 py-2 text-xs">
+                    <ReplyIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
                     <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-[color:var(--app-foreground)]">
+                        <p className="font-semibold text-(--app-foreground)">
                             {editing ? t('communication.chat.editing') : tr(t('communication.chat.replyingTo'), { name: replyTo?.sender?.name ?? '' })}
                         </p>
                         {replyTo && !editing && (
-                            <p className="truncate text-[color:var(--app-muted-foreground)]">
+                            <p className="truncate text-(--app-muted-foreground)">
                                 {replyTo.body ? bodyForEditing(replyTo).text : t('communication.list.attachment')}
                             </p>
                         )}
@@ -245,7 +245,7 @@ export default function Composer(props: Props): JSX.Element {
                         type="button"
                         onClick={editing ? props.onCancelEdit : props.onCancelReply}
                         aria-label={editing ? t('communication.chat.cancelEdit') : t('communication.chat.cancelReply')}
-                        className="rounded p-0.5 text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                        className="rounded-sm p-0.5 text-(--app-muted-foreground) hover:text-(--app-foreground)"
                     >
                         <XMarkIcon className="h-4 w-4" />
                     </button>
@@ -257,12 +257,12 @@ export default function Composer(props: Props): JSX.Element {
                     {uploads.map((upload) => (
                         <li
                             key={upload.key}
-                            className={`relative flex max-w-[16rem] items-center gap-2 overflow-hidden rounded-control border px-2.5 py-1.5 text-xs ${upload.error ? 'border-[color:var(--tone-danger-border,#f2b8b5)] bg-[color:var(--tone-danger-bg,#fef3f2)]' : 'border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)]'}`}
+                            className={`relative flex max-w-[16rem] items-center gap-2 overflow-hidden rounded-control border px-2.5 py-1.5 text-xs ${upload.error ? 'border-(--tone-danger-border,#f2b8b5) bg-(--tone-danger-bg,#fef3f2)' : 'border-(--app-border) bg-(--app-surface-muted)'}`}
                         >
                             <PaperclipIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                             <span className="min-w-0">
-                                <span className="block truncate font-medium text-[color:var(--app-foreground)]">{upload.file.name}</span>
-                                <span className={`block ${upload.error ? 'text-[color:var(--color-danger,#b42318)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                                <span className="block truncate font-medium text-(--app-foreground)">{upload.file.name}</span>
+                                <span className={`block ${upload.error ? 'text-(--color-danger,#b42318)' : 'text-(--app-muted-foreground)'}`}>
                                     {upload.error ?? (upload.attachment ? fileSize(upload.file.size) : `${upload.percent}%`)}
                                 </span>
                             </span>
@@ -270,7 +270,7 @@ export default function Composer(props: Props): JSX.Element {
                                 type="button"
                                 onClick={() => removeUpload(upload)}
                                 aria-label={upload.attachment || upload.error ? tr(t('communication.composer.remove'), { name: upload.file.name }) : t('communication.composer.cancelUpload')}
-                                className="shrink-0 rounded p-0.5 text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                                className="shrink-0 rounded-sm p-0.5 text-(--app-muted-foreground) hover:text-(--app-foreground)"
                             >
                                 <XMarkIcon className="h-3.5 w-3.5" />
                             </button>
@@ -281,7 +281,7 @@ export default function Composer(props: Props): JSX.Element {
                                     aria-valuenow={upload.percent}
                                     aria-valuemin={0}
                                     aria-valuemax={100}
-                                    className="absolute inset-x-0 bottom-0 h-0.5 bg-[color:var(--color-primary)] transition-[width]"
+                                    className="absolute inset-x-0 bottom-0 h-0.5 bg-primary transition-[width]"
                                     style={{ width: `${upload.percent}%` }}
                                 />
                             )}
@@ -290,7 +290,7 @@ export default function Composer(props: Props): JSX.Element {
                 </ul>
             )}
 
-            <div className="relative flex items-end gap-1 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-1.5 py-1.5 focus-within:border-[color:var(--color-primary)] focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]/15">
+            <div className="relative flex items-end gap-1 rounded-panel border border-(--app-border) bg-(--app-background) px-1.5 py-1.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15">
                 {canUpload && !editing && (
                     <>
                         <button
@@ -298,7 +298,7 @@ export default function Composer(props: Props): JSX.Element {
                             onClick={() => fileInput.current?.click()}
                             aria-label={t('communication.composer.attach')}
                             title={t('communication.composer.attach')}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                         >
                             <PaperclipIcon className="h-5 w-5" />
                         </button>
@@ -343,7 +343,7 @@ export default function Composer(props: Props): JSX.Element {
                             addFiles(event.clipboardData.files);
                         }
                     }}
-                    className="max-h-[200px] min-h-[36px] flex-1 resize-none border-0 bg-transparent px-1.5 py-2 text-sm leading-5 text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] focus:outline-none focus:ring-0"
+                    className="max-h-[200px] min-h-[36px] flex-1 resize-none border-0 bg-transparent px-1.5 py-2 text-sm leading-5 text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:outline-hidden focus:ring-0"
                 />
 
                 <div className="relative shrink-0">
@@ -353,7 +353,7 @@ export default function Composer(props: Props): JSX.Element {
                         aria-label={t('communication.composer.emoji')}
                         aria-expanded={emoji}
                         title={t('communication.composer.emoji')}
-                        className="flex h-9 w-9 items-center justify-center rounded-control text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                        className="flex h-9 w-9 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                     >
                         <SmileIcon className="h-5 w-5" />
                     </button>
@@ -366,7 +366,7 @@ export default function Composer(props: Props): JSX.Element {
                     disabled={!canSubmit}
                     aria-label={editing ? t('communication.chat.saveEdit') : t('communication.composer.send')}
                     title={editing ? t('communication.chat.saveEdit') : t('communication.composer.send')}
-                    className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-control bg-[color:var(--color-primary)] px-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-control bg-primary px-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                     {editing ? t('communication.chat.saveEdit') : <SendIcon className="h-4 w-4" />}
                 </button>
@@ -376,7 +376,7 @@ export default function Composer(props: Props): JSX.Element {
                         id={listboxId}
                         role="listbox"
                         aria-label={t('communication.composer.mentionHint')}
-                        className="absolute bottom-full start-0 z-30 mb-2 w-72 max-w-full overflow-hidden rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] py-1 shadow-lg"
+                        className="absolute bottom-full inset-s-0 z-30 mb-2 w-72 max-w-full overflow-hidden rounded-control border border-(--app-border) bg-(--app-surface) py-1 shadow-lg"
                     >
                         {suggestions.map((item, index) => (
                             <li
@@ -386,16 +386,16 @@ export default function Composer(props: Props): JSX.Element {
                                 aria-selected={index === highlight}
                                 onMouseDown={(event) => { event.preventDefault(); choose(item); }}
                                 onMouseEnter={() => setHighlight(index)}
-                                className={`cursor-pointer px-3 py-1.5 text-sm ${index === highlight ? 'bg-[color:var(--app-surface-muted)]' : ''}`}
+                                className={`cursor-pointer px-3 py-1.5 text-sm ${index === highlight ? 'bg-(--app-surface-muted)' : ''}`}
                             >
-                                <span className="block font-medium text-[color:var(--app-foreground)]">@{item.name}</span>
-                                {item.hint && <span className="block truncate text-xs text-[color:var(--app-muted-foreground)]">{item.hint}</span>}
+                                <span className="block font-medium text-(--app-foreground)">@{item.name}</span>
+                                {item.hint && <span className="block truncate text-xs text-(--app-muted-foreground)">{item.hint}</span>}
                             </li>
                         ))}
                     </ul>
                 )}
             </div>
-            <p id={hintId} className="mt-1 hidden px-1 text-[11px] text-[color:var(--app-muted-foreground)] sm:block">
+            <p id={hintId} className="mt-1 hidden px-1 text-[11px] text-(--app-muted-foreground) sm:block">
                 {t('communication.composer.hint')}
                 {text.length > limits.maxBody * 0.9 && <span className="ms-2 tabular-nums">{text.length}/{limits.maxBody}</span>}
             </p>

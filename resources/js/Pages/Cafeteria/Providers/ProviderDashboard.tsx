@@ -27,10 +27,10 @@ type ProviderRow = {
 
 function KpiCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
     return (
-        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</p>
-            <p className="mt-2 text-3xl font-bold tabular-nums text-[color:var(--app-foreground)]">{value}</p>
-            {sub && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{sub}</p>}
+        <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+            <p className="text-xs font-medium text-(--app-muted-foreground)">{label}</p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-(--app-foreground)">{value}</p>
+            {sub && <p className="mt-1 text-xs text-(--app-muted-foreground)">{sub}</p>}
         </div>
     );
 }
@@ -49,8 +49,8 @@ export default function ProviderDashboard({
     const { t, locale } = useLocale();
     const money = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const thCls = 'px-4 py-3 text-left text-xs font-semibold text-[color:var(--app-muted-foreground)]';
-    const tdCls = 'px-4 py-3 text-sm text-[color:var(--app-foreground)]';
+    const thCls = 'px-4 py-3 text-left text-xs font-semibold text-(--app-muted-foreground)';
+    const tdCls = 'px-4 py-3 text-sm text-(--app-foreground)';
 
     return (
         <AuthenticatedLayout
@@ -63,7 +63,7 @@ export default function ProviderDashboard({
                             {can.manageSettings && (
                                 <Link
                                     href={route('cafeteria.settings.index') + '?tab=provider-users'}
-                                    className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                    className="rounded-lg border border-(--app-border-strong) px-3 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                                 >
                                     {t('cafeteria.providerUsers')}
                                 </Link>
@@ -107,9 +107,9 @@ export default function ProviderDashboard({
                 </div>
 
                 {/* Providers table */}
-                <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                <div className="rounded-panel border border-(--app-border) bg-(--app-surface)">
+                    <div className="flex items-center justify-between border-b border-(--app-border) px-6 py-4">
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">
                             {t('cafeteria.providers')}
                         </h2>
                         <Link
@@ -137,17 +137,17 @@ export default function ProviderDashboard({
                             <tbody className={tableBodyClassName}>
                                 {providers.length === 0 ? (
                                     <tr>
-                                        <td colSpan={8} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
+                                        <td colSpan={8} className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>
                                             {t('common.noResults')}
                                         </td>
                                     </tr>
                                 ) : providers.map(p => (
                                     <tr key={p.id} className={tableRowClassName}>
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{p.code}</td>
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>{p.code}</td>
                                         <td className={tableCellClassName}>
                                             <Link
                                                 href={route('cafeteria.providers.show', p.id)}
-                                                className="font-medium text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] hover:underline dark:hover:text-blue-400"
+                                                className="font-medium text-(--app-foreground) hover:text-primary hover:underline dark:hover:text-blue-400"
                                             >
                                                 {(locale === 'am' && p.name_am) ? p.name_am : p.name_en}
                                             </Link>
@@ -162,11 +162,11 @@ export default function ProviderDashboard({
                                                 {p.active_users_count}
                                             </span>
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-right tabular-nums font-medium text-[color:var(--app-foreground)]')}>
-                                            {p.today_tx > 0 ? p.today_tx.toLocaleString() : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
+                                        <td className={cx(tableCellClassName, 'text-right tabular-nums font-medium text-(--app-foreground)')}>
+                                            {p.today_tx > 0 ? p.today_tx.toLocaleString() : <span className="text-(--app-muted-foreground)">—</span>}
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right tabular-nums font-medium text-emerald-600')}>
-                                            {p.today_subsidy > 0 ? money.format(p.today_subsidy) : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
+                                            {p.today_subsidy > 0 ? money.format(p.today_subsidy) : <span className="text-(--app-muted-foreground)">—</span>}
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-center')}>
                                             <StatusBadge
@@ -190,8 +190,8 @@ export default function ProviderDashboard({
                     </div>
 
                     {/* Footer: today label */}
-                    <div className="border-t border-[color:var(--app-border)] px-6 py-3">
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                    <div className="border-t border-(--app-border) px-6 py-3">
+                        <p className="text-xs text-(--app-muted-foreground)">
                             {t('cafeteria.todayTransactions')} — {today}
                         </p>
                     </div>

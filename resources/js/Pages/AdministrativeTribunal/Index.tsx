@@ -63,17 +63,17 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
                             {cases.data.map(c => (
                                 <tr key={c.id} className={tableRowClassName}>
                                     <td className={tableCellClassName}>
-                                        <Link href={route('tribunal-cases.show', c.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{c.case_number}</Link>
+                                        <Link href={route('tribunal-cases.show', c.id)} className="font-mono text-primary hover:underline dark:text-primary">{c.case_number}</Link>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)] max-w-xs truncate')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground) max-w-xs truncate')}>
                                         {c.grievance?.subject ?? '-'}
-                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{c.grievance?.reference_number}</div>
+                                        <div className="text-xs text-(--app-muted-foreground)">{c.grievance?.reference_number}</div>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{(am ? c.grievance?.organization?.name_am : null) ?? c.grievance?.organization?.name_en ?? '-'}</td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{(am ? c.grievance?.organization?.name_am : null) ?? c.grievance?.organization?.name_en ?? '-'}</td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                         {c.hearing_date ? <LocalizedDateDisplay value={c.hearing_date} /> : '-'}
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                         {c.decision_date ? <LocalizedDateDisplay value={c.decision_date} /> : '-'}
                                     </td>
                                     <td className={tableCellClassName}><StatusBadge status={c.status} /></td>

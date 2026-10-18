@@ -77,21 +77,21 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
                             {applications.data.map((app) => (
                                 <tr key={app.id} className={tableRowClassName}>
                                     <td className={tableCellClassName}>
-                                        <Link href={route('transfer-applications.show', app.id)} className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                        <Link href={route('transfer-applications.show', app.id)} className="text-primary hover:underline dark:text-primary">
                                             {(useAmharic ? app.announcement?.position?.title_am : null) ?? app.announcement?.position?.title_en ?? '-'}
                                         </Link>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
                                         {app.employee?.full_name}
-                                        <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]">{app.employee?.employee_number}</span>
+                                        <span className="ml-1 text-xs text-(--app-muted-foreground)">{app.employee?.employee_number}</span>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                         {(useAmharic ? app.releasingOrganization?.name_am : null) ?? app.releasingOrganization?.name_en ?? '-'}
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                         {(useAmharic ? app.receivingOrganization?.name_am : null) ?? app.receivingOrganization?.name_en ?? '-'}
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={app.submitted_at} fallback="-" /></td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={app.submitted_at} fallback="-" /></td>
                                     <td className={tableCellClassName}><StatusBadge status={app.status} /></td>
                                 </tr>
                             ))}

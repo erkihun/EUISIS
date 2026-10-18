@@ -69,7 +69,7 @@ export default function SettlementCreate({ providers, filters, preview }: {
                 </div>
 
                 {preview && (
-                    <div className="overflow-x-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)]">
+                    <div className="overflow-x-auto rounded-card border border-(--app-border)">
                         <table className={tableClassName}>
                             <thead className={tableHeadClassName}>
                                 <tr>
@@ -82,7 +82,7 @@ export default function SettlementCreate({ providers, filters, preview }: {
                                 </tr>
                             </thead>
                             <tbody className={tableBodyClassName}>
-                                {preview.lines.length === 0 && <tr><td colSpan={6} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>{tt('noResults')}</td></tr>}
+                                {preview.lines.length === 0 && <tr><td colSpan={6} className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>{tt('noResults')}</td></tr>}
                                 {preview.lines.map((line, index) => (
                                     <tr key={index} className={tableRowClassName}>
                                         <td className={tableCellClassName}>{label(line.employee_organization, tt('unattributed'))}</td>
@@ -94,7 +94,7 @@ export default function SettlementCreate({ providers, filters, preview }: {
                                     </tr>
                                 ))}
                             </tbody>
-                            <tfoot className="border-t border-[color:var(--app-border)] font-semibold">
+                            <tfoot className="border-t border-(--app-border) font-semibold">
                                 <tr>
                                     <td className={tableCellClassName} colSpan={2}>{tt('total')}</td>
                                     <td className={tableCellClassName}>{preview.totals.transaction_count}</td>

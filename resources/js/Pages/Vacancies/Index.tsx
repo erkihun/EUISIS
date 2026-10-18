@@ -110,30 +110,30 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                                 return (
                                     <tr key={announcement.id} className={tableRowClassName}>
                                         <td className={tableCellClassName}>
-                                            <Link href={route('vacancy-announcements.show', announcement.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                            <Link href={route('vacancy-announcements.show', announcement.id)} className="font-mono text-primary hover:underline dark:text-primary">
                                                 {announcement.announcement_number}
                                             </Link>
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
                                             {(useAmharic ? announcement.title_am : null) ?? announcement.title_en}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {positionSummary || '-'}
                                             {announcement.positions.length > 2 && (
-                                                <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]"> +{announcement.positions.length - 2}</span>
+                                                <span className="ml-1 text-xs text-(--app-muted-foreground)"> +{announcement.positions.length - 2}</span>
                                             )}
-                                            <span className="ml-2 rounded-full bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="ml-2 rounded-full bg-(--app-surface-muted) px-1.5 py-0.5 text-xs text-(--app-muted-foreground)">
                                                 {totalSlots} {t('vacancies.vacancySlots')}
                                             </span>
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <span className={`font-semibold ${announcement.applications_count > 0 ? 'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                                            <span className={`font-semibold ${announcement.applications_count > 0 ? 'text-primary dark:text-primary' : 'text-(--app-muted-foreground)'}`}>
                                                 {announcement.applications_count}
                                             </span>
                                         </td>
                                         <td className={tableCellClassName}>
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-[color:var(--app-muted-foreground)]">
+                                                <span className="text-(--app-muted-foreground)">
                                                     {announcement.application_closes_at
                                                         ? <LocalizedDateDisplay value={announcement.application_closes_at} />
                                                         : '-'}

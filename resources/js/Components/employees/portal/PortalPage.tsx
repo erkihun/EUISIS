@@ -23,7 +23,7 @@ export default function PortalPage({ title, description, actions, backHref, chil
     return (
         <AuthenticatedLayout variant="portal" header={<PageHeader title={title} description={description} actions={actions} backHref={backHref} />}>
             <Head title={title} />
-            <div className="portal-content mx-auto w-full max-w-screen-2xl space-y-6">{children}</div>
+            <div className="portal-content mx-auto w-full max-w-(--breakpoint-2xl) space-y-6">{children}</div>
         </AuthenticatedLayout>
     );
 }

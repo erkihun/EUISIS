@@ -29,7 +29,7 @@ function CheckRow({ label, pass }: { label: string; pass: boolean }) {
                     ✗
                 </span>
             )}
-            <span className={pass ? 'text-[color:var(--app-foreground)]' : 'text-red-600 dark:text-red-400'}>
+            <span className={pass ? 'text-(--app-foreground)' : 'text-red-600 dark:text-red-400'}>
                 {label}
             </span>
         </li>
@@ -50,8 +50,8 @@ export default function CardDataChecklist({ employee }: { employee: EmployeeData
     const allPass = checks.every((c) => c.pass);
 
     return (
-        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-            <h4 className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">
+        <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-4">
+            <h4 className="mb-3 text-sm font-semibold text-(--app-foreground)">
                 {t('idCards.requiredDataChecklist')}
             </h4>
             <ul className="space-y-2">

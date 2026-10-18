@@ -7,19 +7,19 @@ import { Workspace, CaseTable } from '@/Components/grievances/Workspace';
 import { CaseNumber, HandlerName, SlaBadge, fmt, primaryBtn, secondaryBtn, useEnumLabel } from '@/Components/grievances/ui';
 import type { DashboardProps, GrievanceRow } from '@/types/grievances';
 
-const panel = 'rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
-const heading = 'text-[15px] font-semibold text-[color:var(--app-foreground)]';
-const muted = 'text-[color:var(--app-muted-foreground)]';
-const textLink = 'text-[13px] font-semibold text-[color:var(--color-primary)] hover:underline';
+const panel = 'rounded-panel border border-(--app-border) bg-(--app-surface)';
+const heading = 'text-[15px] font-semibold text-(--app-foreground)';
+const muted = 'text-(--app-muted-foreground)';
+const textLink = 'text-[13px] font-semibold text-primary hover:underline';
 
 // Stage groups shown as bars; amber marks the ones waiting on someone else's sign-off.
 const WORKLOAD: { key: keyof DashboardProps['assigned']; bar: string }[] = [
-    { key: 'new', bar: 'bg-[color:var(--color-primary-400)]' },
-    { key: 'awaiting_hearing', bar: 'bg-[color:var(--color-primary-400)]' },
-    { key: 'awaiting_decision', bar: 'bg-[color:var(--color-primary)]' },
+    { key: 'new', bar: 'bg-primary-400' },
+    { key: 'awaiting_hearing', bar: 'bg-primary-400' },
+    { key: 'awaiting_decision', bar: 'bg-primary' },
     { key: 'pending_approval', bar: 'bg-amber-600 dark:bg-amber-500' },
     { key: 'returned', bar: 'bg-amber-600 dark:bg-amber-500' },
-    { key: 'escalated_in', bar: 'bg-[color:var(--color-primary-400)]' },
+    { key: 'escalated_in', bar: 'bg-primary-400' },
 ];
 
 const URGENT = ['overdue', 'due_today', 'due_soon'];
@@ -54,7 +54,7 @@ export default function Dashboard({ assigned, queue, intakePending, approvalsPen
                 <Kpi
                     href={casesUrl()}
                     icon={<Briefcase className="h-[17px] w-[17px]" />}
-                    iconClass="bg-[color:var(--color-primary-50)] text-[color:var(--color-primary)] dark:bg-[color:var(--color-primary-950)] dark:text-[color:var(--color-primary-200)]"
+                    iconClass="bg-primary-50 text-primary dark:bg-primary-950 dark:text-primary-200"
                     label={t('grievanceCases.metrics.total')}
                     value={assigned.total}
                     footer={t('grievanceCases.dash.total_hint')}
@@ -99,20 +99,20 @@ export default function Dashboard({ assigned, queue, intakePending, approvalsPen
                     <ul className="space-y-3">
                         {WORKLOAD.map(({ key, bar }) => (
                             <li key={key} className="flex items-center gap-3">
-                                <span className="w-44 shrink-0 text-[13px] font-medium text-[color:var(--app-foreground)] sm:w-56">{t(`grievanceCases.metrics.${key}`)}</span>
-                                <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]" aria-hidden="true">
+                                <span className="w-44 shrink-0 text-[13px] font-medium text-(--app-foreground) sm:w-56">{t(`grievanceCases.metrics.${key}`)}</span>
+                                <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-(--app-surface-muted)" aria-hidden="true">
                                     <span className={cx('block h-full rounded-full', bar)} style={{ width: `${(assigned[key] / maxBar) * 100}%` }} />
                                 </span>
-                                <span className="w-10 shrink-0 text-right text-[13px] font-semibold tabular-nums text-[color:var(--app-foreground)]">{assigned[key].toLocaleString()}</span>
+                                <span className="w-10 shrink-0 text-right text-[13px] font-semibold tabular-nums text-(--app-foreground)">{assigned[key].toLocaleString()}</span>
                             </li>
                         ))}
                     </ul>
-                    <p className={cx('border-t border-[color:var(--app-border)] pt-3.5 text-xs', muted)}>{t('grievanceCases.dash.where_note')}</p>
+                    <p className={cx('border-t border-(--app-border) pt-3.5 text-xs', muted)}>{t('grievanceCases.dash.where_note')}</p>
                 </section>
 
                 {/* Needs attention */}
                 <section aria-labelledby="attention-heading" className={cx(panel, 'flex flex-col overflow-hidden lg:col-span-5')}>
-                    <div className="flex items-center justify-between gap-3 border-b border-[color:var(--app-border)] px-5 py-4">
+                    <div className="flex items-center justify-between gap-3 border-b border-(--app-border) px-5 py-4">
                         <h2 id="attention-heading" className={cx(heading, 'inline-flex items-center gap-2')}>
                             <AlertTriangle aria-hidden="true" className="h-4 w-4 text-red-600 dark:text-red-400" />
                             {t('grievanceCases.dash.attention')}
@@ -122,13 +122,13 @@ export default function Dashboard({ assigned, queue, intakePending, approvalsPen
                     {attention.length === 0 ? (
                         <p className={cx('flex-1 px-5 py-10 text-center text-sm', muted)}>{t('grievanceCases.dash.all_clear')}</p>
                     ) : (
-                        <ul className="flex-1 divide-y divide-[color:var(--app-border)]">
+                        <ul className="flex-1 divide-y divide-(--app-border)">
                             {attention.map((g) => <AttentionItem key={g.id} grievance={g} stage={label('stage_status', g.stage_status)} />)}
                         </ul>
                     )}
-                    <div className={cx('flex items-center justify-between gap-3 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-5 py-3 text-[13px]', muted)}>
+                    <div className={cx('flex items-center justify-between gap-3 border-t border-(--app-border) bg-(--app-surface-muted) px-5 py-3 text-[13px]', muted)}>
                         <span>{fmt(t('grievanceCases.dash.attention_count'), { n: urgentCount })}</span>
-                        <Link href={casesUrl({ sort: 'due' })} className="font-semibold text-[color:var(--color-primary)] hover:underline">{t('grievanceCases.dash.open_cases')} →</Link>
+                        <Link href={casesUrl({ sort: 'due' })} className="font-semibold text-primary hover:underline">{t('grievanceCases.dash.open_cases')} →</Link>
                     </div>
                 </section>
             </div>
@@ -152,8 +152,8 @@ export default function Dashboard({ assigned, queue, intakePending, approvalsPen
                     <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         {areas.map((a) => (
                             <li key={a.href}>
-                                <Link href={a.href} className="flex h-full flex-col gap-1 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 transition-colors hover:border-[color:var(--app-border-strong)] hover:bg-[color:var(--app-surface-muted)]">
-                                    <span className="text-sm font-semibold text-[color:var(--app-foreground)]">{a.title}</span>
+                                <Link href={a.href} className="flex h-full flex-col gap-1 rounded-card border border-(--app-border) bg-(--app-surface) p-4 transition-colors hover:border-(--app-border-strong) hover:bg-(--app-surface-muted)">
+                                    <span className="text-sm font-semibold text-(--app-foreground)">{a.title}</span>
                                     <span className={cx('text-xs', muted)}>{a.hint}</span>
                                 </Link>
                             </li>
@@ -167,7 +167,7 @@ export default function Dashboard({ assigned, queue, intakePending, approvalsPen
 
 function Count({ value, inverted = false }: { value: number; inverted?: boolean }): JSX.Element {
     return (
-        <span className={cx('inline-flex h-5 min-w-[1.375rem] items-center justify-center rounded-full px-1.5 text-xs font-bold tabular-nums', inverted ? 'bg-[color:color-mix(in_srgb,var(--app-surface)_20%,transparent)]' : 'bg-[color:var(--app-surface-muted)]')}>
+        <span className={cx('inline-flex h-5 min-w-5.5 items-center justify-center rounded-full px-1.5 text-xs font-bold tabular-nums', inverted ? 'bg-[color-mix(in_srgb,var(--app-surface)_20%,transparent)]' : 'bg-(--app-surface-muted)')}>
             {value.toLocaleString()}
         </span>
     );
@@ -177,12 +177,12 @@ function AttentionItem({ grievance: g, stage }: { grievance: GrievanceRow; stage
     const { t } = useLocale();
     return (
         <li>
-            <Link href={route('grievances.cases.show', g.id)} className="flex flex-col gap-1 px-5 py-3.5 transition-colors hover:bg-[color:var(--app-surface-muted)]">
+            <Link href={route('grievances.cases.show', g.id)} className="flex flex-col gap-1 px-5 py-3.5 transition-colors hover:bg-(--app-surface-muted)">
                 <span className="flex items-center justify-between gap-3">
                     <CaseNumber value={g.reference_number} />
                     <SlaBadge sla={g.sla} />
                 </span>
-                <span className="line-clamp-1 text-[13px] text-[color:var(--app-foreground)]">{g.subject ?? t('grievances.common.no_access_details')}</span>
+                <span className="line-clamp-1 text-[13px] text-(--app-foreground)">{g.subject ?? t('grievances.common.no_access_details')}</span>
                 <span className={cx('flex flex-wrap items-baseline gap-x-1.5 text-xs', muted)}>
                     <span>{stage}</span>
                     <span aria-hidden="true">·</span>
@@ -207,18 +207,18 @@ function Kpi({ icon, iconClass, label, value, footer, href, cta, tone }: {
                 <span aria-hidden="true" className={cx('flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', iconClass)}>{icon}</span>
                 <span className={cx('text-[13px] font-medium', tone ? toneCls.label : muted)}>{label}</span>
             </span>
-            <span className={cx('text-3xl font-bold leading-none tabular-nums', tone ? toneCls.value : 'text-[color:var(--app-foreground)]')}>{value.toLocaleString()}</span>
+            <span className={cx('text-3xl font-bold leading-none tabular-nums', tone ? toneCls.value : 'text-(--app-foreground)')}>{value.toLocaleString()}</span>
             <span className={cx('flex items-center justify-between gap-2 text-xs', tone ? toneCls.foot : muted)}>
                 <span className="min-w-0">{footer}</span>
-                {cta && href && <span className="shrink-0 font-semibold text-[color:var(--color-primary)] group-hover:underline">{cta} →</span>}
+                {cta && href && <span className="shrink-0 font-semibold text-primary group-hover:underline">{cta} →</span>}
             </span>
         </>
     );
 
     const className = cx(
-        'group flex flex-col gap-2.5 rounded-[var(--radius-panel)] border p-5 transition-colors',
-        tone ? toneCls.box : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)]',
-        href && (tone ? toneCls.hover : 'hover:border-[color:var(--app-border-strong)]'),
+        'group flex flex-col gap-2.5 rounded-panel border p-5 transition-colors',
+        tone ? toneCls.box : 'border-(--app-border) bg-(--app-surface)',
+        href && (tone ? toneCls.hover : 'hover:border-(--app-border-strong)'),
     );
 
     return href ? <Link href={href} className={className}>{body}</Link> : <div className={className}>{body}</div>;

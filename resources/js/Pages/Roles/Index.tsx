@@ -125,7 +125,7 @@ export default function RolesIndex({
                                         >
                                             <td className={tableCellClassName}>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-[color:var(--app-foreground)]">
+                                                    <span className="font-medium text-(--app-foreground)">
                                                         {r.name}
                                                     </span>
                                                     {r.is_super_admin && (
@@ -144,16 +144,16 @@ export default function RolesIndex({
                                             </td>
                                             <td className={tableCellClassName}>
                                                 {r.is_super_admin ? (
-                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <span className="text-xs text-(--app-muted-foreground)">
                                                         {t('roles.fullAccess')}
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center rounded-full bg-[color:var(--app-surface-muted)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--app-foreground)]">
+                                                    <span className="inline-flex items-center rounded-full bg-(--app-surface-muted) px-2.5 py-0.5 text-xs font-medium text-(--app-foreground)">
                                                         {r.permissions.length}
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>
                                                 {r.users_count}
                                             </td>
                                             <td className={tableCellClassName}>

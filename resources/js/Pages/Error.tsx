@@ -73,7 +73,7 @@ export default function ErrorPage({ status, error_id }: Props) {
                             <button
                                 type="button"
                                 onClick={() => window.location.reload()}
-                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
                             >
                                 {t('errors.retry')}
                             </button>
@@ -88,7 +88,7 @@ export default function ErrorPage({ status, error_id }: Props) {
                                 </button>
                                 <Link
                                     href={route('dashboard')}
-                                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover"
                                 >
                                     {t('errors.go_home')}
                                 </Link>

@@ -28,7 +28,7 @@ type Row = {
 };
 
 /* Dot colour is reinforcement only — the label and count carry the meaning. */
-const rankDot = ['bg-red-600', 'bg-amber-500', 'bg-[color:var(--color-primary)]'];
+const rankDot = ['bg-red-600', 'bg-amber-500', 'bg-primary'];
 
 interface Props {
     alerts: AlertItem[];
@@ -80,37 +80,37 @@ export default function AttentionPanel({ alerts, queues, t, title }: Props) {
         ? 'border-t-red-500'
         : rows.some((row) => row.rank === 1)
           ? 'border-t-amber-500'
-          : 'border-t-[color:var(--color-primary)]';
+          : 'border-t-primary';
 
     return (
         <section
             aria-label={title}
-            className={`overflow-hidden rounded-panel border border-t-2 border-[color:var(--app-border)] bg-[color:var(--app-surface)] ${leadingBorder}`}
+            className={`overflow-hidden rounded-panel border border-t-2 border-(--app-border) bg-(--app-surface) ${leadingBorder}`}
         >
-            <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--app-border)] px-4 py-3">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+            <div className="flex items-baseline justify-between gap-3 border-b border-(--app-border) px-4 py-3">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
             </div>
 
-            <ul className="divide-y divide-[color:var(--app-border)]">
+            <ul className="divide-y divide-(--app-border)">
                 {rows.map((row) => (
                     <li key={row.key}>
                         <Link
                             href={row.href}
-                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[color:var(--app-surface-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)]"
+                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-(--app-surface-muted) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
                         >
                             <span
                                 aria-hidden="true"
                                 className={`h-1.5 w-1.5 shrink-0 rounded-full ${rankDot[row.rank]}`}
                             />
-                            <span className="min-w-0 flex-1 text-sm leading-snug text-[color:var(--app-foreground)]">
+                            <span className="min-w-0 flex-1 text-sm leading-snug text-(--app-foreground)">
                                 {row.label}
                             </span>
-                            <span className="shrink-0 text-sm font-semibold tabular-nums text-[color:var(--app-foreground)]">
+                            <span className="shrink-0 text-sm font-semibold tabular-nums text-(--app-foreground)">
                                 {number(row.count)}
                             </span>
                             <ChevronRight
                                 aria-hidden="true"
-                                className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]"
+                                className="h-4 w-4 shrink-0 text-(--app-muted-foreground)"
                             />
                         </Link>
                     </li>

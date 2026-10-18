@@ -13,7 +13,7 @@ export default function OrganogramDepthSelector({
 
     return (
         <label className="flex items-center gap-2 print:hidden">
-            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+            <span className="text-xs font-medium text-(--app-muted-foreground)">
                 {t('organizations.displayDepth')}
             </span>
             <select

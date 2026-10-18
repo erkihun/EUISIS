@@ -96,11 +96,11 @@ export default function HierarchyRelationModal({
 
     return (
         <Modal show={show} onClose={closeModal} maxWidth="2xl">
-            <div className="border-b border-[color:var(--app-border)] px-6 py-4">
-                <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">
+            <div className="border-b border-(--app-border) px-6 py-4">
+                <h3 className="text-lg font-semibold text-(--app-foreground)">
                     {mode === 'create' ? t('hierarchyVersions.addRelation') : t('hierarchyVersions.editRelation')}
                 </h3>
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">
                     {t('hierarchyVersions.previewUpdatesBeforeSaving')}
                 </p>
             </div>
@@ -130,7 +130,7 @@ export default function HierarchyRelationModal({
 
                 <div className="grid gap-4 md:grid-cols-3">
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
+                        <label className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
                             {t('hierarchyVersions.relationshipType')}
                         </label>
                         <select
@@ -148,32 +148,32 @@ export default function HierarchyRelationModal({
                     </div>
 
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
+                        <label className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
                             {t('hierarchyVersions.effectiveFrom')}
                         </label>
                         <LocalizedDatePicker
                             value={form.data.effective_from}
                             onChange={(iso) => form.setData('effective_from', iso)}
-                            className="w-full rounded-card border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20"
+                            className="w-full rounded-card border border-(--app-border-strong) bg-(--app-surface) px-3 py-2.5 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/20"
                         />
                         {form.errors.effective_from && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{form.errors.effective_from}</p>}
                     </div>
 
                     <div>
-                        <label className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
+                        <label className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
                             {t('hierarchyVersions.effectiveTo')}
                         </label>
                         <LocalizedDatePicker
                             value={form.data.effective_to}
                             onChange={(iso) => form.setData('effective_to', iso)}
-                            className="w-full rounded-card border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20"
+                            className="w-full rounded-card border border-(--app-border-strong) bg-(--app-surface) px-3 py-2.5 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/20"
                         />
                         {form.errors.effective_to && <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{form.errors.effective_to}</p>}
                     </div>
                 </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] px-6 py-4">
+            <div className="flex items-center justify-end gap-3 border-t border-(--app-border) px-6 py-4">
                 <button
                     type="button"
                     onClick={closeModal}

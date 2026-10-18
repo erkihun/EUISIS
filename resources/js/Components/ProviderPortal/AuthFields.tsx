@@ -74,7 +74,7 @@ export function AuthField({ id, label, icon, error, labelAside, trailing, ...inp
                     name={id}
                     aria-invalid={error ? true : undefined}
                     aria-describedby={error ? `${id}-error` : undefined}
-                    className={`w-full rounded-card border py-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500/40 dark:text-slate-100 dark:placeholder:text-slate-500 ${trailing ? 'pr-11' : 'pr-4'} ${
+                    className={`w-full rounded-card border py-2.5 pl-10 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-hidden focus:ring-2 focus:ring-orange-500/40 dark:text-slate-100 dark:placeholder:text-slate-500 ${trailing ? 'pr-11' : 'pr-4'} ${
                         error
                             ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
                             : 'border-gray-300 bg-white focus:border-orange-500 dark:border-slate-700 dark:bg-slate-800'
@@ -104,7 +104,7 @@ export function PasswordField(props: Omit<FieldProps, 'icon' | 'type' | 'trailin
                     aria-label={visible ? t('auth.hidePassword') : t('auth.showPassword')}
                     aria-pressed={visible}
                     aria-controls={props.id}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-0.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 dark:text-slate-500 dark:hover:text-slate-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-gray-400 transition-colors hover:text-gray-600 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-orange-500/40 dark:text-slate-500 dark:hover:text-slate-300"
                 >
                     {visible ? (
                         <Icon d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
@@ -122,7 +122,7 @@ export function SubmitButton({ processing, label, processingLabel }: { processin
         <button
             type="submit"
             disabled={processing}
-            className="flex w-full items-center justify-center gap-2 rounded-card bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-600/25 transition-all hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+            className="flex w-full items-center justify-center gap-2 rounded-card bg-orange-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-orange-600/25 transition-all hover:bg-orange-700 focus:outline-hidden focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
         >
             {processing ? (
                 <>
@@ -146,7 +146,7 @@ export function SubmitButton({ processing, label, processingLabel }: { processin
 export function CardHeading({ icon, title, subtitle }: { icon: string; title: string; subtitle: string }) {
     return (
         <div className="mb-7">
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md shadow-orange-600/30">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-linear-to-br from-orange-400 to-orange-600 text-white shadow-md shadow-orange-600/30">
                 <Icon className="h-5 w-5" d={icon} />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{title}</h2>

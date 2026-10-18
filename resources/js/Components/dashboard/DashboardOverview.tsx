@@ -15,7 +15,7 @@ type Props = Pick<DashboardProps, 'can' | 'cards' | 'charts' | 'kpis' | 'alerts'
 
 const statusColors: Record<string, string> = {
     active: 'bg-emerald-600 dark:bg-emerald-400',
-    occupied: 'bg-[color:var(--color-primary)] dark:bg-indigo-400',
+    occupied: 'bg-primary dark:bg-indigo-400',
     vacant: 'bg-amber-500',
     pending: 'bg-amber-500',
     expired: 'bg-red-500',
@@ -43,11 +43,11 @@ function Breakdown({ data, labelFor, showBars }: {
             {data.map((item) => (
                 <div key={item.key}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
-                        <dt className="min-w-0 break-words text-[color:var(--app-muted-foreground)]">{labelFor(item.key)}</dt>
-                        <dd className="shrink-0 font-semibold tabular-nums text-[color:var(--app-foreground)]">{number(item.value)}</dd>
+                        <dt className="min-w-0 wrap-break-word text-(--app-muted-foreground)">{labelFor(item.key)}</dt>
+                        <dd className="shrink-0 font-semibold tabular-nums text-(--app-foreground)">{number(item.value)}</dd>
                     </div>
                     {showBars && (
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]" aria-hidden="true">
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-(--app-surface-muted)" aria-hidden="true">
                             <div className={`h-full rounded-full ${statusColors[item.key] ?? 'bg-slate-400'}`} style={{ width: `${total > 0 ? (item.value / total) * 100 : 0}%` }} />
                         </div>
                     )}
@@ -76,7 +76,7 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
         return cardLabel !== `idCards.${key}` ? cardLabel : statusLabel(key);
     };
     const details = (tab: string) => (
-        <button type="button" onClick={() => onNavigate(tab)} className="inline-flex min-h-9 items-center gap-2 rounded-md text-xs font-semibold text-[color:var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 dark:text-indigo-300">
+        <button type="button" onClick={() => onNavigate(tab)} className="inline-flex min-h-9 items-center gap-2 rounded-md text-xs font-semibold text-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 dark:text-indigo-300">
             {t('dashboard.viewDetails')}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
     );
@@ -93,13 +93,13 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
                             <div className={`grid gap-6 ${can.employees && can.positions ? 'sm:grid-cols-2' : ''}`}>
                                 {can.positions && (
                                     <section>
-                                        <h3 className="mb-4 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('dashboard.positionOccupancy')}</h3>
+                                        <h3 className="mb-4 text-xs font-medium text-(--app-muted-foreground)">{t('dashboard.positionOccupancy')}</h3>
                                         <Breakdown data={series('positionsByOccupancy')} labelFor={(key) => t(`common.${key}`)} showBars={showCharts} />
                                     </section>
                                 )}
                                 {can.employees && (
-                                    <section className={can.positions ? 'border-t border-[color:var(--app-border)] pt-5 sm:border-s sm:border-t-0 sm:ps-6 sm:pt-0' : ''}>
-                                        <h3 className="mb-4 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('dashboard.employeesByStatus')}</h3>
+                                    <section className={can.positions ? 'border-t border-(--app-border) pt-5 sm:border-s sm:border-t-0 sm:ps-6 sm:pt-0' : ''}>
+                                        <h3 className="mb-4 text-xs font-medium text-(--app-muted-foreground)">{t('dashboard.employeesByStatus')}</h3>
                                         <Breakdown data={series('employeesByStatus')} labelFor={statusLabel} showBars={showCharts} />
                                     </section>
                                 )}
@@ -112,29 +112,29 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
                             {can.cards && (
                                 <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
                                     {series('cardsByStatus')?.length ? series('cardsByStatus')!.map((item) => (
-                                        <div key={item.key} className="flex items-center gap-2 border-b border-[color:var(--app-border)] pb-3">
+                                        <div key={item.key} className="flex items-center gap-2 border-b border-(--app-border) pb-3">
                                             <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${statusColors[item.key] ?? 'bg-slate-400'}`} />
-                                            <span className="min-w-0 flex-1 text-sm text-[color:var(--app-muted-foreground)]">{cardStatusLabel(item.key)}</span>
-                                            <span className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{number(item.value)}</span>
+                                            <span className="min-w-0 flex-1 text-sm text-(--app-muted-foreground)">{cardStatusLabel(item.key)}</span>
+                                            <span className="font-semibold tabular-nums text-(--app-foreground)">{number(item.value)}</span>
                                         </div>
                                     )) : <EmptyDashboardState compact title={t('dashboard.noData')} />}
                                 </div>
                             )}
                             {can.verification && (
-                                <dl className={`grid grid-cols-2 gap-4 ${can.cards ? 'mt-5 border-t border-[color:var(--app-border)] pt-4' : ''}`}>
+                                <dl className={`grid grid-cols-2 gap-4 ${can.cards ? 'mt-5 border-t border-(--app-border) pt-4' : ''}`}>
                                     {['allowedToday', 'deniedToday'].map((key) => (
                                         <div key={key}>
-                                            <dt className="text-xs leading-relaxed text-[color:var(--app-muted-foreground)]">{t(`dashboard.${key}`)}</dt>
-                                            <dd className="mt-1 text-xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{cards.verification?.[key] == null ? '—' : number(cards.verification[key])}</dd>
+                                            <dt className="text-xs leading-relaxed text-(--app-muted-foreground)">{t(`dashboard.${key}`)}</dt>
+                                            <dd className="mt-1 text-xl font-semibold tabular-nums text-(--app-foreground)">{cards.verification?.[key] == null ? '—' : number(cards.verification[key])}</dd>
                                         </div>
                                     ))}
                                 </dl>
                             )}
                             {can.nfc && cards.nfc && (
-                                <div className="mt-4 flex items-center gap-2 border-t border-[color:var(--app-border)] pt-4 text-sm">
-                                    <ShieldCheck className="h-4 w-4 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                                    <span className="flex-1 text-[color:var(--app-muted-foreground)]">{t('dashboard.nfc.active')}</span>
-                                    <span className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{cards.nfc.active == null ? '—' : number(cards.nfc.active)}</span>
+                                <div className="mt-4 flex items-center gap-2 border-t border-(--app-border) pt-4 text-sm">
+                                    <ShieldCheck className="h-4 w-4 text-(--app-muted-foreground)" aria-hidden="true" />
+                                    <span className="flex-1 text-(--app-muted-foreground)">{t('dashboard.nfc.active')}</span>
+                                    <span className="font-semibold tabular-nums text-(--app-foreground)">{cards.nfc.active == null ? '—' : number(cards.nfc.active)}</span>
                                 </div>
                             )}
                         </ChartCard>
@@ -142,7 +142,7 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
 
                     {can.audit && (
                         <ChartCard title={t('dashboard.sections.recentActivity')} action={
-                            <Link href={route('audit-logs.index')} className="inline-flex min-h-9 items-center gap-2 rounded-md text-xs font-semibold text-[color:var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 dark:text-indigo-300">
+                            <Link href={route('audit-logs.index')} className="inline-flex min-h-9 items-center gap-2 rounded-md text-xs font-semibold text-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 dark:text-indigo-300">
                                 {t('dashboard.viewAll')}<ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                             </Link>
                         }>
@@ -157,14 +157,14 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
                     {hasAttention && <div className="hidden xl:block"><AttentionPanel alerts={alerts} queues={workflowQueues} t={t} title={t('dashboard.needsAttention')} /></div>}
                     {header.quickActions.length > 0 && (
                         <ChartCard title={t('dashboard.quickActions')}>
-                            <nav aria-label={t('dashboard.quickActions')} className="-my-2 divide-y divide-[color:var(--app-border)]">
+                            <nav aria-label={t('dashboard.quickActions')} className="-my-2 divide-y divide-(--app-border)">
                                 {header.quickActions.map((action) => {
                                     const ActionIcon = actionIcons[action.key] ?? ArrowRight;
                                     return (
-                                    <Link key={action.key} href={route(action.routeName, action.params)} className="group flex min-h-11 items-center gap-3 rounded-md py-2 text-sm text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 dark:hover:text-indigo-300">
-                                        <ActionIcon className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                                        <span className="min-w-0 flex-1 break-words">{t(`dashboard.actions.${action.key}`)}</span>
-                                        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                                    <Link key={action.key} href={route(action.routeName, action.params)} className="group flex min-h-11 items-center gap-3 rounded-md py-2 text-sm text-(--app-foreground) hover:text-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 dark:hover:text-indigo-300">
+                                        <ActionIcon className="h-4 w-4 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />
+                                        <span className="min-w-0 flex-1 wrap-break-word">{t(`dashboard.actions.${action.key}`)}</span>
+                                        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />
                                     </Link>
                                     );
                                 })}
@@ -176,8 +176,8 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
                             <dl className="space-y-4">
                                 {organizationMetrics.map((item) => (
                                     <div key={item.key} className="flex items-baseline justify-between gap-3">
-                                        <dt className="text-sm text-[color:var(--app-muted-foreground)]">{t(item.labelKey)}</dt>
-                                        <dd className="text-lg font-semibold tabular-nums text-[color:var(--app-foreground)]">{item.valueFormatted}</dd>
+                                        <dt className="text-sm text-(--app-muted-foreground)">{t(item.labelKey)}</dt>
+                                        <dd className="text-lg font-semibold tabular-nums text-(--app-foreground)">{item.valueFormatted}</dd>
                                     </div>
                                 ))}
                             </dl>
@@ -190,7 +190,7 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
                 <div className="xl:col-span-12">
                     <ChartCard title={t('dashboard.kpisTitle')}>
                         <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                            {secondaryMetrics.map((item) => <div key={item.key}><dt className="text-sm text-[color:var(--app-muted-foreground)]">{t(item.labelKey)}</dt><dd className="mt-1 text-xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{item.valueFormatted}</dd></div>)}
+                            {secondaryMetrics.map((item) => <div key={item.key}><dt className="text-sm text-(--app-muted-foreground)">{t(item.labelKey)}</dt><dd className="mt-1 text-xl font-semibold tabular-nums text-(--app-foreground)">{item.valueFormatted}</dd></div>)}
                         </dl>
                     </ChartCard>
                 </div>

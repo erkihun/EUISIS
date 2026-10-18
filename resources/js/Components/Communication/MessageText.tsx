@@ -16,7 +16,7 @@ export default function MessageText({ body, mentions, currentUserId }: { body: s
     const parts = body.split(TOKEN);
 
     return (
-        <span className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+        <span className="whitespace-pre-wrap wrap-break-word wrap-anywhere">
             {parts.map((part, index): ReactNode => {
                 const key = `${index}`;
                 const user = /^<@(\d{1,19})>$/.exec(part);
@@ -24,13 +24,13 @@ export default function MessageText({ body, mentions, currentUserId }: { body: s
                     const id = Number(user[1]);
                     const own = id === currentUserId;
                     return (
-                        <span key={key} className={`rounded px-1 font-medium ${own ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100' : 'bg-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-[color:var(--app-foreground)]'}`}>
+                        <span key={key} className={`rounded-sm px-1 font-medium ${own ? 'bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100' : 'bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-(--app-foreground)'}`}>
                             @{names.get(id) ?? t('communication.list.you')}
                         </span>
                     );
                 }
                 if (part === '<!channel>' || part === '<!everyone>') {
-                    return <span key={key} className="rounded bg-amber-100 px-1 font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">@{t('communication.composer.everyone')}</span>;
+                    return <span key={key} className="rounded-sm bg-amber-100 px-1 font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">@{t('communication.composer.everyone')}</span>;
                 }
                 if (/^https?:\/\//.test(part)) {
                     return <a key={key} href={part} target="_blank" rel="noopener noreferrer nofollow" className="underline underline-offset-2">{part}</a>;

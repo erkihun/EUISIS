@@ -150,7 +150,7 @@ export default function OrganizationUnitTypesIndex({
                                             key={type.id}
                                             className={tableRowClassName}
                                         >
-                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-(--app-muted-foreground)')}>
                                                 {type.code}
                                             </td>
                                             <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-indigo-600 dark:text-indigo-400')}>
@@ -159,12 +159,12 @@ export default function OrganizationUnitTypesIndex({
                                             <td className={tableCellClassName}>
                                                 <p className="font-medium">{type.name_en}</p>
                                                 {type.name_am && (
-                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <p className="text-xs text-(--app-muted-foreground)">
                                                         {type.name_am}
                                                     </p>
                                                 )}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>
                                                 {type.sort_order}
                                             </td>
                                             <td className={tableCellClassName}>

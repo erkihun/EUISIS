@@ -93,7 +93,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
             <div className="space-y-6">
                 {/* Header badges */}
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-sm text-[color:var(--app-muted-foreground)]">{unit.code}</span>
+                    <span className="font-mono text-sm text-(--app-muted-foreground)">{unit.code}</span>
                     <OrganizationUnitTypeBadge unitType={unit.unit_type} />
                     <OrganizationUnitStatusBadge status={unit.status} />
                 </div>
@@ -106,8 +106,8 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                 <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
                                     {t('organizationUnits.ownerOrganization')}
                                 </p>
-                                <p className="mt-1 font-medium text-[color:var(--app-foreground)]">
-                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{hostedContext.owner_organization?.code}</span>
+                                <p className="mt-1 font-medium text-(--app-foreground)">
+                                    <span className="font-mono text-xs text-(--app-muted-foreground)">{hostedContext.owner_organization?.code}</span>
                                     {' — '}
                                     {hostedContext.owner_organization
                                         ? localizedName(hostedContext.owner_organization.name_en, hostedContext.owner_organization.name_am, locale)
@@ -118,8 +118,8 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                 <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
                                     {t('organizationUnits.operatingOrganization')}
                                 </p>
-                                <p className="mt-1 font-medium text-[color:var(--app-foreground)]">
-                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{hostedContext.host_organization.code}</span>
+                                <p className="mt-1 font-medium text-(--app-foreground)">
+                                    <span className="font-mono text-xs text-(--app-muted-foreground)">{hostedContext.host_organization.code}</span>
                                     {' — '}
                                     {localizedName(hostedContext.host_organization.name_en, hostedContext.host_organization.name_am, locale)}
                                 </p>
@@ -132,18 +132,18 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                 )}
 
                 {/* Details Card */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                    <h2 className="mb-4 text-base font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                    <h2 className="mb-4 text-base font-semibold text-(--app-foreground)">
                         {t('organizationUnits.organizationUnitDetails')}
                     </h2>
                     <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
                         <div>
-                            <dt className="text-[color:var(--app-muted-foreground)]">{t('organizationUnits.organization')}</dt>
-                            <dd className="font-medium text-[color:var(--app-foreground)]">
+                            <dt className="text-(--app-muted-foreground)">{t('organizationUnits.organization')}</dt>
+                            <dd className="font-medium text-(--app-foreground)">
                                 {unit.organization ? (
                                     <Link
                                         href={route('organizations.show', unit.organization.id)}
-                                        className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                        className="text-primary hover:underline dark:text-primary"
                                     >
                                         {localizedName(unit.organization.name_en, unit.organization.name_am, locale)}
                                     </Link>
@@ -151,14 +151,14 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                             </dd>
                         </div>
                         <div>
-                            <dt className="text-[color:var(--app-muted-foreground)]">
+                            <dt className="text-(--app-muted-foreground)">
                                 {t('organizationUnits.parentUnit')}
                             </dt>
-                            <dd className="font-medium text-[color:var(--app-foreground)]">
+                            <dd className="font-medium text-(--app-foreground)">
                                 {unit.parent ? (
                                     <Link
                                         href={route('organization-units.show', unit.parent.id)}
-                                        className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                        className="text-primary hover:underline dark:text-primary"
                                     >
                                         {localizedName(unit.parent.name_en, unit.parent.name_am, locale)}
                                     </Link>
@@ -167,30 +167,30 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                         </div>
                         {unit.effective_from && (
                             <div>
-                                <dt className="text-[color:var(--app-muted-foreground)]">
+                                <dt className="text-(--app-muted-foreground)">
                                     {t('organizationUnits.effectiveFrom')}
                                 </dt>
-                                <dd className="font-medium text-[color:var(--app-foreground)]">
+                                <dd className="font-medium text-(--app-foreground)">
                                     <LocalizedDateDisplay value={unit.effective_from} />
                                 </dd>
                             </div>
                         )}
                         {unit.effective_to && (
                             <div>
-                                <dt className="text-[color:var(--app-muted-foreground)]">
+                                <dt className="text-(--app-muted-foreground)">
                                     {t('organizationUnits.effectiveTo')}
                                 </dt>
-                                <dd className="font-medium text-[color:var(--app-foreground)]">
+                                <dd className="font-medium text-(--app-foreground)">
                                     <LocalizedDateDisplay value={unit.effective_to} />
                                 </dd>
                             </div>
                         )}
                         {description && (
                             <div className="col-span-2">
-                                <dt className="text-[color:var(--app-muted-foreground)]">
+                                <dt className="text-(--app-muted-foreground)">
                                     {t('organizationUnits.description')}
                                 </dt>
-                                <dd className="font-medium text-[color:var(--app-foreground)]">
+                                <dd className="font-medium text-(--app-foreground)">
                                     {description}
                                 </dd>
                             </div>
@@ -200,11 +200,11 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
 
                 {/* Child Units */}
                 {(unit.children && unit.children.length > 0) && (
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                        <h2 className="mb-4 text-base font-semibold text-[color:var(--app-foreground)]">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                        <h2 className="mb-4 text-base font-semibold text-(--app-foreground)">
                             {t('organizationUnits.childUnits')} ({unit.children.length})
                         </h2>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {unit.children.map((child) => (
                                 <li key={child.id} className="flex items-center justify-between py-2">
                                     <div>
@@ -214,7 +214,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                         >
                                             {localizedName(child.name_en, child.name_am, locale)}
                                         </Link>
-                                        <span className="ml-2 font-mono text-xs text-[color:var(--app-muted-foreground)]">{child.code}</span>
+                                        <span className="ml-2 font-mono text-xs text-(--app-muted-foreground)">{child.code}</span>
                                     </div>
                                     <div className="flex gap-2">
                                         <OrganizationUnitTypeBadge unitType={child.unit_type} />

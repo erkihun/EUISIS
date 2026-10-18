@@ -146,7 +146,7 @@ export default function OccupationsIndex({
                                             <td className={cx(tableCellClassName, 'font-mono text-xs')}>
                                                 <Link
                                                     href={route('occupations.show', occ.id)}
-                                                    className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                                                    className="text-primary hover:text-primary-hover dark:text-primary"
                                                 >
                                                     {occ.isco_code}
                                                 </Link>

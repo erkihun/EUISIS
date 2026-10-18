@@ -99,13 +99,13 @@ export default function OrganizationalChangeRequestsShow({ request, impact, conf
 
             <div className="space-y-4">
                 {/* Status strip */}
-                <section className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3">
+                <section className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-(--app-border) bg-(--app-surface) px-4 py-3">
                     <div className="flex flex-wrap items-center gap-3">
                         <StatusBadge
                             status={request.status}
                             label={t(`organizationalChangeRequests.statuses.${request.status}`)}
                         />
-                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="text-xs text-(--app-muted-foreground)">
                             {t('organizationalChangeRequests.fields.submittedAt')}:{' '}
                             {request.submitted_at ? <LocalizedDateDisplay value={request.submitted_at} withTime /> : '—'}
                         </span>
@@ -169,8 +169,8 @@ export default function OrganizationalChangeRequestsShow({ request, impact, conf
 
                 {/* Comment prompt for actions that need one */}
                 {openAction && (
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                        <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
+                        <label className="block space-y-1.5 text-xs font-medium text-(--app-muted-foreground)">
                             <span>{t('organizationalChangeRequests.fields.comment')}</span>
                             <textarea
                                 rows={3}
@@ -211,20 +211,20 @@ export default function OrganizationalChangeRequestsShow({ request, impact, conf
                 <ConflictPanel conflicts={conflicts} />
 
                 {/* Metadata */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <dl className="grid grid-cols-1 gap-px bg-[color:var(--app-surface-muted)] sm:grid-cols-2 lg:grid-cols-3">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface)">
+                    <dl className="grid grid-cols-1 gap-px bg-(--app-surface-muted) sm:grid-cols-2 lg:grid-cols-3">
                         {metaRows.map(row => (
-                            <div key={row.label} className="bg-[color:var(--app-surface)] p-3">
-                                <dt className="text-xs text-[color:var(--app-muted-foreground)]">{row.label}</dt>
-                                <dd className="mt-1 text-sm font-medium text-[color:var(--app-foreground)]">{row.value}</dd>
+                            <div key={row.label} className="bg-(--app-surface) p-3">
+                                <dt className="text-xs text-(--app-muted-foreground)">{row.label}</dt>
+                                <dd className="mt-1 text-sm font-medium text-(--app-foreground)">{row.value}</dd>
                             </div>
                         ))}
                     </dl>
-                    <div className="border-t border-[color:var(--app-border)] px-4 py-3">
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                    <div className="border-t border-(--app-border) px-4 py-3">
+                        <p className="text-xs text-(--app-muted-foreground)">
                             {t('organizationalChangeRequests.fields.reason')}
                         </p>
-                        <p className="mt-1 whitespace-pre-line text-sm text-[color:var(--app-foreground)]">{request.reason}</p>
+                        <p className="mt-1 whitespace-pre-line text-sm text-(--app-foreground)">{request.reason}</p>
                     </div>
                 </section>
 

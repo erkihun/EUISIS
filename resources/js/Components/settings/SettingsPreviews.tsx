@@ -31,11 +31,11 @@ function colour(values: Values, key: string, fallback: string): string {
 function PreviewFrame({ title, note, children }: { title: string; note: string; children: ReactNode }) {
     return (
         <Card className="overflow-hidden p-0">
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[color:var(--app-border)] px-5 py-3">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-(--app-border) px-5 py-3">
                 <h3 className="text-sm font-semibold">{title}</h3>
-                <p className="text-xs text-[color:var(--app-muted-foreground)]">{note}</p>
+                <p className="text-xs text-(--app-muted-foreground)">{note}</p>
             </div>
-            <div className="bg-[color:var(--app-surface-muted)] p-4 sm:p-5">{children}</div>
+            <div className="bg-(--app-surface-muted) p-4 sm:p-5">{children}</div>
         </Card>
     );
 }
@@ -54,16 +54,16 @@ export function BrandingPreview({ values, fields, sidebarColor }: { values: Valu
 
     return (
         <PreviewFrame title={t('settings.groups.brandingPreview')} note={t('settings.previewNote')}>
-            <div className="overflow-hidden rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-sm">
-                <div className="flex items-center gap-2 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-2">
-                    <span aria-hidden="true" className="flex gap-1">{[0, 1, 2].map((dot) => <span key={dot} className="h-2 w-2 rounded-full bg-[color:var(--app-border-strong)]" />)}</span>
-                    <span className="flex min-w-0 max-w-xs items-center gap-2 rounded-t-md bg-[color:var(--app-surface)] px-3 py-1 text-xs">
-                        {favicon ? <img src={favicon} alt="" className="h-3.5 w-3.5 shrink-0 object-contain" /> : <span aria-hidden="true" className="h-3.5 w-3.5 shrink-0 rounded-sm bg-[color:var(--app-border-strong)]" />}
+            <div className="overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface) shadow-xs">
+                <div className="flex items-center gap-2 border-b border-(--app-border) bg-(--app-surface-muted) px-3 py-2">
+                    <span aria-hidden="true" className="flex gap-1">{[0, 1, 2].map((dot) => <span key={dot} className="h-2 w-2 rounded-full bg-(--app-border-strong)" />)}</span>
+                    <span className="flex min-w-0 max-w-xs items-center gap-2 rounded-t-md bg-(--app-surface) px-3 py-1 text-xs">
+                        {favicon ? <img src={favicon} alt="" className="h-3.5 w-3.5 shrink-0 object-contain" /> : <span aria-hidden="true" className="h-3.5 w-3.5 shrink-0 rounded-xs bg-(--app-border-strong)" />}
                         <span className="truncate">{name}</span>
                     </span>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-3" style={{ backgroundColor: headerBackground, color: textOn(headerBackground) }}>
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[color:color-mix(in_srgb,var(--app-surface)_10%,transparent)]">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[color-mix(in_srgb,var(--app-surface)_10%,transparent)]">
                         {logo ? <img src={logo} alt="" className="h-full w-full object-contain p-1" /> : <CreditCard className="h-5 w-5 opacity-70" aria-hidden="true" />}
                     </span>
                     <span className="min-w-0 flex-1">
@@ -105,19 +105,19 @@ export function AppearancePreview({ values }: { values: Values }) {
 
     return (
         <PreviewFrame title={t('settings.groups.appearancePreview')} note={t('settings.previewNote')}>
-            <div aria-hidden="true" className="flex h-64 overflow-hidden rounded-[var(--radius-card)] border shadow-sm" style={{ backgroundColor: palette.page, borderColor: palette.border, color: palette.text }}>
+            <div aria-hidden="true" className="flex h-64 overflow-hidden rounded-card border shadow-xs" style={{ backgroundColor: palette.page, borderColor: palette.border, color: palette.text }}>
                 <div className="hidden w-40 shrink-0 flex-col gap-1.5 p-3 min-[480px]:flex" style={{ backgroundColor: sidebar, color: sidebarText }}>
-                    <span className="mb-2 h-3 w-20 rounded" style={{ backgroundColor: sidebarText, opacity: 0.85 }} />
+                    <span className="mb-2 h-3 w-20 rounded-sm" style={{ backgroundColor: sidebarText, opacity: 0.85 }} />
                     {[0, 1, 2, 3].map((item) => (
                         <span key={item} className="flex items-center gap-2 rounded-md px-2 py-1.5" style={item === 1 ? { backgroundColor: `${sidebarText}1F` } : undefined}>
-                            <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: item === 1 ? accent : sidebarText, opacity: item === 1 ? 1 : 0.55 }} />
-                            <span className="h-2 flex-1 rounded" style={{ backgroundColor: sidebarText, opacity: item === 1 ? 0.9 : 0.45 }} />
+                            <span className="h-2.5 w-2.5 rounded-xs" style={{ backgroundColor: item === 1 ? accent : sidebarText, opacity: item === 1 ? 1 : 0.55 }} />
+                            <span className="h-2 flex-1 rounded-sm" style={{ backgroundColor: sidebarText, opacity: item === 1 ? 0.9 : 0.45 }} />
                         </span>
                     ))}
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-3 p-4">
                     <div className="flex items-center justify-between gap-2">
-                        <span className="h-3 w-28 rounded" style={{ backgroundColor: palette.text, opacity: 0.8 }} />
+                        <span className="h-3 w-28 rounded-sm" style={{ backgroundColor: palette.text, opacity: 0.8 }} />
                         <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: accent }}>{t('settings.fields.sampleBadge')}</span>
                     </div>
                     <div className="flex-1 overflow-hidden border" style={{ backgroundColor: palette.surface, borderColor: palette.border, borderRadius: radius }}>
@@ -151,7 +151,7 @@ export function IdCardTemplatesPanel({ canManage }: { canManage: boolean }) {
             <div className="space-y-4">
                 <div>
                     <h3 className="text-sm font-semibold">{t('settings.templateManager.title')}</h3>
-                    <p className="mt-1 text-sm leading-6 text-[color:var(--app-muted-foreground)]">{t('settings.idCardDesignMovedNotice')}</p>
+                    <p className="mt-1 text-sm leading-6 text-(--app-muted-foreground)">{t('settings.idCardDesignMovedNotice')}</p>
                 </div>
                 {canManage && (
                     <Button as={Link} href={route('id-card-templates.index')} variant="outline" size="sm" icon={<CreditCard className="h-4 w-4" />}>
@@ -163,8 +163,8 @@ export function IdCardTemplatesPanel({ canManage }: { canManage: boolean }) {
             {/* The QR symbol the card prints. Shown rather than edited: lowering
                 the error correction or the version floor would weaken every card
                 issued, so it is a deployment decision in config/id_cards.php. */}
-            <div className="border-t border-[color:var(--app-border)] pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-                <h4 className="flex items-center gap-2 text-sm font-semibold"><QrCodeIcon className="h-4 w-4 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />{t('settings.qrSpec.title')}</h4>
+            <div className="border-t border-(--app-border) pt-4 sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+                <h4 className="flex items-center gap-2 text-sm font-semibold"><QrCodeIcon className="h-4 w-4 text-(--app-muted-foreground)" aria-hidden="true" />{t('settings.qrSpec.title')}</h4>
                 <dl className="mt-3 space-y-2 text-sm">
                     {([
                         ['model', 'Model 2'],
@@ -173,12 +173,12 @@ export function IdCardTemplatesPanel({ canManage }: { canManage: boolean }) {
                         ['autoUpgrade', t('settings.qrSpec.enabled')],
                     ] as const).map(([key, value]) => (
                         <div key={key} className="flex justify-between gap-3">
-                            <dt className="text-[color:var(--app-muted-foreground)]">{t(`settings.qrSpec.${key}`)}</dt>
+                            <dt className="text-(--app-muted-foreground)">{t(`settings.qrSpec.${key}`)}</dt>
                             <dd className={cx('font-medium', key === 'autoUpgrade' ? '' : 'font-mono')}>{key === 'autoUpgrade' ? <StatusBadge tone="success">{value}</StatusBadge> : value}</dd>
                         </div>
                     ))}
                 </dl>
-                <p className="mt-3 text-xs leading-5 text-[color:var(--app-muted-foreground)]">{t('settings.qrSpec.helper')}</p>
+                <p className="mt-3 text-xs leading-5 text-(--app-muted-foreground)">{t('settings.qrSpec.helper')}</p>
             </div>
         </Card>
     );

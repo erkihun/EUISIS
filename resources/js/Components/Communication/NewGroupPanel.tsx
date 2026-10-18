@@ -31,7 +31,7 @@ export default function NewGroupPanel({ onBack, onCreated }: { onBack: () => voi
         }
     };
 
-    const field = 'w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-2.5 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15';
+    const field = 'w-full rounded-control border border-(--app-border) bg-(--app-background) px-2.5 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15';
 
     return (
         <form onSubmit={submit} className="flex h-full min-h-0 flex-col" onKeyDown={(event) => { if (event.key === 'Escape') onBack(); }}>
@@ -40,31 +40,31 @@ export default function NewGroupPanel({ onBack, onCreated }: { onBack: () => voi
                     type="button"
                     onClick={onBack}
                     aria-label={t('communication.chat.back')}
-                    className="flex h-8 w-8 items-center justify-center rounded-control text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                    className="flex h-8 w-8 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                 >
                     <ArrowLeftIcon className="h-4 w-4" />
                 </button>
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.newGroup.title')}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{t('communication.newGroup.title')}</h2>
             </div>
 
             <div className="comm-scroll min-h-0 flex-1 space-y-4 overflow-y-auto px-3 pb-3">
                 <label className="block space-y-1">
-                    <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.newGroup.name')}</span>
+                    <span className="text-xs font-medium text-(--app-foreground)">{t('communication.newGroup.name')}</span>
                     <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} required autoFocus placeholder={t('communication.newGroup.namePlaceholder')} className={`${field} h-9`} />
                 </label>
                 <label className="block space-y-1">
-                    <span className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.newGroup.description')}</span>
+                    <span className="text-xs font-medium text-(--app-foreground)">{t('communication.newGroup.description')}</span>
                     <textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={1000} rows={2} className={`${field} resize-none py-2`} />
                 </label>
                 <fieldset className="space-y-1.5">
-                    <legend className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.newGroup.people')}</legend>
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.newGroup.peopleHelp')} {tr(t('communication.newGroup.max'), { max: MAX_MEMBERS })}</p>
+                    <legend className="text-xs font-medium text-(--app-foreground)">{t('communication.newGroup.people')}</legend>
+                    <p className="text-xs text-(--app-muted-foreground)">{t('communication.newGroup.peopleHelp')} {tr(t('communication.newGroup.max'), { max: MAX_MEMBERS })}</p>
                     <PeoplePicker selected={people} onChange={setPeople} max={MAX_MEMBERS - 1} />
                 </fieldset>
-                {error && <p role="alert" className="text-xs text-[color:var(--color-danger,#b42318)]">{error}</p>}
+                {error && <p role="alert" className="text-xs text-(--color-danger,#b42318)">{error}</p>}
             </div>
 
-            <div className="border-t border-[color:var(--app-border)] p-3">
+            <div className="border-t border-(--app-border) p-3">
                 <Button type="submit" variant="primary" className="w-full" disabled={saving || !title.trim() || people.length === 0} loading={saving}>
                     {saving ? t('communication.newGroup.creating') : t('communication.newGroup.create')}
                 </Button>

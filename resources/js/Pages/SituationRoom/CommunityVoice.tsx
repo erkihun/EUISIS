@@ -59,13 +59,13 @@ export default function SituationRoomIndex({ scope, filters, filterOptions, head
                     <div className="min-w-0">
                         <Breadcrumb scope={scope} filters={filters} />
                         <h2 className="mt-1 text-xl font-semibold">{title}</h2>
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="text-sm text-(--app-muted-foreground)">
                             {fmt(t('situationRoom.periodRange'), { from: date(filters.from), to: date(filters.to) })}
                             {' · '}
                             {fmt(t('situationRoom.previousRange'), { from: date(filters.previous_from), to: date(filters.previous_to) })}
                         </p>
                     </div>
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('situationRoom.lastUpdated')}: <time dateTime={headline.generated_at}>{dateTime(headline.generated_at)}</time></p>
+                    <p className="text-xs text-(--app-muted-foreground)">{t('situationRoom.lastUpdated')}: <time dateTime={headline.generated_at}>{dateTime(headline.generated_at)}</time></p>
                 </div>
 
                 <FilterBar key={JSON.stringify(query)} scope={scope} filters={filters} options={filterOptions} />
@@ -101,7 +101,7 @@ export default function SituationRoomIndex({ scope, filters, filterOptions, head
                     <Card className="flex flex-wrap items-center justify-between gap-3 p-5">
                         <div className="min-w-0">
                             <h2 className="font-semibold">{t('situationRoom.employeesTitle')}</h2>
-                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('situationRoom.employeesIntro')}</p>
+                            <p className="mt-1 text-sm text-(--app-muted-foreground)">{t('situationRoom.employeesIntro')}</p>
                         </div>
                         <Link href={route('situation-room.employees', query)} className={buttonClassName({ variant: 'outline' })}>{t('situationRoom.employeesOpen')}</Link>
                     </Card>

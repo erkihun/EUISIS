@@ -267,8 +267,8 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
     }
 
     function dayCls(m: ReturnType<typeof meta>): string {
-        if (m.isConsumed)  return 'bg-emerald-500 text-white rounded-card font-bold shadow-sm';
-        if (m.isToday)     return 'ring-2 ring-[var(--color-primary)] ring-offset-1 dark:ring-offset-slate-900 font-bold text-[var(--color-primary)] rounded-card';
+        if (m.isConsumed)  return 'bg-emerald-500 text-white rounded-card font-bold shadow-xs';
+        if (m.isToday)     return 'ring-2 ring-primary ring-offset-1 dark:ring-offset-slate-900 font-bold text-primary rounded-card';
         if (m.isHoliday)   return 'bg-amber-50 text-amber-500 dark:bg-amber-950/30 dark:text-amber-400 rounded-card';
         if (m.isWeekend)   return 'text-gray-300 dark:text-slate-700';
         if (m.isAvailable) return 'portal-service-accent rounded-card hover:brightness-95';
@@ -319,7 +319,7 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
             {/* In-view month stats */}
             <div className="mb-4 flex flex-wrap justify-center gap-2 text-xs">
                 <span className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-                    <span className="h-2 w-2 rounded-sm bg-emerald-500" />{consumedCount} {t('cafeteria.consumedLabel')}
+                    <span className="h-2 w-2 rounded-xs bg-emerald-500" />{consumedCount} {t('cafeteria.consumedLabel')}
                 </span>
                 <span className="flex items-center gap-1.5 rounded-lg bg-gray-50 px-2.5 py-1.5 text-gray-600 dark:bg-slate-800 dark:text-slate-400">
                     {workingDays} {t('cafeteria.workingDaysLabel')}
@@ -339,7 +339,7 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
             {/* Week rows */}
             <div className="overflow-hidden rounded-b-card border border-gray-100 dark:border-slate-800">
                 {weeks.map((week, wi) => (
-                    <div key={wi} className="grid grid-cols-7 divide-x divide-gray-50 dark:divide-slate-800/50 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-gray-50 dark:[&:not(:first-child)]:border-slate-800/50">
+                    <div key={wi} className="grid grid-cols-7 divide-x divide-gray-50 dark:divide-slate-800/50 not-first:border-t not-first:border-gray-50 dark:not-first:border-slate-800/50">
                         {Array.from({ length: 7 }).map((_, di) => {
                             const c = week[di] ?? null;
                             if (!c) return <div key={di} className="h-11 bg-gray-50/60 dark:bg-slate-900/50" />;
@@ -352,7 +352,7 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
                                         {m.isConsumed ? <Ic.Check className="h-3.5 w-3.5"/> : c.day}
                                     </span>
                                     {m.isConsumed && m.subsidy && (
-                                        <span className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-gray-900 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 dark:bg-slate-700">
+                                        <span className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-sm bg-gray-900 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 dark:bg-slate-700">
                                             {fmt(m.subsidy)} {t('employeePortal.currency')}
                                         </span>
                                     )}
@@ -365,10 +365,10 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
 
             {/* Legend */}
             <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-gray-400 dark:text-slate-500">
-                <span className="flex items-center gap-1.5"><span className="flex h-4 w-4 items-center justify-center rounded-sm bg-emerald-500"><Ic.Check className="h-2.5 w-2.5 text-white"/></span>{t('cafeteria.legendUsed')}</span>
-                <span className="flex items-center gap-1.5"><span className="portal-service-accent h-4 w-4 rounded-sm border"/>{t('cafeteria.legendAvailable')}</span>
-                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-sm bg-amber-50 dark:bg-amber-950/30"/>{t('cafeteria.legendHoliday')}</span>
-                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-sm ring-2 ring-[var(--color-primary)]"/>{t('cafeteria.legendToday')}</span>
+                <span className="flex items-center gap-1.5"><span className="flex h-4 w-4 items-center justify-center rounded-xs bg-emerald-500"><Ic.Check className="h-2.5 w-2.5 text-white"/></span>{t('cafeteria.legendUsed')}</span>
+                <span className="flex items-center gap-1.5"><span className="portal-service-accent h-4 w-4 rounded-xs border"/>{t('cafeteria.legendAvailable')}</span>
+                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-xs bg-amber-50 dark:bg-amber-950/30"/>{t('cafeteria.legendHoliday')}</span>
+                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-xs ring-2 ring-primary"/>{t('cafeteria.legendToday')}</span>
             </div>
         </div>
     );
@@ -387,7 +387,7 @@ function StatCard({ icon: I, period, primary, secondary, badge, colorKey }: {
     return (
         <div className="portal-panel rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <div className="mb-2 flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-[color:var(--color-primary)]">
+                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-primary">
                     <I className="h-3.5 w-3.5"/>{period}
                 </span>
                 <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${badgeTone}`}>{badge}</span>
@@ -624,7 +624,7 @@ function SideItem({ e, selected, onClick, useAmharic }: { e: Entitlement; select
                 {isCafe ? <Ic.Utensils className="h-4 w-4"/> : isBus ? <Ic.Bus className="h-4 w-4"/> : <Ic.Layers className="h-4 w-4"/>}
             </div>
             <div className="min-w-0 flex-1">
-                <p className={`truncate text-sm font-medium ${selected ? 'text-[var(--color-primary)]' : 'text-gray-900 dark:text-slate-100'}`}>{name}</p>
+                <p className={`truncate text-sm font-medium ${selected ? 'text-primary' : 'text-gray-900 dark:text-slate-100'}`}>{name}</p>
                 {e.provider && <p className="truncate text-xs text-gray-400">{e.provider}</p>}
             </div>
             <StatusChip status={e.status} />
@@ -684,8 +684,8 @@ export default function MyEntitlements({ entitlements, has_employee }: Props) {
                                         {selected.service_code === 'cafeteria'
                                             ? <Ic.Utensils className="h-5 w-5"/>
                                             : selected.service_code === 'transport'
-                                                ? <Ic.Bus className="h-5 w-5 text-[color:var(--color-primary)]"/>
-                                                : <Ic.Layers className="h-5 w-5 text-[color:var(--color-primary)]"/>
+                                                ? <Ic.Bus className="h-5 w-5 text-primary"/>
+                                                : <Ic.Layers className="h-5 w-5 text-primary"/>
                                         }
                                     </div>
                                     <div>

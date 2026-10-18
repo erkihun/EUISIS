@@ -140,15 +140,15 @@ function OrganizationHeader({ target }: { target: TargetDisplay }) {
     return (
         <div className={`${cardClass} flex items-center gap-3`}>
             {target.logo_url ? (
-                <img src={target.logo_url} alt="" className="h-12 w-12 shrink-0 rounded-xl border border-[color:var(--app-border)] bg-white object-contain p-1" />
+                <img src={target.logo_url} alt="" className="h-12 w-12 shrink-0 rounded-xl border border-(--app-border) bg-white object-contain p-1" />
             ) : (
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[color:var(--app-surface-muted)] text-[color:var(--color-primary)]" aria-hidden="true">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-(--app-surface-muted) text-primary" aria-hidden="true">
                     <Building2 className="h-6 w-6" />
                 </span>
             )}
             <div className="min-w-0">
                 <p className={`text-xs ${mutedClass}`}>{t('serviceFeedback.orgFormAbout')}</p>
-                <p className="font-semibold leading-snug text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{target.display_name}</p>
+                <p className="font-semibold leading-snug text-(--app-foreground) wrap-anywhere">{target.display_name}</p>
                 {target.short_name && <p className={`text-sm ${mutedClass}`}>{target.short_name}</p>}
             </div>
         </div>
@@ -161,13 +161,13 @@ function StepProgress({ steps, index, title }: { steps: StepId[]; index: number;
 
     return (
         <nav aria-label={t('serviceFeedback.formProgress')} className="px-1">
-            <p className="text-sm font-semibold text-[color:var(--app-foreground)]">
+            <p className="text-sm font-semibold text-(--app-foreground)">
                 {t('serviceFeedback.stepOf').replace('{current}', String(index + 1)).replace('{total}', String(steps.length))}
                 <span className={`font-normal ${mutedClass}`}> · {title(steps[index])}</span>
             </p>
             <ol className="mt-2 flex gap-1.5">
                 {steps.map((step, position) => (
-                    <li key={step} aria-current={position === index ? 'step' : undefined} className={`h-1.5 flex-1 rounded-full ${position <= index ? 'bg-[color:var(--color-primary)]' : 'bg-[color:var(--app-border)]'}`}>
+                    <li key={step} aria-current={position === index ? 'step' : undefined} className={`h-1.5 flex-1 rounded-full ${position <= index ? 'bg-primary' : 'bg-(--app-border)'}`}>
                         <span className="sr-only">{title(step)}</span>
                     </li>
                 ))}
@@ -228,9 +228,9 @@ function QuestionField({ question, value, onChange, error }: { question: Questio
                     const checked = selected.includes(choice.code);
 
                     return (
-                        <label key={choice.code} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2 text-base transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[color:var(--color-primary)] ${checked
-                            ? 'border-[color:var(--color-primary)] bg-[color:var(--app-surface-muted)]'
-                            : 'border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] hover:bg-[color:var(--app-surface-muted)]'}`}>
+                        <label key={choice.code} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border-2 px-3 py-2 text-base transition-colors has-focus-visible:outline-solid has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary ${checked
+                            ? 'border-primary bg-(--app-surface-muted)'
+                            : 'border-(--app-border-strong) bg-(--app-surface) hover:bg-(--app-surface-muted)'}`}>
                             <input
                                 type={multiple ? 'checkbox' : 'radio'}
                                 name={id}
@@ -240,9 +240,9 @@ function QuestionField({ question, value, onChange, error }: { question: Questio
                                 onChange={() => onChange(multiple
                                     ? (checked ? selected.filter((code) => code !== choice.code) : [...selected, choice.code])
                                     : choice.code)}
-                                className="h-5 w-5 shrink-0 accent-[color:var(--color-primary)]"
+                                className="h-5 w-5 shrink-0 accent-primary"
                             />
-                            <span className="min-w-0 text-[color:var(--app-foreground)]">{choice.label}</span>
+                            <span className="min-w-0 text-(--app-foreground)">{choice.label}</span>
                         </label>
                     );
                 })}
@@ -343,9 +343,9 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
             {mode === 'search' && !other && (
                 <>
                     {data.service_id !== '' ? (
-                        <div className="mt-2 flex min-h-12 items-center justify-between gap-3 rounded-xl border-2 border-[color:var(--color-primary)] px-3 py-2">
-                            <span className="min-w-0 text-base text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{chosenLabel ?? t('serviceFeedback.serviceChosen')}</span>
-                            <button type="button" onClick={() => { setService('', ''); setChosenLabel(null); }} className="min-h-11 shrink-0 rounded-full px-3 text-sm font-semibold text-[color:var(--color-primary)]">{t('serviceFeedback.change')}</button>
+                        <div className="mt-2 flex min-h-12 items-center justify-between gap-3 rounded-xl border-2 border-primary px-3 py-2">
+                            <span className="min-w-0 text-base text-(--app-foreground) wrap-anywhere">{chosenLabel ?? t('serviceFeedback.serviceChosen')}</span>
+                            <button type="button" onClick={() => { setService('', ''); setChosenLabel(null); }} className="min-h-11 shrink-0 rounded-full px-3 text-sm font-semibold text-primary">{t('serviceFeedback.change')}</button>
                         </div>
                     ) : (
                         <>
@@ -357,7 +357,7 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
                                 <ul className="mt-1 space-y-1.5">
                                     {results.map((item) => (
                                         <li key={item.id}>
-                                            <button type="button" onClick={() => { setService(item.id, '', item.name); setChosenLabel(item.name); setFilter(''); }} className="flex min-h-12 w-full items-center rounded-xl border border-[color:var(--app-border-strong)] px-3 text-left text-base hover:bg-[color:var(--app-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]">
+                                            <button type="button" onClick={() => { setService(item.id, '', item.name); setChosenLabel(item.name); setFilter(''); }} className="flex min-h-12 w-full items-center rounded-xl border border-(--app-border-strong) px-3 text-left text-base hover:bg-(--app-surface-muted) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary">
                                                 {item.name}
                                             </button>
                                         </li>
@@ -366,7 +366,7 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
                             )}
                         </>
                     )}
-                    <button type="button" onClick={() => { setOther(true); setService('', ''); }} className="mt-2 min-h-11 text-sm font-semibold text-[color:var(--color-primary)] underline underline-offset-4">{t('serviceFeedback.serviceNotListed')}</button>
+                    <button type="button" onClick={() => { setOther(true); setService('', ''); }} className="mt-2 min-h-11 text-sm font-semibold text-primary underline underline-offset-4">{t('serviceFeedback.serviceNotListed')}</button>
                 </>
             )}
             {other && (
@@ -375,7 +375,7 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
                     <p id="service-text-hint" className={`mt-1 text-xs ${mutedClass}`}>{t('serviceFeedback.serviceReceivedFreeHint')}</p>
                     {textField}
                     {mode === 'search' && (
-                        <button type="button" onClick={() => { setOther(false); setService('', ''); }} className="mt-2 min-h-11 text-sm font-semibold text-[color:var(--color-primary)] underline underline-offset-4">{t('serviceFeedback.serviceSearchAgain')}</button>
+                        <button type="button" onClick={() => { setOther(false); setService('', ''); }} className="mt-2 min-h-11 text-sm font-semibold text-primary underline underline-offset-4">{t('serviceFeedback.serviceSearchAgain')}</button>
                     )}
                 </div>
             )}
@@ -392,9 +392,9 @@ function ReviewRow({ label, value, onEdit }: { label: string; value: ReactNode; 
         <div className="flex items-start justify-between gap-3 py-2">
             <div className="min-w-0">
                 <dt className={`text-xs ${mutedClass}`}>{label}</dt>
-                <dd className="mt-0.5 text-sm font-medium text-[color:var(--app-foreground)] [overflow-wrap:anywhere]">{value}</dd>
+                <dd className="mt-0.5 text-sm font-medium text-(--app-foreground) wrap-anywhere">{value}</dd>
             </div>
-            <button type="button" onClick={onEdit} className="min-h-11 shrink-0 rounded-full px-3 text-sm font-semibold text-[color:var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]">
+            <button type="button" onClick={onEdit} className="min-h-11 shrink-0 rounded-full px-3 text-sm font-semibold text-primary focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary">
                 {t('serviceFeedback.change')}<span className="sr-only">: {label}</span>
             </button>
         </div>
@@ -640,7 +640,7 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                 {step === 'service' && (
                     <section aria-labelledby="service-step-title" className={`${cardClass} space-y-5`}>
                         <div>
-                            <p id="service-step-title" className="text-base font-bold text-[color:var(--app-foreground)]">{stepTitle('service')}</p>
+                            <p id="service-step-title" className="text-base font-bold text-(--app-foreground)">{stepTitle('service')}</p>
                             <p className={`mt-1 text-sm ${mutedClass}`}>{t(kind === 'suggestion' ? 'serviceFeedback.serviceStepTipOffHint' : 'serviceFeedback.serviceStepHint')}</p>
                         </div>
                         <ServiceReceived
@@ -676,9 +676,9 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                                     <legend className={labelClass}>{t('serviceFeedback.serviceTime')}<RequirementMark required={false} /></legend>
                                     <div className="mt-3 grid grid-cols-2 gap-2 min-[360px]:grid-cols-4">
                                         {['', ...TIME_BANDS].map((band) => (
-                                            <label key={band || 'unknown'} className={`flex min-h-12 cursor-pointer items-center justify-center rounded-xl border-2 px-2 text-center text-sm font-medium has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[color:var(--color-primary)] ${data.service_time_band === band
-                                                ? 'border-[color:var(--color-primary)] bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]'
-                                                : 'border-[color:var(--app-border-strong)] text-[color:var(--app-foreground)]'}`}>
+                                            <label key={band || 'unknown'} className={`flex min-h-12 cursor-pointer items-center justify-center rounded-xl border-2 px-2 text-center text-sm font-medium has-focus-visible:outline-solid has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary ${data.service_time_band === band
+                                                ? 'border-primary bg-(--app-surface-muted) text-(--app-foreground)'
+                                                : 'border-(--app-border-strong) text-(--app-foreground)'}`}>
                                                 <input type="radio" name="service_time_band" value={band} checked={data.service_time_band === band} onChange={() => set('service_time_band', band)} className="sr-only" />
                                                 {t(`serviceFeedback.timeBand_${band || 'unknown'}`)}
                                             </label>
@@ -695,7 +695,7 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                     <section aria-labelledby="experience-step-title" className="space-y-4">
                         <div className={`${cardClass} space-y-6`}>
                             <div>
-                                <p id="experience-step-title" className="text-base font-bold text-[color:var(--app-foreground)]">{stepTitle('experience')}</p>
+                                <p id="experience-step-title" className="text-base font-bold text-(--app-foreground)">{stepTitle('experience')}</p>
                                 <p className={`mt-1 text-sm ${mutedClass}`}>{t('serviceFeedback.experienceHint')}</p>
                             </div>
                             {experienceQuestions.map(renderQuestion)}
@@ -710,7 +710,7 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
 
                 {step === 'details' && (
                     <section aria-labelledby="details-step-title" className="space-y-4">
-                        <p id="details-step-title" className="px-1 text-base font-bold text-[color:var(--app-foreground)]">{stepTitle('details')}</p>
+                        <p id="details-step-title" className="px-1 text-base font-bold text-(--app-foreground)">{stepTitle('details')}</p>
                         {kind === 'suggestion' && (
                             <TipTypeChooser tipTypes={tipTypes} value={data.tip_type} onChange={(value) => set('tip_type', value)} error={fieldErrors.tip_type} />
                         )}
@@ -738,8 +738,8 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                                 </div>
                             )}
                             {kind === 'suggestion' && (
-                                <details className="group rounded-xl border border-[color:var(--app-border)] p-3" open={Boolean(fieldErrors.incident_date || fieldErrors.incident_location || fieldErrors.involved_parties)}>
-                                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-[color:var(--app-foreground)]">
+                                <details className="group rounded-xl border border-(--app-border) p-3" open={Boolean(fieldErrors.incident_date || fieldErrors.incident_location || fieldErrors.involved_parties)}>
+                                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-(--app-foreground)">
                                         {t('serviceFeedback.tipMoreDetails')}
                                         <ChevronRight className="h-5 w-5 transition-transform group-open:rotate-90" aria-hidden="true" />
                                     </summary>
@@ -774,16 +774,16 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
 
                 {step === 'submit' && (
                     <section aria-labelledby="submit-step-title" className="space-y-4">
-                        <p id="submit-step-title" className="px-1 text-base font-bold text-[color:var(--app-foreground)]">{stepTitle('submit')}</p>
+                        <p id="submit-step-title" className="px-1 text-base font-bold text-(--app-foreground)">{stepTitle('submit')}</p>
                         {kind === 'suggestion' ? (
                             <div role="group" aria-labelledby="tipster-title" className={`${cardClass} space-y-4`}>
                                 <div>
-                                    <p id="tipster-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.tipsterTitle')}</p>
+                                    <p id="tipster-title" className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.tipsterTitle')}</p>
                                     <p className={`mt-1 text-xs leading-relaxed ${mutedClass}`}>{t('serviceFeedback.tipsterHint')}</p>
                                 </div>
                                 <IdentityFields requirements={requirements} data={{ client_name: data.client_name, client_contact: data.client_contact, client_email: data.client_email }} set={(field, value) => set(field, value)} errors={fieldErrors} />
-                                <details className="group rounded-xl border border-[color:var(--app-border)] p-3">
-                                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-[color:var(--app-foreground)]">
+                                <details className="group rounded-xl border border-(--app-border) p-3">
+                                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-sm font-semibold text-(--app-foreground)">
                                         {t('serviceFeedback.tipsterAddressToggle')}
                                         <ChevronRight className="h-5 w-5 transition-transform group-open:rotate-90" aria-hidden="true" />
                                     </summary>
@@ -803,8 +803,8 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                         )}
 
                         <div className={cardClass}>
-                            <p className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.reviewTitle')}</p>
-                            <dl className="mt-1 divide-y divide-[color:var(--app-border)]">
+                            <p className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.reviewTitle')}</p>
+                            <dl className="mt-1 divide-y divide-(--app-border)">
                                 {kind === 'suggestion' && (
                                     <ReviewRow label={t('serviceFeedback.tipTypeLabel')} value={data.tip_type ? t(TIP_TYPE_COPY[data.tip_type].label) : '—'} onEdit={() => goTo(stepIndexOf('details'))} />
                                 )}
@@ -834,8 +834,8 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
             <FeedbackActionBar>
                 {uploading && (
                     <div className="mb-2" role="status" aria-live="polite">
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]">
-                            <div className="h-full rounded-full bg-[color:var(--color-primary)] transition-[width]" style={{ width: `${progress?.percentage ?? 0}%` }} />
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-(--app-surface-muted)">
+                            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${progress?.percentage ?? 0}%` }} />
                         </div>
                         <p className={`mt-1 text-center text-xs ${mutedClass}`}>{t('serviceFeedback.uploadProgress').replace('{percent}', String(progress?.percentage ?? 0))}</p>
                     </div>

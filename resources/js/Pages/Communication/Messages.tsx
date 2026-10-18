@@ -185,9 +185,9 @@ export default function Messages(props: Props): JSX.Element {
             <div
                 ref={box}
                 style={height ? { height } : undefined}
-                className="flex min-h-[420px] overflow-hidden border-y border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:rounded-panel sm:border"
+                className="flex min-h-[420px] overflow-hidden border-y border-(--app-border) bg-(--app-surface) sm:rounded-panel sm:border"
             >
-                <div className={`w-full shrink-0 border-e border-[color:var(--app-border)] bg-[color:var(--app-surface)] lg:block lg:w-80 ${activeId ? 'hidden' : 'block'}`}>
+                <div className={`w-full shrink-0 border-e border-(--app-border) bg-(--app-surface) lg:block lg:w-80 ${activeId ? 'hidden' : 'block'}`}>
                     {composing === 'group' && can.createGroup ? (
                         <NewGroupPanel onBack={() => setComposing(null)} onCreated={started} />
                     ) : composing ? (
@@ -230,12 +230,12 @@ export default function Messages(props: Props): JSX.Element {
                             onGone={(id) => { setItems((current) => current.filter((c) => c.id !== id)); select(null); }}
                         />
                     ) : (
-                        <div className="flex h-full flex-col items-center justify-center gap-3 bg-[color:var(--app-background)] px-6 text-center">
-                            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-[color:var(--app-foreground)]">
+                        <div className="flex h-full flex-col items-center justify-center gap-3 bg-(--app-background) px-6 text-center">
+                            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--color-primary)_12%,var(--app-surface))] text-(--app-foreground)">
                                 <ChatIcon className="h-7 w-7" aria-hidden="true" />
                             </span>
-                            <h1 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.chat.selectTitle')}</h1>
-                            <p className="max-w-xs text-sm text-[color:var(--app-muted-foreground)]">{t('communication.chat.selectHelp')}</p>
+                            <h1 className="text-base font-semibold text-(--app-foreground)">{t('communication.chat.selectTitle')}</h1>
+                            <p className="max-w-xs text-sm text-(--app-muted-foreground)">{t('communication.chat.selectHelp')}</p>
                             {can.message && (
                                 <Button type="button" variant="primary" className="mt-1" onClick={() => setComposing('message')}>
                                     {t('communication.dashboard.newMessage')}

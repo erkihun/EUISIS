@@ -155,24 +155,24 @@ export default function OrganizationTreePreview({
     }
 
     return (
-        <div className="flex h-full flex-col rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+        <div className="flex h-full flex-col rounded-panel border border-(--app-border) bg-(--app-surface)">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-4 py-3">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+            <div className="flex items-center justify-between border-b border-(--app-border) px-4 py-3">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">
                     {t('organizationUnits.organizationTreePreview')}
                 </h2>
                 <div className="flex items-center gap-1">
                     <button
                         type="button"
                         onClick={expandAll}
-                        className="rounded px-2 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                        className="rounded-sm px-2 py-1 text-xs font-medium text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                     >
                         {t('organizationUnits.expandAll')}
                     </button>
                     <button
                         type="button"
                         onClick={collapseAll}
-                        className="rounded px-2 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                        className="rounded-sm px-2 py-1 text-xs font-medium text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                     >
                         {t('organizationUnits.collapseAll')}
                     </button>
@@ -217,7 +217,7 @@ export default function OrganizationTreePreview({
             {/* Search */}
             <div className="px-3 py-2">
                 <div className="relative">
-                    <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
+                    <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-(--app-muted-foreground)" />
                     <input
                         type="text"
                         className={cx(inputClassName, 'w-full pl-8 pr-3')}
@@ -232,8 +232,8 @@ export default function OrganizationTreePreview({
             <div className="flex-1 overflow-y-auto px-2 pb-3" role="tree">
                 {filteredTree.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <Building2 className="h-8 w-8 text-[color:var(--app-muted-foreground)]" />
-                        <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">
+                        <Building2 className="h-8 w-8 text-(--app-muted-foreground)" />
+                        <p className="mt-2 text-xs text-(--app-muted-foreground)">
                             {t('organizationUnits.noOrganizationsFound')}
                         </p>
                     </div>

@@ -40,9 +40,9 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
         form.post(route('positions.move.store', position.id));
     }
 
-    const labelClass = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const labelClass = 'block text-sm font-medium text-(--app-foreground)';
     const inputClass = cx(inputClassName, 'mt-1 block w-full');
-    const readOnlyClass = `${inputClass} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`;
+    const readOnlyClass = `${inputClass} bg-(--app-surface-muted) text-(--app-muted-foreground)`;
 
     return (
         <AuthenticatedLayout contentWidth="form"
@@ -50,7 +50,7 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
         >
             <Head title={t('positions.movePosition')} />
 
-            <form onSubmit={submit} className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+            <form onSubmit={submit} className="space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                 {isOccupied && (
                     <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
                         {t('positions.occupiedCannotMove')}
@@ -111,7 +111,7 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
                 </div>
 
                 <div className="flex justify-end gap-3">
-                    <Link href={route('positions.show', position.id)} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                    <Link href={route('positions.show', position.id)} className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                         {t('common.cancel')}
                     </Link>
                     <button

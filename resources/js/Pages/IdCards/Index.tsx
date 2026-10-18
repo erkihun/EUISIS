@@ -129,13 +129,13 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                     ['totalCards', summary.total, 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300'],
                     ['activeCards', summary.active, 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'],
                     ['pendingApproval', summary.pending, 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'],
-                    ['expiredCards', summary.expired, 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]'],
+                    ['expiredCards', summary.expired, 'bg-(--app-surface-muted) text-(--app-foreground)'],
                     ['revokedCards', summary.revoked, 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'],
                     ['lostCards', summary.lost, 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'],
                 ].map(([key, value, color]) => (
-                    <div key={String(key)} className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                    <div key={String(key)} className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                         <span className={`inline-flex rounded-lg px-2 py-1 text-lg font-bold ${color}`}>{value}</span>
-                        <p className="mt-2 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t(`idCards.${key}`)}</p>
+                        <p className="mt-2 text-xs font-medium text-(--app-muted-foreground)">{t(`idCards.${key}`)}</p>
                     </div>
                 ))}
             </div>
@@ -228,29 +228,29 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                                     >
                                         <td className={tableCellClassName}>
                                             <div className="flex items-center gap-3">
-                                                {card.employee?.photo_url ? <img src={card.employee.photo_url} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <div className="h-9 w-9 rounded-lg bg-[color:var(--app-surface-muted)]" />}
-                                                <div><p className="font-medium text-[color:var(--app-foreground)]">{card.employee?.full_name ?? t('common.notAvailable')}</p><p className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{card.employee?.employee_number}</p></div>
+                                                {card.employee?.photo_url ? <img src={card.employee.photo_url} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <div className="h-9 w-9 rounded-lg bg-(--app-surface-muted)" />}
+                                                <div><p className="font-medium text-(--app-foreground)">{card.employee?.full_name ?? t('common.notAvailable')}</p><p className="font-mono text-xs text-(--app-muted-foreground)">{card.employee?.employee_number}</p></div>
                                             </div>
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <span className="font-mono text-sm font-semibold text-[color:var(--app-foreground)]">{card.card_number}</span>
+                                            <span className="font-mono text-sm font-semibold text-(--app-foreground)">{card.card_number}</span>
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)] max-w-[200px] truncate')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground) max-w-[200px] truncate')}>
                                             {locale === 'am' ? card.employee?.current_assignment?.organization?.name_am ?? card.employee?.current_assignment?.organization?.name_en : card.employee?.current_assignment?.organization?.name_en ?? t('common.notAvailable')}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {locale === 'am' ? card.employee?.current_assignment?.organization_unit?.name_am ?? card.employee?.current_assignment?.organization_unit?.name_en : card.employee?.current_assignment?.organization_unit?.name_en ?? t('common.notAvailable')}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {locale === 'am' ? card.employee?.current_assignment?.position?.title_am ?? card.employee?.current_assignment?.position?.title_en : card.employee?.current_assignment?.position?.title_en ?? t('common.notAvailable')}
                                         </td>
                                         <td className={tableCellClassName}>
                                             <CardStatusBadge status={card.status} />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={card.issued_at} />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={card.expires_at} />
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>

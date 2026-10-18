@@ -77,11 +77,11 @@ type ImportPreview = {
 
 const buttonBase =
     'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50';
-const primaryButton = `${buttonBase} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)]`;
-const secondaryButton = `${buttonBase} border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]`;
-const cellCls = 'px-3 py-2 text-sm text-[color:var(--app-foreground)]';
+const primaryButton = `${buttonBase} bg-primary text-white hover:bg-primary-hover`;
+const secondaryButton = `${buttonBase} border border-(--app-border-strong) bg-(--app-surface) text-(--app-foreground) hover:bg-(--app-surface-muted)`;
+const cellCls = 'px-3 py-2 text-sm text-(--app-foreground)';
 const headCls =
-    'px-3 py-2 text-left text-xs font-medium text-[color:var(--app-muted-foreground)]';
+    'px-3 py-2 text-left text-xs font-medium text-(--app-muted-foreground)';
 
 /** One flat, grouped table of errors or warnings — the wizard's main feedback surface. */
 function IssueTable({
@@ -111,7 +111,7 @@ function IssueTable({
 
             {sheets.map((sheet) => (
                 <div key={sheet} className="mt-3">
-                    <p className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">{sheet}</p>
+                    <p className="text-xs font-semibold text-(--app-muted-foreground)">{sheet}</p>
                     <div className="mt-1 overflow-x-auto">
                         <table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={tableHeadClassName}>
@@ -173,7 +173,7 @@ function CodeTable({ codes }: { codes: CodeAssignment[] }) {
                             <td className={`${cellCls} font-mono text-xs`}>{entry.provided_code ?? '—'}</td>
                             <td className={`${cellCls} font-mono text-xs`}>
                                 {entry.generated_code ? (
-                                    <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
+                                    <span className="rounded-sm bg-emerald-100 px-1.5 py-0.5 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                                         {entry.generated_code}
                                     </span>
                                 ) : (
@@ -196,18 +196,18 @@ function CodeTable({ codes }: { codes: CodeAssignment[] }) {
 /** Recursive preview of the unit hierarchy the file declares. */
 function UnitTree({ nodes, locale, depth = 0 }: { nodes: UnitNode[]; locale: string; depth?: number }) {
     return (
-        <ul className={depth === 0 ? 'space-y-1' : 'mt-1 space-y-1 border-l border-[color:var(--app-border)] pl-4'}>
+        <ul className={depth === 0 ? 'space-y-1' : 'mt-1 space-y-1 border-l border-(--app-border) pl-4'}>
             {nodes.map((node) => (
                 <li key={node.code}>
                     <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-medium text-[color:var(--app-foreground)]">
+                        <span className="text-sm font-medium text-(--app-foreground)">
                             {localizedName(node.name_en, node.name_am, locale) || node.code}
                         </span>
-                        <span className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="rounded-sm bg-(--app-surface-muted) px-1.5 py-0.5 font-mono text-xs text-(--app-muted-foreground)">
                             {node.code}
                         </span>
                         {node.type_code && (
-                            <span className="text-xs text-[color:var(--app-muted-foreground)]">{node.type_code}</span>
+                            <span className="text-xs text-(--app-muted-foreground)">{node.type_code}</span>
                         )}
                     </div>
                     {node.children.length > 0 && (
@@ -280,7 +280,7 @@ export default function ImportStructure({
                                 type="file"
                                 accept=".xlsx,.xls,.csv"
                                 onChange={(event) => form.setData('file', event.target.files?.[0] ?? null)}
-                                className="block w-full text-sm text-[color:var(--app-muted-foreground)] file:mr-4 file:rounded-lg file:border-0 file:bg-[color:var(--color-primary)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[color:var(--color-primary-hover)]"
+                                className="block w-full text-sm text-(--app-muted-foreground) file:mr-4 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-primary-hover"
                             />
                             {form.errors.file && (
                                 <p className="mt-2 text-sm text-red-600 dark:text-red-400">{form.errors.file}</p>
@@ -288,25 +288,25 @@ export default function ImportStructure({
                         </div>
 
                         <div className="space-y-2">
-                            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                            <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
                                 <input
                                     type="checkbox"
                                     checked={form.data.auto_generate_codes}
                                     onChange={(event) => form.setData('auto_generate_codes', event.target.checked)}
-                                    className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] "
+                                    className="rounded-sm border-(--app-border-strong) text-primary focus:ring-primary "
                                 />
                                 {t('organizationStructureImport.autoGenerateCodes')}
                             </label>
-                            <p className="ml-6 text-xs text-[color:var(--app-muted-foreground)]">
+                            <p className="ml-6 text-xs text-(--app-muted-foreground)">
                                 {t('organizationStructureImport.autoGenerateHint')}
                             </p>
 
-                            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                            <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
                                 <input
                                     type="checkbox"
                                     checked={form.data.import_employees}
                                     onChange={(event) => form.setData('import_employees', event.target.checked)}
-                                    className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] "
+                                    className="rounded-sm border-(--app-border-strong) text-primary focus:ring-primary "
                                 />
                                 {t('organizationStructureImport.importEmployees')}
                             </label>
@@ -327,12 +327,12 @@ export default function ImportStructure({
                     </form>
 
                     {showSpec && (
-                        <div className="mt-4 space-y-3 rounded-lg border border-[color:var(--app-border)] p-4">
+                        <div className="mt-4 space-y-3 rounded-lg border border-(--app-border) p-4">
                             {sheets.map((sheet) => (
                                 <div key={sheet.name}>
-                                    <p className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                                    <p className="text-sm font-semibold text-(--app-foreground)">
                                         {sheet.name}{' '}
-                                        <span className="text-xs font-normal text-[color:var(--app-muted-foreground)]">
+                                        <span className="text-xs font-normal text-(--app-muted-foreground)">
                                             (
                                             {sheet.required
                                                 ? t('organizationStructureImport.required')
@@ -350,7 +350,7 @@ export default function ImportStructure({
                                                     className={`rounded px-1.5 py-0.5 font-mono text-xs ${
                                                         isRequired
                                                             ? 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300'
-                                                            : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'
+                                                            : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'
                                                     }`}
                                                 >
                                                     {column}
@@ -402,16 +402,16 @@ export default function ImportStructure({
                                         ['status', preview.organization.status],
                                     ].map(([label, value]) => (
                                         <div key={label as string}>
-                                            <dt className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                            <dt className="font-mono text-xs text-(--app-muted-foreground)">
                                                 {label}
                                             </dt>
-                                            <dd className="text-sm text-[color:var(--app-foreground)]">
+                                            <dd className="text-sm text-(--app-foreground)">
                                                 {value || '—'}
                                             </dd>
                                         </div>
                                     ))}
                                 </dl>
-                                <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-3 text-sm text-(--app-muted-foreground)">
                                     {preview.mode === 'update'
                                         ? t('organizationStructureImport.modeUpdate')
                                         : t('organizationStructureImport.modeCreate')}
@@ -466,7 +466,7 @@ export default function ImportStructure({
                                     </p>
                                 )}
                                 {preview.can_import && !hasFile && (
-                                    <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                                    <p className="text-sm text-(--app-muted-foreground)">
                                         {t('organizationStructureImport.reselectFile')}
                                     </p>
                                 )}

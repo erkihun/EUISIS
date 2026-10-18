@@ -75,18 +75,18 @@ export default function PositionOccupancyBreakdown({ breakdowns }: Props) {
         <Card className="p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('positions.occupancyBreakdown')}</h2>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--app-muted-foreground)]">
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">{t('positions.occupancyBreakdown')}</h2>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-(--app-muted-foreground)">
                         <span className="inline-flex items-center gap-1.5"><span className={cx('h-2 w-2 rounded-full', FILLED)} aria-hidden="true" />{t('positions.filled')}</span>
                         <span className="inline-flex items-center gap-1.5"><span className={cx('h-2 w-2 rounded-full', VACANT)} aria-hidden="true" />{t('positions.vacant')}</span>
                     </p>
                 </div>
-                <div role="group" aria-label={t('positions.occupancyBreakdown')} className="inline-flex flex-wrap rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] p-0.5">
+                <div role="group" aria-label={t('positions.occupancyBreakdown')} className="inline-flex flex-wrap rounded-control bg-(--app-surface-muted) p-0.5">
                     {tabs.map((entry) => (
                         <button key={entry.key} type="button" aria-pressed={entry.key === active.key} onClick={() => setTab(entry.key)}
                             className={cx('rounded-[calc(var(--radius-control)-2px)] px-3 py-1 text-xs font-medium transition-colors',
-                                entry.key === active.key ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm'
-                                    : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]')}>
+                                entry.key === active.key ? 'bg-(--app-surface) text-(--app-foreground) shadow-xs'
+                                    : 'text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
                             {entry.label}
                         </button>
                     ))}
@@ -100,12 +100,12 @@ export default function PositionOccupancyBreakdown({ breakdowns }: Props) {
                     {rows.map((row) => (
                         <li key={row.key}>
                             <div className="flex items-baseline justify-between gap-4 text-sm">
-                                <span className="min-w-0 font-medium text-[color:var(--app-foreground)]">{row.label}</span>
-                                <span className="shrink-0 tabular-nums text-[color:var(--app-muted-foreground)]">
+                                <span className="min-w-0 font-medium text-(--app-foreground)">{row.label}</span>
+                                <span className="shrink-0 tabular-nums text-(--app-muted-foreground)">
                                     {row.filled.toLocaleString()} / {row.total.toLocaleString()} · {Math.round(row.filledPercent)}%
                                 </span>
                             </div>
-                            <div className="mt-1.5 h-2.5 rounded-full bg-[color:var(--app-surface-muted)]">
+                            <div className="mt-1.5 h-2.5 rounded-full bg-(--app-surface-muted)">
                                 <div className="flex h-full overflow-hidden rounded-full" style={{ width: `${Math.max(row.scale, 2)}%` }}
                                     role="img" aria-label={`${row.label}: ${row.filled} ${t('positions.filled')}, ${row.vacant} ${t('positions.vacant')}`}>
                                     <div className={FILLED} style={{ width: `${row.filledPercent}%` }} title={`${t('positions.filled')}: ${row.filled}`} />

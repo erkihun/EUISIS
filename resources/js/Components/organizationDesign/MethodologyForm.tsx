@@ -44,8 +44,8 @@ export default function MethodologyForm({ record, mode, strategies, roundingRule
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                {mode === 'version' && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{tt('methodologies.newVersionHelp')}</p>}
+                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
+                {mode === 'version' && <p className="mt-1 text-sm text-(--app-muted-foreground)">{tt('methodologies.newVersionHelp')}</p>}
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField {...field('code', tt('fields.code'), true)}>{({ id }) => <Input id={id} value={form.data.code} maxLength={40} disabled={mode === 'version'} onChange={(e) => form.setData('code', e.target.value.toUpperCase())} />}</FormField>
                     <FormField {...field('calculation_type', tt('fields.calculationType'), true)}>
@@ -55,12 +55,12 @@ export default function MethodologyForm({ record, mode, strategies, roundingRule
                             </Select>
                         )}
                     </FormField>
-                    {strategy && <p className="text-xs text-[color:var(--app-muted-foreground)] sm:col-span-2">{tt(`methodologies.strategyHelp.${strategy.type}`)}</p>}
+                    {strategy && <p className="text-xs text-(--app-muted-foreground) sm:col-span-2">{tt(`methodologies.strategyHelp.${strategy.type}`)}</p>}
                     <FormField {...field('name_en', tt('fields.nameEn'), true)}>{({ id }) => <Input id={id} value={form.data.name_en} onChange={(e) => form.setData('name_en', e.target.value)} />}</FormField>
                     <FormField {...field('name_am', tt('fields.nameAm'))}>{({ id }) => <Input id={id} value={form.data.name_am} onChange={(e) => form.setData('name_am', e.target.value)} />}</FormField>
 
                     <fieldset className="sm:col-span-2">
-                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{tt('methodologies.parameters')}</legend>
+                        <legend className="text-sm font-medium text-(--app-foreground)">{tt('methodologies.parameters')}</legend>
                         <div className="mt-2 grid gap-3 sm:grid-cols-3">
                             {Object.entries(strategy?.parameters ?? {}).map(([key, rule]) => (
                                 <FormField key={key} id={`meth-param-${key}`} label={tt(`methodologies.parameterNames.${key}`)} required={rule.required !== false} error={errors[`parameters.${key}`]} description={`${rule.min ?? '−∞'} – ${rule.max ?? '∞'}`}>

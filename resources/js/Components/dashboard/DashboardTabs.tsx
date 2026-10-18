@@ -64,7 +64,7 @@ export default function DashboardTabs({ tabs, activeId, onChange, label }: Props
             role="tablist"
             aria-label={label}
             aria-orientation="horizontal"
-            className="sticky top-14 z-10 flex max-w-full gap-1 overflow-x-auto border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] pt-1"
+            className="sticky top-14 z-10 flex max-w-full gap-1 overflow-x-auto border-b border-(--app-border) bg-(--app-surface-muted) pt-1"
         >
             {tabs.map((tab, index) => {
                 const active = tab.id === activeId;
@@ -85,10 +85,10 @@ export default function DashboardTabs({ tabs, activeId, onChange, label }: Props
                         onKeyDown={(event) => handleKeyDown(event, index)}
                         className={[
                             'relative min-h-11 shrink-0 whitespace-nowrap px-3 py-2 text-sm transition-colors',
-                            'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)]',
+                            'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
                             active
-                                ? 'font-semibold text-[color:var(--color-primary)] dark:text-indigo-300'
-                                : 'font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+                                ? 'font-semibold text-primary dark:text-indigo-300'
+                                : 'font-medium text-(--app-muted-foreground) hover:text-(--app-foreground)',
                         ].join(' ')}
                     >
                         {tab.label}
@@ -96,7 +96,7 @@ export default function DashboardTabs({ tabs, activeId, onChange, label }: Props
                         {active && (
                             <span
                                 aria-hidden="true"
-                                className="absolute inset-x-0 -bottom-px h-0.5 bg-[color:var(--color-primary)]"
+                                className="absolute inset-x-0 -bottom-px h-0.5 bg-primary"
                             />
                         )}
                     </button>

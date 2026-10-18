@@ -39,15 +39,15 @@ export default function SettingsNav({ groups, active, onSelect }: Props) {
     }, [active]);
 
     const itemClass = (selected: boolean) => cx(
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] transition-colors',
-        selected ? 'text-[color:var(--app-foreground)]' : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary transition-colors',
+        selected ? 'text-(--app-foreground)' : 'text-(--app-muted-foreground) hover:text-(--app-foreground)',
     );
 
     const content = (item: SettingsNavItem, selected: boolean) => (
         <>
-            <item.icon aria-hidden="true" className={cx('h-4 w-4 shrink-0', selected && 'text-[color:var(--color-primary)]')} />
+            <item.icon aria-hidden="true" className={cx('h-4 w-4 shrink-0', selected && 'text-primary')} />
             <span className="min-w-0 flex-1 truncate">{item.label}</span>
-            {item.status && <span className="shrink-0 rounded px-1.5 text-[11px] font-medium text-[color:var(--app-muted-foreground)] ring-1 ring-inset ring-[color:var(--app-border)]">{item.status}</span>}
+            {item.status && <span className="shrink-0 rounded-sm px-1.5 text-[11px] font-medium text-(--app-muted-foreground) ring-1 ring-inset ring-(--app-border)">{item.status}</span>}
             {item.href && <ChevronRight aria-hidden="true" className="h-3.5 w-3.5 shrink-0 opacity-60" />}
         </>
     );
@@ -56,9 +56,9 @@ export default function SettingsNav({ groups, active, onSelect }: Props) {
         const selected = item.id === active;
         const className = variant === 'pill'
             ? cx(itemClass(selected), 'flex h-9 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 text-sm font-medium',
-                selected ? 'border-[color:var(--color-primary)] bg-[color:var(--app-surface)] shadow-sm' : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)]')
-            : cx(itemClass(selected), 'relative flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-3 py-2 text-left text-sm',
-                selected ? 'bg-[color:var(--app-surface)] font-semibold shadow-sm ring-1 ring-[color:var(--app-border)]' : 'font-medium hover:bg-[color:var(--app-surface-muted)]');
+                selected ? 'border-primary bg-(--app-surface) shadow-xs' : 'border-(--app-border) bg-(--app-surface)')
+            : cx(itemClass(selected), 'relative flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-left text-sm',
+                selected ? 'bg-(--app-surface) font-semibold shadow-xs ring-1 ring-(--app-border)' : 'font-medium hover:bg-(--app-surface-muted)');
         return (
             <li key={item.id}>
                 {item.href
@@ -70,13 +70,13 @@ export default function SettingsNav({ groups, active, onSelect }: Props) {
 
     return (
         <nav aria-label={t('settings.sectionsNav')} className="min-w-0 lg:sticky lg:top-20 lg:self-start">
-            <ul ref={pillsRef} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:hidden [&::-webkit-scrollbar]:hidden">
+            <ul ref={pillsRef} className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-none sm:-mx-6 sm:px-6 lg:hidden [&::-webkit-scrollbar]:hidden">
                 {groups.flatMap((group) => group.items).map((item) => render(item, 'pill'))}
             </ul>
             <div className="hidden space-y-5 lg:block">
                 {groups.map((group) => (
                     <div key={group.label}>
-                        <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">{group.label}</p>
+                        <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-(--app-muted-foreground)">{group.label}</p>
                         <ul className="space-y-0.5">{group.items.map((item) => render(item, 'row'))}</ul>
                     </div>
                 ))}

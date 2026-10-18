@@ -174,7 +174,7 @@ export default function OrganizationTypesIndex({
                                             key={type.id}
                                             className={tableRowClassName}
                                         >
-                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-(--app-muted-foreground)')}>
                                                 {type.code}
                                             </td>
                                             <td className={tableCellClassName}>
@@ -183,7 +183,7 @@ export default function OrganizationTypesIndex({
                                                         {type.prefix}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <span className="text-xs text-(--app-muted-foreground)">
                                                         {tr('organizationTypes.noPrefix')}
                                                     </span>
                                                 )}
@@ -191,15 +191,15 @@ export default function OrganizationTypesIndex({
                                             <td className={tableCellClassName}>
                                                 <p className="font-medium">{type.name_en}</p>
                                                 {type.name_am && (
-                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <p className="text-xs text-(--app-muted-foreground)">
                                                         {type.name_am}
                                                     </p>
                                                 )}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                                 {categoryLabel(type.category)}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>
                                                 {type.level_order}
                                             </td>
                                             <td className={cx(tableCellClassName, 'max-w-[180px]')}>
@@ -208,12 +208,12 @@ export default function OrganizationTypesIndex({
                                                         {tr('organizationTypes.rootOnly')}
                                                     </span>
                                                 ) : (
-                                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <span className="font-mono text-xs text-(--app-muted-foreground)">
                                                         {parentTypesLabel(type.parent_allowed_types)}
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>
                                                 {type.organizations_count}
                                             </td>
                                             <td className={tableCellClassName}>

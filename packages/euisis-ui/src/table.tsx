@@ -6,13 +6,13 @@ import { cx } from './primitives';
  * or, where markup must stay a plain <table>, the class names they are built
  * from — never their own padding, colours or borders.
  */
-export const tableContainerClassName = 'overflow-hidden rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
-export const tableClassName = 'w-full text-left text-sm text-[color:var(--app-foreground)]';
-export const tableHeadClassName = 'border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)]';
+export const tableContainerClassName = 'overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface)';
+export const tableClassName = 'w-full text-left text-sm text-(--app-foreground)';
+export const tableHeadClassName = 'border-b border-(--app-border) bg-(--app-surface-muted)';
 // No alignment and no cell colour: callers add text-left/right and any colour.
-export const tableHeaderCellClassName = 'px-4 py-3 text-xs font-medium text-[color:var(--app-muted-foreground)]';
-export const tableBodyClassName = 'divide-y divide-[color:var(--app-border)]';
-export const tableRowClassName = 'transition-colors hover:bg-[color:var(--app-surface-muted)]';
+export const tableHeaderCellClassName = 'px-4 py-3 text-xs font-medium text-(--app-muted-foreground)';
+export const tableBodyClassName = 'divide-y divide-(--app-border)';
+export const tableRowClassName = 'transition-colors hover:bg-(--app-surface-muted)';
 export const tableCellClassName = 'px-4 py-3';
 
 type Align = 'left' | 'center' | 'right';
@@ -55,7 +55,7 @@ export function Td({ align = 'left', numeric = false, muted = false, className, 
                 tableCellClassName,
                 alignClass[numeric && align === 'left' ? 'right' : align],
                 numeric && 'tabular-nums',
-                muted && 'text-[color:var(--app-muted-foreground)]',
+                muted && 'text-(--app-muted-foreground)',
                 className,
             )}
             {...props}
@@ -75,16 +75,16 @@ export function TableCard({ title, description, actions, footer, className, chil
     return (
         <section className={cx(tableContainerClassName, className)}>
             {(title || description || actions) && (
-                <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--app-border)] px-4 py-3">
+                <header className="flex flex-wrap items-start justify-between gap-3 border-b border-(--app-border) px-4 py-3">
                     <div className="min-w-0">
-                        {title && <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>}
-                        {description && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>}
+                        {title && <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>}
+                        {description && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{description}</p>}
                     </div>
                     {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
                 </header>
             )}
             {children}
-            {footer && <footer className="border-t border-[color:var(--app-border)] px-4 py-3">{footer}</footer>}
+            {footer && <footer className="border-t border-(--app-border) px-4 py-3">{footer}</footer>}
         </section>
     );
 }

@@ -23,7 +23,7 @@ const inputDisabledCls = cx(inputClassName, 'w-full cursor-not-allowed');
 
 const textareaCls = cx(textareaClassName, 'w-full');
 
-const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
 export default function EditPermission({
     permission,
@@ -76,8 +76,8 @@ export default function EditPermission({
                         </div>
                     )}
 
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                        <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                        <h2 className="mb-4 text-sm font-semibold text-(--app-foreground)">
                             {t('permissions.basicInformation')}
                         </h2>
                         <div className="space-y-4">
@@ -168,8 +168,8 @@ export default function EditPermission({
                         </div>
                     </div>
 
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                        <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
+                        <h2 className="mb-4 text-sm font-semibold text-(--app-foreground)">
                             {t('permissions.classification')}
                         </h2>
                         <div className="grid grid-cols-2 gap-4">
@@ -216,7 +216,7 @@ export default function EditPermission({
                     <div className="flex items-center justify-end gap-3">
                         <Link
                             href={route('permissions.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </Link>

@@ -93,8 +93,8 @@ export default function ProcessesIndex({ processes, filters, organizations, serv
                             <TBody>
                                 {processes.data.map((p) => (
                                     <Tr key={p.id}>
-                                        <Td className="font-mono text-xs">{p.code} <span className="text-[color:var(--app-muted-foreground)]">v{p.version_no}</span></Td>
-                                        <Td><Link href={route('organization-design.processes.show', p.id)} className="font-medium text-[color:var(--app-foreground)] hover:underline">{nameOf(p, locale)}</Link></Td>
+                                        <Td className="font-mono text-xs">{p.code} <span className="text-(--app-muted-foreground)">v{p.version_no}</span></Td>
+                                        <Td><Link href={route('organization-design.processes.show', p.id)} className="font-medium text-(--app-foreground) hover:underline">{nameOf(p, locale)}</Link></Td>
                                         <Td muted>{p.service ? `${p.service.code} · ${nameOf(p.service, locale)}` : '—'}</Td>
                                         <Td muted>{nameOf(p.organization, locale)}</Td>
                                         <Td muted>{tt(`processes.types.${p.process_type}`)}</Td>

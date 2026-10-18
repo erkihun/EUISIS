@@ -17,10 +17,10 @@ type View = 'assigned' | 'created';
 type StatusFilter = 'open' | 'done' | 'all';
 
 const PRIORITY_TONE: Record<TaskPriority, string> = {
-    LOW: 'text-[color:var(--app-muted-foreground)]',
-    NORMAL: 'text-[color:var(--app-muted-foreground)]',
+    LOW: 'text-(--app-muted-foreground)',
+    NORMAL: 'text-(--app-muted-foreground)',
     HIGH: 'text-amber-700 dark:text-amber-300',
-    URGENT: 'text-[color:var(--color-danger,#b42318)]',
+    URGENT: 'text-(--color-danger,#b42318)',
 };
 
 export default function Tasks({ initial, focus }: Props): JSX.Element {
@@ -46,12 +46,12 @@ export default function Tasks({ initial, focus }: Props): JSX.Element {
     return (
         <AuthenticatedLayout mode="communication" header={<PageHeader title={t('communication.tasks.title')} description={t('communication.tasks.description')} />}>
             <Head title={t('communication.tasks.title')} />
-            <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                <div className="flex flex-col gap-3 border-b border-[color:var(--app-border)] p-3 sm:flex-row sm:items-center">
-                    <div role="tablist" aria-label={t('communication.tasks.title')} className="flex rounded-control bg-[color:var(--app-surface-muted)] p-0.5">
+            <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+                <div className="flex flex-col gap-3 border-b border-(--app-border) p-3 sm:flex-row sm:items-center">
+                    <div role="tablist" aria-label={t('communication.tasks.title')} className="flex rounded-control bg-(--app-surface-muted) p-0.5">
                         {(['assigned', 'created'] as const).map((value) => (
                             <button key={value} type="button" role="tab" aria-selected={view === value} onClick={() => setView(value)}
-                                className={`h-8 rounded-[calc(var(--radius-control)-2px)] px-3 text-xs font-medium ${view === value ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm' : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'}`}>
+                                className={`h-8 rounded-[calc(var(--radius-control)-2px)] px-3 text-xs font-medium ${view === value ? 'bg-(--app-surface) text-(--app-foreground) shadow-xs' : 'text-(--app-muted-foreground) hover:text-(--app-foreground)'}`}>
                                 {t(`communication.tasks.views.${value}`)}
                             </button>
                         ))}
@@ -59,7 +59,7 @@ export default function Tasks({ initial, focus }: Props): JSX.Element {
                     <div className="flex gap-1 sm:ms-auto">
                         {(['open', 'done', 'all'] as const).map((value) => (
                             <button key={value} type="button" aria-pressed={status === value} onClick={() => setStatus(value)}
-                                className={`h-7 rounded-full px-3 text-xs font-medium ${status === value ? 'bg-[color:var(--app-foreground)] text-[color:var(--app-background)]' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>
+                                className={`h-7 rounded-full px-3 text-xs font-medium ${status === value ? 'bg-(--app-foreground) text-(--app-background)' : 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted)'}`}>
                                 {t(`communication.tasks.statusFilter.${value}`)}
                             </button>
                         ))}
@@ -68,11 +68,11 @@ export default function Tasks({ initial, focus }: Props): JSX.Element {
                 <div aria-busy={loading}>
                     {rows.length === 0 ? (
                         <div className="flex flex-col items-center gap-2 px-6 py-14 text-center">
-                            <TaskIcon className="h-6 w-6 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                            <p className="max-w-sm text-sm text-[color:var(--app-muted-foreground)]">{status === 'done' ? t('communication.tasks.emptyDone') : t('communication.tasks.empty')}</p>
+                            <TaskIcon className="h-6 w-6 text-(--app-muted-foreground)" aria-hidden="true" />
+                            <p className="max-w-sm text-sm text-(--app-muted-foreground)">{status === 'done' ? t('communication.tasks.emptyDone') : t('communication.tasks.empty')}</p>
                         </div>
                     ) : (
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {rows.map((task) => <Row key={task.id} task={task} view={view} focused={task.id === focus} onChanged={replace} />)}
                         </ul>
                     )}
@@ -106,16 +106,16 @@ function Row({ task, view, focused, onChanged }: { task: CommunicationTaskItem; 
     return (
         <li id={`task-${task.id}`} className={`flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-start ${focused ? 'comm-flash' : ''}`}>
             <div className="min-w-0 flex-1">
-                <p className={`text-sm font-medium ${task.status === 'COMPLETED' || task.status === 'CANCELLED' ? 'text-[color:var(--app-muted-foreground)] line-through decoration-1' : 'text-[color:var(--app-foreground)]'}`}>{task.title}</p>
-                {task.description && <p className="mt-0.5 line-clamp-2 text-xs text-[color:var(--app-muted-foreground)]">{task.description}</p>}
-                <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[color:var(--app-muted-foreground)]">
-                    <span className="font-medium text-[color:var(--app-foreground)]">{t(`communication.tasks.statuses.${task.status}`)}</span>
+                <p className={`text-sm font-medium ${task.status === 'COMPLETED' || task.status === 'CANCELLED' ? 'text-(--app-muted-foreground) line-through decoration-1' : 'text-(--app-foreground)'}`}>{task.title}</p>
+                {task.description && <p className="mt-0.5 line-clamp-2 text-xs text-(--app-muted-foreground)">{task.description}</p>}
+                <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-(--app-muted-foreground)">
+                    <span className="font-medium text-(--app-foreground)">{t(`communication.tasks.statuses.${task.status}`)}</span>
                     {task.priority !== 'NORMAL' && <span className={`font-medium ${PRIORITY_TONE[task.priority]}`}>{t(`communication.tasks.priorities.${task.priority}`)}</span>}
-                    {task.due_at && <span className={overdue ? 'font-semibold text-[color:var(--color-danger,#b42318)]' : ''}>{overdue ? `${t('communication.tasks.overdue')} · ` : ''}{tr(t('communication.tasks.due'), { date: dateTime(task.due_at, locale, system) })}</span>}
+                    {task.due_at && <span className={overdue ? 'font-semibold text-(--color-danger,#b42318)' : ''}>{overdue ? `${t('communication.tasks.overdue')} · ` : ''}{tr(t('communication.tasks.due'), { date: dateTime(task.due_at, locale, system) })}</span>}
                     <span>{view === 'assigned' ? tr(t('communication.tasks.from'), { name: task.creator?.name ?? '—' }) : tr(t('communication.tasks.to'), { name: task.assignee?.name ?? '—' })}</span>
                     {task.source && (
                         <Link href={`${route('communication.messages.show', task.source.conversation_id)}${task.source.message_id ? `?message=${task.source.message_id}` : ''}`}
-                            className="inline-flex items-center gap-1 font-medium text-[color:var(--color-primary)] hover:underline">
+                            className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
                             <ChatIcon className="h-3.5 w-3.5" aria-hidden="true" />{task.source.title ? `${task.source.title} — ` : ''}{t('communication.tasks.openMessage')}
                         </Link>
                     )}

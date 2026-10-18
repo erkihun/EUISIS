@@ -33,8 +33,8 @@ type Props = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">{children}</dd>
+            <dt className="text-xs text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 text-sm text-(--app-foreground)">{children}</dd>
         </div>
     );
 }
@@ -70,7 +70,7 @@ export default function NfcTerminalShow({ terminal, can }: Props) {
                         {can.updateTerminals && (
                             <Link
                                 href={route('nfc-management.terminals.edit', terminal.id)}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                             >
                                 {t('common.edit')}
                             </Link>
@@ -92,9 +92,9 @@ export default function NfcTerminalShow({ terminal, can }: Props) {
 
             <NfcSubNav can={can} current="terminals" />
 
-            <section className="max-w-3xl rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+            <section className="max-w-3xl rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('nfc.terminal')}</h2>
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">{t('nfc.terminal')}</h2>
                     <StatusBadge status={terminal.status} />
                 </div>
 
@@ -117,7 +117,7 @@ export default function NfcTerminalShow({ terminal, can }: Props) {
                     <Field label={t('nfc.provisionedBy')}>{terminal.created_by ?? '—'}</Field>
                 </dl>
 
-                <p className="mt-4 rounded-lg bg-[color:var(--app-surface-muted)] px-3 py-2 text-xs text-[color:var(--app-muted-foreground)]">
+                <p className="mt-4 rounded-lg bg-(--app-surface-muted) px-3 py-2 text-xs text-(--app-muted-foreground)">
                     {t('nfc.certificateHint')}
                 </p>
             </section>

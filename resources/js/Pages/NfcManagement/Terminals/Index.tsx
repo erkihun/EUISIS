@@ -117,12 +117,12 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
             </AppFilterBar>
 
             {rows.length === 0 ? (
-                <p className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="rounded-panel border border-dashed border-(--app-border-strong) bg-(--app-surface) py-12 text-center text-sm text-(--app-muted-foreground)">
                     {t('nfc.noTerminals')}
                 </p>
             ) : (
                 <>
-                    <div className="hidden overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] md:block">
+                    <div className="hidden overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface) md:block">
                         <table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
@@ -140,26 +140,26 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
                             <tbody className={tableBodyClassName}>
                                 {rows.map((row) => (
                                     <tr key={row.id} className={tableRowClassName}>
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>
                                             {row.terminal_code}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{row.name}</td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{row.name}</td>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {terminalTypeLabel(row.terminal_type)}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.provider?.name ?? '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {localizedName(row.organization) || '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.external_application?.name ?? '—'}
                                         </td>
                                         <td className={tableCellClassName}>
                                             <StatusBadge status={row.status} />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay
                                                 value={row.last_seen_at}
                                                 withTime
@@ -186,20 +186,20 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
                             <Link
                                 key={row.id}
                                 href={route('nfc-management.terminals.show', row.id)}
-                                className="block rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
+                                className="block rounded-panel border border-(--app-border) bg-(--app-surface) p-4"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="truncate font-medium text-[color:var(--app-foreground)]">
+                                        <p className="truncate font-medium text-(--app-foreground)">
                                             {row.name}
                                         </p>
-                                        <p className="truncate font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="truncate font-mono text-xs text-(--app-muted-foreground)">
                                             {row.terminal_code}
                                         </p>
                                     </div>
                                     <StatusBadge status={row.status} />
                                 </div>
-                                <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-2 text-xs text-(--app-muted-foreground)">
                                     {terminalTypeLabel(row.terminal_type)}
                                     {row.organization ? ` · ${localizedName(row.organization)}` : ''}
                                 </p>

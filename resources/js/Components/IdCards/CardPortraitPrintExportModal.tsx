@@ -143,15 +143,15 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
 
             {/* ── Modal overlay ──────────────────────────────────────────── */}
             <div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm no-print"
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs no-print"
                 onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
             >
-                <div className="w-full max-w-lg rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-[color:var(--app-border-strong)]">
+                <div className="w-full max-w-lg rounded-panel bg-(--app-surface) shadow-2xl ring-1 ring-(--app-border-strong)">
 
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 pt-5 pb-3">
                         <div>
-                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">
+                            <h3 className="text-base font-semibold text-(--app-foreground)">
                                 {t('idCards.exportPng')}
                             </h3>
                             <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">Portrait design</p>
@@ -159,7 +159,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-muted-foreground)] dark:hover:text-[color:var(--app-muted-foreground)]"
+                            className="rounded-lg p-1 text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-muted-foreground) dark:hover:text-(--app-muted-foreground)"
                         >
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -173,7 +173,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                     </p>
 
                     {/* Tabs */}
-                    <div className="mx-6 mb-4 flex gap-1 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-1">
+                    <div className="mx-6 mb-4 flex gap-1 rounded-card border border-(--app-border) bg-(--app-surface-muted) p-1">
                         {(['front', 'back', 'both'] as Tab[]).map((value) => (
                             <button
                                 key={value}
@@ -181,8 +181,8 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                                 onClick={() => setTab(value)}
                                 className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                     tab === value
-                                        ? 'bg-[color:var(--app-surface)] shadow text-[color:var(--app-foreground)]'
-                                        : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'
+                                        ? 'bg-(--app-surface) shadow-sm text-(--app-foreground)'
+                                        : 'text-(--app-muted-foreground) hover:text-(--app-foreground)'
                                 }`}
                             >
                                 {value === 'front' ? t('idCards.cardFront')
@@ -203,7 +203,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-2 rounded-b-panel border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-6 py-4">
+                    <div className="flex justify-end gap-2 rounded-b-panel border-t border-(--app-border) bg-(--app-surface-muted) px-6 py-4">
                         <button
                             type="button"
                             onClick={onClose}

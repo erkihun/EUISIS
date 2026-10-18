@@ -30,7 +30,7 @@ export default function PositionEstablishmentsEdit({ establishment }: { establis
         patch(route('position-establishments.update', establishment.id));
     };
 
-    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const labelCls = 'block text-sm font-medium text-(--app-foreground)';
     const inputCls = cx(inputClassName, 'mt-1 block w-full');
     const errorCls = 'mt-1 text-xs text-red-500';
 
@@ -47,7 +47,7 @@ export default function PositionEstablishmentsEdit({ establishment }: { establis
             <Head title={t('positionEstablishments.edit')} />
 
             <div>
-                <form onSubmit={submit} className="space-y-5 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                <form onSubmit={submit} className="space-y-5 rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                     <div>
                         <label className={labelCls}>{t('positionEstablishments.approvedSlots')}</label>
                         <input type="number" min={1} className={inputCls} value={data.approved_slots} onChange={e => setData('approved_slots', +e.target.value)} required />

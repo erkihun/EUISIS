@@ -42,10 +42,10 @@ export default function RatingScale({ name, legend, help, value, onChange, requi
 
     return (
         <fieldset data-field aria-describedby={describedBy} aria-invalid={error ? true : undefined} className="min-w-0">
-            <legend className={`${emphasis ? 'text-lg font-bold' : 'text-sm font-semibold'} text-[color:var(--app-foreground)]`}>
+            <legend className={`${emphasis ? 'text-lg font-bold' : 'text-sm font-semibold'} text-(--app-foreground)`}>
                 {legend}
             </legend>
-            {help && <p id={`${id}-help`} className="mt-1 text-xs leading-relaxed text-[color:var(--app-muted-foreground)]">{help}</p>}
+            {help && <p id={`${id}-help`} className="mt-1 text-xs leading-relaxed text-(--app-muted-foreground)">{help}</p>}
             <div className="mt-3 grid grid-cols-5 gap-1.5">
                 {VALUES.map((rating) => (
                     <label key={rating} className="relative block cursor-pointer">
@@ -61,7 +61,7 @@ export default function RatingScale({ name, legend, help, value, onChange, requi
                         />
                         <span
                             aria-hidden="true"
-                            className={`flex min-h-12 items-center justify-center rounded-xl border-2 border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-lg font-bold text-[color:var(--app-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[color:var(--color-primary)] ${TONE[rating]}`}
+                            className={`flex min-h-12 items-center justify-center rounded-xl border-2 border-(--app-border-strong) bg-(--app-surface) text-lg font-bold text-(--app-foreground) transition-colors hover:bg-(--app-surface-muted) peer-focus-visible:outline-solid peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary ${TONE[rating]}`}
                         >
                             {rating}
                         </span>
@@ -69,11 +69,11 @@ export default function RatingScale({ name, legend, help, value, onChange, requi
                     </label>
                 ))}
             </div>
-            <div className="mt-1.5 flex justify-between gap-2 text-xs text-[color:var(--app-muted-foreground)]" aria-hidden="true">
+            <div className="mt-1.5 flex justify-between gap-2 text-xs text-(--app-muted-foreground)" aria-hidden="true">
                 <span>{t('serviceFeedback.rating1')}</span>
                 <span className="text-right">{t('serviceFeedback.rating5')}</span>
             </div>
-            <p className="mt-1 min-h-5 text-center text-sm font-semibold text-[color:var(--app-foreground)]" aria-hidden="true">
+            <p className="mt-1 min-h-5 text-center text-sm font-semibold text-(--app-foreground)" aria-hidden="true">
                 {value !== '' ? t(`serviceFeedback.rating${value}`) : ''}
             </p>
             {error && <p id={`${id}-error`} role="alert" className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}

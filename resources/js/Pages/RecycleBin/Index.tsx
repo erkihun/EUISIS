@@ -143,13 +143,13 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                                                     {t(record.type_label_key)}
                                                 </span>
                                             </td>
-                                            <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}>{record.display_name}</td>
-                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>{record.code ?? '-'}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{record.deleted_by?.name ?? '-'}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'font-medium text-(--app-foreground)')}>{record.display_name}</td>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>{record.code ?? '-'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{record.deleted_by?.name ?? '-'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                                 {record.deleted_at ? <LocalizedDateDisplay value={record.deleted_at} withTime /> : '-'}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'max-w-xs truncate text-[color:var(--app-muted-foreground)]')}>{record.deletion_reason ?? '-'}</td>
+                                            <td className={cx(tableCellClassName, 'max-w-xs truncate text-(--app-muted-foreground)')}>{record.deletion_reason ?? '-'}</td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
                                                 <div className="flex items-center justify-end gap-2">
                                                     {record.can.restore ? (
@@ -157,7 +157,7 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                                                             {t('recycleBin.restoreRecord')}
                                                         </button>
                                                     ) : (
-                                                        <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('recycleBin.noRestorePermission')}</span>
+                                                        <span className="text-xs text-(--app-muted-foreground)">{t('recycleBin.noRestorePermission')}</span>
                                                     )}
                                                     {record.can.forceDelete && (
                                                         <button type="button" onClick={() => permanentlyDelete(record)} className={buttonClassName({ variant: 'outline', size: 'sm' })}>

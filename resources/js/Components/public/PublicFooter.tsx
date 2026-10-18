@@ -12,7 +12,7 @@ type SharedProps = PageProps & {
 
 function FooterLink({ link, label }: { link: PublicLink; label: string }) {
     // 44px rows are the touch target on phones; a pointer needs less, so desktop rows are compact.
-    const cls = 'inline-flex min-h-11 max-w-full items-center py-2 text-sm text-white/75 [overflow-wrap:anywhere] hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 lg:min-h-8 lg:py-1';
+    const cls = 'inline-flex min-h-11 max-w-full items-center py-2 text-sm text-white/75 wrap-anywhere hover:text-white hover:underline focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 lg:min-h-8 lg:py-1';
 
     return link.external ? (
         <a href={link.href} className={cls} rel="noopener noreferrer">{label}</a>
@@ -55,8 +55,8 @@ export default function PublicFooter() {
     const heading = 'mb-3 text-sm font-semibold text-white';
 
     return (
-        <footer className="bg-[color:var(--color-primary-900)] pb-[env(safe-area-inset-bottom)] text-white [overflow-wrap:anywhere] dark:bg-[color:var(--color-primary-950)]">
-            <div className={`mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:grid-cols-2 sm:gap-8 sm:px-6 sm:py-10 lg:gap-12 lg:px-8 [&>*]:min-w-0 ${usefulLinks.length > 0 ? 'lg:grid-cols-[2fr_1.6fr_1.2fr_1.2fr]' : 'lg:grid-cols-[2fr_2fr_1.4fr]'}`}>
+        <footer className="bg-primary-900 pb-[env(safe-area-inset-bottom)] text-white wrap-anywhere dark:bg-primary-950">
+            <div className={`mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:grid-cols-2 sm:gap-8 sm:px-6 sm:py-10 lg:gap-12 lg:px-8 *:min-w-0 ${usefulLinks.length > 0 ? 'lg:grid-cols-[2fr_1.6fr_1.2fr_1.2fr]' : 'lg:grid-cols-[2fr_2fr_1.4fr]'}`}>
                 <div className="sm:col-span-2 lg:col-span-1">
                     <p className="text-base font-bold text-white">{organization}</p>
                     {description && (
@@ -101,7 +101,7 @@ export default function PublicFooter() {
                         <p className="text-sm leading-relaxed text-white/75">{t('publicSite.footerHelpText')}</p>
                         <Link
                             href={route('public.support')}
-                            className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-white/35 px-4 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                            className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-white/35 px-4 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2"
                         >
                             {t('publicSite.footerHelpLink')}
                             <span aria-hidden="true" className="ms-2">→</span>

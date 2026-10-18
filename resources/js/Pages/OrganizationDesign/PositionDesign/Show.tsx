@@ -48,8 +48,8 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
     const text = (en: string | null, am: string | null) => (locale === 'am' && am) || en || null;
     const detail = (label: string, value: React.ReactNode) => (
         <div className="min-w-0">
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 whitespace-pre-wrap break-words text-sm text-[color:var(--app-foreground)]">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 whitespace-pre-wrap wrap-break-word text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
         </div>
     );
     const profileValues = (p: Profile, version: boolean): ProfileFormValues => ({
@@ -95,7 +95,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                 <div className="space-y-4 lg:col-span-2">
                     <Card>
                         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
-                            <div><CardTitle>{tt('positionDesign.profileTitle')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.profileHelp')}</p></div>
+                            <div><CardTitle>{tt('positionDesign.profileTitle')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('positionDesign.profileHelp')}</p></div>
                             {profile && (
                                 <div className="flex flex-wrap items-center gap-2">
                                     <StatusPill status={profile.status} />
@@ -107,7 +107,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                 </div>
                             )}
                         </CardHeader>
-                        {!profile ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.noProfile')}</p> : (
+                        {!profile ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('positionDesign.noProfile')}</p> : (
                             <>
                                 <dl className="grid gap-4 p-5 sm:grid-cols-2">
                                     {detail(tt('positionDesign.purposeEn').replace(/ \(.*\)$/, ''), text(profile.purpose_en, profile.purpose_am))}
@@ -119,10 +119,10 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                     {detail(tt('positionDesign.draftedBy'), profile.created_by)}
                                     {detail(tt('positionDesign.publishedBy'), profile.approved_by)}
                                 </dl>
-                                {profile.status === 'draft' && can.approveProfile && !profile.can.publish && <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.publishByOther')}</p>}
+                                {profile.status === 'draft' && can.approveProfile && !profile.can.publish && <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{tt('positionDesign.publishByOther')}</p>}
                                 {profiles.length > 1 && (
-                                    <div className="border-t border-[color:var(--app-border)] px-5 py-3">
-                                        <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{tt('positionDesign.versions')}</p>
+                                    <div className="border-t border-(--app-border) px-5 py-3">
+                                        <p className="text-xs font-medium text-(--app-muted-foreground)">{tt('positionDesign.versions')}</p>
                                         <ul className="mt-1 flex flex-wrap gap-2 text-xs">
                                             {profiles.map((p) => (
                                                 <li key={p.id} className="flex items-center gap-1">
@@ -139,10 +139,10 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
 
                     <Card>
                         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
-                            <div><CardTitle>{tt('positionDesign.workLinks')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.workLinksHelp')}</p></div>
+                            <div><CardTitle>{tt('positionDesign.workLinks')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('positionDesign.workLinksHelp')}</p></div>
                             {can.design && catalog && <Button size="sm" variant="outline" onClick={() => setLinksOpen(true)}>{tt('positionDesign.editWorkLinks')}</Button>}
                         </CardHeader>
-                        {workLinks.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.noWorkLinks')}</p> : (
+                        {workLinks.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('positionDesign.noWorkLinks')}</p> : (
                             <Table>
                                 <THead><tr><Th>{tt('fields.objectType')}</Th><Th>{tt('fields.object')}</Th><Th>{tt('positionDesign.primary')}</Th></tr></THead>
                                 <TBody>
@@ -160,7 +160,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
 
                     <Card>
                         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
-                            <div><CardTitle>{tt('positionDesign.requirements')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.requirementsHelp')}</p></div>
+                            <div><CardTitle>{tt('positionDesign.requirements')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('positionDesign.requirementsHelp')}</p></div>
                             {can.design && catalog && (
                                 <div className="flex gap-2">
                                     <Button size="sm" variant="outline" onClick={derive} disabled={workLinks.length === 0}>{tt('positionDesign.derive')}</Button>
@@ -168,10 +168,10 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                 </div>
                             )}
                         </CardHeader>
-                        <div className="divide-y divide-[color:var(--app-border)]">
+                        <div className="divide-y divide-(--app-border)">
                             <div>
-                                <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{tt('positionDesign.competencies')}</p>
-                                {competencies.length === 0 ? <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.noCompetencies')}</p> : (
+                                <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt('positionDesign.competencies')}</p>
+                                {competencies.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('positionDesign.noCompetencies')}</p> : (
                                     <Table>
                                         <THead><tr><Th>{tt('fields.competency')}</Th><Th>{tt('fields.minimumLevel')}</Th><Th>{tt('positionDesign.mandatory')}</Th><Th>{tt('fields.kind')}</Th></tr></THead>
                                         <TBody>
@@ -188,8 +188,8 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                 )}
                             </div>
                             <div>
-                                <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{tt('positionDesign.qualifications')}</p>
-                                {qualifications.length === 0 ? <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.noQualifications')}</p> : (
+                                <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt('positionDesign.qualifications')}</p>
+                                {qualifications.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('positionDesign.noQualifications')}</p> : (
                                     <Table>
                                         <THead><tr><Th>{tt('fields.educationLevel')}</Th><Th>{tt('fields.fieldOfStudy')}</Th><Th>{tt('fields.certification')}</Th><Th>{tt('fields.license')}</Th><Th align="right">{tt('fields.experienceYears')}</Th><Th>{tt('fields.kind')}</Th></tr></THead>
                                         <TBody>
@@ -212,9 +212,9 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
 
                     <Card>
                         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
-                            <div><CardTitle>{tt('positionDesign.jobDescriptions')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.jobDescriptionsHelp')}</p></div>
+                            <div><CardTitle>{tt('positionDesign.jobDescriptions')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('positionDesign.jobDescriptionsHelp')}</p></div>
                         </CardHeader>
-                        {jobDescriptions.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.noJobDescriptions')}</p> : (
+                        {jobDescriptions.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('positionDesign.noJobDescriptions')}</p> : (
                             <Table>
                                 <THead><tr><Th>{tt('fields.reference')}</Th><Th>{tt('positionDesign.version')}</Th><Th>{tt('fields.effectiveFrom')}</Th><Th>{tt('positionDesign.jd.preparedBy')}</Th><Th>{tt('fields.status')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                 <TBody>
@@ -245,13 +245,13 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                 <div className="space-y-4">
                     <Card>
                         <CardHeader><CardTitle>{tt('positionDesign.history')}</CardTitle></CardHeader>
-                        {history.length === 0 ? <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">—</p> : (
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                        {history.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">—</p> : (
+                            <ul className="divide-y divide-(--app-border)">
                                 {history.map((h, i) => (
                                     <li key={i} className="px-5 py-3 text-sm">
-                                        <p className="font-medium text-[color:var(--app-foreground)]">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
-                                        {h.reason && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{h.reason}</p>}
+                                        <p className="font-medium text-(--app-foreground)">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
+                                        <p className="text-xs text-(--app-muted-foreground)">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
+                                        {h.reason && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{h.reason}</p>}
                                     </li>
                                 ))}
                             </ul>

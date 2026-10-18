@@ -131,7 +131,7 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
                                     id={id}
                                     aria-describedby={describedBy}
                                     aria-invalid={invalid}
-                                    className="min-h-[10rem] resize-y"
+                                    className="min-h-40 resize-y"
                                     placeholder={t('transfers.coverLetterPlaceholder')}
                                     value={form.data.cover_letter}
                                     onChange={(e) => form.setData('cover_letter', e.target.value)}

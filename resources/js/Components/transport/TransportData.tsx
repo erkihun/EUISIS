@@ -82,10 +82,10 @@ export function TransactionsTable({ transactions, routeName, showProvider = fals
                                     <td className={`${tableCellClassName} whitespace-nowrap`}>{showHref ? <Link href={showHref(row)} className="underline-offset-2 hover:underline">{time(row.scanned_at)}</Link> : time(row.scanned_at)}</td>
                                     <td className={tableCellClassName}>
                                         <div className="font-medium">{row.employee?.full_name ?? '—'}</div>
-                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee?.employee_number}{row.employee?.organization ? ` · ${locale === 'am' && row.employee.organization_am ? row.employee.organization_am : row.employee.organization}` : ''}</div>
+                                        <div className="text-xs text-(--app-muted-foreground)">{row.employee?.employee_number}{row.employee?.organization ? ` · ${locale === 'am' && row.employee.organization_am ? row.employee.organization_am : row.employee.organization}` : ''}</div>
                                     </td>
                                     {showProvider && <td className={tableCellClassName}>{row.provider ? name(row.provider) : '—'}</td>}
-                                    <td className={tableCellClassName}>{row.route ? `${row.route.route_code} — ${name(row.route)}` : '—'}{row.trip ? <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.trip.trip_number}</div> : null}</td>
+                                    <td className={tableCellClassName}>{row.route ? `${row.route.route_code} — ${name(row.route)}` : '—'}{row.trip ? <div className="text-xs text-(--app-muted-foreground)">{row.trip.trip_number}</div> : null}</td>
                                     <td className={tableCellClassName}><StatusBadge tone={tone(row.status)}>{label('statuses', row.status)}</StatusBadge></td>
                                     <td className={tableCellClassName}>{label('reasons', row.result_code)}</td>
                                 </tr>
@@ -101,9 +101,9 @@ export function TransactionsTable({ transactions, routeName, showProvider = fals
 function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
     return (
         <Card className="p-4">
-            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</p>
+            <p className="text-xs font-medium text-(--app-muted-foreground)">{label}</p>
             <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-            {hint && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{hint}</p>}
+            {hint && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{hint}</p>}
         </Card>
     );
 }
@@ -157,11 +157,11 @@ export function ReportView({ report, transactionsHref }: { report: TransportRepo
             {summary.total === 0 ? <Card><EmptyState title={t('transport.noBoardings')} /></Card> : (
                 <>
                     <TableCard title={t('transport.perDay')} actions={transactionsHref ? <Link href={transactionsHref} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('transport.seeAllBoardings')}</Link> : undefined}>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {report.daily.map((day) => (
                                 <li key={day.date} className="grid grid-cols-[6.5rem_1fr_auto] items-center gap-3 px-4 py-2 text-sm">
-                                    <span className="tabular-nums text-[color:var(--app-muted-foreground)]">{day.date}</span>
-                                    <span className="flex h-2.5 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]" aria-hidden="true">
+                                    <span className="tabular-nums text-(--app-muted-foreground)">{day.date}</span>
+                                    <span className="flex h-2.5 overflow-hidden rounded-full bg-(--app-surface-muted)" aria-hidden="true">
                                         <span className="bg-emerald-600" style={{ width: `${(day.accepted / peak) * 100}%` }} />
                                         <span className="bg-red-500" style={{ width: `${(day.rejected / peak) * 100}%` }} />
                                     </span>
@@ -175,7 +175,7 @@ export function ReportView({ report, transactionsHref }: { report: TransportRepo
                         <BucketTable title={t('transport.byRoute')} rows={report.byRoute} codeKey="route_code" />
                         {report.rejections.length > 0 && (
                             <TableCard title={t('transport.topRejections')}>
-                                <ul className="divide-y divide-[color:var(--app-border)]">
+                                <ul className="divide-y divide-(--app-border)">
                                     {report.rejections.map((r) => (
                                         <li key={r.code} className="flex items-center justify-between gap-3 px-4 py-2 text-sm"><span>{label('reasons', r.code)}</span><span className="tabular-nums">{r.count}</span></li>
                                     ))}

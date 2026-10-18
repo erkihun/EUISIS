@@ -29,7 +29,7 @@ export default function RatingStars({
                         viewBox="0 0 24 24"
                         fill="currentColor"
                         className={`${dimension} ${
-                            star <= rating ? 'text-amber-400' : 'text-[color:var(--app-border-strong)]'
+                            star <= rating ? 'text-amber-400' : 'text-(--app-border-strong)'
                         }`}
                     >
                         <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
@@ -38,7 +38,7 @@ export default function RatingStars({
             </span>
             <span className="sr-only">{t('serviceFeedback.ratingOutOfFive').replace(':rating', String(rating))}</span>
             {showValue && (
-                <span className="text-sm font-medium text-[color:var(--app-foreground)]">{rating.toFixed(1)}</span>
+                <span className="text-sm font-medium text-(--app-foreground)">{rating.toFixed(1)}</span>
             )}
         </span>
     );

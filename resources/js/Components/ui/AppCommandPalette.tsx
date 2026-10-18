@@ -149,7 +149,7 @@ export default function AppCommandPalette({ open, onClose }: Props) {
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" aria-hidden="true" />
                 </TransitionChild>
 
                 {/* Panel */}
@@ -176,9 +176,9 @@ export default function AppCommandPalette({ open, onClose }: Props) {
                                     value={search}
                                     onValueChange={setSearch}
                                     placeholder={t('nav.typeCommandOrSearch')}
-                                    className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-500"
+                                    className="flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-hidden dark:text-slate-100 dark:placeholder:text-slate-500"
                                 />
-                                <kbd className="hidden rounded border border-gray-200 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 sm:block dark:border-slate-700 dark:text-slate-500">
+                                <kbd className="hidden rounded-sm border border-gray-200 px-1.5 py-0.5 text-[10px] font-medium text-gray-400 sm:block dark:border-slate-700 dark:text-slate-500">
                                     ESC
                                 </kbd>
                             </div>
@@ -219,12 +219,12 @@ export default function AppCommandPalette({ open, onClose }: Props) {
                             {/* Footer hint */}
                             <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-4 py-2 dark:border-slate-800">
                                 <span className="text-[11px] text-gray-400 dark:text-slate-500">
-                                    <kbd className="rounded border border-gray-200 px-1 dark:border-slate-700">↑</kbd>
-                                    <kbd className="ml-0.5 rounded border border-gray-200 px-1 dark:border-slate-700">↓</kbd>
+                                    <kbd className="rounded-sm border border-gray-200 px-1 dark:border-slate-700">↑</kbd>
+                                    <kbd className="ml-0.5 rounded-sm border border-gray-200 px-1 dark:border-slate-700">↓</kbd>
                                     {' '}navigate
                                 </span>
                                 <span className="text-[11px] text-gray-400 dark:text-slate-500">
-                                    <kbd className="rounded border border-gray-200 px-1 dark:border-slate-700">↵</kbd>
+                                    <kbd className="rounded-sm border border-gray-200 px-1 dark:border-slate-700">↵</kbd>
                                     {' '}open
                                 </span>
                             </div>

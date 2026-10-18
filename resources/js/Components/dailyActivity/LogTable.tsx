@@ -14,11 +14,11 @@ export default function LogTable({ logs, emptyText }: { logs: LogSummary[]; empt
     const { t, locale } = useLocale();
 
     if (logs.length === 0) {
-        return <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{emptyText}</p>;
+        return <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{emptyText}</p>;
     }
 
-    const th = 'px-3 py-2 text-left text-xs font-medium text-[color:var(--app-muted-foreground)]';
-    const td = 'px-3 py-2 align-top text-sm text-[color:var(--app-foreground)]';
+    const th = 'px-3 py-2 text-left text-xs font-medium text-(--app-muted-foreground)';
+    const td = 'px-3 py-2 align-top text-sm text-(--app-foreground)';
 
     return (
         <div className={panelCls}>
@@ -40,7 +40,7 @@ export default function LogTable({ logs, emptyText }: { logs: LogSummary[]; empt
                         <tr key={log.id} className={tableRowClassName}>
                             <td className={td}>
                                 <span className="font-medium">{log.employee?.full_name}</span>
-                                <span className="block text-xs text-[color:var(--app-muted-foreground)]">{log.employee?.employee_number}</span>
+                                <span className="block text-xs text-(--app-muted-foreground)">{log.employee?.employee_number}</span>
                             </td>
                             <td className={`${td} whitespace-nowrap`}><LocalizedDateDisplay value={log.activity_date} /></td>
                             <td className={td}>{named(log.organization_unit, locale) || '—'}</td>
@@ -52,7 +52,7 @@ export default function LogTable({ logs, emptyText }: { logs: LogSummary[]; empt
                             </td>
                             <td className={td}><LogStatusBadge status={log.status} /></td>
                             <td className={`${td} text-right`}>
-                                <Link href={route('daily-activities.show', log.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">
+                                <Link href={route('daily-activities.show', log.id)} className="font-medium text-primary hover:underline">
                                     {t('dailyActivities.actions.view')}
                                 </Link>
                             </td>
@@ -61,20 +61,20 @@ export default function LogTable({ logs, emptyText }: { logs: LogSummary[]; empt
                 </tbody>
             </table>
 
-            <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
+            <ul className="divide-y divide-(--app-border) md:hidden">
                 {logs.map((log) => (
                     <li key={log.id}>
-                        <Link href={route('daily-activities.show', log.id)} className="block px-3 py-2.5 active:bg-[color:var(--app-surface-muted)] dark:active:bg-slate-800/40">
+                        <Link href={route('daily-activities.show', log.id)} className="block px-3 py-2.5 active:bg-(--app-surface-muted) dark:active:bg-slate-800/40">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-medium text-[color:var(--app-foreground)]">{log.employee?.full_name}</p>
-                                    <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                    <p className="truncate text-sm font-medium text-(--app-foreground)">{log.employee?.full_name}</p>
+                                    <p className="truncate text-xs text-(--app-muted-foreground)">
                                         {[named(log.organization_unit, locale), named(log.position, locale)].filter(Boolean).join(' · ')}
                                     </p>
                                 </div>
                                 <LogStatusBadge status={log.status} />
                             </div>
-                            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-[color:var(--app-muted-foreground)]">
+                            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-(--app-muted-foreground)">
                                 <LocalizedDateDisplay value={log.activity_date} />
                                 <span>· {log.items_count} {t('dailyActivities.summary.items')}</span>
                                 {log.is_late && <LateMark />}

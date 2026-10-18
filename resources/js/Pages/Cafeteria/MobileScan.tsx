@@ -144,13 +144,13 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
     const providerLabel = (provider: Provider) => (locale === 'am' && provider.name_am ? provider.name_am : provider.name_en);
     const selectedProvider = providers.find((provider) => provider.id === providerId);
     const toolbar = nfcSupported || upfrontAllowed;
-    const iconLink = 'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-control)] text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]';
+    const iconLink = 'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-control text-(--app-muted-foreground) transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary';
 
     return (
-        <div className="flex h-dvh flex-col bg-[color:var(--app-background)] text-[color:var(--app-foreground)]">
+        <div className="flex h-dvh flex-col bg-(--app-background) text-(--app-foreground)">
             <Head title={t('cafeteria.scanQr')} />
 
-            <header className="border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
+            <header className="border-b border-(--app-border) bg-(--app-surface) px-2 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
                 <div className="flex items-center gap-1">
                     <Link href={route('dashboard')} className={iconLink} aria-label={t('common.back')} title={t('common.back')}>
                         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
@@ -159,18 +159,18 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                         {provider_locked || providers.length <= 1 ? (
                             <p className="truncate text-sm font-semibold">
                                 {selectedProvider ? providerLabel(selectedProvider) : t('cafeteria.noProvidersAvailable')}
-                                {selectedProvider && <span className="ms-1.5 font-normal text-[color:var(--app-muted-foreground)]">{selectedProvider.code}</span>}
+                                {selectedProvider && <span className="ms-1.5 font-normal text-(--app-muted-foreground)">{selectedProvider.code}</span>}
                             </p>
                         ) : (
                             <Select aria-label={t('cafeteria.selectProvider')} value={providerId} disabled={processing}
-                                onChange={(event) => changeProvider(event.target.value)} className="!h-10 !text-base font-medium sm:!text-sm">
+                                onChange={(event) => changeProvider(event.target.value)} className="h-10! text-base! font-medium sm:text-sm!">
                                 {providers.map((provider) => <option key={provider.id} value={provider.id}>{providerLabel(provider)}</option>)}
                             </Select>
                         )}
                     </div>
                     <div className="shrink-0 px-2 text-right leading-tight" aria-live="polite">
                         <p className="text-lg font-semibold tabular-nums">{(today_scan_count ?? 0).toLocaleString()}</p>
-                        <p className="text-[11px] text-[color:var(--app-muted-foreground)]">{t('cafeteria.todayScans')}</p>
+                        <p className="text-[11px] text-(--app-muted-foreground)">{t('cafeteria.todayScans')}</p>
                     </div>
                     <Link href={route('cafeteria.scan')} onClick={() => rememberScanView('full')} className={iconLink}
                         aria-label={t('cafeteria.fullTerminal')} title={t('cafeteria.fullTerminal')}>
@@ -181,12 +181,12 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                 {toolbar && (
                     <div className="mt-2 flex items-center gap-2 px-1">
                         {nfcSupported && (
-                            <div role="group" aria-label={t('cafeteria.scanCredential')} className="inline-flex rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] p-0.5">
+                            <div role="group" aria-label={t('cafeteria.scanCredential')} className="inline-flex rounded-control bg-(--app-surface-muted) p-0.5">
                                 {(['qr', 'nfc'] as const).map((option) => (
                                     <button key={option} type="button" aria-pressed={method === option} disabled={processing}
                                         onClick={() => void changeMethod(option)}
                                         className={cx('h-9 rounded-[calc(var(--radius-control)-2px)] px-4 text-sm font-medium transition-colors',
-                                            method === option ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm' : 'text-[color:var(--app-muted-foreground)]')}>
+                                            method === option ? 'bg-(--app-surface) text-(--app-foreground) shadow-xs' : 'text-(--app-muted-foreground)')}>
                                         {option === 'qr' ? t('nfc.scanMethodQr') : t('nfc.scanMethodNfc')}
                                     </button>
                                 ))}
@@ -194,7 +194,7 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                         )}
                         {upfrontAllowed && (
                             <Select aria-label={t('cafeteria.usageModeLabel')} value={usageMode} disabled={processing}
-                                onChange={(event) => setUsageMode(event.target.value)} className="!h-10 min-w-0 flex-1 !text-base sm:!text-sm">
+                                onChange={(event) => setUsageMode(event.target.value)} className="h-10! min-w-0 flex-1 text-base! sm:text-sm!">
                                 <option value="single_day">{t('cafeteria.usageModeSingleDay')}</option>
                                 <option value="use_remaining_week">{t('cafeteria.usageModeRemainingWeek')}</option>
                             </Select>
@@ -204,18 +204,18 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
             </header>
 
             {/* The stage is a size container so the viewfinder can be the largest square that fits. */}
-            <main className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black text-white [container-type:size]">
+            <main className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black text-white @container-size">
                 <div id={camera.regionId} className="w-[min(100cqw,100cqh)] [&_video]:block [&_video]:w-full" />
 
                 {camera.active && (
                     // Hidden on short (landscape) screens, where it would cover the viewfinder.
-                    <p className="pointer-events-none absolute inset-x-0 bottom-4 mx-auto w-fit max-w-[90%] rounded-full [@media(max-height:480px)]:hidden bg-black/60 px-4 py-2 text-center text-sm text-white/90 backdrop-blur">
+                    <p className="pointer-events-none absolute inset-x-0 bottom-4 mx-auto w-fit max-w-[90%] rounded-full [@media(max-height:480px)]:hidden bg-black/60 px-4 py-2 text-center text-sm text-white/90 backdrop-blur-sm">
                         {t('cafeteria.holdQrInFrame')}
                     </p>
                 )}
 
                 {camera.active && scan_result && (
-                    <p className="pointer-events-none absolute inset-x-3 top-3 mx-auto flex w-fit max-w-full items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-sm backdrop-blur">
+                    <p className="pointer-events-none absolute inset-x-3 top-3 mx-auto flex w-fit max-w-full items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-sm backdrop-blur-sm">
                         <span aria-hidden="true" className={cx('h-2 w-2 shrink-0 rounded-full', TONE_DOT[tone])} />
                         <span className="text-white/70">{t('cafeteria.lastScan')}</span>
                         <span className="truncate font-medium">{scan_result.employee?.full_name ?? t(tone === 'denied' ? 'cafeteria.statusDenied' : 'cafeteria.statusAllowed')}</span>
@@ -223,7 +223,7 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                 )}
 
                 {method === 'nfc' && !showResult && !processing && (
-                    <div className="absolute inset-0 overflow-y-auto bg-[color:var(--app-background)] p-4 text-[color:var(--app-foreground)]">
+                    <div className="absolute inset-0 overflow-y-auto bg-(--app-background) p-4 text-(--app-foreground)">
                         <NfcTapPanel disabled={!providerId} onCredential={(credential) => submitCredential({ nfc_credential: credential })} />
                     </div>
                 )}
@@ -237,7 +237,7 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                             </>
                         ) : (
                             <>
-                                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--app-surface)_10%,transparent)] text-white/70"><QrCodeIcon className="h-8 w-8" aria-hidden="true" /></span>
+                                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--app-surface)_10%,transparent)] text-white/70"><QrCodeIcon className="h-8 w-8" aria-hidden="true" /></span>
                                 <p className="max-w-xs text-sm leading-6 text-white/80">{providers.length ? t('cafeteria.cameraReady') : t('cafeteria.noProvidersAvailable')}</p>
                             </>
                         )}
@@ -254,15 +254,15 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                 {showResult && scan_result && <ResultPanel result={scan_result} tone={tone} countdown={countdown} />}
             </main>
 
-            {(showResult || method === 'qr' || errorMessage) && <footer className="space-y-2 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            {(showResult || method === 'qr' || errorMessage) && <footer className="space-y-2 border-t border-(--app-border) bg-(--app-surface) px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
                 {errorMessage && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{errorMessage}</p>}
 
                 {method === 'qr' && manualOpen && (
                     <form onSubmit={submitManual} className="flex gap-2">
                         <Input value={manualToken} onChange={(event) => setManualToken(event.target.value)} aria-label={t('cafeteria.enterQrToken')}
                             placeholder={t('cafeteria.enterQrToken')} autoComplete="off" autoCapitalize="off" spellCheck={false} enterKeyHint="go" autoFocus
-                            className="!h-12 min-w-0 flex-1 !text-base" />
-                        <Button type="submit" variant="primary" disabled={!manualToken.trim() || !providerId || processing} className="!h-12 px-4">
+                            className="h-12! min-w-0 flex-1 text-base!" />
+                        <Button type="submit" variant="primary" disabled={!manualToken.trim() || !providerId || processing} className="h-12! px-4">
                             {t('cafeteria.processScan')}
                         </Button>
                     </form>
@@ -271,20 +271,20 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                 <div className="flex gap-2">
                     {showResult ? (
                         <Button variant="primary" onClick={() => (method === 'qr' ? startScanning() : setDismissedResult(scan_result ?? null))}
-                            icon={<CameraIcon className="h-5 w-5" />} className="!h-12 flex-1 !text-base">
+                            icon={<CameraIcon className="h-5 w-5" />} className="h-12! flex-1 text-base!">
                             {t('cafeteria.scanNext')}
                         </Button>
                     ) : method === 'nfc' ? null : camera.active ? (
-                        <Button variant="outline" onClick={() => void stopCamera()} className="!h-12 flex-1 !text-base">{t('cafeteria.stopCamera')}</Button>
+                        <Button variant="outline" onClick={() => void stopCamera()} className="h-12! flex-1 text-base!">{t('cafeteria.stopCamera')}</Button>
                     ) : (
                         <Button variant="primary" onClick={startScanning} disabled={camera.starting || processing || !providers.length}
-                            icon={<CameraIcon className="h-5 w-5" />} className="!h-12 flex-1 !text-base">
+                            icon={<CameraIcon className="h-5 w-5" />} className="h-12! flex-1 text-base!">
                             {camera.error ? t('cafeteria.tryAgain') : t('cafeteria.startCamera')}
                         </Button>
                     )}
                     {method === 'qr' && (
                         <Button variant={manualOpen ? 'secondary' : 'outline'} onClick={() => setManualOpen((open) => !open)} aria-expanded={manualOpen}
-                            icon={<KeyboardIcon className="h-5 w-5" />} className="!h-12 px-4">
+                            icon={<KeyboardIcon className="h-5 w-5" />} className="h-12! px-4">
                             {t('cafeteria.enterCode')}
                         </Button>
                     )}
@@ -303,17 +303,17 @@ function ResultPanel({ result, tone, countdown }: { result: ScanResult; tone: Ou
 
     return (
         <div role="status" aria-live="assertive" className={cx('absolute inset-0 flex flex-col items-center justify-center gap-5 overflow-y-auto px-6 py-8 text-center text-white', TONE_SURFACE[tone])}>
-            <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--app-surface)_15%,transparent)]"><Icon className="h-11 w-11" aria-hidden="true" /></span>
+            <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--app-surface)_15%,transparent)]"><Icon className="h-11 w-11" aria-hidden="true" /></span>
             <div>
                 <p className="text-3xl font-bold tracking-tight">{headline}</p>
                 <p className="mx-auto mt-2 max-w-sm text-base leading-6 text-white/90">{detail}</p>
             </div>
             {employee && (
                 <div className="flex w-full max-w-sm items-center gap-3 rounded-panel bg-black/20 p-3 text-left">
-                    <UserAvatar src={employee.photo_url} name={employee.full_name} size={56} className="shrink-0 !bg-[color:color-mix(in_srgb,var(--app-surface)_20%,transparent)] !text-white" />
+                    <UserAvatar src={employee.photo_url} name={employee.full_name} size={56} className="shrink-0 bg-[color-mix(in_srgb,var(--app-surface)_20%,transparent)]! text-white!" />
                     <div className="min-w-0 flex-1">
-                        <p className="break-words font-semibold leading-snug">{employee.full_name}</p>
-                        <p className="mt-0.5 break-words text-sm text-white/75">{[employee.employee_number, employee.position].filter(Boolean).join(' · ')}</p>
+                        <p className="wrap-break-word font-semibold leading-snug">{employee.full_name}</p>
+                        <p className="mt-0.5 wrap-break-word text-sm text-white/75">{[employee.employee_number, employee.position].filter(Boolean).join(' · ')}</p>
                     </div>
                     {result.allowed && result.subsidy_applied != null && (
                         <div className="shrink-0 text-right">

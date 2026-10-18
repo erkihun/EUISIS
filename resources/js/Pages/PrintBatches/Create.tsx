@@ -49,33 +49,33 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
 
             <div className="max-w-3xl">
                 {pendingCards.length === 0 ? (
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-8">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-8">
                         <EmptyState title={idCards.noPendingPrintCards ?? 'No approved cards pending print'} />
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit}>
-                        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                            <div className="border-b border-[color:var(--app-border)] p-4">
-                                <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                        <div className="rounded-panel border border-(--app-border) bg-(--app-surface)">
+                            <div className="border-b border-(--app-border) p-4">
+                                <p className="text-sm text-(--app-muted-foreground)">
                                     {idCards.selectCardsForBatch ?? 'Select approved cards to add to this print batch'}
                                     {' '}({selected.length} selected)
                                 </p>
                             </div>
-                            <div className="divide-y divide-[color:var(--app-border)]">
+                            <div className="divide-y divide-(--app-border)">
                                 {pendingCards.map((card) => (
                                     <label
                                         key={card.id}
-                                        className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-[color:var(--app-surface-muted)]"
+                                        className="flex cursor-pointer items-center gap-3 px-4 py-3 hover:bg-(--app-surface-muted)"
                                     >
                                         <input
                                             type="checkbox"
                                             checked={selected.includes(card.id)}
                                             onChange={() => toggleCard(card.id)}
-                                            className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                                            className="h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
                                         />
                                         <div className="min-w-0 flex-1">
-                                            <p className="font-mono text-sm font-medium text-[color:var(--app-foreground)]">{card.card_number}</p>
-                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="font-mono text-sm font-medium text-(--app-foreground)">{card.card_number}</p>
+                                            <p className="text-xs text-(--app-muted-foreground)">
                                                 {card.employee?.employee_number} · {card.employee?.full_name}
                                                 {card.employee?.current_assignment?.organization?.name_en
                                                     ? ` · ${card.employee.current_assignment.organization.name_en}`
@@ -95,7 +95,7 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
                         <div className="mt-4 flex justify-end gap-3">
                             <Link
                                 href={route('print-batches.index')}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm text-(--app-foreground) hover:bg-(--app-surface-muted)"
                             >
                                 {t('common.cancel')}
                             </Link>

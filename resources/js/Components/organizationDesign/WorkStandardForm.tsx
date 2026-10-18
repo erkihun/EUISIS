@@ -41,8 +41,8 @@ export default function WorkStandardForm({ record, qualitySources, url, method, 
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{record ? t('workStandards.editDraft') : t('workStandards.newVersion')}</h2>
-                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('workStandards.standardHelp')}</p>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{record ? t('workStandards.editDraft') : t('workStandards.newVersion')}</h2>
+                <p className="mt-1 text-sm text-(--app-muted-foreground)">{t('workStandards.standardHelp')}</p>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField {...field('standard_measure', t('workStandards.standardMeasure'))}>{({ id }) => <Input id={id} value={form.data.standard_measure} maxLength={500} onChange={(e) => form.setData('standard_measure', e.target.value)} />}</FormField>
                     <FormField {...field('bpr_reference', t('workStandards.bprReference'))}>{({ id }) => <Input id={id} value={form.data.bpr_reference} maxLength={255} onChange={(e) => form.setData('bpr_reference', e.target.value)} />}</FormField>

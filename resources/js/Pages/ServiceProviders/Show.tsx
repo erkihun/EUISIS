@@ -89,12 +89,12 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                         <ProviderAvatar name={provider.name} typeCode={provider.service_type?.code} size="lg" />
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2.5">
-                                <h1 className="break-words text-page-title text-[color:var(--app-foreground)]">{provider.name}</h1>
+                                <h1 className="wrap-break-word text-page-title text-(--app-foreground)">{provider.name}</h1>
                                 <ProviderStatusBadge status={provider.status} />
                                 {provider.is_demo && <DemoTag />}
                             </div>
-                            <p className="mt-1 text-[13px] text-[color:var(--app-muted-foreground)]">
-                                <span className="font-mono text-[color:var(--app-foreground)]">{provider.code}</span>
+                            <p className="mt-1 text-[13px] text-(--app-muted-foreground)">
+                                <span className="font-mono text-(--app-foreground)">{provider.code}</span>
                                 {' · '}{localName(provider.service_type, t('providers.unknownService'))}
                                 {' · '}{provider.organization ? localName(provider.organization) : t('providers.allOrganizations')}
                             </p>
@@ -117,14 +117,14 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                         {stats.transactions_recent.toLocaleString()}
                     </Stat>
                     <Stat label={t('providers.valueProcessed').replace(':days', days)}>
-                        <span className="text-[15px] font-semibold text-[color:var(--app-muted-foreground)]">ETB </span>
+                        <span className="text-[15px] font-semibold text-(--app-muted-foreground)">ETB </span>
                         {stats.processed_recent.toLocaleString('en-US', { maximumFractionDigits: 0 })}
                     </Stat>
                     <Stat label={t('providers.deniedRecent').replace(':days', days)}>
                         <span className="flex items-baseline gap-2">
                             <span className={stats.denied_recent > 0 ? 'text-red-700 dark:text-red-400' : undefined}>{stats.denied_recent.toLocaleString()}</span>
                             {stats.transactions_recent > 0 && (
-                                <span className={cx('text-[13px] font-semibold', stats.denied_recent > 0 ? 'text-red-700 dark:text-red-400' : 'text-[color:var(--app-muted-foreground)]')}>{deniedPercent}%</span>
+                                <span className={cx('text-[13px] font-semibold', stats.denied_recent > 0 ? 'text-red-700 dark:text-red-400' : 'text-(--app-muted-foreground)')}>{deniedPercent}%</span>
                             )}
                         </span>
                     </Stat>
@@ -134,11 +134,11 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                 </section>
 
                 <div className="grid items-start gap-5 lg:grid-cols-12">
-                    <section aria-labelledby="transactions-heading" className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] lg:col-span-8">
-                        <div className="flex flex-col gap-3 border-b border-[color:var(--app-border)] px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-                            <h2 id="transactions-heading" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{t('providers.transactions')}</h2>
+                    <section aria-labelledby="transactions-heading" className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) lg:col-span-8">
+                        <div className="flex flex-col gap-3 border-b border-(--app-border) px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+                            <h2 id="transactions-heading" className="text-[15px] font-semibold text-(--app-foreground)">{t('providers.transactions')}</h2>
                             {available.length > 2 && (
-                                <div role="group" aria-label={t('providers.filterByStatus')} className="flex max-w-full gap-0.5 self-start overflow-x-auto rounded-lg bg-[color:var(--app-surface-muted)] p-[3px] sm:self-auto">
+                                <div role="group" aria-label={t('providers.filterByStatus')} className="flex max-w-full gap-0.5 self-start overflow-x-auto rounded-lg bg-(--app-surface-muted) p-[3px] sm:self-auto">
                                     {available.map((status) => {
                                         const selected = filter === status;
                                         return (
@@ -148,10 +148,10 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                                                 aria-pressed={selected}
                                                 onClick={() => setFilter(status)}
                                                 className={cx(
-                                                    'h-7 whitespace-nowrap rounded-md px-3 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
+                                                    'h-7 whitespace-nowrap rounded-md px-3 text-[13px] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary',
                                                     selected
-                                                        ? 'bg-[color:var(--app-surface)] font-semibold text-[color:var(--app-foreground)] shadow-sm ring-1 ring-[color:var(--app-border)]'
-                                                        : 'font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+                                                        ? 'bg-(--app-surface) font-semibold text-(--app-foreground) shadow-xs ring-1 ring-(--app-border)'
+                                                        : 'font-medium text-(--app-muted-foreground) hover:text-(--app-foreground)',
                                                 )}
                                             >
                                                 {status === 'all' ? t('providers.all') : t(transactionStatusKey(status))}
@@ -163,13 +163,13 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                         </div>
 
                         {rows.length === 0 ? (
-                            <p className="px-5 py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                            <p className="px-5 py-12 text-center text-sm text-(--app-muted-foreground)">
                                 {transactions.length === 0 ? t('providers.noRecentTransactions') : t('providers.noTransactionsWithStatus')}
                             </p>
                         ) : (
-                            <div className="max-h-[40rem] overflow-auto">
-                                <table className={cx(tableClassName, 'min-w-[34rem]')}>
-                                    <thead className={cx(tableHeadClassName, 'sticky top-0 z-[1]')}>
+                            <div className="max-h-160 overflow-auto">
+                                <table className={cx(tableClassName, 'min-w-136')}>
+                                    <thead className={cx(tableHeadClassName, 'sticky top-0 z-1')}>
                                         <tr className="text-left">
                                             <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-40')}>{t('providers.columnWhen')}</th>
                                             <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('providers.reference')}</th>
@@ -182,14 +182,14 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                                             const voided = tx.status === 'denied' || tx.status === 'reversed';
                                             return (
                                                 <tr key={tx.id}>
-                                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-foreground)]')}>
+                                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-foreground)')}>
                                                         <LocalizedDateDisplay value={tx.occurred_at} withTime />
                                                     </td>
                                                     <td className={tableCellClassName}>
-                                                        <div className="font-mono text-[13px] text-[color:var(--app-foreground)]">{tx.reference || '—'}</div>
-                                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{localName(tx.service_type, t('providers.unknownService'))}</div>
+                                                        <div className="font-mono text-[13px] text-(--app-foreground)">{tx.reference || '—'}</div>
+                                                        <div className="text-xs text-(--app-muted-foreground)">{localName(tx.service_type, t('providers.unknownService'))}</div>
                                                     </td>
-                                                    <td className={cx('px-3 py-3 text-right font-semibold tabular-nums', voided ? 'text-[color:var(--app-muted-foreground)] line-through decoration-1' : 'text-[color:var(--app-foreground)]')}>
+                                                    <td className={cx('px-3 py-3 text-right font-semibold tabular-nums', voided ? 'text-(--app-muted-foreground) line-through decoration-1' : 'text-(--app-foreground)')}>
                                                         {formatEtb(tx.amount)}
                                                     </td>
                                                     <td className={tableCellClassName}><TransactionStatusBadge status={tx.status} /></td>
@@ -201,15 +201,15 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                             </div>
                         )}
                         {transactions.length > 0 && (
-                            <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">
+                            <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">
                                 {t('providers.latestTransactions').replace(':count', String(transactions.length))}
                             </p>
                         )}
                     </section>
 
                     <aside className="space-y-5 lg:col-span-4">
-                        <section aria-labelledby="details-heading" className="rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                            <h2 id="details-heading" className="text-xs font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">{t('providers.details')}</h2>
+                        <section aria-labelledby="details-heading" className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                            <h2 id="details-heading" className="text-xs font-semibold uppercase tracking-[0.06em] text-(--app-muted-foreground)">{t('providers.details')}</h2>
                             <dl className="mt-3.5 space-y-3.5 text-sm">
                                 <Detail label={t('providers.code')}><span className="font-mono">{provider.code}</span></Detail>
                                 <Detail label={t('providers.serviceType')}>{localName(provider.service_type, t('providers.unknownService'))}</Detail>
@@ -225,9 +225,9 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                         </section>
 
                         {can.delete && (
-                            <section aria-labelledby="danger-heading" className="space-y-2.5 rounded-[var(--radius-panel)] border border-red-200 bg-[color:var(--app-surface)] p-5 dark:border-red-900/60">
+                            <section aria-labelledby="danger-heading" className="space-y-2.5 rounded-panel border border-red-200 bg-(--app-surface) p-5 dark:border-red-900/60">
                                 <h2 id="danger-heading" className="text-xs font-semibold uppercase tracking-[0.06em] text-red-700 dark:text-red-400">{t('providers.dangerZone')}</h2>
-                                <p className="text-[13px] leading-relaxed text-[color:var(--app-muted-foreground)]">{t('providers.deleteHint')}</p>
+                                <p className="text-[13px] leading-relaxed text-(--app-muted-foreground)">{t('providers.deleteHint')}</p>
                                 <Button
                                     type="button"
                                     variant="outline"
@@ -249,9 +249,9 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
 
 function Stat({ label, children, small = false }: { label: string; children: ReactNode; small?: boolean }): JSX.Element {
     return (
-        <div className="flex flex-col gap-2 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-5 py-[18px]">
-            <span className="text-[13px] font-medium text-[color:var(--app-muted-foreground)]">{label}</span>
-            <span className={cx('font-bold tabular-nums text-[color:var(--app-foreground)]', small ? 'text-lg leading-snug' : 'text-[28px] leading-none')}>{children}</span>
+        <div className="flex flex-col gap-2 rounded-panel border border-(--app-border) bg-(--app-surface) px-5 py-[18px]">
+            <span className="text-[13px] font-medium text-(--app-muted-foreground)">{label}</span>
+            <span className={cx('font-bold tabular-nums text-(--app-foreground)', small ? 'text-lg leading-snug' : 'text-[28px] leading-none')}>{children}</span>
         </div>
     );
 }
@@ -259,8 +259,8 @@ function Stat({ label, children, small = false }: { label: string; children: Rea
 function Detail({ label, children }: { label: string; children: ReactNode }): JSX.Element {
     return (
         <div>
-            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 font-medium text-[color:var(--app-foreground)]">{children}</dd>
+            <dt className="text-xs text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 font-medium text-(--app-foreground)">{children}</dd>
         </div>
     );
 }

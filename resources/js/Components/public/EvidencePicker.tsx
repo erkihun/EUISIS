@@ -95,9 +95,9 @@ export default function EvidencePicker({ id, files, onChange, limits, error, des
                             disabled={disabled || full}
                             aria-describedby={describedBy}
                             onClick={() => inputs.current[kind]?.click()}
-                            className="flex min-h-[72px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-3 text-sm font-semibold text-[color:var(--app-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex min-h-[72px] w-full flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-(--app-border-strong) bg-(--app-surface) px-2 py-3 text-sm font-semibold text-(--app-foreground) transition-colors hover:bg-(--app-surface-muted) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            <Icon className="h-6 w-6 text-[color:var(--color-primary)]" aria-hidden="true" />
+                            <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
                             <span>{t('serviceFeedback.evidenceAdd').replace('{kind}', t(label))}</span>
                         </button>
                         <input
@@ -115,24 +115,24 @@ export default function EvidencePicker({ id, files, onChange, limits, error, des
                 ))}
             </div>
 
-            <p className="text-xs text-[color:var(--app-muted-foreground)]" aria-live="polite">
+            <p className="text-xs text-(--app-muted-foreground)" aria-live="polite">
                 {t('serviceFeedback.evidenceSelected').replace('{count}', String(files.length)).replace('{max}', String(limits.max_files))}
             </p>
             {notice && <p role="status" className="text-sm text-amber-700 dark:text-amber-300">{notice}</p>}
             {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
 
             {files.length > 0 && (
-                <ul className="divide-y divide-[color:var(--app-border)] rounded-xl border border-[color:var(--app-border)]">
+                <ul className="divide-y divide-(--app-border) rounded-xl border border-(--app-border)">
                     {files.map((file, index) => {
                         const kind = kindOf(file);
                         const Icon = KINDS.find((k) => k.kind === kind)?.Icon ?? ScrollText;
 
                         return (
-                            <li key={`${file.name}-${file.size}-${index}`} className="flex items-center gap-3 px-3 py-2 text-sm text-[color:var(--app-foreground)]">
-                                <Icon className="h-5 w-5 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                            <li key={`${file.name}-${file.size}-${index}`} className="flex items-center gap-3 px-3 py-2 text-sm text-(--app-foreground)">
+                                <Icon className="h-5 w-5 shrink-0 text-(--app-muted-foreground)" aria-hidden="true" />
                                 <span className="min-w-0 flex-1">
                                     <span className="block truncate">{file.name}</span>
-                                    <span className="block text-xs text-[color:var(--app-muted-foreground)]">{kind ? kindLabel(kind) : ''} · {formatSize(file.size)}</span>
+                                    <span className="block text-xs text-(--app-muted-foreground)">{kind ? kindLabel(kind) : ''} · {formatSize(file.size)}</span>
                                 </span>
                                 <button
                                     type="button"

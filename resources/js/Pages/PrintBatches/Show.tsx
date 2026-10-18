@@ -51,7 +51,7 @@ const batchStatusStyle: Record<BatchStatus, StyleEntry> = {
 };
 
 const fallbackStyle: StyleEntry = {
-    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
+    badge: 'bg-(--app-surface-muted) text-(--app-muted-foreground) ring-1 ring-(--app-border-strong)',
     dot:   'bg-gray-400',
 };
 
@@ -70,8 +70,8 @@ function BatchStatusBadge({ status }: { status: string }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">{children}</dd>
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-1 text-sm text-(--app-foreground)">{children}</dd>
         </div>
     );
 }
@@ -100,19 +100,19 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
 
             <div className="space-y-5">
                 {/* Summary card */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                     <div className="flex flex-wrap items-start justify-between gap-6">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-4">
                                 <BatchStatusBadge status={batch.status} />
-                                <span className="font-mono text-sm text-[color:var(--app-muted-foreground)]">
+                                <span className="font-mono text-sm text-(--app-muted-foreground)">
                                     {batch.batch_number}
                                 </span>
                             </div>
 
                             <dl className="grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
                                 <Field label={t('common.total')}>
-                                    <span className="text-lg font-bold text-[color:var(--app-foreground)]">
+                                    <span className="text-lg font-bold text-(--app-foreground)">
                                         {batch.total_cards}
                                     </span>
                                 </Field>
@@ -122,18 +122,18 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     </span>
                                 </Field>
                                 <Field label={t('idCards.spoiledCount')}>
-                                    <span className={`text-lg font-bold ${batch.spoiled_count > 0 ? 'text-red-600' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                                    <span className={`text-lg font-bold ${batch.spoiled_count > 0 ? 'text-red-600' : 'text-(--app-muted-foreground)'}`}>
                                         {batch.spoiled_count}
                                     </span>
                                 </Field>
                                 <Field label={t('idCards.printProgress')}>
-                                    <span className="text-lg font-bold text-[color:var(--color-primary)]">{printProgress}%</span>
+                                    <span className="text-lg font-bold text-primary">{printProgress}%</span>
                                 </Field>
                             </dl>
 
                             {/* Progress bar */}
                             <div className="mt-4">
-                                <div className="h-2 w-full rounded-full bg-[color:var(--app-surface-muted)]">
+                                <div className="h-2 w-full rounded-full bg-(--app-surface-muted)">
                                     <div
                                         className="h-2 rounded-full bg-blue-500 transition-all"
                                         style={{ width: `${printProgress}%` }}
@@ -146,7 +146,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     <Field label={t('common.createdAt')}>
                                         {batch.created_by.name}
                                         {batch.created_at && (
-                                            <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="ml-1 text-xs text-(--app-muted-foreground)">
                                                 · <LocalizedDateDisplay value={batch.created_at} withTime />
                                             </span>
                                         )}
@@ -156,7 +156,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     <Field label={t('idCards.printedBy')}>
                                         {batch.printed_by.name}
                                         {batch.printed_at && (
-                                            <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="ml-1 text-xs text-(--app-muted-foreground)">
                                                 · <LocalizedDateDisplay value={batch.printed_at} withTime />
                                             </span>
                                         )}
@@ -175,7 +175,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                         {/* Mark as printed action */}
                         {can.markPrinted && batch.status !== 'completed' && (
                             <div className="flex flex-col gap-3 min-w-[200px]">
-                                <label className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <label className="text-xs font-medium text-(--app-muted-foreground)">
                                     {t('idCards.printerNotes')}
                                 </label>
                                 <input
@@ -202,18 +202,18 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                 </section>
 
                 {/* Cards list */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-5 py-4">
-                        <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface)">
+                    <div className="flex items-center justify-between border-b border-(--app-border) px-5 py-4">
+                        <h3 className="text-sm font-semibold text-(--app-foreground)">
                             {t('idCards.cardsInBatch')}
                         </h3>
-                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="text-xs text-(--app-muted-foreground)">
                             {batch.items?.length ?? 0}
                         </span>
                     </div>
-                    <div className="divide-y divide-[color:var(--app-border)]">
+                    <div className="divide-y divide-(--app-border)">
                         {(batch.items ?? []).length === 0 ? (
-                            <div className="px-5 py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                            <div className="px-5 py-8 text-center text-sm text-(--app-muted-foreground)">
                                 {t('idCards.noCardsInBatch')}
                             </div>
                         ) : (
@@ -231,7 +231,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                                 >
                                                     {item.card.card_number}
                                                 </Link>
-                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                <p className="text-xs text-(--app-muted-foreground)">
                                                     {item.card.employee?.employee_number}
                                                     {item.card.employee?.full_name && (
                                                         <>
@@ -242,7 +242,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                                 </p>
                                             </>
                                         ) : (
-                                            <span className="text-sm text-[color:var(--app-muted-foreground)]">—</span>
+                                            <span className="text-sm text-(--app-muted-foreground)">—</span>
                                         )}
                                     </div>
                                     <div className="flex items-center gap-3 shrink-0">
@@ -252,7 +252,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                                 {t('idCards.spoiled')}
                                             </span>
                                         ) : (
-                                            <span className="text-xs text-[color:var(--app-muted-foreground)] capitalize">
+                                            <span className="text-xs text-(--app-muted-foreground) capitalize">
                                                 {item.status}
                                             </span>
                                         )}

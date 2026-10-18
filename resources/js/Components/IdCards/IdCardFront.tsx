@@ -319,12 +319,12 @@ export default function IdCardFront({
                             src={photoUrl}
                             alt={t('employees.photo')}
                             crossOrigin="anonymous"
-                            className="h-full w-full rounded-sm object-cover"
+                            className="h-full w-full rounded-xs object-cover"
                             style={{ border: '1px solid rgba(0,0,0,0.15)' }}
                         />
                     ) : (
                         <div
-                            className="flex h-full w-full items-center justify-center rounded-sm border border-dashed border-slate-300 bg-slate-100 text-center leading-tight"
+                            className="flex h-full w-full items-center justify-center rounded-xs border border-dashed border-slate-300 bg-slate-100 text-center leading-tight"
                             style={{ color: textSec, fontSize: '0.018em' }}
                         >
                             {t('idCards.photoPlaceholder')}
@@ -390,9 +390,9 @@ export default function IdCardFront({
             {/* Decorative diagonal accent (right edge) */}
             {!backgroundUrl && template === 'classic' && <>
                 <div className="absolute -right-4 top-0 bottom-0 w-12 bg-slate-900/5 -skew-x-12 pointer-events-none" />
-                <div className="absolute -right-8 top-0 bottom-0 w-8 bg-slate-900/[0.03] -skew-x-12 pointer-events-none" />
+                <div className="absolute -right-8 top-0 bottom-0 w-8 bg-slate-900/3 -skew-x-12 pointer-events-none" />
             </>}
-            {!backgroundUrl && template === 'modern' && <div className="absolute -right-7 -top-7 h-24 w-24 rounded-full border-[14px] border-slate-900/10 pointer-events-none" />}
+            {!backgroundUrl && template === 'modern' && <div className="absolute -right-7 -top-7 h-24 w-24 rounded-full border-14 border-slate-900/10 pointer-events-none" />}
         </div>
         </div>
     );

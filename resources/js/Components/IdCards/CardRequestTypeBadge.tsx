@@ -35,7 +35,7 @@ const styleMap: Record<RequestType, StyleEntry> = {
 };
 
 const fallbackStyle: StyleEntry = {
-    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
+    badge: 'bg-(--app-surface-muted) text-(--app-muted-foreground) ring-1 ring-(--app-border-strong)',
     icon:  '·',
 };
 

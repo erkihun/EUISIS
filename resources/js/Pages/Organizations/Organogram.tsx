@@ -35,7 +35,7 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
 
     const exportButtons = (
         <>
-            <span className="mx-1 h-4 w-px bg-[color:var(--app-surface-muted)]" />
+            <span className="mx-1 h-4 w-px bg-(--app-surface-muted)" />
             <button type="button" onClick={exportPng} disabled={exporting !== null} className={exportButtonCls}>
                 {exporting === 'png' ? t('organizations.exporting') : t('organizations.exportPng')}
             </button>
@@ -88,7 +88,7 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
                 </div>
             </div>
 
-            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 print:border-0 print:p-0">
+            <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5 print:border-0 print:p-0">
                 <OrganogramChart tree={tree} captureRef={captureRef} toolbarExtra={exportButtons} />
             </section>
         </AuthenticatedLayout>

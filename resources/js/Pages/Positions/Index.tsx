@@ -166,34 +166,34 @@ export default function PositionsIndex({
                     {displayOrg ? (
                         <div className="space-y-4">
                             {/* Contextual header: reflects the unit when one is selected, otherwise the organization */}
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3">
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-(--app-border) bg-(--app-surface) px-4 py-3">
                                 <div className="flex min-w-0 items-center gap-3">
                                     {displayOrg && (
                                         displayOrg.has_logo && displayOrg.logo_url ? (
-                                            <img src={displayOrg.logo_url} alt="" className="h-9 w-9 flex-shrink-0 rounded-card object-cover" />
+                                            <img src={displayOrg.logo_url} alt="" className="h-9 w-9 shrink-0 rounded-card object-cover" />
                                         ) : (
-                                            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-card bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-card bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                                                 {localizedName(displayOrg.name_en, displayOrg.name_am, locale).charAt(0).toUpperCase()}
                                             </span>
                                         )
                                     )}
                                     <div className="min-w-0">
                                         {displayOrg && (
-                                            <p className="flex flex-wrap items-center gap-1.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="flex flex-wrap items-center gap-1.5 text-xs text-(--app-muted-foreground)">
                                                 <span className="truncate">{localizedName(displayOrg.name_en, displayOrg.name_am, locale)}</span>
                                                 <span className="font-mono">{displayOrg.code}</span>
                                                 <StatusBadge status={displayOrg.status} label={statusLabel(displayOrg.status)} />
                                             </p>
                                         )}
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="text-xs text-(--app-muted-foreground)">
                                             {selectedUnit ? t('positions.selectedOrganizationUnit') : t('positions.selectedOrganization')}
                                         </p>
-                                        <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">
+                                        <p className="truncate text-sm font-semibold text-(--app-foreground)">
                                             {selectedUnit
                                                 ? localizedName(selectedUnit.name_en, selectedUnit.name_am, locale)
                                                 : localizedName(displayOrg.name_en, displayOrg.name_am, locale)}
                                         </p>
-                                        <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="truncate text-xs text-(--app-muted-foreground)">
                                             {selectedUnit ? t('positions.positionsInOrganizationUnit') : t('positions.positionsInOrganization')}
                                         </p>
                                     </div>
@@ -258,7 +258,7 @@ export default function PositionsIndex({
                                                 {positions.map((position) => (
                                                     <tr key={position.id} className={tableRowClassName}>
                                                         <td className={cx(tableCellClassName, 'font-mono text-xs')}>
-                                                            <Link href={route('positions.show', position.id)} className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
+                                                            <Link href={route('positions.show', position.id)} className="text-primary hover:text-primary-hover dark:text-primary">
                                                                 {position.job_position_code}
                                                             </Link>
                                                         </td>
@@ -291,7 +291,7 @@ export default function PositionsIndex({
                                                                     {t('positionEstablishments.approve')}
                                                                 </button>
                                                             ) : (
-                                                                <span className="text-xs text-[color:var(--app-muted-foreground)]">—</span>
+                                                                <span className="text-xs text-(--app-muted-foreground)">—</span>
                                                             )}
                                                         </td>
 
@@ -335,8 +335,8 @@ export default function PositionsIndex({
                             </section>
                         </div>
                     ) : (
-                        <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-panel border border-dashed border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-12 text-center">
-                            <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                        <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-panel border border-dashed border-(--app-border) bg-(--app-surface) px-6 py-12 text-center">
+                            <p className="text-sm text-(--app-muted-foreground)">
                                 {t('positions.selectOrganizationToViewPositions')}
                             </p>
                         </div>

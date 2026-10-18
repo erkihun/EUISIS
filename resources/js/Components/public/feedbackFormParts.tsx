@@ -61,10 +61,10 @@ export interface CategoryOption {
 // focus in iOS Safari), 48px+ touch targets.
 
 export const errorClass = 'mt-2 text-sm text-red-600 dark:text-red-400';
-export const cardClass = 'rounded-2xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4';
-export const labelClass = 'block text-sm font-semibold text-[color:var(--app-foreground)]';
-export const optionalClass = 'ml-1 font-normal text-[color:var(--app-muted-foreground)]';
-export const mutedClass = 'text-[color:var(--app-muted-foreground)]';
+export const cardClass = 'rounded-2xl border border-(--app-border) bg-(--app-surface) p-4';
+export const labelClass = 'block text-sm font-semibold text-(--app-foreground)';
+export const optionalClass = 'ml-1 font-normal text-(--app-muted-foreground)';
+export const mutedClass = 'text-(--app-muted-foreground)';
 // min-h, not h: the shared control sets its own height and would win over a plain h-12.
 export const fieldClass = `${controlClassName} mt-2 min-h-12 w-full rounded-xl text-base`;
 export const areaClass = `${controlClassName} mt-2 h-auto w-full rounded-xl py-3 text-base leading-relaxed`;
@@ -121,9 +121,9 @@ export function CategoryChips({ categories, value, onChange, error }: { categori
                             role="radio"
                             aria-checked={chosen}
                             onClick={() => onChange(chosen ? '' : category.id)}
-                            className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)] ${chosen
-                                ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white'
-                                : 'border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}
+                            className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${chosen
+                                ? 'border-primary bg-primary text-white'
+                                : 'border-(--app-border-strong) bg-(--app-surface) text-(--app-foreground) hover:bg-(--app-surface-muted)'}`}
                         >
                             {category.name}
                         </button>
@@ -319,7 +319,7 @@ export function AboutYou(props: Parameters<typeof IdentityFields>[0]) {
 
     return (
         <div role="group" aria-labelledby="about-you-title" className={`${cardClass} space-y-4`}>
-            <p id="about-you-title" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.sectionAboutYou')}</p>
+            <p id="about-you-title" className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.sectionAboutYou')}</p>
             <IdentityFields {...props} />
         </div>
     );
@@ -389,9 +389,9 @@ export function TipTypeChooser({ tipTypes, value, onChange, error }: { tipTypes:
                     return (
                         <label
                             key={tipType}
-                            className={`flex min-h-[64px] cursor-pointer items-start gap-3 rounded-xl border-2 p-3 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[color:var(--color-primary)] ${chosen
-                                ? 'border-[color:var(--color-primary)] bg-[color:var(--app-surface-muted)]'
-                                : 'border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] hover:bg-[color:var(--app-surface-muted)]'}`}
+                            className={`flex min-h-[64px] cursor-pointer items-start gap-3 rounded-xl border-2 p-3 transition-colors has-focus-visible:outline-solid has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary ${chosen
+                                ? 'border-primary bg-(--app-surface-muted)'
+                                : 'border-(--app-border-strong) bg-(--app-surface) hover:bg-(--app-surface-muted)'}`}
                         >
                             <input
                                 type="radio"
@@ -400,10 +400,10 @@ export function TipTypeChooser({ tipTypes, value, onChange, error }: { tipTypes:
                                 checked={chosen}
                                 required
                                 onChange={() => onChange(tipType)}
-                                className="mt-1 h-5 w-5 shrink-0 accent-[color:var(--color-primary)]"
+                                className="mt-1 h-5 w-5 shrink-0 accent-primary"
                             />
                             <span className="min-w-0">
-                                <span className="block text-base font-semibold text-[color:var(--app-foreground)]">{t(TIP_TYPE_COPY[tipType].label)}</span>
+                                <span className="block text-base font-semibold text-(--app-foreground)">{t(TIP_TYPE_COPY[tipType].label)}</span>
                                 <span className={`mt-0.5 block text-sm leading-snug ${mutedClass}`}>{t(TIP_TYPE_COPY[tipType].hint)}</span>
                             </span>
                         </label>

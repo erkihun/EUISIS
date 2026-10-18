@@ -72,18 +72,18 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
             {/* Brand */}
             <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-700/60 px-4">
                 <Link href={route('cafeteria.providers.dashboard')} className="flex items-center gap-2.5">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-card bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-card bg-linear-to-br from-orange-400 to-orange-600 shadow-lg">
                         <svg className="h-4 w-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                     </span>
                     <div className="leading-tight">
                         <p className="text-xs font-semibold text-white">Cafeteria</p>
-                        <p className="text-[10px] text-[color:var(--app-muted-foreground)]">Provider Admin</p>
+                        <p className="text-[10px] text-(--app-muted-foreground)">Provider Admin</p>
                     </div>
                 </Link>
                 {onClose && (
-                    <button type="button" onClick={onClose} className="rounded p-1 text-[color:var(--app-muted-foreground)] hover:text-white">
+                    <button type="button" onClick={onClose} className="rounded-sm p-1 text-(--app-muted-foreground) hover:text-white">
                         <X className="h-4 w-4" />
                     </button>
                 )}
@@ -102,10 +102,10 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                                         'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                                         active
                                             ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
-                                            : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:color-mix(in_srgb,var(--app-surface)_10%,transparent)] hover:text-white',
+                                            : 'text-(--app-muted-foreground) hover:bg-[color-mix(in_srgb,var(--app-surface)_10%,transparent)] hover:text-white',
                                     ].join(' ')}
                                 >
-                                    <span className={active ? 'text-white' : 'text-[color:var(--app-muted-foreground)] group-hover:text-white'}>
+                                    <span className={active ? 'text-white' : 'text-(--app-muted-foreground) group-hover:text-white'}>
                                         {item.icon}
                                     </span>
                                     {t(item.labelKey as Parameters<typeof t>[0])}
@@ -120,7 +120,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
             <div className="shrink-0 border-t border-slate-700/60 px-3 py-3">
                 <Link
                     href={route('cafeteria.dashboard')}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-[color:var(--app-muted-foreground)] transition-colors hover:bg-slate-800 hover:text-white"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-(--app-muted-foreground) transition-colors hover:bg-slate-800 hover:text-white"
                 >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -139,12 +139,12 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
     const user = auth.user;
 
     return (
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 sm:px-6">
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-(--app-border) bg-(--app-surface) px-4 sm:px-6">
             {/* Mobile hamburger */}
             <button
                 type="button"
                 onClick={onMenuClick}
-                className="rounded-md p-2 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] lg:hidden"
+                className="rounded-md p-2 text-(--app-muted-foreground) hover:bg-(--app-surface-muted) lg:hidden"
             >
                 <MenuIcon className="h-5 w-5" />
             </button>
@@ -158,16 +158,16 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
 
                 <Dropdown>
                     <Dropdown.Trigger>
-                        <button type="button" className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                        <button type="button" className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                             <UserAvatar src={user?.profile_photo_url} name={user?.name ?? ''} size={28} />
                             <span className="hidden max-w-[120px] truncate sm:inline">{user?.name}</span>
-                            <ChevronDown className="h-4 w-4 text-[color:var(--app-muted-foreground)]" />
+                            <ChevronDown className="h-4 w-4 text-(--app-muted-foreground)" />
                         </button>
                     </Dropdown.Trigger>
-                    <Dropdown.Content contentClasses="py-1 bg-[color:var(--app-surface)] border border-[color:var(--app-border)] min-w-[180px]">
-                        <div className="border-b border-[color:var(--app-border)] px-4 py-3">
-                            <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{user?.name}</p>
-                            <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{user?.email}</p>
+                    <Dropdown.Content contentClasses="py-1 bg-(--app-surface) border border-(--app-border) min-w-[180px]">
+                        <div className="border-b border-(--app-border) px-4 py-3">
+                            <p className="truncate text-sm font-semibold text-(--app-foreground)">{user?.name}</p>
+                            <p className="truncate text-xs text-(--app-muted-foreground)">{user?.email}</p>
                         </div>
                         <Dropdown.Link href={route('profile.edit')}>
                             <span className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export default function CafeteriaProviderAdminLayout({ title, header, children }
 
     return (
         <LocalizedUiProvider>
-        <div className="min-h-screen bg-[color:var(--app-surface-muted)]">
+        <div className="min-h-screen bg-(--app-surface-muted)">
             <AppToaster />
 
             {/* Desktop sidebar — fixed left */}
@@ -223,7 +223,7 @@ export default function CafeteriaProviderAdminLayout({ title, header, children }
                 <TopBar onMenuClick={() => setMobileSidebarOpen(true)} />
 
                 {header && (
-                    <div className="shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4 sm:px-6">
+                    <div className="shrink-0 border-b border-(--app-border) bg-(--app-surface) px-4 py-4 sm:px-6">
                         {header}
                     </div>
                 )}

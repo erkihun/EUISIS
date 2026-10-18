@@ -23,7 +23,7 @@ export default function TokenReveal({ token, hint }: { token: string; hint?: str
     return (
         <Alert tone="warning" title={<span className="inline-flex items-center gap-2"><KeyIcon className="h-4 w-4" aria-hidden="true" />{t('apiManagement.copyTokenNow')}</span>}>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-                <code className="min-w-0 flex-1 select-all break-all rounded-[var(--radius-control)] bg-[color:var(--app-surface)] px-3 py-2 font-mono text-xs text-[color:var(--app-foreground)] ring-1 ring-inset ring-amber-200 dark:ring-amber-900">
+                <code className="min-w-0 flex-1 select-all break-all rounded-control bg-(--app-surface) px-3 py-2 font-mono text-xs text-(--app-foreground) ring-1 ring-inset ring-amber-200 dark:ring-amber-900">
                     {token}
                 </code>
                 <Button size="sm" variant="primary" onClick={copy}>{copied ? t('common.copied') : t('common.copy')}</Button>

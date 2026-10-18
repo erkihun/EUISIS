@@ -166,12 +166,12 @@ export default function SessionTimeoutManager({ initialPolicy }: { initialPolicy
     const time = `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`;
 
     return (
-        <Dialog open={secondsLeft !== null} onClose={() => undefined} className="relative z-[100]">
+        <Dialog open={secondsLeft !== null} onClose={() => undefined} className="relative z-100">
             <DialogBackdrop className="fixed inset-0 bg-slate-950/50" />
             <div className="fixed inset-0 flex items-center justify-center p-4">
-                <DialogPanel className="w-full max-w-md rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 text-[color:var(--app-foreground)] shadow-xl">
+                <DialogPanel className="w-full max-w-md rounded-panel border border-(--app-border) bg-(--app-surface) p-6 text-(--app-foreground) shadow-xl">
                     <DialogTitle className="text-lg font-semibold">{label('warningTitle')}</DialogTitle>
-                    <p className="mt-2 text-sm text-[color:var(--app-muted-foreground)]">{label('warningBody')}</p>
+                    <p className="mt-2 text-sm text-(--app-muted-foreground)">{label('warningBody')}</p>
                     <p className="mt-3 text-sm font-medium" aria-live="polite">{label('warningCountdown', { time })}</p>
                     <div className="mt-6 flex flex-wrap justify-end gap-2">
                         <button

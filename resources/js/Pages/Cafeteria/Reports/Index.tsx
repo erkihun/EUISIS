@@ -89,22 +89,22 @@ export default function ReportsIndex({
                         onSubmit={submit}
                         className="rounded-card border border-blue-200 bg-blue-50 p-5 dark:border-blue-900 dark:bg-blue-950/30"
                     >
-                        <h3 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.generateReport')}</h3>
-                        <p className="mb-4 text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.reportPeriodHelp')}</p>
+                        <h3 className="mb-4 text-sm font-semibold text-(--app-foreground)">{t('cafeteria.generateReport')}</h3>
+                        <p className="mb-4 text-sm text-(--app-muted-foreground)">{t('cafeteria.reportPeriodHelp')}</p>
                         <fieldset disabled={form.processing} className="grid min-w-0 gap-4 sm:grid-cols-3">
                             <div className="space-y-1">
-                                <label htmlFor="report-type" className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('cafeteria.reportType')}</label>
+                                <label htmlFor="report-type" className="text-xs font-medium text-(--app-muted-foreground)">{t('cafeteria.reportType')}</label>
                                 <select id="report-type" className={inputCls} value={form.data.report_type} onChange={(e) => form.setData('report_type', e.target.value)}>
                                     <option value="daily">{t('cafeteria.daily')}</option>
                                     <option value="monthly">{t('cafeteria.monthly')}</option>
                                 </select>
                             </div>
                             <div className="space-y-1">
-                                <label htmlFor="report-date" className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('cafeteria.reportAnchorDate')}</label>
+                                <label htmlFor="report-date" className="text-xs font-medium text-(--app-muted-foreground)">{t('cafeteria.reportAnchorDate')}</label>
                                 <LocalizedDatePicker id="report-date" className={inputCls} value={form.data.period_start} onChange={(iso) => form.setData('period_start', iso)} required />
                             </div>
                             <div className="space-y-1">
-                                <label htmlFor="report-organization" className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('employees.organization')}</label>
+                                <label htmlFor="report-organization" className="text-xs font-medium text-(--app-muted-foreground)">{t('employees.organization')}</label>
                                 <select id="report-organization" className={inputCls} required={requiresOrganization} value={form.data.organization_id} onChange={event => form.setData('organization_id', event.target.value)}><option value="">{requiresOrganization ? t('cafeteria.reportChooseOrganization') : t('common.all')}</option>{organizations.map(org => <option key={org.id} value={org.id}>{locale === 'am' ? org.name_am || org.name_en : org.name_en}</option>)}</select>
                             </div>
                         </fieldset>
@@ -136,7 +136,7 @@ export default function ReportsIndex({
                 </FilterPanel>
 
                 <div className={tableContainerClassName}>
-                    <div className="border-b border-[color:var(--app-border)] px-4 py-3"><h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.reports')}</h2></div>
+                    <div className="border-b border-(--app-border) px-4 py-3"><h2 className="text-sm font-semibold text-(--app-foreground)">{t('cafeteria.reports')}</h2></div>
                     {reports.length === 0 ? (
                         <EmptyState title={t('common.noResults')} />
                     ) : (
@@ -157,13 +157,13 @@ export default function ReportsIndex({
                                 <tbody className={tableBodyClassName}>
                                     {reports.map((rpt) => (
                                         <tr key={rpt.id} className={tableRowClassName}>
-                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{rpt.report_number}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{reportTypeLabel(rpt.report_type)}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{(locale === 'am' ? rpt.organization?.name_am || rpt.organization?.name_en : rpt.organization?.name_en) ?? t('common.all')}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={rpt.period_start} /></td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={rpt.period_end} /></td>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>{rpt.report_number}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{reportTypeLabel(rpt.report_type)}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{(locale === 'am' ? rpt.organization?.name_am || rpt.organization?.name_en : rpt.organization?.name_en) ?? t('common.all')}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={rpt.period_start} /></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={rpt.period_end} /></td>
                                             <td className={cx(tableCellClassName, 'whitespace-nowrap text-right font-medium tabular-nums text-emerald-600')}>{rpt.totals?.total_subsidy != null ? money.format(rpt.totals.total_subsidy) + ' ETB' : '—'}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={rpt.generated_at} withTime /></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={rpt.generated_at} withTime /></td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
                                                 <div className="flex justify-end">
                                                     <AppActionMenu

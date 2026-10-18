@@ -30,7 +30,7 @@ export default function CorrectionRequests({ requests, labels }: { requests: Lar
                                 <Tr key={item.id}>
                                     <Td className="font-medium">{item.employee}</Td>
                                     <Td muted>{item.field}</Td>
-                                    <Td className="break-words">{item.value}</Td>
+                                    <Td className="wrap-break-word">{item.value}</Td>
                                     <Td align="right">
                                         {item.can_review && (
                                             <div className="flex flex-wrap justify-end gap-2">

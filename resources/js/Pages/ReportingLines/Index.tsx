@@ -111,17 +111,17 @@ export default function ReportingLinesIndex({
             <div className="space-y-6">
                 {/* Counts per relationship type — the shape of the network at a glance. */}
                 <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex items-center gap-2 rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm">
-                        <span className="text-[color:var(--app-muted-foreground)]">{t('relationships.totalReportingLines')}</span>
-                        <span className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{lines.meta.total}</span>
+                    <span className="inline-flex items-center gap-2 rounded-control border border-(--app-border) bg-(--app-surface) px-3 py-1.5 text-sm">
+                        <span className="text-(--app-muted-foreground)">{t('relationships.totalReportingLines')}</span>
+                        <span className="font-semibold tabular-nums text-(--app-foreground)">{lines.meta.total}</span>
                     </span>
                     {summary.map((entry) => (
                         <span
                             key={entry.relationship_type}
-                            className="inline-flex items-center gap-2 rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm"
+                            className="inline-flex items-center gap-2 rounded-control border border-(--app-border) bg-(--app-surface) px-3 py-1.5 text-sm"
                         >
-                            <span className="text-[color:var(--app-muted-foreground)]">{t(`relationships.types.${entry.relationship_type}`)}</span>
-                            <span className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{entry.count}</span>
+                            <span className="text-(--app-muted-foreground)">{t(`relationships.types.${entry.relationship_type}`)}</span>
+                            <span className="font-semibold tabular-nums text-(--app-foreground)">{entry.count}</span>
                         </span>
                     ))}
                 </div>
@@ -184,31 +184,31 @@ export default function ReportingLinesIndex({
                                         return (
                                             <tr key={line.id} className={tableRowClassName}>
                                                 <td className={tableCellClassName}>
-                                                    <div className="font-medium text-[color:var(--app-foreground)]">
+                                                    <div className="font-medium text-(--app-foreground)">
                                                         {href ? (
-                                                            <Link href={href} className="hover:text-[color:var(--color-primary)] hover:underline">
+                                                            <Link href={href} className="hover:text-primary hover:underline">
                                                                 {source.name}
                                                             </Link>
                                                         ) : source.name}
                                                     </div>
-                                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <div className="text-xs text-(--app-muted-foreground)">
                                                         {source.code && <span className="font-mono">{source.code} · </span>}
                                                         {t(`relationships.sourceTypes.${line.source_type}`)}
                                                     </div>
                                                 </td>
                                                 <td className={tdCls}>
-                                                    <span className="font-medium text-[color:var(--app-foreground)]">
+                                                    <span className="font-medium text-(--app-foreground)">
                                                         {t(`relationships.types.${line.relationship_type}`)}
                                                     </span>
                                                     {line.is_primary && (
-                                                        <span className="ms-2 rounded-control bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                                        <span className="ms-2 rounded-control bg-(--app-surface-muted) px-2 py-0.5 text-xs text-(--app-muted-foreground)">
                                                             {t('relationships.primary')}
                                                         </span>
                                                     )}
                                                 </td>
                                                 <td className={tableCellClassName}>
-                                                    <div className="font-medium text-[color:var(--app-foreground)]">{target.name}</div>
-                                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <div className="font-medium text-(--app-foreground)">{target.name}</div>
+                                                    <div className="text-xs text-(--app-muted-foreground)">
                                                         {target.code && <span className="font-mono">{target.code} · </span>}
                                                         {t(`relationships.targetTypes.${line.target_type}`)}
                                                     </div>

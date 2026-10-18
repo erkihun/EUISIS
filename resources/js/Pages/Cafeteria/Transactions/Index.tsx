@@ -57,25 +57,25 @@ export default function TransactionsIndex({ transactions, meta, filters, provide
                     <FilterField label={t('cafeteria.transactionStatus')}>
                         <Select value={form.data.status} onChange={event => form.setData('status', event.target.value)}><option value="">{t('common.all')}</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select>
                     </FilterField>
-                    <label className="flex h-[var(--control-h-md)] items-center gap-2 text-sm text-[color:var(--app-foreground)]"><input type="checkbox" className="rounded border-[color:var(--app-border-strong)]" checked={form.data.extra_only} onChange={event => form.setData('extra_only', event.target.checked)} />{t('cafeteria.extraScansOnly')}</label>
+                    <label className="flex h-(--control-h-md) items-center gap-2 text-sm text-(--app-foreground)"><input type="checkbox" className="rounded-sm border-(--app-border-strong)" checked={form.data.extra_only} onChange={event => form.setData('extra_only', event.target.checked)} />{t('cafeteria.extraScansOnly')}</label>
                 </FilterPanel>
                 <section className="rounded-panel border border-blue-200 bg-blue-50/40 p-5 dark:border-blue-900/40 dark:bg-slate-900">
                     <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div><h2 className="font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.statementTitle')}</h2><p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{filters.start_date ? <><LocalizedDateDisplay value={filters.start_date} /> — <LocalizedDateDisplay value={filters.end_date} /></> : t('cafeteria.statementPeriods.all')}</p></div>
+                        <div><h2 className="font-semibold text-(--app-foreground)">{t('cafeteria.statementTitle')}</h2><p className="mt-1 text-sm text-(--app-muted-foreground)">{filters.start_date ? <><LocalizedDateDisplay value={filters.start_date} /> — <LocalizedDateDisplay value={filters.end_date} /></> : t('cafeteria.statementPeriods.all')}</p></div>
                         {can.export && <div className="flex flex-wrap gap-2">{(['pdf', 'xlsx', 'print'] as const).map(format => <a key={format} href={route('cafeteria.transactions.export', { ...filters, format, locale })} target={format === 'print' ? '_blank' : undefined} rel="noopener noreferrer" className={buttonClassName({ variant: 'outline' })}>{t(`cafeteria.statementExport.${format}`)}</a>)}</div>}
                     </div>
                     <dl className="mt-5 grid grid-cols-2 gap-4 lg:grid-cols-4">{[
                         { label: 'mealAmount', value: summary.meals }, { label: 'statementClaim', value: summary.subsidy },
                         { label: 'employeePayable', value: summary.employee_payable }, { label: 'deductionAmount', value: summary.deductions },
-                    ].map(item => <div key={item.label} className="rounded-lg bg-[color:var(--app-surface)] p-3"><dt className="text-xs text-[color:var(--app-muted-foreground)]">{t(`cafeteria.${item.label}`)}</dt><dd className="mt-2 break-all text-xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{money.format(item.value)}</dd></div>)}</dl>
-                    <p className="mt-4 text-xs leading-5 text-[color:var(--app-muted-foreground)]">{t('cafeteria.statementNote')}</p>
+                    ].map(item => <div key={item.label} className="rounded-lg bg-(--app-surface) p-3"><dt className="text-xs text-(--app-muted-foreground)">{t(`cafeteria.${item.label}`)}</dt><dd className="mt-2 break-all text-xl font-semibold tabular-nums text-(--app-foreground)">{money.format(item.value)}</dd></div>)}</dl>
+                    <p className="mt-4 text-xs leading-5 text-(--app-muted-foreground)">{t('cafeteria.statementNote')}</p>
                 </section>
                 <section className={tableContainerClassName}>
-                    <div className="border-b border-[color:var(--app-border)] px-4 py-3">
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.transactions')}</h2>
+                    <div className="border-b border-(--app-border) px-4 py-3">
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">{t('cafeteria.transactions')}</h2>
                     </div>
                     {transactions.length === 0 ? <EmptyState description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} /> : (
-                        <div className="divide-y divide-[color:var(--app-border)]">
+                        <div className="divide-y divide-(--app-border)">
                             {transactions.map(txn => (
                                 <article key={txn.id} className="p-5 transition hover:bg-gray-50/60 dark:hover:bg-slate-800/20">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -84,19 +84,19 @@ export default function TransactionsIndex({ transactions, meta, filters, provide
                                     </div>
                                     <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
                                         <div className="grid gap-4 sm:grid-cols-2">
-                                            <div className="min-w-0"><p className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.employeeInfo')}</p><p className="mt-1 break-words text-sm font-medium text-[color:var(--app-foreground)]">{txn.employee?.display_name || '—'}</p><p className="mt-1 font-mono text-xs text-[color:var(--app-muted-foreground)]">{txn.employee?.employee_number || '—'}</p></div>
-                                            <div className="min-w-0"><p className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.provider')}</p><p className="mt-1 break-words text-sm font-medium text-[color:var(--app-foreground)]">{(locale === 'am' ? txn.provider?.name_am || txn.provider?.name_en : txn.provider?.name_en) || '—'}</p><p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={txn.scanned_at} withTime /></p></div>
+                                            <div className="min-w-0"><p className="text-xs text-(--app-muted-foreground)">{t('cafeteria.employeeInfo')}</p><p className="mt-1 wrap-break-word text-sm font-medium text-(--app-foreground)">{txn.employee?.display_name || '—'}</p><p className="mt-1 font-mono text-xs text-(--app-muted-foreground)">{txn.employee?.employee_number || '—'}</p></div>
+                                            <div className="min-w-0"><p className="text-xs text-(--app-muted-foreground)">{t('cafeteria.provider')}</p><p className="mt-1 wrap-break-word text-sm font-medium text-(--app-foreground)">{(locale === 'am' ? txn.provider?.name_am || txn.provider?.name_en : txn.provider?.name_en) || '—'}</p><p className="mt-1 text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={txn.scanned_at} withTime /></p></div>
                                         </div>
-                                        <dl className="grid grid-cols-2 gap-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4 sm:grid-cols-4">
+                                        <dl className="grid grid-cols-2 gap-4 rounded-panel border border-(--app-border) bg-(--app-surface-muted) p-4 sm:grid-cols-4">
                                             {[
-                                                { label: 'mealAmount', value: txn.meal_amount, color: 'text-[color:var(--app-foreground)]' },
+                                                { label: 'mealAmount', value: txn.meal_amount, color: 'text-(--app-foreground)' },
                                                 { label: 'subsidyApplied', value: txn.subsidy_amount_applied, color: 'text-emerald-700 dark:text-emerald-400' },
-                                                { label: 'employeePayable', value: txn.employee_payable_amount, color: 'text-[color:var(--app-foreground)]' },
+                                                { label: 'employeePayable', value: txn.employee_payable_amount, color: 'text-(--app-foreground)' },
                                                 { label: 'deductionAmount', value: txn.deduction_amount, color: 'text-orange-700 dark:text-orange-400' },
-                                            ].map(amount => <div key={amount.label}><dt className="text-xs leading-5 text-[color:var(--app-muted-foreground)]">{t(`cafeteria.${amount.label}`)}</dt><dd className={`mt-1 break-all text-sm font-semibold tabular-nums ${amount.color}`}>{money.format(amount.value)}</dd></div>)}
+                                            ].map(amount => <div key={amount.label}><dt className="text-xs leading-5 text-(--app-muted-foreground)">{t(`cafeteria.${amount.label}`)}</dt><dd className={`mt-1 break-all text-sm font-semibold tabular-nums ${amount.color}`}>{money.format(amount.value)}</dd></div>)}
                                         </dl>
                                     </div>
-                                    <div className="mt-3 flex justify-end"><Link href={route('cafeteria.transactions.show', txn.id)} aria-label={`${t('common.view')} ${txn.transaction_number}`} className="inline-flex items-center gap-1 py-2 text-xs font-semibold text-[color:var(--color-primary)] hover:underline">{t('common.view')}<ChevronRight className="h-4 w-4" aria-hidden="true" /></Link></div>
+                                    <div className="mt-3 flex justify-end"><Link href={route('cafeteria.transactions.show', txn.id)} aria-label={`${t('common.view')} ${txn.transaction_number}`} className="inline-flex items-center gap-1 py-2 text-xs font-semibold text-primary hover:underline">{t('common.view')}<ChevronRight className="h-4 w-4" aria-hidden="true" /></Link></div>
                                 </article>
                             ))}
                         </div>

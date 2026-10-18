@@ -14,7 +14,7 @@ type Menu = {
     items?: { name_en: string; name_am?: string | null; item_type?: string | null; is_available: boolean }[];
 };
 
-const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400/20';
+const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-hidden focus:ring-1 focus:ring-orange-400/20';
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
     return (

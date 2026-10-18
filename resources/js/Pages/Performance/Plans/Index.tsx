@@ -135,8 +135,8 @@ export default function PlansIndex({ plans, filters, cycles, types, statuses, pu
                             {statuses.map((v) => <option key={v} value={v}>{label('plan', v)}</option>)}
                         </Select>
                     </FilterField>
-                    <label className="flex h-[var(--control-h-md)] items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                        <input type="checkbox" className="rounded border-[color:var(--app-border-strong)]" checked={draft.history === '1'} onChange={(e) => setDraft({ ...draft, history: e.target.checked ? '1' : '' })} />{t('performance.fields.history')}
+                    <label className="flex h-(--control-h-md) items-center gap-2 text-sm text-(--app-foreground)">
+                        <input type="checkbox" className="rounded-sm border-(--app-border-strong)" checked={draft.history === '1'} onChange={(e) => setDraft({ ...draft, history: e.target.checked ? '1' : '' })} />{t('performance.fields.history')}
                     </label>
                 </FilterPanel>
 
@@ -152,8 +152,8 @@ export default function PlansIndex({ plans, filters, cycles, types, statuses, pu
                             {plans.data.map((plan) => (
                                 <tr key={plan.id}>
                                     <td className={tdCls}>
-                                        <Link href={route('performance.plans.show', plan.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{plan.title}</Link>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{[nameOf(plan.organization, locale), nameOf(plan.unit, locale), titleOf(plan.position, locale)].filter(Boolean).join(' › ')}</p>
+                                        <Link href={route('performance.plans.show', plan.id)} className="font-medium text-primary hover:underline">{plan.title}</Link>
+                                        <p className="text-xs text-(--app-muted-foreground)">{[nameOf(plan.organization, locale), nameOf(plan.unit, locale), titleOf(plan.position, locale)].filter(Boolean).join(' › ')}</p>
                                     </td>
                                     <td className={tdCls}>{label('planType', plan.type)}</td>
                                     <td className={tdCls}>{nameOf(plan.cycle, locale)}</td>

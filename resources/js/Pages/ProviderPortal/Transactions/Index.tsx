@@ -172,7 +172,7 @@ function SummaryStrip({ summary }: { summary: PaymentSummary }) {
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
-const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400/20';
+const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-hidden focus:ring-1 focus:ring-orange-400/20';
 
 export default function TransactionsIndex({
     providers, selected_provider_id, transactions, meta, filters, paymentSummary, can,
@@ -263,7 +263,7 @@ export default function TransactionsIndex({
                                 defaultValue={filters.employee_search ?? ''} className={inputCls} />
                         </div>
                         <button type="submit"
-                            className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600">
+                            className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-orange-600">
                             Apply
                         </button>
                         {Object.values(filters).some(v => v && v !== 'false') && (
@@ -385,7 +385,7 @@ export default function TransactionsIndex({
                                         className={[
                                             'min-w-[32px] rounded-lg px-2.5 py-1.5 text-xs font-medium transition',
                                             meta.current_page === p
-                                                ? 'bg-orange-500 text-white shadow-sm'
+                                                ? 'bg-orange-500 text-white shadow-xs'
                                                 : 'text-gray-600 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800',
                                         ].join(' ')}
                                     >

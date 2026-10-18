@@ -81,7 +81,7 @@ export default function AnnouncementShow({ announcement, preview = false }: { an
                                     <li key={file.id} className="flex items-center justify-between gap-3 py-3">
                                         <a
                                             href={file.url}
-                                            className="min-w-0 truncate text-sm font-medium text-[color:var(--color-primary)] hover:underline"
+                                            className="min-w-0 truncate text-sm font-medium text-primary hover:underline"
                                             target="_blank"
                                             rel="noopener noreferrer"
                                         >

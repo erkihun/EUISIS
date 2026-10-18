@@ -87,13 +87,13 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
     };
 
     const finishing = otpSent && !editingNumber;
-    const inputClass = (hasError: boolean) => `min-h-[52px] w-full min-w-0 rounded-[10px] border px-4 py-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:ring-4 dark:text-slate-100 dark:placeholder:text-slate-500 ${hasError
+    const inputClass = (hasError: boolean) => `min-h-[52px] w-full min-w-0 rounded-[10px] border px-4 py-3 text-base text-slate-900 outline-hidden transition placeholder:text-slate-400 focus:ring-4 dark:text-slate-100 dark:placeholder:text-slate-500 ${hasError
         ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/10 dark:border-red-700 dark:bg-red-950/20'
-        : 'border-slate-300 bg-white focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]/15 dark:border-slate-600 dark:bg-slate-950/40'}`;
-    const primaryClass = 'flex min-h-[52px] w-full items-center justify-center gap-3 rounded-[10px] bg-[color:var(--color-primary)] px-5 py-3.5 text-[15px] font-bold text-white shadow-md transition hover:bg-[color:var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--color-primary)]/30 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none dark:disabled:bg-slate-800 dark:disabled:text-slate-400';
+        : 'border-slate-300 bg-white focus:border-primary focus:ring-primary/15 dark:border-slate-600 dark:bg-slate-950/40'}`;
+    const primaryClass = 'flex min-h-[52px] w-full items-center justify-center gap-3 rounded-[10px] bg-primary px-5 py-3.5 text-[15px] font-bold text-white shadow-md transition hover:bg-primary-hover focus-visible:outline-hidden focus-visible:ring-4 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none dark:disabled:bg-slate-800 dark:disabled:text-slate-400';
     const labelClass = 'mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200';
     const errorClass = 'mt-2 text-xs text-red-600 dark:text-red-400';
-    const linkClass = 'rounded font-bold text-[color:var(--color-primary)] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:text-[color:var(--color-primary-200)]';
+    const linkClass = 'rounded-sm font-bold text-primary underline-offset-4 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:text-primary-200';
 
     // Step 1 is done once a code was sent; steps 2 and 3 share the second form.
     const stepState = (index: number): 'done' | 'current' | 'next' =>
@@ -131,7 +131,7 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                                     <li key={title} aria-current={state === 'current' ? 'step' : undefined} className="flex gap-4">
                                         <span aria-hidden="true" className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${state === 'done'
                                             ? 'bg-emerald-400 text-emerald-950'
-                                            : state === 'current' ? 'bg-white text-[color:var(--color-primary-700)]' : 'border border-white/35 text-blue-100'}`}>
+                                            : state === 'current' ? 'bg-white text-primary-700' : 'border border-white/35 text-blue-100'}`}>
                                             {state === 'done' ? <CheckCircle className="h-5 w-5" /> : index + 1}
                                         </span>
                                         <span className="min-w-0">
@@ -155,7 +155,7 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                 <header className="public-hero px-4 pb-8 pt-4 sm:px-6 lg:hidden">
                     <div className="public-hero-grid" aria-hidden="true" />
                     <div className="relative flex items-center justify-between gap-3">
-                        <Link href="/" className="flex items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                        <Link href="/" className="flex items-center gap-2.5 rounded-sm focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
                             <ApplicationLogo className="h-9 w-9 shrink-0 fill-white" />
                             <span className="text-base font-extrabold">{brandName}</span>
                         </Link>
@@ -170,7 +170,7 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                 {/* ── Form side ── */}
                 <div className="flex min-w-0 flex-1 flex-col">
                     <div className="hidden items-center justify-between gap-4 px-8 py-5 lg:flex">
-                        <Link href="/" className="inline-flex min-h-10 items-center gap-1.5 rounded text-sm font-semibold text-slate-600 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:text-slate-300 dark:hover:text-white">
+                        <Link href="/" className="inline-flex min-h-10 items-center gap-1.5 rounded-sm text-sm font-semibold text-slate-600 hover:text-slate-900 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:text-slate-300 dark:hover:text-white">
                             <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
                             {t('auth.registration.backHome')}
                         </Link>
@@ -183,10 +183,10 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                                 {/* Progress: three segments, text alongside. */}
                                 <div aria-hidden="true" className="grid grid-cols-3 gap-2">
                                     {STEPS.map(({ title }, index) => (
-                                        <span key={title} className={`h-1 rounded-full ${stepState(index) === 'next' ? 'bg-slate-200 dark:bg-slate-700' : 'bg-[color:var(--color-primary)]'}`} />
+                                        <span key={title} className={`h-1 rounded-full ${stepState(index) === 'next' ? 'bg-slate-200 dark:bg-slate-700' : 'bg-primary'}`} />
                                     ))}
                                 </div>
-                                <p className="mt-4 text-[13px] font-semibold text-[color:var(--color-primary-500)] dark:text-[color:var(--color-primary-200)]">
+                                <p className="mt-4 text-[13px] font-semibold text-primary-500 dark:text-primary-200">
                                     {finishing ? t('auth.registration.stepsOf') : t('auth.registration.stepOf').replace(':n', '1')}
                                 </p>
                                 <h2 id="registration-heading" className="mt-1.5 text-2xl font-extrabold leading-snug tracking-tight sm:text-[26px]">
@@ -257,7 +257,7 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                                             <label htmlFor="password" className={labelClass}>{t('auth.password')}</label>
                                             <div className="relative">
                                                 <input ref={passwordInput} id="password" type={showPassword ? 'text' : 'password'} value={form.data.password} onChange={(e) => form.setData('password', e.target.value)} autoComplete="new-password" aria-invalid={Boolean(form.errors.password)} aria-describedby={form.errors.password ? 'password-error' : undefined} className={`${inputClass(Boolean(form.errors.password))} pr-14`} />
-                                                <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={t(showPassword ? 'auth.hidePassword' : 'auth.showPassword')} aria-pressed={showPassword} className="absolute inset-y-1 right-1 flex w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:text-slate-400 dark:hover:bg-slate-800">
+                                                <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={t(showPassword ? 'auth.hidePassword' : 'auth.showPassword')} aria-pressed={showPassword} className="absolute inset-y-1 right-1 flex w-11 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:text-slate-400 dark:hover:bg-slate-800">
                                                     {showPassword ? <EyeOffIcon aria-hidden="true" className="h-5 w-5" /> : <EyeIcon aria-hidden="true" className="h-5 w-5" />}
                                                 </button>
                                             </div>
@@ -298,7 +298,7 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                                 <ol className="mt-2 space-y-3 pb-1">
                                     {STEPS.map(({ title, detail }, index) => (
                                         <li key={title} className="flex gap-3">
-                                            <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-xs font-bold text-white">{index + 1}</span>
+                                            <span aria-hidden="true" className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">{index + 1}</span>
                                             <span className="min-w-0 text-sm">
                                                 <span className="block font-semibold">{t(`auth.registration.${title}`)}</span>
                                                 <span className="block text-slate-600 dark:text-slate-400">{t(`auth.registration.${detail}`)}</span>

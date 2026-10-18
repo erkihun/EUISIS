@@ -42,7 +42,7 @@ export default function IsicActivitiesCreate({
         <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('isicActivities.createIsicActivity')} />}>
             <Head title={t('isicActivities.createIsicActivity')} />
             <form
-                className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+                className="space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
                 onSubmit={submit}
             >
                 <div className="grid gap-4 md:grid-cols-2">
@@ -177,7 +177,7 @@ export default function IsicActivitiesCreate({
                         onChange={(e) => form.setData('description_am', e.target.value)}
                     />
                 </div>
-                <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
                     <input
                         type="checkbox"
                         checked={form.data.is_active}
@@ -195,7 +195,7 @@ export default function IsicActivitiesCreate({
                     </button>
                     <Link
                         href={route('isic-activities.index')}
-                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
+                        className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground)"
                     >
                         {t('common.cancel')}
                     </Link>

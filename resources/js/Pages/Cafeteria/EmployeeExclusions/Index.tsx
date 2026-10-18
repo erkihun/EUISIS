@@ -21,7 +21,7 @@ type Meta = { current_page: number; last_page: number; total: number };
 
 const STATUS_COLORS: Record<string, string> = {
     active:    'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-    ended:     'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
+    ended:     'bg-(--app-surface-muted) text-(--app-muted-foreground)',
     cancelled: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400',
 };
 
@@ -99,14 +99,14 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                                 </thead>
                                 <tbody className={tableBodyClassName}>
                                     {exclusions.map(ex => (
-                                        <tr key={ex.id} className={`hover:bg-[color:var(--app-surface-muted)] ${ex.deleted_at ? 'opacity-60' : ''}`}>
+                                        <tr key={ex.id} className={`hover:bg-(--app-surface-muted) ${ex.deleted_at ? 'opacity-60' : ''}`}>
                                             <td className={tableCellClassName}>
-                                                <div className="font-medium text-[color:var(--app-foreground)]">{ex.employee_name ?? '—'}</div>
-                                                {ex.employee_number && <div className="text-xs text-[color:var(--app-muted-foreground)]">{ex.employee_number}</div>}
+                                                <div className="font-medium text-(--app-foreground)">{ex.employee_name ?? '—'}</div>
+                                                {ex.employee_number && <div className="text-xs text-(--app-muted-foreground)">{ex.employee_number}</div>}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{ex.exclusion_type_label}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}><LocalizedDateDisplay value={ex.starts_on} /></td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{ex.exclusion_type_label}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}><LocalizedDateDisplay value={ex.starts_on} /></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                                 {ex.is_open_ended ? <span className="italic">Open-ended</span> : <LocalizedDateDisplay value={ex.ends_on} />}
                                             </td>
                                             <td className={tableCellClassName}>

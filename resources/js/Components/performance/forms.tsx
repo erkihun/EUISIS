@@ -20,7 +20,7 @@ export function ActualForm({ url, period, milestones, onDone }: { url: string; p
     }
 
     return (
-        <form onSubmit={submit} className="my-2 grid gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-2">
+        <form onSubmit={submit} className="my-2 grid gap-2 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-2">
             <Field label={`${t('performance.fields.period')} — ${t('performance.fields.from')}`} error={errors.period_start}><LocalizedDatePicker value={form.data.period_start} onChange={(v) => form.setData('period_start', v)} required /></Field>
             <Field label={`${t('performance.fields.period')} — ${t('performance.fields.to')}`} error={errors.period_end}><LocalizedDatePicker value={form.data.period_end} onChange={(v) => form.setData('period_end', v)} required /></Field>
             {milestones?.length ? (
@@ -53,7 +53,7 @@ export function AmendmentDiff({ original, proposed }: { original: Record<string,
     return (
         <ul className="text-xs">
             {Object.entries(proposed ?? {}).map(([key, value]) => (
-                <li key={key}><span className="text-[color:var(--app-muted-foreground)]">{key}:</span> <span className="tabular-nums">{formatScore(original?.[key] as string | null)} → {formatScore(value as string | null)}</span></li>
+                <li key={key}><span className="text-(--app-muted-foreground)">{key}:</span> <span className="tabular-nums">{formatScore(original?.[key] as string | null)} → {formatScore(value as string | null)}</span></li>
             ))}
         </ul>
     );
@@ -71,7 +71,7 @@ export function AmendmentForm({ url, onDone }: { url: string; onDone: () => void
     }
 
     return (
-        <form onSubmit={submit} className="my-2 grid gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-3">
+        <form onSubmit={submit} className="my-2 grid gap-2 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-3">
             <Field label={t('performance.fields.target')} error={form.errors.target_value}><input className={inputCls} inputMode="decimal" value={form.data.target_value} onChange={(e) => form.setData('target_value', e.target.value)} /></Field>
             <Field label={t('performance.fields.weight')} error={form.errors.weight}><input className={inputCls} inputMode="decimal" value={form.data.weight} onChange={(e) => form.setData('weight', e.target.value)} /></Field>
             <Field label={t('performance.fields.effectiveDate')} error={form.errors.effective_date}><LocalizedDatePicker value={form.data.effective_date} onChange={(v) => form.setData('effective_date', v)} required /></Field>

@@ -24,7 +24,7 @@ const roleCategories = [
 ] as const;
 
 const inputCls = cx(inputClassName, 'w-full');
-const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
 function Field({
     label,
@@ -167,7 +167,7 @@ export default function CreateUser({
             <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+                    className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
                 >
                     <div className="space-y-6">
                         {/* ── Profile ───────────────────────────────────── */}
@@ -179,7 +179,7 @@ export default function CreateUser({
                             <div className="flex items-center gap-4">
                                 <UserAvatar src={photoPreview} name={form.data.name || 'U'} size={56} />
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="cursor-pointer rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                    <label className="cursor-pointer rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                         {t('users.uploadPhoto')}
                                         <input
                                             type="file"
@@ -296,7 +296,7 @@ export default function CreateUser({
 
                             <Field label={t('users.phoneNumber')} error={form.errors.phone_number}>
                                 <div className="flex">
-                                    <span className="inline-flex items-center rounded-l-lg border border-r-0 border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] px-3 text-sm text-[color:var(--app-muted-foreground)]">
+                                    <span className="inline-flex items-center rounded-l-lg border border-r-0 border-(--app-border-strong) bg-(--app-surface-muted) px-3 text-sm text-(--app-muted-foreground)">
                                         +251
                                     </span>
                                     <input
@@ -352,7 +352,7 @@ export default function CreateUser({
                                         </option>
                                     ))}
                                 </select>
-                                <p id="organization-scope-help" className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p id="organization-scope-help" className="mt-1 text-xs text-(--app-muted-foreground)">
                                     {t('users.userOrganizationScopes.selectOrganizations')}
                                 </p>
                             </Field>
@@ -378,30 +378,30 @@ export default function CreateUser({
                             grid={false}
                         >
                             {roles.length === 0 ? (
-                                <p className="rounded-lg border border-dashed border-[color:var(--app-border)] px-3 py-4 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="rounded-lg border border-dashed border-(--app-border) px-3 py-4 text-center text-sm text-(--app-muted-foreground)">
                                     {t('users.noRoles')}
                                 </p>
                             ) : (
                                 <div className="space-y-5">
                                     {groupedRoles.map((category) => (
                                         <fieldset key={category.key} className="min-w-0">
-                                            <legend className="mb-2 text-sm font-semibold text-[color:var(--app-foreground)]">
+                                            <legend className="mb-2 text-sm font-semibold text-(--app-foreground)">
                                                 {t(`users.roleCategories.${category.key}`)}
-                                                <span className="ml-2 text-xs font-normal text-[color:var(--app-muted-foreground)]">({category.roles.length})</span>
+                                                <span className="ml-2 text-xs font-normal text-(--app-muted-foreground)">({category.roles.length})</span>
                                             </legend>
                                             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                                                 {category.roles.map((role) => (
                                                     <label
                                                         key={role.id}
-                                                        className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-[color:var(--app-border)] px-3 py-2 transition-colors hover:bg-[color:var(--app-surface-muted)]"
+                                                        className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-(--app-border) px-3 py-2 transition-colors hover:bg-(--app-surface-muted)"
                                                     >
                                                         <input
                                                             type="checkbox"
-                                                            className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                                                            className="h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
                                                             checked={form.data.role_ids.includes(role.id)}
                                                             onChange={() => toggleRole(role.id)}
                                                         />
-                                                        <span className="min-w-0 flex-1 text-sm text-[color:var(--app-foreground)]">
+                                                        <span className="min-w-0 flex-1 text-sm text-(--app-foreground)">
                                                             {role.name}
                                                         </span>
                                                         <span className={badgeClassName('info')}>
@@ -421,10 +421,10 @@ export default function CreateUser({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-6 py-4 backdrop-blur">
+                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-6 py-4 backdrop-blur-sm">
                         <Link
                             href={route('users.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </Link>

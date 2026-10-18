@@ -166,10 +166,10 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                             onKeyDown={(event) => onKeyDown(event, element)}
                             onFocus={() => setSelected(element)}
                             className={[
-                                'absolute rounded-sm transition-colors',
+                                'absolute rounded-xs transition-colors',
                                 disabled ? 'cursor-not-allowed' : 'cursor-move',
                                 isSelected
-                                    ? 'border-2 border-[color:var(--color-primary)] bg-blue-500/10'
+                                    ? 'border-2 border-primary bg-blue-500/10'
                                     : 'border border-dashed border-blue-400/60 hover:bg-blue-500/5',
                             ].join(' ')}
                             style={{
@@ -179,7 +179,7 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                                 height: `${box.h}%`,
                             }}
                         >
-                            <span className="pointer-events-none absolute -top-4 left-0 whitespace-nowrap rounded bg-[color:var(--color-primary)] px-1 text-[9px] font-medium text-white opacity-0 group-hover:opacity-100" style={{ opacity: isSelected ? 1 : undefined }}>
+                            <span className="pointer-events-none absolute -top-4 left-0 whitespace-nowrap rounded-sm bg-primary px-1 text-[9px] font-medium text-white opacity-0 group-hover:opacity-100" style={{ opacity: isSelected ? 1 : undefined }}>
                                 {labels[element]}
                             </span>
                             {isSelected && !disabled && (
@@ -187,7 +187,7 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                                     role="button"
                                     aria-label={`${labels[element]} — resize`}
                                     onPointerDown={(event) => beginDrag(event, element, 'resize')}
-                                    className="absolute -bottom-1 -right-1 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-[color:var(--color-primary)]"
+                                    className="absolute -bottom-1 -right-1 h-3 w-3 cursor-nwse-resize rounded-xs border border-white bg-primary"
                                 />
                             )}
                         </div>
@@ -204,10 +204,10 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
              * card's hung out of the bottom of the preview panel.
              */}
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                {text.hint && <span className="text-[color:var(--app-muted-foreground)]">{text.hint}</span>}
+                {text.hint && <span className="text-(--app-muted-foreground)">{text.hint}</span>}
                 {active && selected && (
                     <>
-                        <span className="font-mono text-[color:var(--app-foreground)]">
+                        <span className="font-mono text-(--app-foreground)">
                             {labels[selected]} · x {active.x}% y {active.y}% · w {active.w}% h {active.h}%
                         </span>
                         <button

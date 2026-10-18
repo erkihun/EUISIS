@@ -39,22 +39,22 @@ function stepStatus(cardStatus: string, stepKey: string): StepStatus {
 
 const stepDotCls: Record<StepStatus, string> = {
     completed: 'bg-emerald-500 border-emerald-500 shadow-emerald-200 dark:shadow-emerald-900',
-    current:   'bg-blue-500 border-[color:var(--color-primary)] shadow-blue-200 dark:shadow-blue-900 ring-2 ring-blue-100 dark:ring-blue-900/40',
-    upcoming:  'bg-[color:var(--app-surface)] border-[color:var(--app-border-strong)]',
+    current:   'bg-blue-500 border-primary shadow-blue-200 dark:shadow-blue-900 ring-2 ring-blue-100 dark:ring-blue-900/40',
+    upcoming:  'bg-(--app-surface) border-(--app-border-strong)',
     terminal:  'bg-red-500 border-red-500 shadow-red-200 dark:shadow-red-900',
 };
 
 const stepLabelCls: Record<StepStatus, string> = {
-    completed: 'text-[color:var(--app-foreground)] font-medium',
-    current:   'text-blue-700 dark:text-[color:var(--color-primary)] font-semibold',
-    upcoming:  'text-[color:var(--app-muted-foreground)]',
+    completed: 'text-(--app-foreground) font-medium',
+    current:   'text-blue-700 dark:text-primary font-semibold',
+    upcoming:  'text-(--app-muted-foreground)',
     terminal:  'text-red-600 dark:text-red-400 font-semibold',
 };
 
 const stepLineCls: Record<StepStatus, string> = {
     completed: 'bg-emerald-400',
-    current:   'bg-gradient-to-b from-emerald-400 to-blue-300',
-    upcoming:  'bg-[color:var(--app-surface-muted)]',
+    current:   'bg-linear-to-b from-emerald-400 to-blue-300',
+    upcoming:  'bg-(--app-surface-muted)',
     terminal:  'bg-red-300',
 };
 
@@ -81,7 +81,7 @@ export default function CardLifecycleTimeline({
 
     return (
         <div>
-            <h4 className="mb-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">
+            <h4 className="mb-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">
                 {t('idCards.cardLifecycle')}
             </h4>
 
@@ -104,7 +104,7 @@ export default function CardLifecycleTimeline({
                             )}
 
                             {/* Step dot */}
-                            <div className="relative flex-shrink-0 mt-0.5">
+                            <div className="relative shrink-0 mt-0.5">
                                 <div
                                     className={`h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center ${stepDotCls[step.status]}`}
                                 >
@@ -122,17 +122,17 @@ export default function CardLifecycleTimeline({
                                     {step.label}
                                 </p>
                                 {step.timestamp && (
-                                    <p className="mt-0.5 text-[11px] text-[color:var(--app-muted-foreground)]">
+                                    <p className="mt-0.5 text-[11px] text-(--app-muted-foreground)">
                                         <LocalizedDateDisplay value={step.timestamp} withTime />
                                     </p>
                                 )}
                                 {step.actor && (
-                                    <p className="text-[11px] text-[color:var(--app-muted-foreground)]">
+                                    <p className="text-[11px] text-(--app-muted-foreground)">
                                         {t('idCards.byActor')} {step.actor}
                                     </p>
                                 )}
                                 {step.note && (
-                                    <p className="mt-0.5 text-[11px] italic text-[color:var(--app-muted-foreground)] truncate">
+                                    <p className="mt-0.5 text-[11px] italic text-(--app-muted-foreground) truncate">
                                         {step.note}
                                     </p>
                                 )}
@@ -144,7 +144,7 @@ export default function CardLifecycleTimeline({
                 {/* Terminal node */}
                 {isTerminal && terminalLabel && (
                     <li className="relative flex gap-3">
-                        <div className="relative flex-shrink-0 mt-0.5">
+                        <div className="relative shrink-0 mt-0.5">
                             <div className={`h-3.5 w-3.5 rounded-full border-2 ${stepDotCls.terminal}`} />
                         </div>
                         <div className="min-w-0 flex-1 pt-px">

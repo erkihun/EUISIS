@@ -123,7 +123,7 @@ export default function QuestionnaireEdit({ questionSet, editable }: Props) {
                     </fieldset>
                 </Card>
 
-                {questions.length === 0 && <Card><p className="p-6 text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noQuestions')}</p></Card>}
+                {questions.length === 0 && <Card><p className="p-6 text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noQuestions')}</p></Card>}
 
                 {questions.map((question, index) => {
                     const prefix = `questions.${index}`;
@@ -134,7 +134,7 @@ export default function QuestionnaireEdit({ questionSet, editable }: Props) {
                             <fieldset disabled={!editable} className="space-y-4 p-6">
                                 <legend className="sr-only">{question.label_en || question.code || `#${index + 1}`}</legend>
                                 <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <p className="font-semibold text-[color:var(--app-foreground)]">#{index + 1} {question.code && <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{question.code}</span>}</p>
+                                    <p className="font-semibold text-(--app-foreground)">#{index + 1} {question.code && <span className="font-mono text-xs text-(--app-muted-foreground)">{question.code}</span>}</p>
                                     {editable && (
                                         <div className="flex gap-2">
                                             <Button type="button" variant="outline" size="sm" onClick={() => move(index, -1)} disabled={index === 0}>{t('serviceFeedback.moveUp')}</Button>
@@ -178,7 +178,7 @@ export default function QuestionnaireEdit({ questionSet, editable }: Props) {
                                 </div>
                                 <div className="flex flex-wrap gap-6">
                                     <fieldset className="space-y-1.5">
-                                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.appliesToTypes')}</legend>
+                                        <legend className="text-sm font-medium text-(--app-foreground)">{t('serviceFeedback.appliesToTypes')}</legend>
                                         {SUBMISSION_TYPES.map((item) => (
                                             <label key={item.value} className="flex items-center gap-2 text-sm">
                                                 <input
@@ -189,7 +189,7 @@ export default function QuestionnaireEdit({ questionSet, editable }: Props) {
                                                             ? question.submission_types.filter((type) => type !== item.value)
                                                             : [...question.submission_types, item.value],
                                                     })}
-                                                    className="h-4 w-4 rounded border-[color:var(--app-border-strong)]"
+                                                    className="h-4 w-4 rounded-sm border-(--app-border-strong)"
                                                 />
                                                 {t(`serviceFeedback.${item.key}`)}
                                             </label>
@@ -197,14 +197,14 @@ export default function QuestionnaireEdit({ questionSet, editable }: Props) {
                                         {field('submission_types') && <p role="alert" className="text-sm text-red-600">{field('submission_types')}</p>}
                                     </fieldset>
                                     <label className="flex items-center gap-2 self-start text-sm">
-                                        <input type="checkbox" checked={question.is_required} onChange={(e) => update(index, { is_required: e.target.checked })} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
+                                        <input type="checkbox" checked={question.is_required} onChange={(e) => update(index, { is_required: e.target.checked })} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />
                                         {t('serviceFeedback.questionRequired')}
                                     </label>
                                 </div>
 
                                 {hasOptions(question.question_type) && (
-                                    <div className="space-y-3 rounded-lg border border-[color:var(--app-border)] p-4">
-                                        <p className="text-sm font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.questionOptions')}</p>
+                                    <div className="space-y-3 rounded-lg border border-(--app-border) p-4">
+                                        <p className="text-sm font-medium text-(--app-foreground)">{t('serviceFeedback.questionOptions')}</p>
                                         {question.options.map((option, optionIndex) => (
                                             <div key={optionIndex} className="grid items-end gap-3 sm:grid-cols-[1fr_2fr_2fr_auto]">
                                                 <FormField id={`q-${index}-o-${optionIndex}-code`} label={t('serviceFeedback.questionCode')} error={field(`options.${optionIndex}.code`)} required>

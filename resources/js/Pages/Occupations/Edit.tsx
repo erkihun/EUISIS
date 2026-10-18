@@ -44,11 +44,11 @@ export default function OccupationsEdit({ occupation }: { occupation: Occupation
             <Head title={t('occupations.editOccupation')} />
 
             <form
-                className="overflow-hidden rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)]"
+                className="overflow-hidden rounded-lg border border-(--app-border) bg-(--app-surface)"
                 onSubmit={submit}
             >
-                <div className="border-b border-[color:var(--app-border)] px-6 py-4">
-                    <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
+                <div className="border-b border-(--app-border) px-6 py-4">
+                    <h2 className="text-base font-semibold text-(--app-foreground)">
                         {t('occupations.occupationDetails')}
                     </h2>
                 </div>
@@ -104,10 +104,10 @@ export default function OccupationsEdit({ occupation }: { occupation: Occupation
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-3 border-t border-[color:var(--app-border)] px-6 py-4">
+                <div className="flex justify-end gap-3 border-t border-(--app-border) px-6 py-4">
                     <Link
                         href={route('occupations.show', occupation.id)}
-                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                        className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                     >
                         {t('common.cancel')}
                     </Link>

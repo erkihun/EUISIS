@@ -160,27 +160,27 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                         className={tableRowClassName}
                                     >
                                         <td className={tableCellClassName}>
-                                            <p className="font-mono text-sm font-medium text-[color:var(--app-foreground)]">
+                                            <p className="font-mono text-sm font-medium text-(--app-foreground)">
                                                 {req.employee?.employee_number}
                                             </p>
-                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="text-xs text-(--app-muted-foreground)">
                                                 {req.employee?.full_name}
                                             </p>
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)] max-w-[200px] truncate')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground) max-w-[200px] truncate')}>
                                             {req.employee?.current_assignment?.organization?.name_en ?? '—'}
                                         </td>
                                         <td className={tableCellClassName}>
                                             {req.request_type ? (
                                                 <CardRequestTypeBadge type={req.request_type} />
                                             ) : (
-                                                <span className="text-[color:var(--app-muted-foreground)]">—</span>
+                                                <span className="text-(--app-muted-foreground)">—</span>
                                             )}
                                         </td>
                                         <td className={tableCellClassName}>
                                             <CardRequestStatusBadge status={req.status} />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={req.submitted_at} withTime />
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>

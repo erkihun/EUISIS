@@ -36,8 +36,8 @@ export default function VacancyApplicationsMyApplications({ applications }: Prop
             <Head title={t('vacancies.myApplications')} />
 
             {applications.data.length === 0 ? (
-                <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-10 text-center">
-                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('vacancies.noApplications')}</p>
+                <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-10 text-center">
+                    <p className="text-sm text-(--app-muted-foreground)">{t('vacancies.noApplications')}</p>
                     <Link href={route('vacancy-announcements.index')} className={actionLinkClassName({ size: 'sm', className: 'mt-4 inline-block' })}>
                         {t('vacancies.announcements')}
                     </Link>
@@ -45,13 +45,13 @@ export default function VacancyApplicationsMyApplications({ applications }: Prop
             ) : (
                 <div className="space-y-3">
                     {applications.data.map(app => (
-                        <div key={app.id} className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <div key={app.id} className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
-                                    <Link href={route('vacancy-applications.show', app.id)} className="font-semibold text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                    <Link href={route('vacancy-applications.show', app.id)} className="font-semibold text-primary hover:underline dark:text-primary">
                                         {app.announcement?.title_en ?? app.application_number}
                                     </Link>
-                                    <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                    <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
                                         {app.position_entry?.organization?.name_en}
                                         {app.position_entry?.position?.title_en && (
                                             <> · {app.position_entry.position.title_en}</>
@@ -71,7 +71,7 @@ export default function VacancyApplicationsMyApplications({ applications }: Prop
                                     )}
                                 </div>
                             </div>
-                            <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">
+                            <p className="mt-2 text-xs text-(--app-muted-foreground)">
                                 {t('vacancies.appliedAt')}: <LocalizedDateDisplay value={app.applied_at} />
                                 {app.announcement?.application_closes_at && (
                                     <> · {t('vacancies.applicationClosesAt')}: <LocalizedDateDisplay value={app.announcement.application_closes_at} /></>

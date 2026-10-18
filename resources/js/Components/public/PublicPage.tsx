@@ -96,7 +96,7 @@ export function PublicPageHeader({ title, description, breadcrumbs, actions, met
                         )}
                         <h1
                             id="page-heading"
-                            className={`public-hero-enter font-extrabold text-white [overflow-wrap:anywhere] ${compact ? 'text-2xl sm:text-3xl' : 'text-[28px] sm:text-4xl'}`}
+                            className={`public-hero-enter font-extrabold text-white wrap-anywhere ${compact ? 'text-2xl sm:text-3xl' : 'text-[28px] sm:text-4xl'}`}
                         >
                             {title}
                         </h1>
@@ -163,24 +163,24 @@ export function PublicSection({ title, description, action, children, id, tone =
  * a lift on hover. Every card on the public site is this card.
  */
 export const publicCardClass =
-    'public-card group relative min-w-0 overflow-hidden border border-gray-200/80 bg-white/95 p-5 [overflow-wrap:anywhere] dark:border-slate-800/80 dark:bg-slate-900/95';
+    'public-card group relative min-w-0 overflow-hidden border border-gray-200/80 bg-white/95 p-5 wrap-anywhere dark:border-slate-800/80 dark:bg-slate-900/95';
 
 /** The same card as a link: it lifts and its border darkens on hover. */
 export const publicCardInteractiveClass =
-    `${publicCardClass} hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:hover:border-slate-700`;
+    `${publicCardClass} hover:border-gray-300 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:hover:border-slate-700`;
 
 /** The decoration inside a public card, as on home. Render first among its children. */
 export function PublicCardDecor({ glow = true }: { glow?: boolean }) {
     return (
         <>
             <div
-                className="absolute left-0 top-0 h-1 w-1/2 bg-gradient-to-r from-[var(--color-primary)] via-[color:var(--color-primary)]/45 to-transparent"
+                className="absolute left-0 top-0 h-1 w-1/2 bg-linear-to-r from-primary via-primary/45 to-transparent"
                 style={{ borderTopLeftRadius: 'inherit' }}
                 aria-hidden="true"
             />
             {glow && (
                 <div
-                    className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-[color:var(--color-primary)]/10 blur-3xl"
+                    className="pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full bg-primary/10 blur-3xl"
                     aria-hidden="true"
                 />
             )}
@@ -190,28 +190,28 @@ export function PublicCardDecor({ glow = true }: { glow?: boolean }) {
 
 /** The square icon tile on a card, as on the home grids. */
 export const publicIconTileClass =
-    'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel bg-[color:var(--color-primary)]/10 text-[color:var(--color-primary)] shadow-sm ring-1 ring-[color:var(--color-primary)]/15 transition duration-200 group-hover:scale-105';
+    'inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel bg-primary/10 text-primary shadow-xs ring-1 ring-primary/15 transition duration-200 group-hover:scale-105';
 
 /*
  * Buttons, as on the home page: chunkier than the admin controls, with the
  * white-on-navy pair used inside the hero. At least 44px tall for touch.
  */
 const publicButtonBase =
-    'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-card px-6 py-3 text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50';
+    'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-card px-6 py-3 text-sm font-bold transition-all focus-visible:outline-hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50';
 
 export const publicButtonPrimary =
-    `${publicButtonBase} bg-[color:var(--color-primary)] text-white shadow-md hover:bg-[color:var(--color-primary-hover)] focus-visible:ring-[color:var(--color-primary)]`;
+    `${publicButtonBase} bg-primary text-white shadow-md hover:bg-primary-hover focus-visible:ring-primary`;
 
 export const publicButtonSecondary =
-    `${publicButtonBase} border border-gray-300 bg-white font-semibold text-gray-700 hover:bg-gray-50 focus-visible:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800`;
+    `${publicButtonBase} border border-gray-300 bg-white font-semibold text-gray-700 hover:bg-gray-50 focus-visible:ring-primary dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800`;
 
 /** Filled white button, for use on the hero band (as the home hero's). */
 export const publicButtonOnDark =
-    `${publicButtonBase} bg-white text-[color:var(--color-primary-700)] shadow-lg hover:bg-blue-50 focus-visible:ring-white`;
+    `${publicButtonBase} bg-white text-primary-700 shadow-lg hover:bg-blue-50 focus-visible:ring-white`;
 
 /** Outlined button, for use on the hero band (as the home hero's). */
 export const publicButtonOnDarkGhost =
-    `${publicButtonBase} border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-sm hover:bg-white/20 focus-visible:ring-white`;
+    `${publicButtonBase} border border-white/30 bg-white/10 font-semibold text-white backdrop-blur-xs hover:bg-white/20 focus-visible:ring-white`;
 
 /**
  * Renders HTML that PublicSiteContent produced through SafeContentRenderer
@@ -230,7 +230,7 @@ export function RichText({ html, className = '' }: { html: string; className?: s
  * button's size padding would indent it away from the text it sits beside.
  */
 export const publicLinkClass =
-    'inline-flex items-center text-sm font-semibold text-[color:var(--color-primary)] underline-offset-4 hover:underline focus:outline-none focus-visible:underline';
+    'inline-flex items-center text-sm font-semibold text-primary underline-offset-4 hover:underline focus:outline-hidden focus-visible:underline';
 
 /**
  * A content section of a public page, as delivered by PublicSiteContent.

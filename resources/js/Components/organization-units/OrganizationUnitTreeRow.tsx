@@ -60,18 +60,18 @@ export default function OrganizationUnitTreeRow({
     }
 
     const rowCls = node.is_deleted
-        ? 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)]'
-        : 'text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]';
+        ? 'text-(--app-muted-foreground) bg-(--app-surface-muted)'
+        : 'text-(--app-foreground) hover:bg-(--app-surface-muted)';
 
     return (
-        <tr className={`border-b border-[color:var(--app-border)] ${rowCls}`}>
+        <tr className={`border-b border-(--app-border) ${rowCls}`}>
             <td className={tableCellClassName} style={{ paddingLeft: `${indent + 16}px` }}>
                 <div className="flex items-center gap-1.5">
                     {node.has_children || (node.children && node.children.length > 0) ? (
                         <button
                             type="button"
                             onClick={() => onToggle(node.id)}
-                            className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-muted-foreground)]"
+                            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-(--app-muted-foreground) hover:text-(--app-muted-foreground)"
                         >
                             {expanded ? (
                                 <ChevronDown className="h-3.5 w-3.5" />
@@ -80,10 +80,10 @@ export default function OrganizationUnitTreeRow({
                             )}
                         </button>
                     ) : (
-                        <span className="h-5 w-5 flex-shrink-0" />
+                        <span className="h-5 w-5 shrink-0" />
                     )}
                     <span
-                        className={`inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums ring-1 ${levelColor}`}
+                        className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums ring-1 ${levelColor}`}
                         title={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
                         aria-label={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
                     >
@@ -91,7 +91,7 @@ export default function OrganizationUnitTreeRow({
                     </span>
                     <Link
                         href={route('organization-units.show', node.id)}
-                        className={`font-medium hover:underline ${node.is_deleted ? 'line-through text-[color:var(--app-muted-foreground)]' : 'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'}`}
+                        className={`font-medium hover:underline ${node.is_deleted ? 'line-through text-(--app-muted-foreground)' : 'text-primary dark:text-primary'}`}
                     >
                         {localizedName(node.name_en, node.name_am, locale)}
                     </Link>
@@ -107,7 +107,7 @@ export default function OrganizationUnitTreeRow({
             <td className={tableCellClassName}>
                 <OrganizationUnitStatusBadge status={node.status} />
             </td>
-            <td className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
+            <td className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>
                 {node.children_count ?? node.children?.length ?? 0}
             </td>
             <td className={tableCellClassName}>

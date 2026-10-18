@@ -32,15 +32,15 @@ export default function Preferences({ preferences, system, blocked }: Props): JS
     const toggle = (key: keyof Prefs, label: string, help?: string, systemOff = false) => (
         <label className={`flex items-start gap-3 py-2 ${systemOff ? 'opacity-60' : 'cursor-pointer'}`}>
             <input type="checkbox" checked={form.data[key]} disabled={systemOff || form.processing} onChange={(e) => form.setData(key, e.target.checked)}
-                className="mt-0.5 h-5 w-5 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]" />
+                className="mt-0.5 h-5 w-5 rounded-sm border-(--app-border-strong) text-primary" />
             <span>
-                <span className="text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
-                {(help || systemOff) && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{systemOff ? t('communication.preferences.offBySystem') : help}</span>}
+                <span className="text-sm font-medium text-(--app-foreground)">{label}</span>
+                {(help || systemOff) && <span className="block text-xs text-(--app-muted-foreground)">{systemOff ? t('communication.preferences.offBySystem') : help}</span>}
             </span>
         </label>
     );
 
-    const panel = 'rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5';
+    const panel = 'rounded-panel border border-(--app-border) bg-(--app-surface) p-5';
 
     return (
         <AuthenticatedLayout mode="communication" contentWidth="form" header={<PageHeader title={t('communication.preferences.title')} description={t('communication.preferences.description')} />}>
@@ -48,16 +48,16 @@ export default function Preferences({ preferences, system, blocked }: Props): JS
             <div className="space-y-6">
                 <form onSubmit={submit} className="space-y-6">
                     <section className={panel}>
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.preferences.sections.messages')}</h2>
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">{t('communication.preferences.sections.messages')}</h2>
                         {toggle('allow_direct_messages', t('communication.preferences.allowDirect'), t('communication.preferences.allowDirectHelp'))}
                     </section>
                     <section className={panel}>
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.preferences.sections.privacy')}</h2>
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">{t('communication.preferences.sections.privacy')}</h2>
                         {toggle('show_online_status', t('communication.preferences.showOnline'), undefined, !system.presence)}
                         {toggle('show_last_seen', t('communication.preferences.showLastSeen'), undefined, !system.lastSeen)}
                     </section>
                     <section className={panel}>
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.preferences.sections.announcements')}</h2>
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">{t('communication.preferences.sections.announcements')}</h2>
                         {toggle('email_announcements', t('communication.preferences.emailAnnouncements'), undefined, !system.emailAnnouncements)}
                         {toggle('sms_emergency_announcements', t('communication.preferences.smsAnnouncements'), undefined, !system.smsAnnouncements)}
                     </section>
@@ -68,13 +68,13 @@ export default function Preferences({ preferences, system, blocked }: Props): JS
                 </form>
 
                 <section className={panel}>
-                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.preferences.sections.blocked')}</h2>
-                    {blocked.length === 0 ? <p className="mt-2 text-sm text-[color:var(--app-muted-foreground)]">{t('communication.preferences.noBlocked')}</p> : (
-                        <ul className="mt-2 divide-y divide-[color:var(--app-border)]">
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">{t('communication.preferences.sections.blocked')}</h2>
+                    {blocked.length === 0 ? <p className="mt-2 text-sm text-(--app-muted-foreground)">{t('communication.preferences.noBlocked')}</p> : (
+                        <ul className="mt-2 divide-y divide-(--app-border)">
                             {blocked.map((person) => (
                                 <li key={person.id} className="flex items-center gap-3 py-2">
                                     <Avatar name={person.name} size="sm" />
-                                    <span className="min-w-0 flex-1 truncate text-sm text-[color:var(--app-foreground)]">{person.name}</span>
+                                    <span className="min-w-0 flex-1 truncate text-sm text-(--app-foreground)">{person.name}</span>
                                     <button type="button" onClick={() => void unblock(person.id)} className={buttonClassName({ variant: 'secondary', size: 'sm' })}>{t('communication.preferences.unblock')}</button>
                                 </li>
                             ))}

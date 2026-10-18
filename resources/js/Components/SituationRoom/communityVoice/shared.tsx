@@ -105,14 +105,14 @@ export function Breadcrumb({ scope, filters }: { scope: ScopeProps; filters: Fil
 
     return (
         <nav aria-label={t('situationRoom.breadcrumbLabel')} className="text-sm">
-            <ol className="flex flex-wrap items-center gap-1 text-[color:var(--app-muted-foreground)]">
+            <ol className="flex flex-wrap items-center gap-1 text-(--app-muted-foreground)">
                 <li><Link href={route('situation-room.community-voice', rest)} className="underline-offset-4 hover:underline">{t('situationRoom.backToAll')}</Link></li>
                 {scope.breadcrumb.map((crumb, index) => {
                     const last = index === scope.breadcrumb.length - 1;
                     return (
                         <li key={crumb.id} className="flex items-center gap-1">
                             <span aria-hidden="true">›</span>
-                            {last ? <span aria-current="page" className="font-medium text-[color:var(--app-foreground)]">{name(crumb)}</span>
+                            {last ? <span aria-current="page" className="font-medium text-(--app-foreground)">{name(crumb)}</span>
                                 : <Link href={institutionHref(crumb.id, filters, scope)} className="underline-offset-4 hover:underline">{name(crumb)}</Link>}
                         </li>
                     );
@@ -233,7 +233,7 @@ export function Section({ title, intro, actions, children, className, id }: { ti
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                         <h2 id={headingId} className="font-semibold">{title}</h2>
-                        {intro && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{intro}</p>}
+                        {intro && <p className="mt-1 text-sm text-(--app-muted-foreground)">{intro}</p>}
                     </div>
                     {actions}
                 </div>
@@ -250,8 +250,8 @@ export function SectionSkeleton({ rows = 3, className }: { rows?: number; classN
         <Card className={cx('p-5', className)} aria-busy="true">
             <span className="sr-only">{t('situationRoom.loading')}</span>
             <div aria-hidden="true" className="space-y-3">
-                <div className="h-4 w-1/3 animate-pulse rounded bg-[color:var(--app-surface-muted)]" />
-                {Array.from({ length: rows }, (_, i) => <div key={i} className="h-3 animate-pulse rounded bg-[color:var(--app-surface-muted)]" />)}
+                <div className="h-4 w-1/3 animate-pulse rounded-sm bg-(--app-surface-muted)" />
+                {Array.from({ length: rows }, (_, i) => <div key={i} className="h-3 animate-pulse rounded-sm bg-(--app-surface-muted)" />)}
             </div>
         </Card>
     );
@@ -268,10 +268,10 @@ export function MeterRow({ label, value, max, hint, href }: { label: string; val
                 {text}
                 <span className="font-semibold tabular-nums">{value.toLocaleString()}</span>
             </div>
-            <div className="mt-1 h-1.5 rounded-full bg-[color:var(--app-surface-muted)]" aria-hidden="true">
-                <div className="h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${width}%` }} />
+            <div className="mt-1 h-1.5 rounded-full bg-(--app-surface-muted)" aria-hidden="true">
+                <div className="h-1.5 rounded-full bg-primary" style={{ width: `${width}%` }} />
             </div>
-            {hint && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{hint}</p>}
+            {hint && <p className="mt-1 text-xs text-(--app-muted-foreground)">{hint}</p>}
         </li>
     );
 }

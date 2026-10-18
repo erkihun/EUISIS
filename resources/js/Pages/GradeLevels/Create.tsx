@@ -23,7 +23,7 @@ export default function GradeLevelsCreate() {
         <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('gradeLevels.createGradeLevel')} />}>
             <Head title={t('gradeLevels.createGradeLevel')} />
             <form
-                className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+                className="space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
                 onSubmit={submit}
             >
                 <div className="max-w-sm space-y-1.5">
@@ -49,7 +49,7 @@ export default function GradeLevelsCreate() {
                     </button>
                     <Link
                         href={route('grade-levels.index')}
-                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
+                        className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground)"
                     >
                         {t('common.cancel')}
                     </Link>

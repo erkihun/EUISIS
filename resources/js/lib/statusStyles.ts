@@ -44,8 +44,8 @@ export const toneClasses: Record<StatusTone, string> = {
         'bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200 ' +
         'dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900',
     info:
-        'bg-[color:var(--color-primary-50)] text-[color:var(--color-primary-800)] ring-1 ring-inset ring-[color:var(--color-primary-200)] ' +
-        'dark:bg-[color:var(--color-primary-950)] dark:text-[color:var(--color-primary-200)] dark:ring-[color:var(--color-primary-800)]',
+        'bg-primary-50 text-primary-800 ring-1 ring-inset ring-primary-200 ' +
+        'dark:bg-primary-950 dark:text-primary-200 dark:ring-primary-800',
     warning:
         'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200 ' +
         'dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900',

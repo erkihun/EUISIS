@@ -81,8 +81,8 @@ export default function Channels({ initial, can }: Props): JSX.Element {
             <div className="space-y-5">
                 {creating && <CreateChannel can={can} onCancel={() => setCreating(false)} />}
 
-                <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <div className="flex flex-col gap-3 border-b border-[color:var(--app-border)] p-3 sm:flex-row sm:items-center">
+                <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+                    <div className="flex flex-col gap-3 border-b border-(--app-border) p-3 sm:flex-row sm:items-center">
                         <div role="tablist" aria-label={t('communication.channels.title')} className="flex gap-1">
                             {(['all', 'mine'] as const).map((value) => (
                                 <button
@@ -91,7 +91,7 @@ export default function Channels({ initial, can }: Props): JSX.Element {
                                     role="tab"
                                     aria-selected={filter === value}
                                     onClick={() => setFilter(value)}
-                                    className={`h-8 rounded-full px-3 text-xs font-medium transition-colors ${filter === value ? 'bg-[color:var(--app-foreground)] text-[color:var(--app-background)]' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]'}`}
+                                    className={`h-8 rounded-full px-3 text-xs font-medium transition-colors ${filter === value ? 'bg-(--app-foreground) text-(--app-background)' : 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)'}`}
                                 >
                                     {t(`communication.channels.tabs.${value}`)}
                                 </button>
@@ -99,13 +99,13 @@ export default function Channels({ initial, can }: Props): JSX.Element {
                         </div>
                         <label className="relative block sm:ms-auto sm:w-72">
                             <span className="sr-only">{t('communication.channels.search')}</span>
-                            <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                            <SearchIcon className="pointer-events-none absolute inset-s-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                             <input
                                 type="search"
                                 value={q}
                                 onChange={(event) => setQ(event.target.value)}
                                 placeholder={t('communication.channels.search')}
-                                className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15"
+                                className="h-9 w-full rounded-control border border-(--app-border) bg-(--app-background) ps-8 pe-2 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15"
                             />
                         </label>
                     </div>
@@ -113,20 +113,20 @@ export default function Channels({ initial, can }: Props): JSX.Element {
                     <div aria-busy={loading}>
                         {page.data.length === 0 ? (
                             <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
-                                <HashIcon className="h-6 w-6 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                                <p className="max-w-sm text-sm text-[color:var(--app-muted-foreground)]">{loading ? '…' : empty}</p>
+                                <HashIcon className="h-6 w-6 text-(--app-muted-foreground)" aria-hidden="true" />
+                                <p className="max-w-sm text-sm text-(--app-muted-foreground)">{loading ? '…' : empty}</p>
                             </div>
                         ) : (
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                            <ul className="divide-y divide-(--app-border)">
                                 {page.data.map((row) => (
                                     <li key={row.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
                                         <div className="flex min-w-0 flex-1 items-start gap-3">
-                                            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]">
+                                            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-(--app-surface-muted) text-(--app-muted-foreground)">
                                                 <HashIcon className="h-4 w-4" aria-hidden="true" />
                                             </span>
                                             <div className="min-w-0">
-                                                <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{row.name}</p>
-                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                <p className="truncate text-sm font-semibold text-(--app-foreground)">{row.name}</p>
+                                                <p className="text-xs text-(--app-muted-foreground)">
                                                     {[
                                                         t(`communication.channels.types.${row.type}`),
                                                         [row.unit, row.organization].filter(Boolean).join(' · ') || (row.type === 'PUBLIC_ORGANIZATION' || row.type === 'SYSTEM_MANAGED' ? t('communication.channels.cityWide') : null),
@@ -135,7 +135,7 @@ export default function Channels({ initial, can }: Props): JSX.Element {
                                                         row.posting_policy === 'ADMINS_ONLY' ? t('communication.channels.adminsPost') : null,
                                                     ].filter(Boolean).join(' · ')}
                                                 </p>
-                                                {row.description && <p className="mt-1 line-clamp-2 text-xs text-[color:var(--app-foreground)]/80">{row.description}</p>}
+                                                {row.description && <p className="mt-1 line-clamp-2 text-xs text-(--app-foreground)/80">{row.description}</p>}
                                             </div>
                                         </div>
                                         <div className="shrink-0 sm:ps-3">
@@ -152,8 +152,8 @@ export default function Channels({ initial, can }: Props): JSX.Element {
                             </ul>
                         )}
                         {page.next_cursor && (
-                            <div className="border-t border-[color:var(--app-border)] p-3">
-                                <button type="button" disabled={loading} onClick={() => void more()} className="h-8 w-full rounded-control text-xs font-medium text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)] disabled:opacity-50">
+                            <div className="border-t border-(--app-border) p-3">
+                                <button type="button" disabled={loading} onClick={() => void more()} className="h-8 w-full rounded-control text-xs font-medium text-primary hover:bg-(--app-surface-muted) disabled:opacity-50">
                                     {t('communication.list.loadMore')}
                                 </button>
                             </div>
@@ -184,7 +184,7 @@ function CreateChannel({ can, onCancel }: { can: Props['can']; onCancel: () => v
     const [saving, setSaving] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const scoped = managed && (type === 'PUBLIC_ORGANIZATION' || type === 'SYSTEM_MANAGED');
-    const field = 'w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15';
+    const field = 'w-full rounded-control border border-(--app-border) bg-(--app-background) px-2.5 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15';
 
     const submit = async (event: FormEvent) => {
         event.preventDefault();
@@ -213,8 +213,8 @@ function CreateChannel({ can, onCancel }: { can: Props['can']; onCancel: () => v
     };
 
     return (
-        <section aria-labelledby="new-channel-title" className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-            <h2 id="new-channel-title" className="border-b border-[color:var(--app-border)] px-4 py-3 text-sm font-semibold text-[color:var(--app-foreground)]">{t('communication.channels.createTitle')}</h2>
+        <section aria-labelledby="new-channel-title" className="rounded-panel border border-(--app-border) bg-(--app-surface)">
+            <h2 id="new-channel-title" className="border-b border-(--app-border) px-4 py-3 text-sm font-semibold text-(--app-foreground)">{t('communication.channels.createTitle')}</h2>
             <form onSubmit={submit} className="grid gap-5 p-4 lg:grid-cols-2">
                 <div className="space-y-4">
                     <Field label={t('communication.channels.form.name')} error={errors.name}>
@@ -230,17 +230,17 @@ function CreateChannel({ can, onCancel }: { can: Props['can']; onCancel: () => v
 
                 <div className="space-y-4">
                     <fieldset className="space-y-2">
-                        <legend className="mb-1 text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.channels.form.type')}</legend>
+                        <legend className="mb-1 text-xs font-medium text-(--app-foreground)">{t('communication.channels.form.type')}</legend>
                         {allowedTypes.map((value) => (
-                            <label key={value} className={`flex cursor-pointer items-start gap-2.5 rounded-control border px-3 py-2 ${type === value ? 'border-[color:var(--color-primary)] bg-[color:color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]' : 'border-[color:var(--app-border)]'}`}>
-                                <input type="radio" name="type" value={value} checked={type === value} onChange={() => setType(value)} className="mt-0.5 h-4 w-4 text-[color:var(--color-primary)]" />
+                            <label key={value} className={`flex cursor-pointer items-start gap-2.5 rounded-control border px-3 py-2 ${type === value ? 'border-primary bg-[color-mix(in_srgb,var(--color-primary)_7%,var(--app-surface))]' : 'border-(--app-border)'}`}>
+                                <input type="radio" name="type" value={value} checked={type === value} onChange={() => setType(value)} className="mt-0.5 h-4 w-4 text-primary" />
                                 <span>
-                                    <span className="block text-sm font-medium text-[color:var(--app-foreground)]">{t(`communication.channels.types.${value}`)}</span>
-                                    <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t(`communication.channels.typeHelp.${value}`)}</span>
+                                    <span className="block text-sm font-medium text-(--app-foreground)">{t(`communication.channels.types.${value}`)}</span>
+                                    <span className="block text-xs text-(--app-muted-foreground)">{t(`communication.channels.typeHelp.${value}`)}</span>
                                 </span>
                             </label>
                         ))}
-                        {errors.type && <p className="text-xs text-[color:var(--color-danger,#b42318)]">{errors.type}</p>}
+                        {errors.type && <p className="text-xs text-(--color-danger,#b42318)">{errors.type}</p>}
                     </fieldset>
 
                     {managed ? (
@@ -274,15 +274,15 @@ function CreateChannel({ can, onCancel }: { can: Props['can']; onCancel: () => v
                             )}
                         </>
                     ) : (
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('communication.channels.form.ownChannel')}</p>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('communication.channels.form.ownChannel')}</p>
                     )}
 
                     {type !== 'SYSTEM_MANAGED' && (
                         <fieldset className="space-y-1.5">
-                            <legend className="text-xs font-medium text-[color:var(--app-foreground)]">{t('communication.channels.form.postingPolicy')}</legend>
+                            <legend className="text-xs font-medium text-(--app-foreground)">{t('communication.channels.form.postingPolicy')}</legend>
                             {(['ALL_MEMBERS', 'ADMINS_ONLY'] as const).map((value) => (
-                                <label key={value} className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                                    <input type="radio" name="posting_policy" value={value} checked={policy === value} onChange={() => setPolicy(value)} className="h-4 w-4 text-[color:var(--color-primary)]" />
+                                <label key={value} className="flex items-center gap-2 text-sm text-(--app-foreground)">
+                                    <input type="radio" name="posting_policy" value={value} checked={policy === value} onChange={() => setPolicy(value)} className="h-4 w-4 text-primary" />
                                     {t(`communication.manage.postingPolicies.${value}`)}
                                 </label>
                             ))}
@@ -290,7 +290,7 @@ function CreateChannel({ can, onCancel }: { can: Props['can']; onCancel: () => v
                     )}
                 </div>
 
-                <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] pt-4 lg:col-span-2">
+                <div className="flex justify-end gap-2 border-t border-(--app-border) pt-4 lg:col-span-2">
                     <button type="button" onClick={onCancel} className={buttonClassName({ variant: 'secondary' })}>{t('communication.channels.cancel')}</button>
                     <button type="submit" disabled={saving || !name.trim()} className={buttonClassName({ variant: 'primary' })}>
                         {saving ? t('communication.channels.form.creating') : t('communication.channels.form.submit')}
@@ -304,20 +304,20 @@ function CreateChannel({ can, onCancel }: { can: Props['can']; onCancel: () => v
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }): JSX.Element {
     return (
         <label className="block space-y-1">
-            <span className="text-xs font-medium text-[color:var(--app-foreground)]">{label}</span>
+            <span className="text-xs font-medium text-(--app-foreground)">{label}</span>
             {children}
-            {error && <span className="block text-xs text-[color:var(--color-danger,#b42318)]">{error}</span>}
+            {error && <span className="block text-xs text-(--color-danger,#b42318)">{error}</span>}
         </label>
     );
 }
 
 function Check({ checked, onChange, label, help }: { checked: boolean; onChange: (value: boolean) => void; label: string; help?: string }): JSX.Element {
     return (
-        <label className="flex items-start gap-2.5 text-sm text-[color:var(--app-foreground)]">
-            <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]" />
+        <label className="flex items-start gap-2.5 text-sm text-(--app-foreground)">
+            <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 h-4 w-4 rounded-sm border-(--app-border-strong) text-primary" />
             <span>
                 {label}
-                {help && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{help}</span>}
+                {help && <span className="block text-xs text-(--app-muted-foreground)">{help}</span>}
             </span>
         </label>
     );
@@ -344,11 +344,11 @@ function ScopePicker({ label, placeholder, none, value, onChange, search, error 
 
     return (
         <div className="space-y-1">
-            <span className="text-xs font-medium text-[color:var(--app-foreground)]">{label}</span>
+            <span className="text-xs font-medium text-(--app-foreground)">{label}</span>
             {value && !open ? (
-                <div className="flex h-9 items-center justify-between gap-2 rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-2.5 text-sm">
-                    <span className="truncate text-[color:var(--app-foreground)]">{value.name}</span>
-                    <button type="button" onClick={() => { onChange(null); setOpen(true); }} aria-label={`${label}: ${none}`} className="rounded p-0.5 text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"><XMarkIcon className="h-4 w-4" /></button>
+                <div className="flex h-9 items-center justify-between gap-2 rounded-control border border-(--app-border) bg-(--app-background) px-2.5 text-sm">
+                    <span className="truncate text-(--app-foreground)">{value.name}</span>
+                    <button type="button" onClick={() => { onChange(null); setOpen(true); }} aria-label={`${label}: ${none}`} className="rounded-sm p-0.5 text-(--app-muted-foreground) hover:text-(--app-foreground)"><XMarkIcon className="h-4 w-4" /></button>
                 </div>
             ) : (
                 <div className="relative">
@@ -358,18 +358,18 @@ function ScopePicker({ label, placeholder, none, value, onChange, search, error 
                         onFocus={() => setOpen(true)}
                         onChange={(e) => { setQ(e.target.value); setOpen(true); }}
                         placeholder={value ? value.name : placeholder}
-                        className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] px-2.5 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15"
+                        className="h-9 w-full rounded-control border border-(--app-border) bg-(--app-background) px-2.5 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15"
                     />
                     {open && (
-                        <ul className="comm-scroll absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] py-1 shadow-lg">
+                        <ul className="comm-scroll absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-control border border-(--app-border) bg-(--app-surface) py-1 shadow-lg">
                             <li>
-                                <button type="button" onClick={() => { onChange(null); setOpen(false); setQ(''); }} className="w-full px-3 py-1.5 text-start text-sm italic text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]">{none}</button>
+                                <button type="button" onClick={() => { onChange(null); setOpen(false); setQ(''); }} className="w-full px-3 py-1.5 text-start text-sm italic text-(--app-muted-foreground) hover:bg-(--app-surface-muted)">{none}</button>
                             </li>
                             {options.map((option) => (
                                 <li key={option.id}>
-                                    <button type="button" onClick={() => { onChange(option); setOpen(false); setQ(''); }} className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-start text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                    <button type="button" onClick={() => { onChange(option); setOpen(false); setQ(''); }} className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-start text-sm text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                         <span className="truncate">{option.name}</span>
-                                        {option.code && <span className="shrink-0 text-[11px] text-[color:var(--app-muted-foreground)]">{option.code}</span>}
+                                        {option.code && <span className="shrink-0 text-[11px] text-(--app-muted-foreground)">{option.code}</span>}
                                     </button>
                                 </li>
                             ))}
@@ -377,8 +377,8 @@ function ScopePicker({ label, placeholder, none, value, onChange, search, error 
                     )}
                 </div>
             )}
-            {!value && !open && <p className="text-[11px] text-[color:var(--app-muted-foreground)]">{none}</p>}
-            {error && <p className="text-xs text-[color:var(--color-danger,#b42318)]">{error}</p>}
+            {!value && !open && <p className="text-[11px] text-(--app-muted-foreground)">{none}</p>}
+            {error && <p className="text-xs text-(--color-danger,#b42318)">{error}</p>}
         </div>
     );
 }

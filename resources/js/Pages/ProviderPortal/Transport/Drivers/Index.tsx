@@ -15,8 +15,8 @@ export default function Index({ drivers }: { drivers: TransportDriver[] }) {
                 createLabel={t('transport.newDriver')}
                 editHref={(d) => route('provider.portal.transport.drivers.edit', d.id)}
                 columns={[
-                    { header: t('transport.driverName'), cell: (d) => <><div className="font-medium">{d.full_name}</div><div className="text-xs text-[color:var(--app-muted-foreground)]">{d.phone_number}</div></> },
-                    { header: t('transport.licenseNumber'), cell: (d) => <>{d.license_number ?? '—'}{d.license_expiry_date ? <div className="text-xs text-[color:var(--app-muted-foreground)]">{d.license_expiry_date}</div> : null}</> },
+                    { header: t('transport.driverName'), cell: (d) => <><div className="font-medium">{d.full_name}</div><div className="text-xs text-(--app-muted-foreground)">{d.phone_number}</div></> },
+                    { header: t('transport.licenseNumber'), cell: (d) => <>{d.license_number ?? '—'}{d.license_expiry_date ? <div className="text-xs text-(--app-muted-foreground)">{d.license_expiry_date}</div> : null}</> },
                     { header: t('transport.assignedVehicle'), cell: (d) => d.vehicle?.plate_number ?? '—' },
                     { header: t('transport.status'), cell: (d) => <StatusBadge tone={tone(d.status)}>{label('statuses', d.status)}</StatusBadge> },
                 ]}

@@ -31,7 +31,7 @@ export default function AccessIndex({ rows, meta, filters, organizations, networ
         { id: 'network', header: t('cafeteriaPolicy.network'), cell: ({ row }) => label(row.original.network) },
         { id: 'primary', header: t('cafeteriaPolicy.primaryCafeteria'), cell: ({ row }) => label(row.original.primary_cafeteria) },
         { id: 'cross', header: t('cafeteriaPolicy.crossLocationUsage'), cell: ({ row }) => (
-            <>{row.original.allow_cross_location_usage ? t('cafeteriaPolicy.yes') : t('cafeteriaPolicy.no')}{row.original.exception_count > 0 && <span className="ms-1 text-xs text-[color:var(--app-muted-foreground)]">(+{row.original.exception_count})</span>}</>
+            <>{row.original.allow_cross_location_usage ? t('cafeteriaPolicy.yes') : t('cafeteriaPolicy.no')}{row.original.exception_count > 0 && <span className="ms-1 text-xs text-(--app-muted-foreground)">(+{row.original.exception_count})</span>}</>
         ) },
         { id: 'from', header: t('cafeteriaPolicy.effectiveFrom'), cell: ({ row }) => <LocalizedDateDisplay value={row.original.effective_from} /> },
         { id: 'to', header: t('cafeteriaPolicy.effectiveTo'), cell: ({ row }) => row.original.effective_to ? <LocalizedDateDisplay value={row.original.effective_to} /> : t('cafeteriaPolicy.openEnded') },

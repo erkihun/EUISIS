@@ -52,8 +52,8 @@ export default function ProcessShow({ process, activities, versions, history, se
 
     const detail = (label: string, value: React.ReactNode) => (
         <div className="min-w-0">
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 break-words text-sm text-[color:var(--app-foreground)]">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 wrap-break-word text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
         </div>
     );
 
@@ -93,24 +93,24 @@ export default function ProcessShow({ process, activities, versions, history, se
                             {detail(tt('fields.descriptionEn'), process.description_en)}
                             {detail(tt('fields.descriptionAm'), process.description_am)}
                         </dl>
-                        <div className="border-t border-[color:var(--app-border)] px-5 py-3">
+                        <div className="border-t border-(--app-border) px-5 py-3">
                             <div className="flex items-center justify-between gap-3">
-                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{tt('processes.io')}</p>
+                                <p className="text-xs font-medium text-(--app-muted-foreground)">{tt('processes.io')}</p>
                                 {can.update && <button type="button" className={actionLinkClassName()} onClick={() => setEditingIo(true)}>{tt('processes.editIo')}</button>}
                             </div>
-                            {process.io.length === 0 ? <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{tt('processes.noIo')}</p> : (
+                            {process.io.length === 0 ? <p className="mt-1 text-xs text-(--app-muted-foreground)">{tt('processes.noIo')}</p> : (
                                 <ul className="mt-1 flex flex-wrap gap-1">
                                     {process.io.map((r, i) => <li key={r.id ?? i} className={badgeClassName(r.kind === 'output' ? 'success' : r.kind === 'dependency' ? 'warning' : 'neutral')}>{tt(`processes.kinds.${r.kind}`)}: {(locale === 'am' && r.label_am) || r.label_en}</li>)}
                                 </ul>
                             )}
                         </div>
                         {process.status === 'draft' && !can.publish && can.update && (
-                            <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">{tt('processes.publishByOther')}</p>
+                            <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{tt('processes.publishByOther')}</p>
                         )}
                     </Card>
 
                     <Card>
-                        <CardHeader><CardTitle>{tt('processes.tree')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('processes.treeHelp')}</p></CardHeader>
+                        <CardHeader><CardTitle>{tt('processes.tree')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('processes.treeHelp')}</p></CardHeader>
                         <div className="p-3">
                             <ActivityTree processId={process.id} tree={activities} ioKinds={ioKinds} qualitySources={qualitySources} catalog={catalog} can={{ update: can.update, manageStandards: can.manageStandards && process.status !== 'cancelled', approveStandards: can.approveStandards }} />
                         </div>
@@ -120,12 +120,12 @@ export default function ProcessShow({ process, activities, versions, history, se
                 <div className="space-y-4">
                     <Card>
                         <CardHeader><CardTitle>{tt('processes.versions')}</CardTitle></CardHeader>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {versions.map((v) => (
                                 <li key={v.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                                     <div>
                                         {v.id === process.id ? <span className="font-semibold">v{v.version_no}</span> : <Link href={route('organization-design.processes.show', v.id)} className={actionLinkClassName({ size: 'sm' })}>v{v.version_no}</Link>}
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={v.effective_from} />{v.effective_to && <> – <LocalizedDateDisplay value={v.effective_to} /></>}</p>
+                                        <p className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={v.effective_from} />{v.effective_to && <> – <LocalizedDateDisplay value={v.effective_to} /></>}</p>
                                     </div>
                                     <StatusPill status={v.status} />
                                 </li>
@@ -134,12 +134,12 @@ export default function ProcessShow({ process, activities, versions, history, se
                     </Card>
                     <Card>
                         <CardHeader><CardTitle>{tt('processes.history')}</CardTitle></CardHeader>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {history.map((h, i) => (
                                 <li key={i} className="px-5 py-3 text-sm">
-                                    <p className="font-medium text-[color:var(--app-foreground)]">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
-                                    {h.reason && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{h.reason}</p>}
+                                    <p className="font-medium text-(--app-foreground)">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
+                                    {h.reason && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{h.reason}</p>}
                                 </li>
                             ))}
                         </ul>

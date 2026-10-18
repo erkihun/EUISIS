@@ -54,14 +54,14 @@ export default function ResponsibilitiesIndex({ organizationId, organizations, m
                             {!can.map && <Alert tone="info">{tt('responsibilities.readOnly')}</Alert>}
                             <Card>
                                 <CardHeader><CardTitle>{tt('responsibilities.matrix')}</CardTitle></CardHeader>
-                                {matrix.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('responsibilities.noUnits')}</p> : (
-                                    <ul className="divide-y divide-[color:var(--app-border)]">
+                                {matrix.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('responsibilities.noUnits')}</p> : (
+                                    <ul className="divide-y divide-(--app-border)">
                                         {matrix.map((m) => (
                                             <li key={m.unit.id} className="px-5 py-3">
                                                 <div className="flex flex-wrap items-start gap-3">
-                                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{m.unit.code}</span>
+                                                    <span className="font-mono text-xs text-(--app-muted-foreground)">{m.unit.code}</span>
                                                     <div className="min-w-0 flex-1">
-                                                        <p className="text-sm font-medium text-[color:var(--app-foreground)]">{nameOf(m.unit, locale)}</p>
+                                                        <p className="text-sm font-medium text-(--app-foreground)">{nameOf(m.unit, locale)}</p>
                                                         <div className="mt-1"><ResponsibilitiesSummary rows={m.rows} /></div>
                                                     </div>
                                                     {can.map && <button type="button" className={actionLinkClassName()} onClick={() => setEditing(m)}>{tt('responsibilities.edit')}</button>}
@@ -75,15 +75,15 @@ export default function ResponsibilitiesIndex({ organizationId, organizations, m
                         <div className="space-y-4">
                             <Card>
                                 <CardHeader className="flex items-center justify-between gap-3">
-                                    <div><CardTitle>{tt('responsibilities.gaps')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('responsibilities.gapsHelp')}</p></div>
+                                    <div><CardTitle>{tt('responsibilities.gaps')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('responsibilities.gapsHelp')}</p></div>
                                     <span className={badgeClassName(gapCount === 0 ? 'success' : 'warning')}>{gapCount}</span>
                                 </CardHeader>
-                                {gapCount === 0 ? <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">{tt('responsibilities.noGaps')}</p> : (
+                                {gapCount === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('responsibilities.noGaps')}</p> : (
                                     <div className="space-y-3 p-5 text-sm">
                                         {(['functions', 'services', 'processes'] as const).filter((g) => gaps[g].length > 0).map((g) => (
                                             <div key={g}>
-                                                <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{tt(`responsibilities.groups.${g}`)}</p>
-                                                <ul className="mt-1 space-y-0.5">{gaps[g].map((o) => <li key={o.id}><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{o.code}</span> {nameOf(o, locale)}</li>)}</ul>
+                                                <p className="text-xs font-medium text-(--app-muted-foreground)">{tt(`responsibilities.groups.${g}`)}</p>
+                                                <ul className="mt-1 space-y-0.5">{gaps[g].map((o) => <li key={o.id}><span className="font-mono text-xs text-(--app-muted-foreground)">{o.code}</span> {nameOf(o, locale)}</li>)}</ul>
                                             </div>
                                         ))}
                                     </div>
@@ -91,13 +91,13 @@ export default function ResponsibilitiesIndex({ organizationId, organizations, m
                             </Card>
                             <Card>
                                 <CardHeader className="flex items-center justify-between gap-3">
-                                    <div><CardTitle>{tt('responsibilities.types')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('responsibilities.typesHelp')}</p></div>
+                                    <div><CardTitle>{tt('responsibilities.types')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('responsibilities.typesHelp')}</p></div>
                                     {can.manageTypes && <Button size="sm" variant="outline" onClick={() => setTypeEditing('new')}>{tt('responsibilities.addType')}</Button>}
                                 </CardHeader>
-                                <ul className="divide-y divide-[color:var(--app-border)]">
+                                <ul className="divide-y divide-(--app-border)">
                                     {types.map((x) => (
                                         <li key={x.id} className="flex flex-wrap items-center gap-2 px-5 py-2 text-sm">
-                                            <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{x.code}</span>
+                                            <span className="font-mono text-xs text-(--app-muted-foreground)">{x.code}</span>
                                             <span className="min-w-0 flex-1">{nameOf(x, locale)}</span>
                                             {x.is_exclusive && <span className={badgeClassName('warning')}>{tt('responsibilities.exclusive')}</span>}
                                             {x.covers_object && <span className={badgeClassName('success')}>{tt('responsibilities.covers')}</span>}

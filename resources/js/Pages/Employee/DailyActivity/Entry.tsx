@@ -292,7 +292,7 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
     return (
         <div className="mx-auto max-w-5xl space-y-6 pb-28 sm:pb-6">
             {/* Heading: the date is the subject of the page. */}
-            <header className={`${panelCls} space-y-5 p-5 shadow-sm sm:p-6`}>
+            <header className={`${panelCls} space-y-5 p-5 shadow-xs sm:p-6`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <p className="flex flex-wrap items-center gap-2 text-base text-gray-900 dark:text-slate-100">
@@ -334,7 +334,7 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
 
             <ol aria-label={t('dailyActivities.entry.workflow')} className="grid gap-3 sm:grid-cols-3">
                 {['draftStep', 'submitStep', 'reviewStep'].map((name, index) => (
-                    <li key={name} aria-current={step === index + 1 ? 'step' : undefined} className={`${panelCls} flex gap-3 p-4 ${step === index + 1 ? 'ring-2 ring-[color:var(--color-primary)]' : ''}`}>
+                    <li key={name} aria-current={step === index + 1 ? 'step' : undefined} className={`${panelCls} flex gap-3 p-4 ${step === index + 1 ? 'ring-2 ring-primary' : ''}`}>
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700 dark:bg-slate-800 dark:text-slate-200">{index + 1}</span>
                         <div><p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t(`dailyActivities.entry.${name}`)}</p><p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{t(`dailyActivities.entry.${name}Hint`)}</p></div>
                     </li>
@@ -437,7 +437,7 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
                     </fieldset>
 
                     {/* Pinned to the bottom on phones, inline on larger screens. */}
-                    <div className="fixed inset-x-0 bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur sm:sticky sm:bottom-3 sm:rounded-xl sm:border sm:p-4 sm:shadow-lg dark:border-slate-700 dark:bg-slate-950/95">
+                    <div className="fixed inset-x-0 bottom-0 z-20 flex flex-wrap items-center gap-2 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur-sm sm:sticky sm:bottom-3 sm:rounded-xl sm:border sm:p-4 sm:shadow-lg dark:border-slate-700 dark:bg-slate-950/95">
                         <p role="status" aria-live="polite" className="w-full text-xs text-gray-500 sm:me-auto sm:w-auto dark:text-slate-400">{t(form.processing ? 'dailyActivities.entry.saving' : dirty ? 'dailyActivities.entry.unsaved' : log ? 'dailyActivities.entry.saved' : 'dailyActivities.entry.notSaved')}</p>
                         <button type="submit" disabled={busy} className={`${secondaryBtn} flex-1 sm:flex-none`}>
                             {t('dailyActivities.actions.saveDraft')}
@@ -476,13 +476,13 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
                         <ul className="divide-y divide-gray-100 text-sm dark:divide-slate-800">
                             {log.attachments.map((file) => (
                                 <li key={file.id} className="flex items-center justify-between gap-2 py-2">
-                                    <a href={file.download_url} className="min-w-0 truncate text-[color:var(--color-primary)] hover:underline">
+                                    <a href={file.download_url} className="min-w-0 truncate text-primary hover:underline">
                                         {file.original_name}
                                     </a>
                                     <span className="flex shrink-0 items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
                                         {formatBytes(file.file_size)}
                                         {can.upload && (
-                                            <button type="button" disabled={busy} onClick={() => removeAttachment(file.id)} className="rounded p-1 text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30" aria-label={`${t('dailyActivities.evidence.delete')}: ${file.original_name}`}>
+                                            <button type="button" disabled={busy} onClick={() => removeAttachment(file.id)} className="rounded-sm p-1 text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30" aria-label={`${t('dailyActivities.evidence.delete')}: ${file.original_name}`}>
                                                 <TrashIcon className="h-4 w-4" aria-hidden="true" />
                                             </button>
                                         )}
@@ -588,7 +588,7 @@ function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRu
     };
 
     return (
-        <fieldset className={`${panelCls} min-w-0 p-4 shadow-sm sm:p-6`}>
+        <fieldset className={`${panelCls} min-w-0 p-4 shadow-xs sm:p-6`}>
             <legend className="sr-only">{t('dailyActivities.entry.activity')} {index + 1}</legend>
             <div className="mb-5 flex items-center justify-between border-b border-gray-100 pb-4 dark:border-slate-800">
                 <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">
@@ -735,7 +735,7 @@ function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRu
                 type="button"
                 onClick={() => onChange({ open: !item.open })}
                 aria-expanded={item.open}
-                className="mt-2 text-sm font-medium text-[color:var(--color-primary)] hover:underline"
+                className="mt-2 text-sm font-medium text-primary hover:underline"
             >
                 {item.open ? t('dailyActivities.entry.lessDetails') : t('dailyActivities.entry.moreDetails')}
             </button>

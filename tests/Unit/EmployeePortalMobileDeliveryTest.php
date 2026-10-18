@@ -14,7 +14,7 @@ it('keeps the employee portal mobile-safe and makes LAN Vite opt-in', function (
         ->toContain('origin: isLanDevServer')
         ->and($header)
         ->toContain('className="min-w-0"')
-        ->toContain('break-words text-page-title')
+        ->toContain('wrap-break-word text-page-title')
         ->toContain('w-full flex-wrap')
         ->and($portalCss)
         ->toContain('.portal-shell #main-content { min-width: 0; overflow-x: hidden; }')

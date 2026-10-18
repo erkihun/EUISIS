@@ -15,7 +15,7 @@ export default function Index({ vehicles }: { vehicles: TransportVehicle[] }) {
                 createLabel={t('transport.newVehicle')}
                 editHref={(v) => route('provider.portal.transport.vehicles.edit', v.id)}
                 columns={[
-                    { header: t('transport.plateNumber'), cell: (v) => <><div className="font-medium">{v.plate_number}</div><div className="text-xs text-[color:var(--app-muted-foreground)]">{v.vehicle_code}</div></> },
+                    { header: t('transport.plateNumber'), cell: (v) => <><div className="font-medium">{v.plate_number}</div><div className="text-xs text-(--app-muted-foreground)">{v.vehicle_code}</div></> },
                     { header: t('transport.vehicleType'), cell: (v) => `${label('vehicleTypes', v.vehicle_type)}${v.capacity ? ` · ${v.capacity}` : ''}` },
                     { header: t('transport.assignedRoute'), cell: (v) => (v.route ? `${v.route.route_code} — ${name(v.route)}` : '—') },
                     { header: t('transport.status'), cell: (v) => <StatusBadge tone={tone(v.status)}>{label('statuses', v.status)}</StatusBadge> },

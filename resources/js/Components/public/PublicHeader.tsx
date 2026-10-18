@@ -75,9 +75,9 @@ export default function PublicHeader() {
     const navLinkClass = (active: boolean) =>
         [
             'relative inline-flex h-16 items-center px-3 text-sm font-medium transition-colors',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)]',
+            'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
             active
-                ? 'text-[color:var(--color-primary)]'
+                ? 'text-primary'
                 : 'text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-white',
         ].join(' ');
 
@@ -104,12 +104,12 @@ export default function PublicHeader() {
     return (
         <header className="public-header sticky top-0 z-40 border-b border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-950">
             {/* The accent rail: the one place the signal colour is always present. */}
-            <div aria-hidden="true" className="h-[3px] bg-[color:var(--color-accent)]" />
+            <div aria-hidden="true" className="h-[3px] bg-accent" />
 
             <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
                 <Link
                     href="/"
-                    className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-control focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                    className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-control focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                 >
                     {logoUrl ? (
                         <img src={logoUrl} alt="" width={88} height={36} decoding="async" className="h-9 w-auto max-w-[88px] shrink-0 object-contain" />
@@ -131,7 +131,7 @@ export default function PublicHeader() {
                                         <Link href={link.href} className={navLinkClass(active)} aria-current={active ? 'page' : undefined}>
                                             {pick(link, 'label')}
                                             {active && (
-                                                <span aria-hidden="true" className="absolute inset-x-3 bottom-0 h-0.5 bg-[color:var(--color-primary)]" />
+                                                <span aria-hidden="true" className="absolute inset-x-3 bottom-0 h-0.5 bg-primary" />
                                             )}
                                         </Link>
                                     )}
@@ -152,7 +152,7 @@ export default function PublicHeader() {
                                     <button
                                         type="button"
                                         aria-label={user.name}
-                                        className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                                        className="rounded-full focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                                     >
                                         <UserAvatar src={user.profile_photo_url} name={user.name} size={30} />
                                     </button>
@@ -183,7 +183,7 @@ export default function PublicHeader() {
                     aria-haspopup="dialog"
                     aria-expanded={menuOpen}
                     aria-controls="public-mobile-menu"
-                    className={buttonClassName({ variant: 'ghost', size: 'icon', className: 'ms-auto !h-11 !w-11 shrink-0 lg:hidden' })}
+                    className={buttonClassName({ variant: 'ghost', size: 'icon', className: 'ms-auto h-11! w-11! shrink-0 lg:hidden' })}
                 >
                     <MenuIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
@@ -206,7 +206,7 @@ export default function PublicHeader() {
                             type="button"
                             onClick={() => setMenuOpen(false)}
                             aria-label={t('nav.closeMenu')}
-                            className={buttonClassName({ variant: 'ghost', size: 'icon', className: '!h-11 !w-11 shrink-0' })}
+                            className={buttonClassName({ variant: 'ghost', size: 'icon', className: 'h-11! w-11! shrink-0' })}
                         >
                             <X className="h-5 w-5" aria-hidden="true" />
                         </button>
@@ -217,9 +217,9 @@ export default function PublicHeader() {
                             {links.map((link) => {
                                 const active = !link.external && isActive(path, link.href);
                                 const cls = [
-                                    'flex min-h-[44px] items-center rounded-control px-3 py-2 text-sm font-medium [overflow-wrap:anywhere]',
+                                    'flex min-h-[44px] items-center rounded-control px-3 py-2 text-sm font-medium wrap-anywhere',
                                     active
-                                        ? 'bg-[color:var(--color-primary)]/10 text-[color:var(--color-primary)]'
+                                        ? 'bg-primary/10 text-primary'
                                         : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800',
                                 ].join(' ');
 

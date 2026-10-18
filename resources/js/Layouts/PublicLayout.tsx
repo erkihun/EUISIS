@@ -70,19 +70,19 @@ export default function PublicLayout({ title, description, meta, noindex = false
                 (resources/css/public-site.css); motion follows the same
                 appearance setting the home page reads. */}
             <div
-                className="public-site flex min-h-screen flex-col bg-[color:var(--app-background)]"
+                className="public-site flex min-h-screen flex-col bg-(--app-background)"
                 data-motion={getBoolean('appearance.enable_ui_animations', true) ? 'on' : 'off'}
             >
                 <a
                     href="#main-content"
-                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-[color:var(--app-surface)] focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-[color:var(--app-foreground)] focus:shadow focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
+                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-60 focus:rounded-control focus:bg-(--app-surface) focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-(--app-foreground) focus:shadow-sm focus:outline-hidden focus:ring-2 focus:ring-primary"
                 >
                     {t('publicSite.skipToContent')}
                 </a>
 
                 <PublicHeader />
 
-                <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
+                <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-hidden">
                     {children}
                 </main>
 

@@ -59,8 +59,8 @@ export default function ServiceShow({ service, functions, isicActivities, versio
 
     const detail = (label: string, value: React.ReactNode) => (
         <div className="min-w-0">
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 break-words text-sm text-[color:var(--app-foreground)]">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 wrap-break-word text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
         </div>
     );
 
@@ -105,19 +105,19 @@ export default function ServiceShow({ service, functions, isicActivities, versio
                             {detail(tt('fields.descriptionAm'), service.description_am)}
                         </dl>
                         {service.status === 'draft' && !can.publish && can.update && (
-                            <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">{tt('services.publishByOther')}</p>
+                            <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{tt('services.publishByOther')}</p>
                         )}
                     </Card>
 
                     <Card>
-                        <CardHeader><CardTitle>{tt('services.justifiedBy')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('services.justifiedByHelp')}</p></CardHeader>
-                        {functions.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('services.noFunctions')}</p> : (
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                        <CardHeader><CardTitle>{tt('services.justifiedBy')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('services.justifiedByHelp')}</p></CardHeader>
+                        {functions.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('services.noFunctions')}</p> : (
+                            <ul className="divide-y divide-(--app-border)">
                                 {functions.map((f) => (
                                     <li key={f.id} className="flex flex-wrap items-start gap-3 px-5 py-3">
-                                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{f.code}</span>
-                                        <span className="min-w-0 flex-1 text-sm text-[color:var(--app-foreground)]">{titleOf(f, locale)}</span>
-                                        {f.mandate_code && <span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('functions.underMandate')} {f.mandate_code}</span>}
+                                        <span className="font-mono text-xs text-(--app-muted-foreground)">{f.code}</span>
+                                        <span className="min-w-0 flex-1 text-sm text-(--app-foreground)">{titleOf(f, locale)}</span>
+                                        {f.mandate_code && <span className="text-xs text-(--app-muted-foreground)">{tt('functions.underMandate')} {f.mandate_code}</span>}
                                     </li>
                                 ))}
                             </ul>
@@ -125,14 +125,14 @@ export default function ServiceShow({ service, functions, isicActivities, versio
                     </Card>
 
                     <Card>
-                        <CardHeader><CardTitle>{tt('services.isic')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('services.isicHelp')}</p></CardHeader>
-                        {isicActivities.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('services.noIsic')}</p> : (
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                        <CardHeader><CardTitle>{tt('services.isic')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('services.isicHelp')}</p></CardHeader>
+                        {isicActivities.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('services.noIsic')}</p> : (
+                            <ul className="divide-y divide-(--app-border)">
                                 {isicActivities.map((a) => (
                                     <li key={a.id} className="flex flex-wrap items-start gap-3 px-5 py-3">
-                                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{a.isic_code}</span>
-                                        <span className="min-w-0 flex-1 text-sm text-[color:var(--app-foreground)]">{nameOf(a, locale)}</span>
-                                        <span className="text-xs text-[color:var(--app-muted-foreground)]">{a.revision}</span>
+                                        <span className="font-mono text-xs text-(--app-muted-foreground)">{a.isic_code}</span>
+                                        <span className="min-w-0 flex-1 text-sm text-(--app-foreground)">{nameOf(a, locale)}</span>
+                                        <span className="text-xs text-(--app-muted-foreground)">{a.revision}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -143,12 +143,12 @@ export default function ServiceShow({ service, functions, isicActivities, versio
                 <div className="space-y-4">
                     <Card>
                         <CardHeader><CardTitle>{tt('services.versions')}</CardTitle></CardHeader>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {versions.map((v) => (
                                 <li key={v.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                                     <div>
                                         {v.id === service.id ? <span className="font-semibold">v{v.version_no}</span> : <Link href={route('organization-design.services.show', v.id)} className={actionLinkClassName({ size: 'sm' })}>v{v.version_no}</Link>}
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={v.effective_from} />{v.effective_to && <> – <LocalizedDateDisplay value={v.effective_to} /></>}</p>
+                                        <p className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={v.effective_from} />{v.effective_to && <> – <LocalizedDateDisplay value={v.effective_to} /></>}</p>
                                     </div>
                                     <StatusPill status={v.status} />
                                 </li>
@@ -157,12 +157,12 @@ export default function ServiceShow({ service, functions, isicActivities, versio
                     </Card>
                     <Card>
                         <CardHeader><CardTitle>{tt('services.history')}</CardTitle></CardHeader>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {history.map((h, i) => (
                                 <li key={i} className="px-5 py-3 text-sm">
-                                    <p className="font-medium text-[color:var(--app-foreground)]">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
-                                    {h.reason && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{h.reason}</p>}
+                                    <p className="font-medium text-(--app-foreground)">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
+                                    {h.reason && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{h.reason}</p>}
                                 </li>
                             ))}
                         </ul>

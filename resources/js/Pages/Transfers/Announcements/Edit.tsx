@@ -116,7 +116,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
         patch(route('transfer-announcements.update', announcement.id));
     };
 
-    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const labelCls = 'block text-sm font-medium text-(--app-foreground)';
     const inputCls = cx(inputClassName, 'mt-1 block w-full');
     const errorCls = 'mt-1 text-xs text-red-500';
 
@@ -132,13 +132,13 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
             <Head title={t('transfers.editAnnouncement')} />
 
             <div>
-                <form onSubmit={submit} className="space-y-6 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                <form onSubmit={submit} className="space-y-6 rounded-card border border-(--app-border) bg-(--app-surface) p-6">
 
                     {/* ── Positions ── */}
                     <section className="space-y-4">
                         {positionsTruncated && <p role="status" className="text-xs text-amber-700 dark:text-amber-300">{t('transfers.positionsTruncated').replace(':count', String(positions.length))}</p>}
                         <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">
+                            <h3 className="text-base font-semibold text-(--app-foreground)">
                                 {t('transfers.includedPositions')}
                             </h3>
                             <button
@@ -156,9 +156,9 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                                 : positions;
 
                             return (
-                                <div key={index} className="rounded-lg border border-[color:var(--app-border)] p-4">
+                                <div key={index} className="rounded-lg border border-(--app-border) p-4">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                                        <span className="text-sm font-semibold text-(--app-foreground)">
                                             {t('transfers.positionLine')} {index + 1}
                                         </span>
                                         {data.positions.length > 1 && (
@@ -220,7 +220,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                                             <label className={labelCls}>{t('transfers.gradeLevel')}</label>
                                             <input
                                                 type="text"
-                                                className={`${inputCls} bg-[color:var(--app-surface-muted)]`}
+                                                className={`${inputCls} bg-(--app-surface-muted)`}
                                                 value={row.grade_level}
                                                 readOnly
                                                 placeholder="—"
@@ -294,7 +294,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                             <button
                                 type="button"
                                 onClick={() => setData('eligibility_rules', [...data.eligibility_rules, { type: 'employment_status', operator: 'equals', value: 'active' }])}
-                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                className="text-xs text-primary hover:underline dark:text-primary"
                             >
                                 + {t('transfers.addEligibilityRule')}
                             </button>
@@ -326,7 +326,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                             <button
                                 type="button"
                                 onClick={() => setData('required_documents', [...data.required_documents, ''])}
-                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                className="text-xs text-primary hover:underline dark:text-primary"
                             >
                                 + {t('transfers.addDocument')}
                             </button>
@@ -355,10 +355,10 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                     </section>
 
                     {/* ── Actions ── */}
-                    <div className="flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-4">
+                    <div className="flex items-center justify-end gap-3 border-t border-(--app-border) pt-4">
                         <a
                             href={route('transfer-announcements.show', announcement.id)}
-                            className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </a>

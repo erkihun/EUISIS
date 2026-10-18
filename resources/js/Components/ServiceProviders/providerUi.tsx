@@ -20,7 +20,7 @@ export function useLocalName(): (ref: NamedRef, fallback?: string) => string {
  */
 const TYPE_TINTS: Record<string, string> = {
     cafeteria: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
-    transport: 'bg-[color:var(--color-primary-100)] text-[color:var(--color-primary)] dark:bg-[color:var(--color-primary-900)] dark:text-[color:var(--color-primary-200)]',
+    transport: 'bg-primary-100 text-primary dark:bg-primary-900 dark:text-primary-200',
     health: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200',
     consumer_association: 'bg-pink-100 text-pink-800 dark:bg-pink-900/40 dark:text-pink-200',
     insurance: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200',
@@ -28,7 +28,7 @@ const TYPE_TINTS: Record<string, string> = {
 };
 
 export function typeTint(code: string | undefined): string {
-    return (code && TYPE_TINTS[code]) || 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]';
+    return (code && TYPE_TINTS[code]) || 'bg-(--app-surface-muted) text-(--app-muted-foreground)';
 }
 
 export function initials(name: string | null | undefined): string {
@@ -87,7 +87,7 @@ const transactionTones: Record<string, Tone> = {
 
 export const TRANSACTION_DOTS: Record<string, string> = {
     settled: 'bg-emerald-600',
-    authorized: 'bg-[color:var(--color-primary-500)]',
+    authorized: 'bg-primary-500',
     denied: 'bg-red-600',
     pending_sync: 'bg-amber-500',
     reversed: 'bg-slate-400',
@@ -119,7 +119,7 @@ export function formatEtb(amount: string | number | null | undefined): string {
 export function DemoTag(): JSX.Element {
     const { t } = useLocale();
     return (
-        <span className="inline-flex h-[18px] items-center rounded px-1.5 text-[11px] font-semibold text-violet-800 ring-1 ring-inset ring-violet-200 bg-violet-50 dark:bg-violet-950/40 dark:text-violet-200 dark:ring-violet-900">
+        <span className="inline-flex h-[18px] items-center rounded-sm px-1.5 text-[11px] font-semibold text-violet-800 ring-1 ring-inset ring-violet-200 bg-violet-50 dark:bg-violet-950/40 dark:text-violet-200 dark:ring-violet-900">
             {t('providers.demo')}
         </span>
     );

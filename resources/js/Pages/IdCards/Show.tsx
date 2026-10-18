@@ -131,7 +131,7 @@ function Modal({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
             onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
             <div className="w-full max-w-md rounded-panel bg-white shadow-2xl dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-slate-700">
@@ -161,7 +161,7 @@ function Modal({
                         type="button"
                         onClick={onConfirm}
                         disabled={processing}
-                        className={`rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 ${confirmCls[variant]}`}
+                        className={`rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-hidden focus:ring-2 focus:ring-offset-2 disabled:opacity-60 ${confirmCls[variant]}`}
                     >
                         {processing ? t('common.saving') : (confirmLabel ?? t('common.confirm'))}
                     </button>
@@ -259,7 +259,7 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
     );
 }
 
-const inputCls = 'w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500';
+const inputCls = 'w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500';
 
 // ── Main component ───────────────────────────────────────────────────────────
 
@@ -366,7 +366,7 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
                                         className={[
                                             'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
                                             cardDesign === 'landscape'
-                                                ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
+                                                ? 'bg-white text-gray-900 shadow-xs dark:bg-slate-700 dark:text-slate-100'
                                                 : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200',
                                         ].join(' ')}
                                     >
@@ -382,7 +382,7 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
                                         className={[
                                             'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
                                             cardDesign === 'portrait'
-                                                ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-700 dark:text-slate-100'
+                                                ? 'bg-white text-gray-900 shadow-xs dark:bg-slate-700 dark:text-slate-100'
                                                 : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200',
                                         ].join(' ')}
                                     >
@@ -554,7 +554,7 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
                                     <Field label={t('idCards.previousCard')}>
                                         <Link
                                             href={route('id-cards.show', card.previous_card.id)}
-                                            className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                            className="font-mono text-primary hover:underline dark:text-primary"
                                         >
                                             {card.previous_card.card_number}
                                         </Link>
@@ -564,7 +564,7 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
                                     <Field label={t('idCards.replacementCard')}>
                                         <Link
                                             href={route('id-cards.show', card.replacement_card.id)}
-                                            className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                            className="font-mono text-primary hover:underline dark:text-primary"
                                         >
                                             {card.replacement_card.card_number}
                                         </Link>

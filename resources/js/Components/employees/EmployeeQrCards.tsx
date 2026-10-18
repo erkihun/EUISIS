@@ -51,11 +51,11 @@ export default function EmployeeQrCards({
     }
 
     return (
-        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 sm:p-6">
-            <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+        <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5 sm:p-6">
+            <h2 className="text-sm font-semibold text-(--app-foreground)">
                 {t('employees.qrSectionTitle')}
             </h2>
-            <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+            <p className="mt-1 text-xs text-(--app-muted-foreground)">
                 {t('employees.qrSectionHint')}
             </p>
 
@@ -146,28 +146,28 @@ function QrCard({
     }
 
     return (
-        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4 text-center">
-            <h3 className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+        <div className="rounded-card border border-(--app-border) bg-(--app-surface-muted) p-4 text-center">
+            <h3 className="text-xs font-semibold text-(--app-muted-foreground)">
                 {title}
             </h3>
 
             {url === null ? (
-                <p className="py-10 text-sm text-[color:var(--app-muted-foreground)]">{emptyLabel}</p>
+                <p className="py-10 text-sm text-(--app-muted-foreground)">{emptyLabel}</p>
             ) : (
                 <>
                     {svg !== '' && (
                         <img
                             src={svg}
                             alt={title}
-                            className="mx-auto mt-3 h-40 w-40 rounded-lg bg-[color:var(--app-surface)] p-2"
+                            className="mx-auto mt-3 h-40 w-40 rounded-lg bg-(--app-surface) p-2"
                         />
                     )}
 
                     {subtitle && (
-                        <p className="mt-2 font-mono text-xs text-[color:var(--app-muted-foreground)]">{subtitle}</p>
+                        <p className="mt-2 font-mono text-xs text-(--app-muted-foreground)">{subtitle}</p>
                     )}
 
-                    <p className="mt-2 break-all text-[11px] leading-snug text-[color:var(--app-muted-foreground)]">
+                    <p className="mt-2 break-all text-[11px] leading-snug text-(--app-muted-foreground)">
                         {url}
                     </p>
 
@@ -191,7 +191,7 @@ function QrCard({
                         )}
 
                         {(onRegenerate || onRevoke) && (
-                            <div className="grid grid-cols-2 gap-2 border-t border-[color:var(--app-border)] pt-2">
+                            <div className="grid grid-cols-2 gap-2 border-t border-(--app-border) pt-2">
                                 {onRegenerate && (
                                     <button
                                         type="button"

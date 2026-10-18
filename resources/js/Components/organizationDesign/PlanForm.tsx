@@ -37,7 +37,7 @@ export default function PlanForm({ show, onClose, title, initial, url, method, o
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     {organizations && (
                         <FormField {...field('organization_id', tt('fields.organization'), true)} className="sm:col-span-2">

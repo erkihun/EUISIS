@@ -139,7 +139,7 @@ export default function OrganizationUnitTree({
         <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="relative flex-1 min-w-48">
-                    <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
+                    <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" />
                     <input
                         type="text"
                         className={cx(inputClassName, 'w-full pl-9 pr-3')}
@@ -191,7 +191,7 @@ export default function OrganizationUnitTree({
                     }
                 />
             ) : (
-                <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
                     <table className={tableClassName}>
                         <thead className={tableHeadClassName}>
                             <tr>

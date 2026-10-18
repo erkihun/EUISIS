@@ -4,10 +4,10 @@ import { DangerCircleIcon, MegaphoneIcon } from '@/Components/NavIcons';
 import type { AnnouncementPriority } from '@/types/communication';
 
 const TONE: Record<AnnouncementPriority, string> = {
-    NORMAL: 'text-[color:var(--app-muted-foreground)]',
-    IMPORTANT: 'text-[color:var(--color-primary)]',
+    NORMAL: 'text-(--app-muted-foreground)',
+    IMPORTANT: 'text-primary',
     URGENT: 'text-amber-700 dark:text-amber-300',
-    EMERGENCY: 'text-[color:var(--color-danger,#b42318)]',
+    EMERGENCY: 'text-(--color-danger,#b42318)',
 };
 
 /** The announcement's priority as an icon in its tone, with the word for anything above normal. */

@@ -134,7 +134,7 @@ export default function OrganogramChart({
 
                 {supportsExpansion && (
                     <>
-                        <span className="mx-1 h-4 w-px bg-[color:var(--app-surface-muted)]" />
+                        <span className="mx-1 h-4 w-px bg-(--app-surface-muted)" />
                         <button type="button" onClick={() => setExpandedIds(new Set(allUnitIds))} className={buttonCls}>
                             {t('organizations.expandAll')}
                         </button>
@@ -144,7 +144,7 @@ export default function OrganogramChart({
                     </>
                 )}
 
-                <span className="mx-1 h-4 w-px bg-[color:var(--app-surface-muted)]" />
+                <span className="mx-1 h-4 w-px bg-(--app-surface-muted)" />
                 <button
                     type="button"
                     onClick={() => setZoom((value) => Math.max(0.5, Number((value - 0.1).toFixed(2))))}
@@ -152,7 +152,7 @@ export default function OrganogramChart({
                 >
                     {t('organizations.zoomOut')}
                 </button>
-                <span className="text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{Math.round(zoom * 100)}%</span>
+                <span className="text-xs tabular-nums text-(--app-muted-foreground)">{Math.round(zoom * 100)}%</span>
                 <button
                     type="button"
                     onClick={() => setZoom((value) => Math.min(1.5, Number((value + 0.1).toFixed(2))))}
@@ -165,7 +165,7 @@ export default function OrganogramChart({
             </div>
 
             {!hasStructure ? (
-                <p className="py-16 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="py-16 text-center text-sm text-(--app-muted-foreground)">
                     {t('organizations.noStructureFound')}
                 </p>
             ) : (
@@ -176,7 +176,7 @@ export default function OrganogramChart({
                         ref={captureRef}
                         data-organogram-layout={layout}
                         data-organogram-depth={depth}
-                        className="inline-block min-w-full origin-top-left bg-[color:var(--app-surface)] p-4"
+                        className="inline-block min-w-full origin-top-left bg-(--app-surface) p-4"
                         style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
                     >
                         {renderLayout()}

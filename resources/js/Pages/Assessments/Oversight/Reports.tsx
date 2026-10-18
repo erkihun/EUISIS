@@ -84,7 +84,7 @@ export default function OversightReports(props: Props) {
 
                     {can.export && (
                         <Section title={t('assessmentOversight.exportsTitle')} description={t('assessmentOversight.exportsHelp')}>
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                            <ul className="divide-y divide-(--app-border)">
                                 {REPORTS.filter(allowed).map((report) => (
                                     <li key={report} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
                                         <span className="text-sm font-medium">{t(`assessmentOversight.reports.${report}`)}</span>
@@ -128,7 +128,7 @@ export default function OversightReports(props: Props) {
                                 );
                             })}
                             {totals && (
-                                <tr className={cx(tableRowClassName, 'bg-[color:var(--app-surface-muted)]')}>
+                                <tr className={cx(tableRowClassName, 'bg-(--app-surface-muted)')}>
                                     <td className={tdCls}>{t('assessmentOversight.total')}</td>
                                     <td className={`${tdCls} tabular-nums`}>{totals.eligible}</td>
                                     <td className={`${tdCls} tabular-nums`}>{totals.assessed}</td>
@@ -152,9 +152,9 @@ export default function OversightReports(props: Props) {
                             <div className="grid gap-4 md:grid-cols-3">
                                 {(['exceptions', 'reported', 'excluded'] as const).map((group) => (
                                     <div key={group}>
-                                        <h4 className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.reasonGroups.${group}`)}</h4>
+                                        <h4 className="text-xs font-semibold uppercase text-(--app-muted-foreground)">{t(`assessmentOversight.reasonGroups.${group}`)}</h4>
                                         <ul className="mt-1 text-sm">
-                                            {reasons[group].length === 0 && <li className="text-[color:var(--app-muted-foreground)]">—</li>}
+                                            {reasons[group].length === 0 && <li className="text-(--app-muted-foreground)">—</li>}
                                             {reasons[group].map((r, i) => <li key={`${r.code}-${i}`} className="flex justify-between py-1"><span>{(locale === 'am' && r.name_am) || r.name_en || r.code || t('assessmentOversight.noReason')}</span><span className="tabular-nums">{r.n}</span></li>)}
                                         </ul>
                                     </div>

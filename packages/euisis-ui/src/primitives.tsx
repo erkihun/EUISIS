@@ -17,24 +17,24 @@ export type ButtonSize = 'xs' | 'sm' | 'default' | 'md' | 'lg' | 'icon';
 
 const buttonVariants: Record<ButtonVariant, string> = {
     // --color-on-primary: readable text on the theme's primary (dark text on a bright dark-mode variant)
-    default: 'bg-[color:var(--color-primary)] text-[color:var(--color-on-primary,#fff)] hover:bg-[color:var(--color-primary-hover)]',
-    primary: 'bg-[color:var(--color-primary)] text-[color:var(--color-on-primary,#fff)] hover:bg-[color:var(--color-primary-hover)]',
-    secondary: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)] hover:brightness-95',
-    outline: 'border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]',
-    ghost: 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]',
+    default: 'bg-primary text-(--color-on-primary,#fff) hover:bg-primary-hover',
+    primary: 'bg-primary text-(--color-on-primary,#fff) hover:bg-primary-hover',
+    secondary: 'bg-(--app-surface-muted) text-(--app-foreground) hover:brightness-95',
+    outline: 'border border-(--app-border-strong) bg-(--app-surface) text-(--app-foreground) hover:bg-(--app-surface-muted)',
+    ghost: 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)',
     destructive: 'bg-red-700 text-white hover:bg-red-800 dark:bg-red-700 dark:hover:bg-red-600',
     // A harmful action that is not the page's main one (Remove, Revoke next to Save).
-    destructiveOutline: 'border border-red-300 bg-[color:var(--app-surface)] text-red-700 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30',
-    link: 'h-auto p-0 text-[color:var(--color-primary)] underline-offset-4 hover:underline',
+    destructiveOutline: 'border border-red-300 bg-(--app-surface) text-red-700 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30',
+    link: 'h-auto p-0 text-primary underline-offset-4 hover:underline',
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
     xs: 'h-6 gap-1 px-2 text-xs',
-    sm: 'h-[var(--control-h-sm)] gap-1.5 px-3 text-sm',
-    default: 'h-[var(--control-h-md)] gap-2 px-3.5 text-sm',
-    md: 'h-[var(--control-h-md)] gap-2 px-3.5 text-sm',
-    lg: 'h-[var(--control-h-lg)] gap-2 px-5 text-sm',
-    icon: 'h-[var(--control-h-md)] w-[var(--control-h-md)] p-0',
+    sm: 'h-(--control-h-sm) gap-1.5 px-3 text-sm',
+    default: 'h-(--control-h-md) gap-2 px-3.5 text-sm',
+    md: 'h-(--control-h-md) gap-2 px-3.5 text-sm',
+    lg: 'h-(--control-h-lg) gap-2 px-5 text-sm',
+    icon: 'h-(--control-h-md) w-(--control-h-md) p-0',
 };
 
 export function buttonClassName({ variant = 'default', size = 'default', className = '' }: {
@@ -43,8 +43,8 @@ export function buttonClassName({ variant = 'default', size = 'default', classNa
     className?: string;
 } = {}): string {
     return cx(
-        'inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)] font-medium transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
+        'inline-flex shrink-0 items-center justify-center rounded-control font-medium transition-colors',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
         'disabled:pointer-events-none disabled:opacity-60 aria-disabled:pointer-events-none aria-disabled:opacity-60',
         buttonVariants[variant],
         buttonSizes[size],
@@ -55,8 +55,8 @@ export function buttonClassName({ variant = 'default', size = 'default', classNa
 export type ActionTone = 'primary' | 'neutral' | 'danger' | 'success';
 
 const actionTones: Record<ActionTone, string> = {
-    primary: 'text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]',
-    neutral: 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+    primary: 'text-primary hover:text-primary-hover',
+    neutral: 'text-(--app-muted-foreground) hover:text-(--app-foreground)',
     danger: 'text-red-700 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300',
     success: 'text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300',
 };
@@ -74,7 +74,7 @@ export function actionLinkClassName({ tone = 'primary', size = 'xs', className =
 } = {}): string {
     return cx(
         'font-medium underline-offset-4 transition-colors hover:underline',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
+        'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
         'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50',
         size === 'xs' ? 'text-xs' : 'text-sm',
         actionTones[tone],
@@ -122,7 +122,7 @@ export const Button = forwardRef(ButtonInner) as <T extends ElementType = 'butto
 const EXPLICIT_PADDING = /(?:^|\s)!?p-\S/;
 
 export function Card({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={cx('min-w-0 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]', !EXPLICIT_PADDING.test(className ?? '') && 'p-[var(--card-padding)]', className)} {...props}>{children}</div>;
+    return <div className={cx('min-w-0 rounded-card border border-(--app-border) bg-(--app-surface)', !EXPLICIT_PADDING.test(className ?? '') && 'p-(--card-padding)', className)} {...props}>{children}</div>;
 }
 
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
@@ -130,17 +130,17 @@ export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElemen
 }
 
 export function CardTitle({ className, ...props }: HTMLAttributes<HTMLHeadingElement>) {
-    return <h2 className={cx('text-base font-semibold text-[color:var(--app-foreground)]', className)} {...props} />;
+    return <h2 className={cx('text-base font-semibold text-(--app-foreground)', className)} {...props} />;
 }
 
 export function CardDescription({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
-    return <p className={cx('mt-1 text-sm text-[color:var(--app-muted-foreground)]', className)} {...props} />;
+    return <p className={cx('mt-1 text-sm text-(--app-muted-foreground)', className)} {...props} />;
 }
 
 export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={cx('mt-5 flex items-center justify-end gap-2 border-t border-[color:var(--app-border)] pt-4', className)} {...props} />;
+    return <div className={cx('mt-5 flex items-center justify-end gap-2 border-t border-(--app-border) pt-4', className)} {...props} />;
 }
 
 export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div aria-hidden="true" className={cx('animate-pulse rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)]', className)} {...props} />;
+    return <div aria-hidden="true" className={cx('animate-pulse rounded-control bg-(--app-surface-muted)', className)} {...props} />;
 }

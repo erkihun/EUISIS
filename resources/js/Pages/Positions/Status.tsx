@@ -116,7 +116,7 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
                     <AppMetricCard label={t('positions.vacantPositions')} value={summary.vacant_positions.toLocaleString()} variant={summary.vacant_positions > 0 ? 'warning' : 'neutral'} icon={<Inbox className="h-5 w-5" />} />
                     <AppMetricCard label={t('positions.occupancyRate')} value={`${occupancyRate.toLocaleString()}%`} variant="neutral" icon={<TrendingUpIcon className="h-5 w-5" />}
                         detail={
-                            <span className="block h-1.5 w-40 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]" role="img" aria-label={`${occupancyRate}%`}>
+                            <span className="block h-1.5 w-40 overflow-hidden rounded-full bg-(--app-surface-muted)" role="img" aria-label={`${occupancyRate}%`}>
                                 <span className="block h-full rounded-full bg-emerald-500 dark:bg-emerald-400" style={{ width: `${occupancyRate}%` }} />
                             </span>
                         } />
@@ -180,13 +180,13 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
 
                                         return (
                                             <tr key={position.id} className={tableRowClassName}>
-                                                <td className={cx(cell, 'min-w-[14rem]')}>
+                                                <td className={cx(cell, 'min-w-56')}>
                                                     <p>{departmentName}</p>
-                                                    {!isOrganizationScoped && organizationName !== departmentName && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{organizationName}</p>}
+                                                    {!isOrganizationScoped && organizationName !== departmentName && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{organizationName}</p>}
                                                 </td>
-                                                <td className={cx(cell, 'min-w-[12rem]')}>
-                                                    <Link href={route('positions.show', position.position_id)} className="font-medium hover:text-[color:var(--color-primary)] hover:underline">{title}</Link>
-                                                    <p className="mt-0.5 font-mono text-xs text-[color:var(--app-muted-foreground)]">{position.job_position_code ?? position.establishment_number ?? '—'}</p>
+                                                <td className={cx(cell, 'min-w-48')}>
+                                                    <Link href={route('positions.show', position.position_id)} className="font-medium hover:text-primary hover:underline">{title}</Link>
+                                                    <p className="mt-0.5 font-mono text-xs text-(--app-muted-foreground)">{position.job_position_code ?? position.establishment_number ?? '—'}</p>
                                                 </td>
                                                 <td className={cx(cell, 'whitespace-nowrap')}>{position.grade_level ?? '—'}</td>
                                                 <td className={cx(cell, 'whitespace-nowrap')}>
@@ -213,7 +213,7 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
                     )}
 
                     <Pagination meta={{ currentPage: positions.meta.current_page, lastPage: positions.meta.last_page, perPage: positions.meta.per_page, total: positions.meta.total }}
-                        onPageChange={goToPage} onPerPageChange={changePageSize} pageSizes={[10, 15, 25, 50]} className="border-t border-[color:var(--app-border)] px-4 py-3" />
+                        onPageChange={goToPage} onPerPageChange={changePageSize} pageSizes={[10, 15, 25, 50]} className="border-t border-(--app-border) px-4 py-3" />
                 </Card>
             </div>
         </AuthenticatedLayout>

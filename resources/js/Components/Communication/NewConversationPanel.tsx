@@ -61,16 +61,16 @@ export default function NewConversationPanel({ onBack, onStarted }: Props): JSX.
                     type="button"
                     onClick={onBack}
                     aria-label={t('communication.chat.back')}
-                    className="flex h-8 w-8 items-center justify-center rounded-control text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                    className="flex h-8 w-8 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                 >
                     <ArrowLeftIcon className="h-4 w-4" />
                 </button>
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('communication.newConversation.title')}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{t('communication.newConversation.title')}</h2>
             </div>
             <div className="px-3 pb-3">
                 <label className="relative block">
                     <span className="sr-only">{t('communication.newConversation.search')}</span>
-                    <SearchIcon className="pointer-events-none absolute start-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                    <SearchIcon className="pointer-events-none absolute inset-s-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                     <input
                         ref={input}
                         type="search"
@@ -78,17 +78,17 @@ export default function NewConversationPanel({ onBack, onStarted }: Props): JSX.
                         onChange={(event) => setQ(event.target.value)}
                         placeholder={t('communication.newConversation.search')}
                         aria-describedby="new-conversation-help"
-                        className="h-9 w-full rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-background)] ps-8 pe-2 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/15"
+                        className="h-9 w-full rounded-control border border-(--app-border) bg-(--app-background) ps-8 pe-2 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/15"
                     />
                 </label>
-                <p id="new-conversation-help" className="mt-1.5 text-xs text-[color:var(--app-muted-foreground)]">{t('communication.newConversation.searchHelp')}</p>
-                {error && <p role="alert" className="mt-2 text-xs text-[color:var(--color-danger,#b42318)]">{error}</p>}
+                <p id="new-conversation-help" className="mt-1.5 text-xs text-(--app-muted-foreground)">{t('communication.newConversation.searchHelp')}</p>
+                {error && <p role="alert" className="mt-2 text-xs text-(--color-danger,#b42318)">{error}</p>}
             </div>
 
-            <div className="comm-scroll min-h-0 flex-1 overflow-y-auto border-t border-[color:var(--app-border)]" aria-live="polite" aria-busy={state === 'searching'}>
-                {state === 'searching' && <p className="px-4 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('communication.newConversation.searching')}</p>}
-                {state === 'error' && <p className="px-4 py-6 text-center text-sm text-[color:var(--color-danger,#b42318)]">{t('communication.errors.generic')}</p>}
-                {state === 'done' && people.length === 0 && <p className="px-4 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('communication.newConversation.noResults')}</p>}
+            <div className="comm-scroll min-h-0 flex-1 overflow-y-auto border-t border-(--app-border)" aria-live="polite" aria-busy={state === 'searching'}>
+                {state === 'searching' && <p className="px-4 py-6 text-center text-sm text-(--app-muted-foreground)">{t('communication.newConversation.searching')}</p>}
+                {state === 'error' && <p className="px-4 py-6 text-center text-sm text-(--color-danger,#b42318)">{t('communication.errors.generic')}</p>}
+                {state === 'done' && people.length === 0 && <p className="px-4 py-6 text-center text-sm text-(--app-muted-foreground)">{t('communication.newConversation.noResults')}</p>}
                 {state === 'done' && people.length > 0 && (
                     <ul>
                         {people.map((person) => (
@@ -97,16 +97,16 @@ export default function NewConversationPanel({ onBack, onStarted }: Props): JSX.
                                     type="button"
                                     disabled={starting !== null}
                                     onClick={() => void start(person)}
-                                    className="flex w-full items-center gap-3 px-3 py-2.5 text-start hover:bg-[color:var(--app-surface-muted)] focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)] disabled:opacity-60"
+                                    className="flex w-full items-center gap-3 px-3 py-2.5 text-start hover:bg-(--app-surface-muted) focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-60"
                                 >
                                     <Avatar name={person.name} userId={person.id} hasPhoto={person.has_photo} online={person.online} />
                                     <span className="min-w-0 flex-1">
-                                        <span className="block truncate text-sm font-medium text-[color:var(--app-foreground)]">{person.name}</span>
-                                        <span className="block truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                        <span className="block truncate text-sm font-medium text-(--app-foreground)">{person.name}</span>
+                                        <span className="block truncate text-xs text-(--app-muted-foreground)">
                                             {[person.position, person.unit ?? person.organization].filter(Boolean).join(' · ')}
                                         </span>
                                     </span>
-                                    {person.employee_number && <span className="shrink-0 text-[11px] tabular-nums text-[color:var(--app-muted-foreground)]">{person.employee_number}</span>}
+                                    {person.employee_number && <span className="shrink-0 text-[11px] tabular-nums text-(--app-muted-foreground)">{person.employee_number}</span>}
                                 </button>
                             </li>
                         ))}

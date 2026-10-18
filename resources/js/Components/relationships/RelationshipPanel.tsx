@@ -139,11 +139,11 @@ export default function RelationshipPanel({
     const selectCls = cx(inputClassName, 'w-full');
 
     return (
-        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+        <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('relationships.title')}</h3>
-                    <div className="mt-2 space-y-1 text-xs text-[color:var(--app-muted-foreground)]">
+                    <h3 className="font-semibold text-(--app-foreground)">{t('relationships.title')}</h3>
+                    <div className="mt-2 space-y-1 text-xs text-(--app-muted-foreground)">
                         <p>{t('relationships.helpStructural')}</p>
                         <p>{t('relationships.helpFunctional')}</p>
                         <p>{t('relationships.helpNoManagement')}</p>
@@ -151,7 +151,7 @@ export default function RelationshipPanel({
                 </div>
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-card border border-[color:var(--app-border)]">
+            <div className="mt-4 overflow-hidden rounded-card border border-(--app-border)">
                 <table className={cx(tableClassName, 'min-w-full text-left')}>
                     <thead className={tableHeadClassName}>
                         <tr>
@@ -174,26 +174,26 @@ export default function RelationshipPanel({
                     <tbody className={tableBodyClassName}>
                         {rows.length === 0 ? (
                             <tr>
-                                <td colSpan={showActionColumn ? 8 : 7} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
+                                <td colSpan={showActionColumn ? 8 : 7} className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>
                                     {t('relationships.noRelationships')}
                                 </td>
                             </tr>
                         ) : rows.map((row) => (
                             <tr
                                 key={row.id}
-                                className={`border-t border-[color:var(--app-border)] ${editingId === row.id ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
+                                className={`border-t border-(--app-border) ${editingId === row.id ? 'bg-blue-50 dark:bg-blue-950/30' : ''}`}
                             >
-                                <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{t(`relationships.types.${row.relationship_type}`)}</td>
-                                <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{targetName(row.target?.name_en, row.target?.name_am, row.target_id)}</td>
-                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{t(`relationships.targetTypes.${row.target_type}`)}</td>
-                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{t(`relationships.types.${row.relationship_type}`)}</td>
+                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{targetName(row.target?.name_en, row.target?.name_am, row.target_id)}</td>
+                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{t(`relationships.targetTypes.${row.target_type}`)}</td>
+                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                     <LocalizedDateDisplay value={row.effective_from} />
                                 </td>
-                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                     <LocalizedDateDisplay value={row.effective_to} />
                                 </td>
-                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{row.is_primary ? t('common.yes') : t('common.no')}</td>
-                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{t(`relationships.statuses.${row.status}`)}</td>
+                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{row.is_primary ? t('common.yes') : t('common.no')}</td>
+                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{t(`relationships.statuses.${row.status}`)}</td>
                                 {showActionColumn && (
                                     <td className={tableCellClassName}>
                                         <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ export default function RelationshipPanel({
                                                 <button
                                                     type="button"
                                                     onClick={() => editingId === row.id ? cancelEdit() : startEdit(row)}
-                                                    className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                    className="text-xs font-medium text-primary hover:underline dark:text-primary"
                                                 >
                                                     {editingId === row.id ? t('common.cancel') : t('common.edit')}
                                                 </button>
@@ -227,7 +227,7 @@ export default function RelationshipPanel({
             {showForm && (
                 <form onSubmit={submit} className="mt-5 space-y-3">
                     <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                        <h4 className="text-sm font-semibold text-(--app-foreground)">
                             {isEditing ? t('relationships.editRelationship') : t('relationships.addRelationship')}
                         </h4>
                         {isEditing && (
@@ -301,12 +301,12 @@ export default function RelationshipPanel({
                     </div>
 
                     <div className="flex items-center justify-between gap-4">
-                        <label className="flex items-center gap-2 text-sm text-[color:var(--app-muted-foreground)]">
+                        <label className="flex items-center gap-2 text-sm text-(--app-muted-foreground)">
                             <input
                                 type="checkbox"
                                 checked={form.data.is_primary}
                                 onChange={(e) => form.setData('is_primary', e.target.checked)}
-                                className="rounded border-[color:var(--app-border-strong)]"
+                                className="rounded-sm border-(--app-border-strong)"
                             />
                             {t('relationships.primary')}
                         </label>

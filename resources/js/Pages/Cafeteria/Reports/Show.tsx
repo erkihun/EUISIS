@@ -32,9 +32,9 @@ export default function ReportShow({ report }: { report: ReportRun }) {
         monthly: t('cafeteria.monthly'),
     } as Record<string, string>)[s] ?? s;
 
-    const cardCls = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5';
-    const labelCls = 'text-xs font-medium text-[color:var(--app-muted-foreground)]';
-    const valueCls = 'mt-1 text-2xl font-bold text-[color:var(--app-foreground)]';
+    const cardCls = 'rounded-card border border-(--app-border) bg-(--app-surface) p-5';
+    const labelCls = 'text-xs font-medium text-(--app-muted-foreground)';
+    const valueCls = 'mt-1 text-2xl font-bold text-(--app-foreground)';
 
     return (
         <AuthenticatedLayout
@@ -45,23 +45,23 @@ export default function ReportShow({ report }: { report: ReportRun }) {
             <Head title={report.report_number} />
 
             <div className="space-y-6">
-                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-6">
                     <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         <div>
-                            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.reportType')}</dt>
-                            <dd className="mt-1 font-medium text-[color:var(--app-foreground)]">{reportTypeLabel(report.report_type)}</dd>
+                            <dt className="text-xs text-(--app-muted-foreground)">{t('cafeteria.reportType')}</dt>
+                            <dd className="mt-1 font-medium text-(--app-foreground)">{reportTypeLabel(report.report_type)}</dd>
                         </div>
                         <div>
-                            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.periodStart')}</dt>
-                            <dd className="mt-1 font-medium text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={report.period_start} /></dd>
+                            <dt className="text-xs text-(--app-muted-foreground)">{t('cafeteria.periodStart')}</dt>
+                            <dd className="mt-1 font-medium text-(--app-foreground)"><LocalizedDateDisplay value={report.period_start} /></dd>
                         </div>
                         <div>
-                            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.periodEnd')}</dt>
-                            <dd className="mt-1 font-medium text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={report.period_end} /></dd>
+                            <dt className="text-xs text-(--app-muted-foreground)">{t('cafeteria.periodEnd')}</dt>
+                            <dd className="mt-1 font-medium text-(--app-foreground)"><LocalizedDateDisplay value={report.period_end} /></dd>
                         </div>
                         <div>
-                            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.generatedAt')}</dt>
-                            <dd className="mt-1 font-medium text-[color:var(--app-foreground)]">
+                            <dt className="text-xs text-(--app-muted-foreground)">{t('common.generatedAt')}</dt>
+                            <dd className="mt-1 font-medium text-(--app-foreground)">
                                 <LocalizedDateDisplay value={report.generated_at} withTime />
                             </dd>
                         </div>
@@ -92,7 +92,7 @@ export default function ReportShow({ report }: { report: ReportRun }) {
                         </div>
                         <div className={cardCls}>
                             <p className={labelCls}>{t('cafeteria.governmentPayable')}</p>
-                            <p className={`${valueCls} text-[color:var(--color-primary)]`}>{(report.totals.total_subsidy ?? 0).toFixed(2)} ETB</p>
+                            <p className={`${valueCls} text-primary`}>{(report.totals.total_subsidy ?? 0).toFixed(2)} ETB</p>
                         </div>
                     </div>
                 )}

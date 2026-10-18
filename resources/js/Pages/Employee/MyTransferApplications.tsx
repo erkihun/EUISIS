@@ -78,7 +78,7 @@ export default function MyTransferApplications({ applications, has_employee, fil
                 // With Announcements out of the menu, this is how an employee finds open posts.
                 <Link
                     href={route('employee.announcements')}
-                    className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+                    className="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
                 >
                     {t('employeePortal.browseAnnouncements')}
                 </Link>
@@ -92,7 +92,7 @@ export default function MyTransferApplications({ applications, has_employee, fil
             ) : !applications || applications.data.length === 0 ? (
                 <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
                     <p className="text-sm text-gray-400 dark:text-slate-500">{t('transfers.noApplications')}</p>
-                    <Link href={route('employee.announcements')} className="mt-4 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline">
+                    <Link href={route('employee.announcements')} className="mt-4 inline-block text-sm font-medium text-primary hover:underline">
                         {t('employeePortal.browseAnnouncements')}
                     </Link>
                 </div>
@@ -107,7 +107,7 @@ export default function MyTransferApplications({ applications, has_employee, fil
                                     <div className="min-w-0">
                                         <Link
                                             href={route('employee.announcements.show', { announcement: app.announcement_id })}
-                                            className="font-semibold text-gray-900 hover:text-[var(--color-primary)] dark:text-slate-100"
+                                            className="font-semibold text-gray-900 hover:text-primary dark:text-slate-100"
                                         >
                                             {name(app.position_title, app.position_title_am) ?? '—'}
                                         </Link>

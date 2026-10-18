@@ -52,15 +52,15 @@ export default function TransferSettings({ transferSettings }: Props) {
      * fade for disabled state — so it visibly did not match the rest of the
      * admin area.
      */
-    const sectionCls = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 space-y-5';
+    const sectionCls = 'rounded-card border border-(--app-border) bg-(--app-surface) p-6 space-y-5';
     const inputCls = cx(inputClassName, 'w-full');
-    const labelCls = 'mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+    const labelCls = 'mb-1 block text-xs font-medium text-(--app-muted-foreground)';
 
     const tabBarCls = (active: boolean) =>
         `whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             active
-                ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'
-                : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'
+                ? 'border-primary text-primary dark:text-primary'
+                : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)'
         }`;
 
     function set<K extends keyof TransferSettings>(key: K, value: TransferSettings[K]) {
@@ -97,7 +97,7 @@ export default function TransferSettings({ transferSettings }: Props) {
             <div className="min-w-0 space-y-6">
                 {/* Tab bar */}
                 <div className="min-w-0 overflow-x-auto">
-                    <div className="flex min-w-max border-b border-[color:var(--app-border)]">
+                    <div className="flex min-w-max border-b border-(--app-border)">
                         {tabDefs.map((tb) => (
                             <button
                                 key={tb.key}
@@ -116,7 +116,7 @@ export default function TransferSettings({ transferSettings }: Props) {
                     {/* ── Transfer Rules ── */}
                     {tab === 'rules' && (
                         <div className={sectionCls}>
-                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.tabRules')}</h3>
+                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.tabRules')}</h3>
                             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <div>
                                     <label className={labelCls}>{t('transfers.requireSamePosition')}</label>
@@ -164,7 +164,7 @@ export default function TransferSettings({ transferSettings }: Props) {
                     {/* ── Approval Chain ── */}
                     {tab === 'approval' && (
                         <div className={sectionCls}>
-                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.approvalChain')}</h3>
+                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.approvalChain')}</h3>
                             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <div>
                                     <label className={labelCls}>{t('transfers.releasingConsentRequired')}</label>
@@ -195,17 +195,17 @@ export default function TransferSettings({ transferSettings }: Props) {
                     {tab === 'documents' && (
                         <div className={sectionCls}>
                             <div className="flex items-center justify-between">
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.requiredDocuments')}</h3>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.requiredDocuments')}</h3>
                                 <button
                                     type="button"
                                     onClick={() => set('required_documents', [...(form.required_documents ?? []), ''])}
-                                    className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                    className="text-sm font-medium text-primary hover:underline dark:text-primary"
                                 >
                                     + {t('transfers.addDocument')}
                                 </button>
                             </div>
                             {(form.required_documents ?? []).length === 0 && (
-                                <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>
+                                <p className="text-sm text-(--app-muted-foreground)">—</p>
                             )}
                             <div className="space-y-2">
                                 {(form.required_documents ?? []).map((doc, i) => (
@@ -236,7 +236,7 @@ export default function TransferSettings({ transferSettings }: Props) {
                     {/* ── Override Policy ── */}
                     {tab === 'override' && (
                         <div className={sectionCls}>
-                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.tabOverride')}</h3>
+                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.tabOverride')}</h3>
                             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <div>
                                     <label className={labelCls}>{t('transfers.allowExceptionalOverride')}</label>
@@ -249,18 +249,18 @@ export default function TransferSettings({ transferSettings }: Props) {
                             {form.allow_exceptional_override && (
                                 <div className="mt-4">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('transfers.overrideApproverRoles')}</label>
+                                        <label className="text-sm font-medium text-(--app-foreground)">{t('transfers.overrideApproverRoles')}</label>
                                         <button
                                             type="button"
                                             onClick={() => set('override_approver_roles', [...(form.override_approver_roles ?? []), ''])}
-                                            className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                            className="text-sm font-medium text-primary hover:underline dark:text-primary"
                                         >
                                             + {t('transfers.addRole')}
                                         </button>
                                     </div>
                                     <div className="mt-2 space-y-2">
                                         {(form.override_approver_roles ?? []).length === 0 && (
-                                            <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>
+                                            <p className="text-sm text-(--app-muted-foreground)">—</p>
                                         )}
                                         {(form.override_approver_roles ?? []).map((role, i) => (
                                             <div key={i} className="flex gap-2">
@@ -292,7 +292,7 @@ export default function TransferSettings({ transferSettings }: Props) {
                     {/* ── Post-Transfer ── */}
                     {tab === 'post_transfer' && (
                         <div className={sectionCls}>
-                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.tabPostTransfer')}</h3>
+                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.tabPostTransfer')}</h3>
                             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                 <div>
                                     <label className={labelCls}>{t('transfers.cardReprintPolicy')}</label>

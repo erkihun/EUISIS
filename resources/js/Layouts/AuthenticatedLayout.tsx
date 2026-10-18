@@ -147,10 +147,10 @@ export default function Authenticated({
 
     return (
         <LocalizedUiProvider>
-        <div className={`${variant === 'portal' ? 'portal-shell' : 'admin-shell'} min-h-screen bg-[color:var(--app-background)]`}>
+        <div className={`${variant === 'portal' ? 'portal-shell' : 'admin-shell'} min-h-screen bg-(--app-background)`}>
             <a
                 href="#main-content"
-                className={buttonClassName({ variant: 'primary', className: 'sr-only fixed left-4 top-4 z-[60]' })}
+                className={buttonClassName({ variant: 'primary', className: 'sr-only fixed left-4 top-4 z-60' })}
             >
                 {t('publicSite.skipToContent')}
             </a>
@@ -162,7 +162,7 @@ export default function Authenticated({
                     className={[
                         'fixed inset-y-0 left-0 z-30 flex h-screen flex-col',
                         'transition-[width] duration-200 ease-in-out overflow-hidden',
-                        collapsed ? 'w-16' : 'w-[17.5rem]',
+                        collapsed ? 'w-16' : 'w-70',
                     ].join(' ')}
                 >
                     <AppSidebar
@@ -177,12 +177,12 @@ export default function Authenticated({
             <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
                 <DialogBackdrop
                     transition
-                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] transition-opacity duration-200 data-[closed]:opacity-0"
+                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] transition-opacity duration-200 data-closed:opacity-0"
                 />
                 <div className="fixed inset-0 flex">
                     <DialogPanel
                         transition
-                        className="h-full w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-e-2xl shadow-2xl transition duration-200 ease-out data-[closed]:-translate-x-full"
+                        className="h-full w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-e-2xl shadow-2xl transition duration-200 ease-out data-closed:-translate-x-full"
                     >
                         <DialogTitle className="sr-only">{t('publicSite.mainNavigation')}</DialogTitle>
                         <AppSidebar onClose={() => setSidebarOpen(false)} />
@@ -195,7 +195,7 @@ export default function Authenticated({
                 className={[
                     'flex min-h-screen flex-col',
                     'transition-[margin-left] duration-200 ease-in-out',
-                    collapsed ? 'lg:ml-16' : 'lg:ml-[17.5rem]',
+                    collapsed ? 'lg:ml-16' : 'lg:ml-70',
                 ].join(' ')}
             >
                 <AppHeader onMenuClick={() => setSidebarOpen(true)} onToggleSidebar={toggleSidebarCollapse} sidebarCollapsed={collapsed} />
@@ -212,7 +212,7 @@ export default function Authenticated({
 
                 {/* Breadcrumbs sit above the title they lead to, in the same band. */}
                 {header && (
-                    <div className="app-page-heading app-dot-grid shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <div className="app-page-heading app-dot-grid shrink-0 border-b border-(--app-border) bg-(--app-surface)">
                         <div className={CONTENT_WIDTH + ' px-4 py-5 sm:px-6 lg:px-8'}>
                             {showBreadcrumbs && <Breadcrumbs className="mb-2.5" />}
                             {header}
@@ -221,12 +221,12 @@ export default function Authenticated({
                 )}
 
                 {focus && !header ? (
-                    <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none sm:p-3 lg:p-4">
+                    <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-hidden sm:p-3 lg:p-4">
                         <TemporaryPasswordNotice />
                         {children}
                     </main>
                 ) : (
-                    <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8">
+                    <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-hidden sm:px-6 lg:px-8">
                         <div className={CONTENT_WIDTH}>
                             {!header && showBreadcrumbs && <Breadcrumbs className="mb-4" />}
                             <TemporaryPasswordNotice />

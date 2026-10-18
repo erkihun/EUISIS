@@ -4,7 +4,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 const inputCls = cx(inputClassName, 'w-full');
-const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
 function Field({
     label,
@@ -65,7 +65,7 @@ export default function HierarchyVersionForm({
     return (
         <form
             onSubmit={submit}
-            className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+            className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
         >
             <div className="grid gap-4 md:grid-cols-2">
                 <Field label={t('hierarchyVersions.versionName')} error={form.errors.version_name}>
@@ -117,10 +117,10 @@ export default function HierarchyVersionForm({
                 </Field>
             </div>
 
-            <div className="mt-6 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
+            <div className="mt-6 flex items-center justify-end gap-3 border-t border-(--app-border) pt-5">
                 <Link
                     href={route('hierarchy-versions.index')}
-                    className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                    className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                 >
                     {t('common.cancel')}
                 </Link>

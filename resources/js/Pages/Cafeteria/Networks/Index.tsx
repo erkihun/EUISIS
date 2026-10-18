@@ -25,8 +25,8 @@ export default function NetworksIndex({ networks, meta, filters, providers, can 
 
     const columns: ColumnDef<Row, unknown>[] = [
         { id: 'network', header: t('cafeteriaPolicy.network'), cell: ({ row }) => (
-            <Link href={route('cafeteria.networks.show', row.original.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">
-                {label(row.original)} <span className="text-xs text-[color:var(--app-muted-foreground)]">{row.original.code}</span>
+            <Link href={route('cafeteria.networks.show', row.original.id)} className="font-medium text-primary hover:underline">
+                {label(row.original)} <span className="text-xs text-(--app-muted-foreground)">{row.original.code}</span>
             </Link>
         ) },
         { id: 'provider', header: t('cafeteriaPolicy.provider'), cell: ({ row }) => label(row.original.provider) },

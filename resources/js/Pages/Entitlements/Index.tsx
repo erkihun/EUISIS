@@ -40,11 +40,11 @@ function QuotaBar({ used, limit, usedLabel }: { used: number; limit: number | nu
         pct >= 90 ? 'bg-red-500' : pct >= 70 ? 'bg-orange-400' : 'bg-emerald-500';
     return (
         <div className="mt-2">
-            <div className="flex items-center justify-between text-xs text-[color:var(--app-muted-foreground)]">
+            <div className="flex items-center justify-between text-xs text-(--app-muted-foreground)">
                 <span>{used} / {limit} {usedLabel}</span>
                 <span>{pct}%</span>
             </div>
-            <div className="mt-1 h-1.5 w-full rounded-full bg-[color:var(--app-surface-muted)]">
+            <div className="mt-1 h-1.5 w-full rounded-full bg-(--app-surface-muted)">
                 <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
             </div>
         </div>
@@ -81,13 +81,13 @@ export default function EntitlementsIndex({
             <Head title={t('entitlements.title')} />
 
             {/* Cafeteria Providers */}
-            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                <h3 className="font-semibold text-[color:var(--app-foreground)]">
+            <section className="mb-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                <h3 className="font-semibold text-(--app-foreground)">
                     {t('entitlements.cafeteriaProviders')}
                 </h3>
                 <div className="mt-4">
                     {cafeteriaProviders.length === 0 ? (
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="text-sm text-(--app-muted-foreground)">
                             {t('entitlements.noCafeteriaProviders')}
                         </p>
                     ) : (
@@ -95,22 +95,22 @@ export default function EntitlementsIndex({
                             {cafeteriaProviders.map((cp) => (
                                 <div
                                     key={cp.id}
-                                    className="flex items-start justify-between gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4"
+                                    className="flex items-start justify-between gap-3 rounded-card border border-(--app-border) bg-(--app-surface-muted) p-4"
                                 >
                                     <div className="min-w-0">
-                                        <p className="truncate font-medium text-[color:var(--app-foreground)]">
+                                        <p className="truncate font-medium text-(--app-foreground)">
                                             {cp.name_en}
                                         </p>
-                                        <p className="mt-0.5 font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="mt-0.5 font-mono text-xs text-(--app-muted-foreground)">
                                             {t('entitlements.code')}: {cp.code}
                                         </p>
                                         {cp.organization && (
-                                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
                                                 {cp.organization.name_en}
                                             </p>
                                         )}
                                         {cp.location && (
-                                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
                                                 {t('entitlements.location')}: {cp.location}
                                             </p>
                                         )}
@@ -119,7 +119,7 @@ export default function EntitlementsIndex({
                                         className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
                                             cp.is_active
                                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                                : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'
+                                                : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'
                                         }`}
                                     >
                                         {cp.is_active ? t('entitlements.active') : t('entitlements.inactive')}
@@ -132,8 +132,8 @@ export default function EntitlementsIndex({
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h3 className="font-semibold text-(--app-foreground)">
                         {t('entitlements.activeEntitlements')}
                     </h3>
                     <div className="mt-4 space-y-3">
@@ -151,15 +151,15 @@ export default function EntitlementsIndex({
                                         className={`rounded-card border p-4 ${
                                             isWarn
                                                 ? 'border-orange-200 bg-orange-50 dark:border-orange-900/40 dark:bg-orange-900/10'
-                                                : 'border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)]'
+                                                : 'border-(--app-border) bg-(--app-surface-muted)'
                                         }`}
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <div>
-                                                <p className="font-medium text-[color:var(--app-foreground)]">
+                                                <p className="font-medium text-(--app-foreground)">
                                                     {ent.employee?.employee_number} · {ent.employee?.full_name}
                                                 </p>
-                                                <p className="mt-0.5 text-sm text-[color:var(--app-muted-foreground)]">
+                                                <p className="mt-0.5 text-sm text-(--app-muted-foreground)">
                                                     {ent.service_type?.name_en ?? t('entitlements.unknownService')}{' '}
                                                     · {ent.service_provider?.name ?? t('entitlements.globalScope')}
                                                 </p>
@@ -184,8 +184,8 @@ export default function EntitlementsIndex({
                     <ListPagination meta={entitlements} label={t('entitlements.activeEntitlements')} bare className="mt-4" />
                 </section>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h3 className="font-semibold text-(--app-foreground)">
                         {t('entitlements.grantEntitlement')}
                     </h3>
                     <form
@@ -198,10 +198,10 @@ export default function EntitlementsIndex({
                         <div>
                             {selectedEmployee ? (
                                 <div>
-                                    <span className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                    <span className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                                         {t('entitlements.employee')}
                                     </span>
-                                    <div className="flex items-center justify-between gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm">
+                                    <div className="flex items-center justify-between gap-2 rounded-lg border border-(--app-border-strong) px-3 py-2 text-sm">
                                         <span>{selectedEmployee.employee_number} · {selectedEmployee.full_name}</span>
                                         <button
                                             type="button"
@@ -226,7 +226,7 @@ export default function EntitlementsIndex({
                             )}
                         </div>
                         <div>
-                            <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                                 {t('entitlements.serviceType')}
                             </label>
                             <select
@@ -240,7 +240,7 @@ export default function EntitlementsIndex({
                             </select>
                         </div>
                         <div>
-                            <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                                 {t('entitlements.providerOptional')}
                             </label>
                             <select
@@ -255,7 +255,7 @@ export default function EntitlementsIndex({
                             </select>
                         </div>
                         <div>
-                            <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                                 {t('entitlements.quotaLimit')}
                             </label>
                             <input

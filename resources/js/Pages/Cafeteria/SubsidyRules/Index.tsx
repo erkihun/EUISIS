@@ -72,13 +72,13 @@ export default function SubsidyRulesIndex({ rules, meta, filters, can }: { rules
                                     {rules.map((rule) => (
                                         <tr key={rule.id} className={tableRowClassName}>
                                             <td className={tableCellClassName}>
-                                                <div className="font-medium text-[color:var(--app-foreground)]">{rule.name_en}</div>
-                                                <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{rule.code}</div>
+                                                <div className="font-medium text-(--app-foreground)">{rule.name_en}</div>
+                                                <div className="font-mono text-xs text-(--app-muted-foreground)">{rule.code}</div>
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{rule.subsidy_amount.toFixed(2)} {rule.currency}</td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={rule.effective_from} /></td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={rule.effective_to} /></td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{rule.applies_to}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={rule.effective_from} /></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={rule.effective_to} /></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{rule.applies_to}</td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
                                                 <div className="flex justify-end">
                                                     <AppActionMenu

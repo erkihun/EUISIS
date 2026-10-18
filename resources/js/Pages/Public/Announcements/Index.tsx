@@ -116,7 +116,7 @@ export default function AnnouncementsIndex({ sections, announcements, categories
                                     <li key={transfer.id} className="py-3">
                                         <Link
                                             href={route('public.transfer-announcements.show', transfer.id)}
-                                            className="text-sm font-semibold text-gray-900 hover:text-[color:var(--color-primary)] hover:underline [overflow-wrap:anywhere] dark:text-slate-100"
+                                            className="text-sm font-semibold text-gray-900 hover:text-primary hover:underline wrap-anywhere dark:text-slate-100"
                                         >
                                             {pick(transfer, 'position_title')}
                                         </Link>

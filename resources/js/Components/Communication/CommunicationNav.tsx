@@ -37,7 +37,7 @@ export default function CommunicationNav(): JSX.Element | null {
     const moreActive = moreLinks.some((link) => link.active);
 
     return (
-        <nav aria-label={t('communication.workspace.label')} className="shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+        <nav aria-label={t('communication.workspace.label')} className="shrink-0 border-b border-(--app-border) bg-(--app-surface)">
             <div className="flex items-center gap-1 px-2 sm:px-4 lg:px-5">
                 <ul className="comm-scroll -mb-px flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
                     {tabs.map((tab) => (
@@ -47,13 +47,13 @@ export default function CommunicationNav(): JSX.Element | null {
                                 aria-current={tab.active ? 'page' : undefined}
                                 className={[
                                     'inline-flex h-11 items-center gap-2 border-b-2 px-3 text-sm font-medium transition-colors',
-                                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)]',
+                                    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
                                     tab.active
-                                        ? 'border-[color:var(--color-primary)] text-[color:var(--app-foreground)]'
-                                        : 'border-transparent text-[color:var(--app-muted-foreground)] hover:border-[color:var(--app-border-strong)] hover:text-[color:var(--app-foreground)]',
+                                        ? 'border-primary text-(--app-foreground)'
+                                        : 'border-transparent text-(--app-muted-foreground) hover:border-(--app-border-strong) hover:text-(--app-foreground)',
                                 ].join(' ')}
                             >
-                                <span aria-hidden="true" className={tab.active ? 'text-[color:var(--color-primary)]' : ''}>{tab.icon}</span>
+                                <span aria-hidden="true" className={tab.active ? 'text-primary' : ''}>{tab.icon}</span>
                                 {tab.label}
                             </Link>
                         </li>
@@ -67,7 +67,7 @@ export default function CommunicationNav(): JSX.Element | null {
                         aria-haspopup="menu"
                         aria-label={t('communication.workspace.more')}
                         title={t('communication.workspace.more')}
-                        className={`flex h-9 w-9 items-center justify-center rounded-control transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] ${moreActive ? 'text-[color:var(--color-primary)]' : 'text-[color:var(--app-muted-foreground)]'}`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-control transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary ${moreActive ? 'text-primary' : 'text-(--app-muted-foreground)'}`}
                     >
                         <MenuDotsIcon className="h-5 w-5" aria-hidden="true" />
                     </button>
@@ -79,7 +79,7 @@ export default function CommunicationNav(): JSX.Element | null {
                                     role="menuitem"
                                     href={link.href}
                                     aria-current={link.active ? 'page' : undefined}
-                                    className={`flex w-full items-center px-3 py-1.5 text-start text-sm hover:bg-[color:var(--app-surface-muted)] focus:bg-[color:var(--app-surface-muted)] focus:outline-none ${link.active ? 'font-semibold text-[color:var(--color-primary)]' : 'text-[color:var(--app-foreground)]'}`}
+                                    className={`flex w-full items-center px-3 py-1.5 text-start text-sm hover:bg-(--app-surface-muted) focus:bg-(--app-surface-muted) focus:outline-hidden ${link.active ? 'font-semibold text-primary' : 'text-(--app-foreground)'}`}
                                 >
                                     {link.label}
                                 </Link>

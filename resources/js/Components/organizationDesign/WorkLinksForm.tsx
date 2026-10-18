@@ -11,7 +11,7 @@ export type WorkLinkRow = { object_type: WorkObjectType; object_id: string; is_p
 
 const TYPES: WorkObjectType[] = ['service', 'process', 'activity', 'task'];
 const KIND: Record<WorkObjectType, 'services' | 'processes' | 'activities' | 'tasks'> = { service: 'services', process: 'processes', activity: 'activities', task: 'tasks' };
-const checkbox = 'rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]';
+const checkbox = 'rounded-sm border-(--app-border-strong) text-primary focus:ring-primary';
 
 /** The work a position is responsible for, replaced as a set (PUT); objects are searched on the server inside the organization. */
 export default function WorkLinksForm({ positionId, organizationId, current, onClose }: { positionId: string; organizationId: string; current: WorkLinkRow[]; onClose: () => void }) {
@@ -32,13 +32,13 @@ export default function WorkLinksForm({ positionId, organizationId, current, onC
             <form onSubmit={submit} className="p-6">
                 <div className="flex items-start justify-between gap-3">
                     <div>
-                        <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('positionDesign.editWorkLinks')}</h2>
-                        <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.workLinksHelp')}</p>
+                        <h2 className="text-base font-semibold text-(--app-foreground)">{tt('positionDesign.editWorkLinks')}</h2>
+                        <p className="mt-1 text-sm text-(--app-muted-foreground)">{tt('positionDesign.workLinksHelp')}</p>
                     </div>
                     <Button type="button" size="sm" variant="outline" onClick={() => form.setData('items', [...form.data.items, { object_type: 'task', object_id: '', is_primary: false }])}>{tt('positionDesign.addLink')}</Button>
                 </div>
                 <div className="mt-5 space-y-2">
-                    {form.data.items.length === 0 && <p className="py-4 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.noWorkLinks')}</p>}
+                    {form.data.items.length === 0 && <p className="py-4 text-center text-sm text-(--app-muted-foreground)">{tt('positionDesign.noWorkLinks')}</p>}
                     {form.data.items.map((row, i) => (
                         <div key={i} className="grid gap-2 sm:grid-cols-[10rem_1fr_auto]">
                             <FormField id={`link-type-${i}`} label={tt('fields.objectType')} required error={errors[`items.${i}.object_type`]}>

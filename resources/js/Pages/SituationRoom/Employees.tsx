@@ -39,8 +39,8 @@ export default function SituationRoomEmployees({ scope, filters, filterOptions, 
                 <FilterBar key={JSON.stringify(query)} scope={scope} filters={filters} options={filterOptions} routeName="situation-room.employees" showTypeFilters={false} />
 
                 <Card className="p-0">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--app-border)] p-4">
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{employees.total.toLocaleString()}</p>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-(--app-border) p-4">
+                        <p className="text-sm text-(--app-muted-foreground)">{employees.total.toLocaleString()}</p>
                         <label className="flex items-center gap-2 text-sm">
                             <span>{t('situationRoom.sortLabel')}</span>
                             <Select value={employees.sort} onChange={(e) => go({ sort: e.target.value, page: 1 })} className="w-auto">
@@ -65,7 +65,7 @@ export default function SituationRoomEmployees({ scope, filters, filterOptions, 
                                 <TBody>
                                     {employees.rows.map((row) => (
                                         <Tr key={row.id}>
-                                            <Td><Link href={route('situation-room.employee', { employee: row.id, ...query })} className="font-medium text-[color:var(--color-primary)] underline-offset-4 hover:underline">{name(row)}</Link></Td>
+                                            <Td><Link href={route('situation-room.employee', { employee: row.id, ...query })} className="font-medium text-primary underline-offset-4 hover:underline">{name(row)}</Link></Td>
                                             <Td align="right" numeric>{row.feedback.toLocaleString()}</Td>
                                             <Td align="right" numeric>{row.suggestion.toLocaleString()}</Td>
                                             <Td align="right" numeric>{row.complaint.toLocaleString()}</Td>
@@ -78,7 +78,7 @@ export default function SituationRoomEmployees({ scope, filters, filterOptions, 
                         </div>
                     )}
                     {pages > 1 && (
-                        <nav className="flex items-center justify-between gap-3 border-t border-[color:var(--app-border)] p-4 text-sm" aria-label={fmt(t('situationRoom.pageOf'), { page: employees.page, pages })}>
+                        <nav className="flex items-center justify-between gap-3 border-t border-(--app-border) p-4 text-sm" aria-label={fmt(t('situationRoom.pageOf'), { page: employees.page, pages })}>
                             <button type="button" className={buttonClassName({ variant: 'outline', size: 'sm' })} disabled={employees.page <= 1} onClick={() => go({ page: employees.page - 1 })}>{t('situationRoom.previousPage')}</button>
                             <span>{fmt(t('situationRoom.pageOf'), { page: employees.page, pages })}</span>
                             <button type="button" className={buttonClassName({ variant: 'outline', size: 'sm' })} disabled={employees.page >= pages} onClick={() => go({ page: employees.page + 1 })}>{t('situationRoom.nextPage')}</button>

@@ -51,11 +51,11 @@ function pageRange(current: number, last: number): Array<number | 'ellipsis'> {
 /** One page button or link; Laravel paginator links use it too. */
 export function paginationItemClassName(active = false): string {
     return cx(
-        'inline-flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-control)] px-2 text-[13px] tabular-nums transition-colors',
+        'inline-flex h-8 min-w-8 items-center justify-center rounded-control px-2 text-[13px] tabular-nums transition-colors',
         'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50',
         active
-            ? 'bg-[color:var(--color-primary)] font-semibold text-[color:var(--color-on-primary,#fff)]'
-            : 'border border-[color:var(--app-border)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]',
+            ? 'bg-primary font-semibold text-(--color-on-primary,#fff)'
+            : 'border border-(--app-border) text-(--app-foreground) hover:bg-(--app-surface-muted)',
     );
 }
 
@@ -90,14 +90,14 @@ export function Pagination({ meta, onPageChange, onPerPageChange, pageSizes = [1
     if (meta.total <= 0) return null;
     return (
         <nav aria-label={label ?? messages.pagination} className={cx('flex flex-wrap items-center justify-between gap-3', className)}>
-            <div className="flex items-center gap-3 text-xs text-[color:var(--app-muted-foreground)]">
+            <div className="flex items-center gap-3 text-xs text-(--app-muted-foreground)">
                 <p role="status" className="whitespace-nowrap tabular-nums">{paginationRange(messages.range, meta)}</p>
                 {onPerPageChange && <select aria-label={messages.results} value={meta.perPage} disabled={disabled} onChange={(event) => onPerPageChange(Number(event.target.value))} className={cx(selectClassName, 'h-8 w-auto')}>{pageSizes.map((size) => <option key={size} value={size}>{size}</option>)}</select>}
             </div>
             {meta.lastPage > 1 && <div className="flex flex-wrap items-center gap-1">
                 <button type="button" className={paginationItemClassName()} disabled={disabled || meta.currentPage <= 1} onClick={() => onPageChange(meta.currentPage - 1)} aria-label={messages.previous}><ChevronIcon direction="left" /></button>
                 {pageRange(meta.currentPage, meta.lastPage).map((page, index) => page === 'ellipsis'
-                    ? <span key={`ellipsis-${index}`} className="px-1 text-[color:var(--app-muted-foreground)]" aria-hidden="true">…</span>
+                    ? <span key={`ellipsis-${index}`} className="px-1 text-(--app-muted-foreground)" aria-hidden="true">…</span>
                     : <button key={page} type="button" data-page={page} className={paginationItemClassName(page === meta.currentPage)} disabled={disabled} onClick={() => page !== meta.currentPage && onPageChange(page)} aria-label={`${messages.page} ${page}`} aria-current={page === meta.currentPage ? 'page' : undefined}>{page.toLocaleString()}</button>)}
                 <button type="button" className={paginationItemClassName()} disabled={disabled || meta.currentPage >= meta.lastPage} onClick={() => onPageChange(meta.currentPage + 1)} aria-label={messages.next}><ChevronIcon direction="right" /></button>
             </div>}
@@ -129,12 +129,12 @@ export function DataTable<T>({ data, columns, loading = false, emptyTitle, empty
                     </tbody>
                 </table>
             </div>}
-        {pagination && onPageChange && <Pagination meta={pagination} onPageChange={onPageChange} onPerPageChange={onPerPageChange} className="border-t border-[color:var(--app-border)] px-4 py-3" />}
+        {pagination && onPageChange && <Pagination meta={pagination} onPageChange={onPageChange} onPerPageChange={onPerPageChange} className="border-t border-(--app-border) px-4 py-3" />}
     </div>;
 }
 
 /** The filter panel's frame, for a page whose filter markup must stay its own. */
-export const filterPanelClassName = 'rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4';
+export const filterPanelClassName = 'rounded-card border border-(--app-border) bg-(--app-surface) p-4';
 
 /**
  * The one filter panel. Fields sit in a wrapping row, each labelled above its
@@ -170,7 +170,7 @@ export function FilterPanel({ children, onSubmit, onReset, hasActiveFilters = fa
                 </div>
                 {actions && <div className="flex flex-wrap items-center gap-2 sm:ml-auto">{actions}</div>}
             </fieldset>
-            {footer && <div className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">{footer}</div>}
+            {footer && <div className="mt-3 text-xs text-(--app-muted-foreground)">{footer}</div>}
         </form>
     );
 }
@@ -182,7 +182,7 @@ export function filterFieldClassName(wide = false): string {
 }
 
 /** The caption above a filter control. */
-export const filterCaptionClassName = 'text-xs font-medium text-[color:var(--app-muted-foreground)]';
+export const filterCaptionClassName = 'text-xs font-medium text-(--app-muted-foreground)';
 
 /**
  * One labelled field of a filter panel. It wraps its control in the label;
@@ -242,14 +242,14 @@ export function SearchableSelect({ id, label, immediate = false, value, options:
     return <Combobox value={selected} onChange={(option: SearchableOption | null) => onChange(option?.value ?? '', option)} disabled={disabled} immediate={immediate} nullable>
         <div className={cx('relative', className)}>
             <ComboboxInput id={id} aria-label={label} className={cx(controlClassName, (clearable && value) || !clearable ? 'pr-9' : '')} displayValue={(option: SearchableOption | null) => option?.label ?? ''} onChange={(event) => setQuery(event.target.value)} placeholder={placeholder ?? searchPlaceholder ?? messages.search} />
-            {clearable && value && <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1" aria-label={messages.clear} onClick={() => onChange('', null)}>×</button>}
+            {clearable && value && <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1" aria-label={messages.clear} onClick={() => onChange('', null)}>×</button>}
             {!clearable && (
-                <ComboboxButton className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-[color:var(--app-muted-foreground)]">
+                <ComboboxButton className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-(--app-muted-foreground)">
                     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                 </ComboboxButton>
             )}
-            <ComboboxOptions anchor="bottom start" className="z-50 mt-1 max-h-64 w-[var(--input-width)] overflow-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-1 shadow-lg empty:hidden">
-                {loading ? <div className="px-3 py-2 text-sm text-[color:var(--app-muted-foreground)]">{loadingText ?? messages.loading}</div> : filtered.length === 0 ? <div className="px-3 py-2 text-sm text-[color:var(--app-muted-foreground)]">{emptyText ?? messages.noResults}</div> : filtered.map((option) => <ComboboxOption key={option.value} value={option} disabled={option.disabled} className="cursor-pointer rounded-[var(--radius-control)] px-3 py-2 text-sm data-[focus]:bg-[color:var(--app-surface-muted)] data-[disabled]:opacity-50"><span className="block">{option.label}</span>{option.description && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{option.description}</span>}</ComboboxOption>)}
+            <ComboboxOptions anchor="bottom start" className="z-50 mt-1 max-h-64 w-(--input-width) overflow-auto rounded-card border border-(--app-border) bg-(--app-surface) p-1 shadow-lg empty:hidden">
+                {loading ? <div className="px-3 py-2 text-sm text-(--app-muted-foreground)">{loadingText ?? messages.loading}</div> : filtered.length === 0 ? <div className="px-3 py-2 text-sm text-(--app-muted-foreground)">{emptyText ?? messages.noResults}</div> : filtered.map((option) => <ComboboxOption key={option.value} value={option} disabled={option.disabled} className="cursor-pointer rounded-control px-3 py-2 text-sm data-focus:bg-(--app-surface-muted) data-disabled:opacity-50"><span className="block">{option.label}</span>{option.description && <span className="block text-xs text-(--app-muted-foreground)">{option.description}</span>}</ComboboxOption>)}
             </ComboboxOptions>
         </div>
     </Combobox>;
@@ -273,7 +273,7 @@ export interface ActionItem {
     disabled?: boolean;
 }
 const actionItemTones: Record<ActionMenuTone, { text: string; focus: string }> = {
-    default: { text: 'text-[color:var(--app-foreground)]', focus: 'bg-[color:var(--app-surface-muted)]' },
+    default: { text: 'text-(--app-foreground)', focus: 'bg-(--app-surface-muted)' },
     warning: { text: 'text-amber-700 dark:text-amber-400', focus: 'bg-amber-50 dark:bg-amber-900/20' },
     danger: { text: 'text-red-700 dark:text-red-400', focus: 'bg-red-50 dark:bg-red-900/20' },
 };
@@ -289,16 +289,16 @@ export function ActionMenu({ items, label, renderLink }: { items: ActionItem[]; 
     const name = label ?? messages.actions;
     return <Menu as="div" className="relative inline-block">
         {/* Rows that navigate on click must not see the clicks that open the menu or pick an action (React bubbles through the portal). */}
-        <MenuButton onClick={(event: MouseEvent) => event.stopPropagation()} className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] data-[open]:bg-[color:var(--app-surface-muted)] data-[open]:text-[color:var(--app-foreground)]" aria-label={name} title={name}>
+        <MenuButton onClick={(event: MouseEvent) => event.stopPropagation()} className="inline-flex h-8 w-8 items-center justify-center rounded-control text-(--app-muted-foreground) transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary data-open:bg-(--app-surface-muted) data-open:text-(--app-foreground)" aria-label={name} title={name}>
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg>
         </MenuButton>
-        <MenuItems transition anchor="bottom end" onClick={(event: MouseEvent) => event.stopPropagation()} className="z-50 w-48 origin-top-right rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-1 shadow-lg transition duration-100 ease-out focus:outline-none data-[closed]:scale-95 data-[closed]:opacity-0 [--anchor-gap:4px]">
+        <MenuItems transition anchor="bottom end" onClick={(event: MouseEvent) => event.stopPropagation()} className="z-50 w-48 origin-top-right rounded-card border border-(--app-border) bg-(--app-surface) p-1 shadow-lg transition duration-100 ease-out focus:outline-hidden data-closed:scale-95 data-closed:opacity-0 [--anchor-gap:4px]">
                 {visible.map((item, index) => {
                     const tone = actionItemTones[item.tone ?? (item.danger ? 'danger' : 'default')];
                     return <Fragment key={index}>
-                        {item.separatorBefore && <div className="my-1 border-t border-[color:var(--app-border)]" />}
+                        {item.separatorBefore && <div className="my-1 border-t border-(--app-border)" />}
                         <MenuItem disabled={item.disabled}>{({ focus }) => {
-                            const itemClass = cx('flex w-full items-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] px-3 py-2 text-left text-sm [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0', tone.text, focus && tone.focus, item.disabled && 'cursor-not-allowed opacity-50');
+                            const itemClass = cx('flex w-full items-center gap-2 whitespace-nowrap rounded-control px-3 py-2 text-left text-sm [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0', tone.text, focus && tone.focus, item.disabled && 'cursor-not-allowed opacity-50');
                             if (item.href && renderLink) return renderLink(item, itemClass);
                             if (item.href) return <a href={item.href} className={itemClass} title={item.title} aria-disabled={item.disabled || undefined}>{item.icon}{item.label}</a>;
                             return <button type="button" className={itemClass} onClick={item.onClick} disabled={item.disabled} title={item.title}>{item.icon}{item.label}</button>;

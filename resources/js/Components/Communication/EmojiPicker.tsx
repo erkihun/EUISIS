@@ -59,7 +59,7 @@ export default function EmojiPicker({ emoji, label, onPick, onClose, align = 'st
             role="dialog"
             aria-label={label}
             onKeyDown={move}
-            className={`absolute z-30 rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-1.5 shadow-lg ${placement === 'above' ? 'bottom-full mb-2' : 'top-full mt-1'} ${align === 'end' ? 'end-0' : 'start-0'}`}
+            className={`absolute z-30 rounded-control border border-(--app-border) bg-(--app-surface) p-1.5 shadow-lg ${placement === 'above' ? 'bottom-full mb-2' : 'top-full mt-1'} ${align === 'end' ? 'inset-e-0' : 'inset-s-0'}`}
         >
             <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
                 {emoji.map((item) => (
@@ -67,7 +67,7 @@ export default function EmojiPicker({ emoji, label, onPick, onClose, align = 'st
                         key={item}
                         type="button"
                         onClick={() => onPick(item)}
-                        className="flex h-9 w-9 items-center justify-center rounded-md text-lg leading-none hover:bg-[color:var(--app-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]"
+                        className="flex h-9 w-9 items-center justify-center rounded-md text-lg leading-none hover:bg-(--app-surface-muted) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary"
                     >
                         <span aria-hidden="true">{item}</span>
                         <span className="sr-only">{item}</span>

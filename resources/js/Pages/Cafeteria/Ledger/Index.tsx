@@ -79,8 +79,8 @@ export default function LedgerIndex({
     function entryTypeColor(type: string) {
         if (type === 'allocation') return 'text-emerald-600';
         if (type === 'carry_forward_deduction') return 'text-orange-600';
-        if (type === 'reversal') return 'text-[color:var(--color-primary)]';
-        return 'text-[color:var(--app-muted-foreground)]';
+        if (type === 'reversal') return 'text-primary';
+        return 'text-(--app-muted-foreground)';
     }
 
     return (
@@ -101,8 +101,8 @@ export default function LedgerIndex({
                         {picked ? (
                             <>
                                 <span className={filterCaptionClassName}>{t('cafeteria.employeeInfo')}</span>
-                                <div className="flex h-[var(--control-h-md)] items-center justify-between gap-2 rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)] px-3 text-sm">
-                                    <span className="min-w-0 truncate text-[color:var(--app-foreground)]">{picked.employee_number} · {picked.full_name}</span>
+                                <div className="flex h-(--control-h-md) items-center justify-between gap-2 rounded-control border border-(--app-border-strong) px-3 text-sm">
+                                    <span className="min-w-0 truncate text-(--app-foreground)">{picked.employee_number} · {picked.full_name}</span>
                                     <button type="button" className={actionLinkClassName()} onClick={() => setPicked(null)}>{t('common.change')}</button>
                                 </div>
                             </>
@@ -130,12 +130,12 @@ export default function LedgerIndex({
                     </FilterField>
                 </FilterPanel>
                 <section aria-label={t('cafeteria.ledgerSummary')}>
-                    <div className="grid gap-4 sm:grid-cols-3">{(['credits', 'debits', 'net'] as const).map(key => <div key={key} className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5"><p className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.ledger_' + key)}</p><p className="mt-2 text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{money.format(summary[key])} <span className="text-xs font-normal">ETB</span></p></div>)}</div>
-                    <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.ledgerSummaryHelp')}</p>
+                    <div className="grid gap-4 sm:grid-cols-3">{(['credits', 'debits', 'net'] as const).map(key => <div key={key} className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5"><p className="text-sm text-(--app-muted-foreground)">{t('cafeteria.ledger_' + key)}</p><p className="mt-2 text-2xl font-semibold tabular-nums text-(--app-foreground)">{money.format(summary[key])} <span className="text-xs font-normal">ETB</span></p></div>)}</div>
+                    <p className="mt-2 text-xs text-(--app-muted-foreground)">{t('cafeteria.ledgerSummaryHelp')}</p>
                 </section>
                 {employee && balance !== null && (
                     <div className={`rounded-card border p-5 ${balance < 0 ? 'border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/30' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30'}`}>
-                        <p className="text-sm font-medium text-[color:var(--app-muted-foreground)]">{employee.full_name} — {t('cafeteria.ledgerBalance')}</p>
+                        <p className="text-sm font-medium text-(--app-muted-foreground)">{employee.full_name} — {t('cafeteria.ledgerBalance')}</p>
                         <p className={`mt-1 text-3xl font-bold ${balance < 0 ? 'text-orange-600' : 'text-emerald-600'}`}>
                             {money.format(balance)} ETB
                         </p>
@@ -146,7 +146,7 @@ export default function LedgerIndex({
                 )}
 
                 <div className={tableContainerClassName}>
-                    <div className="border-b border-[color:var(--app-border)] px-4 py-3"><h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.ledger')}</h2></div>
+                    <div className="border-b border-(--app-border) px-4 py-3"><h2 className="text-sm font-semibold text-(--app-foreground)">{t('cafeteria.ledger')}</h2></div>
                     {entries.length === 0 ? (
                         <EmptyState description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
@@ -165,16 +165,16 @@ export default function LedgerIndex({
                                 <tbody className={tableBodyClassName}>
                                     {entries.map((entry) => (
                                         <tr key={entry.id} className={tableRowClassName}>
-                                            <td className={cx(tableCellClassName, 'min-w-48')}><p className="font-medium text-[color:var(--app-foreground)]">{entry.employee?.full_name ?? '—'}</p><p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{entry.employee?.employee_number}</p></td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={entry.ledger_date} /></td>
+                                            <td className={cx(tableCellClassName, 'min-w-48')}><p className="font-medium text-(--app-foreground)">{entry.employee?.full_name ?? '—'}</p><p className="mt-1 text-xs text-(--app-muted-foreground)">{entry.employee?.employee_number}</p></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}><LocalizedDateDisplay value={entry.ledger_date} /></td>
                                             <td className={cx(tableCellClassName, 'font-medium', entryTypeColor(entry.entry_type))}>{entryTypeLabel(entry.entry_type)}</td>
                                             <td className={cx(tableCellClassName, 'text-right font-medium tabular-nums', entry.amount >= 0 ? 'text-emerald-600' : 'text-orange-600')}>
                                                 {entry.amount >= 0 ? '+' : ''}{money.format(entry.amount)}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-right font-bold tabular-nums', entry.balance_after < 0 ? 'text-orange-600' : 'text-[color:var(--app-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'text-right font-bold tabular-nums', entry.balance_after < 0 ? 'text-orange-600' : 'text-(--app-foreground)')}>
                                                 {money.format(entry.balance_after)}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{entry.description ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{entry.description ?? '—'}</td>
                                         </tr>
                                     ))}
                                 </tbody>

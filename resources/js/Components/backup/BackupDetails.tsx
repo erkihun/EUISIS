@@ -41,20 +41,20 @@ export function IssuesPanel({ issues }: { issues: Issue[] }) {
                 if (items.length === 0) return null;
                 return (
                     <details key={severity} open={severity !== 'READINESS' || !operational} className="group">
-                        <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-2 rounded-[var(--radius-control)] py-1 [&::-webkit-details-marker]:hidden">
-                            <span className="flex items-center gap-2 text-sm font-semibold text-[color:var(--app-foreground)]">
-                                <ChevronRight className="h-3.5 w-3.5 text-[color:var(--app-muted-foreground)] transition-transform group-open:rotate-90" aria-hidden="true" />
+                        <summary className="flex cursor-pointer list-none flex-wrap items-baseline gap-x-2 rounded-control py-1 [&::-webkit-details-marker]:hidden">
+                            <span className="flex items-center gap-2 text-sm font-semibold text-(--app-foreground)">
+                                <ChevronRight className="h-3.5 w-3.5 text-(--app-muted-foreground) transition-transform group-open:rotate-90" aria-hidden="true" />
                                 <span className={cx('h-2 w-2 rounded-full', toneClasses[tone].solid)} aria-hidden="true" />
                                 {text.t(`backup.severities.${severity}`)}
-                                <span className="font-normal text-[color:var(--app-muted-foreground)]">({items.length})</span>
+                                <span className="font-normal text-(--app-muted-foreground)">({items.length})</span>
                             </span>
-                            <span className="text-xs text-[color:var(--app-muted-foreground)]">{text.t(`backup.severityHelp.${severity}`)}</span>
+                            <span className="text-xs text-(--app-muted-foreground)">{text.t(`backup.severityHelp.${severity}`)}</span>
                         </summary>
-                        <ul className="mt-2 divide-y divide-[color:var(--app-border)] rounded-[var(--radius-card)] border border-[color:var(--app-border)]">
+                        <ul className="mt-2 divide-y divide-(--app-border) rounded-card border border-(--app-border)">
                             {items.map((issue) => (
                                 <li key={issue.code} className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-                                    <span className="text-sm text-[color:var(--app-foreground)]">{issueText(issue)}</span>
-                                    <code className="shrink-0 font-mono text-xs text-[color:var(--app-muted-foreground)]">{issue.code}</code>
+                                    <span className="text-sm text-(--app-foreground)">{issueText(issue)}</span>
+                                    <code className="shrink-0 font-mono text-xs text-(--app-muted-foreground)">{issue.code}</code>
                                 </li>
                             ))}
                         </ul>
@@ -72,13 +72,13 @@ function StorageBar({ usage, threshold }: { usage: number | null; threshold: num
     return (
         <div>
             <div className="flex justify-between text-xs">
-                <span className="text-[color:var(--app-muted-foreground)]">{text.t('backup.storageUsed')}</span>
-                <span className={cx('font-medium tabular-nums', over ? toneClasses.warning.text : 'text-[color:var(--app-foreground)]')}>{usage === null ? text.t('backup.unknown') : `${usage}%`}</span>
+                <span className="text-(--app-muted-foreground)">{text.t('backup.storageUsed')}</span>
+                <span className={cx('font-medium tabular-nums', over ? toneClasses.warning.text : 'text-(--app-foreground)')}>{usage === null ? text.t('backup.unknown') : `${usage}%`}</span>
             </div>
-            <div className="relative mt-1.5 h-2 rounded-full bg-[color:var(--app-surface-muted)]" role="progressbar" aria-label={text.t('backup.storageUsed')}
+            <div className="relative mt-1.5 h-2 rounded-full bg-(--app-surface-muted)" role="progressbar" aria-label={text.t('backup.storageUsed')}
                 aria-valuemin={0} aria-valuemax={100} aria-valuenow={usage ?? undefined}>
-                {usage !== null && <div className={cx('h-2 rounded-full', over ? toneClasses.warning.solid : 'bg-[color:var(--color-primary)]')} style={{ width: `${Math.min(100, usage)}%` }} />}
-                <span className="absolute -inset-y-0.5 w-0.5 rounded bg-amber-500/70" style={{ left: `${threshold}%` }} title={`${text.t('backup.storageThreshold')}: ${threshold}%`} aria-hidden="true" />
+                {usage !== null && <div className={cx('h-2 rounded-full', over ? toneClasses.warning.solid : 'bg-primary')} style={{ width: `${Math.min(100, usage)}%` }} />}
+                <span className="absolute -inset-y-0.5 w-0.5 rounded-sm bg-amber-500/70" style={{ left: `${threshold}%` }} title={`${text.t('backup.storageThreshold')}: ${threshold}%`} aria-hidden="true" />
             </div>
         </div>
     );
@@ -100,8 +100,8 @@ export function RepositoriesPanel({ status, policy }: { status: BackupHealth; po
                 <Card key={repository.id} className="space-y-4 p-5">
                     <div className="flex items-start justify-between gap-3">
                         <div>
-                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('backup.repository')} {repository.id}</p>
-                            <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{repository.name}</h3>
+                            <p className="text-xs text-(--app-muted-foreground)">{t('backup.repository')} {repository.id}</p>
+                            <h3 className="text-sm font-semibold text-(--app-foreground)">{repository.name}</h3>
                         </div>
                         <div className="flex flex-wrap justify-end gap-1.5">
                             <StatusBadge tone={toneFor(repository.status)}>{text.state(repository.status)}</StatusBadge>
@@ -135,7 +135,7 @@ export function HistoryPanel({ history }: { history: HistoryItem[] }) {
     const cell = 'px-4 py-2.5';
 
     return (
-        <div className="overflow-x-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)]">
+        <div className="overflow-x-auto rounded-card border border-(--app-border)">
             <table className={cx(tableClassName, 'text-left')}>
                 <thead className={tableHeadClassName}>
                     <tr>
@@ -150,11 +150,11 @@ export function HistoryPanel({ history }: { history: HistoryItem[] }) {
                             <td className={cell}>{item.repository ?? '—'}</td>
                             <td className={cell}>
                                 {item.backup_reference ? <code className="font-mono text-xs">{item.backup_reference}</code> : '—'}
-                                {item.recovery_target && <p className="text-xs text-[color:var(--app-muted-foreground)]">{time.absolute(item.recovery_target)}</p>}
+                                {item.recovery_target && <p className="text-xs text-(--app-muted-foreground)">{time.absolute(item.recovery_target)}</p>}
                             </td>
                             <td className={cell}>
                                 <StatusBadge tone={toneFor(item.status)}>{text.state(item.status)}</StatusBadge>
-                                {item.failure_summary && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{item.failure_summary}</p>}
+                                {item.failure_summary && <p className="mt-1 text-xs text-(--app-muted-foreground)">{item.failure_summary}</p>}
                             </td>
                         </tr>
                     ))}
@@ -175,7 +175,7 @@ export function PolicyPanel({ status, policy }: { status: BackupHealth; policy: 
     return (
         <div className="grid gap-4 lg:grid-cols-2">
             <Card className="p-5">
-                <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('backup.policyTitle')}</h3>
+                <h3 className="text-sm font-semibold text-(--app-foreground)">{t('backup.policyTitle')}</h3>
                 <dl className="mt-3 space-y-1.5 text-sm">
                     <FactRow label={t('backup.retention')}>{policy.retention_full_count} {t('backup.fullChains')}</FactRow>
                     <FactRow label={t('backup.staleAfter')}>{policy.stale_hours} / {policy.critical_hours} {t('backup.hours')}</FactRow>
@@ -191,20 +191,20 @@ export function PolicyPanel({ status, policy }: { status: BackupHealth; policy: 
             </Card>
             <Card className="p-5">
                 <div className="flex items-baseline justify-between gap-3">
-                    <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('backup.controlsTitle')}</h3>
-                    <span className="text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{verified} / {controls.length}</span>
+                    <h3 className="text-sm font-semibold text-(--app-foreground)">{t('backup.controlsTitle')}</h3>
+                    <span className="text-xs tabular-nums text-(--app-muted-foreground)">{verified} / {controls.length}</span>
                 </div>
-                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('backup.controlsHelp')}</p>
+                <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('backup.controlsHelp')}</p>
                 <ul className="mt-3 space-y-2 text-sm">
                     {controls.map(([name, passed]) => (
                         <li key={name} className="flex items-center justify-between gap-3">
-                            <span className="flex items-center gap-2 text-[color:var(--app-foreground)]">
+                            <span className="flex items-center gap-2 text-(--app-foreground)">
                                 {passed
                                     ? <CheckCircle className={cx('h-4 w-4', toneClasses.success.text)} aria-hidden="true" />
-                                    : <XCircle className="h-4 w-4 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />}
+                                    : <XCircle className="h-4 w-4 text-(--app-muted-foreground)" aria-hidden="true" />}
                                 {t(`backup.controls.${name}`)}
                             </span>
-                            <span className="text-xs text-[color:var(--app-muted-foreground)]">{passed ? t('backup.evidenceCurrent') : t('backup.unverified')}</span>
+                            <span className="text-xs text-(--app-muted-foreground)">{passed ? t('backup.evidenceCurrent') : t('backup.unverified')}</span>
                         </li>
                     ))}
                 </ul>

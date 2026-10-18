@@ -178,7 +178,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                 ].map((h, i) => (
                                     <th
                                         key={h}
-                                        className={`whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)] ${i === 8 ? 'text-right' : ''}`}
+                                        className={`whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-(--app-muted-foreground) ${i === 8 ? 'text-right' : ''}`}
                                     >
                                         {h}
                                     </th>
@@ -189,7 +189,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                             {announcements.data.length === 0 ? (
                                 <tr>
                                     <td colSpan={9} className={cx(tableCellClassName, 'text-center')}>
-                                        <div className="flex flex-col items-center gap-2 text-[color:var(--app-muted-foreground)]">
+                                        <div className="flex flex-col items-center gap-2 text-(--app-muted-foreground)">
                                             <svg className="h-10 w-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                                             </svg>
@@ -205,23 +205,23 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                             ) : (
                                 announcements.data.map((a) => (
                                     <tr key={a.id} className={tableRowClassName}>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
                                             {(useAmharic ? a.organization?.name_am : null) ?? a.organization?.name_en ?? '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'font-medium text-(--app-foreground)')}>
                                             {(useAmharic ? a.position?.title_am : null) ?? a.position?.title_en ?? '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{a.grade_level ?? '—'}</td>
-                                        <td className={cx(tableCellClassName, 'text-center font-semibold text-[color:var(--app-foreground)]')}>{a.number_of_vacancies}</td>
-                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.opening_date} /></td>
-                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.closing_date} /></td>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{a.grade_level ?? '—'}</td>
+                                        <td className={cx(tableCellClassName, 'text-center font-semibold text-(--app-foreground)')}>{a.number_of_vacancies}</td>
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-muted-foreground)')}><LocalizedDateDisplay value={a.opening_date} /></td>
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-muted-foreground)')}><LocalizedDateDisplay value={a.closing_date} /></td>
                                         <td className={cx(tableCellClassName, 'text-center')}>
                                             {a.applications_count > 0 ? (
-                                                <Link href={route('transfer-applications.index') + `?announcement_id=${a.id}`} className="font-semibold text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                                <Link href={route('transfer-applications.index') + `?announcement_id=${a.id}`} className="font-semibold text-primary hover:underline dark:text-primary">
                                                     {a.applications_count}
                                                 </Link>
                                             ) : (
-                                                <span className="text-[color:var(--app-muted-foreground)]">{a.applications_count}</span>
+                                                <span className="text-(--app-muted-foreground)">{a.applications_count}</span>
                                             )}
                                         </td>
                                         <td className={tableCellClassName}>

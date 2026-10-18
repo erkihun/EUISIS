@@ -1,20 +1,20 @@
 import type { ReactNode } from 'react';
 
 import { badgeClassName } from '@/Components/ui';
-export const panelCls = 'portal-panel rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
+export const panelCls = 'portal-panel rounded-panel border border-(--app-border) bg-(--app-surface)';
 
 export const inputCls =
-    'mt-1 w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)]';
+    'mt-1 w-full rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-2 text-sm text-(--app-foreground) focus:border-primary focus:outline-hidden focus:ring-1 focus:ring-primary';
 
-export const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+export const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
 export const primaryBtn =
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50';
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50';
 
 export const secondaryBtn =
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50';
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted) disabled:cursor-not-allowed disabled:opacity-50';
 
-export const linkBtn = 'text-sm font-medium text-[color:var(--color-primary)] hover:underline';
+export const linkBtn = 'text-sm font-medium text-primary hover:underline';
 
 /** A titled block. The badge says, at a glance, whether its fields can be edited here. */
 export function Block({ title, badge, badgeTone = 'neutral', description, children, actions }: {
@@ -27,20 +27,20 @@ export function Block({ title, badge, badgeTone = 'neutral', description, childr
 }) {
     return (
         <section className={panelCls}>
-            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--app-border)] px-5 py-5 sm:px-6">
+            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-(--app-border) px-5 py-5 sm:px-6">
                 <div className="min-w-0">
-                    <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold text-[color:var(--app-foreground)]">
+                    <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold text-(--app-foreground)">
                         {title}
                         {badge && (
                             <span className={[
                                 'rounded-control px-1.5 py-0.5 text-[11px] font-medium ring-1 ring-inset',
                                 badgeTone === 'editable'
                                     ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900'
-                                    : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-[color:var(--app-border-strong)]',
+                                    : 'bg-(--app-surface-muted) text-(--app-muted-foreground) ring-(--app-border-strong)',
                             ].join(' ')}>{badge}</span>
                         )}
                     </h2>
-                    {description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[color:var(--app-muted-foreground)]">{description}</p>}
+                    {description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-(--app-muted-foreground)">{description}</p>}
                 </div>
                 {actions}
             </header>
