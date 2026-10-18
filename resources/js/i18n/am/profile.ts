@@ -13,7 +13,7 @@ const profile = {
     noProfilePhoto: 'የፕሮፋይል ፎቶ የለም',
     accountSummary: 'የመለያ ማጠቃለያ',
     status: 'ሁኔታ',
-    lastLogin: 'የመጨረሻ ግቢ',
+    lastLogin: 'የመጨረሻ መግቢያ',
     countryCode: 'የአገር ኮድ',
     nationalIdHint: 'ባለ 16 አሃዝ ብሔራዊ መታወቂያ ቁጥር',
     notAvailable: 'አይገኝም',
@@ -28,10 +28,10 @@ const profile = {
     genderNotSpecified: 'አልተገለጸም',
     selectGender: 'ፆታ ይምረጡ',
     enterPhoneNumber: 'ስልክ ቁጥር ያስገቡ',
-    updateProfile: 'ፕሮፋይል ያዘምኑ',
+    updateProfile: 'ለውጦችን ያስቀምጡ',
     updatedSuccessfully: 'ፕሮፋይል ተዘምኗል።',
     failedToUpdate: 'ፕሮፋይል ማዘመን አልተሳካም።',
-    securityPassword: 'የደህንነት የይለፍ ቃል',
+    securityPassword: 'የይለፍ ቃል',
     passwordHelp: 'ለዚህ መለያ ረጅም እና ልዩ የይለፍ ቃል ይጠቀሙ።',
     currentPassword: 'የአሁኑ የይለፍ ቃል',
     newPassword: 'አዲስ የይለፍ ቃል',
@@ -44,6 +44,8 @@ const profile = {
     selfDeleteDisabled: 'የራስዎን መለያ መሰረዝ አይችሉም።',
     photoMustBeImage: 'የፕሮፋይል ፎቶ ምስል መሆን አለበት።',
     photoTooLarge: 'የፕሮፋይል ፎቶ መጠን በጣም ትልቅ ነው።',
+    photoHint: 'JPG፣ PNG ወይም WebP፤ እስከ 4 ሜባ።',
+    photoPending: 'አዲስ ፎቶ ተመርጧል። እንዲቀመጥ ለውጦችን ያስቀምጡ።',
 } as const;
 
 export default profile;
