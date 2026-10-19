@@ -7,6 +7,7 @@ use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileDeviceController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderPasswordResetController;
 use App\Http\Controllers\ProviderPortal\ProviderDashboardController;
@@ -1035,6 +1036,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/system-settings/id-cards', [SystemSettingController::class, 'updateIdCards'])->name('system-settings.id-cards.update');
     Route::patch('/system-settings/field-work-gps', [SystemSettingController::class, 'updateFieldWorkGps'])->name('system-settings.field-work-gps.update');
     Route::patch('/system-settings/situation-room', [SystemSettingController::class, 'updateSituationRoom'])->name('system-settings.situation-room.update');
+        Route::patch('/system-settings/intelligence', [SystemSettingController::class, 'updateIntelligence'])->name('system-settings.intelligence.update');
     Route::post('/system-settings/test-email', [SystemSettingController::class, 'testEmail'])->name('system-settings.test-email');
     Route::post('/system-settings/test-sms', [SystemSettingController::class, 'testSms'])->name('system-settings.test-sms');
     Route::post('/system-settings/test-telegram', [SystemSettingController::class, 'testTelegram'])->name('system-settings.test-telegram');
@@ -1459,6 +1461,9 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Devices tab: end one of the account's own sessions, or all but this one.
+    Route::delete('/profile/devices', [ProfileDeviceController::class, 'destroyOthers'])->middleware('throttle:10,1')->name('profile.devices.destroy-others');
+    Route::delete('/profile/devices/{session}', [ProfileDeviceController::class, 'destroy'])->middleware('throttle:10,1')->name('profile.devices.destroy');
 });
 
 // Typography check sheet for the PDF renderer (docs/ui-typography.md).
@@ -1491,6 +1496,7 @@ require __DIR__.'/organization-design.php';
 
 // Court Cases — planned standalone module, separate from Grievance Management.
 require __DIR__.'/court-cases.php';
+require __DIR__.'/intelligence.php';
 
 // Cross-cutting platform endpoints (scoped lookups).
 require __DIR__.'/platform.php';

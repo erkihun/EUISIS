@@ -40,23 +40,24 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
     return (
         <section className={className}>
             <form onSubmit={updatePassword} className="space-y-5">
-                <FormField id="current_password" label={t('profile.currentPassword')} required error={errors.current_password} className="sm:max-w-[calc(50%-0.625rem)]">
-                    {({ id, describedBy, invalid }) => (
-                        <Input
-                            id={id}
-                            ref={currentPasswordInput}
-                            value={data.current_password}
-                            onChange={(e) => setData('current_password', e.target.value)}
-                            type="password"
-                            className="w-full"
-                            autoComplete="current-password"
-                            aria-describedby={describedBy}
-                            aria-invalid={invalid || undefined}
-                        />
-                    )}
-                </FormField>
+                {/* Current, new and confirm share one row from tablet width up; phones stack them. */}
+                <div className="grid gap-5 md:grid-cols-3">
+                    <FormField id="current_password" label={t('profile.currentPassword')} required error={errors.current_password}>
+                        {({ id, describedBy, invalid }) => (
+                            <Input
+                                id={id}
+                                ref={currentPasswordInput}
+                                value={data.current_password}
+                                onChange={(e) => setData('current_password', e.target.value)}
+                                type="password"
+                                className="w-full"
+                                autoComplete="current-password"
+                                aria-describedby={describedBy}
+                                aria-invalid={invalid || undefined}
+                            />
+                        )}
+                    </FormField>
 
-                <div className="grid gap-5 sm:grid-cols-2">
                     <FormField id="password" label={t('profile.newPassword')} required error={errors.password}>
                         {({ id, describedBy, invalid }) => (
                             <Input

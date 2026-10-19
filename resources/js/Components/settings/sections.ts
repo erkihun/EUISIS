@@ -61,6 +61,12 @@ const CARDS: Record<string, CardDefinition[]> = {
         { key: 'wall', fields: ['wall_refresh_seconds', 'wall_rotation_seconds'] },
         { key: 'attention', fields: ['complaint_open_days', 'tip_off_unassigned_days', 'daily_review_backlog_days', 'field_work_overdue_hours', 'vacancy_rate_percent'] },
     ],
+    intelligence: [
+        { key: 'ai', fields: ['ai_enabled', 'ai_provider', 'ai_model', 'ai_timeout_seconds', 'ai_max_input_chars', 'ai_outbound_data_classes'] },
+        { key: 'features', fields: ['knowledge_enabled', 'forecasting_enabled', 'runbook_execution_enabled', 'telemetry_enabled'] },
+        { key: 'analysis', fields: ['cache_seconds', 'baseline_window_days', 'anomaly_sigma', 'retention_days', 'notify_min_severity'] },
+        { key: 'thresholds', fields: ['http_5xx_rate_percent', 'http_p95_latency_ms', 'queue_backlog_jobs', 'queue_oldest_job_minutes', 'failed_jobs_per_hour', 'exception_repeat_count', 'db_latency_ms', 'cache_latency_ms'] },
+    ],
     // Global defaults only: template artwork and overrides are edited in ID Card Templates.
     id_cards: [
         { key: 'headerDefaults', fields: (field) => /^(city|bureau)_name_/.test(field.key) },

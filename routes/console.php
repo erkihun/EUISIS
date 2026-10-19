@@ -50,3 +50,9 @@ Schedule::command('communication:publish-scheduled')->everyMinute()->withoutOver
 Schedule::command('communication:expire-announcements')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('communication:expire-investigations')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('communication:prune')->dailyAt('03:55')->withoutOverlapping()->onOneServer();
+
+// Addis One Intelligence (docs/intelligence-system-health.md): collect telemetry, then detect; prune by retention.
+Schedule::command('intelligence:collect --detect')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+Schedule::command('intelligence:prune')->dailyAt('03:35')->withoutOverlapping()->onOneServer();
+Schedule::command('intelligence:alerts')->hourly()->withoutOverlapping()->onOneServer();
+Schedule::command('intelligence:forecast --evaluate')->dailyAt('04:10')->withoutOverlapping()->onOneServer();

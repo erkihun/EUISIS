@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Services\Intelligence\System\ErrorFingerprinter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -95,6 +96,13 @@ class ErrorLoggingService
         }
 
         Log::error("[{$errorId}] Unhandled exception: {$e->getMessage()}", $context);
+
+        // Addis One Intelligence counts the signature (class, normalised message, route group); never this context.
+        try {
+            app(ErrorFingerprinter::class)->record($e, $request, $errorId);
+        } catch (Throwable) {
+            // Telemetry never adds a failure to a failure.
+        }
 
         return $errorId;
     }

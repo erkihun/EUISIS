@@ -15,6 +15,7 @@ return [
         'id_cards_updated' => 'ID card settings updated successfully.',
         'field_work_gps_updated' => 'Field Work GPS policy updated.',
         'situation_room_updated' => 'Situation Room settings updated.',
+        'intelligence_updated' => 'Intelligence settings updated.',
         'setting_updated' => 'Setting updated successfully.',
         'cache_cleared' => 'Settings cache cleared successfully.',
         'test_channel_missing' => ':channel test target is not configured.',

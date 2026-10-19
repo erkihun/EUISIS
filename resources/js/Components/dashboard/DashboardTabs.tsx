@@ -13,6 +13,8 @@ interface Props {
     onChange: (id: string) => void;
     /** Names the tablist for screen readers. */
     label: string;
+    /** Prefix of the tab and panel element ids; pages other than the dashboard pass their own. */
+    idPrefix?: string;
 }
 
 /**
@@ -27,7 +29,7 @@ interface Props {
  * arrive at the right area in one click. Only the active tab's charts mount,
  * so the initial render also stops paying for charts nobody is looking at.
  */
-export default function DashboardTabs({ tabs, activeId, onChange, label }: Props) {
+export default function DashboardTabs({ tabs, activeId, onChange, label, idPrefix = 'dashboard' }: Props) {
     const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
     if (tabs.length < 2) return null;
@@ -77,9 +79,9 @@ export default function DashboardTabs({ tabs, activeId, onChange, label }: Props
                         }}
                         type="button"
                         role="tab"
-                        id={`dashboard-tab-${tab.id}`}
+                        id={`${idPrefix}-tab-${tab.id}`}
                         aria-selected={active}
-                        aria-controls={`dashboard-panel-${tab.id}`}
+                        aria-controls={`${idPrefix}-panel-${tab.id}`}
                         tabIndex={active ? 0 : -1}
                         onClick={() => onChange(tab.id)}
                         onKeyDown={(event) => handleKeyDown(event, index)}
@@ -114,7 +116,7 @@ export default function DashboardTabs({ tabs, activeId, onChange, label }: Props
  * first available tab whenever the stored one is no longer permitted, so a
  * permission change can never strand the page on an empty panel.
  */
-export function useDashboardTab(available: DashboardTab[]): [string, (id: string) => void] {
+export function useDashboardTab(available: DashboardTab[], storageKey: string = STORAGE_KEY): [string, (id: string) => void] {
     const firstId = available[0]?.id ?? '';
 
     /* The caller rebuilds `available` on every render, so depending on the
@@ -124,7 +126,7 @@ export function useDashboardTab(available: DashboardTab[]): [string, (id: string
 
     const [activeId, setActiveId] = useState<string>(() => {
         try {
-            const stored = localStorage.getItem(STORAGE_KEY);
+            const stored = localStorage.getItem(storageKey);
             if (stored && available.some((tab) => tab.id === stored)) return stored;
         } catch {
             /* Private mode or blocked storage — the default is fine. */
@@ -143,7 +145,7 @@ export function useDashboardTab(available: DashboardTab[]): [string, (id: string
     const change = (id: string) => {
         setActiveId(id);
         try {
-            localStorage.setItem(STORAGE_KEY, id);
+            localStorage.setItem(storageKey, id);
         } catch {
             /* Not being able to remember the tab is not worth failing over. */
         }

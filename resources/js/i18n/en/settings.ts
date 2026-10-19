@@ -282,6 +282,16 @@ const settings = {
             attention: 'Critical Attention limits',
             attentionHelp: 'Leave a limit blank until it is decided: the rule then shows "not configured" and counts nothing.',
         },
+        intelligence: {
+            ai: 'AI provider',
+            aiHelp: 'Whether an AI provider explains signals, which driver, its limits, and what classes of data may reach it. Keys live in the environment.',
+            features: 'Features',
+            featuresHelp: 'Switch the Knowledge Assistant, forecasting, runbook execution and platform telemetry on or off.',
+            analysis: 'Analysis',
+            analysisHelp: 'Caching, the baseline window, anomaly sensitivity, retention and the least severity that notifies.',
+            thresholds: 'Detection limits',
+            thresholdsHelp: 'Leave a limit blank until it is decided: the rule then relies on the baseline only, or counts nothing.',
+        },
         general: {
             identity: 'Identity',
             identityHelp: 'How the platform names itself and where people land after signing in.',
@@ -390,6 +400,7 @@ const settings = {
         id_cards: 'ID Cards',
         field_work_gps: 'Field Work GPS',
         situation_room: 'Situation Room',
+        intelligence: 'Intelligence',
         api_management: 'API Management',
     },
     descriptions: {
@@ -404,6 +415,7 @@ const settings = {
         id_cards: 'Manage shared content and visibility defaults. Artwork, typography and layout are edited in ID Card Templates.',
         field_work_gps: 'Configure explicit field-work location capture and enforcement. Values marked not configured do not impose a hidden rule.',
         situation_room: 'Default period, caching, wall timing, the small-group privacy rule and Critical Attention limits. Blank limits are not configured and count nothing.',
+        intelligence: 'AI provider and limits, feature switches, baseline and retention, and the detection limits of Addis One Intelligence. Blank limits are not configured.',
     },
     groups: {
         brandingPreview: 'Branding Preview',
