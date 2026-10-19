@@ -28,12 +28,13 @@ const buttonVariants: Record<ButtonVariant, string> = {
     link: 'h-auto p-0 text-primary underline-offset-4 hover:underline',
 };
 
+/** Touch screens (`pointer-coarse:`) get taller targets; `xs` and `icon` stay compact for dense toolbars. */
 const buttonSizes: Record<ButtonSize, string> = {
     xs: 'h-6 gap-1 px-2 text-xs',
-    sm: 'h-(--control-h-sm) gap-1.5 px-3 text-sm',
-    default: 'h-(--control-h-md) gap-2 px-3.5 text-sm',
-    md: 'h-(--control-h-md) gap-2 px-3.5 text-sm',
-    lg: 'h-(--control-h-lg) gap-2 px-5 text-sm',
+    sm: 'h-(--control-h-sm) pointer-coarse:h-9 gap-1.5 px-3 text-sm',
+    default: 'h-(--control-h-md) pointer-coarse:h-11 gap-2 px-3.5 text-sm',
+    md: 'h-(--control-h-md) pointer-coarse:h-11 gap-2 px-3.5 text-sm',
+    lg: 'h-(--control-h-lg) pointer-coarse:h-12 gap-2 px-5 text-sm',
     icon: 'h-(--control-h-md) w-(--control-h-md) p-0',
 };
 

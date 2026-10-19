@@ -23,17 +23,23 @@ const controlBase = cx(
     'focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/20',
     'disabled:cursor-not-allowed disabled:bg-(--app-surface-muted) disabled:opacity-70',
     'aria-invalid:border-red-600 aria-invalid:ring-red-600/20',
+    // The browser's own checks (required, type=email, min/max…) mark a field
+    // only after the person has edited it or tried to submit, never on load.
+    'user-invalid:border-red-600 user-invalid:ring-red-600/20',
     // On a <select>, keep room for the native chevron: `:is(select)` outranks
     // `px-3`, so one shared input style serves inputs and selects alike.
     '[select]:pr-9',
 );
 
 /** Single-line input; no width (add `w-full`, `w-40`, …). */
-export const inputClassName = cx('h-(--control-h-md)', controlBase);
+// Touch screens get a 44px target (WCAG 2.5.8 / platform guidance); mouse and pen keep 36px.
+export const inputClassName = cx('h-(--control-h-md) pointer-coarse:h-11', controlBase);
 /** Native select; no width. */
-export const selectClassName = cx('h-(--control-h-md) pr-9', controlBase);
+export const selectClassName = cx('h-(--control-h-md) pointer-coarse:h-11 pr-9', controlBase);
 /** Multi-line input; no width and no fixed height. */
-export const textareaClassName = cx('min-h-24 py-2', controlBase);
+// Grows with its text (field-sizing: content) up to a limit, then scrolls;
+// browsers without field-sizing keep the fixed minimum height and scroll.
+export const textareaClassName = cx('min-h-24 max-h-80 field-sizing-content py-2', controlBase);
 /** Full-width single-line control, as the Input and Select components render. */
 export const controlClassName = cx(inputClassName, 'w-full');
 

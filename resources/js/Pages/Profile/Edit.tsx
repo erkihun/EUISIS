@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type ChangeEvent, type FormEvent, type ReactNode } from 'react';
 import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import StatusBadge from '@/Components/StatusBadge';
@@ -8,8 +8,9 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { formatRelative, toDate } from '@/lib/relativeTime';
 import type { PageProps } from '@/types';
+import { CameraIcon, ClockIcon, InfoIcon, KeyIcon, UserIcon, X } from '@/Components/Icons';
+import { Alert, Button, Card, CardFooter, FieldError, FormDescription, FormField, Input, Select, buttonClassName, cx } from '@/Components/ui';
 
-import { buttonClassName } from '@/Components/ui';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const COUNTRY_CODES = [
@@ -28,6 +29,9 @@ const COUNTRY_CODES = [
     { code: '+86', label: '+86 CN' },
     { code: '+91', label: '+91 IN' },
 ];
+
+// Matches ProfileUpdateRequest: image, jpg/jpeg/png/webp, max 4096 KB.
+const PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -56,30 +60,16 @@ type Profile = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputCls = 'w-full rounded-card border border-(--app-border) bg-(--app-surface-muted) px-4 py-2.5 text-sm text-(--app-foreground) placeholder-gray-400 transition focus:border-primary focus:bg-(--app-surface) focus:outline-hidden focus:ring-2 focus:ring-primary/20 dark:placeholder-slate-500 dark:focus:border-blue-400';
-
-function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: React.ReactNode }) {
+/** Card heading shared by the two form sections: tinted icon, title, one-line description. */
+function SectionHeading({ id, icon, title, description }: { id: string; icon: ReactNode; title: string; description: string }) {
     return (
-        <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-(--app-muted-foreground)">
-                {label}
-            </label>
-            {children}
-            {hint && !error && <p className="text-xs text-(--app-muted-foreground)">{hint}</p>}
-            {error && <p className="text-xs font-medium text-red-500 dark:text-red-400">{error}</p>}
-        </div>
-    );
-}
-
-function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
-    return (
-        <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-card bg-blue-50 text-primary dark:bg-blue-950/40 dark:text-primary">
+        <div className="flex items-start gap-3 border-b border-(--app-border) px-(--card-padding) py-4">
+            <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-primary/10 text-primary">
                 {icon}
-            </div>
-            <div>
-                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
-                {subtitle && <p className="mt-0.5 text-sm text-(--app-muted-foreground)">{subtitle}</p>}
+            </span>
+            <div className="min-w-0">
+                <h2 id={id} className="text-section-title text-(--app-foreground)">{title}</h2>
+                <p className="mt-0.5 text-sm text-(--app-muted-foreground)">{description}</p>
             </div>
         </div>
     );
@@ -91,7 +81,10 @@ export default function Edit({
     mustVerifyEmail, status, profile,
 }: PageProps<{ mustVerifyEmail: boolean; status?: string; profile: Profile }>) {
     const { t, locale } = useLocale();
+    const photoInput = useRef<HTMLInputElement>(null);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    // router.post (multipart with _method=PATCH) does not drive useForm's processing flag.
+    const [saving, setSaving] = useState(false);
 
     const parsedPhone = parsePhone(profile.phone_number);
     const [phoneCountry, setPhoneCountry] = useState(parsedPhone.country);
@@ -124,7 +117,7 @@ export default function Edit({
         setNidDisplay(formatNationalId(digits));
         form.setData('national_id', digits);
     }
-    function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    function handlePhotoChange(e: ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0];
         if (!file) return;
         form.setData('profile_photo', file);
@@ -132,7 +125,12 @@ export default function Edit({
         reader.onload = (ev) => setPhotoPreview(ev.target?.result as string);
         reader.readAsDataURL(file);
     }
-    function submit(e: React.FormEvent) {
+    function clearPhoto() {
+        form.setData('profile_photo', null);
+        setPhotoPreview(null);
+        if (photoInput.current) photoInput.current.value = '';
+    }
+    function submit(e: FormEvent) {
         e.preventDefault();
         const payload = new FormData();
         payload.append('_method', 'PATCH');
@@ -144,7 +142,10 @@ export default function Edit({
         if (form.data.profile_photo) payload.append('profile_photo', form.data.profile_photo);
         router.post(route('profile.update'), payload, {
             preserveScroll: true,
-            onSuccess: () => { form.setData('profile_photo', null); setPhotoPreview(null); },
+            onStart: () => { setSaving(true); form.clearErrors(); },
+            onFinish: () => setSaving(false),
+            onError: (errors) => form.setError(errors as Partial<Record<keyof typeof form.data, string>>),
+            onSuccess: () => clearPhoto(),
         });
     }
 
@@ -154,278 +155,196 @@ export default function Edit({
     const lastLogin    = toDate(profile.last_login_at);
 
     return (
-        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('profile.title')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('profile.title')} description={t('profile.description')} />}>
             <Head title={t('profile.title')} />
 
-            {/* ── Identity header ───────────────────────────────────────── */}
-            <div className="mb-6 overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
-                <div className="flex flex-col items-center gap-5 px-6 py-6 sm:flex-row sm:items-center">
-                    {/* Avatar with camera button */}
-                    <div className="group relative shrink-0">
-                        <div className="h-20 w-20 overflow-hidden rounded-full ring-4 ring-(--app-surface-muted) sm:h-24 sm:w-24">
-                            <UserAvatar src={currentPhoto} name={form.data.name || profile.name} size={96} />
-                        </div>
-                        <label title={t('profile.changePhoto')} className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/0 transition focus-within:bg-black/40 group-hover:bg-black/40">
-                            <span className="sr-only">{t('profile.changePhoto')}</span>
-                            <span aria-hidden="true" className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-(--app-surface) bg-primary text-white shadow-xs transition group-hover:opacity-0">
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </span>
-                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/0 text-white opacity-0 transition group-hover:bg-[color-mix(in_srgb,var(--app-surface)_20%,transparent)] group-hover:opacity-100">
-                                <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                            </span>
-                            <input type="file" accept="image/jpg,image/jpeg,image/png,image/webp" className="sr-only" onChange={handlePhotoChange} />
-                        </label>
-                        {photoPreview && (
+            <div className="space-y-6">
+                {/* ── Identity: photo, name, roles, account state ─────────────── */}
+                <Card className="p-0">
+                    <div className="flex flex-col items-center gap-5 p-(--card-padding) text-center sm:flex-row sm:items-start sm:text-left">
+                        <div className="relative shrink-0">
+                            <div className={cx(
+                                'h-24 w-24 overflow-hidden rounded-full ring-4',
+                                photoPreview ? 'ring-primary/40' : 'ring-(--app-surface-muted)',
+                            )}>
+                                <UserAvatar src={currentPhoto} name={form.data.name || profile.name} size={96} />
+                            </div>
                             <button
                                 type="button"
-                                onClick={() => { form.setData('profile_photo', null); setPhotoPreview(null); }}
-                                className={buttonClassName({ variant: 'destructive', className: 'absolute w-6' })}
-                                title={t('common.remove')}
-                                aria-label={t('common.remove')}
+                                onClick={() => photoInput.current?.click()}
+                                title={t('profile.changePhoto')}
+                                aria-label={t('profile.changePhoto')}
+                                className="absolute -bottom-0.5 -right-0.5 flex h-8 w-8 items-center justify-center rounded-full border-2 border-(--app-surface) bg-primary text-white shadow-xs transition hover:brightness-110 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                             >
-                                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                <CameraIcon className="h-4 w-4" />
                             </button>
-                        )}
-                    </div>
-
-                    {/* Name / email / roles */}
-                    <div className="flex-1 text-center sm:text-left">
-                        <h2 className="text-xl font-semibold text-(--app-foreground)">{profile.name}</h2>
-                        <p className="mt-0.5 text-sm text-(--app-muted-foreground)">{profile.email}</p>
-                        <div className="mt-2.5 flex flex-wrap justify-center gap-1.5 sm:justify-start">
-                            {profile.roles.map((role) => (
-                                <span
-                                    key={role}
-                                    className="rounded-control bg-(--app-surface-muted) px-2 py-0.5 text-xs font-medium text-(--app-foreground)"
-                                >
-                                    {role}
-                                </span>
-                            ))}
                         </div>
-                    </div>
 
-                    {/* Account status — same badge vocabulary as everywhere else. */}
-                    <div className="shrink-0">
-                        <StatusBadge status={isActive ? 'active' : 'inactive'} label={statusLabel} />
-                    </div>
-                </div>
+                        <div className="min-w-0 flex-1">
+                            <h2 className="text-section-title wrap-break-word text-(--app-foreground)">{profile.name}</h2>
+                            <p className="mt-0.5 break-all text-sm text-(--app-muted-foreground)">{profile.email}</p>
 
-                {form.errors.profile_photo && (
-                    <p className="px-6 pb-3 text-xs text-red-600 dark:text-red-400">{form.errors.profile_photo}</p>
-                )}
-            </div>
-
-            {/* ── Main content ──────────────────────────────────────────── */}
-            <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
-
-                {/* ── Sidebar ─────────────────────────────────────────── */}
-                <div className="space-y-4">
-                    {/* Account info */}
-                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
-                        <h3 className="mb-4 text-xs font-semibold text-(--app-muted-foreground)">
-                            {t('profile.accountSummary')}
-                        </h3>
-                        <ul className="space-y-3">
-                            <li className="flex items-center justify-between gap-3 text-sm">
-                                <span className="flex items-center gap-2 text-(--app-muted-foreground)">
-                                    <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    {t('profile.status')}
-                                </span>
+                            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                                 <StatusBadge status={isActive ? 'active' : 'inactive'} label={statusLabel} />
-                            </li>
-                            <li className="flex items-start justify-between gap-3 text-sm">
-                                <span className="flex items-center gap-2 text-(--app-muted-foreground)">
-                                    <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    {t('profile.lastLogin')}
-                                </span>
-                                <span className="text-right text-xs font-medium text-(--app-foreground)" title={lastLogin?.toLocaleString()}>
+                                {profile.roles.map((role) => (
+                                    <span key={role} className="rounded-control bg-(--app-surface-muted) px-2 py-0.5 text-xs font-medium text-(--app-foreground)">
+                                        {role}
+                                    </span>
+                                ))}
+                            </div>
+
+                            <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-(--app-muted-foreground) sm:justify-start">
+                                <ClockIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                                <span>{t('profile.lastLogin')}:</span>
+                                <span className="font-medium text-(--app-foreground)" title={lastLogin?.toLocaleString()}>
                                     {lastLogin ? formatRelative(profile.last_login_at, locale) : t('profile.notAvailable')}
                                 </span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Security notice */}
-                    <div className="rounded-panel border border-amber-200 bg-amber-50 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
-                        <div className="flex gap-2.5">
-                            <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                            </svg>
-                            <div>
-                                <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">{t('profile.accountDeletionDisabled')}</p>
-                                <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t('profile.selfDeleteProtected')}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ── Right column ─────────────────────────────────────── */}
-                <div className="space-y-6">
-
-                    {/* Personal information form */}
-                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface)">
-                        <div className="border-b border-(--app-border) px-6 py-5">
-                            <SectionHeader
-                                icon={
-                                    <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                    </svg>
-                                }
-                                title={t('profile.personalInformation')}
-                                subtitle={t('profile.personalInformationHelp')}
-                            />
+                            </p>
                         </div>
 
-                        <form onSubmit={submit} className="p-6">
-                            <div className="grid gap-5 sm:grid-cols-2">
-                                <Field label={t('profile.name')} error={form.errors.name}>
-                                    <div className="relative">
-                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-(--app-muted-foreground)">
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0" />
-                                            </svg>
-                                        </span>
-                                        <input className={inputCls + ' pl-9'} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
-                                    </div>
-                                </Field>
+                        <div className="flex shrink-0 flex-wrap justify-center gap-2">
+                            <Button variant="outline" size="sm" icon={<CameraIcon className="h-4 w-4" />} onClick={() => photoInput.current?.click()}>
+                                {photoPreview || profile.profile_photo_url ? t('profile.changePhoto') : t('profile.uploadPhoto')}
+                            </Button>
+                            {photoPreview && (
+                                <Button variant="ghost" size="sm" icon={<X className="h-4 w-4" />} onClick={clearPhoto}>
+                                    {t('profile.removeSelectedPhoto')}
+                                </Button>
+                            )}
+                        </div>
+                        <input ref={photoInput} type="file" accept={PHOTO_ACCEPT} className="sr-only" tabIndex={-1} aria-hidden="true" onChange={handlePhotoChange} />
+                    </div>
 
-                                <Field label={t('profile.email')} error={form.errors.email}>
-                                    <div className="relative">
-                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-(--app-muted-foreground)">
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-                                            </svg>
-                                        </span>
-                                        <input type="email" className={inputCls + ' pl-9'} value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} />
-                                    </div>
-                                </Field>
+                    <div className="border-t border-(--app-border) px-(--card-padding) py-3">
+                        {photoPreview ? (
+                            <p className="text-helper font-medium text-primary" role="status">{t('profile.photoPending')}</p>
+                        ) : (
+                            <FormDescription>{t('profile.photoHint')}</FormDescription>
+                        )}
+                        <FieldError className="mt-1">{form.errors.profile_photo}</FieldError>
+                    </div>
+                </Card>
 
-                                <Field label={t('profile.phoneNumber')} error={form.errors.phone_number}>
-                                    <div className="flex overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface-muted) focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                                        <select
-                                            aria-label={t('profile.countryCode')}
-                                            className="w-28 shrink-0 border-0 bg-transparent py-2.5 pl-3 pr-8 text-sm tabular-nums text-(--app-foreground) focus:outline-hidden focus:ring-0"
-                                            value={phoneCountry}
-                                            onChange={(e) => handlePhoneCountry(e.target.value)}
-                                        >
-                                            {COUNTRY_CODES.map((cc) => (
-                                                <option key={cc.code} value={cc.code}>{cc.label}</option>
-                                            ))}
-                                        </select>
-                                        <div className="my-2 w-px bg-(--app-surface-muted)" />
-                                        <input
-                                            size={1}
-                                            className="min-w-0 flex-1 border-0 bg-transparent px-3 py-2.5 text-sm text-(--app-foreground) placeholder-gray-400 focus:outline-hidden dark:placeholder-slate-500"
+                {/* ── Personal information ─────────────────────────────────────── */}
+                <Card className="p-0" aria-labelledby="profile-personal-title">
+                    <SectionHeading
+                        id="profile-personal-title"
+                        icon={<UserIcon className="h-4.5 w-4.5" />}
+                        title={t('profile.personalInformation')}
+                        description={t('profile.personalInformationHelp')}
+                    />
+
+                    <form onSubmit={submit} className="p-(--card-padding)">
+                        <div className="grid gap-5 sm:grid-cols-2">
+                            <FormField label={t('profile.name')} required error={form.errors.name}>
+                                {({ id, describedBy, invalid }) => (
+                                    <Input id={id} className="w-full" autoComplete="name" required aria-describedby={describedBy} aria-invalid={invalid || undefined}
+                                        value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
+                                )}
+                            </FormField>
+
+                            <FormField label={t('profile.email')} required error={form.errors.email}>
+                                {({ id, describedBy, invalid }) => (
+                                    <Input id={id} type="email" className="w-full" autoComplete="email" required aria-describedby={describedBy} aria-invalid={invalid || undefined}
+                                        value={form.data.email} onChange={(e) => form.setData('email', e.target.value)} />
+                                )}
+                            </FormField>
+
+                            <FormField label={t('profile.phoneNumber')} error={form.errors.phone_number}>
+                                {({ id, describedBy, invalid }) => (
+                                    <div className="flex gap-2">
+                                        {/* The kit Select is always w-full; the wrapper sets the width. */}
+                                        <div className="w-28 shrink-0">
+                                            <Select
+                                                aria-label={t('profile.countryCode')}
+                                                className="tabular-nums"
+                                                value={phoneCountry}
+                                                onChange={(e) => handlePhoneCountry(e.target.value)}
+                                            >
+                                                {COUNTRY_CODES.map((cc) => (
+                                                    <option key={cc.code} value={cc.code}>{cc.label}</option>
+                                                ))}
+                                            </Select>
+                                        </div>
+                                        <Input
+                                            id={id}
+                                            className="min-w-0 flex-1 tabular-nums"
                                             placeholder="9xxxxxxxx"
+                                            autoComplete="tel-national"
+                                            inputMode="numeric"
+                                            aria-describedby={describedBy}
+                                            aria-invalid={invalid || undefined}
                                             value={phoneLocal}
                                             onChange={(e) => handlePhoneLocal(e.target.value)}
-                                            inputMode="numeric"
                                         />
                                     </div>
-                                </Field>
+                                )}
+                            </FormField>
 
-                                <Field label={t('profile.gender')} error={form.errors.gender}>
-                                    <div className="relative">
-                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-(--app-muted-foreground)">
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                                            </svg>
-                                        </span>
-                                        <select className={inputCls + ' pl-9 pr-8 appearance-none'} value={form.data.gender} onChange={(e) => form.setData('gender', e.target.value)}>
-                                            <option value="">{t('profile.selectGender')}</option>
-                                            <option value="male">{t('profile.genderMale')}</option>
-                                            <option value="female">{t('profile.genderFemale')}</option>
-                                        </select>
-                                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-(--app-muted-foreground)">
-                                            <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </span>
-                                    </div>
-                                </Field>
+                            <FormField label={t('profile.gender')} error={form.errors.gender}>
+                                {({ id, describedBy, invalid }) => (
+                                    <Select id={id} className="w-full" aria-describedby={describedBy} aria-invalid={invalid || undefined}
+                                        value={form.data.gender} onChange={(e) => form.setData('gender', e.target.value)}>
+                                        <option value="">{t('profile.selectGender')}</option>
+                                        <option value="male">{t('profile.genderMale')}</option>
+                                        <option value="female">{t('profile.genderFemale')}</option>
+                                    </Select>
+                                )}
+                            </FormField>
 
-                                <div className="sm:col-span-2">
-                                    <Field label={t('profile.nationalId')} error={form.errors.national_id} hint={t('profile.nationalIdHint')}>
-                                        <div className="relative">
-                                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-(--app-muted-foreground)">
-                                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.17-.789 3.376 3.376 0 016.34 0z" />
-                                                </svg>
-                                            </span>
-                                            <input
-                                                className={inputCls + ' pl-9 font-mono tracking-widest'}
-                                                placeholder="XXXX XXXX XXXX XXXX"
-                                                value={nidDisplay}
-                                                onChange={(e) => handleNationalId(e.target.value)}
-                                                inputMode="numeric"
-                                                maxLength={19}
-                                            />
-                                        </div>
-                                    </Field>
-                                </div>
-                            </div>
-
-                            {mustVerifyEmail && status === 'verification-link-sent' && (
-                                <div className="mt-4 rounded-card bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-950/30 dark:text-green-400">
-                                    {t('profile.verificationLinkSent')}
-                                </div>
-                            )}
-
-                            <div className="mt-6 flex items-center justify-end gap-3 border-t border-(--app-border) pt-5">
-                                <Link
-                                    href={route('dashboard')}
-                                    className="rounded-card border border-(--app-border) px-4 py-2.5 text-sm font-medium text-(--app-muted-foreground) transition hover:bg-(--app-surface-muted)"
-                                >
-                                    {t('common.cancel')}
-                                </Link>
-                                <button
-                                    type="submit"
-                                    disabled={form.processing}
-                                    className={buttonClassName({ variant: 'primary' })}
-                                >
-                                    {form.processing && (
-                                        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                                        </svg>
-                                    )}
-                                    {form.processing ? t('common.saving') : t('profile.updateProfile')}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    {/* Change password */}
-                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface)">
-                        <div className="border-b border-(--app-border) px-6 py-5">
-                            <SectionHeader
-                                icon={
-                                    <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                                    </svg>
-                                }
-                                title={t('profile.securityPassword')}
-                                subtitle={t('profile.passwordHelp')}
-                            />
+                            <FormField className="sm:col-span-2" label={t('profile.nationalId')} description={t('profile.nationalIdHint')} error={form.errors.national_id}>
+                                {({ id, describedBy, invalid }) => (
+                                    <Input
+                                        id={id}
+                                        className="w-full font-mono tracking-widest sm:max-w-sm"
+                                        placeholder="XXXX XXXX XXXX XXXX"
+                                        inputMode="numeric"
+                                        maxLength={19}
+                                        aria-describedby={describedBy}
+                                        aria-invalid={invalid || undefined}
+                                        value={nidDisplay}
+                                        onChange={(e) => handleNationalId(e.target.value)}
+                                    />
+                                )}
+                            </FormField>
                         </div>
-                        <div className="p-6">
-                            <UpdatePasswordForm />
-                        </div>
-                    </div>
 
-                </div>
+                        {mustVerifyEmail && status === 'verification-link-sent' && (
+                            <Alert tone="success" className="mt-5">{t('profile.verificationLinkSent')}</Alert>
+                        )}
+
+                        <CardFooter className="mt-6">
+                            <Link href={route('dashboard')} className={buttonClassName({ variant: 'outline' })}>
+                                {t('common.cancel')}
+                            </Link>
+                            <Button type="submit" loading={saving}>
+                                {saving ? t('common.saving') : t('profile.updateProfile')}
+                            </Button>
+                        </CardFooter>
+                    </form>
+                </Card>
+
+                {/* ── Password ─────────────────────────────────────────────────── */}
+                <Card className="p-0" aria-labelledby="profile-password-title">
+                    <SectionHeading
+                        id="profile-password-title"
+                        icon={<KeyIcon className="h-4.5 w-4.5" />}
+                        title={t('profile.securityPassword')}
+                        description={t('profile.passwordHelp')}
+                    />
+                    <div className="p-(--card-padding)">
+                        <UpdatePasswordForm />
+                    </div>
+                </Card>
+
+                {/* Self-service deletion is off on purpose; say so once, quietly. */}
+                <p className="flex items-start gap-2 text-helper text-(--app-muted-foreground)">
+                    <InfoIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>
+                        <span className="font-medium text-(--app-foreground)">{t('profile.accountDeletionDisabled')}</span>{' '}
+                        {t('profile.selfDeleteProtected')}
+                    </span>
+                </p>
             </div>
         </AuthenticatedLayout>
     );

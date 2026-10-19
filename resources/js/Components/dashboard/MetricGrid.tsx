@@ -19,40 +19,45 @@ interface Props {
  * border, not a wider track: with up to four tiles every tile gets an equal
  * share, because narrower tracks wrapped labels and misaligned the values.
  * Mixed widths remain only where a row would otherwise leave a gap.
+ *
+ * Track counts follow the width the grid actually gets (container queries,
+ * `@container` + `@lg:`/`@4xl:`…), not the window: with the sidebar open or
+ * collapsed, or inside a narrower column, tiles keep roughly the same minimum
+ * width (~240px) instead of squeezing at a viewport breakpoint.
  */
 function featuredSpan(count: number, index: number): string {
     const patterns: Record<number, string[]> = {
-        1: ['xl:col-span-12'],
-        2: ['xl:col-span-6', 'xl:col-span-6'],
-        3: ['xl:col-span-4', 'xl:col-span-4', 'xl:col-span-4'],
-        4: ['xl:col-span-3', 'xl:col-span-3', 'xl:col-span-3', 'xl:col-span-3'],
+        1: ['@4xl:col-span-12'],
+        2: ['@4xl:col-span-6', '@4xl:col-span-6'],
+        3: ['@4xl:col-span-4', '@4xl:col-span-4', '@4xl:col-span-4'],
+        4: ['@4xl:col-span-3', '@4xl:col-span-3', '@4xl:col-span-3', '@4xl:col-span-3'],
         5: [
-            'xl:col-span-6',
-            'xl:col-span-3',
-            'xl:col-span-3',
-            'xl:col-span-6',
-            'xl:col-span-6',
+            '@4xl:col-span-6',
+            '@4xl:col-span-3',
+            '@4xl:col-span-3',
+            '@4xl:col-span-6',
+            '@4xl:col-span-6',
         ],
         6: [
-            'xl:col-span-6',
-            'xl:col-span-3',
-            'xl:col-span-3',
-            'xl:col-span-4',
-            'xl:col-span-4',
-            'xl:col-span-4',
+            '@4xl:col-span-6',
+            '@4xl:col-span-3',
+            '@4xl:col-span-3',
+            '@4xl:col-span-4',
+            '@4xl:col-span-4',
+            '@4xl:col-span-4',
         ],
         7: [
-            'xl:col-span-6',
-            'xl:col-span-3',
-            'xl:col-span-3',
-            'xl:col-span-3',
-            'xl:col-span-3',
-            'xl:col-span-3',
-            'xl:col-span-3',
+            '@4xl:col-span-6',
+            '@4xl:col-span-3',
+            '@4xl:col-span-3',
+            '@4xl:col-span-3',
+            '@4xl:col-span-3',
+            '@4xl:col-span-3',
+            '@4xl:col-span-3',
         ],
     };
 
-    return patterns[count]?.[index] ?? 'xl:col-span-3';
+    return patterns[count]?.[index] ?? '@4xl:col-span-3';
 }
 
 export default function MetricGrid({
@@ -64,26 +69,30 @@ export default function MetricGrid({
 
     if (variant === 'featured' && itemCount <= 7) {
         return (
-            <div className="grid grid-cols-1 gap-3 min-[375px]:grid-cols-2 xl:grid-cols-12">
-                {Children.map(children, (child, index) => (
-                    <div
-                        className={`min-w-0 sm:col-span-1 *:h-full ${featuredSpan(itemCount, index)}`}
-                    >
-                        {child}
-                    </div>
-                ))}
+            <div className="@container w-full">
+                <div className="grid grid-cols-1 gap-3 @xs:grid-cols-2 @4xl:grid-cols-12">
+                    {Children.map(children, (child, index) => (
+                        <div className={`min-w-0 *:h-full ${featuredSpan(itemCount, index)}`}>
+                            {child}
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
 
     const columns =
         itemCount === 1
-            ? 'grid-cols-1 sm:max-w-sm'
+            ? 'grid-cols-1 @lg:max-w-sm'
             : itemCount === 2
-              ? 'grid-cols-1 sm:grid-cols-2 lg:max-w-2xl'
+              ? 'grid-cols-1 @lg:grid-cols-2 @3xl:max-w-2xl'
               : itemCount === 3
-                ? 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
-                : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4';
+                ? 'grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3'
+                : 'grid-cols-1 @lg:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4';
 
-    return <div className={`grid gap-4 lg:gap-5 ${columns}`}>{children}</div>;
+    return (
+        <div className="@container w-full">
+            <div className={`grid gap-4 @3xl:gap-5 ${columns}`}>{children}</div>
+        </div>
+    );
 }

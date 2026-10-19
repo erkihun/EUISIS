@@ -7,8 +7,9 @@ exist in the code today. Values come from `packages/euisis-ui/src/tokens.css`,
 one of those files, it is not in this document. Usage rules and the audit are in
 `docs/admin-ui-consistency.md`; the kit's API table is in `docs/ui-components.md`.
 
-Stack: Laravel 12 + Inertia, React 18, TypeScript, Tailwind CSS 3 with
-`@tailwindcss/forms`, Headless UI for menus, popovers, dialogs and tabs, `cmdk`
+Stack: Laravel 12 + Inertia, React 18, TypeScript, Tailwind CSS 4 (through
+`@tailwindcss/vite`; the theme lives in `app.css`, there is no
+`tailwind.config.js`) with `@tailwindcss/forms`, Headless UI for menus, popovers, dialogs and tabs, `cmdk`
 for the command palette, and the project's own kit (`@euisis/ui`, re-exported
 from `@/Components/ui`). There is no shadcn/ui, Radix or lucide-react package;
 icons are hand-drawn Lucide-style paths in `@/Components/Icons` and, for the
@@ -17,9 +18,12 @@ shell only, the Solar set through `@/Components/NavIcons`.
 ## 1. Colour
 
 Every colour an admin page uses is a CSS variable, read through Tailwind's
-arbitrary-value syntax (`bg-[color:var(--app-surface)]`) or a named utility
+CSS-variable shorthand (`bg-(--app-surface)`) or a named utility
 (`bg-primary`, `text-primary-700`). The variables switch with the `.dark` class
-on `<html>`, so a page never writes a `dark:` pair for a neutral colour.
+on `<html>`, so a page never writes a `dark:` pair for a neutral colour. The
+same class sets `color-scheme` (`scheme-light` / `scheme-dark` on `:root`), so
+native parts — date and time pickers, an open `<select>` list, scrollbars —
+draw in the app's theme rather than the operating system's.
 
 ### Surfaces and text (`--app-*`)
 
@@ -119,6 +123,13 @@ popovers, `shadow-xl` on dialogs; nothing larger in the admin.
 | `--control-h-sm` / `-md` / `-lg` | `30px` / `36px` / `40px` | Button and input heights (`size="sm"`, default, `size="lg"`) |
 | `--icon-sm` / `-md` / `-lg` | `16px` / `18px` / `20px` | Icons in text, in controls, in the header |
 
+On touch screens (`pointer-coarse:`) inputs, selects and `default`/`md`
+buttons grow to 44px, `lg` to 48px and `sm` to 36px, so they meet the 44px
+touch-target size; mouse and pen keep the values above. `xs` and `icon` stay
+compact for dense toolbars. A `Textarea` grows with its text
+(`field-sizing-content`) from 96px up to 320px, then scrolls; browsers without
+`field-sizing` keep the fixed minimum.
+
 Toolbar and table-row icon buttons are 36px (`h-9 w-9 rounded-md`). The admin
 header is 64px (`h-16`); the sidebar is 280px, or a 64px rail when collapsed.
 
@@ -148,12 +159,12 @@ Section labels in the sidebar are `11px`, semibold, uppercase, tracked.
 | Inline actions | `actionLinkClassName` | tones `primary`, `neutral`, `danger`, `success`; sizes `sm`, default |
 | Badges | `badgeClassName`, `StatusBadge` | tones above |
 | Cards | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardFooter` | `card-tone-info/success/warning/danger` |
-| KPI cards | `KpiCard` (dashboard), `StatCard`, `AppMetricCard` | tonal; see consolidation note in the consistency document |
+| KPI cards | `KpiCard` (dashboard), `StatCard`, `AppMetricCard`; laid out by `MetricGrid` | tonal; see consolidation note in the consistency document. `MetricGrid` picks its column count from its own width (container queries: 2 columns from 512px, 3 from 768px, 4 from 1024px), not the window |
 | Tables | `TableCard`, `Table`, `THead`, `TBody`, `Tr`, `Th`, `Td`; `AppDataTable` | density follows `html[data-table-density]` |
 | Row actions | `AppActionMenu` (app: Inertia links, translated label) over the kit `ActionMenu` | 32px ⋮ trigger; anchored list on `--app-surface`; item tones `default`, `warning` (amber), `danger` (red); `disabled` + `title`; `show` hides an item |
 | Filters | `FilterPanel`, `FilterField`, `AppFilterBar`, `SearchInput` | |
 | Pagination | `ListPagination` (Laravel paginators), `Pagination` (client callback) | |
-| Forms | `FormField`, `FormLabel`, `FormDescription`, `FieldError`, `Input`, `Select`, `Textarea`, `FileUpload`, `SearchableSelect`, `FormSection` | |
+| Forms | `FormField`, `FormLabel`, `FormDescription`, `FieldError`, `Input`, `Select`, `Textarea`, `FileUpload`, `SearchableSelect`, `FormSection` | invalid border from `aria-invalid` (server errors) or `:user-invalid` (the browser's own checks, only after the person edits the field or submits) |
 | Dialogs | `AppDialog`; `useConfirm()` → `ConfirmationDialog` | confirm variants `default`, `warning`, `danger`, `success`; `requireReason`, `requireTyped` |
 | Feedback | `Alert`, `AppToaster` (`useToast`), `EmptyState`, `ErrorState`, `Skeleton`, `AppSkeleton` family | |
 | Navigation | `AuthenticatedLayout`, `AppSidebar`, `AppHeader`, `Breadcrumbs`, `PageHeader`, `AppCommandPalette` | |

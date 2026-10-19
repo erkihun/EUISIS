@@ -28,10 +28,10 @@ const profile = {
     genderNotSpecified: 'Not Specified',
     selectGender: 'Select gender',
     enterPhoneNumber: 'Enter phone number',
-    updateProfile: 'Update Profile',
+    updateProfile: 'Save changes',
     updatedSuccessfully: 'Profile updated successfully',
     failedToUpdate: 'Failed to update profile',
-    securityPassword: 'Security Password',
+    securityPassword: 'Password',
     passwordHelp: 'Use a long, unique password for this account.',
     currentPassword: 'Current Password',
     newPassword: 'New Password',
@@ -44,6 +44,8 @@ const profile = {
     selfDeleteDisabled: 'You cannot delete your own account.',
     photoMustBeImage: 'Profile photo must be an image.',
     photoTooLarge: 'Profile photo size is too large.',
+    photoHint: 'JPG, PNG or WebP, up to 4 MB.',
+    photoPending: 'New photo selected. Save changes to keep it.',
 } as const;
 
 export default profile;

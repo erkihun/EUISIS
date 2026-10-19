@@ -139,6 +139,19 @@
     [role='button']:not(:disabled) {
         cursor: pointer;
     }
+
+    /*
+     * Native controls follow the app theme (not the OS): date and time
+     * pickers, the open list of a <select>, scrollbars and number spinners
+     * draw dark when the `.dark` class is on <html>.
+     */
+    :root {
+        @apply scheme-light;
+    }
+
+    :root.dark {
+        @apply scheme-dark;
+    }
 }
 
 /* ── Design tokens ─────────────────────────────────────────────
