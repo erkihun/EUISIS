@@ -61,6 +61,20 @@ test('a single paragraph longer than a window is split on whitespace and a fence
     }
 });
 
+test('Ethiopic text survives chunking byte for byte', function (): void {
+    // ቅ is E1 89 85; a bytewise \R would split on the 0x85 byte and leave an invalid sequence.
+    $body = "# የፈቃድ ፖሊሲ\n\nእያንዳንዱ ሠራተኛ ዓመታዊ ፈቃድ ያገኛል። ቅድሚያ የሚሰጠው ለቅርብ ጊዜ ጥያቄ ነው።\n\n## ቅናሽ\n\nእስከ አሥር ቀናት ይተላለፋል።";
+
+    $chunks = Chunker::chunk($body);
+
+    expect(array_column($chunks, 'heading'))->toBe(['የፈቃድ ፖሊሲ', 'ቅናሽ'])
+        ->and($chunks[0]['content'])->toContain('ቅድሚያ የሚሰጠው ለቅርብ ጊዜ ጥያቄ ነው።');
+    foreach ($chunks as $chunk) {
+        expect(mb_check_encoding($chunk['content'], 'UTF-8'))->toBeTrue()
+            ->and(mb_check_encoding((string) $chunk['heading'], 'UTF-8'))->toBeTrue();
+    }
+});
+
 test('an empty or heading-only body yields no chunks', function (): void {
     expect(Chunker::chunk(''))->toBe([])
         ->and(Chunker::chunk("# Title only\n\n## Another"))->toBe([]);

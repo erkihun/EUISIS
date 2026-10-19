@@ -60,7 +60,7 @@ final class IntelligenceKnowledgeImport extends Command
             $relative = ltrim(substr($path, strlen($root)), '/');
             $body = (string) file_get_contents($path);
             $checksum = KnowledgeDocumentService::checksum($body);
-            $slug = mb_substr(Str::slug(preg_replace('/\.md$/i', '', $relative) ?? $relative), 0, 180);
+            $slug = mb_substr(Str::slug(preg_replace('/\.md$/iu', '', $relative) ?? $relative), 0, 180);
 
             $existing = IntelligenceKnowledgeDocument::query()->where('slug', $slug)->first();
             if ($existing !== null && $existing->checksum === $checksum) {
@@ -120,7 +120,7 @@ final class IntelligenceKnowledgeImport extends Command
     /** The first `# ` heading, or the file name. */
     private static function title(string $body, string $relative): string
     {
-        if (preg_match('/^#\s+(.+?)\s*#*\s*$/m', $body, $m)) {
+        if (preg_match('/^#\s+(.+?)\s*#*\s*$/mu', $body, $m)) {
             return mb_substr(trim($m[1]), 0, 190);
         }
 

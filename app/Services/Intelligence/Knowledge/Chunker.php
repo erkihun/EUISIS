@@ -47,12 +47,12 @@ final class Chunker
         };
 
         $inFence = false;
-        foreach (preg_split('/\R/', $body) ?: [] as $line) {
+        foreach (preg_split('/\R/u', $body) ?: [] as $line) {
             // A heading inside a fenced code block is code, not a section.
-            if (preg_match('/^\s*(```|~~~)/', $line)) {
+            if (preg_match('/^\s*(```|~~~)/u', $line)) {
                 $inFence = ! $inFence;
             }
-            if (! $inFence && preg_match('/^(#{1,3})\s+(.+?)\s*#*\s*$/', $line, $m)) {
+            if (! $inFence && preg_match('/^(#{1,3})\s+(.+?)\s*#*\s*$/u', $line, $m)) {
                 $flush();
                 $heading = mb_substr(trim($m[2]), 0, 190);
 
@@ -68,7 +68,7 @@ final class Chunker
     /** @return list<string> windows of about WINDOW chars, cut on paragraph boundaries, overlapping by OVERLAP chars */
     private static function windows(string $text): array
     {
-        $paragraphs = array_values(array_filter(array_map('trim', preg_split('/\n\s*\n/', $text) ?: []), fn (string $p): bool => $p !== ''));
+        $paragraphs = array_values(array_filter(array_map('trim', preg_split('/\n\s*\n/u', $text) ?: []), fn (string $p): bool => $p !== ''));
         $windows = [];
         $current = '';
         foreach ($paragraphs as $paragraph) {
@@ -135,6 +135,6 @@ final class Chunker
     {
         $body = ltrim(str_replace("\r\n", "\n", $body), "\xEF\xBB\xBF");
 
-        return (string) preg_replace('/\A---\n.*?\n---\n/s', '', $body, 1);
+        return (string) preg_replace('/\A---\n.*?\n---\n/su', '', $body, 1);
     }
 }
