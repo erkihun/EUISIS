@@ -6,7 +6,7 @@
 import { lazy, Suspense } from 'react';
 import EmptyDashboardState from '@/Components/dashboard/EmptyDashboardState';
 import { useChartColors } from '@/hooks/useChartColors';
-import type { MultiSeriesLineChartProps, SimpleBarChartProps, SimpleLineChartProps, StackedBarChartProps } from './types';
+import type { MultiSeriesLineChartProps, SimpleBarChartProps, SimpleLineChartProps, StackedBarChartProps, TrendChartProps } from './types';
 
 const BarChartImpl = lazy(() => import('./SimpleChartsImpl').then((m) => ({ default: m.SimpleBarChartImpl })));
 const LineChartImpl = lazy(() => import('./SimpleChartsImpl').then((m) => ({ default: m.SimpleLineChartImpl })));
@@ -70,6 +70,19 @@ export function StackedBarChart(props: StackedBarChartProps) {
     return (
         <Suspense fallback={<ChartPlaceholder height={Math.max(160, props.data.length * 34 + 48)} />}>
             <StackedBarChartImpl {...props} colors={colors} />
+        </Suspense>
+    );
+}
+
+const TrendAreaChartImpl = lazy(() => import('./SimpleChartsImpl').then((m) => ({ default: m.TrendAreaChartImpl })));
+
+/** One measure's daily trend for a row of small multiples. The caller handles "no data". */
+export function TrendAreaChart(props: TrendChartProps) {
+    const colors = useChartColors();
+
+    return (
+        <Suspense fallback={<ChartPlaceholder height={props.height ?? 112} />}>
+            <TrendAreaChartImpl {...props} colors={colors} />
         </Suspense>
     );
 }
