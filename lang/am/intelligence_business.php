@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * የAddis One ብልህ ትንተና — የቢዝነስ / አስተዳደር ክፍሎች (docs/intelligence-business.md)።
+ * የAddis One አስተውሎት — የቢዝነስ / አስተዳደር ክፍሎች (docs/intelligence-business.md)።
  * በ IntelligenceLabels በ `intelligence.` ቅድመ ቅጥያ ይዋሃዳል። የአጻጻፍ ሕጎች፦ ቁጥር
  * የተመዘገበ፣ የተቀበለ ወይም የጸደቀ ነው እንጂ ግኝት አይደለም፤ የቅሬታ ብዛት ፈጽሞ ነጥብ አይደለም፤
  * ትንበያ ከገደቦቹ ጋር የሚቀርብ መነሻ ነው፤ ማንም ሰው በስም አይጠቀስም።
@@ -62,7 +62,7 @@ return [
         'epms_reporting_gaps' => ['title' => 'የሪፖርት ክፍተቶች', 'description' => 'ጊዜያቸው ከዚህ ጋር የሚደራረብ የታተሙ ዕቅዶች የአሁን KPI ዒላማዎች፣ ለእሱ ምንም ትክክለኛ ውጤት ያልተመዘገበላቸው።'],
 
         // ትንበያ
-        'forecast_disabled' => ['title' => 'ትንበያ', 'description' => 'ትንበያ ጠፍቷል። መስመራዊ መነሻዎችን ለማየት በሥርዓት ቅንብሮች › ብልህ ትንተና ውስጥ ያንቁት።'],
+        'forecast_disabled' => ['title' => 'ትንበያ', 'description' => 'ትንበያ ጠፍቷል። መስመራዊ መነሻዎችን ለማየት በሥርዓት ቅንብሮች › አስተውሎት ውስጥ ያንቁት።'],
         'forecast_complaints_history' => ['title' => 'ቅሬታዎች በወር', 'description' => 'በወሰኑ ውስጥ የተቀበሉ ቅሬታዎች ያለፉት አሥራ ሁለት የተሟሉ ወራት።'],
         'forecast_complaints' => ['title' => 'ቅሬታዎች፦ የሚቀጥሉት ሦስት ወራት', 'description' => 'መስመራዊ መነሻ ከ95% ባንድ ጋር። መነሻ ነው እንጂ የሚሆነውን መተንበይ አይደለም።'],
         'forecast_complaints_method' => ['title' => 'ይህ ትንበያ እንዴት እንደተሠራ', 'description' => 'ዘዴ፣ የመረጃ መስኮት፣ ተስማሚነት፣ እርግጠኝነት እና ገደቦች።'],

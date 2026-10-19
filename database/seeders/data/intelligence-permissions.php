@@ -16,30 +16,30 @@ $entry = static fn (string $name, int $sort, string $en, string $am, string $des
 ];
 
 return [
-    $entry('intelligence.view', 10, 'Open Addis One Intelligence', 'የAddis One ብልህ ትንተናን ይክፈቱ',
+    $entry('intelligence.view', 10, 'Open Addis One Intelligence', 'የAddis One አስተውሎትን ይክፈቱ',
         'Open the Intelligence launcher and the Overview. Each area needs its own grant.',
-        'የብልህ ትንተና ማስጀመሪያውን እና አጠቃላይ እይታውን መክፈት ያስችላል። እያንዳንዱ ክፍል የራሱን ፈቃድ ይፈልጋል።'),
+        'የአስተውሎት ማስጀመሪያውን እና አጠቃላይ እይታውን መክፈት ያስችላል። እያንዳንዱ ክፍል የራሱን ፈቃድ ይፈልጋል።'),
 
     // ── Business / management intelligence ──────────────────────────────
-    $entry('intelligence.executive.view', 20, 'View executive intelligence', 'የአመራር ብልህ ትንተናን ይመልከቱ',
+    $entry('intelligence.executive.view', 20, 'View executive intelligence', 'የአመራር አስተውሎትን ይመልከቱ',
         'View priority business risks, trends and recommended management actions within the viewer\'s scope.',
         'በተመልካቹ ወሰን ውስጥ ቅድሚያ የሚሰጣቸውን የሥራ ስጋቶች፣ አዝማሚያዎች እና የሚመከሩ የአመራር እርምጃዎችን ማየት ያስችላል።'),
-    $entry('intelligence.workforce.view', 30, 'View workforce intelligence', 'የሰው ኃይል ብልህ ትንተናን ይመልከቱ',
+    $entry('intelligence.workforce.view', 30, 'View workforce intelligence', 'የሰው ኃይል አስተውሎትን ይመልከቱ',
         'View staffing gaps, vacancies, approved headcount against required FTE, leadership vacancies and assignment anomalies as aggregates.',
         'የሠራተኛ ክፍተቶችን፣ ክፍት ቦታዎችን፣ የጸደቀ የሠራተኛ ብዛትን ከሚያስፈልገው ሙሉ ጊዜ አቻ ጋር፣ የአመራር ክፍት ቦታዎችን እና የምደባ ልዩነቶችን በድምር ማየት ያስችላል።'),
-    $entry('intelligence.service.view', 40, 'View service intelligence', 'የአገልግሎት ብልህ ትንተናን ይመልከቱ',
+    $entry('intelligence.service.view', 40, 'View service intelligence', 'የአገልግሎት አስተውሎትን ይመልከቱ',
         'View service volume, backlog, delay and complaint rates where an authoritative service linkage exists.',
         'ትክክለኛ የአገልግሎት ትስስር ባለበት የአገልግሎት መጠንን፣ የተከማቸ ሥራን፣ መዘግየትን እና የቅሬታ መጠንን ማየት ያስችላል።'),
-    $entry('intelligence.public-voice.view', 50, 'View public voice intelligence', 'የሕዝብ ድምፅ ብልህ ትንተናን ይመልከቱ',
+    $entry('intelligence.public-voice.view', 50, 'View public voice intelligence', 'የሕዝብ ድምፅ አስተውሎትን ይመልከቱ',
         'View Feedback, Suggestion and Complaint trends and anomalies by organization, unit, service and category. Never a submitter or a narrative.',
         'የአስተያየት፣ የጥቆማ እና የቅሬታ አዝማሚያዎችን እና ልዩነቶችን በተቋም፣ በክፍል፣ በአገልግሎት እና በምድብ ማየት ያስችላል። አቅራቢን ወይም ዝርዝር ጽሑፍን አያሳይም።'),
-    $entry('intelligence.performance.view', 60, 'View performance intelligence', 'የአፈጻጸም ብልህ ትንተናን ይመልከቱ',
+    $entry('intelligence.performance.view', 60, 'View performance intelligence', 'የአፈጻጸም አስተውሎትን ይመልከቱ',
         'View EPMS cycle progress, overdue workflow steps, completion trends and reporting gaps using the EPMS weighting rules.',
         'የአፈጻጸም ዑደት ሂደትን፣ ጊዜያቸው ያለፈ የሥራ ፍሰት ደረጃዎችን፣ የማጠናቀቅ አዝማሚያዎችን እና የሪፖርት ክፍተቶችን በአፈጻጸም ሥርዓቱ የክብደት ሕግ መሠረት ማየት ያስችላል።'),
     $entry('intelligence.forecasting.view', 70, 'View forecasts', 'ትንበያዎችን ይመልከቱ',
         'View forecast snapshots with their method, data window, confidence and limitations.',
         'ትንበያዎችን ከዘዴያቸው፣ ከመረጃ ጊዜያቸው፣ ከእርግጠኝነታቸው እና ከገደባቸው ጋር ማየት ያስችላል።'),
-    $entry('intelligence.data-quality.view', 80, 'View data quality intelligence', 'የመረጃ ጥራት ብልህ ትንተናን ይመልከቱ',
+    $entry('intelligence.data-quality.view', 80, 'View data quality intelligence', 'የመረጃ ጥራት አስተውሎትን ይመልከቱ',
         'View detected data quality issues with what, where, count, impact, evidence and remediation.',
         'የተገኙ የመረጃ ጥራት ችግሮችን ከምንነታቸው፣ ከቦታቸው፣ ከብዛታቸው፣ ከተጽዕኖአቸው፣ ከማስረጃቸው እና ከመፍትሔያቸው ጋር ማየት ያስችላል።'),
     $entry('intelligence.knowledge.view', 90, 'Use the Knowledge Assistant', 'የዕውቀት ረዳቱን ይጠቀሙ',
@@ -97,7 +97,7 @@ return [
 
     // The settings group is edited on System Settings, under that module's own grant.
     ['name' => 'system-settings.manageIntelligence', 'group' => 'system-settings', 'sort_order' => 117, 'is_system' => true,
-        'label_en' => 'Manage Intelligence settings', 'label_am' => 'የብልህ ትንተና ቅንብሮችን ያስተዳድሩ',
+        'label_en' => 'Manage Intelligence settings', 'label_am' => 'የአስተውሎት ቅንብሮችን ያስተዳድሩ',
         'description_en' => 'Change AI feature switches, provider alias, limits, detection thresholds, baseline windows and retention. Secrets are never shown.',
         'description_am' => 'የሰው ሠራሽ ብልህነት ባህሪ ማብሪያዎችን፣ የአቅራቢ ስምን፣ ገደቦችን፣ የማወቂያ ወሰኖችን፣ የመነሻ መስኮቶችን እና የማቆያ ጊዜን መቀየር ያስችላል። ምስጢሮች በጭራሽ አይታዩም።'],
 ];

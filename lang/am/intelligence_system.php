@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * የAddis One ብልህ ትንተና — የቴክኒክ ዘርፍ መዝገበ ቃላት (በ IntelligenceLabels በ `intelligence.` ቅድመ ቅጥያ ይዋሃዳል)።
+ * የAddis One አስተውሎት — የቴክኒክ ዘርፍ መዝገበ ቃላት (በ IntelligenceLabels በ `intelligence.` ቅድመ ቅጥያ ይዋሃዳል)።
  */
 return [
     'components' => [

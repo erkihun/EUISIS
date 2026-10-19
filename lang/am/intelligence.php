@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 /*
- * የAddis One ብልህ ትንተና — የገጾቹ የጋራ መዝገበ ቃላት (App\Services\Intelligence\IntelligenceLabels)።
+ * የAddis One አስተውሎት — የገጾቹ የጋራ መዝገበ ቃላት (App\Services\Intelligence\IntelligenceLabels)።
  * የክፍል ፓነሎች፣ ቁልፍ አመልካቾች እና ግንዛቤዎች በ intelligence_business.php እና
  * intelligence_system.php ውስጥ ናቸው።
  */
 return [
-    'title' => 'የAddis One ብልህ ትንተና',
+    'title' => 'የAddis One አስተውሎት',
 
     'ui' => [
         'insights' => 'ግንዛቤዎች',
@@ -50,9 +50,9 @@ return [
     ],
 
     'reasons' => [
-        'TELEMETRY_OFF' => ['title' => 'ምልክት መሰብሰብ ጠፍቷል', 'description' => 'የመድረክ ምልክት መሰብሰብ በሥርዓት ቅንብሮች › ብልህ ትንተና ውስጥ ጠፍቷል፤ ስለዚህ ለዚህ ቁጥር ምንም አይሰበሰብም።'],
+        'TELEMETRY_OFF' => ['title' => 'ምልክት መሰብሰብ ጠፍቷል', 'description' => 'የመድረክ ምልክት መሰብሰብ በሥርዓት ቅንብሮች › አስተውሎት ውስጥ ጠፍቷል፤ ስለዚህ ለዚህ ቁጥር ምንም አይሰበሰብም።'],
         'UNKNOWN' => ['title' => 'አልተለካም', 'description' => 'ይህ ተከላ ይህን ምልክት አያሳይም፤ ስለዚህ ሁኔታው ጤናማ ተብሎ ከመገመት ይልቅ ያልታወቀ ነው።'],
-        'NOT_CONFIGURED' => ['title' => 'አልተዋቀረም', 'description' => 'ለዚህ ሕግ ገደብ በሥርዓት ቅንብሮች › ብልህ ትንተና ውስጥ ያስቀምጡ። እስከዚያ ድረስ ሕጉ በመነሻው ላይ ብቻ ይመሠረታል።'],
+        'NOT_CONFIGURED' => ['title' => 'አልተዋቀረም', 'description' => 'ለዚህ ሕግ ገደብ በሥርዓት ቅንብሮች › አስተውሎት ውስጥ ያስቀምጡ። እስከዚያ ድረስ ሕጉ በመነሻው ላይ ብቻ ይመሠረታል።'],
         'SLO_CONFIGURATION_REQUIRED' => ['title' => 'ዓላማ አልተዋቀረም', 'description' => 'ለዚህ ተከላ የመዘግየት፣ የስህተት መጠን ወይም የመገኘት ዓላማ አልተወሰነም፤ ስለዚህ ተገዢነት አይታይም።'],
         'FORECAST_DATA_INSUFFICIENT' => ['title' => 'ለትንበያ በቂ ታሪክ የለም', 'description' => 'ትንበያ ቢያንስ ስድስት የተሟሉ ወርሃዊ ነጥቦችን ይፈልጋል፤ ይህ ተከታታይ ከዚያ ያነሰ ስላለው አይታይም።'],
         'NEEDS_DEPLOYMENT_CONFIGURATION' => ['title' => 'የተመዘገበ ዝርጋታ የለም', 'description' => 'ልቀቶች ከልቀት ስክሪፕት በ `php artisan intelligence:record-deployment` ይመዘገባሉ። ምንም አልተመዘገበም፤ ስለዚህ ምንም አይተሳሰርም እና ምንም አይገመትም።'],
