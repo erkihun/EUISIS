@@ -111,7 +111,7 @@ final class ForecastingAnalysis extends IntelligenceAnalysis
     }
 
     /** @return array{categories: list<string>, values: list<int>} */
-    private function complaintsSeries(SituationContext $context): array
+    public function complaintsSeries(SituationContext $context): array
     {
         return app(SituationMemo::class)->remember(SituationMemo::key($context, 'intelligence:forecast:complaints'), function () use ($context): array {
             $window = $this->completeMonths(self::HISTORY_MONTHS);
@@ -122,7 +122,7 @@ final class ForecastingAnalysis extends IntelligenceAnalysis
     }
 
     /** @return array{categories: list<string>, values: list<int>} */
-    private function vacanciesSeries(SituationContext $context): array
+    public function vacanciesSeries(SituationContext $context): array
     {
         return app(SituationMemo::class)->remember(SituationMemo::key($context, 'intelligence:forecast:vacancies'), function () use ($context): array {
             $window = $this->completeMonths(self::HISTORY_MONTHS);

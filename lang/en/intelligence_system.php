@@ -23,7 +23,7 @@ return [
 
     'events' => [
         'detected' => 'Detected', 'recurred' => 'Recurred', 'escalated' => 'Escalated', 'status_changed' => 'Status changed', 'owner_changed' => 'Owner changed',
-        'recommendation_created' => 'Recommendations created', 'ai_explained' => 'AI explanation recorded', 'mitigated' => 'Mitigated', 'resolved' => 'Resolved',
+        'recommendation_created' => 'Recommendations created', 'ai_explained' => 'AI explanation recorded', 'ai_requested' => 'AI explanation requested', 'ai_explain_failed' => 'AI explanation failed', 'mitigated' => 'Mitigated', 'resolved' => 'Resolved',
         'verified' => 'Verified', 'closed' => 'Closed', 'note' => 'Note',
     ],
 

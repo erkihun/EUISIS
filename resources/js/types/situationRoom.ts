@@ -112,6 +112,7 @@ export interface SrCan {
     reports: boolean;
     actions_manage: boolean;
     community_voice: boolean;
+    intelligence: boolean;
 }
 
 export interface SrFrameProps {

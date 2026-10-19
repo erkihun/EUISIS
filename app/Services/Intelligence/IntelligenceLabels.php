@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Lang;
  */
 final class IntelligenceLabels
 {
-    public const FILES = ['intelligence', 'intelligence_business', 'intelligence_system'];
+    public const FILES = ['intelligence', 'intelligence_business', 'intelligence_system', 'intelligence_knowledge'];
 
     /** @return array{en: array<string, string>, am: array<string, string>} */
     public static function dictionary(): array

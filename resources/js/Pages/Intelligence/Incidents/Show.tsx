@@ -20,7 +20,20 @@ type Props = {
     fingerprints: FingerprintRow[];
     runbook: string | null;
     options: { statuses: string[]; verifications: string[] };
+    assessment: Assessment | null;
+    assessment_meta: { model: string | null; prompt_version: string | null; generated_at: string | null } | null;
+    ai: { available: boolean };
     can: { manage: boolean; review: boolean; diagnostics: boolean; runbooks: boolean };
+};
+
+type Assessment = {
+    observed_symptom: string;
+    likely_causes: Array<{ cause: string; confidence: 'high' | 'medium' | 'low'; why: string }>;
+    alternative_explanations: string[];
+    recommended_next_checks: string[];
+    suggested_areas_to_inspect: string[];
+    overall_confidence: 'high' | 'medium' | 'low';
+    caveats: string;
 };
 
 const CATEGORY_ORDER = ['immediate', 'short_term', 'permanent', 'verification', 'management'];
@@ -43,11 +56,13 @@ function Section({ title, children, aside }: { title: string; children: React.Re
  * related errors, related deployment (a correlation, never a cause),
  * recommendations, runbook, owner, resolution and verification.
  */
-export default function IncidentShow({ incident, events, recommendations, fingerprints, runbook, options, can }: PageProps<Props>) {
+export default function IncidentShow({ incident, events, recommendations, fingerprints, runbook, options, assessment, assessment_meta, ai, can }: PageProps<Props>) {
     const { t } = useLocale();
     const { sr } = useSituationLabels();
     const params = incident.params as Record<string, string | number>;
     const title = `${incident.reference} · ${sr(incident.title, params)}`;
+    const [explaining, setExplaining] = useState(false);
+    const explain = () => router.post(route('intelligence.incidents.explain', incident.id), {}, { preserveScroll: true, onStart: () => setExplaining(true), onFinish: () => setExplaining(false) });
 
     const form = useForm({ status: incident.status, note: '', resolution_summary: incident.resolution_summary ?? '', verification_status: incident.verification_status ?? '' });
     const submit = (e: FormEvent) => {
@@ -107,6 +122,45 @@ export default function IncidentShow({ incident, events, recommendations, finger
                             <p className="mt-4 text-sm"><span className="font-medium">{t('intelligence.incidents.resolution')}: </span>{incident.resolution_summary}</p>
                         )}
                     </Section>
+
+                    {can.diagnostics && (assessment || ai.available) && (
+                        <Section
+                            title={t('intelligence.incidents.assessment.title')}
+                            aside={ai.available ? <Button size="sm" variant="outline" loading={explaining} onClick={explain} title={t('intelligence.incidents.explainHint')}>{t('intelligence.incidents.explain')}</Button> : undefined}
+                        >
+                            {assessment ? (
+                                <div className="space-y-4 text-sm">
+                                    <div className="flex flex-wrap items-center gap-2 text-xs text-(--app-muted-foreground)">
+                                        <ConfidenceBadge confidence={assessment.overall_confidence} />
+                                        {assessment_meta && <span>{t('intelligence.incidents.assessment.meta').replace('{model}', assessment_meta.model ?? '—').replace('{version}', assessment_meta.prompt_version ?? '—')}</span>}
+                                        {assessment_meta?.generated_at && <LocalizedDateDisplay value={assessment_meta.generated_at} withTime />}
+                                    </div>
+                                    <div><h3 className="font-medium">{t('intelligence.incidents.assessment.symptom')}</h3><p className="text-(--app-foreground)">{assessment.observed_symptom}</p></div>
+                                    <div>
+                                        <h3 className="font-medium">{t('intelligence.incidents.assessment.causes')}</h3>
+                                        <ol className="mt-1 space-y-2">
+                                            {assessment.likely_causes.map((c, i) => (
+                                                <li key={i} className="rounded-control border border-(--app-border) p-3">
+                                                    <div className="flex flex-wrap items-center gap-2"><span className="font-medium text-(--app-foreground)">{i + 1}. {c.cause}</span><ConfidenceBadge confidence={c.confidence} /></div>
+                                                    <p className="mt-1 text-(--app-muted-foreground)">{c.why}</p>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    </div>
+                                    {([['alternative_explanations', 'alternatives'], ['recommended_next_checks', 'checks'], ['suggested_areas_to_inspect', 'areas']] as const).filter(([field]) => assessment[field].length > 0).map(([field, key]) => (
+                                        <div key={field}>
+                                            <h3 className="font-medium">{t(`intelligence.incidents.assessment.${key}`)}</h3>
+                                            <ul className="mt-1 list-disc space-y-1 pl-5">{assessment[field].map((item, i) => <li key={i} className={field === 'suggested_areas_to_inspect' ? 'font-mono text-xs' : undefined}>{item}</li>)}</ul>
+                                        </div>
+                                    ))}
+                                    {assessment.caveats && <p className="text-(--app-muted-foreground)"><span className="font-medium">{t('intelligence.incidents.assessment.caveats')}: </span>{assessment.caveats}</p>}
+                                    <Alert tone="info">{t('intelligence.incidents.assessment.disclaimer')}</Alert>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-(--app-muted-foreground)">{t('intelligence.incidents.explainHint')}</p>
+                            )}
+                        </Section>
+                    )}
 
                     <Section title={t('intelligence.incidents.evidence')} aside={<span className="text-xs text-(--app-muted-foreground)">{incident.source_signals.join(' · ')}</span>}>
                         <dl className="divide-y divide-(--app-border) rounded-control border border-(--app-border) text-sm">

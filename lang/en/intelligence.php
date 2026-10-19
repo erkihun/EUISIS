@@ -81,15 +81,28 @@ return [
     ],
 
     'flash' => [
+        'alert_updated' => 'Alert updated.',
         'incident_updated' => 'Incident updated.',
         'recommendation_reviewed' => 'Review recorded.',
+        'explain_requested' => 'AI assessment requested; it appears on this page once the background queue has run it.',
+        'ai_unavailable' => 'AI explanations are not available right now (disabled, not configured, or paused after failures).',
     ],
 
     'notifications' => [
+        'open_alerts' => 'Open alerts',
+        'alert' => ['title' => 'New :severity business alert', 'message' => 'A city-wide alert was opened in :area. Review its evidence and recommendation.'],
         'open' => 'Open incident',
         'opened' => ['title' => 'Incident :reference opened (:severity)', 'message' => 'A technical incident was detected on :component. Review its evidence and recommendations.'],
         'escalated' => ['title' => 'Incident :reference escalated to :severity', 'message' => 'The condition on :component worsened since detection.'],
     ],
+
+    'data_classes' => ['aggregates' => 'Aggregates', 'structured_signals' => 'Structured signals', 'redacted_logs' => 'Redacted error signatures', 'knowledge_documents' => 'Knowledge documents'],
+    'sources_short' => ['rule' => 'Deterministic rules', 'ai' => 'AI assistant'],
+    'forecast_metrics' => ['complaints_monthly' => 'Complaints per month', 'vacancies_monthly' => 'Vacant positions per month'],
+    'domain' => ['business' => 'Business', 'technical' => 'Technical'],
+    'alert_type' => ['incident' => 'Incident', 'insight' => 'Insight', 'data_quality' => 'Data quality', 'forecast' => 'Forecast'],
+    'alert_status' => ['open' => 'Open', 'acknowledged' => 'Acknowledged', 'resolved' => 'Resolved'],
+    'areas_short' => ['workforce' => 'Workforce', 'public_voice' => 'Public Voice', 'performance' => 'Performance', 'data_quality' => 'Data Quality', 'incidents' => 'Incidents', 'executive' => 'Executive', 'service' => 'Service', 'forecasting' => 'Forecasting'],
 
     'evidence' => [
         'window' => 'Window',

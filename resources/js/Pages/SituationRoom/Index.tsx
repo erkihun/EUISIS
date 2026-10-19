@@ -7,6 +7,7 @@ import HeaderActions from '@/Components/SituationRoom/HeaderActions';
 import { KpiTiles, PanelGrid } from '@/Components/SituationRoom/Panels';
 import { Freshness, ScopeTrail, SituationFilterBar } from '@/Components/SituationRoom/SituationFilters';
 import { useSituationLabels } from '@/Components/SituationRoom/useSituationLabels';
+import { useLocale } from '@/hooks/useLocale';
 import type { SrCategory, SrFrameProps, SrResult } from '@/types/situationRoom';
 
 type Props = SrFrameProps & { result?: SrResult; privacy: { small_cell: number } };
@@ -20,6 +21,7 @@ const SECTIONS: SrCategory['section'][] = ['command', 'people', 'public_voice', 
  */
 export default function SituationRoomIndex({ categories, filters, query, scope, can, result, privacy }: Props) {
     const { sr } = useSituationLabels();
+    const { t } = useLocale();
     const url = route('situation-room.index');
     const kpis = result?.payload.panels.find((p) => p.type === 'kpis');
 
@@ -45,6 +47,18 @@ export default function SituationRoomIndex({ categories, filters, query, scope, 
                 </section>
 
                 {categories.length === 0 && <Alert tone="info">{sr('ui.nothing_available')}</Alert>}
+
+                {can.intelligence && (
+                    <Link href={route('intelligence.index')} className="group block focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                        <Card className="flex items-start gap-3 p-4 transition-colors group-hover:border-primary">
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-(--app-surface-muted) text-primary"><CategoryIcon name="LightbulbIcon" className="h-6 w-6" /></span>
+                            <span className="min-w-0">
+                                <span className="block font-semibold text-(--app-foreground)">{t('intelligence.title')}</span>
+                                <span className="mt-1 block text-xs text-(--app-muted-foreground)">{t('intelligence.fromSituationRoom')}</span>
+                            </span>
+                        </Card>
+                    </Link>
+                )}
 
                 {SECTIONS.map((section) => {
                     const items: SrCategory[] = categories.filter((c) => c.section === section);

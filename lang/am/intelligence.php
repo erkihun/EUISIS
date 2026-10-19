@@ -78,15 +78,28 @@ return [
     ],
 
     'flash' => [
+        'alert_updated' => 'ማንቂያው ተዘምኗል።',
         'incident_updated' => 'ክስተቱ ተዘምኗል።',
         'recommendation_reviewed' => 'ግምገማው ተመዝግቧል።',
+        'explain_requested' => 'የሰው ሠራሽ ብልህነት ግምገማ ተጠይቋል፤ የጀርባ ወረፋው ሲያስኬደው በዚህ ገጽ ላይ ይታያል።',
+        'ai_unavailable' => 'የሰው ሠራሽ ብልህነት ማብራሪያዎች አሁን አይገኙም (ጠፍቷል፣ አልተዋቀረም ወይም ከውድቀቶች በኋላ ቆሟል)።',
     ],
 
     'notifications' => [
+        'open_alerts' => 'ማንቂያዎችን ይክፈቱ',
+        'alert' => ['title' => 'አዲስ :severity የሥራ ማንቂያ', 'message' => 'በ :area ውስጥ ከተማ አቀፍ ማንቂያ ተከፍቷል። ማስረጃውን እና ምክረ ሐሳቡን ይገምግሙ።'],
         'open' => 'ክስተቱን ይክፈቱ',
         'opened' => ['title' => 'ክስተት :reference ተከፍቷል (:severity)', 'message' => 'በ :component ላይ የቴክኒክ ክስተት ተገኝቷል። ማስረጃውን እና ምክረ ሐሳቦቹን ይገምግሙ።'],
         'escalated' => ['title' => 'ክስተት :reference ወደ :severity ከፍ ብሏል', 'message' => 'በ :component ላይ ያለው ሁኔታ ከተገኘበት ጊዜ ጀምሮ ተባብሷል።'],
     ],
+
+    'data_classes' => ['aggregates' => 'ድምር መረጃዎች', 'structured_signals' => 'የተዋቀሩ ምልክቶች', 'redacted_logs' => 'የተሰወሩ የስህተት ፊርማዎች', 'knowledge_documents' => 'የዕውቀት ሰነዶች'],
+    'sources_short' => ['rule' => 'ቆራጥ ደንቦች', 'ai' => 'የሰው ሠራሽ ብልህነት ረዳት'],
+    'forecast_metrics' => ['complaints_monthly' => 'በወር ቅሬታዎች', 'vacancies_monthly' => 'በወር ክፍት የሥራ መደቦች'],
+    'domain' => ['business' => 'የሥራ', 'technical' => 'የቴክኒክ'],
+    'alert_type' => ['incident' => 'ክስተት', 'insight' => 'ግንዛቤ', 'data_quality' => 'የመረጃ ጥራት', 'forecast' => 'ትንበያ'],
+    'alert_status' => ['open' => 'ክፍት', 'acknowledged' => 'የታወቀ', 'resolved' => 'የተፈታ'],
+    'areas_short' => ['workforce' => 'የሰው ኃይል', 'public_voice' => 'የሕዝብ ድምፅ', 'performance' => 'አፈጻጸም', 'data_quality' => 'የመረጃ ጥራት', 'incidents' => 'ክስተቶች', 'executive' => 'አመራር', 'service' => 'አገልግሎት', 'forecasting' => 'ትንበያ'],
 
     'evidence' => [
         'window' => 'መስኮት',

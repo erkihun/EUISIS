@@ -44,10 +44,11 @@ test('the launcher needs intelligence.view and lists only the permitted areas', 
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Intelligence/Index')
-            ->has('areas', 2)
+            ->has('areas', 3)
             ->where('areas.0.key', 'overview')
             ->where('areas.1.key', 'executive')
             ->where('areas.1.domain', 'business')
+            ->where('areas.2.key', 'alerts')
             ->where('ai.enabled', false));
 });
 

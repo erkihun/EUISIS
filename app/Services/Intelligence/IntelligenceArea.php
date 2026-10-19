@@ -23,6 +23,7 @@ enum IntelligenceArea: string
     case Performance = 'performance';
     case Forecasting = 'forecasting';
     case DataQuality = 'data_quality';
+    case Alerts = 'alerts';
     case Knowledge = 'knowledge';
     case SystemHealth = 'system_health';
     case Incidents = 'incidents';
@@ -42,7 +43,7 @@ enum IntelligenceArea: string
     public function permission(): string
     {
         return match ($this) {
-            self::Overview => IntelligencePermissions::VIEW,
+            self::Overview, self::Alerts => IntelligencePermissions::VIEW,
             self::Executive => IntelligencePermissions::EXECUTIVE,
             self::Workforce => IntelligencePermissions::WORKFORCE,
             self::Service => IntelligencePermissions::SERVICE,
@@ -69,7 +70,7 @@ enum IntelligenceArea: string
     public function domain(): string
     {
         return match ($this->section()) {
-            'business', 'knowledge' => 'business',
+            'business', 'alerts', 'knowledge' => 'business',
             'system', 'diagnostics' => 'technical',
             default => 'governance',
         };
@@ -81,6 +82,7 @@ enum IntelligenceArea: string
         return match ($this) {
             self::Overview, self::Executive, self::Workforce, self::Service, self::PublicVoice,
             self::Performance, self::Forecasting, self::DataQuality => 'business',
+            self::Alerts => 'alerts',
             self::Knowledge => 'knowledge',
             self::SystemHealth, self::Incidents, self::ApplicationHealth, self::DatabaseHealth,
             self::QueueHealth, self::IntegrationHealth => 'system',
@@ -95,6 +97,7 @@ enum IntelligenceArea: string
     {
         return match ($this) {
             self::Overview => 'LayoutDashboard',
+            self::Alerts => 'BellIcon',
             self::Executive => 'TargetIcon',
             self::Workforce => 'Users',
             self::Service => 'HandshakeIcon',
@@ -122,7 +125,7 @@ enum IntelligenceArea: string
     /** The launcher sections, in display order. @return list<string> */
     public static function sections(): array
     {
-        return ['business', 'knowledge', 'system', 'diagnostics', 'governance'];
+        return ['business', 'alerts', 'knowledge', 'system', 'diagnostics', 'governance'];
     }
 
     public function visibleTo(User $user): bool
@@ -141,6 +144,9 @@ enum IntelligenceArea: string
     {
         return match ($this) {
             self::Overview => route('intelligence.index'),
+            self::Knowledge => route('intelligence.knowledge.index'),
+            self::Governance => route('intelligence.governance.index'),
+            self::Alerts => route('intelligence.alerts.index'),
             self::Incidents => route('intelligence.incidents.index'),
             self::Recommendations => route('intelligence.recommendations.index'),
             self::Runbooks => route('intelligence.runbooks.index'),

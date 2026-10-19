@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\PublicFeedbackCategory;
 use App\Models\User;
+use App\Services\Intelligence\IntelligencePermissions;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SituationRoom\OrganizationRollup;
 use App\Services\SituationRoom\SituationCategory;
@@ -124,6 +125,8 @@ final class SituationRoomController extends Controller
                 'reports' => $user->can(SituationPermissions::REPORTS),
                 'actions_manage' => $user->can(SituationPermissions::ACTIONS_MANAGE),
                 'community_voice' => $user->can(SituationPermissions::PUBLIC_VOICE),
+                // The analytical layer over these figures (docs/intelligence-architecture.md); its own grant.
+                'intelligence' => $user->can(IntelligencePermissions::VIEW),
             ],
         ];
     }

@@ -107,3 +107,17 @@ operations.
 Derived health states (`ComponentHealth`): healthy / degraded / unhealthy /
 unknown per component, from the freshest sample within 15 minutes and the
 active incidents on the component.
+
+## Alerts and forecasts
+
+| Record | Definition | Source | Freshness | Scope | Page |
+| --- | --- | --- | --- | --- | --- |
+| `intelligence_alerts` (technical) | one per active incident fingerprint; occurrences, clear runs, cooldown | incidents | hourly | platform | Alerts |
+| `intelligence_alerts` (business) | one per Workforce / Public Voice / Performance / Data Quality insight of severity >= medium | business analyses, city-wide | hourly | city (unrestricted viewers only) | Alerts |
+| `intelligence_forecasts.complaints_monthly` | predicted complaints per month, 3 months ahead, linear fit over up to 12 complete months | `ForecastingAnalysis::complaintsSeries` | daily | city | Forecasting, Governance |
+| `intelligence_forecasts.vacancies_monthly` | predicted vacant positions per month, 3 months ahead | `ForecastingAnalysis::vacanciesSeries` | daily | city | Forecasting, Governance |
+| forecast `actual`, `abs_error`, `pct_error` | filled once the target month has passed and has data; MAE / MAPE per metric on Governance | same series | daily | city | Governance |
+
+Null handling: a forecast under six monthly points is not written
+(insufficient); an unevaluated month stays null, never zero. See
+`docs/intelligence-alerts.md`.

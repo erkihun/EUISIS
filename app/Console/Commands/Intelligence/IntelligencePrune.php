@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Intelligence;
 
+use App\Models\IntelligenceAiRun;
+use App\Models\IntelligenceAlert;
 use App\Models\IntelligenceErrorFingerprint;
 use App\Models\IntelligenceIncident;
 use App\Models\IntelligenceRecommendation;
@@ -37,8 +39,11 @@ final class IntelligencePrune extends Command
             ->where(fn ($q) => $q->where('review_status', '!=', 'pending')->orWhereNull('incident_id'))
             ->whereDoesntHave('incident', fn ($q) => $q->whereIn('status', IntelligenceIncident::ACTIVE_STATUSES))
             ->delete();
+        // Resolved alerts and AI run records age out too; forecasts and knowledge documents are kept (evaluation history, reference material).
+        $removedAlerts = IntelligenceAlert::query()->where('status', 'resolved')->where('resolved_at', '<', $before->toDateTimeString())->delete();
+        $removedRuns = IntelligenceAiRun::query()->where('created_at', '<', $before->toDateTimeString())->delete();
 
-        $this->info("Pruned before {$before->toDateString()}: signals {$removedSignals}, fingerprints {$removedFingerprints}, incidents {$removedIncidents}, recommendations {$removedRecommendations}.");
+        $this->info("Pruned before {$before->toDateString()}: signals {$removedSignals}, fingerprints {$removedFingerprints}, incidents {$removedIncidents}, recommendations {$removedRecommendations}, alerts {$removedAlerts}, AI runs {$removedRuns}.");
 
         return self::SUCCESS;
     }

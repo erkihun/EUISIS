@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Services\Intelligence\AI\AiGateway;
+use App\Services\Intelligence\AI\Contracts\EmbeddingProvider;
+use App\Services\Intelligence\AI\Contracts\LLMGateway;
+use App\Services\Intelligence\AI\NullEmbeddingProvider;
 use App\Services\Intelligence\Contracts\TechnicalSignalSource;
 use App\Services\Intelligence\System\Detection\DetectionEngine;
 use App\Services\Intelligence\System\Detection\DetectionRule;
@@ -53,6 +57,8 @@ final class IntelligenceServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(TechnicalSignalSource::class, TelemetrySignalSource::class);
+        $this->app->singleton(LLMGateway::class, AiGateway::class);
+        $this->app->bind(EmbeddingProvider::class, NullEmbeddingProvider::class);
 
         $this->app->when(DetectionEngine::class)
             ->needs('$rules')

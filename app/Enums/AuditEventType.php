@@ -850,4 +850,6 @@ enum AuditEventType: string
     case IntelligenceAiRunRecorded = 'intelligence.ai_run_recorded';
     case IntelligenceKnowledgeAsked = 'intelligence.knowledge_asked';
     case IntelligenceKnowledgeDocumentChanged = 'intelligence.knowledge_document_changed';
+    case IntelligenceAlertUpdated = 'intelligence.alert_updated';
+    case IntelligenceIncidentExplained = 'intelligence.incident_explained';
 }

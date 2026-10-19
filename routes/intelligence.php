@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Web\Intelligence\AlertController;
+use App\Http\Controllers\Web\Intelligence\GovernanceController;
 use App\Http\Controllers\Web\Intelligence\IncidentController;
 use App\Http\Controllers\Web\Intelligence\IntelligenceController;
+use App\Http\Controllers\Web\Intelligence\KnowledgeController;
 use App\Http\Controllers\Web\Intelligence\RecommendationController;
 use App\Http\Controllers\Web\Intelligence\RunbookController;
 use App\Services\Intelligence\IntelligenceArea;
@@ -42,6 +45,31 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access', 
         Route::middleware('can:intelligence.runbooks.view')->group(function (): void {
             Route::get('/runbooks', [RunbookController::class, 'index'])->name('runbooks.index');
             Route::get('/runbooks/{runbook}', [RunbookController::class, 'show'])->where('runbook', '[a-z_]+')->name('runbooks.show');
+        });
+
+        // Knowledge Assistant (KnowledgeController, docs/intelligence-knowledge.md).
+        Route::middleware('can:intelligence.knowledge.view')->group(function (): void {
+            Route::get('/knowledge', [KnowledgeController::class, 'index'])->name('knowledge.index');
+            Route::post('/knowledge/ask', [KnowledgeController::class, 'ask'])->middleware('throttle:20,1')->name('knowledge.ask');
+        });
+        Route::middleware('can:intelligence.governance.manage')->prefix('knowledge/documents')->name('knowledge.documents.')->group(function (): void {
+            Route::get('/', [KnowledgeController::class, 'documents'])->name('index');
+            Route::post('/', [KnowledgeController::class, 'store'])->middleware('throttle:30,1')->name('store');
+            Route::patch('/{document}', [KnowledgeController::class, 'update'])->whereUuid('document')->middleware('throttle:30,1')->name('update');
+            Route::delete('/{document}', [KnowledgeController::class, 'destroy'])->whereUuid('document')->middleware('throttle:30,1')->name('destroy');
+        });
+
+        // AI Governance & Audit (GovernanceController).
+        Route::get('/governance', [GovernanceController::class, 'index'])->middleware('can:intelligence.governance.view')->name('governance.index');
+
+        // Root-cause assistant: queues an AI explanation of an incident (diagnostics grant; AI may be off).
+        Route::post('/incidents/{incident}/explain', [IncidentController::class, 'explain'])->whereUuid('incident')
+            ->middleware(['can:intelligence.incidents.view', 'can:intelligence.diagnostics.view', 'throttle:10,1'])->name('incidents.explain');
+
+        // Alerts (AlertController): business and technical alerts, acknowledged and resolved by people.
+        Route::middleware('can:intelligence.view')->group(function (): void {
+            Route::get('/alerts', [AlertController::class, 'index'])->name('alerts.index');
+            Route::patch('/alerts/{alert}', [AlertController::class, 'update'])->whereUuid('alert')->middleware('throttle:30,1')->name('alerts.update');
         });
 
         Route::get('/{area}', [IntelligenceController::class, 'area'])

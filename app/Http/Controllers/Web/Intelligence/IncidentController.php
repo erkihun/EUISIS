@@ -7,11 +7,13 @@ namespace App\Http\Controllers\Web\Intelligence;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
+use App\Jobs\Intelligence\ExplainIncident;
 use App\Models\IntelligenceErrorFingerprint;
 use App\Models\IntelligenceIncident;
 use App\Models\IntelligenceIncidentEvent;
 use App\Models\IntelligenceRecommendation;
 use App\Models\User;
+use App\Services\Intelligence\AI\Contracts\LLMGateway;
 use App\Services\Intelligence\IntelligenceLabels;
 use App\Services\Intelligence\IntelligencePermissions;
 use App\Services\Intelligence\System\Detection\IncidentManager;
@@ -37,6 +39,7 @@ final class IncidentController extends Controller
     public function __construct(
         private readonly IncidentManager $incidents,
         private readonly WriteAuditLogAction $audit,
+        private readonly LLMGateway $gateway,
     ) {}
 
     public function index(Request $request): Response
@@ -113,8 +116,27 @@ final class IncidentController extends Controller
             ])->all(),
             'runbook' => RunbookCatalog::forRule($incident->rule),
             'options' => ['statuses' => IntelligenceIncident::STATUSES, 'verifications' => IntelligenceIncident::VERIFICATIONS],
+            'assessment' => $can['diagnostics'] ? ($incident->recommendation['ai_assessment'] ?? null) : null,
+            'assessment_meta' => $can['diagnostics'] && isset($incident->recommendation['ai_assessment']) ? ['model' => $incident->recommendation['model'] ?? null, 'prompt_version' => $incident->recommendation['prompt_version'] ?? null, 'generated_at' => $incident->recommendation['generated_at'] ?? null] : null,
+            'ai' => ['available' => $this->gateway->available()],
             'can' => $can,
         ]);
+    }
+
+    /** Queues the root-cause assistant for this incident; the assessment appears on the page when the long queue has run it. */
+    public function explain(Request $request, IntelligenceIncident $incident): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        abort_unless($user->can(IntelligencePermissions::DIAGNOSTICS), 403);
+        if (! $this->gateway->available()) {
+            return back()->with('flash', ['message' => __('intelligence.flash.ai_unavailable'), 'type' => 'warning']);
+        }
+
+        $this->incidents->event($incident, 'ai_requested', null, null, $user);
+        ExplainIncident::dispatch($incident->id, $user->id, app()->getLocale());
+
+        return back()->with('flash', ['message' => __('intelligence.flash.explain_requested'), 'type' => 'success']);
     }
 
     public function update(Request $request, IntelligenceIncident $incident): RedirectResponse

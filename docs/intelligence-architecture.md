@@ -127,6 +127,9 @@ be served to another.
 | D-9 | Runbooks are read-only guidance in phase 1; execution stays disabled behind a setting and `intelligence.runbooks.execute`. | §49–51. |
 | D-10 | Forecasts are snapshots with method, window, confidence and limitations; `FORECAST_DATA_INSUFFICIENT` under six monthly points. Only linear/seasonal-naïve baselines, no custom ML. | §13, §69–72. |
 | D-11 | Deployment metadata is recorded by `intelligence:record-deployment` (release, commit, deployed_at, environment) when the deploy script calls it; absent → `NEEDS_DEPLOYMENT_CONFIGURATION`, correlation is skipped, never guessed. | §44, §107. |
+| D-12 | Scheduled business computations (alert engine, forecast snapshots) act as the **first active Super Admin** with an unrestricted scope (`SystemContext`); without one they are skipped and say so. | The platform has no system account; a Super Admin holds every catalog grant through the RBAC synchroniser, and the analyses check grants directly. A dedicated service account is `NEEDS_POLICY_DECISION_SYSTEM_ACCOUNT`. |
+| D-13 | Alerts dedupe on a `source_key`, resolve after three quiet runs, re-fire only after a 60-minute cooldown; business alerts are city-wide and notify unrestricted executives at most once a day; technical alerts are announced as incidents. | §65–67: no flooding, one alert per condition, acknowledgement by people only. |
+| D-14 | The root-cause assistant runs as a queued job on the `long` queue from an explicit button; its answer is stored as an assessment with provenance and its next checks become AI recommendations awaiting review. | §101–103, §116–118: human-triggered, advisory, reviewable. |
 
 ## NEEDS_* registry
 
@@ -135,6 +138,7 @@ be served to another.
 | NEEDS_POLICY_DECISION_ALERT_ESCALATION | alerts | who is escalated to, after how long, on which channel |
 | NEEDS_POLICY_DECISION_ROLE_GRANTS | permissions | which scoped roles receive which intelligence grants |
 | NEEDS_POLICY_DECISION_RUNBOOK_EXECUTION | runbooks | whether any safe action may run from the web app |
+| NEEDS_POLICY_DECISION_SYSTEM_ACCOUNT | scheduled analyses | a dedicated service account instead of the first Super Admin (D-12) |
 | SLO_CONFIGURATION_REQUIRED | system health | latency / error-rate / availability objectives |
 | NEEDS_INFRASTRUCTURE_VECTOR_STORE | knowledge | pgvector or an external vector store for embeddings |
 | NEEDS_INFRASTRUCTURE_READ_REPLICA | analytics | only if measured load requires it |
@@ -149,9 +153,16 @@ be served to another.
 | 0 | Permissions, settings group, area registry, routes, launcher, sidebar, i18n, docs, tests |
 | 1 | Telemetry collector and request counters, error fingerprints, signals/incidents/recommendations tables, detection engine with baselines, System Health, Incidents, Diagnostics, Application/Database/Queue/Integration health, Runbooks (read-only), Recommendations |
 | 2 | Business areas (Executive, Workforce, Service, Public Voice, Performance, Data Quality) on the Situation Room blocks, insight cards with evidence, cross-domain correlation, Situation Room summary card, metrics catalog |
-| 3 | AI gateway, prompt registry, AI runs and audit, root-cause assistant, insight narratives, Knowledge Assistant (documents, chunks, FTS retrieval, cited answers), Governance |
-| 4 | Forecasting snapshots and evaluation, alert engine with dedup/cooldown/acknowledgement, notifications, retention, final verdict |
+| 3 | AI gateway, prompt registry, AI runs and audit, root-cause assistant, Knowledge Assistant (documents, chunks, FTS retrieval, cited answers), Governance |
+| 4 | Forecasting snapshots and evaluation, alert engine with dedup/cooldown/acknowledgement, notifications, retention, Situation Room link card, final verdict |
+
+All five phases are delivered (2026-10-19). Insight narratives (the
+`insight_narrative` prompt) are registered and testable through the gateway
+but not yet wired to a page; the business areas' deterministic insight text
+stands on its own.
 
 Related documents: `docs/intelligence-metrics-catalog.md`,
 `docs/intelligence-security.md`, `docs/intelligence-system-health.md`,
-`docs/intelligence-ai-governance.md`, `docs/intelligence-runbooks.md`.
+`docs/intelligence-business.md`, `docs/intelligence-knowledge.md`,
+`docs/intelligence-ai-governance.md`, `docs/intelligence-alerts.md`,
+`docs/intelligence-runbooks.md`.
