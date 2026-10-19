@@ -37,6 +37,12 @@ final class IntelligenceController extends Controller
         return Inertia::render('Intelligence/Index', $this->frame($user));
     }
 
+    /** The System Health hub under its own parameter-less route, for the sidebar. */
+    public function systemHealth(Request $request): Response
+    {
+        return $this->area($request, IntelligenceArea::SystemHealth->value);
+    }
+
     public function area(Request $request, string $area): Response
     {
         $area = IntelligenceArea::from($area);

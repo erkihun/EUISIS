@@ -333,10 +333,11 @@ const navGroups: NavGroup[] = [
         icon: LightbulbIcon,
         items: [
             { routeName: 'intelligence.index', labelKey: 'nav.intelligence', icon: LayoutDashboard, permission: 'intelligence.view' },
-            { routeName: 'intelligence.area', labelKey: 'nav.intelligenceSystemHealth', icon: ActivityIcon, permission: 'intelligence.system-health.view', tab: 'system_health' },
-            { routeName: 'intelligence.area', labelKey: 'nav.intelligenceIncidents', icon: AlarmIcon, permission: 'intelligence.incidents.view', tab: 'incidents' },
-            { routeName: 'intelligence.area', labelKey: 'nav.intelligenceKnowledge', icon: BookIcon, permission: 'intelligence.knowledge.view', tab: 'knowledge' },
-            { routeName: 'intelligence.area', labelKey: 'nav.intelligenceGovernance', icon: ShieldUserIcon, permission: 'intelligence.governance.view', tab: 'governance' },
+            // Each hub has a parameter-less route of its own; the {area} wildcard needs a parameter the sidebar cannot give.
+            { routeName: 'intelligence.system-health', labelKey: 'nav.intelligenceSystemHealth', icon: ActivityIcon, permission: 'intelligence.system-health.view' },
+            { routeName: 'intelligence.incidents.index', labelKey: 'nav.intelligenceIncidents', icon: AlarmIcon, permission: 'intelligence.incidents.view' },
+            { routeName: 'intelligence.knowledge.index', labelKey: 'nav.intelligenceKnowledge', icon: BookIcon, permission: 'intelligence.knowledge.view' },
+            { routeName: 'intelligence.governance.index', labelKey: 'nav.intelligenceGovernance', icon: ShieldUserIcon, permission: 'intelligence.governance.view' },
         ],
     },
     {

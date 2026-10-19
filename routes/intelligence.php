@@ -72,6 +72,10 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access', 
             Route::patch('/alerts/{alert}', [AlertController::class, 'update'])->whereUuid('alert')->middleware('throttle:30,1')->name('alerts.update');
         });
 
+        // Parameter-less entry for the sidebar; the same page as /intelligence/system_health.
+        Route::get('/system-health', [IntelligenceController::class, 'systemHealth'])
+            ->middleware('can:intelligence.system-health.view')->name('system-health');
+
         Route::get('/{area}', [IntelligenceController::class, 'area'])
             ->whereIn('area', array_column(IntelligenceArea::cases(), 'value'))->name('area');
     });

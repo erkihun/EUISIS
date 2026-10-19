@@ -145,6 +145,7 @@ enum IntelligenceArea: string
         return match ($this) {
             self::Overview => route('intelligence.index'),
             self::Knowledge => route('intelligence.knowledge.index'),
+            self::SystemHealth => route('intelligence.system-health'),
             self::Governance => route('intelligence.governance.index'),
             self::Alerts => route('intelligence.alerts.index'),
             self::Incidents => route('intelligence.incidents.index'),
