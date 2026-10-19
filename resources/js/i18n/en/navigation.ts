@@ -177,6 +177,7 @@ const navigation = {
     designMapping: 'Mapping Workspace',
     designLegalSources: 'Legal Sources',
     designLegacyBaselines: 'Legacy Baselines',
+    designImports: 'Design Imports',
     transportProviders: 'Transport Providers',
     transportScan: 'Scan ID Card',
     transportRoutes: 'Routes',

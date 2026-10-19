@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\OrganizationDesign\ClassificationController;
 use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
+use App\Http\Controllers\OrganizationDesign\DesignImportController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
@@ -228,4 +229,14 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/legacy-baselines/{baseline}/revisions', [LegacyBaselineController::class, 'revise'])->whereUuid('baseline')->name('legacy-baselines.revisions.store');
         Route::post('/legacy-baselines/{baseline}/cancel', [LegacyBaselineController::class, 'cancel'])->whereUuid('baseline')->name('legacy-baselines.cancel');
         Route::get('/legacy-baselines/{baseline}/snapshot', [LegacyBaselineController::class, 'snapshot'])->whereUuid('baseline')->name('legacy-baselines.snapshot');
+
+        // Staged design imports (ADR-LB-004).
+        Route::get('/imports', [DesignImportController::class, 'index'])->name('imports.index');
+        Route::post('/imports', [DesignImportController::class, 'store'])->middleware('throttle:20,1')->name('imports.store');
+        Route::get('/imports/template/{entityType}', [DesignImportController::class, 'template'])->where('entityType', '[a-z_]+')->name('imports.template');
+        Route::get('/imports/{batch}', [DesignImportController::class, 'show'])->whereUuid('batch')->name('imports.show');
+        Route::put('/imports/{batch}/rows/{row}/map', [DesignImportController::class, 'map'])->whereUuid(['batch', 'row'])->name('imports.rows.map');
+        Route::post('/imports/{batch}/revalidate', [DesignImportController::class, 'revalidate'])->whereUuid('batch')->middleware('throttle:20,1')->name('imports.revalidate');
+        Route::post('/imports/{batch}/commit', [DesignImportController::class, 'commit'])->whereUuid('batch')->middleware('throttle:20,1')->name('imports.commit');
+        Route::post('/imports/{batch}/cancel', [DesignImportController::class, 'cancel'])->whereUuid('batch')->name('imports.cancel');
     });

@@ -177,6 +177,7 @@ const navigation = {
     designMapping: 'የመረጃ ማዛመጃ',
     designLegalSources: 'የሕግ ምንጮች',
     designLegacyBaselines: 'የቀድሞ መነሻ መዝገቦች',
+    designImports: 'የንድፍ ማስመጫዎች',
     transportProviders: 'የትራንስፖርት አቅራቢዎች',
     transportScan: 'መታወቂያ ካርድ ይቃኙ',
     transportRoutes: 'መስመሮች',

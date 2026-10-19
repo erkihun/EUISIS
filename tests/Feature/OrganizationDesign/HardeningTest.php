@@ -122,10 +122,12 @@ function hdFixtures(Organization $organization): array
     $attachment = \App\Models\LegalSourceAttachment::query()->create(['legal_source_id' => $source->id, 'disk' => 'local', 'path' => 'organization-design/legal-sources/none.pdf', 'original_name' => 'none.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1, 'sha256' => str_repeat('0', 64), 'uploaded_by' => $designer->id, 'created_at' => now()]);
     $citation = \App\Models\LegalSourceCitation::query()->create(['legal_source_id' => $source->id, 'subject_type' => $mandate->getMorphClass(), 'subject_id' => $mandate->id, 'created_by' => $designer->id, 'created_at' => now()]);
     $baseline = \App\Models\LegacyBaseline::query()->create(['organization_id' => $o, 'lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'reference_number' => 'LOB-'.substr(uniqid(), -8), 'title_en' => 'Baseline', 'status' => OrganizationDesignStatus::Draft, 'prepared_by' => $designer->id, 'created_by' => $designer->id]);
+    $batch = \App\Models\DesignImportBatch::query()->create(['reference_number' => 'DIB-'.substr(uniqid(), -8), 'organization_id' => $o, 'entity_type' => 'mandates', 'file_name' => 'none.csv', 'file_disk' => 'local', 'file_path' => 'organization-design/imports/none.csv', 'fingerprint' => str_repeat('0', 64), 'status' => 'validated', 'uploaded_by' => $designer->id]);
+    $row = \App\Models\DesignImportRow::query()->create(['batch_id' => $batch->id, 'row_number' => 2, 'data' => ['code' => 'X'], 'status' => 'valid', 'updated_at' => now()]);
 
     return [
         'organization' => $organization, 'unit' => $unit, 'mandate' => $mandate, 'power' => $power, 'function' => $function, 'service' => $service, 'process' => $process, 'activity' => $activity, 'task' => $task,
-        'source' => $source, 'attachment' => $attachment, 'citation' => $citation, 'baseline' => $baseline,
+        'source' => $source, 'attachment' => $attachment, 'citation' => $citation, 'baseline' => $baseline, 'batch' => $batch, 'row' => $row,
         'standard' => $standard, 'position' => $position, 'positionTask' => $positionTask, 'positionService' => $positionService, 'profile' => $profile, 'jobDescription' => $jd, 'study' => $study, 'proposal' => $proposal, 'plan' => $plan, 'line' => $line, 'export' => $export,
     ];
 }
@@ -139,7 +141,9 @@ test('every organization-design route refuses a fully permitted user of another 
     $me->refresh();
 
     // City-level catalog parameters are not organization-scoped; their permission tests live in their own phases.
-    $cityLevel = ['classification', 'competency', 'level', 'type', 'educationLevel', 'occupation', 'methodology', 'profession', 'specialization', 'responsibilityType', 'framework'];
+    $cityLevel = ['classification', 'competency', 'level', 'type', 'educationLevel', 'occupation', 'methodology', 'profession', 'specialization', 'responsibilityType', 'framework',
+        // The import template is a blank, city-wide download behind the upload permission; DesignImportTest covers it.
+        'entityType'];
     $subjects = ['io.sync' => ['activity', $f['activity']], 'requirements.sync' => ['task', $f['task']], 'responsibilities.sync' => ['unit', $f['unit']]];
     $swept = 0;
     $skipped = [];
