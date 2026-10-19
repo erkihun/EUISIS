@@ -15,6 +15,8 @@ use RuntimeException;
  */
 final class OpenAiCompatibleProvider implements Provider
 {
+    use VerifiesTls;
+
     /** @param  array{base_url?: ?string, api_key?: ?string, model?: ?string}  $config */
     public function __construct(private readonly array $config, private readonly ?string $modelOverride = null) {}
 
@@ -33,6 +35,7 @@ final class OpenAiCompatibleProvider implements Provider
     public function chat(string $system, string $user, int $maxOutputTokens, int $timeoutSeconds): array
     {
         $response = Http::withToken((string) $this->config['api_key'])
+            ->withOptions(['verify' => self::verify()])
             ->acceptJson()
             ->timeout($timeoutSeconds)
             ->connectTimeout(min(10, $timeoutSeconds))

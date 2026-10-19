@@ -35,6 +35,8 @@ return [
             'api_key' => env('INTELLIGENCE_ANTHROPIC_API_KEY'),
             'model' => env('INTELLIGENCE_ANTHROPIC_MODEL'),
             'version' => env('INTELLIGENCE_ANTHROPIC_VERSION', '2023-06-01'),
+            // Required by Anthropic when the key is an organization-level key rather than a workspace-scoped one.
+            'workspace_id' => env('INTELLIGENCE_ANTHROPIC_WORKSPACE_ID'),
         ],
         // Circuit breaker: after this many consecutive failures the gateway stays open for `open_seconds`.
         'breaker_failures' => (int) env('INTELLIGENCE_AI_BREAKER_FAILURES', 3),
@@ -42,6 +44,8 @@ return [
         // Hard caps whatever the settings say.
         'max_output_tokens' => (int) env('INTELLIGENCE_AI_MAX_OUTPUT_TOKENS', 1200),
         'daily_request_cap' => (int) env('INTELLIGENCE_AI_DAILY_REQUEST_CAP', 500),
+        // Optional CA bundle for hosts whose PHP has no system certificate store (Windows); blank = PHP defaults.
+        'ca_bundle' => env('INTELLIGENCE_AI_CA_BUNDLE'),
     ],
 
     'deployment' => [

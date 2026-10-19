@@ -10,6 +10,8 @@ use RuntimeException;
 /** The Anthropic Messages API. Key, model and version from INTELLIGENCE_ANTHROPIC_*; the settings may override the model alias. */
 final class AnthropicProvider implements Provider
 {
+    use VerifiesTls;
+
     /** @param  array{base_url?: ?string, api_key?: ?string, model?: ?string, version?: ?string}  $config */
     public function __construct(private readonly array $config, private readonly ?string $modelOverride = null) {}
 
@@ -27,10 +29,12 @@ final class AnthropicProvider implements Provider
 
     public function chat(string $system, string $user, int $maxOutputTokens, int $timeoutSeconds): array
     {
-        $response = Http::withHeaders([
+        $response = Http::withHeaders(array_filter([
             'x-api-key' => (string) $this->config['api_key'],
             'anthropic-version' => (string) ($this->config['version'] ?? '2023-06-01'),
-        ])
+            'anthropic-workspace-id' => (string) ($this->config['workspace_id'] ?? ''),
+        ], fn (string $v): bool => $v !== ''))
+            ->withOptions(['verify' => self::verify()])
             ->acceptJson()
             ->timeout($timeoutSeconds)
             ->connectTimeout(min(10, $timeoutSeconds))
