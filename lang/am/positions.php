@@ -38,4 +38,5 @@ return [
     'invalid_target_unit' => 'የመድረሻ የሥራ ክፍል ንቁ፣ በተመሳሳይ ተቋም ውስጥ እና በእርስዎ ወሰን ውስጥ መሆን አለበት።',
     'move_reason_required' => 'የማንቀሳቀስ ምክንያት ያስፈልጋል።',
     'archived_position_cannot_move' => 'በማህደር የተቀመጠ ወይም ንቁ ያልሆነ የሥራ መደብ ሊንቀሳቀስ አይችልም።',
+    'archive_blocked_active_assignments' => 'ይህ የሥራ መደብ በማህደር ሊቀመጥ አይችልም፦ :count ንቁ ምደባ(ዎች) አሁንም በላዩ ላይ አሉ። መጀመሪያ እነዚያን ምደባዎች ያዛውሩ ወይም ያጠናቅቁ።',
 ];

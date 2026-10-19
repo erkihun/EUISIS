@@ -73,18 +73,23 @@ readonly class ServeEmployeeService
         $snapshot = $this->snapshotFrom($payload);
 
         // ── 3. EUISIS decides service eligibility ───────────────────────
-        $employeeId = (string) ($payload['employee_id'] ?? $employee['id'] ?? '');
+        // The stable employee UUID EUISIS returns with every verified card.
+        // Without it eligibility cannot be asked, and an unasked question is a
+        // "no" — this step used to be skipped silently (fail-open, F3).
+        $employeeId = (string) ($payload['employee_uuid'] ?? $employee['employee_uuid'] ?? '');
 
-        if ($employeeId !== '') {
-            $eligibility = $this->client->checkServiceEligibility($employeeId);
+        if ($employeeId === '') {
+            return $this->deny('employee_reference_missing', 'cafeteria.employeeNotEligible', $snapshot);
+        }
 
-            if (! $eligibility['ok'] || ($eligibility['data']['eligible'] ?? false) !== true) {
-                return $this->deny(
-                    (string) ($eligibility['data']['reason_code'] ?? 'not_eligible'),
-                    'cafeteria.employeeNotEligible',
-                    $snapshot,
-                );
-            }
+        $eligibility = $this->client->checkServiceEligibility($employeeId);
+
+        if (! $eligibility['ok'] || ($eligibility['data']['eligible'] ?? false) !== true) {
+            return $this->deny(
+                (string) ($eligibility['data']['reason_code'] ?? 'not_eligible'),
+                'cafeteria.employeeNotEligible',
+                $snapshot,
+            );
         }
 
         // ── 4. Organization must be assigned to THIS cafeteria ──────────

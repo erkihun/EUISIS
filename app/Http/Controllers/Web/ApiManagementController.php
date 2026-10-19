@@ -11,7 +11,11 @@ use App\Http\Controllers\Controller;
 use App\Models\ApiEndpointDefinition;
 use App\Models\ApiRequestLog;
 use App\Models\ExternalApplication;
+use App\Models\ExternalApplicationOrganizationScope;
+use App\Models\Organization;
+use App\Models\ServiceProvider;
 use App\Services\ApiEndpointCatalogService;
+use App\Services\Integration\PartnerAccessReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,9 +45,11 @@ class ApiManagementController extends Controller
         $this->authorizePermission('api_management.view');
 
         $applications = ExternalApplication::query()
-            ->withCount('tokens')
+            ->withCount(['tokens', 'organizationScopes'])
+            ->with('tokens:id,tokenable_id,tokenable_type,abilities')
             ->orderBy('name')
-            ->get(['id', 'name', 'code', 'owner_institution', 'status', 'allowed_scopes', 'rate_limit_per_minute', 'last_used_at']);
+            ->get(['id', 'name', 'code', 'owner_institution', 'status', 'organization_access', 'service_provider_id', 'allowed_scopes', 'rate_limit_per_minute', 'last_used_at']);
+        $review = app(PartnerAccessReviewService::class);
 
         $user = Auth::user();
 
@@ -58,8 +64,12 @@ class ApiManagementController extends Controller
                 'rate_limit_per_minute' => $application->rate_limit_per_minute,
                 'tokens_count' => $application->tokens_count,
                 'last_used_at' => $application->last_used_at?->toDateTimeString(),
+                'organization_access' => $application->organization_access,
+                'access_findings' => $review->findings($application),
             ])->all(),
             'scopes' => $this->scopeOptions(),
+            'organizationOptions' => $this->organizationOptions(),
+            'providerOptions' => $this->providerOptions(),
             'assignableEndpoints' => $this->assignableEndpoints(),
             'endpoints_count' => ApiEndpointDefinition::query()
                 ->where('status', ApiEndpointDefinition::STATUS_ACTIVE)
@@ -102,7 +112,14 @@ class ApiManagementController extends Controller
                 'rate_limit_per_minute' => $externalApplication->rate_limit_per_minute,
                 'allowed_ips' => $externalApplication->allowed_ips ?? [],
                 'last_used_at' => $externalApplication->last_used_at?->toDateTimeString(),
+                'organization_access' => $externalApplication->organization_access,
+                'service_provider_id' => $externalApplication->service_provider_id,
+                'organization_scopes' => $externalApplication->organizationScopes()->get(['organization_id', 'scope_type'])
+                    ->map(fn ($grant): array => ['organization_id' => (string) $grant->organization_id, 'scope_type' => $grant->scope_type])->all(),
+                'access_findings' => app(PartnerAccessReviewService::class)->findings($externalApplication),
             ],
+            'organizationOptions' => $this->organizationOptions(),
+            'providerOptions' => $this->providerOptions(),
             // Token metadata only — the plaintext value never leaves creation.
             'tokens' => $externalApplication->tokens()
                 ->orderByDesc('created_at')
@@ -174,10 +191,12 @@ class ApiManagementController extends Controller
         // application would be assigned an endpoint its token can never call.
         $data['allowed_scopes'] = $this->withRequiredScopes($data['allowed_scopes'] ?? [], $endpointIds);
         $data['created_by'] = Auth::id();
+        $grants = $this->pullOrganizationGrants($data);
 
-        $application = DB::transaction(function () use ($data, $endpointIds) {
+        $application = DB::transaction(function () use ($data, $endpointIds, $grants) {
             $application = ExternalApplication::query()->create($data);
             $this->syncEndpointAssignments($application, $endpointIds);
+            $this->syncOrganizationGrants($application, $grants);
 
             return $application;
         });
@@ -185,7 +204,7 @@ class ApiManagementController extends Controller
         $this->writeAuditLogAction->execute(
             AuditEventType::SettingUpdated,
             Auth::user(),
-            reason: 'External application created: '.$application->code,
+            reason: 'External application created: '.$application->code.' (organization access '.($application->fresh()?->organization_access ?? 'scoped').', '.count($grants ?? []).' grant(s))',
             request: $request,
         );
 
@@ -203,16 +222,23 @@ class ApiManagementController extends Controller
             : $externalApplication->endpoints()->pluck('api_endpoint_definitions.id')->all();
 
         $data['allowed_scopes'] = $this->withRequiredScopes($data['allowed_scopes'] ?? [], $endpointIds);
+        $grants = $this->pullOrganizationGrants($data);
+        $accessBefore = $externalApplication->organization_access.'/'.($externalApplication->service_provider_id ?? '-');
 
-        DB::transaction(function () use ($externalApplication, $data, $endpointIds): void {
+        DB::transaction(function () use ($externalApplication, $data, $endpointIds, $grants): void {
             $externalApplication->update($data);
             $this->syncEndpointAssignments($externalApplication, $endpointIds);
+            $this->syncOrganizationGrants($externalApplication, $grants);
         });
+
+        $accessAfter = $externalApplication->organization_access.'/'.($externalApplication->service_provider_id ?? '-');
 
         $this->writeAuditLogAction->execute(
             AuditEventType::SettingUpdated,
             Auth::user(),
-            reason: 'External application updated: '.$externalApplication->code,
+            reason: 'External application updated: '.$externalApplication->code
+                .($accessBefore !== $accessAfter ? ' (organization access/provider '.$accessBefore.' -> '.$accessAfter.')' : '')
+                .($grants !== null ? ' ('.count($grants).' organization grant(s))' : ''),
             request: $request,
         );
 
@@ -634,7 +660,66 @@ class ApiManagementController extends Controller
             'rate_limit_per_minute' => ['required', 'integer', 'min:1', 'max:10000'],
             'allowed_ips' => ['nullable', 'array'],
             'allowed_ips.*' => ['string', 'ip'],
+            // Organization bound (F2) and provider binding (F16).
+            'organization_access' => ['sometimes', 'required', Rule::in(ExternalApplication::ORGANIZATION_ACCESS)],
+            'service_provider_id' => ['nullable', 'uuid', Rule::exists('service_providers', 'id')],
+            'organization_scopes' => ['sometimes', 'array', 'max:500'],
+            'organization_scopes.*.organization_id' => ['required', 'uuid', 'distinct', Rule::exists('organizations', 'id')],
+            'organization_scopes.*.scope_type' => ['required', Rule::in(ExternalApplicationOrganizationScope::TYPES)],
         ]);
+    }
+
+    /**
+     * Removes the grant list from the attributes; null when the request did
+     * not send one (leave the grants untouched).
+     *
+     * @param  array<string, mixed>  $data
+     * @return list<array{organization_id: string, scope_type: string}>|null
+     */
+    private function pullOrganizationGrants(array &$data): ?array
+    {
+        if (! array_key_exists('organization_scopes', $data)) {
+            return null;
+        }
+
+        $grants = array_values($data['organization_scopes'] ?? []);
+        unset($data['organization_scopes']);
+
+        return $grants;
+    }
+
+    /** @param  list<array{organization_id: string, scope_type: string}>|null  $grants */
+    private function syncOrganizationGrants(ExternalApplication $application, ?array $grants): void
+    {
+        if ($grants === null) {
+            return;
+        }
+
+        $application->organizationScopes()->delete();
+
+        foreach ($grants as $grant) {
+            $application->organizationScopes()->create([
+                'organization_id' => $grant['organization_id'],
+                'scope_type' => $grant['scope_type'],
+                'created_by' => Auth::id(),
+            ]);
+        }
+    }
+
+    /** @return list<array{value: string, label: string}> */
+    private function organizationOptions(): array
+    {
+        return Organization::query()->orderBy('name_en')->get(['id', 'code', 'name_en'])
+            ->map(fn (Organization $organization): array => ['value' => (string) $organization->id, 'label' => $organization->name_en.' ('.$organization->code.')'])
+            ->all();
+    }
+
+    /** @return list<array{value: string, label: string}> */
+    private function providerOptions(): array
+    {
+        return ServiceProvider::query()->orderBy('name')->get(['id', 'code', 'name'])
+            ->map(fn (ServiceProvider $provider): array => ['value' => (string) $provider->id, 'label' => $provider->name.' ('.$provider->code.')'])
+            ->all();
     }
 
     private function authorizePermission(string $permission): void

@@ -6,6 +6,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AppMetricCard from '@/Components/ui/AppMetricCard';
 import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
 import EndpointAssignment, { AssignableEndpoint } from '@/Components/apiManagement/EndpointAssignment';
+import OrganizationAccessFields, { type Option, type OrganizationGrant } from '@/Components/apiManagement/OrganizationAccessFields';
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import { ActivityIcon, ChevronRight, ComponentIcon, KeyIcon, NetworkIcon, Plus, ScrollText, ShieldCheck } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
@@ -25,12 +26,16 @@ type ApplicationRow = {
     rate_limit_per_minute: number;
     tokens_count: number;
     last_used_at: string | null;
+    organization_access: string;
+    access_findings: string[];
 };
 
 interface Props {
     applications: ApplicationRow[];
     scopes: ScopeOption[];
     assignableEndpoints: AssignableEndpoint[];
+    organizationOptions: Option[];
+    providerOptions: Option[];
     endpoints_count: number;
     can: {
         create: boolean;
@@ -89,7 +94,7 @@ function FormStep({ step, title, description, children }: { step: number; title:
     );
 }
 
-export default function ApiManagementIndex({ applications, scopes, assignableEndpoints, endpoints_count, can }: Props) {
+export default function ApiManagementIndex({ applications, scopes, assignableEndpoints, organizationOptions, providerOptions, endpoints_count, can }: Props) {
     const { t, locale } = useLocale();
     const flash = (usePage().props as { flash?: { generated_token?: string } }).flash;
     const [showForm, setShowForm] = useState(false);
@@ -109,6 +114,9 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
         rate_limit_per_minute: 60,
         allowed_ips: [] as string[],
         endpoint_ids: [] as string[],
+        organization_access: 'scoped',
+        service_provider_id: '',
+        organization_scopes: [] as OrganizationGrant[],
     });
 
     // Scopes the server will add automatically because a selected endpoint
@@ -245,6 +253,10 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                                             </Alert>
                                         )}
                                     </FormStep>
+                                    <FormStep step={4} title={t('apiManagement.organizationAccess')} description={t('apiManagement.organizationAccessHint_scoped')}>
+                                        <OrganizationAccessFields values={form.data} onChange={(values) => form.setData({ ...form.data, ...values })}
+                                            organizations={organizationOptions} providers={providerOptions} errors={form.errors} disabled={form.processing} />
+                                    </FormStep>
                                 </div>
                                 {Object.keys(form.errors).length > 0 && (
                                     <div className="px-5 pb-4"><Alert tone="danger" title={t('apiManagement.formErrors')}>{Object.values(form.errors).join(' ')}</Alert></div>
@@ -316,7 +328,17 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                                                         {application.owner_institution && <span>· {application.owner_institution}</span>}
                                                     </div>
                                                 </td>
-                                                <td className={cell}><StatusBadge status={application.status} label={t(`common.${application.status}`)} /></td>
+                                                <td className={cell}>
+                                                    <StatusBadge status={application.status} label={t(`common.${application.status}`)} />
+                                                    <div className="mt-1 text-xs text-(--app-muted-foreground)">{t(`apiManagement.organizationAccess_${application.organization_access}`)}</div>
+                                                    {application.access_findings.length > 0 && (
+                                                        <div className="mt-1 flex flex-wrap gap-1" aria-label={t('apiManagement.accessReview')}>
+                                                            {application.access_findings.map((finding) => (
+                                                                <span key={finding} className="rounded-sm bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">{t(`apiManagement.accessFinding_${finding}`)}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </td>
                                                 <td className={cx(cell, 'text-right tabular-nums')} title={application.allowed_scopes.join(', ') || undefined}>{application.allowed_scopes.length}</td>
                                                 <td className={cx(cell, 'text-right tabular-nums')}>{application.rate_limit_per_minute}<span className="text-(--app-muted-foreground)">{t('apiManagement.perMinute')}</span></td>
                                                 <td className={cx(cell, 'text-right tabular-nums')}>{application.tokens_count}</td>

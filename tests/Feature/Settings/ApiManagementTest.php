@@ -5,8 +5,13 @@ declare(strict_types=1);
 use App\Models\ApiEndpointDefinition;
 use App\Models\ApiRequestLog;
 use App\Models\ExternalApplication;
+use App\Models\Organization;
+use App\Models\OrganizationType;
+use App\Models\ServiceProvider;
+use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\ApiEndpointCatalogService;
+use App\Services\Integration\PartnerAccessReviewService;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Str;
@@ -467,4 +472,54 @@ it('records the creating user without a key-type mismatch', function (): void {
 
     expect((string) $created->created_by)->toBe((string) $manager->getKey())
         ->and($created->allowed_scopes)->toHaveCount(4);
+});
+
+// ── Organization bound and provider binding (master backbone remediation) ──
+
+it('lets an api manager scope an application to organizations and bind it to a provider', function (): void {
+    $type = OrganizationType::query()->create(['code' => 'AM-T', 'name_en' => 'Type']);
+    $organization = Organization::query()->create(['organization_type_id' => $type->id, 'code' => 'AM-ORG', 'name_en' => 'Bureau', 'status' => 'active']);
+    $serviceType = ServiceType::query()->firstOrCreate(['code' => 'cafeteria'], ['name_en' => 'Cafeteria']);
+    $provider = ServiceProvider::query()->create(['service_type_id' => $serviceType->id, 'name' => 'Cafe', 'code' => 'AM-CAFE', 'status' => 'active']);
+
+    $this->actingAs(apiManager())->patch(route('api-management.update', $this->application), [
+        'name' => 'Partner System', 'code' => 'PARTNER-1', 'status' => 'active', 'rate_limit_per_minute' => 60,
+        'allowed_scopes' => ['id_cards.verify'],
+        'organization_access' => 'scoped',
+        'service_provider_id' => $provider->id,
+        'organization_scopes' => [['organization_id' => $organization->id, 'scope_type' => 'subtree']],
+    ])->assertSessionHasNoErrors();
+
+    $application = $this->application->fresh();
+    expect($application->organization_access)->toBe('scoped')
+        ->and($application->service_provider_id)->toBe($provider->id)
+        ->and($application->organizationScopes()->pluck('organization_id')->all())->toBe([$organization->id]);
+
+    $this->actingAs(apiManager())->get(route('api-management.show', $this->application))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('application.organization_access', 'scoped')
+            ->where('application.organization_scopes.0.scope_type', 'subtree')
+            ->has('organizationOptions')->has('providerOptions'));
+});
+
+it('rejects an unknown organization access mode or grant type', function (): void {
+    $this->actingAs(apiManager())->patch(route('api-management.update', $this->application), [
+        'name' => 'Partner System', 'code' => 'PARTNER-1', 'status' => 'active', 'rate_limit_per_minute' => 60,
+        'allowed_scopes' => ['id_cards.verify'], 'organization_access' => 'everything',
+        'organization_scopes' => [['organization_id' => (string) Str::uuid(), 'scope_type' => 'galaxy']],
+    ])->assertSessionHasErrors(['organization_access', 'organization_scopes.0.organization_id', 'organization_scopes.0.scope_type']);
+});
+
+it('flags applications that need an access review', function (): void {
+    $this->application->forceFill(['organization_access' => 'unreviewed', 'allowed_scopes' => ['employees.basic_read', 'service_transactions.create']])->save();
+    $this->application->createToken('legacy', ['provider:access']);
+
+    $findings = app(PartnerAccessReviewService::class)->findings($this->application->fresh());
+
+    expect($findings)->toContain('UNREVIEWED')->toContain('LEGACY_CREDENTIAL')->toContain('PROVIDER_UNBOUND');
+
+    $this->artisan('api:access-review')->expectsOutputToContain('PARTNER-1')->assertSuccessful();
+
+    $this->actingAs(apiManager())->get(route('api-management.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('applications.0.access_findings', fn ($value) => collect($value)->contains('UNREVIEWED')));
 });

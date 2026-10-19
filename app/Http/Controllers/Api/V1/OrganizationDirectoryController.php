@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Enums\OrganizationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Services\Integration\IntegrationAccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,15 +17,20 @@ use Illuminate\Http\Request;
  * Exists so an integration (e.g. the Cafeteria System) can let an administrator
  * pick a real organization instead of typing a code by hand. Returns only
  * public identifying fields — no employees, no counts, no internal ids beyond
- * the reference an integration needs to store alongside the code.
+ * the reference an integration needs to store alongside the code. The list is
+ * bounded to the caller's organizations (F2).
  */
 class OrganizationDirectoryController extends Controller
 {
+    public function __construct(private readonly IntegrationAccessService $access) {}
+
     public function index(Request $request): JsonResponse
     {
+        $this->access->assertHumanPermission($request, 'organizations.read');
+
         $search = $request->string('search')->trim()->toString();
 
-        $organizations = Organization::query()
+        $query = Organization::query()
             ->with('type:id,code,name_en,name_am')
             // Active organizations only: an integration should never be able to
             // assign service to an archived or inactive structure.
@@ -36,7 +42,11 @@ class OrganizationDirectoryController extends Controller
                     ->where('code', ci_like_operator(), $like)
                     ->orWhere('name_en', ci_like_operator(), $like)
                     ->orWhere('name_am', ci_like_operator(), $like));
-            })
+            });
+
+        $this->access->scopeQuery($query, $request, 'organizations.id');
+
+        $organizations = $query
             ->orderBy('name_en')
             ->limit(min((int) $request->integer('limit', 100), 500))
             ->get(['id', 'organization_type_id', 'code', 'name_en', 'name_am', 'status']);
@@ -44,6 +54,7 @@ class OrganizationDirectoryController extends Controller
         return response()->json([
             'data' => $organizations->map(fn (Organization $organization): array => [
                 'id' => $organization->id,
+                'organization_uuid' => $organization->id,
                 'code' => $organization->code,
                 'name_en' => $organization->name_en,
                 'name_am' => $organization->name_am,

@@ -97,7 +97,11 @@ function scopedApplication(): array
         'status' => 'active',
         'allowed_scopes' => $scopes,
         'rate_limit_per_minute' => 120,
+        'organization_access' => 'scoped',
     ]);
+
+    // The application serves Bureau A only (F2 organization binding).
+    $application->organizationScopes()->create(['organization_id' => test()->orgA->id, 'scope_type' => 'self']);
 
     $ids = ApiEndpointDefinition::query()->whereIn('required_scope', $scopes)->pluck('id')->all();
 
@@ -112,34 +116,35 @@ function scopedApplication(): array
 }
 
 /**
- * OBSERVED BEHAVIOUR, recorded as evidence for SEC-010.
+ * SEC-010 closed by the master backbone remediation (F2).
  *
- * The directory endpoints are global by design: there is no organization
- * column on `external_applications` and both `index` and `show` behave the
- * same way, so this is not an inconsistency that could be exploited as a
- * BOLA. It is the blast radius of granting `employees.basic_read` at all.
- *
- * If organization binding is introduced, this test must be inverted to assert
- * 403 ORGANIZATION_SCOPE_DENIED.
+ * These two tests used to record the opposite — a scoped integration read
+ * every organization and any employee by id. An application now carries an
+ * organization bound (external_applications.organization_access + grant
+ * rows), so the directory is filtered and an out-of-bound record is a 404,
+ * indistinguishable from one that does not exist.
  */
-test('SEC-010 evidence: a scoped integration can read every organization', function (): void {
+test('SEC-010: a scoped integration reads only its own organizations', function (): void {
     [, $token] = scopedApplication();
 
     $response = $this->withToken($token)->getJson('/api/v1/organizations')->assertOk();
 
-    // Both bureaus are returned to an application that serves only one.
     $codes = collect($response->json('data'))->pluck('code');
 
-    expect($codes)->toContain('SCOPE-A')->toContain('SCOPE-B');
+    expect($codes)->toContain('SCOPE-A')->not->toContain('SCOPE-B');
 });
 
-test('SEC-010 evidence: any employee is readable by id regardless of organization', function (): void {
+test('SEC-010: an employee outside the integration bound is not found', function (): void {
     [, $token] = scopedApplication();
 
     $this->withToken($token)
         ->getJson('/api/v1/employees/'.$this->employeeB->id)
+        ->assertNotFound();
+
+    $this->withToken($token)
+        ->getJson('/api/v1/employees/'.$this->employeeA->id)
         ->assertOk()
-        ->assertJsonPath('data.employee_number', 'SCOPE-EMP-B');
+        ->assertJsonPath('data.employee_number', 'SCOPE-EMP-A');
 });
 
 // ── Controls that DO hold — regression guards ────────────────────────────

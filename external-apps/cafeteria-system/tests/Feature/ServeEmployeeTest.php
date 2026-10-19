@@ -53,7 +53,7 @@ function verifiedCard(array $overrides = []): array
     return array_merge([
         'valid' => true,
         'status' => 'active',
-        'employee_id' => '019f0000-0000-7000-8000-000000000001',
+        'employee_uuid' => '019f0000-0000-7000-8000-000000000001',
         'card' => ['card_number' => 'IDC-2026-000001'],
         'employee' => [
             'employee_number' => 'EMP-2026-000001',
@@ -273,3 +273,32 @@ it('names the specific transport failure instead of a generic message', function
     ['missing_scope', 403, 'api_scope_denied'],
     ['rate_limited', 429, 'api_rate_limited'],
 ]);
+
+it('fails closed when the verified card carries no employee uuid', function (): void {
+    $card = verifiedCard();
+    unset($card['employee_uuid']);
+
+    Http::fake([
+        'https://euisis.test/api/v1/id-cards/verify/*' => Http::response($card, 200),
+        'https://euisis.test/api/v1/employees/*/service-eligibility*' => Http::response(['eligible' => true], 200),
+    ]);
+
+    $result = $this->service->serve('019f0000-0000-7000-8000-0000000000aa', $this->cafeteria);
+
+    expect($result['served'])->toBeFalse()
+        ->and($result['result_code'])->toBe('employee_reference_missing')
+        ->and(CafeteriaServiceTransaction::query()->count())->toBe(0);
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), 'service-eligibility'));
+});
+
+it('asks eligibility for the employee uuid EUISIS returned', function (): void {
+    Http::fake([
+        'https://euisis.test/api/v1/id-cards/verify/*' => Http::response(verifiedCard(), 200),
+        'https://euisis.test/api/v1/employees/*/service-eligibility*' => Http::response(['eligible' => false, 'reason_code' => 'employee_inactive'], 403),
+    ]);
+
+    $result = $this->service->serve('019f0000-0000-7000-8000-0000000000aa', $this->cafeteria);
+
+    expect($result['served'])->toBeFalse();
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/employees/019f0000-0000-7000-8000-000000000001/service-eligibility'));
+});

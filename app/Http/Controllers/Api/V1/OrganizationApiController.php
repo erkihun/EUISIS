@@ -12,6 +12,7 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Services\Api\OrganizationDataPresenter;
+use App\Services\Integration\IntegrationAccessService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,7 +24,8 @@ use Illuminate\Support\Collection;
  * Every payload is built by OrganizationDataPresenter, so no sensitive employee
  * field can reach a response from here. Access is gated upstream by the
  * `api.external` gate (application status, IP allowlist, endpoint assignment,
- * rate limit, request log) and by `api.scope` per route.
+ * rate limit, request log) and by `api.scope` per route; each read is then
+ * bounded to the caller's organizations by IntegrationAccessService (F2).
  */
 class OrganizationApiController extends Controller
 {
@@ -32,13 +34,19 @@ class OrganizationApiController extends Controller
     /** Depths the structure endpoint understands, shallowest first. */
     private const DEPTHS = ['unit', 'position', 'employee'];
 
-    public function __construct(private readonly OrganizationDataPresenter $presenter) {}
+    public function __construct(
+        private readonly OrganizationDataPresenter $presenter,
+        private readonly IntegrationAccessService $access,
+    ) {}
 
     /** GET /api/v1/organizations */
     public function index(Request $request): JsonResponse
     {
+        $this->access->assertHumanPermission($request, 'organizations.read');
+
         $query = Organization::query()->with('type:id,code,name_en,name_am');
 
+        $this->access->scopeQuery($query, $request, 'organizations.id');
         $this->applyCodeFilter($query, $request, 'organization_code', 'code');
         $this->applyStatusFilter($query, $request);
         $this->applyUpdatedAfter($query, $request);
@@ -54,8 +62,9 @@ class OrganizationApiController extends Controller
     }
 
     /** GET /api/v1/organizations/{organization} */
-    public function show(Organization $organization): JsonResponse
+    public function show(Request $request, Organization $organization): JsonResponse
     {
+        $this->bound($request, $organization, 'organizations.read');
         $organization->load('type:id,code,name_en,name_am');
 
         return response()->json(['data' => $this->presenter->organization($organization)]);
@@ -64,6 +73,7 @@ class OrganizationApiController extends Controller
     /** GET /api/v1/organizations/{organization}/units */
     public function units(Request $request, Organization $organization): JsonResponse
     {
+        $this->bound($request, $organization, 'organization_units.read');
         $query = OrganizationUnit::query()->where('organization_id', $organization->getKey());
 
         $this->applyCodeFilter($query, $request, 'organization_unit_code', 'code');
@@ -81,6 +91,7 @@ class OrganizationApiController extends Controller
     /** GET /api/v1/organizations/{organization}/positions */
     public function positions(Request $request, Organization $organization): JsonResponse
     {
+        $this->bound($request, $organization, 'positions.read');
         $query = Position::query()
             ->where('organization_id', $organization->getKey())
             // Occupancy is part of the position payload; counting here keeps a
@@ -103,6 +114,7 @@ class OrganizationApiController extends Controller
     /** GET /api/v1/organizations/{organization}/employees */
     public function employees(Request $request, Organization $organization): JsonResponse
     {
+        $this->bound($request, $organization, 'employees.basic_read');
         $employees = $this->employeeQuery($request)
             ->whereHas('currentAssignment', fn ($assignment) => $assignment
                 ->where('organization_id', $organization->getKey()))
@@ -127,6 +139,7 @@ class OrganizationApiController extends Controller
      */
     public function structure(Request $request, Organization $organization): JsonResponse
     {
+        $this->bound($request, $organization, 'organization_structure.read');
         $depth = $request->string('depth')->trim()->lower()->toString();
 
         if (! in_array($depth, self::DEPTHS, true)) {
@@ -240,6 +253,13 @@ class OrganizationApiController extends Controller
         })->values()->all();
 
         return $payload;
+    }
+
+    /** Permission (person) and organization bound (both principals) for one organization. */
+    private function bound(Request $request, Organization $organization, string $scope): void
+    {
+        $this->access->assertHumanPermission($request, $scope);
+        $this->access->assertOrganization($request, (string) $organization->getKey());
     }
 
     /**

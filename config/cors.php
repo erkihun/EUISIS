@@ -55,12 +55,12 @@ return [
     /*
     | Allowed headers.
     */
-    'allowed_headers' => ['Content-Type', 'Authorization', 'X-Requested-With', 'X-XSRF-TOKEN', 'Accept'],
+    'allowed_headers' => ['Content-Type', 'Authorization', 'X-Requested-With', 'X-XSRF-TOKEN', 'Accept', 'Idempotency-Key', 'X-Request-ID'],
 
     /*
     | Headers exposed to the browser.
     */
-    'exposed_headers' => [],
+    'exposed_headers' => ['X-Request-ID', 'Idempotent-Replay', 'Retry-After'],
 
     /*
     | Max age for the preflight cache (seconds).

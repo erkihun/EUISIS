@@ -38,4 +38,5 @@ return [
     'invalid_target_unit' => 'The target organization unit must be active, in the same organization, and inside your scope.',
     'move_reason_required' => 'A move reason is required.',
     'archived_position_cannot_move' => 'An archived or inactive position cannot be moved.',
+    'archive_blocked_active_assignments' => 'This position cannot be archived: :count active assignment(s) still occupy it. Transfer or end those assignments first.',
 ];

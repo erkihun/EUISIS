@@ -27,6 +27,7 @@ use App\Models\TransferApplication;
 use App\Models\TransferSetting;
 use App\Models\User;
 use App\Services\IdCards\IdCardSnapshotComparisonService;
+use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\Performance\EmployeeAgreementService;
 use App\Services\Vacancy\PositionCapacityService;
 use DomainException;
@@ -42,6 +43,7 @@ readonly class CompleteTransferAction
         private EmployeeAgreementService $employeeAgreements,
         private PositionCapacityService $capacityService,
         private IdCardSnapshotComparisonService $idCardSnapshotComparison,
+        private JobDescriptionService $jobDescriptions,
     ) {}
 
     public function execute(TransferApplication $application, User $actor): TransferApplication
@@ -99,6 +101,10 @@ readonly class CompleteTransferAction
                     'organization_unit_id' => $position->organization_unit_id,
                     'position_id' => $position->id,
                     'hierarchy_version_id' => $currentAssignment->hierarchy_version_id,
+                    // The destination's job description in force on the effective
+                    // date, so the new placement carries its own JD context rather
+                    // than inheriting the old post's (master backbone audit).
+                    'job_description_id' => $this->jobDescriptions->inForceFor($position, $effectiveDate->toDateString())?->getKey(),
                     'assignment_status' => AssignmentStatus::Active,
                     'effective_from' => $effectiveDate->toDateString(),
                     'effective_to' => null,

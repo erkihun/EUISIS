@@ -283,6 +283,7 @@ it('records the usage mode chosen at scan time', function (): void {
     Http::fake([
         '*/api/v1/id-cards/verify/*' => Http::response([
             'valid' => true,
+            'employee_uuid' => '019f0000-0000-7000-8000-000000000009',
             'status' => 'active',
             'employee' => ['employee_number' => 'EMP-9', 'full_name' => 'Test Person', 'status' => 'active'],
             'organization' => ['code' => 'ORG-1', 'name_en' => 'Bole Sub-city'],
@@ -331,6 +332,7 @@ it('passes the employee photo through to the operator without storing it', funct
     Http::fake([
         '*/api/v1/id-cards/verify/*' => Http::response([
             'valid' => true,
+            'employee_uuid' => '019f0000-0000-7000-8000-000000000009',
             'status' => 'active',
             'employee' => [
                 'employee_number' => 'EMP-PHOTO',
@@ -366,6 +368,7 @@ function fakeEuisisOk(): void
     Http::fake([
         '*/api/v1/id-cards/verify/*' => Http::response([
             'valid' => true,
+            'employee_uuid' => '019f0000-0000-7000-8000-000000000009',
             'status' => 'active',
             'employee' => ['employee_number' => 'EMP-DAY', 'full_name' => 'Day Person', 'status' => 'active'],
             'organization' => ['code' => 'ORG-1', 'name_en' => 'Bole Sub-city'],
