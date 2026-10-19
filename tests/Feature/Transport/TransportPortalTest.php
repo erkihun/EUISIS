@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\Transport\TransportTripStatus;
 use App\Models\TransportRoute;
 use App\Models\TransportTransaction;
 use App\Models\TransportTrip;
@@ -81,7 +82,7 @@ it("cannot plan a trip on another provider's route, vehicle or driver", function
 
     $this->actingAs($this->manager, 'provider')->post(route('provider.portal.transport.trips.store'), [
         'transport_route_id' => $this->theirRoute->id, 'transport_vehicle_id' => $theirVehicle->id,
-        'trip_date' => '2026-10-15', 'status' => 'scheduled',
+        'trip_date' => '2026-10-15', 'status' => 'planned', 'direction' => 'inbound',
     ])->assertSessionHasErrors(['transport_route_id', 'transport_vehicle_id']);
 
     expect(TransportTrip::query()->count())->toBe(0);
@@ -90,12 +91,12 @@ it("cannot plan a trip on another provider's route, vehicle or driver", function
 it('numbers trips without collisions and round-trips their times', function (): void {
     foreach (range(1, 3) as $i) {
         $this->actingAs($this->manager, 'provider')->post(route('provider.portal.transport.trips.store'), [
-            'transport_route_id' => $this->myRoute->id, 'trip_date' => '2026-10-15', 'departure_time' => '07:30', 'arrival_time' => '08:15', 'status' => 'scheduled',
+            'transport_route_id' => $this->myRoute->id, 'trip_date' => '2026-10-15', 'departure_time' => '07:30', 'arrival_time' => '08:15', 'status' => 'planned', 'direction' => 'inbound',
         ])->assertSessionHasNoErrors();
     }
     TransportTrip::query()->first()->delete();
     $this->actingAs($this->manager, 'provider')->post(route('provider.portal.transport.trips.store'), [
-        'transport_route_id' => $this->myRoute->id, 'trip_date' => '2026-10-15', 'status' => 'scheduled',
+        'transport_route_id' => $this->myRoute->id, 'trip_date' => '2026-10-15', 'status' => 'planned', 'direction' => 'inbound',
     ])->assertSessionHasNoErrors();
 
     $trip = TransportTrip::query()->latest('created_at')->first();
@@ -107,14 +108,18 @@ it('numbers trips without collisions and round-trips their times', function (): 
         ->assertInertia(fn (Assert $page) => $page->where('trip.departure_time', '07:30')->where('trip.arrival_time', '08:15'));
     $this->actingAs($this->manager, 'provider')->patch(route('provider.portal.transport.trips.update', $edit), [
         'transport_route_id' => $this->myRoute->id, 'trip_number' => $edit->trip_number, 'trip_date' => '2026-10-15',
-        'departure_time' => '07:30', 'arrival_time' => '08:15', 'status' => 'boarding',
+        'departure_time' => '07:30', 'arrival_time' => '08:15', 'status' => 'assigned', 'direction' => 'outbound',
     ])->assertSessionHasNoErrors();
-    expect($edit->fresh()->status)->toBe('boarding')->and($trip)->not->toBeNull();
+    // Boarding, departure and completion are dispatch actions, never an edit of the status field.
+    $this->actingAs($this->manager, 'provider')->patch(route('provider.portal.transport.trips.update', $edit), [
+        'transport_route_id' => $this->myRoute->id, 'trip_number' => $edit->trip_number, 'trip_date' => '2026-10-15', 'status' => 'boarding', 'direction' => 'outbound',
+    ])->assertSessionHasErrors('status');
+    expect($edit->fresh()->status)->toBe(TransportTripStatus::Assigned)->and($trip)->not->toBeNull();
 });
 
 it('refuses an arrival before the departure', function (): void {
     $this->actingAs($this->manager, 'provider')->post(route('provider.portal.transport.trips.store'), [
-        'transport_route_id' => $this->myRoute->id, 'trip_date' => '2026-10-15', 'departure_time' => '09:00', 'arrival_time' => '08:00', 'status' => 'scheduled',
+        'transport_route_id' => $this->myRoute->id, 'trip_date' => '2026-10-15', 'departure_time' => '09:00', 'arrival_time' => '08:00', 'status' => 'planned', 'direction' => 'inbound',
     ])->assertSessionHasErrors('arrival_time');
 });
 

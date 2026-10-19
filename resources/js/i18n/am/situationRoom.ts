@@ -160,6 +160,7 @@ export default {
     card_daily_work: 'የዕለት ሥራ (ያለፉት {days} ቀናት)',
     card_field_work: 'የመስክ ሥራ',
     card_cafeteria: 'ካፌቴሪያ',
+    card_transport: 'ትራንስፖርት',
     employees: 'ሠራተኞች',
     active_employees: 'በሥራ ላይ ያሉ ሠራተኞች',
     occupied: 'የተያዙ የሥራ መደቦች',

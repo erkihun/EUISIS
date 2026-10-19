@@ -160,6 +160,7 @@ export default {
     card_daily_work: 'Daily work (last {days} days)',
     card_field_work: 'Field work',
     card_cafeteria: 'Cafeteria',
+    card_transport: 'Transport',
     employees: 'Employees',
     active_employees: 'Active employees',
     occupied: 'Occupied positions',

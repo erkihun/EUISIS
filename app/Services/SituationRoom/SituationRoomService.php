@@ -20,6 +20,7 @@ use App\Services\SituationRoom\Analytics\ServiceDeliveryAnalytics;
 use App\Services\SituationRoom\Analytics\SituationAnalytics;
 use App\Services\SituationRoom\Analytics\StructureAnalytics;
 use App\Services\SituationRoom\Analytics\TipOffAnalytics;
+use App\Services\SituationRoom\Analytics\TransportAnalytics;
 use App\Services\SituationRoom\Analytics\TrendsAnalytics;
 use App\Services\SituationRoom\Analytics\WorkforceAnalytics;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -51,6 +52,7 @@ final class SituationRoomService
         'movement' => MovementAnalytics::class,
         'field_work' => FieldWorkAnalytics::class,
         'cafeteria' => CafeteriaAnalytics::class,
+        'transport' => TransportAnalytics::class,
         'cases' => CaseSummaryAnalytics::class,
         'critical_attention' => CriticalAttentionAnalytics::class,
         'trends' => TrendsAnalytics::class,

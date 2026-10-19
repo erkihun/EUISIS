@@ -14,6 +14,8 @@ class SystemSettingsRegistry
 
     public const GROUP_NOTIFICATIONS = 'notifications';
 
+    public const GROUP_TRANSPORT = 'transport';
+
     public const GROUP_EMAIL = 'email';
 
     public const GROUP_SMS = 'sms';
@@ -447,6 +449,10 @@ class SystemSettingsRegistry
                 'notify_user_on_card_ready' => self::field(type: 'boolean', default: true, labelEn: 'Notify User On Card Ready', labelAm: 'ካርድ ሲዘጋጅ ተጠቃሚን አሳውቅ', validationRules: ['required', 'boolean'], sortOrder: 80),
                 'notify_user_on_transfer_approved' => self::field(type: 'boolean', default: true, labelEn: 'Notify User On Transfer Approved', labelAm: 'ዝውውር ሲፀድቅ ተጠቃሚን አሳውቅ', validationRules: ['required', 'boolean'], sortOrder: 90),
             ],
+
+            // Transport › Settings edits these too (TransportSettingsController);
+            // the registry makes them visible here and audited the same way.
+            self::GROUP_TRANSPORT => self::transportFields(),
 
             self::GROUP_EMAIL => [
                 // Values left blank fall back to the server's .env (MAIL_HOST,
@@ -1232,6 +1238,30 @@ class SystemSettingsRegistry
         }
 
         return $secretKeys;
+    }
+
+    /** @return array<string, array<string, mixed>> */
+    private static function transportFields(): array
+    {
+        return [
+            'require_pass_for_scan' => self::field(type: 'boolean', default: true, labelEn: 'Require a route assignment to board', labelAm: 'ለመሳፈር የመስመር ምደባ ያስፈልጋል', validationRules: ['required', 'boolean'], sortOrder: 10),
+            'allow_pay_as_you_go' => self::field(type: 'boolean', default: false, labelEn: 'Accept boarding without an assignment as pay-as-you-go', labelAm: 'ያለ ምደባ መሳፈርን እንደ ክፈል-ሲጠቀሙ ተቀበል', validationRules: ['required', 'boolean'], sortOrder: 20),
+            'organization_grants_board_without_pass' => self::field(type: 'boolean', default: true, labelEn: 'Organization-level eligibility boards without an individual assignment', labelAm: 'የተቋም ደረጃ ብቁነት ያለ ግለሰብ ምደባ ያሳፍራል', validationRules: ['required', 'boolean'], sortOrder: 30),
+            'alternative_route_policy' => self::field(type: 'select', default: 'deny', labelEn: 'Boarding a route other than the assigned one', labelAm: 'ከተመደበው ውጭ ባለ መስመር መሳፈር', options: ['deny', 'allow_same_provider', 'allow_any_eligible'], validationRules: ['required', 'in:deny,allow_same_provider,allow_any_eligible'], sortOrder: 40),
+            'qr_enabled' => self::field(type: 'boolean', default: true, labelEn: 'QR boarding enabled', labelAm: 'የQR መሳፈር ነቅቷል', validationRules: ['required', 'boolean'], sortOrder: 50),
+            'nfc_enabled' => self::field(type: 'boolean', default: false, labelEn: 'NFC boarding enabled', labelAm: 'የNFC መሳፈር ነቅቷል', validationRules: ['required', 'boolean'], sortOrder: 60),
+            'scan_nonce_required' => self::field(type: 'boolean', default: true, labelEn: 'Require a scan reference on every scan', labelAm: 'በእያንዳንዱ ስካን የስካን ማጣቀሻ ያስፈልጋል', validationRules: ['required', 'boolean'], sortOrder: 70),
+            'require_trip_for_boarding' => self::field(type: 'boolean', default: true, labelEn: 'Every boarding needs an active trip', labelAm: 'እያንዳንዱ መሳፈር ንቁ ጉዞ ያስፈልገዋል', validationRules: ['required', 'boolean'], sortOrder: 80),
+            'duplicate_boarding_policy' => self::field(type: 'select', default: 'one_per_direction_per_day', labelEn: 'Duplicate boarding policy', labelAm: 'የድግግሞሽ መሳፈር ፖሊሲ', options: ['one_per_trip', 'one_per_direction_per_day'], validationRules: ['required', 'in:one_per_trip,one_per_direction_per_day'], sortOrder: 90),
+            'capacity_enforcement' => self::field(type: 'select', default: 'block', labelEn: 'When a vehicle is full', labelAm: 'ተሽከርካሪ ሲሞላ', options: ['block', 'warn'], validationRules: ['required', 'in:block,warn'], sortOrder: 100),
+            'manual_exception_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Manual boarding exceptions allowed', labelAm: 'በእጅ የመሳፈር ልዩ ሁኔታዎች ተፈቅደዋል', validationRules: ['required', 'boolean'], sortOrder: 110),
+            'manual_exceptions_alert_threshold' => self::field(type: 'integer', default: 5, labelEn: 'Manual exceptions per trip before an alert', labelAm: 'ማስጠንቀቂያ በፊት በአንድ ጉዞ የሚፈቀዱ በእጅ ልዩ ሁኔታዎች', validationRules: ['required', 'integer', 'min:1', 'max:100'], sortOrder: 120),
+            'offline_enabled' => self::field(type: 'boolean', default: false, labelEn: 'Offline boarding sync enabled', labelAm: 'ከመስመር ውጭ የመሳፈር ማመሳሰል ነቅቷል', validationRules: ['required', 'boolean'], sortOrder: 130),
+            'offline_grace_minutes' => self::field(type: 'integer', default: 240, labelEn: 'Minutes an offline boarding may wait before sync', labelAm: 'ከመስመር ውጭ መሳፈር ከማመሳሰል በፊት የሚጠብቀው ደቂቃዎች', validationRules: ['required', 'integer', 'min:5', 'max:4320'], sortOrder: 140),
+            'device_inactivity_timeout_minutes' => self::field(type: 'integer', default: 1440, labelEn: 'Minutes without contact before a device counts as inactive', labelAm: 'መሣሪያ እንደ ቦዝኗል ከመቆጠሩ በፊት ያለ ግንኙነት ደቂቃዎች', validationRules: ['required', 'integer', 'min:5', 'max:43200'], sortOrder: 150),
+            'settlement_requires_distinct_approver' => self::field(type: 'boolean', default: true, labelEn: 'A statement must be approved by someone other than its computer', labelAm: 'መግለጫ ከሰላው ሰው በተለየ ሰው መጽደቅ አለበት', validationRules: ['required', 'boolean'], sortOrder: 160),
+            'gps_retention_days' => self::field(type: 'integer', default: 90, labelEn: 'Days vehicle positions are kept', labelAm: 'የተሽከርካሪ አቀማመጦች የሚቆዩበት ቀናት', validationRules: ['required', 'integer', 'min:1', 'max:3650'], sortOrder: 170),
+        ];
     }
 
     /**

@@ -15,8 +15,30 @@ use App\Http\Controllers\Api\V1\PositionApiController;
 use App\Http\Controllers\Api\V1\ProviderSettlementController;
 use App\Http\Controllers\Api\V1\ServiceAuthorizationController;
 use App\Http\Controllers\Api\V1\ServiceTransactionController;
+use App\Http\Controllers\Api\V1\Transport\BoardingController as TransportBoardingController;
+use App\Http\Controllers\Api\V1\Transport\DeviceController as TransportDeviceController;
+use App\Http\Controllers\Api\V1\Transport\PositionController as TransportPositionController;
+use App\Http\Controllers\Api\V1\Transport\TripController as TransportTripController;
 use App\Http\Middleware\NfcApplicationGate;
 use Illuminate\Support\Facades\Route;
+
+/*
+ * Transport scanner devices (docs/transport/device-security.md). Each device
+ * authenticates with its own revocable credential; it never names a provider,
+ * route or vehicle of its own — the server resolves all authority.
+ */
+Route::middleware(['transport.device', 'throttle:transport-device'])->prefix('v1/transport')->name('api.transport.')->group(function (): void {
+    Route::get('/device', [TransportDeviceController::class, 'show'])->name('device.show');
+    Route::post('/device/heartbeat', [TransportDeviceController::class, 'heartbeat'])->name('device.heartbeat');
+    Route::get('/trips/today', [TransportTripController::class, 'today'])->name('trips.today');
+    Route::get('/trips/{trip}', [TransportTripController::class, 'show'])->name('trips.show');
+    Route::post('/trips/{trip}/start', [TransportTripController::class, 'start'])->name('trips.start');
+    Route::post('/trips/{trip}/depart', [TransportTripController::class, 'depart'])->name('trips.depart');
+    Route::post('/trips/{trip}/complete', [TransportTripController::class, 'complete'])->name('trips.complete');
+    Route::post('/boardings/verify', [TransportBoardingController::class, 'verify'])->name('boardings.verify');
+    Route::post('/boardings/sync', [TransportBoardingController::class, 'sync'])->name('boardings.sync');
+    Route::post('/trips/{trip}/positions', [TransportPositionController::class, 'store'])->name('positions.store');
+});
 
 Route::middleware(['auth:sanctum', 'throttle:api', NfcApplicationGate::class, 'api.external'])->prefix('v1/nfc')->name('api.v1.nfc.')->group(function (): void {
     Route::post('/challenges', [NfcController::class, 'challenge'])->middleware('api.scope:nfc.verify')->name('challenges');

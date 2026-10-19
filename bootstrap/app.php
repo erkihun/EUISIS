@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSession;
-use App\Http\Middleware\RecordRequestTelemetry;
+use App\Http\Middleware\AuthenticateTransportDevice;
 use App\Http\Middleware\BlockDisabledModules;
 use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnforceSessionIdleTimeout;
@@ -20,6 +20,7 @@ use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PrivateQrPageHeaders;
+use App\Http\Middleware\RecordRequestTelemetry;
 use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
@@ -96,6 +97,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.external' => ExternalApplicationGate::class,
             'api.idempotency' => EnforceIdempotencyKey::class,
             'provider.scope' => EnsureProviderServiceScope::class,
+            'transport.device' => AuthenticateTransportDevice::class,
             'provider.portal' => EnsureProviderPortalUser::class,
             'provider.service' => EnsureProviderServiceEnabled::class,
             'provider.permission' => EnsureProviderServicePermission::class,

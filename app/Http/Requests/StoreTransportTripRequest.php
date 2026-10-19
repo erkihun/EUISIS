@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\Transport\TransportDirection;
+use App\Enums\Transport\TransportTripStatus;
 use App\Http\Requests\Concerns\TransportProviderRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
@@ -30,7 +32,12 @@ class StoreTransportTripRequest extends FormRequest
             'trip_date' => ['required', 'date'],
             'departure_time' => ['nullable', 'date_format:H:i'],
             'arrival_time' => ['nullable', 'date_format:H:i', 'after:departure_time'],
-            'status' => ['required', Rule::in(['scheduled', 'boarding', 'departed', 'completed', 'cancelled'])],
+            // A new trip is planned (or assigned when it already names a vehicle); it is
+            // started, completed or cancelled through dispatch, never by editing the status.
+            'status' => ['required', Rule::in([TransportTripStatus::Planned->value, TransportTripStatus::Assigned->value])],
+            'direction' => ['required', Rule::in(TransportDirection::values())],
+            'transport_schedule_id' => ['nullable', 'uuid', $this->ownedByProvider('transport_schedules')],
+            'expected_riders' => ['nullable', 'integer', 'min:0', 'max:5000'],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:500'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];

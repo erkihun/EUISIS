@@ -81,7 +81,13 @@ it('has a title and description for every category in both languages', function 
     }
 });
 
-it('keeps Transport out of the Situation Room', function (): void {
-    expect(array_column(SituationCategory::cases(), 'value'))->not->toContain('transport')
-        ->and(json_encode(SituationLabels::dictionary()))->not->toContain('ransport');
+it('lists Transport only with its grant and only while the module is on', function (): void {
+    $withGrant = $this->s->viewer([SituationPermissions::TRANSPORT], 'bureau');
+    $without = $this->s->viewer([SituationPermissions::CAFETERIA], 'bureau');
+
+    expect(SituationCategory::Transport->visibleTo($withGrant))->toBeTrue()
+        ->and(SituationCategory::Transport->visibleTo($without))->toBeFalse();
+
+    config(['features.transport' => false]);
+    expect(SituationCategory::Transport->visibleTo($withGrant))->toBeFalse();
 });

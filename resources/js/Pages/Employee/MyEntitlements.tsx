@@ -52,10 +52,14 @@ type TransportActivity = {
         route: string | null; route_am: string | null; route_code: string | null;
         origin: string | null; origin_am: string | null; destination: string | null; destination_am: string | null;
         provider: string | null; provider_am: string | null;
+        boarding_stop: string | null; boarding_stop_am: string | null; evening_stop: string | null; evening_stop_am: string | null;
         valid_from: string | null; valid_until: string | null;
     }[];
+    today_trips: { id: string; trip_number: string; direction: string | null; departure_time: string | null; status: string | null; boarded_count: number; capacity: number | null }[];
     rides_this_month: number;
-    transactions: { date: string | null; time: string | null; route: string | null; route_am: string | null; provider: string | null; provider_am: string | null; status: string; rejection_reason: string | null }[];
+    morning_rides_this_month: number;
+    evening_rides_this_month: number;
+    transactions: { date: string | null; time: string | null; route: string | null; route_am: string | null; provider: string | null; provider_am: string | null; direction: string | null; stop: string | null; stop_am: string | null; status: string; rejection_reason: string | null }[];
 };
 type Entitlement = {
     id: string; status: string;
@@ -538,20 +542,27 @@ function TransportDetail({ a }: { a: TransportActivity }) {
     const { t, locale } = useLocale();
     const pick = (en: string | null, am: string | null) => (locale === 'am' && am ? am : en ?? am ?? '—');
     const panel = 'rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900';
+    const current = a.passes.find((p) => p.status === 'active') ?? a.passes[0];
+    const direction = (d: string | null) => (d ? t(`transport.directions.${d}`) : '');
 
     return (
         <div className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
                 <div className={`${panel} p-4`}>
                     <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.ridesThisMonth')}</p>
                     <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">{a.rides_this_month}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.morningRides')} {a.morning_rides_this_month} · {t('employeePortal.eveningRides')} {a.evening_rides_this_month}</p>
                 </div>
-                <div className={`${panel} p-4`}>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.transportPass')}</p>
-                    {a.passes[0] ? (
-                        <div className="mt-1 flex items-center gap-2">
-                            <p className="text-base font-semibold text-gray-900 dark:text-slate-100">{a.passes[0].route_code ?? pick(a.passes[0].route, a.passes[0].route_am)}</p>
-                            <StatusChip status={a.passes[0].status} />
+                <div className={`${panel} p-4 sm:col-span-2`}>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.myRoute')}</p>
+                    {current ? (
+                        <div className="mt-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                                <p className="text-base font-semibold text-gray-900 dark:text-slate-100">{current.route_code ? `${current.route_code} — ` : ''}{pick(current.route, current.route_am)}</p>
+                                <StatusChip status={current.status} />
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-slate-400">{pick(current.origin, current.origin_am)} → {pick(current.destination, current.destination_am)}{(current.provider || current.provider_am) && <> · {pick(current.provider, current.provider_am)}</>}</p>
+                            <p className="text-xs text-gray-600 dark:text-slate-300">{t('employeePortal.boardingStop')}: {pick(current.boarding_stop, current.boarding_stop_am)} · {t('employeePortal.eveningStop')}: {pick(current.evening_stop, current.evening_stop_am)}</p>
                         </div>
                     ) : (
                         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t('employeePortal.noTransportPass')}</p>
@@ -559,7 +570,28 @@ function TransportDetail({ a }: { a: TransportActivity }) {
                 </div>
             </div>
 
-            {a.passes.length > 0 && (
+            {current && (
+                <section className={panel}>
+                    <h3 className="border-b border-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:border-slate-800 dark:text-slate-100">{t('employeePortal.todayTrips')}</h3>
+                    {a.today_trips.length === 0 ? (
+                        <p className="px-4 py-6 text-center text-sm text-gray-500 dark:text-slate-400">{t('employeePortal.noTripsToday')}</p>
+                    ) : (
+                        <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                            {a.today_trips.map((trip) => (
+                                <li key={trip.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                                    <div>
+                                        <p className="font-medium tabular-nums text-gray-800 dark:text-slate-200">{trip.departure_time ?? '—'} · {direction(trip.direction)}</p>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">{trip.trip_number}{trip.capacity ? ` · ${trip.boarded_count}/${trip.capacity}` : ''}</p>
+                                    </div>
+                                    <StatusChip status={trip.status ?? ''} />
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </section>
+            )}
+
+            {a.passes.length > 1 && (
                 <section className={panel}>
                     <h3 className="border-b border-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:border-slate-800 dark:text-slate-100">{t('employeePortal.transportPasses')}</h3>
                     <ul className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -568,10 +600,6 @@ function TransportDetail({ a }: { a: TransportActivity }) {
                                 <div className="min-w-0">
                                     <p className="font-medium text-gray-900 dark:text-slate-100">
                                         {pick(pass.route, pass.route_am)}{pass.route_code && <span className="ms-1 text-xs text-gray-500">({pass.route_code})</span>}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">
-                                        {pick(pass.origin, pass.origin_am)} → {pick(pass.destination, pass.destination_am)}
-                                        {(pass.provider || pass.provider_am) && <> · {pick(pass.provider, pass.provider_am)}</>}
                                     </p>
                                     <p className="text-xs text-gray-500 dark:text-slate-400">
                                         <LocalizedDateDisplay value={pass.valid_from} /> – <LocalizedDateDisplay value={pass.valid_until} />
@@ -593,8 +621,8 @@ function TransportDetail({ a }: { a: TransportActivity }) {
                         {a.transactions.map((tx, i) => (
                             <li key={i} className="flex items-start justify-between gap-3 px-4 py-2.5 text-sm">
                                 <div className="min-w-0">
-                                    <p className="truncate font-medium text-gray-800 dark:text-slate-200">{pick(tx.route, tx.route_am)}</p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={tx.date} />{tx.time && ` · ${tx.time}`}{(tx.provider || tx.provider_am) && <> · {pick(tx.provider, tx.provider_am)}</>}</p>
+                                    <p className="truncate font-medium text-gray-800 dark:text-slate-200">{pick(tx.route, tx.route_am)}{tx.direction && <span className="ms-1 text-xs font-normal text-gray-500">· {direction(tx.direction)}</span>}</p>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={tx.date} />{tx.time && ` · ${tx.time}`}{(tx.stop || tx.stop_am) && <> · {pick(tx.stop, tx.stop_am)}</>}{(tx.provider || tx.provider_am) && <> · {pick(tx.provider, tx.provider_am)}</>}</p>
                                     {tx.rejection_reason && <p className="text-xs text-red-700 dark:text-red-400">{tx.rejection_reason}</p>}
                                 </div>
                                 <StatusChip status={tx.status} />
@@ -603,6 +631,7 @@ function TransportDetail({ a }: { a: TransportActivity }) {
                     </ul>
                 )}
             </section>
+            <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.transportPrivacyNote')}</p>
         </div>
     );
 }

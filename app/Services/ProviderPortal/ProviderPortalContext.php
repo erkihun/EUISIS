@@ -7,6 +7,7 @@ namespace App\Services\ProviderPortal;
 use App\Models\CafeteriaProvider;
 use App\Models\Provider;
 use App\Models\ProviderUser;
+use App\Support\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
@@ -163,6 +164,12 @@ class ProviderPortalContext
                 'transportDriversManage' => $this->transportCan($providerUser, 'provider.transport.drivers.manage'),
                 'transportTripsManage' => $this->transportCan($providerUser, 'provider.transport.trips.manage'),
                 'transportReportsView' => $this->transportCan($providerUser, 'provider.transport.reports.view'),
+                'transportDispatch' => $this->transportCan($providerUser, 'provider.transport.dispatch'),
+                'transportManualException' => $this->transportCan($providerUser, 'provider.transport.manual_exception'),
+                'transportManifestsView' => $this->transportCan($providerUser, 'provider.transport.manifests.view'),
+                'transportExceptionsView' => $this->transportCan($providerUser, 'provider.transport.exceptions.view'),
+                'transportDevicesView' => $this->transportCan($providerUser, 'provider.transport.devices.view'),
+                'transportInvoicesManage' => Features::enabled('transport_settlement') && $this->transportCan($providerUser, 'provider.transport.invoices.manage'),
                 'reportsView' => $providerUser?->hasService('cafeteria') ?? false,
             ],
         ];

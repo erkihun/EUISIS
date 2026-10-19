@@ -22,9 +22,15 @@ use App\Models\ProviderType;
 use App\Models\ProviderUser;
 use App\Models\ProviderUserServicePermission;
 use App\Models\ServiceType;
+use App\Models\TransportContract;
+use App\Models\TransportDevice;
+use App\Models\TransportEligibility;
 use App\Models\TransportPass;
 use App\Models\TransportRoute;
+use App\Models\TransportRouteStop;
+use App\Models\TransportSchedule;
 use App\Models\TransportTrip;
+use App\Models\TransportVehicle;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\IdCards\CardQrPayloadService;
@@ -138,11 +144,79 @@ final class TransportScenario
     }
 
     /** @param  array<string, mixed>  $overrides */
+    public function vehicle(Provider $provider, array $overrides = []): TransportVehicle
+    {
+        return TransportVehicle::query()->create($overrides + [
+            'provider_id' => $provider->id, 'vehicle_code' => 'V-'.self::next(), 'plate_number' => 'AA-'.self::next(),
+            'vehicle_type' => 'bus', 'capacity' => 50, 'status' => 'active',
+        ]);
+    }
+
+    /**
+     * A trip that is boarding today on a vehicle, in the inbound (morning)
+     * direction unless told otherwise.
+     *
+     * @param  array<string, mixed>  $overrides
+     */
     public function trip(TransportRoute $route, array $overrides = []): TransportTrip
     {
+        $vehicleId = array_key_exists('transport_vehicle_id', $overrides) ? $overrides['transport_vehicle_id'] : $this->vehicle($route->provider)->id;
+
         return TransportTrip::query()->create($overrides + [
-            'provider_id' => $route->provider_id, 'transport_route_id' => $route->id, 'trip_number' => 'TRP-T-'.self::next(),
-            'trip_date' => today()->toDateString(), 'departure_time' => '07:30', 'status' => 'scheduled',
+            'provider_id' => $route->provider_id, 'transport_route_id' => $route->id, 'transport_vehicle_id' => $vehicleId,
+            'trip_number' => 'TRP-T-'.self::next(), 'direction' => 'inbound',
+            'trip_date' => today()->toDateString(), 'departure_time' => '07:30', 'status' => 'boarding',
+            'actual_started_at' => now(),
+        ]);
+    }
+
+    /** @param  array<string, mixed>  $overrides */
+    public function stop(TransportRoute $route, int $sequence, array $overrides = []): TransportRouteStop
+    {
+        return TransportRouteStop::query()->create($overrides + [
+            'transport_route_id' => $route->id, 'stop_code' => 'S-'.$sequence.'-'.self::next(), 'name_en' => 'Stop '.$sequence,
+            'sequence' => $sequence, 'is_active' => true,
+        ]);
+    }
+
+    /** @param  array<string, mixed>  $overrides */
+    public function schedule(TransportRoute $route, array $overrides = []): TransportSchedule
+    {
+        return TransportSchedule::query()->create($overrides + [
+            'provider_id' => $route->provider_id, 'transport_route_id' => $route->id, 'direction' => 'inbound',
+            'service_days' => [1, 2, 3, 4, 5], 'planned_departure' => '06:30', 'planned_arrival' => '07:30',
+            'effective_from' => today()->subMonth()->toDateString(), 'is_active' => true,
+        ]);
+    }
+
+    /** A registered scanner; returns the device and its plain credential. @param  array<string, mixed>  $overrides @return array{0: TransportDevice, 1: string} */
+    public function device(Provider $provider, ?TransportVehicle $vehicle = null, array $overrides = []): array
+    {
+        $plain = TransportDevice::CREDENTIAL_PREFIX.Str::random(40);
+        $device = TransportDevice::query()->create($overrides + [
+            'provider_id' => $provider->id, 'transport_vehicle_id' => $vehicle?->id, 'device_code' => 'DEV-'.self::next(), 'name' => 'Scanner',
+            'status' => 'active', 'credential_hash' => TransportDevice::hashCredential($plain), 'credential_prefix' => substr($plain, 0, 12),
+        ]);
+
+        return [$device, $plain];
+    }
+
+    /** An organization-level eligibility grant. @param  array<string, mixed>  $overrides */
+    public function grant(string $orgKey, string $scope = 'subtree', array $overrides = []): TransportEligibility
+    {
+        return TransportEligibility::query()->create($overrides + [
+            'subject_type' => 'organization', 'organization_id' => $this->org[$orgKey]->id, 'scope_type' => $scope,
+            'status' => 'active', 'effective_from' => today()->subMonth()->toDateString(), 'authorization_reference' => 'TEST-AUTH',
+        ]);
+    }
+
+    /** @param  array<string, mixed>  $overrides */
+    public function contract(Provider $provider, string $model = 'per_verified_boarding', array $terms = ['rate_per_boarding' => '12.50'], array $overrides = []): TransportContract
+    {
+        return TransportContract::query()->create($overrides + [
+            'contract_reference' => 'CTR-'.self::next(), 'provider_id' => $provider->id, 'version_no' => 1, 'status' => 'active',
+            'currency_code' => 'ETB', 'settlement_model' => $model, 'settlement_period' => 'monthly', 'terms' => $terms,
+            'effective_from' => today()->subYear()->toDateString(), 'approved_at' => now()->subYear(),
         ]);
     }
 

@@ -51,6 +51,10 @@ Schedule::command('communication:expire-announcements')->everyFiveMinutes()->wit
 Schedule::command('communication:expire-investigations')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('communication:prune')->dailyAt('03:55')->withoutOverlapping()->onOneServer();
 
+// Transport (docs/transport/routes-stops-trips.md): plan today's and tomorrow's trips from the
+// schedules. Idempotent — a planned trip is never planned twice — so a re-run is harmless.
+Schedule::command('transport:plan-trips --days=2')->dailyAt('00:20')->withoutOverlapping()->onOneServer();
+
 // Addis One Intelligence (docs/intelligence-system-health.md): collect telemetry, then detect; prune by retention.
 Schedule::command('intelligence:collect --detect')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('intelligence:prune')->dailyAt('03:35')->withoutOverlapping()->onOneServer();
