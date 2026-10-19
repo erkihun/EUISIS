@@ -87,6 +87,20 @@ interface Props {
     comparisonLabel?: string | null;
     href?: string | null;
     featured?: boolean;
+    /** Recent values of the same measure, oldest first; drawn as a small line when at least three exist. */
+    spark?: number[] | null;
+}
+
+/** A 96×28 polyline over the series, normalised to its own range; a flat series draws a mid line. */
+function sparkPoints(values: number[]): string {
+    const width = 96;
+    const height = 28;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const span = max - min || 1;
+    const step = values.length > 1 ? width / (values.length - 1) : width;
+
+    return values.map((value, index) => `${(index * step).toFixed(1)},${(height - 2 - ((value - min) / span) * (height - 4)).toFixed(1)}`).join(' ');
 }
 
 export default function KpiCard({
@@ -99,7 +113,9 @@ export default function KpiCard({
     comparisonLabel,
     href = null,
     featured = false,
+    spark = null,
 }: Props) {
+    const sparkline = spark && spark.length >= 3 ? sparkPoints(spark) : null;
     const style = toneStyles[tone] ?? toneStyles.neutral;
     const Icon = icons[icon] ?? LayoutDashboard;
     const hasTrend = trend !== null && trend !== undefined;
@@ -110,12 +126,12 @@ export default function KpiCard({
               ? TrendingDownIcon
               : MinusIcon;
 
-    const trendColor =
+    const trendChip =
         trendDirection === 'up'
-            ? 'text-emerald-700 dark:text-emerald-400'
+            ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
             : trendDirection === 'down'
-              ? 'text-red-700 dark:text-red-400'
-              : 'text-(--app-muted-foreground)';
+              ? 'bg-red-50 text-red-800 dark:bg-red-950/60 dark:text-red-300'
+              : 'bg-(--app-surface-muted) text-(--app-muted-foreground)';
 
     const body = (
         <div className="relative z-1 flex h-full flex-col">
@@ -135,28 +151,25 @@ export default function KpiCard({
                 </span>
             </div>
 
-            <p
-                className="wrap-break-word pt-3 text-2xl font-semibold leading-tight tabular-nums tracking-tight text-gray-950 sm:text-3xl dark:text-white"
-            >
-                {value}
-            </p>
+            <div className="flex items-end justify-between gap-3 pt-3">
+                <p className="wrap-break-word text-2xl font-semibold leading-tight tabular-nums tracking-tight text-gray-950 sm:text-3xl dark:text-white">
+                    {value}
+                </p>
+                {sparkline && (
+                    <svg width="96" height="28" viewBox="0 0 96 28" className="hidden shrink-0 text-primary sm:block dark:text-indigo-300" aria-hidden="true">
+                        <polyline points={sparkline} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                )}
+            </div>
 
             {hasTrend && (
-                <p
-                    className={`mt-auto flex items-center gap-1.5 pt-3 text-xs ${trendColor}`}
-                >
-                    <TrendIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span className="font-medium tabular-nums">
+                <p className="mt-auto flex flex-wrap items-center gap-1.5 pt-3 text-xs">
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-semibold tabular-nums ${trendChip}`}>
+                        <TrendIcon className="h-3.5 w-3.5" aria-hidden="true" />
                         {trend > 0 ? '+' : ''}
                         {trend}
                     </span>
-                    {comparisonLabel && (
-                        <span
-                            className="text-(--app-muted-foreground)"
-                        >
-                            {comparisonLabel}
-                        </span>
-                    )}
+                    {comparisonLabel && <span className="text-(--app-muted-foreground)">{comparisonLabel}</span>}
                 </p>
             )}
 

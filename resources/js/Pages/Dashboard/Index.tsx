@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { BackupHealthCard } from '@/Components/backup/BackupHealthOverview';
 import type { BackupHealth } from '@/Components/backup/backupUi';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import DashboardHeader, { type DashboardHeaderData } from '@/Components/dashboard/DashboardHeader';
@@ -19,6 +19,8 @@ import ProviderRanking from '@/Components/dashboard/ProviderRanking';
 import CardLifecycleFunnel from '@/Components/dashboard/CardLifecycleFunnel';
 import { SimpleBarChart, SimpleLineChart } from '@/Components/dashboard/charts/SimpleCharts';
 import DashboardOverview from '@/Components/dashboard/DashboardOverview';
+import DashboardBriefing from '@/Components/dashboard/DashboardBriefing';
+import type { PageProps } from '@/types';
 
 export interface KpiItem {
     key: string;
@@ -105,6 +107,7 @@ export default function Dashboard({
 }: DashboardProps) {
     const { t } = useLocale();
     const { getString, getNumber } = useSystemSettings();
+    const permissions = usePage<PageProps>().props.auth?.permissions ?? [];
     const [refreshing, setRefreshing] = useState(false);
     const refreshingRef = useRef(false);
 
@@ -194,6 +197,9 @@ export default function Dashboard({
     const structureKpis = kpis.filter((kpi) => kpi.group === 'organizations' || kpi.group === 'positions');
     const kpisForGroup = (group: string) => kpis.filter((kpi) => kpi.group === group);
 
+    const registrations = (charts.employeeRegistrationsTrend as LabelValueDatum[] | undefined)?.map((row) => row.value) ?? null;
+    const sparkFor = (key: string): number[] | null => (['activeEmployees', 'registeredEmployees'].includes(key) ? registrations : null);
+
     const renderKpi = (kpi: KpiItem, featured = false) => (
         <KpiCard
             key={kpi.key}
@@ -206,6 +212,7 @@ export default function Dashboard({
             comparisonLabel={kpi.comparisonLabelKey ? t(kpi.comparisonLabelKey) : null}
             href={kpi.href ?? null}
             featured={featured}
+            spark={sparkFor(kpi.key)}
         />
     );
 
@@ -255,6 +262,7 @@ export default function Dashboard({
             <div className="min-w-0 space-y-5">
                 {/* A production backup incident outranks the headline figures; otherwise backups follow them. */}
                 {backupUrgent && <BackupHealthCard status={backupHealth} />}
+                {kpis.length > 0 && <DashboardBriefing alerts={alerts} queues={workflowQueues} kpis={kpis} />}
                 <section aria-labelledby="dashboard-overview-title" className="space-y-3">
                     <h2
                         id="dashboard-overview-title"
@@ -278,9 +286,7 @@ export default function Dashboard({
                     </div>
                 </section>
 
-                {backupHealth && !backupUrgent && <BackupHealthCard status={backupHealth} />}
-
-                <DashboardTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} label={t('dashboard.title')} />
+                <DashboardTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} label={t('dashboard.title')} variant="pill" />
 
                 {activeTab === 'overview' && (
                     <div {...panelProps('overview')}>
@@ -289,6 +295,7 @@ export default function Dashboard({
                             alerts={alerts} workflowQueues={workflowQueues}
                             recentActivity={recentActivity} header={header} filters={filters}
                             showCharts={showCharts} onNavigate={setActiveTab}
+                            backupHealth={backupUrgent ? null : backupHealth} permissions={permissions}
                         />
                     </div>
                 )}

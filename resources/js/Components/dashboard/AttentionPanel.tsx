@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ChevronRight } from '@/Components/Icons';
+import { badgeClassName, buttonClassName } from '@/Components/ui';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
 export type AlertItem = {
@@ -22,6 +22,7 @@ export type QueueItem = {
 type Row = {
     key: string;
     label: string;
+    description: string | null;
     count: number;
     href: string;
     rank: number;
@@ -40,15 +41,11 @@ interface Props {
 /**
  * The one thing on the page that answers "what do I do today?".
  *
- * Alerts and workflow queues were previously two separate panels in a narrow
- * right-hand column, below the fold on a laptop — so the two blocks that
- * actually demand action were the least likely to be seen. They are the same
- * kind of thing (a count of items waiting on a person) and are merged here
- * into one list at the top of the page, ordered by urgency.
- *
- * Renders nothing at all when there is nothing waiting. An "All clear" card
- * would occupy the most valuable space on the screen to say that nothing
- * needs doing; its absence says the same thing and costs no room.
+ * Alerts and workflow queues are the same kind of thing — a count of items
+ * waiting on a person — so they are one list, ordered by urgency, each row
+ * naming what it is, how many, and where to act. Renders nothing when
+ * nothing is waiting: an "all clear" card would spend the most valuable space
+ * on the screen to say that nothing needs doing.
  */
 export default function AttentionPanel({ alerts, queues, t, title }: Props) {
     const { number } = useDisplayFormat();
@@ -59,6 +56,7 @@ export default function AttentionPanel({ alerts, queues, t, title }: Props) {
             .map((alert) => ({
                 key: `alert-${alert.key}`,
                 label: t(alert.titleKey),
+                description: alert.descriptionKey && t(alert.descriptionKey) !== alert.descriptionKey ? t(alert.descriptionKey) : null,
                 count: alert.count,
                 href: alert.href,
                 rank: alert.severity === 'critical' ? 0 : alert.severity === 'warning' ? 1 : 2,
@@ -68,6 +66,7 @@ export default function AttentionPanel({ alerts, queues, t, title }: Props) {
             .map((queue) => ({
                 key: `queue-${queue.key}`,
                 label: t(queue.labelKey),
+                description: null,
                 count: queue.count,
                 href: queue.href,
                 rank: queue.tone === 'warning' ? 1 : 2,
@@ -76,43 +75,34 @@ export default function AttentionPanel({ alerts, queues, t, title }: Props) {
 
     if (rows.length === 0) return null;
 
-    const leadingBorder = rows.some((row) => row.rank === 0)
-        ? 'border-t-red-500'
-        : rows.some((row) => row.rank === 1)
-          ? 'border-t-amber-500'
-          : 'border-t-primary';
+    const worst = Math.min(...rows.map((row) => row.rank));
+    const countTone = worst === 0 ? 'danger' : worst === 1 ? 'warning' : 'info';
 
     return (
-        <section
-            aria-label={title}
-            className={`overflow-hidden rounded-panel border border-t-2 border-(--app-border) bg-(--app-surface) ${leadingBorder}`}
-        >
-            <div className="flex items-baseline justify-between gap-3 border-b border-(--app-border) px-4 py-3">
-                <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
+        <section aria-labelledby="dashboard-attention-title" className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+            <div className="flex items-center justify-between gap-3 border-b border-(--app-border) px-4 py-3">
+                <h2 id="dashboard-attention-title" className="text-base font-semibold text-(--app-foreground)">{title}</h2>
+                <span className={badgeClassName(countTone)}>
+                    {number(rows.length)} {t(rows.length === 1 ? 'dashboard.attention.item' : 'dashboard.attention.items')}
+                </span>
             </div>
-
             <ul className="divide-y divide-(--app-border)">
                 {rows.map((row) => (
-                    <li key={row.key}>
-                        <Link
-                            href={row.href}
-                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-(--app-surface-muted) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
-                        >
-                            <span
-                                aria-hidden="true"
-                                className={`h-1.5 w-1.5 shrink-0 rounded-full ${rankDot[row.rank]}`}
-                            />
-                            <span className="min-w-0 flex-1 text-sm leading-snug text-(--app-foreground)">
-                                {row.label}
-                            </span>
-                            <span className="shrink-0 text-sm font-semibold tabular-nums text-(--app-foreground)">
-                                {number(row.count)}
-                            </span>
-                            <ChevronRight
-                                aria-hidden="true"
-                                className="h-4 w-4 shrink-0 text-(--app-muted-foreground)"
-                            />
-                        </Link>
+                    <li key={row.key} className="flex items-center justify-between gap-3 px-4 py-3">
+                        <div className="flex min-w-0 items-center gap-3">
+                            <span className={`h-2 w-2 shrink-0 rounded-full ${rankDot[row.rank]}`} aria-hidden="true" />
+                            <div className="min-w-0">
+                                <p className="m-0 text-sm font-medium text-(--app-foreground) wrap-break-word">{row.label}</p>
+                                {row.description && <p className="m-0 text-xs text-(--app-muted-foreground) wrap-break-word">{row.description}</p>}
+                            </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-3">
+                            <span className="text-xl font-semibold tabular-nums text-(--app-foreground)">{number(row.count)}</span>
+                            <Link href={row.href} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
+                                {t('dashboard.attention.open')}
+                                <span className="sr-only"> · {row.label}</span>
+                            </Link>
+                        </div>
                     </li>
                 ))}
             </ul>

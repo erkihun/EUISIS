@@ -15,6 +15,8 @@ interface Props {
     label: string;
     /** Prefix of the tab and panel element ids; pages other than the dashboard pass their own. */
     idPrefix?: string;
+    /** `underline` (default) sits on a border line; `pill` fills the active tab, for a bar inside a heading band. */
+    variant?: 'underline' | 'pill';
 }
 
 /**
@@ -29,7 +31,7 @@ interface Props {
  * arrive at the right area in one click. Only the active tab's charts mount,
  * so the initial render also stops paying for charts nobody is looking at.
  */
-export default function DashboardTabs({ tabs, activeId, onChange, label, idPrefix = 'dashboard' }: Props) {
+export default function DashboardTabs({ tabs, activeId, onChange, label, idPrefix = 'dashboard', variant = 'underline' }: Props) {
     const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
     if (tabs.length < 2) return null;
@@ -66,7 +68,9 @@ export default function DashboardTabs({ tabs, activeId, onChange, label, idPrefi
             role="tablist"
             aria-label={label}
             aria-orientation="horizontal"
-            className="sticky top-14 z-10 flex max-w-full gap-1 overflow-x-auto border-b border-(--app-border) bg-(--app-surface-muted) pt-1"
+            className={variant === 'pill'
+                ? 'sticky top-14 z-10 flex max-w-full gap-1 overflow-x-auto rounded-control border border-(--app-border) bg-(--app-surface) p-1'
+                : 'sticky top-14 z-10 flex max-w-full gap-1 overflow-x-auto border-b border-(--app-border) bg-(--app-surface-muted) pt-1'}
         >
             {tabs.map((tab, index) => {
                 const active = tab.id === activeId;
@@ -85,17 +89,25 @@ export default function DashboardTabs({ tabs, activeId, onChange, label, idPrefi
                         tabIndex={active ? 0 : -1}
                         onClick={() => onChange(tab.id)}
                         onKeyDown={(event) => handleKeyDown(event, index)}
-                        className={[
-                            'relative min-h-11 shrink-0 whitespace-nowrap px-3 py-2 text-sm transition-colors',
-                            'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
-                            active
-                                ? 'font-semibold text-primary dark:text-indigo-300'
-                                : 'font-medium text-(--app-muted-foreground) hover:text-(--app-foreground)',
-                        ].join(' ')}
+                        className={variant === 'pill'
+                            ? [
+                                'relative min-h-10 shrink-0 whitespace-nowrap rounded-control px-4 py-2 text-sm transition-colors',
+                                'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+                                active
+                                    ? 'bg-primary font-semibold text-white'
+                                    : 'font-medium text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)',
+                            ].join(' ')
+                            : [
+                                'relative min-h-11 shrink-0 whitespace-nowrap px-3 py-2 text-sm transition-colors',
+                                'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary',
+                                active
+                                    ? 'font-semibold text-primary dark:text-indigo-300'
+                                    : 'font-medium text-(--app-muted-foreground) hover:text-(--app-foreground)',
+                            ].join(' ')}
                     >
                         {tab.label}
                         {/* Sits on the container's own border line. */}
-                        {active && (
+                        {variant === 'underline' && active && (
                             <span
                                 aria-hidden="true"
                                 className="absolute inset-x-0 -bottom-px h-0.5 bg-primary"
