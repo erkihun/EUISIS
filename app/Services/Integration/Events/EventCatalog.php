@@ -39,7 +39,7 @@ final class EventCatalog
 
     /**
      * @var array<string, array{aggregate: string, scope: string, data: list<string>, tombstone: bool|null}>
-     *  tombstone: true = always, false = never, null = decided by the state carried (status_changed)
+     *                                                                                                       tombstone: true = always, false = never, null = decided by the state carried (status_changed)
      */
     private const TYPES = [
         'organization.created' => ['aggregate' => 'organization', 'scope' => 'organizations.read', 'data' => self::ORG, 'tombstone' => false],

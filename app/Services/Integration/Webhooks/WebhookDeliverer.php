@@ -11,6 +11,7 @@ use App\Services\Integration\Events\ChangeVisibility;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -102,7 +103,7 @@ final class WebhookDeliverer
      */
     public function sendTest(WebhookSubscription $subscription): array
     {
-        $eventId = (string) \Illuminate\Support\Str::uuid7();
+        $eventId = (string) Str::uuid7();
         $body = (string) json_encode([
             'event_id' => $eventId,
             'event_type' => 'webhook.test',

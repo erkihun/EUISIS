@@ -36,12 +36,35 @@ final class ChangeVisibility
 
     private const NO_ORGANIZATION = '00000000-0000-0000-0000-000000000000';
 
+    /**
+     * Bounds memoised for the life of this instance — one publisher run or
+     * one feed request — so fanning out thousands of events does not re-expand
+     * the same grants per event. A new run always starts fresh.
+     *
+     * @var array<string, list<string>|null>
+     */
+    private array $bounds = [];
+
+    /** @var array<string, list<string>> */
+    private array $types = [];
+
     public function __construct(private readonly IntegrationAccessService $access) {}
+
+    /** @return list<string>|null */
+    private function organizationIds(ExternalApplication $application): ?array
+    {
+        $key = (string) $application->getKey();
+        if (! array_key_exists($key, $this->bounds)) {
+            $this->bounds[$key] = $this->access->organizationIdsFor($application);
+        }
+
+        return $this->bounds[$key];
+    }
 
     /** @return list<string> */
     public function allowedTypes(ExternalApplication $application): array
     {
-        return EventCatalog::typesForScopes($application->grantableScopes());
+        return $this->types[(string) $application->getKey()] ??= EventCatalog::typesForScopes($application->grantableScopes());
     }
 
     /**
@@ -51,7 +74,7 @@ final class ChangeVisibility
     {
         $query->whereIn('event_type', $types === [] ? ['__none__'] : $types);
 
-        $ids = $this->access->organizationIdsFor($application);
+        $ids = $this->organizationIds($application);
         if ($ids === null) {
             return $query;
         }
@@ -73,7 +96,7 @@ final class ChangeVisibility
             return true;
         }
 
-        $ids = $this->access->organizationIdsFor($application);
+        $ids = $this->organizationIds($application);
 
         return $ids === null
             || ($event->organization_id !== null && in_array((string) $event->organization_id, $ids, true))
@@ -131,7 +154,7 @@ final class ChangeVisibility
             return false;
         }
 
-        $ids = $this->access->organizationIdsFor($application);
+        $ids = $this->organizationIds($application);
         if ($ids === null) {
             return false;
         }

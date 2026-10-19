@@ -81,7 +81,15 @@ final class OutboxPublisher
                     'feed_position' => ++$position,
                     'published_at' => Carbon::now(),
                     'attempt_count' => $event->attempt_count + 1,
-                ])->save();
+                ]);
+                // One narrow UPDATE per row; no model events on the outbox.
+                DB::table('integration_events')->where('id', $event->getKey())->update([
+                    'status' => $event->status,
+                    'feed_position' => $event->feed_position,
+                    'published_at' => $event->published_at,
+                    'attempt_count' => $event->attempt_count,
+                    'organization_id' => $event->organization_id,
+                ]);
                 $published++;
 
                 foreach ($subscriptions as $subscription) {

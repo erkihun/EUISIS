@@ -6,16 +6,18 @@ use App\Actions\IdCards\RevokeCardAction;
 use App\Models\Integration\IntegrationEvent;
 use App\Models\Integration\WebhookDelivery;
 use App\Models\Integration\WebhookSubscription;
-use App\Models\User;
-use App\Services\Integration\IntegrationMonitor;
 use App\Models\IntelligenceIncident;
 use App\Models\SystemSetting;
+use App\Models\User;
+use App\Services\Integration\IntegrationMonitor;
 use App\Services\Intelligence\System\Detection\DetectionEngine;
+use App\Services\Intelligence\System\Telemetry\Metrics;
 use App\Services\Intelligence\System\Telemetry\SignalRepository;
 use App\Services\SystemSettings\SystemSettingsService;
-use App\Services\Intelligence\System\Telemetry\Metrics;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\IntegrationScenario;
@@ -152,8 +154,8 @@ it('counts backlog, oldest pending and dead deliveries from real rows', function
 
 it('opens no outbox incident without a configured limit, and one when the limit is passed', function (): void {
     config(['cache.default' => 'array']);
-    \Illuminate\Support\Facades\Notification::fake();
-    $now = \Carbon\CarbonImmutable::now();
+    Notification::fake();
+    $now = CarbonImmutable::now();
     app(SignalRepository::class)->write([
         ['metric' => Metrics::INTEGRATION_OUTBOX_OLDEST_SECONDS, 'component' => 'integrations', 'dimension' => null, 'value' => 1200, 'bucket_start' => $now->subMinutes(5)],
         ['metric' => Metrics::INTEGRATION_OUTBOX_PENDING, 'component' => 'integrations', 'dimension' => null, 'value' => 40, 'bucket_start' => $now->subMinutes(5)],

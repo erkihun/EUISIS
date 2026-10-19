@@ -9,8 +9,8 @@ use App\Support\DailyActivity\DailyActivityRoles;
 use App\Support\Discipline\DisciplineRoles;
 use App\Support\FieldWork\FieldWorkRoles;
 use App\Support\Grievances\GrievanceRoles;
-use App\Support\Performance\PerformanceRoles;
 use App\Support\Intelligence\IntelligenceRoles;
+use App\Support\Performance\PerformanceRoles;
 use InvalidArgumentException;
 
 /**
