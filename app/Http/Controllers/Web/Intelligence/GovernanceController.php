@@ -56,9 +56,9 @@ final class GovernanceController extends Controller
             ],
             'prompts' => PromptRegistry::catalog(),
             'data_classes' => IntelligenceSettings::DATA_CLASSES,
-            'runs' => IntelligenceAiRun::query()->with('user:id,name')->orderByDesc('created_at')->paginate(20)->withQueryString()->through(fn (IntelligenceAiRun $r): array => [
+            'runs' => IntelligenceAiRun::query()->with('triggeredBy:id,name')->orderByDesc('created_at')->paginate(20)->withQueryString()->through(fn (IntelligenceAiRun $r): array => [
                 'id' => $r->id, 'feature' => $r->feature, 'prompt_key' => $r->prompt_key, 'prompt_version' => $r->prompt_version, 'provider' => $r->provider, 'model' => $r->model,
-                'status' => $r->status, 'user' => $r->user?->name, 'subject_type' => $r->subject_type, 'subject_id' => $r->subject_id,
+                'status' => $r->status, 'user' => $r->triggeredBy?->name, 'subject_type' => $r->subject_type, 'subject_id' => $r->subject_id,
                 'input_chars' => $r->input_chars, 'output_tokens' => $r->output_tokens, 'duration_ms' => $r->duration_ms, 'error' => $r->error, 'created_at' => $r->created_at->toIso8601String(),
             ]),
             'run_counts' => $this->runCounts(),
