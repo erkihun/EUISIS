@@ -132,6 +132,16 @@ JSON callers get a typed `419 {reason: page_expired}`. The raw
 - **Devices** each have their own session and their own clock. Activity on a
   laptop does not keep a phone signed in. There is no per-user "last activity".
 - Simultaneous sessions are allowed (unchanged).
+- **Devices tab (Profile settings).** With `SESSION_DRIVER=database` the
+  account's live sessions are listed from the `sessions` table (browser and
+  OS from the User-Agent, address, last activity; the current one is marked)
+  and the owner can end any other one, or all others at once
+  (`UserSessionRegistry`). Ending a session deletes its row, so that browser
+  is asked to sign in again on its next request; each ending is audited as
+  `session_revoked` with reason `revoked_by_user` / `revoked_other_devices`
+  (never a session id). The tab also shows the last sign-ins from the
+  `user_logged_in` audit rows. Other drivers keep no per-user index, so the
+  list is shown as unavailable rather than guessed.
 
 ## 7. Remember me, MFA and password changes
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileDeviceController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderPasswordResetController;
 use App\Http\Controllers\ProviderPortal\ProviderDashboardController;
@@ -1459,6 +1460,9 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Devices tab: end one of the account's own sessions, or all but this one.
+    Route::delete('/profile/devices', [ProfileDeviceController::class, 'destroyOthers'])->middleware('throttle:10,1')->name('profile.devices.destroy-others');
+    Route::delete('/profile/devices/{session}', [ProfileDeviceController::class, 'destroy'])->middleware('throttle:10,1')->name('profile.devices.destroy');
 });
 
 // Typography check sheet for the PDF renderer (docs/ui-typography.md).
