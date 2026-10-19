@@ -47,3 +47,14 @@ export interface StackedBarChartProps {
     series: ChartSeries[];
     emptyTitle?: string;
 }
+
+/** A compact daily trend, one measure per chart (small multiples, never a second axis). */
+export interface TrendChartProps {
+    /** One point per day of the period, gap-filled with zeros; `label` is an ISO date. */
+    data: LabelValueDatum[];
+    /** The measure's name, shown in the tooltip. */
+    name: string;
+    formatDate: (iso: string) => string;
+    formatValue: (value: number) => string;
+    height?: number;
+}

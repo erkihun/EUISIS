@@ -7,6 +7,7 @@ use App\Jobs\Assessment\GenerateCycleAssessmentsJob;
 use App\Jobs\EscalateOverdueGrievancesJob;
 use App\Jobs\Performance\RecalculatePlanScore;
 use App\Jobs\Transfers\NotifyEligibleTransferAudience;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 /*
  * Production risk register INF-2/INF-3: a job still running when the
@@ -32,3 +33,23 @@ it('keeps every long job inside the queue retry window', function (object $job):
         expect($job->timeout ?? 60)->toBeLessThan($retryAfter);
     }
 })->with('long jobs');
+
+it('keeps every queued job inside the queue retry window, on any queue', function (): void {
+    // Announcement delivery (900s, on `notifications`) once equalled the 900s
+    // default and would have run twice; read every job, not only the long ones.
+    $timeouts = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(app_path('Jobs'), FilesystemIterator::SKIP_DOTS)) as $file) {
+        $class = 'App\\Jobs\\'.str_replace(['/', '.php'], ['\\', ''], substr($file->getPathname(), strlen(app_path('Jobs')) + 1));
+        if (class_exists($class) && is_subclass_of($class, ShouldQueue::class)) {
+            $timeouts[$class] = (int) ((new ReflectionClass($class))->getDefaultProperties()['timeout'] ?? 60);
+        }
+    }
+
+    expect($timeouts)->not->toBeEmpty();
+    foreach (['database', 'redis'] as $connection) {
+        $retryAfter = (int) config("queue.connections.{$connection}.retry_after");
+        foreach ($timeouts as $class => $timeout) {
+            expect($timeout)->toBeLessThan($retryAfter, "{$class} ({$timeout}s) must finish inside {$connection} retry_after ({$retryAfter}s).");
+        }
+    }
+});

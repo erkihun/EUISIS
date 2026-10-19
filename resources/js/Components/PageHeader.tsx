@@ -37,7 +37,7 @@ export default function PageHeader({ title, description, actions, backHref }: Pr
                     )}
                 </div>
                 {actions && (
-                    <div className="flex w-full flex-wrap items-center gap-2 sm:ml-4 sm:w-auto sm:flex-nowrap">{actions}</div>
+                    <div className="flex w-full flex-wrap items-center gap-2 sm:ml-4 sm:w-auto sm:shrink-0 sm:flex-nowrap">{actions}</div>
                 )}
         </div>
     );

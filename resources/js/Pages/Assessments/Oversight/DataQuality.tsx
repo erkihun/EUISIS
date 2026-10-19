@@ -2,6 +2,7 @@ import { ExportButtons, OversightLayout, SeverityBadge, named, oversightHref, ty
 import { Section, Table, TablePanel, linkBtn, tdCls, thCls, type Paginator } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Link } from '@inertiajs/react';
+import { useState, type ReactNode } from 'react';
 
 type Issue = {
     code: string; severity: string; is_blocking: boolean; organization: { id: string; name_en: string | null; name_am: string | null };
@@ -26,6 +27,23 @@ export default function OversightDataQuality(props: Props) {
     const { t, locale } = useLocale();
     const { cycle, can, summary, issues, filters, labels } = props;
     const rules = summary ? Object.entries(summary.rules).filter(([, r]) => !filters.severity || r.severity === filters.severity).sort(([, a], [, b]) => ORDER[a.severity] - ORDER[b.severity] || b.count - a.count) : [];
+    // What needs attention first; the checks that found nothing stay one click away.
+    const found = rules.filter(([code, r]) => r.count > 0 || code === filters.code);
+    const clear = rules.filter(([code, r]) => r.count === 0 && code !== filters.code);
+    const [showClear, setShowClear] = useState(false);
+    const row = ([code, rule]: (typeof rules)[number]): ReactNode => (
+        <tr key={code} className={filters.code === code ? 'bg-(--app-surface-muted)' : undefined}>
+            <td className={tdCls}>
+                {rule.count > 0
+                    ? <Link className="font-medium text-primary hover:underline" href={oversightHref('assessment-oversight.data-quality', cycle, { code, organization_id: filters.organization_id })}>{t(`assessmentOversight.rules.${code}`)}</Link>
+                    : <span className="text-(--app-muted-foreground)">{t(`assessmentOversight.rules.${code}`)}</span>}
+                <div className="text-xs text-(--app-muted-foreground)">{code}</div>
+            </td>
+            <td className={tdCls}><SeverityBadge severity={rule.severity} /></td>
+            <td className={`${tdCls} tabular-nums`}>{rule.count}</td>
+            <td className={`${tdCls} text-xs text-(--app-muted-foreground)`}>{t(`assessmentOversight.hints.${code}`)}</td>
+        </tr>
+    );
 
     return (
         <OversightLayout title={t('assessmentOversight.nav.dataQuality')} description={t('assessmentOversight.dataQualityHelp')} active="dataQuality" shell={props}
@@ -45,19 +63,18 @@ export default function OversightDataQuality(props: Props) {
                             <th className={thCls}>{t('assessmentOversight.count')}</th>
                             <th className={thCls}>{t('assessmentOversight.howToResolve')}</th>
                         </>}>
-                            {rules.map(([code, rule]) => (
-                                <tr key={code} className={filters.code === code ? 'bg-(--app-surface-muted)' : undefined}>
-                                    <td className={tdCls}>
-                                        {rule.count > 0
-                                            ? <Link className="font-medium text-primary hover:underline" href={oversightHref('assessment-oversight.data-quality', cycle, { code, organization_id: filters.organization_id })}>{t(`assessmentOversight.rules.${code}`)}</Link>
-                                            : <span className="text-(--app-muted-foreground)">{t(`assessmentOversight.rules.${code}`)}</span>}
-                                        <div className="text-xs text-(--app-muted-foreground)">{code}</div>
-                                    </td>
-                                    <td className={tdCls}><SeverityBadge severity={rule.severity} /></td>
-                                    <td className={`${tdCls} tabular-nums`}>{rule.count}</td>
-                                    <td className={`${tdCls} text-xs text-(--app-muted-foreground)`}>{t(`assessmentOversight.hints.${code}`)}</td>
-                                </tr>
-                            ))}
+                            {found.length === 0 && (
+                                <tr><td colSpan={4} className={`${tdCls} font-medium text-emerald-700 dark:text-emerald-400`}>{t('assessmentOversight.allChecksPass').replace(':count', String(rules.length))}</td></tr>
+                            )}
+                            {found.map(row)}
+                            {clear.length > 0 && (
+                                <tr><td colSpan={4} className={tdCls}>
+                                    <button type="button" className={linkBtn} aria-expanded={showClear} onClick={() => setShowClear(!showClear)}>
+                                        {(showClear ? t('assessmentOversight.hideClearChecks') : t('assessmentOversight.showClearChecks')).replace(':count', String(clear.length))}
+                                    </button>
+                                </td></tr>
+                            )}
+                            {showClear && clear.map(row)}
                         </Table>
                     </Section>
 

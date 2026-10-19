@@ -39,9 +39,10 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            // Must exceed the longest job $timeout (600s on the `long` queue) or a
-            // still-running job is handed to a second worker and runs twice.
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 900),
+            // Must exceed the longest job $timeout (900s: Communication's
+            // DeliverAnnouncement) or a still-running job is handed to a second
+            // worker and runs twice.
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 960),
             'after_commit' => false,
         ],
 
@@ -70,7 +71,7 @@ return [
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
             // Must exceed the longest job $timeout (see the database connection).
-            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 900),
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 960),
             'block_for' => null,
             'after_commit' => false,
         ],

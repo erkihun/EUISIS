@@ -27,6 +27,10 @@ class UpdateEmailSettingsRequest extends FormRequest
             'mail_username' => ['nullable', 'string', 'max:200'],
             'mail_password' => ['nullable', 'string', 'max:400'],
             'email_test_recipient' => ['nullable', 'email', 'max:160'],
+            // Saved credentials to remove, e.g. to fall back to the server's .env
+            // or to use a relay that takes no sign-in.
+            'clear' => ['nullable', 'array'],
+            'clear.*' => ['string', Rule::in(['mail_username', 'mail_password'])],
         ];
     }
 

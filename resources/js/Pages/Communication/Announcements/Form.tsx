@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { useEffect, useRef, useState, type FormEvent, type JSX } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import RichTextEditor from '@/Components/forms/RichTextEditor';
 import { buttonClassName } from '@/Components/ui';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedTimePicker from '@/Components/Calendar/LocalizedTimePicker';
@@ -131,17 +132,31 @@ export default function AnnouncementForm({ announcement, priorities, targetTypes
                         <Field label={t('communication.announcements.form.titleLabel')} error={errors.title}>
                             <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} className={`${field} h-10`} />
                         </Field>
-                        <Field label={t('communication.announcements.form.bodyLabel')} hint={t('communication.announcements.form.bodyHelp')} error={errors.body}>
-                            <textarea value={body} onChange={(e) => setBody(e.target.value)} required maxLength={20000} rows={9} className={`${field} py-2.5 leading-relaxed`} />
-                        </Field>
+                        <RichTextEditor
+                            label={t('communication.announcements.form.bodyLabel')}
+                            helperText={t('communication.announcements.form.bodyHelp')}
+                            value={body}
+                            onChange={setBody}
+                            error={errors.body}
+                            preset="standard"
+                            maxLength={20000}
+                            required
+                            locale="en"
+                        />
                     </Panel>
                     <Panel title={t('communication.announcements.form.amharic')}>
                         <Field label={t('communication.announcements.form.titleLabel')} error={errors.title_am}>
                             <input value={titleAm} onChange={(e) => setTitleAm(e.target.value)} maxLength={200} lang="am" className={`${field} h-10`} />
                         </Field>
-                        <Field label={t('communication.announcements.form.bodyLabel')} error={errors.body_am}>
-                            <textarea value={bodyAm} onChange={(e) => setBodyAm(e.target.value)} maxLength={20000} rows={7} lang="am" className={`${field} py-2.5 leading-relaxed`} />
-                        </Field>
+                        <RichTextEditor
+                            label={t('communication.announcements.form.bodyLabel')}
+                            value={bodyAm}
+                            onChange={setBodyAm}
+                            error={errors.body_am}
+                            preset="standard"
+                            maxLength={20000}
+                            locale="am"
+                        />
                     </Panel>
                     <Panel title={t('communication.announcements.form.files')}>
                         {!announcement ? (

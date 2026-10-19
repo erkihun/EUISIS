@@ -29,7 +29,7 @@ type Props = PageProps<{
     contacts: (Person & { conversation_id: string | null })[];
     announcements: AnnouncementRow[];
     pendingAcknowledgements: AnnouncementRow[];
-    can: { message: boolean; createGroup: boolean; browseChannels: boolean; createAnnouncement: boolean; tasks: boolean; moderate: boolean; investigations: boolean; settings: boolean };
+    can: { message: boolean; createGroup: boolean; browseChannels: boolean; createAnnouncement: boolean; tasks: boolean; moderate: boolean; investigations: boolean; manageSettings: boolean };
 }>;
 
 const has = (name: string) => (route() as unknown as { has: (n: string) => boolean }).has(name);

@@ -29,12 +29,14 @@ use App\Models\PublicHoliday;
 use App\Models\User;
 use App\Services\Grievances\GrievanceAudit;
 use App\Services\Grievances\GrievanceCorrespondenceService;
+use App\Services\Grievances\GrievanceHandlerRegistry;
 use App\Services\Grievances\GrievancePresenter;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -55,6 +57,7 @@ class GrievanceSettingsController extends Controller
         private readonly GrievanceAudit $audit,
         private readonly GrievancePresenter $presenter,
         private readonly OrganizationScopeService $scope,
+        private readonly GrievanceHandlerRegistry $handlers,
     ) {}
 
     /**
@@ -122,7 +125,7 @@ class GrievanceSettingsController extends Controller
                 ]),
             'letterheads' => OrganizationLetterhead::query()->with('organization:id,name_en,name_am')->get(),
             'seals' => $user->can('grievance_settings.manage_seals') || $user->can('grievance_correspondence.apply_seal')
-                ? OrganizationSeal::query()->with('organization:id,name_en,name_am')->latest()->get()->map(fn (OrganizationSeal $s) => [
+                ? $this->scope->applyOrganizationScope(OrganizationSeal::query(), $user)->with('organization:id,name_en,name_am')->latest()->get()->map(fn (OrganizationSeal $s) => [
                     ...$s->only(['id', 'name', 'status', 'mime_type', 'sha256', 'organization_id', 'uploaded_by', 'approved_by']),
                     'organization' => $s->organization?->only(['id', 'name_en', 'name_am']),
                     'approved_at' => $s->approved_at?->toIso8601String(),
@@ -242,6 +245,8 @@ class GrievanceSettingsController extends Controller
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'is_active' => ['required', 'boolean'],
         ]);
+        $this->authorizeOrganization($request, $data['organization_id'] ?? null, $rule?->organization_id);
+        $data['handler_id'] = $this->validatedHandlerId($data['handler_type'] ?? null, $data['handler_id'] ?? null);
         $rule ??= new GrievanceApprovalRule(['created_by' => $request->user()->getKey()]);
         $rule->fill($data)->save();
         $this->audit->record(AuditEventType::GrievanceConfigurationChanged, $request->user(), $rule, ['approval_rule' => $rule->getKey(), 'requires_approval' => $rule->requires_approval, 'position' => $rule->approver_position_id]);
@@ -263,6 +268,7 @@ class GrievanceSettingsController extends Controller
             'address' => ['nullable', 'string', 'max:1000'],
             'is_active' => ['required', 'boolean'],
         ]);
+        $this->authorizeOrganization($request, $data['organization_id'] ?? null, $authority?->organization_id);
         $authority ??= new GrievanceExternalAuthority;
         $authority->fill($data)->save();
         $this->audit->record(AuditEventType::GrievanceConfigurationChanged, $request->user(), $authority, ['external_authority' => $authority->code]);
@@ -286,7 +292,11 @@ class GrievanceSettingsController extends Controller
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'is_active' => ['required', 'boolean'],
         ]);
+        $this->authorizeOrganization($request, $data['organization_id'] ?? null, $template?->organization_id);
         $this->assertKnownTokens($data['subject_template'].' '.$data['body_template']);
+        if ($data['is_active']) {
+            $this->assertNoOverlappingTemplate($data, $template);
+        }
 
         $template ??= new GrievanceLetterTemplate(['created_by' => $request->user()->getKey()]);
         $template->fill([...$data, 'updated_by' => $request->user()->getKey()])->save();
@@ -359,19 +369,30 @@ class GrievanceSettingsController extends Controller
         $user = $request->user();
         abort_unless($user->can('grievance_settings.manage_seals') && $this->scope->canExercisePermission($user, 'grievance_settings.manage_seals', $seal->organization_id), 403);
         $data = $request->validate(['action' => ['required', 'in:approve,retire']]);
-
-        if ($data['action'] === 'approve') {
-            if ((int) $seal->uploaded_by === (int) $user->getKey() && ! $user->isSuperAdmin()) {
-                throw ValidationException::withMessages(['seal' => __('grievances.errors.separation_of_duties')]);
-            }
-            // One active seal per organization.
-            OrganizationSeal::query()->where('organization_id', $seal->organization_id)->where('status', 'active')->whereKeyNot($seal->getKey())
-                ->update(['status' => 'retired', 'effective_to' => now()->toDateString()]);
-            $seal->forceFill(['status' => 'active', 'approved_by' => $user->getKey(), 'approved_at' => now()])->save();
-        } else {
-            $seal->forceFill(['status' => 'retired', 'effective_to' => now()->toDateString()])->save();
+        if ($data['action'] === 'approve' && (int) $seal->uploaded_by === (int) $user->getKey() && ! $user->isSuperAdmin()) {
+            throw ValidationException::withMessages(['seal' => __('grievances.errors.separation_of_duties')]);
         }
-        $this->audit->record(AuditEventType::GrievanceSealChanged, $user, $seal, ['seal' => $seal->getKey(), 'action' => $data['action']]);
+
+        DB::transaction(function () use ($seal, $user, $data): void {
+            // Lock the organization's seals: two concurrent approvals must not leave two active seals.
+            $seals = OrganizationSeal::query()->where('organization_id', $seal->organization_id)->lockForUpdate()->get();
+            $current = $seals->firstWhere('id', $seal->getKey());
+            // Only a pending seal can be approved; a retired seal stays retired.
+            $allowed = $data['action'] === 'approve' ? $current?->status === 'pending' : $current !== null && $current->status !== 'retired';
+            if (! $allowed) {
+                throw ValidationException::withMessages(['seal' => __('grievances.errors.stale')]);
+            }
+
+            if ($data['action'] === 'approve') {
+                // One active seal per organization.
+                OrganizationSeal::query()->where('organization_id', $current->organization_id)->where('status', 'active')->whereKeyNot($current->getKey())
+                    ->update(['status' => 'retired', 'effective_to' => now()->toDateString()]);
+                $current->forceFill(['status' => 'active', 'approved_by' => $user->getKey(), 'approved_at' => now()])->save();
+            } else {
+                $current->forceFill(['status' => 'retired', 'effective_to' => now()->toDateString()])->save();
+            }
+            $this->audit->record(AuditEventType::GrievanceSealChanged, $user, $current, ['seal' => $current->getKey(), 'action' => $data['action']]);
+        });
 
         return back()->with('flash', ['message' => __('grievances.flash.saved'), 'type' => 'success']);
     }
@@ -392,6 +413,11 @@ class GrievanceSettingsController extends Controller
     {
         $user = $request->user();
         abort_unless($user->can('grievance_settings.manage_delegations'), 403);
+        // The page picks whole days: a delegation ending on a date covers that entire day.
+        $endsAt = $request->input('ends_at');
+        if (is_string($endsAt) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $endsAt) === 1) {
+            $request->merge(['ends_at' => $endsAt.' 23:59:59']);
+        }
         $data = $request->validate([
             'delegator_user_id' => ['required', 'integer', 'exists:users,id'],
             'delegate_user_id' => ['required', 'integer', 'exists:users,id', 'different:delegator_user_id'],
@@ -401,9 +427,10 @@ class GrievanceSettingsController extends Controller
             'ends_at' => ['required', 'date', 'after:starts_at'],
             'reason' => ['required', 'string', 'max:1000'],
         ]);
+        $this->authorizeOrganization($request, $data['organization_id'] ?? null, null, 'grievance_settings.manage_delegations');
         // No self-delegation: the manager can neither delegate to themselves
         // nor record a delegation that benefits themselves.
-        if ((int) $data['delegate_user_id'] === (int) $user->getKey() || (int) $data['delegator_user_id'] === (int) $user->getKey() && ! $user->isSuperAdmin()) {
+        if ((int) $data['delegate_user_id'] === (int) $user->getKey() || ((int) $data['delegator_user_id'] === (int) $user->getKey() && ! $user->isSuperAdmin())) {
             throw ValidationException::withMessages(['delegate_user_id' => __('grievances.errors.self_delegation')]);
         }
         if (! User::query()->find($data['delegate_user_id'])?->can('grievance_decisions.approve')) {
@@ -420,7 +447,14 @@ class GrievanceSettingsController extends Controller
     {
         $user = $request->user();
         abort_unless($user->can('grievance_settings.manage_delegations'), 403);
-        $delegation->forceFill(['status' => 'revoked', 'revoked_by' => $user->getKey(), 'revoked_at' => now()])->save();
+        $this->authorizeOrganization($request, $delegation->organization_id, null, 'grievance_settings.manage_delegations');
+        // Conditional update: a second revoke must not overwrite who revoked it and when.
+        $revoked = GrievanceDelegation::query()->whereKey($delegation->getKey())->where('status', 'active')
+            ->update(['status' => 'revoked', 'revoked_by' => $user->getKey(), 'revoked_at' => now(), 'updated_at' => now()]);
+        if ($revoked === 0) {
+            throw ValidationException::withMessages(['delegation' => __('grievances.errors.stale')]);
+        }
+        $delegation->refresh();
         $this->audit->record(AuditEventType::GrievanceDelegationChanged, $user, $delegation, ['revoked' => true]);
 
         return back()->with('flash', ['message' => __('grievances.flash.saved'), 'type' => 'success']);
@@ -429,6 +463,55 @@ class GrievanceSettingsController extends Controller
     private function authorizeUpdate(Request $request): void
     {
         abort_unless($request->user()->can('grievance_settings.update'), 403);
+    }
+
+    /**
+     * A scoped administrator configures only organizations in their scope —
+     * both the record's current organization and the one it is being moved
+     * to. "All organizations" (null) needs authority that is not org-bound.
+     */
+    private function authorizeOrganization(Request $request, ?string $organizationId, ?string $currentOrganizationId = null, string $permission = 'grievance_settings.update'): void
+    {
+        $user = $request->user();
+        abort_unless($this->scope->canExercisePermission($user, $permission, $organizationId), 403);
+        if ($currentOrganizationId !== null && $currentOrganizationId !== $organizationId) {
+            abort_unless($this->scope->canExercisePermission($user, $permission, $currentOrganizationId), 403);
+        }
+    }
+
+    /** A rule may target one specific handler, which must exist; without a handler type there is no handler. */
+    private function validatedHandlerId(?string $handlerType, ?string $handlerId): ?string
+    {
+        if ($handlerType === null || $handlerId === null) {
+            return null;
+        }
+        if ($this->handlers->find(GrievanceHandlerType::from($handlerType), $handlerId) === null) {
+            throw ValidationException::withMessages(['handler_id' => __('grievances.errors.handler_missing')]);
+        }
+
+        return $handlerId;
+    }
+
+    /**
+     * Letters pick one active template per type, language and organization;
+     * two active templates over the same days would make that choice arbitrary.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function assertNoOverlappingTemplate(array $data, ?GrievanceLetterTemplate $template): void
+    {
+        $overlaps = GrievanceLetterTemplate::query()
+            ->where('is_active', true)
+            ->where('template_type', $data['template_type'])
+            ->where('language', $data['language'])
+            ->where(fn ($q) => ($data['organization_id'] ?? null) === null ? $q->whereNull('organization_id') : $q->where('organization_id', $data['organization_id']))
+            ->when($template?->exists, fn ($q) => $q->whereKeyNot($template->getKey()))
+            ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $data['effective_from']))
+            ->when(($data['effective_to'] ?? null) !== null, fn ($q) => $q->whereDate('effective_from', '<=', $data['effective_to']))
+            ->exists();
+        if ($overlaps) {
+            throw ValidationException::withMessages(['effective_from' => __('grievances.errors.template_overlap')]);
+        }
     }
 
     /** Templates may only use whitelisted tokens (a typo would silently print nothing). */

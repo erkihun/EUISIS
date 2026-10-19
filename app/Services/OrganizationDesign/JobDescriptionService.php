@@ -18,6 +18,7 @@ use App\Models\PositionServiceTaskStandard;
 use App\Models\PositionWorkLink;
 use App\Models\ProcessTask;
 use App\Models\User;
+use App\Support\RichText\RichTextSanitizer;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -46,7 +47,11 @@ class JobDescriptionService
         'relationships' => 'custom',
     ];
 
-    public function __construct(private readonly OrganizationDesignAudit $audit, private readonly PositionProfileService $profiles) {}
+    public function __construct(
+        private readonly OrganizationDesignAudit $audit,
+        private readonly PositionProfileService $profiles,
+        private readonly RichTextSanitizer $richText,
+    ) {}
 
     // ── Lifecycle ────────────────────────────────────────────────────────
 
@@ -111,7 +116,12 @@ class JobDescriptionService
             throw ValidationException::withMessages(['section' => __('organization-design.jd_section_derived')]);
         }
         $old = $section->only(['content_en', 'content_am']);
-        $section->fill(['content_en' => $data['content_en'] ?? null, 'content_am' => $data['content_am'] ?? null])->save();
+        // Custom sections are formatted text written by people: sanitized here.
+        // Derived sections are generated plain text and never pass this way.
+        $section->fill([
+            'content_en' => $this->richText->sanitize($data['content_en'] ?? null),
+            'content_am' => $this->richText->sanitize($data['content_am'] ?? null),
+        ])->save();
         $jd->forceFill(['updated_by' => $actor->getKey()])->save();
         $this->audit->record(AuditEventType::JobDescriptionSectionUpdated, $actor, $jd, ['section' => $key, ...$section->only(['content_en', 'content_am'])], $old);
 

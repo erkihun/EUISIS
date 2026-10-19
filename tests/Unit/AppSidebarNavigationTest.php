@@ -187,12 +187,23 @@ it('lists the admin pages that have no other entry point', function (): void {
         "routeName: 'cafeteria.special-days.index'" => "permission: 'cafeteria_special_days.view'",
         "routeName: 'cafeteria.employee-exclusions.index'" => "permission: 'cafeteria_employee_exclusions.view'",
     ] as $route => $gate) {
-        expect(substr_count($sidebar, $route))->toBe(1);
-        $line = strstr(substr($sidebar, strpos($sidebar, $route)), "\n", true);
-        expect($line)->toContain($gate);
+        // The evaluator workspace is listed twice: in Assessment Management and in My Portal,
+        // because employee-only accounts (most peer evaluators) see only the portal.
+        $expected = $route === "routeName: 'assessment-workspace.index'" ? 2 : 1;
+        expect(substr_count($sidebar, $route))->toBe($expected);
+        foreach (array_slice(explode($route, $sidebar), 1) as $after) {
+            expect(strstr($after, "\n", true))->toContain($gate);
+        }
     }
 
     // The discipline portal needs the account's own employee record, so admins without one never get a 403 link.
     expect($sidebar)->toContain("permission: 'discipline.view_own', employeeOnly: true")
         ->toContain('&& (!item.employeeOnly || hasEmployeeRecord)');
+});
+
+it('lets employee-only accounts reach the assessments they must rate', function (): void {
+    $sidebar = file_get_contents(__DIR__.'/../../resources/js/Components/AppSidebar.tsx');
+    $portal = substr($sidebar, strpos($sidebar, 'const portalSections'), strpos($sidebar, 'const selfServiceNav') - strpos($sidebar, 'const portalSections'));
+
+    expect($portal)->toContain("routeName: 'assessment-workspace.index', labelKey: 'nav.assignedAssessments', icon: PenNewRoundIcon, permission: 'assessments.view_assigned', listedInAdmin: true");
 });

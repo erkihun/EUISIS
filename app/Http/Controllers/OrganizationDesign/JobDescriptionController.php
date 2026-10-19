@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\JobDescription;
 use App\Models\OrganizationDesignStatusHistory;
 use App\Models\Position;
+use App\Rules\RichTextContent;
 use App\Services\Calendar\LocalizedDateService;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -75,7 +76,7 @@ class JobDescriptionController extends Controller
     public function updateSection(Request $request, JobDescription $jobDescription, string $sectionKey): RedirectResponse
     {
         $this->authorize('update', $jobDescription);
-        $data = $request->validate(['content_en' => ['nullable', 'string', 'max:20000'], 'content_am' => ['nullable', 'string', 'max:20000']]);
+        $data = $request->validate(['content_en' => ['nullable', new RichTextContent(maxLength: 20000)], 'content_am' => ['nullable', new RichTextContent(maxLength: 20000)]]);
         $this->jobDescriptions->updateSection($request->user(), $jobDescription, $sectionKey, $data);
 
         return back()->with('flash', ['message' => __('organization-design.jd_section_saved'), 'type' => 'success']);

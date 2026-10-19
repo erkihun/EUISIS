@@ -36,6 +36,7 @@ use App\Models\TransferAnnouncement;
 use App\Models\TransferAnnouncementPosition;
 use App\Models\TransferApplication;
 use App\Models\TransferApplicationDocument;
+use App\Models\TransferApproval;
 use App\Models\TransferSetting;
 use App\Models\TransportPass;
 use App\Models\TransportTransaction;
@@ -1032,7 +1033,7 @@ class EmployeePortalController extends Controller
         if ($employee !== null) {
             $applications = TransferApplication::query()
                 ->where('employee_id', $employee->id)
-                ->with(['announcement.organization', 'announcement.position', 'announcementPosition.position'])
+                ->with(['announcement.organization', 'announcement.position', 'announcementPosition.position', 'documents', 'approvals'])
                 ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')))
                 ->when($request->filled('search'), function ($query) use ($request): void {
                     $term = '%'.$request->string('search').'%';
@@ -1055,6 +1056,18 @@ class EmployeePortalController extends Controller
                     'announcement_id' => $app->announcement_id,
                     'closing_date' => $app->announcement?->closing_date?->toDateString(),
                     'rejected_reason' => $app->rejected_reason,
+                    'effective_date' => $app->effective_date?->toDateString(),
+                    // The employee's own evidence, so they can see what was sent.
+                    'documents' => $app->documents->map(fn (TransferApplicationDocument $document): array => [
+                        'id' => $document->id,
+                        'document_type' => $document->document_type,
+                        'original_name' => $document->original_name,
+                    ])->values(),
+                    // Which approval stages this application goes through, and where each stands.
+                    'approvals' => $app->approvals->map(fn (TransferApproval $approval): array => [
+                        'approval_type' => $approval->approval_type?->value,
+                        'status' => $approval->status?->value,
+                    ])->values(),
                     'can_withdraw' => $user->can('withdraw', $app),
                 ]);
         }

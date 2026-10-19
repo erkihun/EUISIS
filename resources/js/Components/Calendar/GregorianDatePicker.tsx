@@ -60,7 +60,6 @@ export default function GregorianDatePicker({
             <input
                 ref={inputRef}
                 type="date"
-                id={id}
                 name={name}
                 value={value}
                 min={min}
@@ -73,9 +72,11 @@ export default function GregorianDatePicker({
                 aria-hidden="true"
             />
 
-            {/* Styled trigger button */}
+            {/* Styled trigger button. It carries the id (as in EthiopianDatePicker) so a
+                <label htmlFor> names the control screen readers actually reach. */}
             <button
                 type="button"
+                id={id}
                 disabled={disabled}
                 onClick={handleButtonClick}
                 className={`flex w-full items-center justify-between rounded-md border border-(--app-border-strong) bg-(--app-surface) px-3 py-2 text-sm shadow-xs focus:border-indigo-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}

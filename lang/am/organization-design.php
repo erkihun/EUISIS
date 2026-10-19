@@ -3,6 +3,15 @@
 declare(strict_types=1);
 
 return [
+    // Record status as printed on PDFs (job descriptions); same words as the screens.
+    'status' => [
+        'draft' => 'ረቂቅ',
+        'under_review' => 'በግምገማ ላይ',
+        'approved' => 'የጸደቀ',
+        'published' => 'ይፋ የሆነ',
+        'superseded' => 'የተተካ',
+        'cancelled' => 'የተሰረዘ',
+    ],
     'mandate_created' => 'የሥልጣን ረቂቅ ተፈጥሯል።',
     'mandate_updated' => 'ሥልጣን ተሻሽሏል።',
     'mandate_version_created' => 'አዲስ የሥልጣን ስሪት ተረቅቋል። በሥራ ላይ ለማዋል ያትሙት።',

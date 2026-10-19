@@ -12,7 +12,10 @@ export type CycleData = {
     exclusion_reduces_denominator: boolean | null; small_group_threshold: number | null; reminder_days_before: number | null;
     period_start: string; period_end: string; reference_date: string; submission_deadline: string | null; verification_deadline: string | null;
     eligibility_snapshot_at: string | null; eligibility_finalized_at: string | null;
+    evaluation_due_date: string | null; late_submission_policy: string | null;
 };
+
+const LATE_POLICIES = ['allow_flagged', 'allow_with_reason', 'block'] as const;
 
 /**
  * Cycle settings. Policy switches left empty stay NEEDS_DECISION: the
@@ -25,6 +28,8 @@ export function CycleForm({ cycle, types, policies, employeeStatuses, onCancel }
         code: cycle?.code ?? '', name_en: cycle?.name_en ?? '', name_am: cycle?.name_am ?? '', assessment_type_id: cycle?.assessment_type_id ?? types[0]?.id ?? '',
         period_start: cycle?.period_start ?? '', period_end: cycle?.period_end ?? '', reference_date: cycle?.reference_date ?? '',
         submission_deadline: cycle?.submission_deadline ?? '', verification_deadline: cycle?.verification_deadline ?? '',
+        // Sent back on every save: the server stores what it receives, so omitting them would clear them.
+        evaluation_due_date: cycle?.evaluation_due_date ?? '', late_submission_policy: cycle?.late_submission_policy ?? '',
         result_band_policy_id: cycle?.result_band_policy_id ?? '', eligible_employee_statuses: cycle?.eligible_employee_statuses ?? [] as string[],
         population_rule: cycle?.population_rule ?? 'all_assigned', min_service_days: cycle?.min_service_days?.toString() ?? '',
         exclusion_reduces_denominator: cycle?.exclusion_reduces_denominator === null || cycle?.exclusion_reduces_denominator === undefined ? '' : cycle.exclusion_reduces_denominator ? '1' : '0',
@@ -37,6 +42,7 @@ export function CycleForm({ cycle, types, policies, employeeStatuses, onCancel }
             ...d,
             result_band_policy_id: d.result_band_policy_id || null,
             submission_deadline: d.submission_deadline || null, verification_deadline: d.verification_deadline || null,
+            evaluation_due_date: d.evaluation_due_date || null, late_submission_policy: d.late_submission_policy || null,
             min_service_days: d.min_service_days === '' ? null : Number(d.min_service_days),
             small_group_threshold: d.small_group_threshold === '' ? null : Number(d.small_group_threshold),
             reminder_days_before: d.reminder_days_before === '' ? null : Number(d.reminder_days_before),
@@ -46,9 +52,9 @@ export function CycleForm({ cycle, types, policies, employeeStatuses, onCancel }
         else form.post(route('assessment-oversight.cycles.store'));
     }
 
-    const date = (key: 'period_start' | 'period_end' | 'reference_date' | 'submission_deadline' | 'verification_deadline', disabled = false) => (
-        <Field label={t(`assessmentOversight.cycleForm.${key}`)} error={form.errors[key]}>
-            <LocalizedDatePicker className={inputCls} value={form.data[key]} onChange={(iso) => form.setData(key, iso ?? '')} disabled={disabled} />
+    const date = (key: 'period_start' | 'period_end' | 'reference_date' | 'evaluation_due_date' | 'submission_deadline' | 'verification_deadline', disabled = false, help?: string) => (
+        <Field label={t(`assessmentOversight.cycleForm.${key}`)} htmlFor={`cycle-${key}`} error={form.errors[key]} help={help}>
+            <LocalizedDatePicker id={`cycle-${key}`} className={inputCls} value={form.data[key]} onChange={(iso) => form.setData(key, iso ?? '')} disabled={disabled} />
         </Field>
     );
 
@@ -65,6 +71,13 @@ export function CycleForm({ cycle, types, policies, employeeStatuses, onCancel }
             {date('period_start', locked)}
             {date('period_end', locked)}
             {date('reference_date', locked)}
+            {date('evaluation_due_date', false, t('assessmentOversight.cycleForm.evaluationDueHelp'))}
+            <Field label={t('assessmentOversight.cycleForm.latePolicy')} error={form.errors.late_submission_policy}>
+                <select className={inputCls} value={form.data.late_submission_policy} onChange={(e) => form.setData('late_submission_policy', e.target.value)}>
+                    <option value="">{t('assessmentOversight.cycleForm.latePolicies.none')}</option>
+                    {LATE_POLICIES.map((p) => <option key={p} value={p}>{t(`assessmentOversight.cycleForm.latePolicies.${p}`)}</option>)}
+                </select>
+            </Field>
             {date('submission_deadline')}
             {date('verification_deadline')}
             <Field label={t('assessmentOversight.cycleForm.bandPolicy')} error={form.errors.result_band_policy_id} help={t('assessmentOversight.cycleForm.bandPolicyHelp')}>

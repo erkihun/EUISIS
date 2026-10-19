@@ -1,7 +1,7 @@
 // The chart bodies. This module is the only one that imports the chart library,
 // and it is loaded after the dashboard's first paint (see ./SimpleCharts.tsx).
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import type { MultiSeriesLineChartProps, SimpleBarChartProps, SimpleLineChartProps, StackedBarChartProps, WithColors } from './types';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import type { MultiSeriesLineChartProps, SimpleBarChartProps, SimpleLineChartProps, StackedBarChartProps, TrendChartProps, WithColors } from './types';
 
 const tooltipStyle = {
     contentStyle: { background: 'var(--app-surface)', borderColor: 'var(--app-border)', color: 'var(--app-foreground)', borderRadius: 8 },
@@ -77,6 +77,50 @@ export function StackedBarChartImpl({ data, labelKey, series, colors }: WithColo
                     <Bar key={s.key} dataKey={s.key} name={s.label} stackId="types" fill={colors.series[index % colors.series.length]} isAnimationActive={false} />
                 ))}
             </BarChart>
+        </ResponsiveContainer>
+    );
+}
+
+/**
+ * A small-multiple daily trend: one measure, its own scale, a 2px line over a
+ * 10% wash. The x-axis is left off (the card states the period once) and the
+ * crosshair tooltip names the day; gridlines are solid hairlines.
+ */
+export function TrendAreaChartImpl({ data, name, formatDate, formatValue, colors, height = 112 }: WithColors<TrendChartProps>) {
+    return (
+        <ResponsiveContainer width="100%" height={height}>
+            <AreaChart data={data} margin={{ top: 6, right: 6, bottom: 6, left: 0 }}>
+                <CartesianGrid stroke={colors.grid} vertical={false} />
+                <XAxis dataKey="label" hide />
+                <YAxis
+                    allowDecimals={false}
+                    width={34}
+                    tickCount={3}
+                    interval={0}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 11, fill: colors.axisText }}
+                    tickFormatter={(value: number) => formatValue(value)}
+                />
+                <Tooltip
+                    {...tooltipStyle}
+                    cursor={{ stroke: colors.axisText, strokeWidth: 1 }}
+                    separator=": "
+                    labelFormatter={(label) => formatDate(String(label))}
+                    formatter={(value) => [formatValue(Number(value ?? 0)), name]}
+                />
+                <Area
+                    type="linear"
+                    dataKey="value"
+                    stroke={colors.primary}
+                    strokeWidth={2}
+                    fill={colors.primary}
+                    fillOpacity={0.1}
+                    dot={false}
+                    activeDot={{ r: 4, fill: colors.primary, stroke: 'var(--app-surface)', strokeWidth: 2 }}
+                    isAnimationActive={false}
+                />
+            </AreaChart>
         </ResponsiveContainer>
     );
 }

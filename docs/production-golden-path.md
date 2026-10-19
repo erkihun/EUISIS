@@ -76,7 +76,7 @@ approved — never as a hotfix.
    employee → assignment).
 6. **Heavy work is queued.** Anything proportional to the workforce runs as a job on the
    `long` queue in resumable batches; notifications are `ShouldQueue` on
-   `notifications`. Job `$timeout` must stay below the connection `retry_after` (900s).
+   `notifications`. Job `$timeout` must stay below the connection `retry_after` (960s).
 7. **Files go through the disk.** Read/hash/download with `Storage::disk(...)`
    (`StoredFileChecksum`, `Storage::download`) — never `->path()` or a node-local
    absolute path. Public-disk files take their extension from the sniffed content

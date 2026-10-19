@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle, ClockIcon, InfoIcon, MinusIcon, XCircle } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
-import { StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
+import { StatusBadge as UiStatusBadge, cx, textareaClassName, type Tone } from '@euisis/ui';
 import type { ReactNode } from 'react';
 import type { Bilingual, EmployeeRef, HandlerRef, SlaSummary } from '@/types/grievances';
 
@@ -19,6 +19,9 @@ export {
     linkBtn, dangerLinkBtn, panelCls, pageCls, tableCls, thCls, tdCls, AppFilterBar, filterInputCls,
 } from '@/Components/performance/ui';
 export type { Paginator } from '@/Components/performance/ui';
+
+/** Multi-line control: `inputCls` has a fixed control height, so textareas use this instead. */
+export const textareaCls = cx(textareaClassName, 'w-full');
 
 /** `:name` placeholder interpolation (the app's t() does none). */
 export function fmt(template: string, params: Record<string, string | number | null | undefined>): string {

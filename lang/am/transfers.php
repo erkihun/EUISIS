@@ -51,4 +51,21 @@ return [
     'transferCompleted' => 'ዝውውሩ ተግባራዊ ተደርጓል።',
     'settingsUpdated' => 'የዝውውር ቅንብሮች ተቀምጠዋል።',
     'announcements' => 'የዝውውር ማስታወቂያዎች',
+
+    'attributes' => [
+        'positions' => 'የሥራ መደቦች',
+        'positions.*.organization_id' => 'ተቋም',
+        'positions.*.position_id' => 'የሥራ መደብ',
+        'positions.*.grade_level' => 'ደረጃ',
+        'positions.*.salary_min' => 'ዝቅተኛ ደመወዝ',
+        'positions.*.salary_max' => 'ከፍተኛ ደመወዝ',
+        'positions.*.vacancy_count' => 'የክፍት ቦታዎች ብዛት',
+        'eligibility_rules.*.type' => 'የሁኔታ ዓይነት',
+        'eligibility_rules.*.value' => 'የሁኔታ እሴት',
+        'required_documents.*' => 'የሰነድ ስም',
+        'opening_date' => 'የመክፈቻ ቀን',
+        'closing_date' => 'የመዝጊያ ቀን',
+        'override_approver_roles.*' => 'ልዩ ሁኔታ አጽዳቂ ሚና',
+        'minimum_service_months' => 'ዝቅተኛ የአገልግሎት ጊዜ',
+    ],
 ];

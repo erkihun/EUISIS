@@ -397,6 +397,7 @@ export type SettingsIndexProps = {
     options: {
         organizations: Bilingual[]; reason_code_types: string[]; confidentiality: string[]; priorities: string[]; decision_types: string[];
         handler_types: string[]; letter_types: string[]; letter_languages: string[]; tokens: string[]; approval_sla_profiles: Bilingual[];
+        committees: (Bilingual & { organization_id: string; status: string })[];
     };
     can: { update: boolean; delegations: boolean; seals: boolean };
 };

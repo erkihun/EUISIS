@@ -123,6 +123,7 @@ const employeePortal = {
         submitted: 'ቀርቧል', under_review: 'በግምገማ ላይ', verified: 'ተረጋግጧል', selected: 'ተመርጧል',
         release_pending: 'መልቀቂያን በመጠባበቅ ላይ', receiving_pending: 'ተቀባይ መሥሪያ ቤትን በመጠባበቅ ላይ', final_approval_pending: 'የመጨረሻ ማጽደቂያን በመጠባበቅ ላይ',
         approved: 'ጸድቋል', transferred: 'ተዛውሯል', rejected: 'አልተመረጡም', withdrawn: 'ተሰርዟል', cancelled: 'ተቋርጧል',
+        implementation_failed: 'ጸድቋል፤ በሂደት ላይ',
     },
     correctionFields: {
         full_name: 'ሕጋዊ ስም', date_of_birth: 'የትውልድ ቀን', national_id: 'ብሔራዊ መታወቂያ', nationality: 'ዜግነት',

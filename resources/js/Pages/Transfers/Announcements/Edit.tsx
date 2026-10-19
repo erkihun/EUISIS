@@ -1,20 +1,9 @@
 import PageHeader from '@/Components/PageHeader';
-import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
-import { FormEventHandler } from 'react';
+import { Head } from '@inertiajs/react';
+import AnnouncementForm, { emptyRow, type EligibilityRule, type Organization, type PositionOption, type PositionRow } from './Form';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
-type Org = { id: string; name_en: string; name_am: string | null };
-type Pos = {
-    id: string;
-    title_en: string;
-    title_am: string | null;
-    grade_level: string | null;
-    organization_id: string;
-    available_slots: number;
-};
 type AnnouncementPosition = {
     organization_id: string;
     position_id: string;
@@ -23,6 +12,7 @@ type AnnouncementPosition = {
     salary_max: string | null;
     vacancy_count: number;
 };
+
 type Announcement = {
     id: string;
     opening_date: string;
@@ -32,346 +22,46 @@ type Announcement = {
     positions: AnnouncementPosition[];
 };
 
-type EligibilityRule = {
-    type: 'employment_status' | 'current_grade' | 'current_organization' | 'current_position' | 'minimum_service_months';
-    operator: 'equals' | 'in' | 'greater_than_or_equal';
-    value: string;
-};
+type Props = { announcement: Announcement; organizations: Organization[]; positions: PositionOption[]; positionsTruncated?: boolean; settingsDocuments?: string[] };
 
+/** Rules saved by older versions may be malformed; only well-formed ones are edited. */
 function supportedRules(rules: unknown[] | null): EligibilityRule[] {
     return (rules ?? []).filter((rule): rule is EligibilityRule => typeof rule === 'object' && rule !== null && 'type' in rule && 'operator' in rule && 'value' in rule);
 }
 
-type Props = {
-    announcement: Announcement;
-    organizations: Org[];
-    positions: Pos[];
-    positionsTruncated?: boolean;
-};
-
-type PositionRow = {
-    organization_id: string;
-    position_id: string;
-    grade_level: string;
-    salary_min: string;
-    salary_max: string;
-    vacancy_count: number;
-};
-
-function toRow(p: AnnouncementPosition): PositionRow {
-    return {
-        organization_id: p.organization_id ?? '',
-        position_id:     p.position_id ?? '',
-        grade_level:     p.grade_level ?? '',
-        salary_min:      p.salary_min ?? '',
-        salary_max:      p.salary_max ?? '',
-        vacancy_count:   p.vacancy_count ?? 1,
-    };
-}
-
-const emptyRow = (): PositionRow => ({
-    organization_id: '',
-    position_id:     '',
-    grade_level:     '',
-    salary_min:      '',
-    salary_max:      '',
-    vacancy_count:   1,
+const toRow = (position: AnnouncementPosition): PositionRow => ({
+    organization_id: position.organization_id ?? '',
+    position_id: position.position_id ?? '',
+    grade_level: position.grade_level ?? '',
+    salary_min: position.salary_min ?? '',
+    salary_max: position.salary_max ?? '',
+    vacancy_count: position.vacancy_count ?? 1,
 });
 
-export default function TransferAnnouncementEdit({ announcement, organizations, positions, positionsTruncated = false }: Props) {
-    const { locale, t } = useLocale();
-    const useAmharic = locale === 'am';
-
-    const { data, setData, patch, processing, errors } = useForm({
-        positions:          (announcement.positions?.length ? announcement.positions.map(toRow) : [emptyRow()]) as PositionRow[],
-        eligibility_rules:  supportedRules(announcement.eligibility_rules),
-        required_documents: (announcement.required_documents ?? []) as string[],
-        opening_date:       announcement.opening_date ?? '',
-        closing_date:       announcement.closing_date ?? '',
-    });
-
-    function updateRow(index: number, patch: Partial<PositionRow>) {
-        setData('positions', data.positions.map((row, i) => (i === index ? { ...row, ...patch } : row)));
-    }
-
-    function handlePositionSelect(index: number, positionId: string) {
-        const pos = positions.find((p) => p.id === positionId);
-        updateRow(index, { position_id: positionId, grade_level: pos?.grade_level ?? '' });
-    }
-
-    function handleOrgChange(index: number, orgId: string) {
-        updateRow(index, { organization_id: orgId, position_id: '', grade_level: '', vacancy_count: 1 });
-    }
-
-    function addRow() {
-        setData('positions', [...data.positions, emptyRow()]);
-    }
-
-    function removeRow(index: number) {
-        setData('positions', data.positions.filter((_, i) => i !== index));
-    }
-
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-        patch(route('transfer-announcements.update', announcement.id));
-    };
-
-    const labelCls = 'block text-sm font-medium text-(--app-foreground)';
-    const inputCls = cx(inputClassName, 'mt-1 block w-full');
-    const errorCls = 'mt-1 text-xs text-red-500';
+export default function TransferAnnouncementEdit({ announcement, organizations, positions, positionsTruncated = false, settingsDocuments = [] }: Props) {
+    const { t } = useLocale();
 
     return (
-        <AuthenticatedLayout contentWidth="form"
-            header={
-                <PageHeader
-                    backHref={route('transfer-announcements.show', announcement.id)}
-                    title={t('transfers.editAnnouncement')}
-                />
-            }
+        <AuthenticatedLayout
+            contentWidth="form"
+            header={<PageHeader backHref={route('transfer-announcements.show', announcement.id)} title={t('transfers.editAnnouncement')} />}
         >
             <Head title={t('transfers.editAnnouncement')} />
-
-            <div>
-                <form onSubmit={submit} className="space-y-6 rounded-card border border-(--app-border) bg-(--app-surface) p-6">
-
-                    {/* ── Positions ── */}
-                    <section className="space-y-4">
-                        {positionsTruncated && <p role="status" className="text-xs text-amber-700 dark:text-amber-300">{t('transfers.positionsTruncated').replace(':count', String(positions.length))}</p>}
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold text-(--app-foreground)">
-                                {t('transfers.includedPositions')}
-                            </h3>
-                            <button
-                                type="button"
-                                onClick={addRow}
-                                className={buttonClassName({ variant: 'outline' })}
-                            >
-                                + {t('transfers.addPosition')}
-                            </button>
-                        </div>
-
-                        {data.positions.map((row, index) => {
-                            const filteredPositions = row.organization_id
-                                ? positions.filter((p) => p.organization_id === row.organization_id)
-                                : positions;
-
-                            return (
-                                <div key={index} className="rounded-lg border border-(--app-border) p-4">
-                                    <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-(--app-foreground)">
-                                            {t('transfers.positionLine')} {index + 1}
-                                        </span>
-                                        {data.positions.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeRow(index)}
-                                                className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400"
-                                            >
-                                                {t('common.remove')}
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="grid gap-4 sm:grid-cols-2">
-                                        <div>
-                                            <label className={labelCls}>{t('transfers.organization')}</label>
-                                            <select
-                                                className={inputCls}
-                                                value={row.organization_id}
-                                                onChange={(e) => handleOrgChange(index, e.target.value)}
-                                                required
-                                            >
-                                                <option value="">—</option>
-                                                {organizations.map((o) => (
-                                                    <option key={o.id} value={o.id}>
-                                                        {(useAmharic ? o.name_am : null) ?? o.name_en}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {errors[`positions.${index}.organization_id` as never] && (
-                                                <p className={errorCls}>{errors[`positions.${index}.organization_id` as never]}</p>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className={labelCls}>{t('transfers.position')}</label>
-                                            <select
-                                                className={inputCls}
-                                                value={row.position_id}
-                                                onChange={(e) => handlePositionSelect(index, e.target.value)}
-                                                disabled={!row.organization_id}
-                                                required
-                                            >
-                                                <option value="">—</option>
-                                                {filteredPositions.map((p) => (
-                                                    <option key={p.id} value={p.id}>
-                                                        {(useAmharic ? p.title_am : null) ?? p.title_en}
-                                                        {p.available_slots > 0 ? ` (${p.available_slots} ${t('transfers.availableSlots')})` : ''}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {errors[`positions.${index}.position_id` as never] && (
-                                                <p className={errorCls}>{errors[`positions.${index}.position_id` as never]}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-3 grid gap-4 sm:grid-cols-4">
-                                        <div>
-                                            <label className={labelCls}>{t('transfers.gradeLevel')}</label>
-                                            <input
-                                                type="text"
-                                                className={`${inputCls} bg-(--app-surface-muted)`}
-                                                value={row.grade_level}
-                                                readOnly
-                                                placeholder="—"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className={labelCls}>{t('transfers.salaryMin')}</label>
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                className={inputCls}
-                                                value={row.salary_min}
-                                                onChange={(e) => updateRow(index, { salary_min: e.target.value })}
-                                                placeholder="0.00"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className={labelCls}>{t('transfers.salaryMax')}</label>
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                className={inputCls}
-                                                value={row.salary_max}
-                                                onChange={(e) => updateRow(index, { salary_max: e.target.value })}
-                                                placeholder="0.00"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className={labelCls}>{t('transfers.numberOfVacancies')}</label>
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                className={inputCls}
-                                                value={row.vacancy_count}
-                                                onChange={(e) => updateRow(index, { vacancy_count: Number(e.target.value) })}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </section>
-
-                    {/* ── Dates ── */}
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <label className={labelCls}>{t('transfers.openingDate')}</label>
-                            <LocalizedDatePicker
-                                className={inputCls}
-                                value={data.opening_date}
-                                onChange={(v) => setData('opening_date', v)}
-                            />
-                            {errors.opening_date && <p className={errorCls}>{errors.opening_date}</p>}
-                        </div>
-                        <div>
-                            <label className={labelCls}>{t('transfers.closingDate')}</label>
-                            <LocalizedDatePicker
-                                className={inputCls}
-                                value={data.closing_date}
-                                onChange={(v) => setData('closing_date', v)}
-                            />
-                            {errors.closing_date && <p className={errorCls}>{errors.closing_date}</p>}
-                        </div>
-                    </div>
-
-                    {/* ── Eligibility Rules ── */}
-                    <section className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <label className={labelCls}>{t('transfers.eligibilityRules')}</label>
-                            <button
-                                type="button"
-                                onClick={() => setData('eligibility_rules', [...data.eligibility_rules, { type: 'employment_status', operator: 'equals', value: 'active' }])}
-                                className="text-xs text-primary hover:underline dark:text-primary"
-                            >
-                                + {t('transfers.addEligibilityRule')}
-                            </button>
-                        </div>
-                        {data.eligibility_rules.map((rule, i) => (
-                            <div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
-                                <select aria-label={t('transfers.ruleType')} className={inputCls} value={rule.type} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, type: e.target.value as EligibilityRule['type'] }; setData('eligibility_rules', next); }}>
-                                    <option value="employment_status">{t('transfers.ruleEmploymentStatus')}</option><option value="current_grade">{t('transfers.ruleCurrentGrade')}</option><option value="current_organization">{t('transfers.ruleCurrentOrganization')}</option><option value="current_position">{t('transfers.ruleCurrentPosition')}</option><option value="minimum_service_months">{t('transfers.ruleMinimumService')}</option>
-                                </select>
-                                <select aria-label={t('transfers.ruleOperator')} className={inputCls} value={rule.operator} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, operator: e.target.value as EligibilityRule['operator'] }; setData('eligibility_rules', next); }}>
-                                    <option value="equals">{t('transfers.ruleEquals')}</option><option value="in">{t('transfers.ruleIn')}</option><option value="greater_than_or_equal">{t('transfers.ruleAtLeast')}</option>
-                                </select>
-                                <input aria-label={t('transfers.ruleValue')} type="text" className={inputCls} value={rule.value} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, value: e.target.value }; setData('eligibility_rules', next); }} />
-                                <button
-                                    type="button"
-                                    onClick={() => setData('eligibility_rules', data.eligibility_rules.filter((_, j) => j !== i))}
-                                    className={buttonClassName({ variant: 'outline' })}
-                                >
-                                    {t('common.remove')}
-                                </button>
-                            </div>
-                        ))}
-                    </section>
-
-                    {/* ── Required Documents ── */}
-                    <section className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <label className={labelCls}>{t('transfers.requiredDocuments')}</label>
-                            <button
-                                type="button"
-                                onClick={() => setData('required_documents', [...data.required_documents, ''])}
-                                className="text-xs text-primary hover:underline dark:text-primary"
-                            >
-                                + {t('transfers.addDocument')}
-                            </button>
-                        </div>
-                        {data.required_documents.map((doc, i) => (
-                            <div key={i} className="flex gap-2">
-                                <input
-                                    type="text"
-                                    className={`${inputCls} flex-1`}
-                                    value={doc}
-                                    onChange={(e) => {
-                                        const next = [...data.required_documents];
-                                        next[i] = e.target.value;
-                                        setData('required_documents', next);
-                                    }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setData('required_documents', data.required_documents.filter((_, j) => j !== i))}
-                                    className={buttonClassName({ variant: 'outline' })}
-                                >
-                                    {t('common.remove')}
-                                </button>
-                            </div>
-                        ))}
-                    </section>
-
-                    {/* ── Actions ── */}
-                    <div className="flex items-center justify-end gap-3 border-t border-(--app-border) pt-4">
-                        <a
-                            href={route('transfer-announcements.show', announcement.id)}
-                            className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
-                        >
-                            {t('common.cancel')}
-                        </a>
-                        <button
-                            type="submit"
-                            disabled={processing || data.positions.some((r) => !r.organization_id || !r.position_id)}
-                            className={buttonClassName({ variant: 'primary' })}
-                        >
-                            {processing ? t('common.saving') : t('common.save')}
-                        </button>
-                    </div>
-                </form>
-            </div>
+            <AnnouncementForm
+                initial={{
+                    positions: announcement.positions?.length ? announcement.positions.map(toRow) : [emptyRow()],
+                    eligibility_rules: supportedRules(announcement.eligibility_rules),
+                    required_documents: announcement.required_documents ?? [],
+                    opening_date: announcement.opening_date ?? '',
+                    closing_date: announcement.closing_date ?? '',
+                }}
+                organizations={organizations}
+                positions={positions}
+                positionsTruncated={positionsTruncated}
+                settingsDocuments={settingsDocuments}
+                submit={{ method: 'patch', url: route('transfer-announcements.update', announcement.id) }}
+                cancelHref={route('transfer-announcements.show', announcement.id)}
+            />
         </AuthenticatedLayout>
     );
 }

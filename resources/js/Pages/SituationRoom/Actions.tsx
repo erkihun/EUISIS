@@ -1,5 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import RichTextEditor from '@/Components/forms/RichTextEditor';
+import RichTextViewer from '@/Components/forms/RichTextViewer';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { fmt, useDateLabel, useNamer, type Name } from '@/Components/SituationRoom/communityVoice/shared';
 import { useLocale } from '@/hooks/useLocale';
@@ -174,11 +176,16 @@ function CreateAction({ organization, options, sourceType, sourceReference, onDo
                     <Input id="sra-title" value={form.data.title} onChange={(e) => form.setData('title', e.target.value)} maxLength={200} required />
                     <FieldError>{form.errors.title}</FieldError>
                 </div>
-                <div className="md:col-span-2">
-                    <FormLabel htmlFor="sra-text">{t('situationRoom.actionTextLabel')}</FormLabel>
-                    <Textarea id="sra-text" value={form.data.action_text} onChange={(e) => form.setData('action_text', e.target.value)} rows={3} maxLength={5000} />
-                    <FieldError>{form.errors.action_text}</FieldError>
-                </div>
+                <RichTextEditor
+                    id="sra-text"
+                    className="md:col-span-2"
+                    label={t('situationRoom.actionTextLabel')}
+                    value={form.data.action_text}
+                    onChange={(html) => form.setData('action_text', html)}
+                    error={form.errors.action_text}
+                    preset="basic"
+                    maxLength={5000}
+                />
                 <div>
                     <FormLabel htmlFor="sra-owner">{t('situationRoom.ownerLabel')}</FormLabel>
                     <SearchableSelect id="sra-owner" label={t('situationRoom.ownerLabel')} value={owner} loadOptions={searchOwners} onChange={(value) => setOwner(value)} placeholder={t('situationRoom.searchOwner')} disabled={!form.data.organization_id} />
@@ -242,7 +249,7 @@ function ActionCard({ action, options, canManage }: { action: ActionRow; options
                     </div>
                     <h3 className="mt-2 font-semibold">{action.title}</h3>
                     <p className="text-sm text-(--app-muted-foreground)">{name(action.organization)}{action.source_type && ` · ${t(`situationRoom.source_${action.source_type}`)}`}</p>
-                    {action.action_text && <p className="mt-2 whitespace-pre-line wrap-break-word text-sm">{action.action_text}</p>}
+                    <RichTextViewer html={action.action_text} className="mt-2 text-sm" />
                 </div>
                 <dl className="grid gap-1 text-sm sm:text-end">
                     <div><dt className="inline text-(--app-muted-foreground)">{t('situationRoom.ownerLabel')}: </dt><dd className="inline">{ownerName}</dd></div>

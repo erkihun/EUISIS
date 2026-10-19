@@ -15,6 +15,7 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Support\RichText\RichText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -89,7 +90,7 @@ final class AnnouncementPresenter
         return [
             'id' => $a->getKey(),
             'title' => $a->localizedTitle($locale),
-            'excerpt' => Str::limit(trim(preg_replace('/\s+/u', ' ', $a->localizedBody($locale)) ?? ''), 180),
+            'excerpt' => Str::limit(trim(preg_replace('/\s+/u', ' ', RichText::plainText($a->localizedBody($locale))) ?? ''), 180),
             'priority' => $a->priority->value,
             'status' => $a->status->value,
             'published_at' => $a->published_at?->toIso8601String(),

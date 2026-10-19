@@ -3,23 +3,18 @@ import { ChevronRight as ArrowRight, Plus, ShieldCheck, CreditCard, Layers, GitB
 import { useLocale } from '@/hooks/useLocale';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 import type { DashboardProps } from '@/Pages/Dashboard/Index';
+import ActivityTrends, { type TrendSpec } from './ActivityTrends';
 import AttentionPanel from './AttentionPanel';
+import CardLifecycleFunnel from './CardLifecycleFunnel';
 import ChartCard from './ChartCard';
+import RatioMeter from './RatioMeter';
+import type { LabelValueDatum } from './charts/types';
 import RecentActivityFeed from './RecentActivityFeed';
 import EmptyDashboardState from './EmptyDashboardState';
 
-type Props = Pick<DashboardProps, 'can' | 'cards' | 'charts' | 'kpis' | 'alerts' | 'workflowQueues' | 'recentActivity' | 'header'> & {
+type Props = Pick<DashboardProps, 'can' | 'cards' | 'charts' | 'kpis' | 'alerts' | 'workflowQueues' | 'recentActivity' | 'header' | 'filters'> & {
     showCharts: boolean;
     onNavigate: (tab: string) => void;
-};
-
-const statusColors: Record<string, string> = {
-    active: 'bg-emerald-600 dark:bg-emerald-400',
-    occupied: 'bg-primary dark:bg-indigo-400',
-    vacant: 'bg-amber-500',
-    pending: 'bg-amber-500',
-    expired: 'bg-red-500',
-    revoked: 'bg-red-500',
 };
 
 const actionIcons: Record<string, typeof Plus> = {
@@ -27,44 +22,73 @@ const actionIcons: Record<string, typeof Plus> = {
     verify: ShieldCheck, organogram: GitBranchIcon, viewReports: TrendingUpIcon, apiManagement: KeyIcon,
 };
 
-/** Small, labelled comparisons of aggregate counts; never employee-level data. */
-function Breakdown({ data, labelFor, showBars }: {
+/**
+ * Small, labelled comparisons of aggregate counts; never employee-level data.
+ * Largest first, length = share of the whole. One series, so one hue: the
+ * `emphasis` row (the healthy state the reader checks first) is primary and
+ * the rest a recessive grey, so the bars never pretend to be good/bad status.
+ */
+function Breakdown({ data, labelFor, showBars, emphasis }: {
     data?: Array<{ key: string; value: number }>;
     labelFor: (key: string) => string;
     showBars: boolean;
+    emphasis?: string;
 }) {
     const { number } = useDisplayFormat();
     const { t } = useLocale();
     if (!data?.length) return <EmptyDashboardState compact title={t('dashboard.noData')} />;
     const total = data.reduce((sum, item) => sum + item.value, 0);
+    const rows = [...data].sort((a, b) => b.value - a.value);
+    const highlight = emphasis && rows.some((item) => item.key === emphasis) ? emphasis : undefined;
 
     return (
-        <dl className="space-y-4">
-            {data.map((item) => (
-                <div key={item.key}>
-                    <div className="flex items-baseline justify-between gap-3 text-sm">
-                        <dt className="min-w-0 wrap-break-word text-(--app-muted-foreground)">{labelFor(item.key)}</dt>
-                        <dd className="shrink-0 font-semibold tabular-nums text-(--app-foreground)">{number(item.value)}</dd>
-                    </div>
-                    {showBars && (
-                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-(--app-surface-muted)" aria-hidden="true">
-                            <div className={`h-full rounded-full ${statusColors[item.key] ?? 'bg-slate-400'}`} style={{ width: `${total > 0 ? (item.value / total) * 100 : 0}%` }} />
+        <dl className="space-y-3.5">
+            {rows.map((item) => {
+                const share = total > 0 ? item.value / total : 0;
+                return (
+                    <div key={item.key}>
+                        <div className="flex items-baseline justify-between gap-3 text-sm">
+                            <dt className="min-w-0 wrap-break-word text-(--app-muted-foreground)">{labelFor(item.key)}</dt>
+                            <dd className="shrink-0 tabular-nums">
+                                <span className="font-semibold text-(--app-foreground)">{number(item.value)}</span>
+                                {showBars && total > 0 && <span className="ms-2 text-xs text-(--app-muted-foreground)">{Math.round(share * 100)}%</span>}
+                            </dd>
                         </div>
-                    )}
-                </div>
-            ))}
+                        {showBars && (
+                            <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-(--app-surface-muted)" aria-hidden="true">
+                                <div
+                                    className={`h-full origin-left rounded-full transition-transform duration-700 ease-out starting:scale-x-0 motion-reduce:transition-none rtl:origin-right ${!highlight || item.key === highlight ? 'bg-primary' : 'bg-(--app-muted-foreground)/40 dark:bg-(--app-muted-foreground)/30'}`}
+                                    style={{ width: item.value > 0 ? `${Math.max(2, share * 100)}%` : '0%' }}
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
         </dl>
     );
 }
 
-export default function DashboardOverview({ can, cards, charts, kpis, alerts, workflowQueues, recentActivity, header, showCharts, onNavigate }: Props) {
+export default function DashboardOverview({ can, cards, charts, kpis, alerts, workflowQueues, recentActivity, header, filters, showCharts, onNavigate }: Props) {
     const { t } = useLocale();
     const { number } = useDisplayFormat();
     const hasAttention = alerts.some((item) => item.count > 0) || workflowQueues.some((item) => item.count > 0);
     const hasSidebar = hasAttention || header.quickActions.length > 0 || can.organizations;
     const hasWorkforce = can.employees || can.positions;
-    const hasMain = hasWorkforce || can.cards || can.verification || can.nfc || can.audit;
     const series = (key: string) => charts[key] as Array<{ key: string; value: number }> | undefined;
+    const trend = (key: string) => charts[key] as LabelValueDatum[] | undefined;
+    // The period at a glance, one small multiple per measure the viewer may see.
+    const trends = ([
+        can.employees && { key: 'employees', title: t('dashboard.overviewCharts.employeesRegistered'), data: trend('employeeRegistrationsTrend') },
+        can.verification && { key: 'verifications', title: t('dashboard.overviewCharts.cardVerifications'), data: trend('verificationTrend') },
+        can.transactions && { key: 'transactions', title: t('dashboard.overviewCharts.serviceTransactions'), data: trend('serviceTransactionsTrend') },
+    ].filter(Boolean) as TrendSpec[]);
+    const hasTrends = showCharts && trends.length > 0;
+    const hasMain = hasTrends || hasWorkforce || can.cards || can.verification || can.nfc || can.audit;
+    const occupancy = Object.fromEntries((series('positionsByOccupancy') ?? []).map((item) => [item.key, item.value]));
+    const occupied = occupancy.occupied ?? 0;
+    const allowedToday = Number(cards.verification?.allowedToday ?? 0);
+    const deniedToday = Number(cards.verification?.deniedToday ?? 0);
     const statusLabel = (key: string) => {
         const translated = t(`status.${key}`);
         return translated === `status.${key}` ? key.replace(/_/g, ' ') : translated;
@@ -88,48 +112,87 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
             {hasAttention && <div className="xl:hidden"><AttentionPanel alerts={alerts} queues={workflowQueues} t={t} title={t('dashboard.needsAttention')} /></div>}
             {hasMain && (
                 <div className={`min-w-0 space-y-5 ${hasSidebar ? 'xl:col-span-8' : 'xl:col-span-12'}`}>
+                    {hasTrends && (
+                        <ChartCard title={t('dashboard.overviewCharts.activityTitle')}>
+                            <ActivityTrends trends={trends} dateFrom={filters.dateFrom} dateTo={filters.dateTo} />
+                        </ChartCard>
+                    )}
+
                     {hasWorkforce && (
                         <ChartCard title={t('dashboard.workforceSnapshot')} action={details(can.positions ? 'structure' : 'workforce')}>
-                            <div className={`grid gap-6 ${can.employees && can.positions ? 'sm:grid-cols-2' : ''}`}>
-                                {can.positions && (
-                                    <section>
-                                        <h3 className="mb-4 text-xs font-medium text-(--app-muted-foreground)">{t('dashboard.positionOccupancy')}</h3>
-                                        <Breakdown data={series('positionsByOccupancy')} labelFor={(key) => t(`common.${key}`)} showBars={showCharts} />
-                                    </section>
-                                )}
-                                {can.employees && (
-                                    <section className={can.positions ? 'border-t border-(--app-border) pt-5 sm:border-s sm:border-t-0 sm:ps-6 sm:pt-0' : ''}>
-                                        <h3 className="mb-4 text-xs font-medium text-(--app-muted-foreground)">{t('dashboard.employeesByStatus')}</h3>
-                                        <Breakdown data={series('employeesByStatus')} labelFor={statusLabel} showBars={showCharts} />
-                                    </section>
-                                )}
+                            {/* Columns follow the card's width, not the window (container queries). */}
+                            <div className="@container">
+                                <div className={`grid gap-6 ${can.employees && can.positions ? '@xl:grid-cols-2' : ''}`}>
+                                    {can.positions && (
+                                        <section aria-label={t('dashboard.positionOccupancy')}>
+                                            {showCharts ? (
+                                                <RatioMeter
+                                                    label={t('dashboard.overviewCharts.positionsFilled')}
+                                                    value={occupied}
+                                                    total={occupied + (occupancy.vacant ?? 0)}
+                                                    valueLabel={t('common.occupied')}
+                                                    restLabel={t('common.vacant')}
+                                                />
+                                            ) : (
+                                                <>
+                                                    <h3 className="mb-4 text-xs font-medium text-(--app-muted-foreground)">{t('dashboard.positionOccupancy')}</h3>
+                                                    <Breakdown data={series('positionsByOccupancy')} labelFor={(key) => t(`common.${key}`)} showBars={false} />
+                                                </>
+                                            )}
+                                        </section>
+                                    )}
+                                    {can.employees && (
+                                        <section className={can.positions ? 'border-t border-(--app-border) pt-5 @xl:border-s @xl:border-t-0 @xl:ps-6 @xl:pt-0' : ''}>
+                                            <h3 className="mb-4 text-xs font-medium text-(--app-muted-foreground)">{t('dashboard.employeesByStatus')}</h3>
+                                            <Breakdown data={series('employeesByStatus')} labelFor={statusLabel} showBars={showCharts} emphasis="active" />
+                                        </section>
+                                    )}
+                                </div>
                             </div>
                         </ChartCard>
                     )}
 
                     {(can.cards || can.verification || can.nfc) && (
                         <ChartCard title={t('dashboard.tabs.identity')} action={details('identity')}>
-                            {can.cards && (
-                                <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-                                    {series('cardsByStatus')?.length ? series('cardsByStatus')!.map((item) => (
-                                        <div key={item.key} className="flex items-center gap-2 border-b border-(--app-border) pb-3">
-                                            <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${statusColors[item.key] ?? 'bg-slate-400'}`} />
-                                            <span className="min-w-0 flex-1 text-sm text-(--app-muted-foreground)">{cardStatusLabel(item.key)}</span>
-                                            <span className="font-semibold tabular-nums text-(--app-foreground)">{number(item.value)}</span>
-                                        </div>
-                                    )) : <EmptyDashboardState compact title={t('dashboard.noData')} />}
-                                </div>
-                            )}
-                            {can.verification && (
-                                <dl className={`grid grid-cols-2 gap-4 ${can.cards ? 'mt-5 border-t border-(--app-border) pt-4' : ''}`}>
-                                    {['allowedToday', 'deniedToday'].map((key) => (
-                                        <div key={key}>
-                                            <dt className="text-xs leading-relaxed text-(--app-muted-foreground)">{t(`dashboard.${key}`)}</dt>
-                                            <dd className="mt-1 text-xl font-semibold tabular-nums text-(--app-foreground)">{cards.verification?.[key] == null ? '—' : number(cards.verification[key])}</dd>
-                                        </div>
-                                    ))}
-                                </dl>
-                            )}
+                            <div className="@container">
+                                {can.cards && (
+                                    <div className={`grid gap-6 ${showCharts ? '@xl:grid-cols-2' : ''}`}>
+                                        <section>
+                                            <h3 className="mb-4 text-xs font-medium text-(--app-muted-foreground)">{t('dashboard.cardsByStatus')}</h3>
+                                            <Breakdown data={series('cardsByStatus')} labelFor={cardStatusLabel} showBars={showCharts} emphasis="active" />
+                                        </section>
+                                        {showCharts && (
+                                            <section className="border-t border-(--app-border) pt-5 @xl:border-s @xl:border-t-0 @xl:ps-6 @xl:pt-0">
+                                                <h3 className="mb-4 text-xs font-medium text-(--app-muted-foreground)">{t('dashboard.overviewCharts.cardPipeline')}</h3>
+                                                <CardLifecycleFunnel data={series('cardLifecycleFunnel') ?? []} t={t} />
+                                            </section>
+                                        )}
+                                    </div>
+                                )}
+                                {can.verification && (
+                                    <div className={can.cards ? 'mt-5 border-t border-(--app-border) pt-5' : ''}>
+                                        {showCharts ? (
+                                            <RatioMeter
+                                                label={t('dashboard.overviewCharts.verificationsAllowedToday')}
+                                                value={allowedToday}
+                                                total={allowedToday + deniedToday}
+                                                valueLabel={t('dashboard.verificationResults.allowed')}
+                                                restLabel={t('dashboard.verificationResults.denied')}
+                                                emptyLabel={t('dashboard.overviewCharts.noVerificationsToday')}
+                                            />
+                                        ) : (
+                                            <dl className="grid grid-cols-2 gap-4">
+                                                {['allowedToday', 'deniedToday'].map((key) => (
+                                                    <div key={key}>
+                                                        <dt className="text-xs leading-relaxed text-(--app-muted-foreground)">{t(`dashboard.${key}`)}</dt>
+                                                        <dd className="mt-1 text-xl font-semibold tabular-nums text-(--app-foreground)">{cards.verification?.[key] == null ? '—' : number(cards.verification[key])}</dd>
+                                                    </div>
+                                                ))}
+                                            </dl>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                             {can.nfc && cards.nfc && (
                                 <div className="mt-4 flex items-center gap-2 border-t border-(--app-border) pt-4 text-sm">
                                     <ShieldCheck className="h-4 w-4 text-(--app-muted-foreground)" aria-hidden="true" />

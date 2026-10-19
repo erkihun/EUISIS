@@ -123,6 +123,6 @@ Record what happened in the incident log (incident-response-plan.md).
 | Process | Requirement |
 |---|---|
 | Cron | `* * * * * cd /var/www/euisis/current && php artisan schedule:run >> /dev/null 2>&1` |
-| Queue worker | `php artisan queue:work --tries=3 --max-time=3600` under supervisor; restarted by `queue:restart` on every deploy |
+| Queue workers | One per queue under supervisor, as in [production-runbook.md](../production-runbook.md): `default`, `notifications` (notification email) and `long`, each with `--tries=3 --max-time=3600`; a bare `queue:work` runs only `default`. Restarted by `queue:restart` on every deploy |
 | Scheduled jobs | `cafeteria:sync-policy-statuses` 00:05, `api:prune-logs` 02:30, `nfc:prune-challenges` 02:45, `daily-activities:send-reminders` every 15 min |
 | Load balancer | health check `GET /up` (fails when the database or cache is unreachable); set `APP_TRUSTED_PROXIES` to the balancer addresses |

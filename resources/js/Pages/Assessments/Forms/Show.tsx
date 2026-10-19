@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
-import { Field, Problems, Section, compactInputCls, dangerLinkBtn, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, type Bilingual } from '@/Components/performance/ui';
+import { Field, Problems, Section, compactInputCls, dangerLinkBtn, inputCls, textareaCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, type Bilingual } from '@/Components/performance/ui';
 import LookupPicker from '@/Components/assessmentForms/LookupPicker';
 import SectionsEditor, { fmt, newUid, sectionMax, withoutUids, type SectionDraft } from '@/Components/assessmentForms/SectionsEditor';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -134,10 +134,10 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                             <div className="grid gap-3 md:grid-cols-2">
                                 <Field label={t('assessments.fields.nameEn')} htmlFor="v-name-en" error={errors.name_en}><input id="v-name-en" className={inputCls} value={data.name_en} onChange={(e) => set('name_en', e.target.value)} /></Field>
                                 <Field label={t('assessments.fields.nameAm')} htmlFor="v-name-am"><input id="v-name-am" className={inputCls} value={data.name_am} onChange={(e) => set('name_am', e.target.value)} /></Field>
-                                <Field label={t('assessments.fields.descriptionEn')} htmlFor="v-desc-en"><textarea id="v-desc-en" rows={2} className={inputCls} value={data.description_en} onChange={(e) => set('description_en', e.target.value)} /></Field>
-                                <Field label={t('assessments.fields.descriptionAm')} htmlFor="v-desc-am"><textarea id="v-desc-am" rows={2} className={inputCls} value={data.description_am} onChange={(e) => set('description_am', e.target.value)} /></Field>
-                                <Field label={t('assessments.fields.instructionsEn')} htmlFor="v-ins-en"><textarea id="v-ins-en" rows={2} className={inputCls} value={data.instructions_en} onChange={(e) => set('instructions_en', e.target.value)} /></Field>
-                                <Field label={t('assessments.fields.instructionsAm')} htmlFor="v-ins-am"><textarea id="v-ins-am" rows={2} className={inputCls} value={data.instructions_am} onChange={(e) => set('instructions_am', e.target.value)} /></Field>
+                                <Field label={t('assessments.fields.descriptionEn')} htmlFor="v-desc-en"><textarea id="v-desc-en" rows={2} className={textareaCls} value={data.description_en} onChange={(e) => set('description_en', e.target.value)} /></Field>
+                                <Field label={t('assessments.fields.descriptionAm')} htmlFor="v-desc-am"><textarea id="v-desc-am" rows={2} className={textareaCls} value={data.description_am} onChange={(e) => set('description_am', e.target.value)} /></Field>
+                                <Field label={t('assessments.fields.instructionsEn')} htmlFor="v-ins-en"><textarea id="v-ins-en" rows={2} className={textareaCls} value={data.instructions_en} onChange={(e) => set('instructions_en', e.target.value)} /></Field>
+                                <Field label={t('assessments.fields.instructionsAm')} htmlFor="v-ins-am"><textarea id="v-ins-am" rows={2} className={textareaCls} value={data.instructions_am} onChange={(e) => set('instructions_am', e.target.value)} /></Field>
                             </div>
                         </Section>
 
@@ -297,14 +297,14 @@ function Evaluators({ evaluators, editable, options, onChange }: { evaluators: E
             {evaluators.map((evaluator, i) => (
                 <div key={i} className="grid items-end gap-2 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-3 lg:grid-cols-[minmax(0,1fr)_6rem_7rem_minmax(0,1fr)_auto_auto]">
                     <Field label={t('assessments.fields.evaluatorType')} htmlFor={`e${i}-type`}>
-                        <select id={`e${i}-type`} className={compactInputCls} value={evaluator.evaluator_type} onChange={(e) => update(i, { evaluator_type: e.target.value })}>
+                        <select id={`e${i}-type`} className={`${compactInputCls} w-full`} value={evaluator.evaluator_type} onChange={(e) => update(i, { evaluator_type: e.target.value })}>
                             {options.evaluator_types.map((type) => <option key={type} value={type} disabled={type !== evaluator.evaluator_type && evaluators.some((x) => x.evaluator_type === type)}>{t(`assessments.evaluatorTypes.${type}`)}</option>)}
                         </select>
                     </Field>
-                    <Field label={t('assessments.fields.count')} htmlFor={`e${i}-count`}><input id={`e${i}-count`} type="number" min={1} max={50} className={compactInputCls} value={evaluator.required_count} onChange={(e) => update(i, { required_count: Number(e.target.value) })} /></Field>
-                    <Field label={t('assessments.fields.weightPercent')} htmlFor={`e${i}-weight`}><input id={`e${i}-weight`} type="number" min={0} max={100} step="any" className={compactInputCls} value={evaluator.contribution_weight} onChange={(e) => update(i, { contribution_weight: e.target.value })} /></Field>
+                    <Field label={t('assessments.fields.count')} htmlFor={`e${i}-count`}><input id={`e${i}-count`} type="number" min={1} max={50} className={`${compactInputCls} w-full`} value={evaluator.required_count} onChange={(e) => update(i, { required_count: Number(e.target.value) })} /></Field>
+                    <Field label={t('assessments.fields.weightPercent')} htmlFor={`e${i}-weight`}><input id={`e${i}-weight`} type="number" min={0} max={100} step="any" className={`${compactInputCls} w-full`} value={evaluator.contribution_weight} onChange={(e) => update(i, { contribution_weight: e.target.value })} /></Field>
                     <Field label={t('assessments.fields.selection')} htmlFor={`e${i}-selection`}>
-                        <select id={`e${i}-selection`} className={compactInputCls} value={evaluator.selection_method} onChange={(e) => update(i, { selection_method: e.target.value })}>
+                        <select id={`e${i}-selection`} className={`${compactInputCls} w-full`} value={evaluator.selection_method} onChange={(e) => update(i, { selection_method: e.target.value })}>
                             {options.selection_methods.map((m) => <option key={m} value={m}>{t(`assessments.selectionMethods.${m}`)}</option>)}
                         </select>
                     </Field>

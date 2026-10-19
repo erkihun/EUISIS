@@ -1,7 +1,7 @@
 import PublicLayout from '@/Layouts/PublicLayout';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Link, useForm } from '@inertiajs/react';
-import { Alert, Button, FieldError, FileUpload, FormField, Textarea } from '@euisis/ui';
+import { Alert, Button, FieldError, FileUpload, FormField, Select, Textarea } from '@euisis/ui';
 import MultiFileUpload from '@/Components/public/MultiFileUpload';
 import { PublicContainer, PublicPageHeader, publicButtonSecondary } from '@/Components/public/PublicPage';
 import { useLocale } from '@/hooks/useLocale';
@@ -18,6 +18,7 @@ type Announcement = {
     closing_date: string | null;
     /** Settings-level documents first, then the announcement's own — the server's ordinal order. */
     required_documents: string[] | null;
+    positions?: Array<{ id: string; code: string | null; title_en: string | null; title_am: string | null }>;
 };
 
 interface Props extends PageProps {
@@ -45,7 +46,9 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
     const orgName = (useAmharic ? a.organization_name_am : null) ?? a.organization_name_en ?? '—';
     const posTitle = (useAmharic ? a.position_title_am : null) ?? a.position_title_en ?? '—';
 
-    const form = useForm<{ cover_letter: string; documents: Array<File | null> }>({
+    const lines = a.positions ?? [];
+    const form = useForm<{ announcement_position_id: string; cover_letter: string; documents: Array<File | null> }>({
+        announcement_position_id: lines.length === 1 ? lines[0].id : '',
         cover_letter: '',
         documents: required.map(() => null),
     });
@@ -74,6 +77,7 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
         }
 
         const fd = new FormData();
+        if (form.data.announcement_position_id) fd.append('announcement_position_id', form.data.announcement_position_id);
         fd.append('cover_letter', form.data.cover_letter);
         form.data.documents.forEach((file, index) => {
             if (!file) return;
@@ -119,6 +123,22 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
                 <PublicContainer narrow className="space-y-6 py-8">
                     <form onSubmit={submit} className="space-y-6 rounded-panel border border-gray-200 bg-white p-5 sm:p-6 dark:border-slate-800 dark:bg-slate-900">
                         {applicationError && <Alert tone="danger">{applicationError}</Alert>}
+
+                        {lines.length > 1 && (
+                            <FormField id="announcement-position" label={t('transfers.destinationPosition')} required error={errors.announcement_position_id}>
+                                {({ id, describedBy, invalid }) => (
+                                    <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.announcement_position_id}
+                                        onChange={(e) => form.setData('announcement_position_id', e.target.value)}>
+                                        <option value="">{t('transfers.selectPosition')}</option>
+                                        {lines.map((line) => (
+                                            <option key={line.id} value={line.id}>
+                                                {((useAmharic ? line.title_am : null) ?? line.title_en ?? '—') + (line.code ? ` (${line.code})` : '')}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                )}
+                            </FormField>
+                        )}
 
                         <FormField
                             id="cover-letter"
@@ -183,7 +203,7 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
                             <Link href={show_url} className={publicButtonSecondary}>
                                 {t('common.cancel')}
                             </Link>
-                            <Button type="submit" variant="primary" loading={form.processing}>
+                            <Button type="submit" variant="primary" loading={form.processing} disabled={lines.length > 1 && !form.data.announcement_position_id}>
                                 {form.processing ? t('transfers.submitting') : t('transfers.submitApplication')}
                             </Button>
                         </div>

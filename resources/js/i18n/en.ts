@@ -207,6 +207,12 @@ const en = {
         published: 'Published',
         merged: 'Merged',
         dissolved: 'Dissolved',
+        selected: 'Selected',
+        release_pending: 'Release pending',
+        receiving_pending: 'Receiving pending',
+        final_approval_pending: 'Final approval pending',
+        implementation_failed: 'Implementation failed',
+        withdrawn: 'Withdrawn',
     },
     dashboard: {
         title: 'Operations Dashboard',

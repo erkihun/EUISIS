@@ -144,6 +144,11 @@ function toInitialValue(field: SettingsField): FormValue {
     return String(v);
 }
 
+const isSecret = (field: SettingsField): boolean => field.is_encrypted || field.type === 'password';
+
+/** Sections whose update request accepts `clear` for saved secrets. */
+const REMOVABLE_SECRETS = ['email'];
+
 function buildInitialData(fields: SettingsField[]): FormShape {
     return fields.reduce<FormShape>((carry, field) => {
         carry[field.key] = toInitialValue(field);
@@ -358,13 +363,18 @@ function GroupFormPanel({
         event?.preventDefault();
         if (!editable || !isDirty || form.processing) return;
 
-        form.transform((data) => ({
-            _method: 'patch',
-            ...payload.fields.reduce<Record<string, FormValue>>((carry, field) => {
-                carry[field.key] = normalizeForSubmit(field, data[field.key]);
-                return carry;
-            }, {}),
-        }));
+        form.transform((data) => {
+            // A secret set to null was marked "remove saved value"; blank keeps it.
+            const clear = payload.fields.filter((field) => isSecret(field) && data[field.key] === null).map((field) => field.key);
+            return {
+                _method: 'patch',
+                ...payload.fields.reduce<Record<string, FormValue>>((carry, field) => {
+                    if (!clear.includes(field.key)) carry[field.key] = normalizeForSubmit(field, data[field.key]);
+                    return carry;
+                }, {}),
+                ...(clear.length > 0 ? { clear } : {}),
+            };
+        });
 
         form.post(route(routeName), {
             preserveScroll: true,
@@ -436,6 +446,7 @@ function GroupFormPanel({
             value={form.data[entry.key]}
             error={form.errors[entry.key]}
             disabled={!editable || form.processing}
+            removable={REMOVABLE_SECRETS.includes(section)}
             onChange={(value) => change(entry.key, value)}
         />
     );

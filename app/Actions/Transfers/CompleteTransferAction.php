@@ -8,6 +8,7 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Entitlements\RecalculateEntitlementsAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
+use App\Enums\CardRequestStatus;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OccupancyStatus;
 use App\Enums\TransferApplicationStatus;
@@ -243,7 +244,11 @@ readonly class CompleteTransferAction
         CardRequest::query()->create([
             'employee_id' => $employee->id, 'assignment_id' => $assignment->id, 'requested_by' => $actor->id,
             'reason' => 'transfer',
-            'status' => $settings->card_reprint_policy === TransferCardReprintPolicy::AutoReprint ? 'approved' : 'pending',
+            // A requested reprint enters the card queue as submitted, the state the
+            // card-request screens and dashboard count as awaiting verification.
+            'status' => $settings->card_reprint_policy === TransferCardReprintPolicy::AutoReprint
+                ? CardRequestStatus::Approved
+                : CardRequestStatus::Submitted,
         ]);
     }
 

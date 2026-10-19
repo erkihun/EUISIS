@@ -62,7 +62,7 @@ php artisan demo-data:validate
 ## Development Services
 
 - Web app: `php artisan serve`
-- Queue worker: `php artisan queue:work`
+- Queue worker: `php artisan queue:work --queue=default,notifications,long` (notifications and their email use the `notifications` queue, heavy jobs `long`; a bare `queue:work` runs only `default`)
 - Horizon: `php artisan horizon`
 - Vite: `npm run dev`
 

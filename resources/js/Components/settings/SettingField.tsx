@@ -20,6 +20,8 @@ type Props = {
     disabled?: boolean;
     /** Tighter spacing, for grids of switches. */
     compact?: boolean;
+    /** A saved secret may be removed (the server accepts `clear` for it). */
+    removable?: boolean;
     onChange: (value: ScalarValue) => void;
 };
 
@@ -31,7 +33,7 @@ function ruleBound(field: SettingsField, rule: 'min' | 'max'): number | undefine
     return match ? Number(match[1]) : undefined;
 }
 
-export default function SettingField({ field, locale, value, error, disabled = false, compact = false, onChange }: Props) {
+export default function SettingField({ field, locale, value, error, disabled = false, compact = false, removable = false, onChange }: Props) {
     const controlId = useId();
     const labelId = `${controlId}-label`;
     const errorId = error ? `${controlId}-error` : undefined;
@@ -46,7 +48,7 @@ export default function SettingField({ field, locale, value, error, disabled = f
     }
 
     if (field.is_encrypted || field.type === 'password') {
-        return <SecretSettingField label={label} description={description} configured={field.configured} value={(value as string) ?? ''} error={error} disabled={disabled} onChange={onChange} />;
+        return <SecretSettingField label={label} description={description} configured={field.configured} value={value === null ? null : (value as string)} error={error} disabled={disabled} removable={removable} onChange={onChange} />;
     }
 
     if (field.type === 'color') {

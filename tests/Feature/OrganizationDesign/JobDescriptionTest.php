@@ -33,6 +33,7 @@ use App\Models\UserOrganizationScope;
 use App\Models\WorkCompetencyRequirement;
 use App\Models\WorkQualificationRequirement;
 use App\Services\OrganizationDesign\JobDescriptionService;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -260,7 +261,7 @@ test('a job description is built from the published profile and the linked work:
     // Custom sections are edited; derived ones are not.
     $this->actingAs($designer)->put(route('organization-design.job-descriptions.sections.update', [$jd, 'authorities']), ['content_en' => 'Approves payments up to ETB 50,000.', 'content_am' => 'እስከ 50,000 ብር ክፍያዎችን ያጸድቃል።'])->assertRedirect();
     $this->actingAs($designer)->from('/')->put(route('organization-design.job-descriptions.sections.update', [$jd, 'duties']), ['content_en' => 'x'])->assertSessionHasErrors('section');
-    expect(JobDescriptionSection::query()->where('job_description_id', $jd->id)->where('section_key', 'authorities')->value('content_am'))->toBe('እስከ 50,000 ብር ክፍያዎችን ያጸድቃል።');
+    expect(JobDescriptionSection::query()->where('job_description_id', $jd->id)->where('section_key', 'authorities')->value('content_am'))->toBe('<p>እስከ 50,000 ብር ክፍያዎችን ያጸድቃል።</p>'); // plain text is stored as an escaped paragraph
 
     // A new task linked later shows up after regeneration; the custom text stays.
     $second = jdTask($organization, 'T-2');
@@ -268,7 +269,7 @@ test('a job description is built from the published profile and the linked work:
     $this->actingAs($designer)->post(route('organization-design.job-descriptions.regenerate', $jd))->assertRedirect();
     $sections = $jd->sections()->get()->keyBy('section_key');
     expect(collect($sections['duties']->payload['tasks'])->pluck('code')->all())->toBe(['T-1', 'T-2'])
-        ->and($sections['authorities']->content_en)->toBe('Approves payments up to ETB 50,000.');
+        ->and($sections['authorities']->content_en)->toBe('<p>Approves payments up to ETB 50,000.</p>');
 });
 
 // 63 ─────────────────────────────────────────────────────────────────────────
@@ -309,7 +310,7 @@ test('a job description goes draft → under review → approved → published, 
 
     $this->actingAs($designer)->post(route('organization-design.job-descriptions.versions.store', $jd), ['effective_from' => '2027-01-01'])->assertRedirect();
     $v2 = JobDescription::query()->where('lineage_key', $jd->lineage_key)->where('version_no', 2)->firstOrFail();
-    expect($v2->sections()->where('section_key', 'authorities')->value('content_en'))->toBe('Signs vouchers.');
+    expect($v2->sections()->where('section_key', 'authorities')->value('content_en'))->toBe('<p>Signs vouchers.</p>');
     $this->actingAs($designer)->post(route('organization-design.job-descriptions.submit', $v2))->assertRedirect();
     $this->actingAs($approver)->post(route('organization-design.job-descriptions.approve', $v2))->assertRedirect();
     $this->actingAs($approver)->post(route('organization-design.job-descriptions.publish', $v2))->assertRedirect();
@@ -430,4 +431,39 @@ test('a job description cannot be drafted twice for the same position while one 
     $this->actingAs($designer)->post(route('organization-design.job-descriptions.store', $position), ['effective_from' => '2026-01-01'])->assertRedirect();
     $this->actingAs($designer)->from('/')->post(route('organization-design.job-descriptions.store', $position), ['effective_from' => '2026-02-01'])->assertSessionHasErrors('status');
     expect(JobDescription::query()->where('position_id', $position->id)->count())->toBe(1);
+});
+
+// Rich text ───────────────────────────────────────────────────────────────────
+test('custom sections are formatted text: sanitized on save, limited by visible characters, printed formatted in the PDF', function (): void {
+    $organization = jdOrganization('RT');
+    $designer = jdUser($organization, 'Position Designer');
+    $approver = jdUser($organization, 'Position Approver');
+    $unit = jdUnit($organization, 'U-RT');
+    $position = jdPosition($organization, $unit);
+    jdPublishedProfile($organization, $position, $designer, $approver);
+    $this->actingAs($designer)->post(route('organization-design.job-descriptions.store', $position), ['effective_from' => '2026-01-01'])->assertRedirect();
+    $jd = JobDescription::query()->where('position_id', $position->id)->firstOrFail();
+
+    $this->actingAs($designer)->put(route('organization-design.job-descriptions.sections.update', [$jd, 'authorities']), [
+        'content_en' => '<h2 onclick="steal()">Limits</h2><ul><li><strong>Signs</strong> vouchers</li></ul><script>alert(1)</script><img src=x onerror=alert(1)><p><a href="javascript:alert(1)">x</a></p>',
+        'content_am' => '<p>እስከ <strong>50,000 ብር</strong> ያጸድቃል።</p><table><tbody><tr><td>ገደብ</td></tr></tbody></table>',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $section = $jd->sections()->where('section_key', 'authorities')->firstOrFail();
+    expect($section->content_en)->toBe('<h2>Limits</h2><ul><li><strong>Signs</strong> vouchers</li></ul><p><a>x</a></p>')
+        ->and($section->content_am)->toBe('<p>እስከ <strong>50,000 ብር</strong> ያጸድቃል።</p><table><tbody><tr><td>ገደብ</td></tr></tbody></table>');
+
+    // An emptied editor clears the section; the limit counts what a reader sees, not the markup.
+    $this->actingAs($designer)->put(route('organization-design.job-descriptions.sections.update', [$jd, 'authorities']), ['content_en' => '<p><br></p>'])->assertSessionHasNoErrors();
+    expect($section->fresh()->content_en)->toBeNull();
+    $this->actingAs($designer)->from('/')->put(route('organization-design.job-descriptions.sections.update', [$jd, 'authorities']), ['content_en' => '<p>'.str_repeat('ሀ', 20001).'</p>'])->assertSessionHasErrors('content_en');
+    $this->actingAs($designer)->put(route('organization-design.job-descriptions.sections.update', [$jd, 'authorities']), ['content_en' => '<p><strong>'.str_repeat('ሀ', 19990).'</strong></p>'])->assertSessionHasNoErrors();
+
+    $this->actingAs($designer)->get(route('organization-design.job-descriptions.pdf', $jd))->assertOk()->assertHeader('content-type', 'application/pdf');
+});
+
+test('the @richtext directive prints sanitized markup, and legacy plain text as escaped paragraphs', function (): void {
+    expect(Blade::render('@richtext($value)', ['value' => '<p>ok<script>alert(1)</script></p>']))->toBe('<p>ok</p>')
+        ->and(Blade::render('@richtext($value)', ['value' => "Budget 5 < 6 & more\nLine two"]))->toBe('<p>Budget 5 &lt; 6 &amp; more<br>Line two</p>')
+        ->and(Blade::render('@richtext($value)', ['value' => null]))->toBe('');
 });

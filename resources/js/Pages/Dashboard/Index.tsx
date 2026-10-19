@@ -287,7 +287,7 @@ export default function Dashboard({
                         <DashboardOverview
                             can={can} cards={cards} charts={charts} kpis={kpis}
                             alerts={alerts} workflowQueues={workflowQueues}
-                            recentActivity={recentActivity} header={header}
+                            recentActivity={recentActivity} header={header} filters={filters}
                             showCharts={showCharts} onNavigate={setActiveTab}
                         />
                     </div>
