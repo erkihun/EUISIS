@@ -7,6 +7,7 @@ use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
+use App\Http\Controllers\OrganizationDesign\LegacyBaselineController;
 use App\Http\Controllers\OrganizationDesign\LegalSourceController;
 use App\Http\Controllers\OrganizationDesign\LookupController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
@@ -212,4 +213,19 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::delete('/legal-sources/{source}/attachments/{attachment}', [LegalSourceController::class, 'destroyAttachment'])->whereUuid(['source', 'attachment'])->name('legal-sources.attachments.destroy');
         Route::post('/legal-sources/{source}/citations', [LegalSourceController::class, 'storeCitation'])->whereUuid('source')->name('legal-sources.citations.store');
         Route::delete('/legal-sources/{source}/citations/{citation}', [LegalSourceController::class, 'destroyCitation'])->whereUuid(['source', 'citation'])->name('legal-sources.citations.destroy');
+
+        // Legacy organization baselines (ADR-LB-002/003).
+        Route::get('/legacy-baselines', [LegacyBaselineController::class, 'index'])->name('legacy-baselines.index');
+        Route::post('/legacy-baselines', [LegacyBaselineController::class, 'store'])->middleware('throttle:30,1')->name('legacy-baselines.store');
+        Route::get('/legacy-baselines/{baseline}', [LegacyBaselineController::class, 'show'])->whereUuid('baseline')->name('legacy-baselines.show');
+        Route::put('/legacy-baselines/{baseline}', [LegacyBaselineController::class, 'update'])->whereUuid('baseline')->name('legacy-baselines.update');
+        Route::put('/legacy-baselines/{baseline}/steps/{step}', [LegacyBaselineController::class, 'saveStep'])->whereUuid('baseline')->where('step', '[a-z_]+')->name('legacy-baselines.steps.save');
+        Route::post('/legacy-baselines/{baseline}/validate', [LegacyBaselineController::class, 'validateBaseline'])->whereUuid('baseline')->middleware('throttle:30,1')->name('legacy-baselines.validate');
+        Route::post('/legacy-baselines/{baseline}/submit', [LegacyBaselineController::class, 'submit'])->whereUuid('baseline')->name('legacy-baselines.submit');
+        Route::post('/legacy-baselines/{baseline}/return', [LegacyBaselineController::class, 'return'])->whereUuid('baseline')->name('legacy-baselines.return');
+        Route::post('/legacy-baselines/{baseline}/approve', [LegacyBaselineController::class, 'approve'])->whereUuid('baseline')->name('legacy-baselines.approve');
+        Route::post('/legacy-baselines/{baseline}/publish', [LegacyBaselineController::class, 'publish'])->whereUuid('baseline')->name('legacy-baselines.publish');
+        Route::post('/legacy-baselines/{baseline}/revisions', [LegacyBaselineController::class, 'revise'])->whereUuid('baseline')->name('legacy-baselines.revisions.store');
+        Route::post('/legacy-baselines/{baseline}/cancel', [LegacyBaselineController::class, 'cancel'])->whereUuid('baseline')->name('legacy-baselines.cancel');
+        Route::get('/legacy-baselines/{baseline}/snapshot', [LegacyBaselineController::class, 'snapshot'])->whereUuid('baseline')->name('legacy-baselines.snapshot');
     });

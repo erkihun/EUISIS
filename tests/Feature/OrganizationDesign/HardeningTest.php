@@ -121,10 +121,11 @@ function hdFixtures(Organization $organization): array
     $source = \App\Models\LegalSource::query()->create(['organization_id' => $o, 'code' => 'LS-'.substr(uniqid(), -4), 'title_en' => 'Source', 'source_type_id' => LegalInstrumentType::query()->value('id'), 'status' => 'active', 'created_by' => $designer->id]);
     $attachment = \App\Models\LegalSourceAttachment::query()->create(['legal_source_id' => $source->id, 'disk' => 'local', 'path' => 'organization-design/legal-sources/none.pdf', 'original_name' => 'none.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1, 'sha256' => str_repeat('0', 64), 'uploaded_by' => $designer->id, 'created_at' => now()]);
     $citation = \App\Models\LegalSourceCitation::query()->create(['legal_source_id' => $source->id, 'subject_type' => $mandate->getMorphClass(), 'subject_id' => $mandate->id, 'created_by' => $designer->id, 'created_at' => now()]);
+    $baseline = \App\Models\LegacyBaseline::query()->create(['organization_id' => $o, 'lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'reference_number' => 'LOB-'.substr(uniqid(), -8), 'title_en' => 'Baseline', 'status' => OrganizationDesignStatus::Draft, 'prepared_by' => $designer->id, 'created_by' => $designer->id]);
 
     return [
         'organization' => $organization, 'unit' => $unit, 'mandate' => $mandate, 'power' => $power, 'function' => $function, 'service' => $service, 'process' => $process, 'activity' => $activity, 'task' => $task,
-        'source' => $source, 'attachment' => $attachment, 'citation' => $citation,
+        'source' => $source, 'attachment' => $attachment, 'citation' => $citation, 'baseline' => $baseline,
         'standard' => $standard, 'position' => $position, 'positionTask' => $positionTask, 'positionService' => $positionService, 'profile' => $profile, 'jobDescription' => $jd, 'study' => $study, 'proposal' => $proposal, 'plan' => $plan, 'line' => $line, 'export' => $export,
     ];
 }
@@ -164,6 +165,9 @@ test('every organization-design route refuses a fully permitted user of another 
                 $values['subject'] = $subjects[$short][1]->getKey();
             } elseif ($param === 'sectionKey') {
                 $values[$param] = 'authorities';
+            } elseif ($param === 'step') {
+                // A wizard step of a foreign baseline: the baseline itself carries the scope.
+                $values[$param] = 'mandates';
             } elseif ($param === 'kind') {
                 // The lookup endpoint: an organization-scoped kind without the organization in scope.
                 $values[$param] = 'tasks';
