@@ -23,6 +23,7 @@ use App\Models\PositionEstablishment;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferAnnouncementPosition;
 use App\Models\TransferApplication;
+use App\Models\TransferSetting;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Transfers\TransferAnnouncementReadinessService;
@@ -231,9 +232,11 @@ class TransferAnnouncementController extends Controller
         if ($transferAnnouncement->status === TransferAnnouncementStatus::Published) {
             $windowState = $transferAnnouncement->opening_date === null || $transferAnnouncement->closing_date === null
                 ? 'closed'
-                : ($transferAnnouncement->opening_date->isFuture()
+                // Whole days, as isAcceptingApplications() counts them: the
+                // closing day itself is still open.
+                : ($transferAnnouncement->opening_date->gt(today())
                 ? 'scheduled'
-                : ($transferAnnouncement->closing_date->isPast() ? 'closed' : 'open'));
+                : ($transferAnnouncement->closing_date->lt(today()) ? 'closed' : 'open'));
         }
 
         $timeline = AuditLog::query()
@@ -252,6 +255,7 @@ class TransferAnnouncementController extends Controller
         return Inertia::render('Transfers/Announcements/Show', [
             'announcement' => $transferAnnouncement,
             'readiness' => $readiness->assess($transferAnnouncement),
+            'ruleOrganizations' => $this->ruleOrganizations($transferAnnouncement),
             'applicationSummary' => $applicationSummary,
             'applicationWindowState' => $windowState,
             'timeline' => $timeline,
@@ -293,6 +297,7 @@ class TransferAnnouncementController extends Controller
         return Inertia::render('Transfers/Announcements/Show', [
             'announcement' => $transferAnnouncement,
             'readiness' => $readiness->assess($transferAnnouncement),
+            'ruleOrganizations' => $this->ruleOrganizations($transferAnnouncement),
             'applicationSummary' => null,
             'applicationWindowState' => 'not_published',
             'timeline' => [],
@@ -382,6 +387,24 @@ class TransferAnnouncementController extends Controller
             ->with('flash', ['message' => __('transfers.announcementDeleted'), 'type' => 'success']);
     }
 
+    /**
+     * Names for the organizations an eligibility rule refers to by id, so the
+     * page reads "Current organization is Bole", not a UUID.
+     *
+     * @return array<string, array{name_en: string, name_am: string|null}>
+     */
+    private function ruleOrganizations(TransferAnnouncement $announcement): array
+    {
+        $ids = collect((array) $announcement->eligibility_rules)
+            ->filter(fn (mixed $rule): bool => is_array($rule) && ($rule['type'] ?? null) === 'current_organization')
+            ->flatMap(fn (array $rule): array => array_map('trim', explode(',', (string) ($rule['value'] ?? ''))))
+            ->filter()->unique()->values();
+
+        return $ids->isEmpty() ? [] : Organization::query()->whereIn('id', $ids)->get(['id', 'name_en', 'name_am'])
+            ->mapWithKeys(fn (Organization $organization): array => [$organization->id => ['name_en' => $organization->name_en, 'name_am' => $organization->name_am]])
+            ->all();
+    }
+
     /** @param string[] $includePositionIds Positions to always include regardless of occupancy (for edit). */
     private function formOptions(array $includePositionIds = [], ?OrganizationScopeService $scopeService = null, ?User $actor = null): array
     {
@@ -441,6 +464,8 @@ class TransferAnnouncementController extends Controller
                 ->get(['id', 'name_en', 'name_am']),
             'positions' => $positionsWithSlots,
             'positionsTruncated' => $truncated,
+            // Documents every application needs anyway, so the form does not ask for them twice.
+            'settingsDocuments' => array_values(array_filter((array) TransferSetting::current()->required_documents)),
         ];
     }
 }

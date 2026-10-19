@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Transfers;
 use App\Enums\TransferAnnouncementStatus;
 use App\Enums\TransferApplicationStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Transfers\TransferApplicationResource;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
 use App\Models\TransferSetting;
@@ -57,10 +58,11 @@ class TransferDashboardController extends Controller
 
         $recentTransfers = $applications()
             ->where('status', TransferApplicationStatus::Transferred->value)
-            ->with(['employee:id,employee_number,full_name,name_en', 'releasingOrganization', 'receivingOrganization'])
-            ->latest()
+            ->with(['employee:id,employee_number,full_name,name_en', 'announcement.position', 'announcementPosition.position', 'releasingOrganization', 'receivingOrganization'])
+            ->latest('implemented_at')
             ->limit(5)
-            ->get();
+            ->get()
+            ->map(fn (TransferApplication $application): array => TransferApplicationResource::make($application)->resolve());
 
         return Inertia::render('Transfers/Dashboard', [
             'stats' => [
@@ -74,7 +76,8 @@ class TransferDashboardController extends Controller
             'can' => [
                 'manage_settings' => $user?->can('transfers.settings.manage') ?? false,
                 'create_announcement' => $user?->can('transfers.announcements.create') ?? false,
-                'view_applications' => $user?->can('transfers.applications.view') ?? false,
+                'view_announcements' => $user?->can('viewAny', TransferAnnouncement::class) ?? false,
+                'view_applications' => $user?->can('viewAny', TransferApplication::class) ?? false,
                 'approve_release' => $user?->can('transfers.release.approve') ?? false,
                 'approve_receiving' => $user?->can('transfers.receiving.approve') ?? false,
                 'approve_final' => $user?->can('transfers.final.approve') ?? false,

@@ -11,6 +11,7 @@ use App\Actions\Transfers\PublishTransferAnnouncementAction;
 use App\Actions\Transfers\RejectTransferApprovalAction;
 use App\Actions\Transfers\UpdateTransferSettingsAction;
 use App\Enums\AssignmentStatus;
+use App\Enums\CardRequestStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationScopeType;
@@ -20,6 +21,7 @@ use App\Enums\TransferApplicationStatus;
 use App\Enums\TransferApprovalStatus;
 use App\Enums\TransferApprovalType;
 use App\Jobs\Transfers\NotifyEligibleTransferAudience;
+use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeePerformanceAgreement;
@@ -35,6 +37,7 @@ use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
+use App\Models\TransferApplicationDocument;
 use App\Models\TransferApproval;
 use App\Models\TransferSetting;
 use App\Models\User;
@@ -44,6 +47,7 @@ use App\Services\Performance\KpiActualService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
@@ -941,4 +945,194 @@ test('the announcement audience job stops after its batch budget and continues f
 
     Queue::assertPushedOn('long', NotifyEligibleTransferAudience::class,
         fn ($next) => $next->announcementId === $announcement->id && $next->afterEmployeeId !== null);
+});
+
+// ── UI/UX pass regressions ───────────────────────────────────────────────────
+
+test('announcement dates reach the pages as the calendar day that was saved', function (): void {
+    // A `date` cast serialized as UTC midnight: in Addis Ababa 19 October left
+    // the server as 2026-10-18T21:00Z and every page showed the day before.
+    [$from, $application] = makeScopedTransferPair('DAY');
+    $announcement = $application->announcement;
+    $announcement->update(['status' => TransferAnnouncementStatus::Draft, 'opening_date' => '2026-10-19', 'closing_date' => '2026-11-02']);
+    Permission::findOrCreate('transfers.announcements.update', 'web');
+    $actor = makeTransferActor('transfers.announcements.view', 'transfers.announcements.update');
+
+    $this->actingAs($actor)->get(route('transfer-announcements.show', $announcement))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('announcement.opening_date', '2026-10-19')
+            ->where('announcement.closing_date', '2026-11-02'));
+});
+
+test('an announcement accepts applications until the end of its closing day', function (): void {
+    [$from, $application] = makeScopedTransferPair('CLOSE');
+    $announcement = $application->announcement;
+    $announcement->update(['opening_date' => '2026-10-01', 'closing_date' => '2026-10-20']);
+
+    $this->travelTo(Carbon::parse('2026-10-20 16:30:00'));
+    expect($announcement->fresh()->isAcceptingApplications())->toBeTrue();
+
+    $this->travelTo(Carbon::parse('2026-10-21 08:00:00'));
+    expect($announcement->fresh()->isAcceptingApplications())->toBeFalse();
+});
+
+test('implementing a transfer queues an ID card reprint when the policy asks for one', function (): void {
+    // The request was created with "pending", which CardRequestStatus does not
+    // have: every implementation under the default policy ended on a 500.
+    $fromOrg = makeTransferOrg('CARD-FROM');
+    $toOrg = makeTransferOrg('CARD-TO');
+    $toPos = makeTransferPos($toOrg->id);
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id, 'position_id' => $toPos->id, 'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(), 'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
+    ]);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id, 'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id, 'receiving_organization_id' => $toOrg->id,
+        'status' => TransferApplicationStatus::Approved, 'submitted_at' => now(),
+    ]);
+    TransferSetting::current()->update(['card_reprint_policy' => 'request_reprint', 'service_recalculation_policy' => 'no_recalculation']);
+
+    app(CompleteTransferAction::class)->execute($application->fresh(), makeTransferActor('transfers.complete'));
+
+    expect($application->fresh()->status)->toBe(TransferApplicationStatus::Transferred);
+    expect(CardRequest::query()->where('employee_id', $employee->id)->sole()->status)->toBe(CardRequestStatus::Submitted);
+});
+
+test('staff download an applicant document through the application it belongs to', function (): void {
+    Storage::fake('local');
+    [$from, $application] = makeScopedTransferPair('DOC');
+    [, $other] = makeScopedTransferPair('DOC2');
+    Storage::disk('local')->put('transfer-documents/letter.pdf', '%PDF-1.4 test');
+    $document = TransferApplicationDocument::query()->create([
+        'transfer_application_id' => $application->id, 'document_type' => 'Release letter',
+        'original_name' => 'letter.pdf', 'file_name' => 'letter.pdf', 'file_path' => 'transfer-documents/letter.pdf',
+        'file_type' => 'application/pdf', 'file_size' => 13,
+    ]);
+    $actor = makeTransferActor('transfers.applications.view');
+
+    $this->actingAs($actor)
+        ->get(route('transfer-applications.documents.download', [$application, $document]))
+        ->assertOk()
+        ->assertDownload('letter.pdf');
+
+    // A document id under another application's URL is not found.
+    $this->actingAs($actor)
+        ->get(route('transfer-applications.documents.download', [$other, $document]))
+        ->assertNotFound();
+
+    // Without permission to view the application there is no download.
+    $this->actingAs(makeTransferActor())
+        ->get(route('transfer-applications.documents.download', [$application, $document]))
+        ->assertForbidden();
+});
+
+test('a workflow step that is no longer possible returns with a message, not the error page', function (): void {
+    [$from, $application] = makeScopedTransferPair('STALE');
+    $application->update(['status' => TransferApplicationStatus::ReleasePending]);
+    TransferApproval::query()->create([
+        'transfer_application_id' => $application->id,
+        'approval_type' => TransferApprovalType::Release,
+        'status' => TransferApprovalStatus::Approved, // decided in another tab
+    ]);
+
+    $this->actingAs(makeTransferActor('transfers.release.approve'))
+        ->from(route('transfer-applications.show', $application))
+        ->post(route('transfer-applications.approve-release', $application))
+        ->assertRedirect(route('transfer-applications.show', $application))
+        ->assertSessionHas('flash.type', 'error');
+});
+
+test('with cross-institution transfers off, employees may apply inside their own institution only', function (): void {
+    TransferSetting::current()->update(['allow_cross_institution' => false]);
+    $home = makeTransferOrg('CROSS-HOME');
+    $away = makeTransferOrg('CROSS-AWAY');
+    $employee = makeTransferEmployee($home, makeTransferPos($home->id));
+    $announce = fn (Organization $organization): TransferAnnouncement => TransferAnnouncement::query()->create([
+        'organization_id' => $organization->id, 'position_id' => makeTransferPos($organization->id)->id,
+        'number_of_vacancies' => 1, 'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
+    ]);
+    $action = app(CreateTransferApplicationAction::class);
+    $actor = makeTransferActor('transfers.applications.create');
+
+    expect($action->execute($announce($home), $employee, $actor)->status)->toBe(TransferApplicationStatus::Submitted);
+    expect(fn () => $action->execute($announce($away), $employee, $actor))->toThrow(DomainException::class);
+});
+
+test('the application page names both organizations and the destination position', function (): void {
+    [$from, $application] = makeScopedTransferPair('NAMES');
+
+    $this->actingAs(makeTransferActor('transfers.applications.view'))
+        ->get(route('transfer-applications.show', $application))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('application.releasing_organization.name_en', $from->name_en)
+            ->where('application.receiving_organization.name_en', $application->receivingOrganization->name_en)
+            ->where('application.position.title_en', $application->announcement->position->title_en)
+            ->missing('application.eligibility_snapshot')
+            // Lists, not {data: [...]} wrappers: the page maps over them.
+            ->where('application.approvals', [])
+            ->where('application.screening_reviews', [])
+            ->where('application.documents', []));
+});
+
+test('override approvers must be existing roles', function (): void {
+    $this->actingAs(makeTransferActor('transfers.settings.manage'))
+        ->patch(route('transfer-settings.update'), ['allow_exceptional_override' => true, 'override_approver_roles' => ['Not A Role']])
+        ->assertSessionHasErrors('override_approver_roles.0');
+});
+
+test('a second position approved in the same month gets its own establishment number', function (): void {
+    // Transfers advertise approved establishment slots. The number was built from
+    // the id's timestamp head, so the second approval of the month collided.
+    foreach (['position-establishments.create', 'position-establishments.approve', 'position-establishments.view', 'position-establishments.viewAny'] as $permission) {
+        Permission::findOrCreate($permission, 'web');
+    }
+    $org = makeTransferOrg('EST-NUM');
+    $positions = collect(['First', 'Second'])->map(fn (string $title): Position => Position::query()->create([
+        'organization_id' => $org->id, 'title_en' => $title.' officer', 'job_position_code' => 'EST-NUM-'.$title, 'is_active' => true,
+    ]));
+    $actor = makeTransferActor('position-establishments.create', 'position-establishments.approve', 'position-establishments.view', 'position-establishments.viewAny');
+
+    foreach ($positions as $position) {
+        $this->actingAs($actor)->post(route('positions.approve-establishment', $position))->assertRedirect();
+    }
+
+    $numbers = PositionEstablishment::query()->where('organization_id', $org->id)->where('status', EstablishmentStatus::Approved)->pluck('establishment_number');
+    expect($numbers)->toHaveCount(2)
+        ->and($numbers->unique())->toHaveCount(2);
+});
+
+test('rejecting an application or an approval stage through the page records the reason', function (): void {
+    // The routes handed the actions a Stringable where they take a string: every
+    // rejection button ended on the 500 page.
+    Permission::findOrCreate('transfers.reject', 'web');
+    [$from, $application] = makeScopedTransferPair('REJ');
+    $application->update(['status' => TransferApplicationStatus::UnderReview]);
+
+    $this->actingAs(makeTransferActor('transfers.reject', 'transfers.applications.view'))
+        ->post(route('transfer-applications.reject', $application), ['reason' => '  Filled by another candidate.  '])
+        ->assertSessionHas('flash.type', 'success');
+    expect($application->fresh())
+        ->status->toBe(TransferApplicationStatus::Rejected)
+        ->rejected_reason->toBe('Filled by another candidate.');
+
+    [, $staged] = makeScopedTransferPair('REJ-ST');
+    $staged->update(['status' => TransferApplicationStatus::ReleasePending]);
+    TransferApproval::query()->create([
+        'transfer_application_id' => $staged->id,
+        'approval_type' => TransferApprovalType::Release,
+        'status' => TransferApprovalStatus::Pending,
+    ]);
+
+    $this->actingAs(makeTransferActor('transfers.release.approve'))
+        ->post(route('transfer-applications.reject-release', $staged), ['reason' => 'Needed in the current office.'])
+        ->assertSessionHas('flash.type', 'success');
+    expect($staged->fresh()->status)->toBe(TransferApplicationStatus::Rejected);
 });

@@ -61,4 +61,22 @@ return [
     'transferCompleted' => 'Transfer implemented.',
     'settingsUpdated' => 'Transfer settings saved.',
     'announcements' => 'Transfer announcements',
+
+    // Field names in validation messages ("The organization field is required."), not the input keys.
+    'attributes' => [
+        'positions' => 'positions',
+        'positions.*.organization_id' => 'organization',
+        'positions.*.position_id' => 'position',
+        'positions.*.grade_level' => 'grade level',
+        'positions.*.salary_min' => 'minimum salary',
+        'positions.*.salary_max' => 'maximum salary',
+        'positions.*.vacancy_count' => 'number of vacancies',
+        'eligibility_rules.*.type' => 'rule type',
+        'eligibility_rules.*.value' => 'rule value',
+        'required_documents.*' => 'document name',
+        'opening_date' => 'opening date',
+        'closing_date' => 'closing date',
+        'override_approver_roles.*' => 'override approver role',
+        'minimum_service_months' => 'minimum service',
+    ],
 ];

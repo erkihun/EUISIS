@@ -206,6 +206,12 @@ const am = {
         published: 'ይፋ ሆኗል',
         merged: 'ተዋህዷል',
         dissolved: 'ፈርሷል',
+        selected: 'ተመርጧል',
+        release_pending: 'የሚለቅቀው ተቋም ይሁንታ በመጠባበቅ ላይ',
+        receiving_pending: 'የሚቀበለው ተቋም ይሁንታ በመጠባበቅ ላይ',
+        final_approval_pending: 'የመጨረሻ ማጽደቅ በመጠባበቅ ላይ',
+        implementation_failed: 'ትግበራው አልተሳካም',
+        withdrawn: 'ተነስቷል',
     },
     dashboard: {
         title: 'የሥራ ዳሽቦርድ',

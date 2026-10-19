@@ -136,12 +136,13 @@ readonly class CreateTransferApplicationAction
             throw new DomainException('You have already applied for this transfer announcement.');
         }
 
-        // Prevent multiple pending transfers if settings disallow it
+        // With cross-institution transfers switched off, only a move inside
+        // the employee's own institution is open.
         $settings = TransferSetting::current();
         if (! $settings->allow_cross_institution) {
             $currentOrgId = $employee->currentAssignment->organization_id;
-            if ($currentOrgId === ($announcementPosition?->organization_id ?? $announcement->organization_id)) {
-                throw new DomainException('Transfer to the same organization is not permitted.');
+            if ($currentOrgId !== ($announcementPosition?->organization_id ?? $announcement->organization_id)) {
+                throw new DomainException('Transfers to another institution are not permitted.');
             }
         }
     }

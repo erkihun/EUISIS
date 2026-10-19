@@ -55,7 +55,7 @@ class TransferApplication extends Model
             'destination_snapshot' => 'array',
             'selected_at' => 'datetime',
             'submitted_at' => 'datetime',
-            'effective_date' => 'date',
+            'effective_date' => 'date:Y-m-d',
             'approved_at' => 'datetime',
             'implemented_at' => 'datetime',
             'implementation_failed_at' => 'datetime',

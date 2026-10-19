@@ -799,6 +799,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/transfer-applications', [TransferApplicationController::class, 'index'])->name('transfer-applications.index');
     Route::post('/transfer-applications', [TransferApplicationController::class, 'store'])->name('transfer-applications.store');
     Route::get('/transfer-applications/{transferApplication}', [TransferApplicationController::class, 'show'])->name('transfer-applications.show');
+    Route::get('/transfer-applications/{transferApplication}/documents/{document}', [TransferApplicationController::class, 'downloadDocument'])
+        ->whereUuid('document')->name('transfer-applications.documents.download');
     Route::post('/transfer-applications/{transferApplication}/screen', [TransferApplicationController::class, 'screen'])->name('transfer-applications.screen');
     Route::post('/transfer-applications/{transferApplication}/select', [TransferApplicationController::class, 'select'])->name('transfer-applications.select');
     Route::post('/transfer-applications/{transferApplication}/reject', [TransferApplicationController::class, 'reject'])->name('transfer-applications.reject');

@@ -146,11 +146,19 @@ class PublicTransferAnnouncementController extends Controller
                 ->with('flash', ['message' => __('transfers.alreadyApplied'), 'type' => 'error']);
         }
 
-        $announcement->loadMissing(['organization', 'position']);
+        $announcement->loadMissing(['organization', 'position', 'positions.position']);
 
         return Inertia::render('Public/TransferAnnouncements/Apply', [
             'announcement' => [
                 'id' => $announcement->id,
+                // An announcement can advertise several positions; the applicant names
+                // one, or the application is refused ("Select one advertised destination").
+                'positions' => $announcement->positions->map(fn ($line): array => [
+                    'id' => $line->id,
+                    'code' => $line->position?->job_position_code,
+                    'title_en' => $line->position?->title_en,
+                    'title_am' => $line->position?->title_am,
+                ])->values(),
                 'organization_name_en' => $announcement->organization?->name_en,
                 'organization_name_am' => $announcement->organization?->name_am,
                 'position_title_en' => $announcement->position?->title_en,

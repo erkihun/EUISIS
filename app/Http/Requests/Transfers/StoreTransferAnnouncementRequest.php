@@ -90,4 +90,10 @@ class StoreTransferAnnouncementRequest extends FormRequest
             }
         });
     }
+
+    /** @return array<string, string> */
+    public function attributes(): array
+    {
+        return (array) __('transfers.attributes');
+    }
 }

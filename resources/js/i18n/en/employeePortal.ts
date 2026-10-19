@@ -126,6 +126,8 @@ const employeePortal = {
         submitted: 'Submitted', under_review: 'Under review', verified: 'Verified', selected: 'Selected',
         release_pending: 'Awaiting release', receiving_pending: 'Awaiting receiving office', final_approval_pending: 'Awaiting final approval',
         approved: 'Approved', transferred: 'Transferred', rejected: 'Not selected', withdrawn: 'Withdrawn', cancelled: 'Cancelled',
+        // A failed implementation is HR's to retry; to the applicant the transfer is still approved.
+        implementation_failed: 'Approved, being processed',
     },
     correctionFields: {
         full_name: 'Legal name', date_of_birth: 'Date of birth', national_id: 'National ID', nationality: 'Nationality',

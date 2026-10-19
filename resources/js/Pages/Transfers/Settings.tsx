@@ -1,18 +1,21 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Head, router } from '@inertiajs/react';
-import { FormEvent, useState } from 'react';
+import SettingsCard from '@/Components/settings/SettingsCard';
+import FieldRow, { ChoiceChips, Switch } from '@/Components/settings/FieldRow';
+import { Plus, TrashIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { Alert, Button, Input, Select } from '@euisis/ui';
+import { Head, useForm } from '@inertiajs/react';
+import type { FormEvent } from 'react';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type TransferSettings = {
     require_same_position: boolean;
     require_same_grade: boolean;
     require_same_salary: boolean;
     allow_cross_institution: boolean;
     allow_exceptional_override: boolean;
-    override_approver_roles: string[];
-    required_documents: string[];
+    override_approver_roles: string[] | null;
+    required_documents: string[] | null;
     minimum_service_months: number;
     releasing_consent_required: boolean;
     receiving_consent_required: boolean;
@@ -21,310 +24,135 @@ type TransferSettings = {
     service_recalculation_policy: string;
 };
 
+type BooleanKey = { [K in keyof TransferSettings]: TransferSettings[K] extends boolean ? K : never }[keyof TransferSettings];
+
 /* Named to avoid shadowing the globally shared `settings` branding prop. */
-type Props = { transferSettings: TransferSettings };
+type Props = { transferSettings: TransferSettings; roles?: string[]; can?: { update: boolean } };
 
-type Tab = 'rules' | 'approval' | 'documents' | 'override' | 'post_transfer';
-
-export default function TransferSettings({ transferSettings }: Props) {
+/**
+ * The rules every transfer follows. One page instead of tabs, so a refused
+ * field is never hidden on a tab the administrator is not looking at.
+ */
+export default function TransferSettingsPage({ transferSettings, roles = [], can = { update: true } }: Props) {
     const { t } = useLocale();
-    const [tab, setTab]   = useState<Tab>('rules');
-    const [form, setForm] = useState<TransferSettings>({ ...transferSettings });
-    const [saving, setSaving] = useState(false);
+    const form = useForm<TransferSettings>({
+        ...transferSettings,
+        override_approver_roles: transferSettings.override_approver_roles ?? [],
+        required_documents: transferSettings.required_documents ?? [],
+    });
+    const { data, setData, errors, processing, isDirty } = form;
+    const fieldError = (key: string) => (errors as Record<string, string | undefined>)[key];
+    const documents = data.required_documents ?? [];
+    const readOnly = !can.update;
 
-    const cardReprintOptions = [
-        { value: 'no_reprint', label: t('transfers.cardReprintNoReprint') },
-        { value: 'request_reprint', label: t('transfers.cardReprintRequestReprint') },
-        { value: 'auto_reprint', label: t('transfers.cardReprintAutoReprint') },
-    ];
-
-    const serviceRecalcOptions = [
-        { value: 'no_recalculation', label: t('transfers.serviceRecalcNone') },
-        { value: 'recalculate_from_transfer', label: t('transfers.serviceRecalcFromTransfer') },
-        { value: 'recalculate_from_effective_date', label: t('transfers.serviceRecalcFromEffective') },
-    ];
-
-    /*
-     * Control styling matches the shared admin form styling used by every
-     * other settings screen. This page had rolled its own, which left its
-     * fields with the browser's default focus outline instead of the
-     * institutional primary, no placeholder colour, and a plain opacity
-     * fade for disabled state — so it visibly did not match the rest of the
-     * admin area.
-     */
-    const sectionCls = 'rounded-card border border-(--app-border) bg-(--app-surface) p-6 space-y-5';
-    const inputCls = cx(inputClassName, 'w-full');
-    const labelCls = 'mb-1 block text-xs font-medium text-(--app-muted-foreground)';
-
-    const tabBarCls = (active: boolean) =>
-        `whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-            active
-                ? 'border-primary text-primary dark:text-primary'
-                : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)'
-        }`;
-
-    function set<K extends keyof TransferSettings>(key: K, value: TransferSettings[K]) {
-        setForm((f) => ({ ...f, [key]: value }));
+    function submit(event: FormEvent) {
+        event.preventDefault();
+        form.transform((current) => ({ ...current, required_documents: (current.required_documents ?? []).map((name) => name.trim()).filter(Boolean) }));
+        form.patch(route('transfer-settings.update'), { preserveScroll: true });
     }
 
-    function handleSubmit(e: FormEvent) {
-        e.preventDefault();
-        setSaving(true);
-        router.patch(route('transfer-settings.update'), form as never, {
-            onFinish: () => setSaving(false),
-            preserveScroll: true,
-        });
-    }
-
-    const tabDefs: { key: Tab; label: string }[] = [
-        { key: 'rules', label: t('transfers.tabRules') },
-        { key: 'approval', label: t('transfers.tabApproval') },
-        { key: 'documents', label: t('transfers.tabDocuments') },
-        { key: 'override', label: t('transfers.tabOverride') },
-        { key: 'post_transfer', label: t('transfers.tabPostTransfer') },
-    ];
+    const toggle = (key: BooleanKey, description?: string) => (
+        <FieldRow key={key} labelId={`${key}-label`} label={t(`transfers.setting.${key}`)} description={description ?? t(`transfers.settingHint.${key}`)} error={fieldError(key)} inline compact>
+            <Switch id={key} checked={Boolean(data[key])} disabled={readOnly} labelledBy={`${key}-label`} onChange={(checked) => setData(key, checked)} />
+        </FieldRow>
+    );
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('transfers.settings')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader backHref={route('transfers.dashboard')} title={t('transfers.settings')} description={t('transfers.settingsHint')} />}>
             <Head title={t('transfers.settings')} />
 
-            {/*
-              * min-w-0 matches every other admin page and matters more here:
-              * the tab strip below is `min-w-max`, so without it a long tab
-              * row can push the content column wider than its track instead
-              * of scrolling inside its own container.
-              */}
-            <div className="min-w-0 space-y-6">
-                {/* Tab bar */}
-                <div className="min-w-0 overflow-x-auto">
-                    <div className="flex min-w-max border-b border-(--app-border)">
-                        {tabDefs.map((tb) => (
-                            <button
-                                key={tb.key}
-                                type="button"
-                                onClick={() => setTab(tb.key)}
-                                className={tabBarCls(tab === tb.key)}
-                            >
-                                {tb.label}
-                            </button>
+            <form onSubmit={submit} className="space-y-6">
+                {Object.keys(errors).length > 0 && <Alert tone="danger">{t('transfers.fixErrorsBelow')}</Alert>}
+
+                <SettingsCard title={t('transfers.tabRules')} description={t('transfers.rulesHint')}>
+                    <div className="divide-y divide-(--app-border)">
+                        {toggle('allow_cross_institution')}
+                        {toggle('require_same_position')}
+                        {toggle('require_same_grade')}
+                        {toggle('require_same_salary')}
+                        <FieldRow htmlFor="minimum_service_months" label={t('transfers.minimumServiceMonths')} description={t('transfers.settingHint.minimum_service_months')} error={errors.minimum_service_months}>
+                            <Input id="minimum_service_months" type="number" inputMode="numeric" min={0} max={600} disabled={readOnly} className="max-w-40"
+                                value={data.minimum_service_months} onChange={(e) => setData('minimum_service_months', Number(e.target.value))} />
+                        </FieldRow>
+                    </div>
+                </SettingsCard>
+
+                <SettingsCard title={t('transfers.approvalChain')} description={t('transfers.approvalChainHint')}>
+                    <div className="divide-y divide-(--app-border)">
+                        {toggle('releasing_consent_required')}
+                        {toggle('receiving_consent_required')}
+                        {toggle('final_approval_required')}
+                    </div>
+                </SettingsCard>
+
+                <SettingsCard title={t('transfers.requiredDocuments')} description={t('transfers.settingsDocumentsHint')}>
+                    <div className="space-y-3 px-5 py-4">
+                        {documents.length === 0 && <p className="text-sm text-(--app-muted-foreground)">{t('transfers.noRequiredDocumentsConfigured')}</p>}
+                        {documents.map((document, index) => (
+                            <div key={index} className="flex items-start gap-2">
+                                <div className="min-w-0 flex-1">
+                                    <label htmlFor={`settings-document-${index}`} className="sr-only">{`${t('transfers.documentName')} ${index + 1}`}</label>
+                                    <Input id={`settings-document-${index}`} maxLength={100} disabled={readOnly} placeholder={t('transfers.documentNamePlaceholder')} value={document}
+                                        aria-invalid={Boolean(fieldError(`required_documents.${index}`))}
+                                        onChange={(e) => setData('required_documents', documents.map((value, i) => (i === index ? e.target.value : value)))} />
+                                    {fieldError(`required_documents.${index}`) && <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{fieldError(`required_documents.${index}`)}</p>}
+                                </div>
+                                <Button type="button" variant="ghost" size="icon" disabled={readOnly} aria-label={t('transfers.removeDocument')} title={t('transfers.removeDocument')}
+                                    onClick={() => setData('required_documents', documents.filter((_, i) => i !== index))} icon={<TrashIcon className="size-4" />}>
+                                </Button>
+                            </div>
                         ))}
+                        {!readOnly && (
+                            <Button type="button" variant="outline" size="sm" onClick={() => setData('required_documents', [...documents, ''])} icon={<Plus className="size-4" />}>{t('transfers.addDocument')}
+                            </Button>
+                        )}
                     </div>
-                </div>
+                </SettingsCard>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-
-                    {/* ── Transfer Rules ── */}
-                    {tab === 'rules' && (
-                        <div className={sectionCls}>
-                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.tabRules')}</h3>
-                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                                <div>
-                                    <label className={labelCls}>{t('transfers.requireSamePosition')}</label>
-                                    <select className={inputCls} value={form.require_same_position ? '1' : '0'} onChange={(e) => set('require_same_position', e.target.value === '1')}>
-                                        <option value="1">{t('common.yes')}</option>
-                                        <option value="0">{t('common.no')}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('transfers.requireSameGrade')}</label>
-                                    <select className={inputCls} value={form.require_same_grade ? '1' : '0'} onChange={(e) => set('require_same_grade', e.target.value === '1')}>
-                                        <option value="1">{t('common.yes')}</option>
-                                        <option value="0">{t('common.no')}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('transfers.requireSameSalary')}</label>
-                                    <select className={inputCls} value={form.require_same_salary ? '1' : '0'} onChange={(e) => set('require_same_salary', e.target.value === '1')}>
-                                        <option value="1">{t('common.yes')}</option>
-                                        <option value="0">{t('common.no')}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('transfers.allowCrossInstitution')}</label>
-                                    <select className={inputCls} value={form.allow_cross_institution ? '1' : '0'} onChange={(e) => set('allow_cross_institution', e.target.value === '1')}>
-                                        <option value="1">{t('common.yes')}</option>
-                                        <option value="0">{t('common.no')}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('transfers.minimumServiceMonths')}</label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={600}
-                                        className={inputCls}
-                                        value={form.minimum_service_months}
-                                        onChange={(e) => set('minimum_service_months', Number(e.target.value))}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Approval Chain ── */}
-                    {tab === 'approval' && (
-                        <div className={sectionCls}>
-                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.approvalChain')}</h3>
-                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                                <div>
-                                    <label className={labelCls}>{t('transfers.releasingConsentRequired')}</label>
-                                    <select className={inputCls} value={form.releasing_consent_required ? '1' : '0'} onChange={(e) => set('releasing_consent_required', e.target.value === '1')}>
-                                        <option value="1">{t('common.yes')}</option>
-                                        <option value="0">{t('common.no')}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('transfers.receivingConsentRequired')}</label>
-                                    <select className={inputCls} value={form.receiving_consent_required ? '1' : '0'} onChange={(e) => set('receiving_consent_required', e.target.value === '1')}>
-                                        <option value="1">{t('common.yes')}</option>
-                                        <option value="0">{t('common.no')}</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('transfers.finalApprovalRequired')}</label>
-                                    <select className={inputCls} value={form.final_approval_required ? '1' : '0'} onChange={(e) => set('final_approval_required', e.target.value === '1')}>
-                                        <option value="1">{t('common.yes')}</option>
-                                        <option value="0">{t('common.no')}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Required Documents ── */}
-                    {tab === 'documents' && (
-                        <div className={sectionCls}>
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.requiredDocuments')}</h3>
-                                <button
-                                    type="button"
-                                    onClick={() => set('required_documents', [...(form.required_documents ?? []), ''])}
-                                    className="text-sm font-medium text-primary hover:underline dark:text-primary"
-                                >
-                                    + {t('transfers.addDocument')}
-                                </button>
-                            </div>
-                            {(form.required_documents ?? []).length === 0 && (
-                                <p className="text-sm text-(--app-muted-foreground)">—</p>
-                            )}
-                            <div className="space-y-2">
-                                {(form.required_documents ?? []).map((doc, i) => (
-                                    <div key={i} className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            className={`${inputCls} flex-1`}
-                                            value={doc}
-                                            onChange={(e) => {
-                                                const next = [...(form.required_documents ?? [])];
-                                                next[i] = e.target.value;
-                                                set('required_documents', next);
-                                            }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => set('required_documents', (form.required_documents ?? []).filter((_, j) => j !== i))}
-                                            className={buttonClassName({ variant: 'outline' })}
-                                        >
-                                            {t('common.remove')}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── Override Policy ── */}
-                    {tab === 'override' && (
-                        <div className={sectionCls}>
-                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.tabOverride')}</h3>
-                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                                <div>
-                                    <label className={labelCls}>{t('transfers.allowExceptionalOverride')}</label>
-                                    <select className={inputCls} value={form.allow_exceptional_override ? '1' : '0'} onChange={(e) => set('allow_exceptional_override', e.target.value === '1')}>
-                                        <option value="1">{t('common.yes')}</option>
-                                        <option value="0">{t('common.no')}</option>
-                                    </select>
-                                </div>
-                            </div>
-                            {form.allow_exceptional_override && (
-                                <div className="mt-4">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-sm font-medium text-(--app-foreground)">{t('transfers.overrideApproverRoles')}</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => set('override_approver_roles', [...(form.override_approver_roles ?? []), ''])}
-                                            className="text-sm font-medium text-primary hover:underline dark:text-primary"
-                                        >
-                                            + {t('transfers.addRole')}
-                                        </button>
-                                    </div>
-                                    <div className="mt-2 space-y-2">
-                                        {(form.override_approver_roles ?? []).length === 0 && (
-                                            <p className="text-sm text-(--app-muted-foreground)">—</p>
-                                        )}
-                                        {(form.override_approver_roles ?? []).map((role, i) => (
-                                            <div key={i} className="flex gap-2">
-                                                <input
-                                                    type="text"
-                                                    className={`${inputCls} flex-1`}
-                                                    value={role}
-                                                    onChange={(e) => {
-                                                        const next = [...(form.override_approver_roles ?? [])];
-                                                        next[i] = e.target.value;
-                                                        set('override_approver_roles', next);
-                                                    }}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => set('override_approver_roles', (form.override_approver_roles ?? []).filter((_, j) => j !== i))}
-                                                    className={buttonClassName({ variant: 'outline' })}
-                                                >
-                                                    {t('common.remove')}
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* ── Post-Transfer ── */}
-                    {tab === 'post_transfer' && (
-                        <div className={sectionCls}>
-                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('transfers.tabPostTransfer')}</h3>
-                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                                <div>
-                                    <label className={labelCls}>{t('transfers.cardReprintPolicy')}</label>
-                                    <select className={inputCls} value={form.card_reprint_policy} onChange={(e) => set('card_reprint_policy', e.target.value)}>
-                                        {cardReprintOptions.map((o) => (
-                                            <option key={o.value} value={o.value}>{o.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className={labelCls}>{t('transfers.serviceRecalculationPolicy')}</label>
-                                    <select className={inputCls} value={form.service_recalculation_policy} onChange={(e) => set('service_recalculation_policy', e.target.value)}>
-                                        {serviceRecalcOptions.map((o) => (
-                                            <option key={o.value} value={o.value}>{o.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={saving}
-                            className={buttonClassName({ variant: 'primary' })}
-                        >
-                            {saving ? t('common.saving') : t('common.save')}
-                        </button>
+                <SettingsCard title={t('transfers.tabOverride')} description={t('transfers.overrideHint')}>
+                    <div className="divide-y divide-(--app-border)">
+                        {toggle('allow_exceptional_override')}
+                        {data.allow_exceptional_override && (
+                            <FieldRow labelId="override-roles-label" label={t('transfers.overrideApproverRoles')} description={t('transfers.overrideApproverRolesHint')} error={fieldError('override_approver_roles') ?? fieldError('override_approver_roles.0')}>
+                                <ChoiceChips
+                                    labelledBy="override-roles-label"
+                                    disabled={readOnly}
+                                    options={roles.map((role) => ({ value: role, label: role }))}
+                                    value={data.override_approver_roles ?? []}
+                                    onChange={(value) => setData('override_approver_roles', value)}
+                                />
+                            </FieldRow>
+                        )}
                     </div>
-                </form>
-            </div>
+                </SettingsCard>
+
+                <SettingsCard title={t('transfers.tabPostTransfer')} description={t('transfers.postTransferHint')}>
+                    <div className="divide-y divide-(--app-border)">
+                        <FieldRow htmlFor="card_reprint_policy" label={t('transfers.cardReprintPolicy')} description={t('transfers.settingHint.card_reprint_policy')} error={errors.card_reprint_policy}>
+                            <Select id="card_reprint_policy" disabled={readOnly} value={data.card_reprint_policy} onChange={(e) => setData('card_reprint_policy', e.target.value)}>
+                                <option value="no_reprint">{t('transfers.cardReprintNoReprint')}</option>
+                                <option value="request_reprint">{t('transfers.cardReprintRequestReprint')}</option>
+                                <option value="auto_reprint">{t('transfers.cardReprintAutoReprint')}</option>
+                            </Select>
+                        </FieldRow>
+                        <FieldRow htmlFor="service_recalculation_policy" label={t('transfers.serviceRecalculationPolicy')} description={t('transfers.settingHint.service_recalculation_policy')} error={errors.service_recalculation_policy}>
+                            <Select id="service_recalculation_policy" disabled={readOnly} value={data.service_recalculation_policy} onChange={(e) => setData('service_recalculation_policy', e.target.value)}>
+                                <option value="no_recalculation">{t('transfers.serviceRecalcNone')}</option>
+                                <option value="recalculate_from_transfer">{t('transfers.serviceRecalcFromTransfer')}</option>
+                                <option value="recalculate_from_effective_date">{t('transfers.serviceRecalcFromEffective')}</option>
+                            </Select>
+                        </FieldRow>
+                    </div>
+                </SettingsCard>
+
+                {!readOnly && (
+                    <div className="sticky bottom-0 z-10 -mx-1 flex items-center justify-end gap-3 border-t border-(--app-border) bg-(--app-background)/95 px-1 py-3 backdrop-blur-sm">
+                        {isDirty && <span className="text-sm text-(--app-muted-foreground)" role="status">{t('transfers.unsavedChanges')}</span>}
+                        <Button type="button" variant="outline" disabled={!isDirty || processing} onClick={() => form.reset()}>{t('transfers.discardChanges')}</Button>
+                        <Button type="submit" variant="primary" loading={processing} disabled={!isDirty}>{t('common.save')}</Button>
+                    </div>
+                )}
+            </form>
         </AuthenticatedLayout>
     );
 }

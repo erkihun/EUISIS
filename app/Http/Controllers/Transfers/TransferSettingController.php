@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Transfers;
 use App\Actions\Transfers\UpdateTransferSettingsAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transfers\UpdateTransferSettingsRequest;
+use App\Models\Role;
 use App\Models\TransferSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +29,9 @@ class TransferSettingController extends Controller
          */
         return Inertia::render('Transfers/Settings', [
             'transferSettings' => TransferSetting::current(),
+            // Override approvers are chosen from the real roles, not typed.
+            'roles' => Role::query()->orderBy('name')->pluck('name'),
+            'can' => ['update' => Auth::user()?->can('update', TransferSetting::class) ?? false],
         ]);
     }
 
