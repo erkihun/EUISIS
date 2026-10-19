@@ -61,7 +61,7 @@ const permissions = {
         'assessment_submissions': 'የተቋም የምዘና ማጠቃለያዎች',
         'assessments': 'የተመደቡ ምዘናዎች',
         'audit-logs': 'የኦዲት መዝገቦች',
-        'backups': 'ምትኬና መልሶ ማግኛ',
+        'backups': 'ባካፕና መልሶ ማግኛ',
         'cafeteria-access': 'የተቋማት የካፌቴሪያ አጠቃቀም',
         'cafeteria-assignments': 'የካፌቴሪያ አገልግሎት ምደባዎች',
         'cafeteria-exclusions': 'የካፌቴሪያ ማግለያዎች',

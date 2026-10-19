@@ -63,11 +63,11 @@ const dashboard = {
     },
     systemState: {
         title: 'የሥርዓት ሁኔታ',
-        backup: 'ምትኬ እና መልሶ ማግኛ',
+        backup: 'ባካፕ እና መልሶ ማግኛ',
         lastRestoreTest: 'የመጨረሻ የመልሶ ማግኛ ሙከራ',
         activeIncidents: 'ንቁ ክስተቶች',
         openSystemHealth: 'የሥርዓት ጤንነትን ይክፈቱ',
-        openBackup: 'ምትኬ እና መልሶ ማግኛን ይክፈቱ',
+        openBackup: 'ባካፕ እና መልሶ ማግኛን ይክፈቱ',
         unknown: 'ያልታወቀ',
     },
     openSituationRoom: 'የሁኔታ መከታተያ ማዕከልን ይክፈቱ',

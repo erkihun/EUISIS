@@ -35,13 +35,13 @@ const auditLogs = {
     // Event type labels
     events: {
         // Backup & Recovery
-        BACKUP_STATUS_VIEWED: 'የምትኬ ሁኔታ ታይቷል',
-        BACKUP_STARTED: 'ምትኬ ተጀምሯል',
-        BACKUP_COMPLETED: 'ምትኬ ተጠናቋል',
-        BACKUP_FAILED: 'ምትኬ አልተሳካም',
-        BACKUP_VERIFICATION_STARTED: 'የምትኬ ማረጋገጫ ተጀምሯል',
-        BACKUP_VERIFIED: 'ምትኬ ተረጋግጧል',
-        BACKUP_VERIFICATION_FAILED: 'የምትኬ ማረጋገጫ አልተሳካም',
+        BACKUP_STATUS_VIEWED: 'የባካፕ ሁኔታ ታይቷል',
+        BACKUP_STARTED: 'ባካፕ ተጀምሯል',
+        BACKUP_COMPLETED: 'ባካፕ ተጠናቋል',
+        BACKUP_FAILED: 'ባካፕ አልተሳካም',
+        BACKUP_VERIFICATION_STARTED: 'የባካፕ ማረጋገጫ ተጀምሯል',
+        BACKUP_VERIFIED: 'ባካፕ ተረጋግጧል',
+        BACKUP_VERIFICATION_FAILED: 'የባካፕ ማረጋገጫ አልተሳካም',
         RESTORE_TEST_STARTED: 'የመልሶ ማግኛ ሙከራ ተጀምሯል',
         RESTORE_TEST_PASSED: 'የመልሶ ማግኛ ሙከራ አልፏል',
         RESTORE_TEST_FAILED: 'የመልሶ ማግኛ ሙከራ አልተሳካም',
@@ -54,7 +54,7 @@ const auditLogs = {
         PRODUCTION_RESTORE_STARTED: 'የምርት መልሶ ማግኛ ተጀምሯል',
         PRODUCTION_RESTORE_COMPLETED: 'የምርት መልሶ ማግኛ ተጠናቋል',
         PRODUCTION_RESTORE_FAILED: 'የምርት መልሶ ማግኛ አልተሳካም',
-        RETENTION_CLEANUP: 'የምትኬ ማቆያ ማጽዳት',
+        RETENTION_CLEANUP: 'የባካፕ ማቆያ ማጽዳት',
         // Employee
         employee_created: 'ሠራተኛ ተፈጥሯል',
         employee_updated: 'ሠራተኛ ተዘምኗል',

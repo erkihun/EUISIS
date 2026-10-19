@@ -340,7 +340,7 @@ size; keep them short (for example ማብቂያ, not የሚያበቃበት ቀ�
 
 | English | Amharic | Do not use | Status | Note |
 |---|---|---|---|---|
-| Backup / recovery | ምትኬ / መልሶ ማግኛ |  | Approved |  |
+| Backup / recovery | ባካፕ / መልሶ ማግኛ | ምትኬ | Approved | Changed 2026-10-19. |
 | Settings | ቅንብሮች |  | Approved |  |
 | Code rule | የኮድ ደንብ | የኮድ ሕግ | Approved |  |
 | Recycle bin | የተሰረዙ መዝገቦች | ቆሻሻ መጣያ | Approved |  |
@@ -479,7 +479,7 @@ size; keep them short (for example ማብቂያ, not የሚያበቃበት ቀ�
 | ጎርጎሮሳዊ / ግሪጎሪያን / ጎርጎሪያን | ጎርጎርዮሳዊ | blocks | One spelling for Gregorian. |
 | ሚኒስቴር | ቢሮ / ተቋም | warns | City bodies are bureaus; a federal ministry may legitimately appear. |
 | ምርምር (review) | ግምገማ | warns | ምርምር is research. |
-| ባካፕ | ምትኬ | blocks | Backup is ምትኬ. |
+| ምትኬ / ባክ አፕ | ባካፕ | blocks | Backup is ባካፕ (term changed 2026-10-19). |
 | Other spelling variants: ሃሳብ, ሃብት, እቅድ, እለት, ሃይል, ስልጣን, ስልጠና, አሰራር, ማኅደር, ፀደቀ, ማፅደቅ, ቅርፀት, ፀና, አመት, ህግ, መንግስት | ሀሳብ, ሀብት, ዕቅድ, ዕለት, ኃይል, ሥልጣን, ሥልጠና, አሠራር, ማህደር, ጸደቀ, ማጽደቅ, ቅርጸት, ጸና, ዓመት, ሕግ, መንግሥት | blocks | Spelling policy. ፀሐፊ (secretary) keeps the Regulation 201 spelling. |
 
 ## 7. Changing a term

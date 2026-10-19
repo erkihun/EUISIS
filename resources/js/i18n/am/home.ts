@@ -90,7 +90,7 @@ const home = {
     trust3Title: 'የኦዲት መዝገብ',
     trust3Desc: 'ሚስጥራዊ ለውጦች፣ ማጽደቆች፣ የካርድ ሥራዎችና ግብይቶች ይመዘገባሉ።',
     trust4Title: 'ግላዊነትና መልሶ ማግኛ',
-    trust4Desc: 'የግል የሰነድ ማከማቻ፣ አነስተኛ ይፋዊ መረጃና መደበኛ ምትኬ።',
+    trust4Desc: 'የግል የሰነድ ማከማቻ፣ አነስተኛ ይፋዊ መረጃና መደበኛ ባካፕ።',
 
     // How it works
     howItWorksSectionTitle: 'መድረኩ እንዴት ይሠራል',

@@ -81,7 +81,7 @@ const navigation = {
     roles: 'ሚናዎች',
     permissions: 'የመዳረሻ መብቶች',
     systemSettings: 'የሥርዓት ቅንብሮች',
-    backupRecovery: 'ምትኬ እና መልሶ ማግኛ',
+    backupRecovery: 'ባካፕ እና መልሶ ማግኛ',
     apiManagement: 'የAPI አስተዳደር',
     admin: 'አስተዳደር',
     adminAccess: 'የመዳረሻ ቁጥጥር',
