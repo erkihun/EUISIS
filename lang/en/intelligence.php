@@ -58,6 +58,7 @@ return [
         'NOT_CONFIGURED' => ['title' => 'Not configured', 'description' => 'Set a limit for this rule in System Settings › Intelligence. Until then the rule relies on the baseline only.'],
         'SLO_CONFIGURATION_REQUIRED' => ['title' => 'No objective configured', 'description' => 'No latency, error-rate or availability objective is defined for this installation, so compliance is not shown.'],
         'FORECAST_DATA_INSUFFICIENT' => ['title' => 'Not enough history to forecast', 'description' => 'A forecast needs at least six complete monthly points; this series has fewer, so none is shown.'],
+        'NEEDS_DEPLOYMENT_CONFIGURATION' => ['title' => 'No deployment recorded', 'description' => 'Releases are recorded with `php artisan intelligence:record-deployment` from the release script. None has been recorded, so nothing is correlated and nothing is guessed.'],
         'AI_UNAVAILABLE' => ['title' => 'AI explanation unavailable', 'description' => 'The AI provider is off or did not answer in time. The figures stand on their own.'],
     ],
 
@@ -79,6 +80,17 @@ return [
         'forecasts' => 'Forecast snapshots',
     ],
 
+    'flash' => [
+        'incident_updated' => 'Incident updated.',
+        'recommendation_reviewed' => 'Review recorded.',
+    ],
+
+    'notifications' => [
+        'open' => 'Open incident',
+        'opened' => ['title' => 'Incident :reference opened (:severity)', 'message' => 'A technical incident was detected on :component. Review its evidence and recommendations.'],
+        'escalated' => ['title' => 'Incident :reference escalated to :severity', 'message' => 'The condition on :component worsened since detection.'],
+    ],
+
     'evidence' => [
         'window' => 'Window',
         'samples' => 'Samples',
@@ -89,6 +101,8 @@ return [
         'first_seen' => 'First seen',
         'last_seen' => 'Last seen',
         'component' => 'Component',
+        'first_value' => 'First value', 'last_value' => 'Last value', 'slope_per_step' => 'Slope per step', 'rising_steps_share' => 'Share of rising steps',
+        'release' => 'Release', 'deployed_at' => 'Deployed at', 'detected_at' => 'Detected at',
         'route' => 'Route group',
     ],
 ];

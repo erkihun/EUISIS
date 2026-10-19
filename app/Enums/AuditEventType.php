@@ -840,4 +840,14 @@ enum AuditEventType: string
     case CommunicationRetentionApplied = 'communication.retention_applied';
     case CommunicationTaskCreated = 'communication.task_created';
     case CommunicationUserBlocked = 'communication.user_blocked';
+
+    /*
+     * Addis One Intelligence (docs/intelligence-architecture.md). Human decisions
+     * on machine findings; never the finding itself.
+     */
+    case IntelligenceIncidentUpdated = 'intelligence.incident_updated';
+    case IntelligenceRecommendationReviewed = 'intelligence.recommendation_reviewed';
+    case IntelligenceAiRunRecorded = 'intelligence.ai_run_recorded';
+    case IntelligenceKnowledgeAsked = 'intelligence.knowledge_asked';
+    case IntelligenceKnowledgeDocumentChanged = 'intelligence.knowledge_document_changed';
 }

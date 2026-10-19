@@ -136,6 +136,18 @@ enum IntelligenceArea: string
         return array_values(array_filter(self::cases(), fn (self $area): bool => $area->visibleTo($user)));
     }
 
+    /** Areas with their own resource pages open there; the rest open the generic analysis frame. */
+    public function href(): string
+    {
+        return match ($this) {
+            self::Overview => route('intelligence.index'),
+            self::Incidents => route('intelligence.incidents.index'),
+            self::Recommendations => route('intelligence.recommendations.index'),
+            self::Runbooks => route('intelligence.runbooks.index'),
+            default => route('intelligence.area', ['area' => $this->value]),
+        };
+    }
+
     /** @return array{key: string, section: string, domain: string, icon: string, href: string} */
     public function toArray(): array
     {
@@ -144,7 +156,7 @@ enum IntelligenceArea: string
             'section' => $this->section(),
             'domain' => $this->domain(),
             'icon' => $this->icon(),
-            'href' => $this === self::Overview ? route('intelligence.index') : route('intelligence.area', ['area' => $this->value]),
+            'href' => $this->href(),
         ];
     }
 }

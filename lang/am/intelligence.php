@@ -55,6 +55,7 @@ return [
         'NOT_CONFIGURED' => ['title' => 'አልተዋቀረም', 'description' => 'ለዚህ ሕግ ገደብ በሥርዓት ቅንብሮች › ብልህ ትንተና ውስጥ ያስቀምጡ። እስከዚያ ድረስ ሕጉ በመነሻው ላይ ብቻ ይመሠረታል።'],
         'SLO_CONFIGURATION_REQUIRED' => ['title' => 'ዓላማ አልተዋቀረም', 'description' => 'ለዚህ ተከላ የመዘግየት፣ የስህተት መጠን ወይም የመገኘት ዓላማ አልተወሰነም፤ ስለዚህ ተገዢነት አይታይም።'],
         'FORECAST_DATA_INSUFFICIENT' => ['title' => 'ለትንበያ በቂ ታሪክ የለም', 'description' => 'ትንበያ ቢያንስ ስድስት የተሟሉ ወርሃዊ ነጥቦችን ይፈልጋል፤ ይህ ተከታታይ ከዚያ ያነሰ ስላለው አይታይም።'],
+        'NEEDS_DEPLOYMENT_CONFIGURATION' => ['title' => 'የተመዘገበ ዝርጋታ የለም', 'description' => 'ልቀቶች ከልቀት ስክሪፕት በ `php artisan intelligence:record-deployment` ይመዘገባሉ። ምንም አልተመዘገበም፤ ስለዚህ ምንም አይተሳሰርም እና ምንም አይገመትም።'],
         'AI_UNAVAILABLE' => ['title' => 'የሰው ሠራሽ ብልህነት ማብራሪያ አይገኝም', 'description' => 'የሰው ሠራሽ ብልህነት አቅራቢው ጠፍቷል ወይም በጊዜው አልመለሰም። ቁጥሮቹ በራሳቸው ይቆማሉ።'],
     ],
 
@@ -76,6 +77,17 @@ return [
         'forecasts' => 'የትንበያ ቅጽበታዊ ምስሎች',
     ],
 
+    'flash' => [
+        'incident_updated' => 'ክስተቱ ተዘምኗል።',
+        'recommendation_reviewed' => 'ግምገማው ተመዝግቧል።',
+    ],
+
+    'notifications' => [
+        'open' => 'ክስተቱን ይክፈቱ',
+        'opened' => ['title' => 'ክስተት :reference ተከፍቷል (:severity)', 'message' => 'በ :component ላይ የቴክኒክ ክስተት ተገኝቷል። ማስረጃውን እና ምክረ ሐሳቦቹን ይገምግሙ።'],
+        'escalated' => ['title' => 'ክስተት :reference ወደ :severity ከፍ ብሏል', 'message' => 'በ :component ላይ ያለው ሁኔታ ከተገኘበት ጊዜ ጀምሮ ተባብሷል።'],
+    ],
+
     'evidence' => [
         'window' => 'መስኮት',
         'samples' => 'ናሙናዎች',
@@ -86,6 +98,8 @@ return [
         'first_seen' => 'መጀመሪያ የታየበት',
         'last_seen' => 'መጨረሻ የታየበት',
         'component' => 'አካል',
+        'first_value' => 'የመጀመሪያ እሴት', 'last_value' => 'የመጨረሻ እሴት', 'slope_per_step' => 'በደረጃ ዝንባሌ', 'rising_steps_share' => 'የጨመሩ ደረጃዎች ድርሻ',
+        'release' => 'ልቀት', 'deployed_at' => 'የተዘረጋበት', 'detected_at' => 'የተገኘበት',
         'route' => 'የመስመር ቡድን',
     ],
 ];

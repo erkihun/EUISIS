@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSession;
+use App\Http\Middleware\RecordRequestTelemetry;
 use App\Http\Middleware\BlockDisabledModules;
 use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnforceSessionIdleTimeout;
@@ -66,6 +67,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend(RequestCorrelationId::class);
         $middleware->prepend(SecurityHeaders::class);
+        // Addis One Intelligence: per-minute request counters in the cache, written after the response (terminable).
+        $middleware->append(RecordRequestTelemetry::class);
 
         /*
          * Session policy (docs/session-management.md):
