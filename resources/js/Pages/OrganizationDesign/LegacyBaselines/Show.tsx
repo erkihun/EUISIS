@@ -4,8 +4,9 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import BaselineForm, { type BaselineFormValues, type HierarchyVersionOption, type LegalSourceOption } from '@/Components/organizationDesign/BaselineForm';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
+import BaselineOrganogram from '@/Components/organizationDesign/BaselineOrganogram';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, FieldError, FormField, Input, Select, Textarea, actionLinkClassName, badgeClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, FieldError, FormField, Input, Select, Textarea, buttonClassName, badgeClassName } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -27,6 +28,7 @@ type Props = {
     validation: Report | null;
     snapshot: { taken_at: string; counts: Record<string, number>; sha256: string } | null;
     versions: { id: string; version_no: number; reference_number: string; status: string; effective_date: string | null }[];
+    comparable: { id: string; reference_number: string; version_no: number; effective_date: string | null }[];
     history: { from: string | null; to: string; actor: string | null; reason: string | null; at: string }[];
     hierarchyVersions: HierarchyVersionOption[];
     legalSources: LegalSourceOption[];
@@ -43,7 +45,7 @@ const STEP_TONES: Record<string, 'neutral' | 'success' | 'warning' | 'danger' | 
  * add more, and a status a person may set by hand. Workflow actions sit in
  * the header; the server decides every one of them.
  */
-export default function LegacyBaselineShow({ baseline, steps, validation, snapshot, versions, history, hierarchyVersions, legalSources, origins, stepStatuses, can }: Props) {
+export default function LegacyBaselineShow({ baseline, steps, validation, snapshot, versions, comparable, history, hierarchyVersions, legalSources, origins, stepStatuses, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const firstOpen = steps.find((s) => !s.workflow && s.status !== 'complete')?.key ?? steps[0]?.key;
@@ -174,7 +176,7 @@ export default function LegacyBaselineShow({ baseline, steps, validation, snapsh
                                         <div className="flex flex-wrap items-center gap-3">
                                             <span className="text-2xl font-semibold tabular-nums text-(--app-foreground)">{active.record_count}</span>
                                             <span className="text-sm text-(--app-muted-foreground)">{tt('legacyBaselines.records')}</span>
-                                            {active.entry_url && <a href={active.entry_url} className={actionLinkClassName()}>{tt('legacyBaselines.openEntry')}</a>}
+                                            {active.entry_url && <a href={active.entry_url} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{tt('legacyBaselines.openEntry')}</a>}
                                         </div>
                                     )}
                                     {active.workflow && active.key === 'validation' && !validation && <p className="text-sm text-(--app-muted-foreground)">{tt('legacyBaselines.validationNotRun')}</p>}
@@ -220,6 +222,14 @@ export default function LegacyBaselineShow({ baseline, steps, validation, snapsh
                         )}
                     </div>
                 </div>
+
+                {snapshot && (
+                    <BaselineOrganogram
+                        snapshotUrl={route('organization-design.legacy-baselines.snapshot', baseline.id)}
+                        compareUrl={(otherId) => route('organization-design.legacy-baselines.compare', [baseline.id, otherId])}
+                        comparable={comparable}
+                    />
+                )}
 
                 <div className="grid gap-4 lg:grid-cols-2">
                     <Card>

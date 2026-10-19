@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import { nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FileUpload, FilterField, FilterPanel, FormField, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FileUpload, FilterField, FilterPanel, FormField, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, buttonClassName, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -48,7 +48,7 @@ export default function DesignImportsIndex({ batches, filters, organizations, en
     function submit(event: React.FormEvent) {
         event.preventDefault();
         form.transform((data) => ({ ...data, baseline_id: data.baseline_id || null }));
-        form.post(route('organization-design.imports.store'), { forceFormData: true, onSuccess: () => { form.reset('file'); setUploading(false); } });
+        form.post(route('organization-design.imports.upload'), { forceFormData: true, onSuccess: () => { form.reset('file'); setUploading(false); } });
     }
 
     return (
@@ -147,7 +147,7 @@ export default function DesignImportsIndex({ batches, filters, organizations, en
                                     <Select id={id} value={form.data.entity_type} onChange={(e) => form.setData('entity_type', e.target.value)} className="min-w-0 flex-1">
                                         {entityTypes.map((type) => <option key={type} value={type}>{tt(`designImports.types.${type}`)}</option>)}
                                     </Select>
-                                    <a href={route('organization-design.imports.template', { entityType: form.data.entity_type, locale })} className={actionLinkClassName()}>{tt('designImports.template')}</a>
+                                    <a href={route('organization-design.imports.template', { entityType: form.data.entity_type, locale })} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{tt('designImports.template')}</a>
                                 </div>
                             )}
                         </FormField>

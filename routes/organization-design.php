@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\OrganizationDesign\ClassificationController;
 use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
 use App\Http\Controllers\OrganizationDesign\DesignImportController;
+use App\Http\Controllers\OrganizationDesign\DesignOverviewController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
@@ -17,9 +18,9 @@ use App\Http\Controllers\OrganizationDesign\MappingController;
 use App\Http\Controllers\OrganizationDesign\MethodologyController;
 use App\Http\Controllers\OrganizationDesign\PositionDesignController;
 use App\Http\Controllers\OrganizationDesign\ProcessController;
-use App\Http\Controllers\OrganizationDesign\ReportController;
 use App\Http\Controllers\OrganizationDesign\ProcessDesignController;
 use App\Http\Controllers\OrganizationDesign\ProfessionController;
+use App\Http\Controllers\OrganizationDesign\ReportController;
 use App\Http\Controllers\OrganizationDesign\RequirementController;
 use App\Http\Controllers\OrganizationDesign\ResponsibilityController;
 use App\Http\Controllers\OrganizationDesign\ServiceController;
@@ -229,10 +230,15 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/legacy-baselines/{baseline}/revisions', [LegacyBaselineController::class, 'revise'])->whereUuid('baseline')->name('legacy-baselines.revisions.store');
         Route::post('/legacy-baselines/{baseline}/cancel', [LegacyBaselineController::class, 'cancel'])->whereUuid('baseline')->name('legacy-baselines.cancel');
         Route::get('/legacy-baselines/{baseline}/snapshot', [LegacyBaselineController::class, 'snapshot'])->whereUuid('baseline')->name('legacy-baselines.snapshot');
+        Route::get('/legacy-baselines/{baseline}/compare/{other}', [LegacyBaselineController::class, 'compare'])->whereUuid(['baseline', 'other'])->name('legacy-baselines.compare');
+
+        // Module landing page (brief §100–102).
+        Route::get('/', DesignOverviewController::class)->name('overview');
 
         // Staged design imports (ADR-LB-004).
         Route::get('/imports', [DesignImportController::class, 'index'])->name('imports.index');
-        Route::post('/imports', [DesignImportController::class, 'store'])->middleware('throttle:20,1')->name('imports.store');
+        // An upload action (a dialog on the list, as imports are), not a record created on its own page.
+        Route::post('/imports', [DesignImportController::class, 'store'])->middleware('throttle:20,1')->name('imports.upload');
         Route::get('/imports/template/{entityType}', [DesignImportController::class, 'template'])->where('entityType', '[a-z_]+')->name('imports.template');
         Route::get('/imports/{batch}', [DesignImportController::class, 'show'])->whereUuid('batch')->name('imports.show');
         Route::put('/imports/{batch}/rows/{row}/map', [DesignImportController::class, 'map'])->whereUuid(['batch', 'row'])->name('imports.rows.map');

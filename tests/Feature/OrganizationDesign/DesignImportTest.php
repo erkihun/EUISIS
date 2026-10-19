@@ -85,7 +85,7 @@ test('a mandate file is staged, checked row by row, and committed into draft man
         ['', 'No code', 'PROCLAMATION', '4/2015', '2015-03-01', ''],
     ]);
 
-    $this->actingAs($uploader)->post(route('organization-design.imports.store'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => $file])->assertSessionHasNoErrors()->assertRedirect();
+    $this->actingAs($uploader)->post(route('organization-design.imports.upload'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => $file])->assertSessionHasNoErrors()->assertRedirect();
     $batch = DesignImportBatch::query()->firstOrFail();
     // The queue runs synchronously in tests: the batch is already parsed and checked.
     expect($batch->status)->toBe(DesignImportBatch::STATUS_VALIDATED)
@@ -110,7 +110,7 @@ test('a mandate file is staged, checked row by row, and committed into draft man
         ->and(LegacyCodeMapping::query()->where('legacy_code', 'OLD-77')->value('canonical_id'))->toBe($created->first()->id);
 
     // The same file again creates nothing new: the code now matches.
-    $this->actingAs($uploader)->post(route('organization-design.imports.store'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => diCsv(['code', 'title_en', 'legal_instrument_type_code', 'legal_instrument_number', 'effective_from', 'legacy_code'], [['MND-NEW', 'Legacy mandate', 'PROCLAMATION', '12/2015', '2015-03-01', 'OLD-77']])]);
+    $this->actingAs($uploader)->post(route('organization-design.imports.upload'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => diCsv(['code', 'title_en', 'legal_instrument_type_code', 'legal_instrument_number', 'effective_from', 'legacy_code'], [['MND-NEW', 'Legacy mandate', 'PROCLAMATION', '12/2015', '2015-03-01', 'OLD-77']])]);
     // Both batches can share a timestamp; the reference number is strictly increasing.
     $second = DesignImportBatch::query()->orderByDesc('reference_number')->firstOrFail();
     $this->actingAs($committer)->post(route('organization-design.imports.commit', $second))->assertSessionHasNoErrors();
@@ -123,7 +123,7 @@ test('an unknown reference waits for a person to map it; the mapping is remember
     $committer = diUser($organization, 'DI Committer');
     $mandate = InstitutionMandate::query()->create(['organization_id' => $organization->id, 'lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'code' => 'MND-1', 'title_en' => 'Mandate', 'legal_instrument_type_id' => LegalInstrumentType::query()->value('id'), 'legal_instrument_number' => '1/2010', 'effective_from' => '2010-01-01', 'status' => OrganizationDesignStatus::Published]);
 
-    $this->actingAs($uploader)->post(route('organization-design.imports.store'), ['organization_id' => $organization->id, 'entity_type' => 'functions', 'file' => diCsv(['code', 'title_en', 'mandate_code'], [['F-1', 'Licensing', 'OLD-MANDATE-9']])]);
+    $this->actingAs($uploader)->post(route('organization-design.imports.upload'), ['organization_id' => $organization->id, 'entity_type' => 'functions', 'file' => diCsv(['code', 'title_en', 'mandate_code'], [['F-1', 'Licensing', 'OLD-MANDATE-9']])]);
     $batch = DesignImportBatch::query()->firstOrFail();
     $row = $batch->rows()->firstOrFail();
     expect($batch->status)->toBe(DesignImportBatch::STATUS_MAPPING_REQUIRED)->and($row->status)->toBe(DesignImportRow::STATUS_MAPPING_REQUIRED);
@@ -158,7 +158,7 @@ test('an Excel workbook is read in chunks, Excel dates are understood, and blank
     (new Xlsx($spreadsheet))->save($path);
     $file = new UploadedFile($path, 'legacy.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true);
 
-    $this->actingAs($uploader)->post(route('organization-design.imports.store'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => $file])->assertSessionHasNoErrors();
+    $this->actingAs($uploader)->post(route('organization-design.imports.upload'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => $file])->assertSessionHasNoErrors();
     $batch = DesignImportBatch::query()->firstOrFail();
     $expected = DesignImportReader::CHUNK + 28;
     expect($batch->status)->toBe(DesignImportBatch::STATUS_VALIDATED)->and($batch->total_rows)->toBe($expected)->and($batch->valid_rows)->toBe($expected)
@@ -170,12 +170,12 @@ test('a file missing a required column fails cleanly; an executable is refused; 
     $organization = diOrganization('D');
     $uploader = diUser($organization, 'DI Uploader');
 
-    $this->actingAs($uploader)->post(route('organization-design.imports.store'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => diCsv(['code', 'title_en'], [['M-1', 'No instrument']])]);
+    $this->actingAs($uploader)->post(route('organization-design.imports.upload'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => diCsv(['code', 'title_en'], [['M-1', 'No instrument']])]);
     $batch = DesignImportBatch::query()->firstOrFail();
     expect($batch->status)->toBe(DesignImportBatch::STATUS_FAILED)->and($batch->error_summary['missing_columns'])->toContain('legal_instrument_type_code', 'effective_from');
 
-    $this->actingAs($uploader)->post(route('organization-design.imports.store'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => UploadedFile::fake()->create('macro.exe', 10, 'application/x-msdownload')])->assertSessionHasErrors('file');
-    $this->actingAs($uploader)->post(route('organization-design.imports.store'), ['organization_id' => diOrganization('E')->id, 'entity_type' => 'mandates', 'file' => diCsv(['code'], [['X']])])->assertForbidden();
+    $this->actingAs($uploader)->post(route('organization-design.imports.upload'), ['organization_id' => $organization->id, 'entity_type' => 'mandates', 'file' => UploadedFile::fake()->create('macro.exe', 10, 'application/x-msdownload')])->assertSessionHasErrors('file');
+    $this->actingAs($uploader)->post(route('organization-design.imports.upload'), ['organization_id' => diOrganization('E')->id, 'entity_type' => 'mandates', 'file' => diCsv(['code'], [['X']])])->assertForbidden();
 
     $other = diUser(diOrganization('F'), 'DI Uploader');
     $this->actingAs($other)->get(route('organization-design.imports.show', $batch))->assertForbidden();

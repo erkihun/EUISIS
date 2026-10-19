@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import { nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, FieldError, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, FieldError, FilterField, FilterPanel, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -36,6 +36,7 @@ export default function DesignImportShow({ batch, columns, referenceColumns, row
     const { t, locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [mapping, setMapping] = useState<{ row: Row; error: RowError } | null>(null);
+    const [statusDraft, setStatusDraft] = useState(rowStatus);
     const mapForm = useForm<{ column: string; canonical_id: string }>({ column: '', canonical_id: '' });
     // A wide sheet shows its first columns; the full row is in each row's errors and data.
     const shown = columns.filter((c) => c !== 'description_en' && c !== 'description_am').slice(0, 6);
@@ -105,13 +106,20 @@ export default function DesignImportShow({ batch, columns, referenceColumns, row
                     )}
                 </Card>
 
-                <TableCard title={tt('designImports.rows')} description={tt('designImports.rowsHelp')}
-                    actions={(
-                        <Select aria-label={tt('designImports.filterRows')} value={rowStatus} onChange={(e) => router.get(route('organization-design.imports.show', batch.id), e.target.value ? { row_status: e.target.value } : {}, { preserveState: true, preserveScroll: true, replace: true })}>
+                <FilterPanel
+                    onSubmit={() => router.get(route('organization-design.imports.show', batch.id), statusDraft ? { row_status: statusDraft } : {}, { preserveState: true, preserveScroll: true, replace: true })}
+                    onReset={() => router.get(route('organization-design.imports.show', batch.id), {}, { preserveScroll: true })}
+                    hasActiveFilters={rowStatus !== ''}
+                >
+                    <FilterField label={tt('designImports.filterRows')}>
+                        <Select value={statusDraft} onChange={(e) => setStatusDraft(e.target.value)}>
                             <option value="">{tt('designImports.allRows')}</option>
                             {rowStatuses.map((s) => <option key={s} value={s}>{tt(`designImports.rowStatus.${s}`)}</option>)}
                         </Select>
-                    )}>
+                    </FilterField>
+                </FilterPanel>
+
+                <TableCard title={tt('designImports.rows')} description={tt('designImports.rowsHelp')}>
                     <Table>
                         <THead>
                             <tr>

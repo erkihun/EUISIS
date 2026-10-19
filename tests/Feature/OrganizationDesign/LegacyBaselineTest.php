@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\OrganizationDesign\LegacyBaselineService;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -135,7 +136,7 @@ test('the preparer cannot approve or publish; publication freezes a snapshot in 
 
     // The designer holds no approve permission; a designer who did would still be refused as the preparer.
     $this->actingAs($designer)->post(route('organization-design.legacy-baselines.approve', $first))->assertForbidden();
-    expect(fn () => $service->approve($designer, $first->fresh(), null))->toThrow(\Illuminate\Validation\ValidationException::class);
+    expect(fn () => $service->approve($designer, $first->fresh(), null))->toThrow(ValidationException::class);
 
     $this->actingAs($approver)->post(route('organization-design.legacy-baselines.return', $first), ['reason' => 'Name the hierarchy version'])->assertSessionHasNoErrors();
     expect($first->fresh()->status)->toBe(OrganizationDesignStatus::Draft)->and($first->fresh()->review_comment)->toBe('Name the hierarchy version');

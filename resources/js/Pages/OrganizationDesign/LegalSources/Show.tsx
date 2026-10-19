@@ -4,7 +4,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import LegalSourceForm, { type LegalSourceFormValues, type SourceType } from '@/Components/organizationDesign/LegalSourceForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, Card, CardHeader, CardTitle, FieldError, FileUpload, FormField, Input, Select, Textarea, actionLinkClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, FieldError, FileUpload, FormField, Input, Select, Textarea, buttonClassName } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -115,7 +115,7 @@ export default function LegalSourceShow({ source, attachments, citations, histor
                             {detail(tt('fields.issueDate'), source.issue_date ? <LocalizedDateDisplay value={source.issue_date} /> : null)}
                             {detail(tt('fields.effectiveFrom'), source.effective_from ? <LocalizedDateDisplay value={source.effective_from} /> : null)}
                             {detail(tt('fields.effectiveTo'), source.effective_to ? <LocalizedDateDisplay value={source.effective_to} /> : null)}
-                            {detail(tt('fields.sourceUrl'), source.source_url ? <a href={source.source_url} target="_blank" rel="noopener noreferrer" className={actionLinkClassName()}>{source.source_url}</a> : null)}
+                            {detail(tt('fields.sourceUrl'), source.source_url ? <a href={source.source_url} target="_blank" rel="noopener noreferrer" className="wrap-anywhere text-primary hover:underline">{source.source_url}</a> : null)}
                             {detail(tt('legalSources.recordedBy'), source.created_by)}
                             {detail(tt('fields.descriptionEn'), source.description_en)}
                             {detail(tt('fields.descriptionAm'), source.description_am)}
@@ -133,7 +133,7 @@ export default function LegalSourceShow({ source, attachments, citations, histor
                                         <p className="text-xs text-(--app-muted-foreground)">{a.original_name} · {formatBytes(a.size_bytes)}{a.uploaded_by ? ` · ${a.uploaded_by}` : ''} · <LocalizedDateDisplay value={a.created_at} /></p>
                                     </div>
                                     <div className="flex shrink-0 gap-2">
-                                        <a href={route('organization-design.legal-sources.attachments.download', [source.id, a.id])} className={actionLinkClassName()}>{tt('legalSources.download')}</a>
+                                        <a href={route('organization-design.legal-sources.attachments.download', [source.id, a.id])} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{tt('legalSources.download')}</a>
                                         {can.manageAttachments && <Button variant="ghost" size="sm" onClick={() => removeAttachment(a)}>{t('common.remove')}</Button>}
                                     </div>
                                 </div>

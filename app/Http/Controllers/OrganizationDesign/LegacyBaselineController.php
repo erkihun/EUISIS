@@ -15,6 +15,7 @@ use App\Models\LegalSource;
 use App\Models\Organization;
 use App\Models\OrganizationDesignStatusHistory;
 use App\Models\OrganizationEdge;
+use App\Services\OrganizationDesign\BaselineComparisonService;
 use App\Services\OrganizationDesign\LegacyBaselineService;
 use App\Services\OrganizationDesign\LegacyBaselineStepRegistry;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -100,6 +101,10 @@ class LegacyBaselineController extends Controller
             'snapshot' => $baseline->snapshot ? ['taken_at' => $baseline->snapshot->taken_at->toISOString(), 'counts' => $baseline->snapshot->counts, 'sha256' => $baseline->snapshot->sha256] : null,
             'versions' => $baseline->versions()->get(['id', 'version_no', 'reference_number', 'status', 'effective_date'])
                 ->map(fn (LegacyBaseline $v) => ['id' => $v->id, 'version_no' => $v->version_no, 'reference_number' => $v->reference_number, 'status' => $v->status->value, 'effective_date' => $v->effective_date?->toDateString()]),
+            // Every other published or superseded baseline of the organization: what this one can be compared with.
+            'comparable' => $baseline->snapshot === null ? [] : LegacyBaseline::query()->where('organization_id', $baseline->organization_id)->whereKeyNot($baseline->getKey())
+                ->whereIn('status', [OrganizationDesignStatus::Published, OrganizationDesignStatus::Superseded])->whereHas('snapshot')->orderByDesc('published_at')->limit(30)
+                ->get(['id', 'reference_number', 'version_no', 'effective_date'])->map(fn (LegacyBaseline $v) => ['id' => $v->id, 'reference_number' => $v->reference_number, 'version_no' => $v->version_no, 'effective_date' => $v->effective_date?->toDateString()]),
             'history' => OrganizationDesignStatusHistory::query()->where('entity_type', $baseline->getMorphClass())->where('entity_id', $baseline->getKey())
                 ->with('actor:id,name')->orderByDesc('created_at')->get()
                 ->map(fn ($h) => ['from' => $h->from_status, 'to' => $h->to_status, 'actor' => $h->actor?->name, 'reason' => $h->reason, 'at' => $h->created_at->toISOString()]),
@@ -213,6 +218,31 @@ class LegacyBaselineController extends Controller
             'positions' => $snapshot->positions,
             'establishments' => $snapshot->establishments,
             'sha256' => $snapshot->sha256,
+        ]);
+    }
+
+    /**
+     * Two published baselines of one organization side by side: units,
+     * positions and relationships added, removed or changed.
+     */
+    public function compare(Request $request, LegacyBaseline $baseline, LegacyBaseline $other, BaselineComparisonService $comparison): JsonResponse
+    {
+        $this->authorize('view', $baseline);
+        $this->authorize('view', $other);
+        abort_unless($baseline->organization_id === $other->organization_id, 404);
+        $a = $baseline->snapshot;
+        $b = $other->snapshot;
+        abort_if($a === null || $b === null, 404);
+        // Older = the one describing the earlier date; publication time breaks a tie.
+        $key = fn (LegacyBaseline $x) => [$x->effective_date?->toDateString() ?? '', $x->snapshot->taken_at->toISOString(), $x->version_no];
+        $baselineFirst = $key($baseline) <= $key($other);
+        [$olderBaseline, $newerBaseline] = $baselineFirst ? [$baseline, $other] : [$other, $baseline];
+        [$older, $newer] = $baselineFirst ? [$a, $b] : [$b, $a];
+
+        return response()->json([
+            'older' => ['id' => $olderBaseline->id, 'reference_number' => $olderBaseline->reference_number, 'version_no' => $olderBaseline->version_no, 'taken_at' => $older->taken_at->toISOString()],
+            'newer' => ['id' => $newerBaseline->id, 'reference_number' => $newerBaseline->reference_number, 'version_no' => $newerBaseline->version_no, 'taken_at' => $newer->taken_at->toISOString()],
+            ...$comparison->compare($older, $newer),
         ]);
     }
 
