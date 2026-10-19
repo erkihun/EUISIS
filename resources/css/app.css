@@ -750,6 +750,9 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 .rich-text-toolbar .tox .tox-toolbar,
 .rich-text-toolbar .tox .tox-toolbar__primary,
 .rich-text-toolbar .tox .tox-toolbar__overflow { background: transparent !important; }
+/* Idle buttons sit on the app surface; hover, focus and active keep the skin's states. */
+.rich-text-toolbar .tox .tox-tbtn:focus-visible, .rich-text-toolbar .tox .tox-tbtn:focus { outline: 2px solid var(--color-primary) !important; outline-offset: 1px; }
+.rich-text-toolbar .tox .tox-tbtn:not(:hover):not(:focus):not(.tox-tbtn--enabled):not([aria-pressed="true"]):not([aria-expanded="true"]) { background: transparent !important; }
 .rich-text-field[data-disabled] .rich-text-toolbar,
 .rich-text-field[data-readonly] .rich-text-toolbar { pointer-events: none; opacity: 0.6; }
 

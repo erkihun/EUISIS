@@ -39,6 +39,8 @@ const richText = {
         externalPrompt: 'ያስገቡት አድራሻ የውጭ አገናኝ ይመስላል። የሚያስፈልገው https:// ቅድመ ቅጥያ ይጨመር?',
         clearFormatting: 'ቅርጸቱን ያጽዱ',
         blocks: 'የአንቀጽ ዓይነት',
+        blockCurrent: 'የአንቀጽ ዓይነት፦ {0}',
+        paragraph: 'አንቀጽ',
         alignLeft: 'ወደ ግራ ያሰልፉ',
         alignCenter: 'መሃል ላይ ያሰልፉ',
         alignRight: 'ወደ ቀኝ ያሰልፉ',

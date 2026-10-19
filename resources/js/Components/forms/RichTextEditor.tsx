@@ -46,7 +46,7 @@ const LIBRARY_STRINGS = {
     'Current window': 'currentWindow', 'New window': 'newWindow', 'Remove link': 'removeLink', 'Open link': 'openLink',
     'The URL you entered seems to be an email address. Do you want to add the required mailto: prefix?': 'emailPrompt',
     'The URL you entered seems to be an external link. Do you want to add the required https:// prefix?': 'externalPrompt',
-    'Clear formatting': 'clearFormatting', Blocks: 'blocks', 'Align left': 'alignLeft', 'Align center': 'alignCenter',
+    'Clear formatting': 'clearFormatting', Blocks: 'blocks', 'Block {0}': 'blockCurrent', Paragraph: 'paragraph', 'Align left': 'alignLeft', 'Align center': 'alignCenter',
     'Align right': 'alignRight', Justify: 'justify', Blockquote: 'blockquote', Table: 'table', 'Insert table': 'insertTable',
     'Table properties': 'tableProperties', 'Delete table': 'deleteTable', Row: 'row', Rows: 'rows', Column: 'column',
     Columns: 'columns', Cell: 'cell', 'Insert row before': 'insertRowBefore', 'Insert row after': 'insertRowAfter',
@@ -85,9 +85,21 @@ export default function RichTextEditor({
     const [expanded, setExpanded] = useState(false);
     const focusRef = useRef<(() => void) | null>(null);
 
-    // Legacy plain text opens as escaped paragraphs, never parsed as markup.
-    const editorValue = useMemo(() => (value && !isRichTextHtml(value) ? plainTextToRichText(value) : value ?? ''), [value]);
-    const handleChange = useCallback((html: string) => onChange(isRichTextEmpty(html) ? '' : html), [onChange]);
+    // The form receives '' for an editor with no words, but the editor must get
+    // back exactly what it last produced: the binding re-applies any value that
+    // differs from its own content, which turned a heading or list chosen in an
+    // empty editor back into an empty paragraph. Any other value (load, reset,
+    // cancel) is passed through; legacy plain text opens as escaped paragraphs.
+    const lastEmitted = useRef<string | null>(null);
+    const handleChange = useCallback((html: string) => {
+        lastEmitted.current = html;
+        onChange(isRichTextEmpty(html) ? '' : html);
+    }, [onChange]);
+    const formValue = value ?? '';
+    const emitted = lastEmitted.current;
+    const editorValue = emitted !== null && (emitted === formValue || (formValue === '' && isRichTextEmpty(emitted)))
+        ? emitted
+        : formValue && !isRichTextHtml(formValue) ? plainTextToRichText(formValue) : formValue;
 
     const translations = useMemo(
         () => Object.fromEntries(Object.entries(LIBRARY_STRINGS).map(([english, key]) => [english, t(`richText.ui.${key}`)])),
@@ -152,7 +164,7 @@ export default function RichTextEditor({
                     fallback={fallbackRich ? (
                         <div className="space-y-3 p-3">
                             <p role="alert" className="text-helper text-amber-700 dark:text-amber-300">{t('richText.loadFailed')}</p>
-                            <RichTextViewer value={value} />
+                            <RichTextViewer html={value} />
                             <Button type="button" variant="secondary" size="sm" onClick={() => window.location.reload()}>{t('richText.reload')}</Button>
                         </div>
                     ) : (

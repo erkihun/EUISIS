@@ -1,5 +1,5 @@
 {{-- Formatted text (@richtext) in dompdf. Only what config/richtext.php allows needs a rule. --}}
-.rich-text h2, .rich-text h3, .rich-text h4 { color: #111; border: 0; padding: 0; margin: 8px 0 3px; }
+.rich-text h2, .rich-text h3, .rich-text h4 { color: #111; font-weight: bold; border: 0; padding: 0; margin: 8px 0 3px; }
 .rich-text h2 { font-size: 11.5pt; }
 .rich-text h3 { font-size: 11pt; }
 .rich-text h4 { font-size: 10.5pt; }

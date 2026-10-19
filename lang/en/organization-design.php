@@ -3,6 +3,15 @@
 declare(strict_types=1);
 
 return [
+    // Record status as printed on PDFs (job descriptions); same words as the screens.
+    'status' => [
+        'draft' => 'Draft',
+        'under_review' => 'Under review',
+        'approved' => 'Approved',
+        'published' => 'Published',
+        'superseded' => 'Superseded',
+        'cancelled' => 'Cancelled',
+    ],
     'mandate_created' => 'Mandate draft created.',
     'mandate_updated' => 'Mandate updated.',
     'mandate_version_created' => 'New mandate version drafted. Publish it to bring it into force.',

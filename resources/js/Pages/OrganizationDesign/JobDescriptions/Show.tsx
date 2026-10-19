@@ -110,7 +110,7 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                 );
             }
             default: {
-                return <RichTextViewer value={text(section.content_en, section.content_am)} empty={empty} />;
+                return <RichTextViewer html={text(section.content_en, section.content_am)} empty={empty} />;
             }
         }
     }

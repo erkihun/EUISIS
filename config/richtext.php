@@ -46,9 +46,10 @@ return [
     'rename_tags' => $policy['rename'],
 
     /*
-    | Limits. `max_html_bytes` guards the stored markup and fits a MySQL TEXT
-    | column (65,535 bytes). `max_plain_length` is the default limit on the
-    | words a reader sees; a field can set a lower one in its rule.
+    | Limits. `max_html_bytes` caps the stored markup: PostgreSQL TEXT has no
+    | practical limit, so this keeps a submission small (and fits a MySQL TEXT
+    | column). `max_plain_length` is the default limit on the characters a
+    | reader sees; a field sets a lower one in its rule.
     */
     'max_html_bytes' => (int) env('RICHTEXT_MAX_HTML_BYTES', 60000),
     'max_plain_length' => (int) env('RICHTEXT_MAX_PLAIN_LENGTH', 20000),

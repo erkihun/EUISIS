@@ -40,6 +40,8 @@ const richText = {
         externalPrompt: 'The URL you entered seems to be an external link. Do you want to add the required https:// prefix?',
         clearFormatting: 'Clear formatting',
         blocks: 'Blocks',
+        blockCurrent: 'Block {0}',
+        paragraph: 'Paragraph',
         alignLeft: 'Align left',
         alignCenter: 'Align center',
         alignRight: 'Align right',

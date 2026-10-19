@@ -7,7 +7,7 @@
  * Everything is bundled and self-hosted: no CDN, no API key, nothing loaded
  * from outside the app's origin, so the Content-Security-Policy needs no
  * change. The editor runs inline (no iframe), so the text is drawn with the
- * app's own fonts — Abyssinica SIL / Noto Sans Ethiopic for Amharic — and the
+ * app's own locale fonts (resources/css/fonts.css, Ethiopic included) and the
  * same `.rich-text` styles the viewer uses.
  */
 import 'tinymce/tinymce';
@@ -138,7 +138,7 @@ export default function TinyMceAdapter(props: RichTextAdapterProps) {
         placeholder,
         plugins: [...definition.plugins],
         toolbar: definition.toolbar.join(' | '),
-        block_formats: `${blockLabels.paragraph}=p; ${blockLabels.heading2}=h2; ${blockLabels.heading3}=h3; ${blockLabels.heading4}=h4`,
+        block_formats: `${blockLabels.paragraph}=p;${blockLabels.heading2}=h2;${blockLabels.heading3}=h3;${blockLabels.heading4}=h4`,
         // What may exist in the document: the preset's share of policy.json.
         // Paste and drop are filtered through the same list.
         valid_elements: validElements(preset),
@@ -192,6 +192,12 @@ export default function TinyMceAdapter(props: RichTextAdapterProps) {
         contextmenu: false,
         setup: (editor: TinyMceEditor) => {
             editorRef.current = editor;
+            // The React binding syncs on key and composition events. Text that
+            // arrives as a bare `input` (some Ethiopic input methods, dictation,
+            // autocorrect) would reach the form only on blur, so the counter
+            // lagged and a keyboard save could miss the last words. CommentChange
+            // is one of the binding's own sync events and nothing else here uses it.
+            editor.on('input', () => editor.dispatch('CommentChange'));
             editor.on('init', () => {
                 const body = editor.getBody();
                 body.classList.add('rich-text', 'rich-text-editable');

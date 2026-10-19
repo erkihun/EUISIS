@@ -249,7 +249,7 @@ function ActionCard({ action, options, canManage }: { action: ActionRow; options
                     </div>
                     <h3 className="mt-2 font-semibold">{action.title}</h3>
                     <p className="text-sm text-(--app-muted-foreground)">{name(action.organization)}{action.source_type && ` · ${t(`situationRoom.source_${action.source_type}`)}`}</p>
-                    <RichTextViewer value={action.action_text} className="mt-2 text-sm" />
+                    <RichTextViewer html={action.action_text} className="mt-2 text-sm" />
                 </div>
                 <dl className="grid gap-1 text-sm sm:text-end">
                     <div><dt className="inline text-(--app-muted-foreground)">{t('situationRoom.ownerLabel')}: </dt><dd className="inline">{ownerName}</dd></div>
