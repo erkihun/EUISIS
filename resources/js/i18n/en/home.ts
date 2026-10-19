@@ -169,8 +169,16 @@ const home = {
 
     // Verify page
     verifyScanQr: 'Scan QR code',
+    verifyScanTitle: 'Scan the QR code',
+    verifyScanIntro: 'Point your camera at the QR code printed on the card.',
+    verifyScanHelp: 'A live scan opens the card\'s result at once. If the camera is denied, use the reference instead.',
     verifyEnterReference: 'Or enter the card reference',
+    verifyEnterReferenceTitle: 'Enter the card reference',
+    verifyReferenceIntro: 'The reference is printed below the QR code on the card.',
+    verifyReferenceHint: 'Pasting a link from the card works too.',
+    verifyOr: 'or',
     verifyHowTitle: 'How verification works',
+    verifyHowSubtitle: 'Three steps; nothing private is shown without the holder\'s consent.',
     verifyHowStep1: 'Scan the QR code or enter the card reference.',
     verifyHowStep2: 'See whether the card is active.',
     verifyHowStep3: 'The holder\'s details are shown only after a one-time code sent to the holder.',
