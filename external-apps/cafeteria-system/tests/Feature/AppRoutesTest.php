@@ -116,7 +116,7 @@ it('serves an eligible employee through the scan endpoint', function (): void {
         'https://euisis.test/api/v1/id-cards/verify/*' => Http::response([
             'valid' => true,
             'status' => 'active',
-            'employee_id' => '019f0000-0000-7000-8000-000000000001',
+            'employee_uuid' => '019f0000-0000-7000-8000-000000000001',
             'employee' => ['employee_number' => 'EMP-1', 'full_name' => 'Abebe Bekele', 'status' => 'active'],
             'organization' => ['code' => 'ORG-1', 'name_en' => 'Bole Sub-city'],
             'position' => ['title_en' => 'HR Officer'],

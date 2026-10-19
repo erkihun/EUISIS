@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\ApiRequestLog;
 use App\Models\ExternalApplication;
+use App\Support\Api\ApiError;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -17,11 +18,15 @@ use Symfony\Component\HttpFoundation\Response;
  * Applies to callers authenticated as an ExternalApplication:
  *   1. the application must be active,
  *   2. the source IP must satisfy its allowlist (empty = unrestricted),
- *   3. its own rate_limit_per_minute is enforced,
- *   4. the request is logged (metadata only — never bodies).
+ *   3. the endpoint must be assigned to it,
+ *   4. its own rate_limit_per_minute is enforced,
+ *   5. the request is logged (metadata only — never bodies).
  *
- * Requests from human users pass straight through; they are governed by the
- * usual session policies rather than application registration.
+ * Requests from human users pass straight through; they are governed by their
+ * own permissions and organization scope (IntegrationAccessService) rather
+ * than application registration. Since the master backbone remediation the
+ * provider service routes sit behind this gate too, so a machine client is
+ * logged and endpoint-checked there as everywhere else.
  */
 readonly class ExternalApplicationGate
 {
@@ -92,10 +97,7 @@ readonly class ExternalApplicationGate
     {
         $this->log($request, $application, $status, false, $reason);
 
-        return response()->json([
-            'message' => $status === 429 ? 'Too Many Requests.' : 'Forbidden.',
-            'error_code' => $reason,
-        ], $status);
+        return ApiError::response($request, $status, $reason, $status === 429 ? 'Too Many Requests.' : 'Forbidden.');
     }
 
     private function log(
@@ -114,8 +116,8 @@ readonly class ExternalApplicationGate
             'success' => $success,
             'failure_reason' => $failureReason,
             'requested_at' => now(),
-            // Route name only — no query string, headers or body.
-            'metadata' => ['route' => $request->route()?->getName()],
+            // Route name and correlation id only — no query string, headers or body.
+            'metadata' => ['route' => $request->route()?->getName(), 'request_id' => ApiError::requestId($request)],
         ]);
     }
 }

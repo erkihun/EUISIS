@@ -411,6 +411,7 @@ const settings = {
         appearance: 'ገጽታ',
         id_cards: 'መታወቂያ ካርዶች',
         api_management: 'የAPI አስተዳደር',
+        integrations: 'የክስተት ውህደት',
     },
     descriptions: {
         field_work_gps: 'የመስክ ሥራ የቦታ ምዝገባን እና አፈጻጸሙን ያዋቅሩ። "አልተዋቀረም" የሆኑ እሴቶች ምንም የተደበቀ ደንብ አይጭኑም።',

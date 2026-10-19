@@ -161,6 +161,7 @@ export default {
     card_field_work: 'የመስክ ሥራ',
     card_cafeteria: 'ካፌቴሪያ',
     card_transport: 'ትራንስፖርት',
+    card_organization_design: 'የመዋቅር ዝግጁነት',
     employees: 'ሠራተኞች',
     active_employees: 'በሥራ ላይ ያሉ ሠራተኞች',
     occupied: 'የተያዙ የሥራ መደቦች',
@@ -176,6 +177,10 @@ export default {
     approved_field_work: 'የጸደቁ፣ ገና ያልወጡ',
     in_field: 'በመስክ ላይ',
     meals_today: 'ዛሬ የቀረቡ ምግቦች',
+    required_fte: 'የሚያስፈልግ FTE (የጸደቁ ዕቅዶች)',
+    approved_headcount: 'የጸደቀ የሠራተኛ ብዛት',
+    positions_without_jd: 'የሥራ መግለጫ የሌላቸው መደቦች',
+    baselines_published: 'ይፋ የሆነ መነሻ መዝገብ ያላቸው ተቋማት',
 
     configurationTitle: 'ተሳትፎ',
     withoutQr: '{count} በሥራ ላይ ያሉ ተቋማት ንቁ የአስተያየት QR ኮድ የላቸውም።',

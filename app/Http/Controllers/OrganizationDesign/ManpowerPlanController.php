@@ -83,13 +83,14 @@ class ManpowerPlanController extends Controller
             ],
             'lines' => $plan->lines()->with(['unit:id,code,name_en,name_am', 'proposal:id,name_en,name_am', 'task:id,code,name_en,name_am', 'activity:id,code,name_en,name_am', 'occupation:id,code,isco_code,name_en,name_am', 'profession:id,code,name_en,name_am', 'methodology:id,code,version_no', 'adjuster:id,name'])->get()
                 ->map(fn (ManpowerPlanLine $l) => [
-                    ...$l->only(['id', 'organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id', 'methodology_id', 'methodology_version_no', 'standard_id', 'inputs', 'recommended_headcount', 'approved_headcount', 'adjustment_reason', 'calculation_trace', 'notes', 'sequence', 'position_requirement_id', 'workload_source_type', 'workload_source_reference']),
+                    ...$l->only(['id', 'organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id', 'methodology_id', 'methodology_version_no', 'standard_id', 'inputs', 'recommended_headcount', 'approved_headcount', 'adjustment_reason', 'adjustment_reference', 'calculation_trace', 'notes', 'sequence', 'position_requirement_id', 'workload_source_type', 'workload_source_reference']),
                     'calculated_fte' => $l->calculated_fte, 'calculated_at' => $l->calculated_at?->toISOString(), 'headcount' => $l->headcount(),
                     'unit' => $l->unit?->only(['id', 'code', 'name_en', 'name_am']), 'proposal' => $l->proposal?->only(['id', 'name_en', 'name_am']),
                     'task' => $l->task?->only(['id', 'code', 'name_en', 'name_am']), 'activity' => $l->activity?->only(['id', 'code', 'name_en', 'name_am']),
                     'occupation' => $l->occupation?->only(['id', 'code', 'isco_code', 'name_en', 'name_am']), 'profession' => $l->profession?->only(['id', 'code', 'name_en', 'name_am']),
                     'methodology' => $l->methodology ? ['id' => $l->methodology->id, 'code' => $l->methodology->code, 'version_no' => $l->methodology->version_no] : null,
                     'adjusted_by' => $l->adjuster?->name,
+                    'adjusted_at' => $l->adjusted_at?->toISOString(),
                 ]),
             'requirements' => PositionRequirement::query()->where('plan_id', $plan->getKey())->with(['unit:id,code,name_en,name_am', 'proposal:id,name_en,name_am', 'occupation:id,code,isco_code,name_en,name_am', 'profession:id,code,name_en,name_am', 'position:id,job_position_code,title_en', 'establishment:id,establishment_number,approved_slots,status'])->orderBy('sequence')->get()
                 ->map(fn (PositionRequirement $r) => [

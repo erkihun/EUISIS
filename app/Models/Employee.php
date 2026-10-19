@@ -8,6 +8,7 @@ use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\FeedbackTokenStatus;
+use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Observers\EmployeeCardImpactObserver;
 use App\Support\Security\NationalIdHash;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Employee extends Model
 {
+    use HasIntegrationEvents;
     use HasUuidPrimaryKey;
 
     protected static function booted(): void

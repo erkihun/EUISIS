@@ -14,6 +14,8 @@ use App\Models\EmployeeTransfer;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\VacancyApplication;
+use App\Services\Integration\Events\TransferEvents;
+use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\Vacancy\PositionCapacityService;
 use App\Services\Vacancy\VacancyTransferService;
 use Illuminate\Support\Carbon;
@@ -27,6 +29,8 @@ readonly class CompleteVacancyTransferAction
         private PositionCapacityService $capacityService,
         private RecalculateEntitlementsAction $recalculateEntitlements,
         private WriteAuditLogAction $writeAuditLogAction,
+        private JobDescriptionService $jobDescriptions,
+        private TransferEvents $transferEvents,
     ) {}
 
     public function execute(VacancyApplication $application, array $data, User $actor): EmployeeTransfer
@@ -40,7 +44,7 @@ readonly class CompleteVacancyTransferAction
             // same vacancy, so the slot count below cannot be raced; the
             // position lock serializes with registration and other transfers.
             $positionEntry = $application->positionEntry()->lockForUpdate()->firstOrFail();
-            Position::query()->whereKey($positionEntry->position_id)->lockForUpdate()->first();
+            $destinationPosition = Position::query()->whereKey($positionEntry->position_id)->lockForUpdate()->first();
             $application = VacancyApplication::query()->whereKey($application->getKey())->lockForUpdate()->firstOrFail();
             $this->vacancyTransferService->assertTransferEligible($application);
 
@@ -74,8 +78,12 @@ readonly class CompleteVacancyTransferAction
             $newAssignment = EmployeeAssignment::create([
                 'employee_id' => $employee->id,
                 'organization_id' => $positionEntry->organization_id,
+                // The destination unit and its job description in force, so the
+                // placement is complete in itself (master backbone audit).
+                'organization_unit_id' => $destinationPosition?->organization_unit_id,
                 'position_id' => $positionEntry->position_id,
                 'hierarchy_version_id' => $currentAssignment->hierarchy_version_id,
+                'job_description_id' => $destinationPosition === null ? null : $this->jobDescriptions->inForceFor($destinationPosition, $effectiveDate->toDateString())?->getKey(),
                 'assignment_status' => AssignmentStatus::Active,
                 'effective_from' => $effectiveDate->toDateString(),
                 'effective_to' => null,
@@ -83,7 +91,7 @@ readonly class CompleteVacancyTransferAction
                 'reason' => __('vacancies.transferReason'),
             ]);
 
-            $employee->update(['current_assignment_id' => $newAssignment->id]);
+            $this->transferEvents->movePointer($employee, fn () => $employee->update(['current_assignment_id' => $newAssignment->id]));
 
             $establishment = $positionEntry->establishment;
 
@@ -110,6 +118,8 @@ readonly class CompleteVacancyTransferAction
                 'vacancy_application_id' => $application->id,
                 'vacancy_announcement_id' => $announcement?->id,
             ]);
+
+            $this->transferEvents->record($employee, $currentAssignment, $newAssignment, (string) $transfer->id, 'vacancy', $effectiveDate);
 
             $this->vacancyTransferService->markApplicationTransferred($application, $transfer->id);
 

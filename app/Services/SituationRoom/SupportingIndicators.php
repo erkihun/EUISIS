@@ -30,6 +30,8 @@ final class SupportingIndicators
         'daily_work' => ['daily_activities.view_reports'],
         'field_work' => ['field_work.view_org'],
         'cafeteria' => ['cafeteria_reports.view'],
+        // Approved and published design only; drafts never reach the Situation Room.
+        'organization_design' => ['organization-design-reports.view'],
     ];
 
     public function __construct(private readonly DashboardMetricService $dashboard) {}
@@ -178,5 +180,28 @@ final class SupportingIndicators
         }
 
         return ['meals_today' => (int) $query->count()];
+    }
+
+    /**
+     * Structure readiness for the institutions in view: required FTE and
+     * approved headcount of approved manpower plans (side by side, never
+     * merged), active positions without a published job description, and
+     * institutions with a published legacy baseline.
+     *
+     * @param  list<string>|null  $ids
+     */
+    private function organization_design(SituationRoomScope $scope, ?array $ids): array
+    {
+        $within = fn ($query, string $column = 'organization_id') => $ids === null ? $query : $query->whereIn($column, $ids);
+        $lines = $within(DB::table('manpower_plan_lines')->whereIn('plan_id', DB::table('manpower_plans')->where('status', 'approved')->select('id')));
+        $positions = (int) $within(DB::table('positions')->where('is_active', true))->count();
+        $withJd = (int) $within(DB::table('job_descriptions')->where('status', 'published')->whereNull('deleted_at'))->distinct()->count('position_id');
+
+        return [
+            'required_fte' => (float) (clone $lines)->sum('calculated_fte'),
+            'approved_headcount' => (int) (clone $lines)->sum('approved_headcount'),
+            'positions_without_jd' => max(0, $positions - $withJd),
+            'baselines_published' => (int) $within(DB::table('legacy_baselines')->where('status', 'published')->whereNull('deleted_at'))->distinct()->count('organization_id'),
+        ];
     }
 }

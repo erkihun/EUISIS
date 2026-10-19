@@ -23,6 +23,7 @@ final class MandateRules
             'legal_reference' => ['nullable', 'string', 'max:255'],
             'article_reference' => ['nullable', 'string', 'max:255'],
             'issuing_authority' => ['nullable', 'string', 'max:255'],
+            'legal_source_id' => ['nullable', 'uuid', 'exists:legal_sources,id'],
             'effective_from' => [$required, 'date_format:Y-m-d'],
             'effective_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:effective_from'],
         ];

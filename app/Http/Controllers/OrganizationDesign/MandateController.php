@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\OrganizationDesign;
 
+use App\Enums\LegalSourceStatus;
 use App\Enums\OrganizationDesignStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrganizationDesign\NewMandateVersionRequest;
@@ -11,6 +12,7 @@ use App\Http\Requests\OrganizationDesign\StoreMandateRequest;
 use App\Http\Requests\OrganizationDesign\UpdateMandateRequest;
 use App\Models\InstitutionMandate;
 use App\Models\LegalInstrumentType;
+use App\Models\LegalSource;
 use App\Models\Organization;
 use App\Models\OrganizationDesignStatusHistory;
 use App\Services\OrganizationDesign\FunctionService;
@@ -57,8 +59,24 @@ class MandateController extends Controller
             'organizations' => $this->organizationOptions($user),
             'instrumentTypes' => LegalInstrumentType::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
             'statuses' => array_map(fn (OrganizationDesignStatus $s) => $s->value, OrganizationDesignStatus::cases()),
+            'legalSources' => $this->legalSourceOptions($request->string('organization_id')->toString() ?: null),
             'can' => ['create' => $user->can('create', InstitutionMandate::class)],
         ]);
+    }
+
+    /**
+     * Active legal sources a mandate of this organization may rest on: the
+     * organization's own and the city-level ones. Without an organization
+     * only the city-level sources are offered.
+     *
+     * @return list<array{id: string, code: string, title_en: string, title_am: string|null}>
+     */
+    private function legalSourceOptions(?string $organizationId): array
+    {
+        $query = LegalSource::query()->where('status', LegalSourceStatus::Active)->orderBy('code');
+        $organizationId === null ? $query->whereNull('organization_id') : $query->citableBy($organizationId);
+
+        return $query->limit(300)->get(['id', 'code', 'title_en', 'title_am'])->map->only(['id', 'code', 'title_en', 'title_am'])->all();
     }
 
     public function store(StoreMandateRequest $request): RedirectResponse
@@ -72,7 +90,7 @@ class MandateController extends Controller
     {
         $this->authorize('view', $mandate);
         $user = $request->user();
-        $mandate->load(['organization:id,code,name_en,name_am', 'instrumentType:id,code,name_en,name_am', 'approver:id,name', 'creator:id,name', 'powers']);
+        $mandate->load(['organization:id,code,name_en,name_am', 'instrumentType:id,code,name_en,name_am', 'legalSource:id,code,title_en,title_am', 'approver:id,name', 'creator:id,name', 'powers']);
 
         return Inertia::render('OrganizationDesign/Mandates/Show', [
             'mandate' => [
@@ -91,7 +109,10 @@ class MandateController extends Controller
                 ->with('actor:id,name')->orderByDesc('created_at')->get()
                 ->map(fn ($h) => ['from' => $h->from_status, 'to' => $h->to_status, 'actor' => $h->actor?->name, 'reason' => $h->reason, 'at' => $h->created_at->toISOString()]),
             'instrumentTypes' => LegalInstrumentType::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
+            'legalSources' => $this->legalSourceOptions($mandate->organization_id),
+            'suggestions' => $user->can('design-suggestions.view') ? DesignSuggestionController::forMandate($mandate) : [],
             'can' => [
+                'suggest' => $user->can('design-suggestions.apply') && $user->can('manageFunctions', $mandate),
                 'update' => $user->can('update', $mandate) && $mandate->status->isEditable(),
                 'publish' => $user->can('publish', $mandate) && $mandate->status->isEditable() && (int) $mandate->created_by !== (int) $user->getKey(),
                 'version' => $user->can('version', $mandate) && $mandate->status === OrganizationDesignStatus::Published,
@@ -138,6 +159,8 @@ class MandateController extends Controller
             'title_en' => $m->title_en, 'title_am' => $m->title_am, 'status' => $m->status->value,
             'legal_instrument_number' => $m->legal_instrument_number,
             'legal_instrument_type_id' => $m->legal_instrument_type_id,
+            'legal_source_id' => $m->legal_source_id,
+            'legal_source' => $m->relationLoaded('legalSource') && $m->legalSource ? ['id' => $m->legalSource->id, 'code' => $m->legalSource->code, 'title_en' => $m->legalSource->title_en, 'title_am' => $m->legalSource->title_am] : null,
             'instrument_type' => $m->instrumentType ? ['code' => $m->instrumentType->code, 'name_en' => $m->instrumentType->name_en, 'name_am' => $m->instrumentType->name_am] : null,
             'organization' => $m->organization ? ['id' => $m->organization->id, 'code' => $m->organization->code, 'name_en' => $m->organization->name_en, 'name_am' => $m->organization->name_am] : null,
             'organization_id' => $m->organization_id,

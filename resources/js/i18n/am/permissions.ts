@@ -52,6 +52,7 @@ const permissions = {
     // Section headings on the role editor and the permissions page, by catalogue group.
     groupLabels: {
         'api_management': 'የAPI አስተዳደር',
+        'integrations': 'የክስተት ውህደት',
         'assessment_assignments': 'የምዘና ምደባዎች',
         'assessment_exclusions': 'የምዘና ማግለያዎች',
         'assessment_forms': 'የምዘና ቅጾች',
@@ -83,6 +84,10 @@ const permissions = {
         'daily_activity_settings': 'የዕለታዊ የሥራ እንቅስቃሴ ቅንብሮች',
         'dashboard': 'ዳሽቦርድ',
         'data-mapping': 'የመረጃ ማዛመድ',
+        'legal-sources': 'የሕግ ምንጮች',
+        'legacy-baselines': 'የቀድሞ መነሻ መዝገቦች',
+        'design-imports': 'የንድፍ ማስመጫዎች',
+        'design-suggestions': 'የሰነድ ጥቆማዎች',
         'discipline': 'የዲሲፕሊን ጉዳዮች',
         'employees': 'ሠራተኞች',
         'entitlement-rules': 'የጥቅማ ጥቅም ደንቦች',

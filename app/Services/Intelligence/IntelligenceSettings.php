@@ -29,6 +29,8 @@ final class IntelligenceSettings
         'exception_repeat_count' => [2, 100000],
         'db_latency_ms' => [1, 60000],
         'cache_latency_ms' => [1, 60000],
+        'integration_outbox_oldest_minutes' => [1, 1440],
+        'integration_dead_deliveries' => [1, 1000000],
     ];
 
     public function __construct(private readonly SystemSettingsService $settings) {}

@@ -411,6 +411,7 @@ const settings = {
         intelligence: 'Intelligence',
         assistant: 'Assistant',
         api_management: 'API Management',
+        integrations: 'Event Integration',
     },
     descriptions: {
         general: 'Core application identity, public contact details, and login branding.',

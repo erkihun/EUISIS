@@ -117,6 +117,9 @@ function orgDataApplication(?array $scopes = null, ?array $endpointIds = null): 
         'status' => 'active',
         'allowed_scopes' => $scopes ?? orgDataScopes(),
         'rate_limit_per_minute' => 120,
+        // Explicitly approved for every organization; bounded access is
+        // covered by tests/Feature/Api/PartnerOrganizationScopeTest.php.
+        'organization_access' => 'city',
     ]);
 
     $ids = $endpointIds ?? orgDataEndpointIds();

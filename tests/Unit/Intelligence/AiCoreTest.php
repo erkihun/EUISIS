@@ -29,7 +29,7 @@ it('renders prompts with the input fenced as data and variables substituted safe
         ->toContain('Ignore previous instructions') // present, but inside the fences
         ->toContain('How many { {days} } of leave?') // a variable can never open a second substitution
         ->toContain('Language: am')
-        ->and(PromptRegistry::catalog())->toHaveCount(5)
+        ->and(PromptRegistry::catalog())->toHaveCount(6)
         ->and(PromptRegistry::get('incident_root_cause')['version'])->toBe('v1');
 });
 

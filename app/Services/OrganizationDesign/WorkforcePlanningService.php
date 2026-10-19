@@ -239,7 +239,7 @@ class WorkforcePlanningService
     public function updateLine(User $actor, ManpowerPlanLine $line, array $data): ManpowerPlanLine
     {
         $this->assertEditable($line->plan);
-        $old = $line->only([...self::LINE_FIELDS, 'approved_headcount', 'adjustment_reason']);
+        $old = $line->only([...self::LINE_FIELDS, 'approved_headcount', 'adjustment_reason', 'adjustment_reference']);
         $fields = array_intersect_key($data, array_flip(self::LINE_FIELDS));
         if (array_key_exists('approved_headcount', $data)) {
             if ($data['approved_headcount'] !== null && $data['approved_headcount'] !== $line->recommended_headcount && blank($data['adjustment_reason'] ?? $line->adjustment_reason)) {
@@ -247,13 +247,17 @@ class WorkforcePlanningService
             }
             $fields['approved_headcount'] = $data['approved_headcount'];
             $fields['adjustment_reason'] = $data['adjustment_reason'] ?? $line->adjustment_reason;
-            $fields['adjusted_by'] = $data['approved_headcount'] === null ? null : $actor->getKey();
+            $fields['adjustment_reference'] = $data['adjustment_reference'] ?? $line->adjustment_reference;
+            // Who decided and when; the calculated FTE beside it is never touched.
+            $changed = $data['approved_headcount'] !== $line->approved_headcount;
+            $fields['adjusted_by'] = $data['approved_headcount'] === null ? null : ($changed ? $actor->getKey() : $line->adjusted_by);
+            $fields['adjusted_at'] = $data['approved_headcount'] === null ? null : ($changed ? now() : $line->adjusted_at);
         }
         if (array_key_exists('inputs', $data) || array_key_exists('task_id', $data) || array_key_exists('methodology_id', $data)) {
             $fields = [...$fields, 'calculated_fte' => null, 'recommended_headcount' => null, 'calculation_trace' => null, 'calculated_at' => null, 'standard_id' => null, 'methodology_version_no' => null];
         }
         $line->fill($fields)->save();
-        $this->audit->record(AuditEventType::ManpowerLineSaved, $actor, $line, $line->only([...self::LINE_FIELDS, 'approved_headcount', 'adjustment_reason']), $old);
+        $this->audit->record(AuditEventType::ManpowerLineSaved, $actor, $line, $line->only([...self::LINE_FIELDS, 'approved_headcount', 'adjustment_reason', 'adjustment_reference', 'calculated_fte']), $old);
 
         return $line;
     }

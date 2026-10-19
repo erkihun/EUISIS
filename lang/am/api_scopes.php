@@ -15,6 +15,10 @@ return [
     'organization_units.read' => 'የሥራ ክፍሎችን ማንበብ',
     'positions.read' => 'የሥራ መደቦችን ማንበብ',
     'employees.basic_read' => 'ሠራተኞችን ማንበብ',
+    'employees.photo_read' => 'የሠራተኛ መታወቂያ ፎቶዎችን ማንበብ (የተፈረሙ ማስፈንጠሪያዎች)',
+    'changes.read' => 'የለውጥ ዝርዝሩን ማንበብ',
+    'webhooks.manage' => 'የራስን የዌብሁክ ምዝገባዎችና አቅርቦቶች ማየት',
+    'webhooks.replay' => 'የራስን የዌብሁክ አቅርቦቶች እንደገና መላክ',
     'employee_assignments.read' => 'የሠራተኛ ምደባዎችን ማንበብ',
     'organization_structure.read' => 'የተቋም መዋቅርን ማንበብ',
 ];

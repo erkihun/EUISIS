@@ -15,6 +15,7 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\IdCards\CardQrPayloadService;
+use Spatie\Permission\Models\Permission;
 
 /**
  * Integration API: QR safety, scope enforcement and card-status gating.
@@ -82,10 +83,18 @@ beforeEach(function (): void {
     $this->card->refresh();
 });
 
-/** Token-authenticated caller carrying only the given abilities. */
-function apiCaller(array $abilities): string
+/**
+ * Token-authenticated person carrying only the given abilities. A person is
+ * also held to their own screen permissions (IntegrationAccessService), so
+ * any the call needs are granted explicitly.
+ */
+function apiCaller(array $abilities, array $permissions = []): string
 {
     $user = User::factory()->create();
+
+    foreach ($permissions as $permission) {
+        $user->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+    }
 
     return $user->createToken('integration-test', $abilities)->plainTextToken;
 }
@@ -116,18 +125,31 @@ it('verifies an active card and returns only safe fields', function (): void {
     }
 });
 
-it('returns an absolute photo url so an integration on another host can load it', function (): void {
+it('returns an absolute, short-lived signed photo url so an integration on another host can load it', function (): void {
     $this->employee->forceFill(['photo_path' => 'employees/photos/test/photo.jpg'])->save();
 
-    $response = $this->withToken(apiCaller(['id_cards.verify']))
+    $response = $this->withToken(apiCaller(['id_cards.verify'], ['employees.view']))
         ->getJson(route('api.v1.id-cards.verify', $this->card->public_card_uuid))
         ->assertOk();
 
     $photo = $response->json('employee.photo_url');
 
-    // A root-relative path would resolve against the cafeteria host and 404.
+    // Absolute (another host resolves it) and signed with an expiry (F17) —
+    // never the permanent public storage path.
     expect($photo)->toStartWith('http')
-        ->and($photo)->toContain('employees/photos/test/photo.jpg');
+        ->and($photo)->toContain('/api/v1/employees/'.$this->employee->id.'/photo')
+        ->and($photo)->toContain('signature=')
+        ->and($photo)->toContain('expires=')
+        ->and($photo)->not->toContain('storage/');
+});
+
+it('withholds the photo url from a caller without photo access', function (): void {
+    $this->employee->forceFill(['photo_path' => 'employees/photos/test/photo.jpg'])->save();
+
+    $this->withToken(apiCaller(['id_cards.verify']))
+        ->getJson(route('api.v1.id-cards.verify', $this->card->public_card_uuid))
+        ->assertOk()
+        ->assertJsonPath('employee.photo_url', null);
 });
 
 it('returns a null photo url when the employee has no photo', function (): void {
@@ -153,7 +175,7 @@ it('returns the employee organization on a verified card', function (): void {
 });
 
 it('rejects a token that lacks the verify scope', function (): void {
-    $this->withToken(apiCaller(['reports.read_limited']))
+    $this->withToken(apiCaller(['reports.read_limited'], ['organizations.view']))
         ->getJson(route('api.v1.id-cards.verify', $this->card->public_card_uuid))
         ->assertForbidden()
         ->assertJsonPath('error_code', 'missing_scope')
@@ -218,10 +240,11 @@ it('requires the eligibility scope for the eligibility endpoint', function (): v
         ->assertJsonPath('error_code', 'missing_scope');
 });
 
-it('still accepts legacy provider tokens so existing integrations keep working', function (): void {
+it('no longer lets a provider-portal token act as an integration credential (F1)', function (): void {
     $this->withToken(apiCaller(['provider:access']))
         ->getJson(route('api.v1.id-cards.verify', $this->card->public_card_uuid))
-        ->assertOk();
+        ->assertForbidden()
+        ->assertJsonPath('error_code', 'missing_scope');
 });
 
 it('keeps the public card uuid stable across token rotation', function (): void {
@@ -233,7 +256,7 @@ it('keeps the public card uuid stable across token rotation', function (): void 
 });
 
 it('lists active organizations for an approved integration', function (): void {
-    $response = $this->withToken(apiCaller(['reports.read_limited']))
+    $response = $this->withToken(apiCaller(['reports.read_limited'], ['organizations.view']))
         ->getJson(route('api.v1.organizations.index'))
         ->assertOk()
         ->assertJsonPath('data.0.code', 'API-ORG');
@@ -246,12 +269,12 @@ it('lists active organizations for an approved integration', function (): void {
 });
 
 it('filters the organization directory by search term', function (): void {
-    $this->withToken(apiCaller(['reports.read_limited']))
+    $this->withToken(apiCaller(['reports.read_limited'], ['organizations.view']))
         ->getJson(route('api.v1.organizations.index').'?search=API-ORG')
         ->assertOk()
         ->assertJsonPath('data.0.code', 'API-ORG');
 
-    $this->withToken(apiCaller(['reports.read_limited']))
+    $this->withToken(apiCaller(['reports.read_limited'], ['organizations.view']))
         ->getJson(route('api.v1.organizations.index').'?search=nothing-matches-this')
         ->assertOk()
         ->assertJsonCount(0, 'data');

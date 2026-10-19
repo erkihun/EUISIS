@@ -450,6 +450,10 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupOrganizationDesign',
         icon: RulerPenIcon,
         items: [
+            { routeName: 'organization-design.overview', labelKey: 'nav.designOverview', icon: MapIcon, anyPermission: ['legacy-baselines.viewAny', 'legal-sources.viewAny', 'institution-mandates.viewAny', 'service-catalog.viewAny', 'processes.viewAny', 'organization-design.viewAny', 'workforce-planning.viewAny', 'position-profiles.viewAny', 'job-descriptions.viewAny', 'design-imports.viewAny', 'organization-design-reports.view', 'data-mapping.view'] },
+            { routeName: 'organization-design.legacy-baselines.index', labelKey: 'nav.designLegacyBaselines', icon: ArchiveIcon, permission: 'legacy-baselines.viewAny' },
+            { routeName: 'organization-design.legal-sources.index', labelKey: 'nav.designLegalSources', icon: ScaleIcon, permission: 'legal-sources.viewAny' },
+            { routeName: 'organization-design.imports.index', labelKey: 'nav.designImports', icon: ImportIcon, permission: 'design-imports.viewAny' },
             { routeName: 'organization-design.mandates.index', labelKey: 'nav.designMandates', icon: DiplomaIcon, permission: 'institution-mandates.viewAny' },
             { routeName: 'organization-design.functions.index', labelKey: 'nav.designFunctions', icon: WidgetsIcon, permission: 'organization-functions.viewAny' },
             { routeName: 'organization-design.services.index', labelKey: 'nav.designServices', icon: Layers, permission: 'service-catalog.viewAny' },
@@ -719,6 +723,22 @@ const dashboardNav: NavItem = {
 
 
 /** Administration is split into labeled sub-clusters so unrelated concerns stay scannable. */
+/**
+ * Labeled sub-clusters for a long group, by route (brief: Organization Design
+ * must not be twenty flat links). The group's `items` stay the single list
+ * of pages and permissions; this only decides the headings they sit under.
+ */
+const GROUP_CLUSTERS: Record<string, { labelKey: string; routes: string[] }[]> = {
+    organizationDesign: [
+        { labelKey: 'nav.designClusterLegacy', routes: ['organization-design.legacy-baselines.index', 'organization-design.legal-sources.index', 'organization-design.imports.index'] },
+        { labelKey: 'nav.designClusterChain', routes: ['organization-design.mandates.index', 'organization-design.functions.index', 'organization-design.services.index', 'organization-design.classifications.index', 'organization-design.processes.index'] },
+        { labelKey: 'nav.designClusterPeople', routes: ['organization-design.professions.index', 'organization-design.competency-catalog.index'] },
+        { labelKey: 'nav.designClusterStructure', routes: ['organization-design.studies.index', 'organization-design.responsibilities.index', 'organization-design.structure.index'] },
+        { labelKey: 'nav.designClusterWorkforce', routes: ['organization-design.methodologies.index', 'organization-design.manpower-plans.index', 'organization-design.position-design.index'] },
+        { labelKey: 'nav.designClusterQuality', routes: ['organization-design.reports.index', 'organization-design.mapping.index'] },
+    ],
+};
+
 const adminGroups: { labelKey: string; items: NavItem[] }[] = [
     {
         labelKey: 'nav.adminAccess',
@@ -981,9 +1001,29 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         );
     }
 
-    /** A group's pages; Administration keeps its labeled sub-clusters. */
+    /** A group's pages; Administration and Organization Design keep labeled sub-clusters. */
     function renderGroupItems(group: NavGroup, items: NavSubItem[], onNavigate?: () => void) {
         const link = (item: NavSubItem) => renderLink(item, { nested: true, compact: false, onNavigate });
+        const clusters = GROUP_CLUSTERS[group.key];
+        if (clusters) {
+            // Pages outside every cluster (the module overview) lead, unlabeled.
+            const clustered = new Set(clusters.flatMap((c) => c.routes));
+            const lead = items.filter((item) => !clustered.has(item.routeName));
+            return (
+                <>
+                    {lead.length > 0 && <ul className="space-y-px">{lead.map(link)}</ul>}
+                    {clusters.map((cluster) => {
+                        const clusterItems = items.filter((item) => cluster.routes.includes(item.routeName));
+                        return clusterItems.length > 0 && (
+                            <div key={cluster.labelKey} className="py-1">
+                                <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold text-(--sidebar-muted)">{t(cluster.labelKey)}</p>
+                                <ul className="space-y-px">{clusterItems.map(link)}</ul>
+                            </div>
+                        );
+                    })}
+                </>
+            );
+        }
         if (group.key !== 'admin') return <ul className="space-y-px">{items.map(link)}</ul>;
         return visibleAdminGroups.map((subgroup) => {
             const subItems = subgroup.items.filter((item) => items.some((match) => match.routeName === item.routeName));

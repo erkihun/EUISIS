@@ -19,6 +19,12 @@ class LegalInstrumentTypeSeeder extends Seeder
             ['code' => 'COUNCIL_DECISION', 'name_en' => 'Council decision', 'name_am' => 'የምክር ቤት ውሳኔ', 'sort_order' => 40],
             ['code' => 'CABINET_DECISION', 'name_en' => 'Cabinet decision', 'name_am' => 'የካቢኔ ውሳኔ', 'sort_order' => 50],
             ['code' => 'CHARTER', 'name_en' => 'Charter', 'name_am' => 'ቻርተር', 'sort_order' => 60],
+            // Sources a legacy baseline rests on (docs/organization-design-legacy-baseline-plan.md §8).
+            ['code' => 'ADMINISTRATIVE_DECISION', 'name_en' => 'Administrative decision', 'name_am' => 'አስተዳደራዊ ውሳኔ', 'sort_order' => 65],
+            ['code' => 'APPROVED_STRUCTURE', 'name_en' => 'Approved structure', 'name_am' => 'የጸደቀ መዋቅር', 'sort_order' => 70],
+            ['code' => 'BPR_STUDY', 'name_en' => 'BPR study', 'name_am' => 'የሥራ ሂደት ለውጥ (BPR) ጥናት', 'sort_order' => 75],
+            ['code' => 'MANUAL', 'name_en' => 'Manual', 'name_am' => 'ማኑዋል', 'sort_order' => 80],
+            ['code' => 'POLICY', 'name_en' => 'Policy', 'name_am' => 'ፖሊሲ', 'sort_order' => 85],
             ['code' => 'OTHER', 'name_en' => 'Other', 'name_am' => 'ሌላ', 'sort_order' => 90],
         ];
 

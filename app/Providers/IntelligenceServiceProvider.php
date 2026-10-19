@@ -17,6 +17,7 @@ use App\Services\Intelligence\System\Detection\Rules\CacheUnavailableRule;
 use App\Services\Intelligence\System\Detection\Rules\DbConnectionsRule;
 use App\Services\Intelligence\System\Detection\Rules\DbLatencyRule;
 use App\Services\Intelligence\System\Detection\Rules\ErrorRepeatRule;
+use App\Services\Intelligence\System\Detection\Rules\EventIntegrationRule;
 use App\Services\Intelligence\System\Detection\Rules\FailedJobsRule;
 use App\Services\Intelligence\System\Detection\Rules\HttpErrorRateRule;
 use App\Services\Intelligence\System\Detection\Rules\HttpLatencyRule;
@@ -41,6 +42,7 @@ final class IntelligenceServiceProvider extends ServiceProvider
         HttpErrorRateRule::class,
         HttpLatencyRule::class,
         QueueBacklogRule::class,
+        EventIntegrationRule::class,
         FailedJobsRule::class,
         ErrorRepeatRule::class,
         DbLatencyRule::class,

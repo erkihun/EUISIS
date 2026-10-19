@@ -1,5 +1,5 @@
 import PageHeader from '@/Components/PageHeader';
-import { BellIcon, CheckCircle, CreditCard, GlobeIcon, KeyIcon, MailIcon, MessageSquareIcon, PaletteIcon, RefreshIcon, SendIcon, SettingsIcon, ShieldCheck } from '@/Components/Icons';
+import { BellIcon, CheckCircle, CreditCard, GlobeIcon, KeyIcon, MailIcon, NetworkIcon, MessageSquareIcon, PaletteIcon, RefreshIcon, SendIcon, SettingsIcon, ShieldCheck } from '@/Components/Icons';
 import SettingField from '@/Components/settings/SettingField';
 import EmailInEffect, { type EmailInEffectData } from '@/Components/settings/EmailInEffect';
 import SettingsCard from '@/Components/settings/SettingsCard';
@@ -35,6 +35,7 @@ type SettingsCan = {
     testChannels: boolean;
     /** Whether the API Management module is reachable for this user. */
     apiManagement?: boolean;
+    integrations?: boolean;
 };
 
 type RoleOption = {
@@ -210,6 +211,9 @@ export default function SystemSettingsIndex({ settingGroups, roles, can, emailIn
             // A separate module rather than a group of setting fields, so it links out.
             ...(group === 'security' && can.apiManagement
                 ? [{ id: 'api_management', label: t('settings.tabs.api_management'), icon: KeyIcon, href: route('api-management.index') }]
+                : []),
+            ...(group === 'security' && can.integrations
+                ? [{ id: 'integrations', label: t('settings.tabs.integrations'), icon: NetworkIcon, href: route('integrations.index') }]
                 : []),
         ],
     })).filter((group) => group.items.length > 0);

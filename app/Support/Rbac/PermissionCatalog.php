@@ -41,7 +41,7 @@ final class PermissionCatalog
         // A separate domain from grievances (docs/court-cases.md).
         'Court Cases' => ['court_cases'],
         // Legal mandate → functions → services → … → job descriptions (docs/organization-design-workforce-planning-plan.md).
-        'Organization Design & Workforce Planning' => ['institution-mandates', 'organization-functions', 'service-catalog', 'classifications', 'processes', 'professions', 'competency-catalog', 'organization-design', 'responsibility-types', 'workforce-planning', 'methodologies', 'position-profiles', 'job-descriptions', 'organization-design-reports', 'data-mapping'],
+        'Organization Design & Workforce Planning' => ['institution-mandates', 'organization-functions', 'service-catalog', 'classifications', 'processes', 'professions', 'competency-catalog', 'organization-design', 'responsibility-types', 'workforce-planning', 'methodologies', 'position-profiles', 'job-descriptions', 'organization-design-reports', 'data-mapping', 'legal-sources', 'legacy-baselines', 'design-imports', 'design-suggestions'],
         'ID & Verification' => ['id-cards', 'id_card_templates', 'nfc_credentials', 'nfc_terminals', 'nfc_logs'],
         'Daily Activity' => ['daily_activities', 'daily_activity_settings', 'work_standards'],
         'Field Work Management' => ['field_work'],
@@ -60,7 +60,7 @@ final class PermissionCatalog
             'transport-contracts', 'transport-schedules', 'transport-trips', 'transport-eligibility', 'transport-devices',
             'transport-manifests', 'transport-exceptions', 'transport-invoices', 'transport-settlements',
         ],
-        'Providers & External Applications' => ['service-providers', 'cafeteria-provider-users', 'cafeteria-portal', 'api_management'],
+        'Providers & External Applications' => ['service-providers', 'cafeteria-provider-users', 'cafeteria-portal', 'api_management', 'integrations'],
         'Security & Access Control' => ['users', 'user-organization-scopes', 'roles', 'permissions'],
         'Public Site' => [
             'public_site', 'public_home', 'public_announcements', 'public_services', 'public_support', 'public_navigation',

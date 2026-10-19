@@ -5,8 +5,14 @@ declare(strict_types=1);
 use App\Enums\OrganizationDesignStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
+use App\Models\DesignImportBatch;
+use App\Models\DesignImportRow;
 use App\Models\InstitutionMandate;
+use App\Models\LegacyBaseline;
 use App\Models\LegalInstrumentType;
+use App\Models\LegalSource;
+use App\Models\LegalSourceAttachment;
+use App\Models\LegalSourceCitation;
 use App\Models\ManpowerPlan;
 use App\Models\ManpowerPlanLine;
 use App\Models\Occupation;
@@ -118,9 +124,18 @@ function hdFixtures(Organization $organization): array
     $occupation = Occupation::query()->create(['code' => 'HD-'.substr(uniqid(), -4), 'isco_code' => '26'.random_int(10, 99), 'name_en' => 'Occupation', 'is_active' => true]);
     $line = ManpowerPlanLine::query()->create(['plan_id' => $plan->id, 'organization_id' => $o, 'organization_unit_id' => $unit->id, 'occupation_id' => $occupation->id, 'inputs' => [], 'sequence' => 1]);
     $export = OrganizationDesignReportExport::query()->create(['organization_id' => $o, 'report' => 'coverage', 'format' => 'csv', 'status' => 'ready', 'disk' => 'local', 'path' => 'organization-design/exports/none.csv', 'filename' => 'none.csv', 'requested_by' => $designer->id]);
+    $source = LegalSource::query()->create(['organization_id' => $o, 'code' => 'LS-'.substr(uniqid(), -4), 'title_en' => 'Source', 'source_type_id' => LegalInstrumentType::query()->value('id'), 'status' => 'active', 'created_by' => $designer->id]);
+    $attachment = LegalSourceAttachment::query()->create(['legal_source_id' => $source->id, 'disk' => 'local', 'path' => 'organization-design/legal-sources/none.pdf', 'original_name' => 'none.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1, 'sha256' => str_repeat('0', 64), 'uploaded_by' => $designer->id, 'created_at' => now()]);
+    $citation = LegalSourceCitation::query()->create(['legal_source_id' => $source->id, 'subject_type' => $mandate->getMorphClass(), 'subject_id' => $mandate->id, 'created_by' => $designer->id, 'created_at' => now()]);
+    $baseline = LegacyBaseline::query()->create(['organization_id' => $o, 'lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'reference_number' => 'LOB-'.substr(uniqid(), -8), 'title_en' => 'Baseline', 'status' => OrganizationDesignStatus::Draft, 'prepared_by' => $designer->id, 'created_by' => $designer->id]);
+    $batch = DesignImportBatch::query()->create(['reference_number' => 'DIB-'.substr(uniqid(), -8), 'organization_id' => $o, 'entity_type' => 'mandates', 'file_name' => 'none.csv', 'file_disk' => 'local', 'file_path' => 'organization-design/imports/none.csv', 'fingerprint' => str_repeat('0', 64), 'status' => 'validated', 'uploaded_by' => $designer->id]);
+    $row = DesignImportRow::query()->create(['batch_id' => $batch->id, 'row_number' => 2, 'data' => ['code' => 'X'], 'status' => 'valid', 'updated_at' => now()]);
+    $suggestion = \App\Models\DesignDocumentSuggestion::query()->create(['organization_id' => $o, 'mandate_id' => $mandate->id, 'kind' => 'functions', 'status' => 'ready', 'passage_sha256' => str_repeat('0', 64), 'passage_chars' => 1, 'items' => [['title' => 'T', 'kind' => 'function', 'legal_reference' => null, 'uncertain' => false, 'state' => 'pending', 'record_id' => null]], 'created_by' => $designer->id]);
 
     return [
+        'suggestion' => $suggestion,
         'organization' => $organization, 'unit' => $unit, 'mandate' => $mandate, 'power' => $power, 'function' => $function, 'service' => $service, 'process' => $process, 'activity' => $activity, 'task' => $task,
+        'source' => $source, 'attachment' => $attachment, 'citation' => $citation, 'baseline' => $baseline, 'other' => $baseline, 'batch' => $batch, 'row' => $row,
         'standard' => $standard, 'position' => $position, 'positionTask' => $positionTask, 'positionService' => $positionService, 'profile' => $profile, 'jobDescription' => $jd, 'study' => $study, 'proposal' => $proposal, 'plan' => $plan, 'line' => $line, 'export' => $export,
     ];
 }
@@ -134,7 +149,9 @@ test('every organization-design route refuses a fully permitted user of another 
     $me->refresh();
 
     // City-level catalog parameters are not organization-scoped; their permission tests live in their own phases.
-    $cityLevel = ['classification', 'competency', 'level', 'type', 'educationLevel', 'occupation', 'methodology', 'profession', 'specialization', 'responsibilityType', 'framework'];
+    $cityLevel = ['classification', 'competency', 'level', 'type', 'educationLevel', 'occupation', 'methodology', 'profession', 'specialization', 'responsibilityType', 'framework',
+        // The import template is a blank, city-wide download behind the upload permission; DesignImportTest covers it.
+        'entityType'];
     $subjects = ['io.sync' => ['activity', $f['activity']], 'requirements.sync' => ['task', $f['task']], 'responsibilities.sync' => ['unit', $f['unit']]];
     $swept = 0;
     $skipped = [];
@@ -160,6 +177,12 @@ test('every organization-design route refuses a fully permitted user of another 
                 $values['subject'] = $subjects[$short][1]->getKey();
             } elseif ($param === 'sectionKey') {
                 $values[$param] = 'authorities';
+            } elseif ($param === 'index') {
+                // An item of a foreign suggestion: the suggestion carries the scope.
+                $values[$param] = 0;
+            } elseif ($param === 'step') {
+                // A wizard step of a foreign baseline: the baseline itself carries the scope.
+                $values[$param] = 'mandates';
             } elseif ($param === 'kind') {
                 // The lookup endpoint: an organization-scoped kind without the organization in scope.
                 $values[$param] = 'tasks';

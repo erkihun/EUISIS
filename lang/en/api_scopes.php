@@ -15,6 +15,10 @@ return [
     'organization_units.read' => 'Read Organization Units',
     'positions.read' => 'Read Positions',
     'employees.basic_read' => 'Read Employees',
+    'employees.photo_read' => 'Read Employee ID Photos (signed links)',
+    'changes.read' => 'Read the Change Feed',
+    'webhooks.manage' => 'View Own Webhook Subscriptions and Deliveries',
+    'webhooks.replay' => 'Replay Own Webhook Deliveries',
     'employee_assignments.read' => 'Read Employee Assignments',
     'organization_structure.read' => 'Read Organization Structure',
 ];

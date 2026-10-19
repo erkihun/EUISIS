@@ -7,6 +7,7 @@ import EndpointAssignment, { AssignableEndpoint } from '@/Components/apiManageme
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
+import OrganizationAccessFields, { type Option, type OrganizationGrant } from '@/Components/apiManagement/OrganizationAccessFields';
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
@@ -34,7 +35,13 @@ interface Props {
         rate_limit_per_minute: number;
         allowed_ips: string[];
         last_used_at: string | null;
+        organization_access: string;
+        service_provider_id: string | null;
+        organization_scopes: OrganizationGrant[];
+        access_findings: string[];
     };
+    organizationOptions: Option[];
+    providerOptions: Option[];
     tokens: TokenRow[];
     scopes: { value: string; label: string }[];
     assignableEndpoints: AssignableEndpoint[];
@@ -59,6 +66,8 @@ export default function ApiManagementShow({
     scopes,
     assignableEndpoints,
     assignedEndpoints,
+    organizationOptions,
+    providerOptions,
     can,
 }: Props) {
     const { t } = useLocale();
@@ -81,6 +90,9 @@ export default function ApiManagementShow({
         // Preloaded so opening the edit form does not clear existing
         // assignments — sync() would otherwise detach every one of them.
         endpoint_ids: assignedEndpoints.map((endpoint) => endpoint.id),
+        organization_access: application.organization_access,
+        service_provider_id: application.service_provider_id ?? '',
+        organization_scopes: application.organization_scopes,
     });
 
 
@@ -169,6 +181,9 @@ export default function ApiManagementShow({
                     <form onSubmit={submit} className="space-y-4">
                         <ApplicationFields values={form.data} onChange={values => form.setData({ ...form.data, ...values })} errors={form.errors} disabled={form.processing} />
 
+                        <OrganizationAccessFields values={form.data} onChange={(values) => form.setData({ ...form.data, ...values })}
+                            organizations={organizationOptions} providers={providerOptions} errors={form.errors} disabled={form.processing} />
+
                         <fieldset>
                             <legend className="mb-2 text-xs font-semibold text-(--app-muted-foreground)">{t('apiManagement.apiScopes')}</legend>
                             <div className="flex flex-wrap gap-3">
@@ -228,6 +243,44 @@ export default function ApiManagementShow({
                         <dd className="mt-1 text-sm text-(--app-foreground)">{application.owner_institution ?? '—'}</dd>
                     </div>
                 </dl>
+
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.organizationAccess')}</p>
+                        <p className="mt-1 text-sm text-(--app-foreground)">{t(`apiManagement.organizationAccess_${application.organization_access}`)}</p>
+                        {application.organization_access === 'scoped' && (
+                            application.organization_scopes.length === 0 ? (
+                                <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t('apiManagement.noOrganizationGrants')}</p>
+                            ) : (
+                                <ul className="mt-1 space-y-0.5 text-xs text-(--app-muted-foreground)">
+                                    {application.organization_scopes.map((grant) => (
+                                        <li key={grant.organization_id}>
+                                            {organizationOptions.find((option) => option.value === grant.organization_id)?.label ?? grant.organization_id}
+                                            {' · '}{t(`apiManagement.grantType_${grant.scope_type}`)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )
+                        )}
+                    </div>
+                    <div>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.serviceProviderBinding')}</p>
+                        <p className="mt-1 text-sm text-(--app-foreground)">
+                            {providerOptions.find((option) => option.value === application.service_provider_id)?.label ?? t('apiManagement.noProviderBinding')}
+                        </p>
+                    </div>
+                </div>
+
+                {application.access_findings.length > 0 && (
+                    <div className="mt-4" aria-label={t('apiManagement.accessReview')}>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.accessReview')}</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                            {application.access_findings.map((finding) => (
+                                <span key={finding} className="rounded-sm bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">{t(`apiManagement.accessFinding_${finding}`)}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className="mt-4">
                     <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.apiScopes')}</p>

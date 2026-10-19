@@ -13,4 +13,4 @@
 * Situation Room category `transport`; Intelligence data-quality panel `quality_transport`.
 
 ## Not provided (by design)
-No event bus / outbox exists in the platform; integration is through the audit log, notifications and the API. An accounting export of approved statements is `NEEDS_POLICY_DECISION_TRANSPORT_ACCOUNTING_EXPORT` (the statement PDF/CSV is the current hand-off).
+The platform's transactional outbox and webhooks (`app/Services/Integration/Events`, `EventCatalog`) publish master-data events (organizations, units, positions, employees) to partners; transport events are not in the catalog — whether providers may subscribe to trip or statement events is `NEEDS_POLICY_DECISION_TRANSPORT_EVENTS`. Transport integration today is the audit log, notifications and the device API. An accounting export of approved statements is `NEEDS_POLICY_DECISION_TRANSPORT_ACCOUNTING_EXPORT` (the statement PDF/CSV is the current hand-off).

@@ -80,7 +80,8 @@ it('uses a compact responsive operations layout with real actions and attention 
         ->toContain('header={<DashboardHeader')
         ->and($overview)
         ->toContain('<AttentionPanel')
-        ->toContain("'xl:col-span-8'")
+        // Command-desk layout: the main column wraps beside the rail by its own width, not a fixed 8/4 grid.
+        ->toContain('flex-[999_1_38rem]')
         ->toContain('<RecentActivityFeed items={recentActivity} t={t} />')
         ->and($header)
         ->toContain('text-page-title')

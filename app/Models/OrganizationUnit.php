@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\OrganizationRelationshipType;
 use App\Enums\OrganizationUnitStatus;
+use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\OrganizationUnitType as OrganizationUnitTypeModel;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrganizationUnit extends Model
 {
+    use HasIntegrationEvents;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 

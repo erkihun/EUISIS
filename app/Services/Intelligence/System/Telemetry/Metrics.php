@@ -96,6 +96,16 @@ final class Metrics
 
     public const INTEGRATION_BROADCAST_FAILURES_TOTAL = 'integration.broadcast_failures_total';
 
+    // event integration layer (docs/integration/transactional-outbox.md)
+    public const INTEGRATION_OUTBOX_PENDING = 'integration.outbox_pending';
+
+    public const INTEGRATION_OUTBOX_OLDEST_SECONDS = 'integration.outbox_oldest_seconds';
+
+    public const INTEGRATION_WEBHOOK_DEAD_TOTAL = 'integration.webhook_dead_total';
+
+    // dimension: application code
+    public const INTEGRATION_WEBHOOK_FAILURES = 'integration.webhook_failures';
+
     // security
     // Transport (config/features.php: transport): scanner fleet and boarding backlog.
     public const TRANSPORT_DEVICES_ACTIVE = 'transport.devices_active';

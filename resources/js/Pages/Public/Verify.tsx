@@ -88,7 +88,7 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
                         <section aria-labelledby="scan-heading" className="flex min-w-0 flex-col p-4 sm:p-6 lg:p-8">
                             <ConsoleHeading id="scan-heading" title={t('home.verifyScanTitle')} intro={t('home.verifyScanIntro')} icon={<ScanIcon className="h-6 w-6" />} />
 
-                            <div className="mx-auto mt-5 w-full max-w-md lg:max-w-sm">
+                            <div className="mx-auto mt-5 w-full max-w-md">
                                 {showScanner ? (
                                     <ScannerBoundary onFailure={() => { setScannerFailed(true); setShowScanner(false); }} fallbackLabel={t('idChecker.scannerUnavailable')}>
                                         <Suspense fallback={<Viewfinder label={t('idChecker.loadingScanner')} />}>
@@ -213,7 +213,7 @@ function ConsoleHeading({ id, title, intro, icon }: { id: string; title: string;
  */
 function Viewfinder({ label }: { label: string }) {
     return (
-        <div className="mx-auto flex aspect-square w-full min-w-0 max-w-md flex-col items-center justify-center gap-4 rounded-[10px] bg-slate-950 px-4 text-center lg:max-w-sm">
+        <div className="mx-auto flex aspect-square w-full min-w-0 max-w-md flex-col items-center justify-center gap-4 rounded-[10px] bg-slate-950 px-4 text-center">
             <div aria-hidden="true" className="relative aspect-square w-[70%] rounded-[14px] border-2 border-dashed border-white/35">
                 <i className="absolute -left-0.5 -top-0.5 h-6 w-6 rounded-tl border-l-[3px] border-t-[3px] border-white" />
                 <i className="absolute -right-0.5 -top-0.5 h-6 w-6 rounded-tr border-r-[3px] border-t-[3px] border-white" />

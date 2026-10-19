@@ -161,6 +161,7 @@ export default {
     card_field_work: 'Field work',
     card_cafeteria: 'Cafeteria',
     card_transport: 'Transport',
+    card_organization_design: 'Structure readiness',
     employees: 'Employees',
     active_employees: 'Active employees',
     occupied: 'Occupied positions',
@@ -176,6 +177,10 @@ export default {
     approved_field_work: 'Approved, not yet out',
     in_field: 'In the field',
     meals_today: 'Meals served today',
+    required_fte: 'Required FTE (approved plans)',
+    approved_headcount: 'Approved headcount',
+    positions_without_jd: 'Positions without a job description',
+    baselines_published: 'Institutions with a published baseline',
 
     configurationTitle: 'Taking part',
     withoutQr: '{count} active institutions have no active feedback QR code.',

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\OrganizationStatus;
 use App\Enums\RelationshipTargetType;
+use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use App\Support\Phone\PublicContactPhone;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
 {
+    use HasIntegrationEvents;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 

@@ -9,6 +9,7 @@ use App\Models\Competency;
 use App\Models\EmployeeAssignment;
 use App\Models\InstitutionMandate;
 use App\Models\JobDescription;
+use App\Models\LegalSource;
 use App\Models\ManpowerPlan;
 use App\Models\ManpowerPlanLine;
 use App\Models\Occupation;
@@ -45,6 +46,7 @@ class OrganizationDesignReportService
         'coverage', 'traceability', 'gaps', 'position_readiness', 'workforce',
         'service_catalog', 'function_service_matrix', 'service_process_matrix', 'process_activity_matrix', 'activity_standards',
         'occupation_demand', 'competency_demand', 'responsibility_matrix', 'fte_vs_headcount', 'position_requirements', 'vacancy', 'jd_register',
+        'legal_sources',
     ];
 
     /** The most organizations one run covers; the organization filter narrows it. */
@@ -69,6 +71,7 @@ class OrganizationDesignReportService
         'position_requirements' => ['organization_code', 'reference_number', 'unit_code', 'occupation', 'profession', 'position_title', 'required_fte', 'approved_headcount', 'status', 'position_code', 'establishment_number'],
         'vacancy' => ['organization_code', 'position_code', 'position_title', 'unit_code', 'approved_slots', 'current_employees', 'vacancies'],
         'jd_register' => ['organization_code', 'reference_number', 'position_code', 'position_title', 'version_no', 'status', 'effective_from', 'effective_to', 'prepared_by', 'approved_by', 'published_by'],
+        'legal_sources' => ['organization_code', 'source_code', 'source_title', 'source_type', 'document_number', 'issuing_authority', 'issue_date', 'effective_from', 'effective_to', 'status', 'attachments', 'citations'],
     ];
 
     public function __construct(
@@ -96,10 +99,36 @@ class OrganizationDesignReportService
             ]))->all(),
             'position_readiness' => $this->readinessRows($organizations),
             'workforce' => $this->workforceRows($organizations),
+            'legal_sources' => $this->legalSourceRows($organizations),
             default => $organizations->flatMap(fn (Organization $o) => collect($this->catalogRows($report, $o))->map(fn ($r) => ['organization_code' => $o->code, ...$r]))->all(),
         };
 
         return ['report' => $report, 'columns' => self::COLUMNS[$report], 'rows' => array_values($rows), 'organizations' => $organizations->count(), 'truncated' => $organizations->count() >= self::MAX_ORGANIZATIONS];
+    }
+
+    /**
+     * The legal source register: the organizations' own sources plus the
+     * city-level ones (organization_code "CITY"), each with how many
+     * documents and citations it carries.
+     *
+     * @param  Collection<int, Organization>  $organizations
+     * @return list<array<string, mixed>>
+     */
+    private function legalSourceRows(Collection $organizations): array
+    {
+        $codes = $organizations->pluck('code', 'id');
+
+        return LegalSource::query()
+            ->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $organizations->pluck('id')))
+            ->with('sourceType:id,code,name_en')->withCount(['attachments', 'citations'])
+            ->orderBy('organization_id')->orderBy('code')->limit(5000)->get()
+            ->map(fn (LegalSource $s) => [
+                'organization_code' => $s->organization_id === null ? 'CITY' : ($codes[$s->organization_id] ?? ''),
+                'source_code' => $s->code, 'source_title' => $s->title_en, 'source_type' => $s->sourceType?->name_en,
+                'document_number' => $s->document_number, 'issuing_authority' => $s->issuing_authority,
+                'issue_date' => $s->issue_date?->toDateString(), 'effective_from' => $s->effective_from?->toDateString(), 'effective_to' => $s->effective_to?->toDateString(),
+                'status' => $s->status->value, 'attachments' => $s->attachments_count, 'citations' => $s->citations_count,
+            ])->all();
     }
 
     /** @return Collection<int, Organization> */

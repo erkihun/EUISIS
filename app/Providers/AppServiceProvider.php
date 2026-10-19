@@ -30,6 +30,7 @@ use App\Models\Communication\Conversation;
 use App\Models\Communication\Message;
 use App\Models\Communication\MessageAttachment;
 use App\Models\DailyActivityLog;
+use App\Models\DesignImportBatch;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeCafeteriaExclusion;
@@ -43,6 +44,8 @@ use App\Models\IdCard;
 use App\Models\InstitutionMandate;
 use App\Models\IsicActivity;
 use App\Models\JobDescription;
+use App\Models\LegacyBaseline;
+use App\Models\LegalSource;
 use App\Models\ManpowerPlan;
 use App\Models\Occupation;
 use App\Models\Organization;
@@ -55,10 +58,10 @@ use App\Models\OrganizationPower;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
-use App\Models\Permission;
+use App\Models\Permission; // alias to avoid clash with Illuminate\Support\ServiceProvider
 use App\Models\Position;
 use App\Models\PositionEstablishment;
-use App\Models\PositionProfile; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\PositionProfile;
 use App\Models\PositionService;
 use App\Models\Process;
 use App\Models\ProviderUser;
@@ -104,6 +107,7 @@ use App\Policies\Communication\ConversationPolicy;
 use App\Policies\Communication\MessageAttachmentPolicy;
 use App\Policies\Communication\MessagePolicy;
 use App\Policies\DailyActivityLogPolicy;
+use App\Policies\DesignImportBatchPolicy;
 use App\Policies\EmployeeCafeteriaExclusionPolicy;
 use App\Policies\EmployeePolicy;
 use App\Policies\EmployeeServiceFeedbackPolicy;
@@ -115,6 +119,8 @@ use App\Policies\GradeLevelPolicy;
 use App\Policies\IdCardPolicy;
 use App\Policies\InstitutionMandatePolicy;
 use App\Policies\IsicActivityPolicy;
+use App\Policies\LegacyBaselinePolicy;
+use App\Policies\LegalSourcePolicy;
 use App\Policies\ManpowerPlanPolicy;
 use App\Policies\OccupationPolicy;
 use App\Policies\OrganizationalChangeRequestPolicy;
@@ -164,6 +170,7 @@ use App\Services\Calendar\LocalizedDateService;
 use App\Services\Communication\AttachmentScanner;
 use App\Services\Communication\PendingAttachmentScanner;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
+use App\Services\Integration\Events\IntegrationEventContext;
 use App\Services\PublicAssistant\PublicAssistantSettings;
 use App\Services\Security\SessionActivityService;
 use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
@@ -200,6 +207,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bindIf(AttachmentScanner::class, PendingAttachmentScanner::class);
         // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
         $this->app->scoped(SituationMemo::class);
+        // Event integration: one correlation id and suppression set per request / job.
+        $this->app->scoped(IntegrationEventContext::class);
         // One instance per request: validation, rendering and storage read the same questionnaire version.
         $this->app->scoped(PublicFeedbackQuestionnaire::class);
 
@@ -305,6 +314,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(OrganizationUnitType::class, OrganizationUnitTypePolicy::class);
         Gate::policy(Occupation::class, OccupationPolicy::class);
         Gate::policy(InstitutionMandate::class, InstitutionMandatePolicy::class);
+        Gate::policy(LegalSource::class, LegalSourcePolicy::class);
+        Gate::policy(LegacyBaseline::class, LegacyBaselinePolicy::class);
+        Gate::policy(DesignImportBatch::class, DesignImportBatchPolicy::class);
         Gate::policy(OrganizationFunction::class, OrganizationFunctionPolicy::class);
         Gate::policy(OrganizationPower::class, OrganizationFunctionPolicy::class);
         Gate::policy(Service::class, ServicePolicy::class);

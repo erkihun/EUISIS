@@ -134,4 +134,43 @@ return [
 
     $entry('data-mapping.view', 'data-mapping', 10, 'View the mapping workspace', 'የማዛመጃ የሥራ ቦታውን ይመልከቱ',
         'See existing records not yet linked to the design, their suggestions and the data-quality report. Mapping itself uses the permissions of each record kind.', 'ከንድፉ ጋር ገና ያልተገናኙ ነባር መዝገቦችን፣ ጥቆማዎቻቸውንና የመረጃ ጥራት ሪፖርቱን ይመልከቱ። ማገናኘቱ ራሱ የእያንዳንዱን መዝገብ ዓይነት ፈቃዶች ይጠቀማል።'),
+
+    // Legal sources and legacy baselines (docs/organization-design-legacy-baseline-plan.md §5).
+    $entry('legal-sources.viewAny', 'legal-sources', 10, 'View legal sources', 'የሕግ ምንጮችን ይመልከቱ',
+        'List the proclamations, regulations, directives, decisions and studies the design cites, within scope and city-level.', 'ንድፉ የሚጠቅሳቸውን አዋጆች፣ ደንቦች፣ መመሪያዎች፣ ውሳኔዎችና ጥናቶች በወሰን ውስጥና በከተማ ደረጃ ይዘርዝሩ።'),
+    $entry('legal-sources.view', 'legal-sources', 20, 'Open a legal source', 'የሕግ ምንጭ ይክፈቱ',
+        'Read a legal source, its citations and download its documents.', 'የሕግ ምንጭን፣ ጥቅሶቹንና ሰነዶቹን ያንብቡ፤ ያውርዱ።'),
+    $entry('legal-sources.create', 'legal-sources', 30, 'Record legal sources', 'የሕግ ምንጮችን ይመዝግቡ',
+        'Record a legal source for an organization in scope and attach its documents.', 'በወሰን ውስጥ ላለ ተቋም የሕግ ምንጭ ይመዝግቡ፤ ሰነዶቹን ያያይዙ።'),
+    $entry('legal-sources.update', 'legal-sources', 40, 'Edit legal sources', 'የሕግ ምንጮችን ያርትዑ',
+        'Edit, mark superseded or repealed, and manage the documents of an organization\'s legal sources.', 'የተቋም የሕግ ምንጮችን ያርትዑ፣ የተተኩ ወይም የተሻሩ ምልክት ያድርጉ፣ ሰነዶቻቸውን ያስተዳድሩ።'),
+    $entry('legal-sources.manageCatalog', 'legal-sources', 50, 'Manage city-level legal sources', 'የከተማ ደረጃ የሕግ ምንጮችን ያስተዳድሩ',
+        'Record and edit the legal sources every institution may cite (city proclamations, regulations). Global, not organization-scoped.', 'እያንዳንዱ ተቋም ሊጠቅሳቸው የሚችሉትን የሕግ ምንጮች (የከተማ አዋጆች፣ ደንቦች) ይመዝግቡና ያርትዑ። ዓለም አቀፍ፤ በተቋም ወሰን አይገደብም።'),
+
+    $entry('legacy-baselines.viewAny', 'legacy-baselines', 10, 'View legacy baselines', 'የቀድሞ መነሻ መዝገቦችን ይመልከቱ',
+        'List the legacy organization baselines of organizations in scope.', 'በወሰን ውስጥ ያሉ ተቋማትን የቀድሞ መነሻ መዝገቦች ይዘርዝሩ።'),
+    $entry('legacy-baselines.view', 'legacy-baselines', 20, 'Open a legacy baseline', 'የቀድሞ መነሻ መዝገብ ይክፈቱ',
+        'Read a baseline, its steps, validation report, snapshot and history.', 'መነሻ መዝገብን፣ ደረጃዎቹን፣ የማረጋገጫ ሪፖርቱን፣ ቅጽበታዊ ቅጂውንና ታሪኩን ያንብቡ።'),
+    $entry('legacy-baselines.create', 'legacy-baselines', 30, 'Start legacy baselines', 'የቀድሞ መነሻ መዝገብ ይጀምሩ',
+        'Open a legacy baseline capture for an organization in scope.', 'በወሰን ውስጥ ላለ ተቋም የቀድሞ መነሻ መዝገብ ቀረጻ ይክፈቱ።'),
+    $entry('legacy-baselines.update', 'legacy-baselines', 40, 'Work on legacy baselines', 'በቀድሞ መነሻ መዝገቦች ላይ ይሥሩ',
+        'Save wizard steps, cite legal sources, run validation and submit a draft baseline for review.', 'የመመሪያ ደረጃዎችን ያስቀምጡ፣ የሕግ ምንጮችን ይጥቀሱ፣ ማረጋገጫ ያስኪዱ፣ ረቂቅ መነሻ መዝገብ ለግምገማ ያቅርቡ።'),
+    $entry('legacy-baselines.review', 'legacy-baselines', 50, 'Review legacy baselines', 'የቀድሞ መነሻ መዝገቦችን ይገምግሙ',
+        'Return a submitted baseline to its drafter with a reason.', 'የቀረበን መነሻ መዝገብ ከምክንያት ጋር ወደ አርቃቂው ይመልሱ።'),
+    $entry('legacy-baselines.approve', 'legacy-baselines', 60, 'Approve legacy baselines', 'የቀድሞ መነሻ መዝገቦችን ያጽድቁ',
+        'Approve a submitted baseline whose validation shows no error. Never the person who drafted it.', 'ማረጋገጫው ስህተት የማያሳይ የቀረበ መነሻ መዝገብ ያጽድቁ። በጭራሽ ያረቀቀው ሰው አይደለም።'),
+    $entry('legacy-baselines.publish', 'legacy-baselines', 70, 'Publish legacy baselines', 'የቀድሞ መነሻ መዝገቦችን ይፋ ያድርጉ',
+        'Publish an approved baseline: the snapshot is frozen and any earlier published baseline is superseded.', 'የጸደቀን መነሻ መዝገብ ይፋ ያድርጉ፡ ቅጽበታዊ ቅጂው ይቀዘቅዛል፤ ቀደም ብሎ ይፋ የሆነ መነሻ ይተካል።'),
+
+    $entry('design-imports.viewAny', 'design-imports', 10, 'View design imports', 'የንድፍ ማስመጫዎችን ይመልከቱ',
+        'List import batches of organizations in scope with their row results.', 'በወሰን ውስጥ ያሉ ተቋማትን የማስመጫ ባችዎች ከረድፍ ውጤቶቻቸው ጋር ይዘርዝሩ።'),
+    $entry('design-imports.create', 'design-imports', 20, 'Upload design imports', 'የንድፍ ማስመጫ ይጫኑ',
+        'Upload an Excel or CSV file into staging, download templates, fix mappings and re-validate. Nothing becomes authoritative here.', 'የExcel ወይም CSV ፋይል ወደ ማቆያ ይጫኑ፣ ቅጾችን ያውርዱ፣ ማዛመጃዎችን ያስተካክሉ፣ እንደገና ያረጋግጡ። እዚህ ምንም ባለሥልጣን አይሆንም።'),
+    $entry('design-imports.commit', 'design-imports', 30, 'Commit design imports', 'የንድፍ ማስመጫ ያጽድቁ',
+        'Commit a validated batch: rows become draft design records through the ordinary services.', 'የተረጋገጠ ባች ያጽድቁ፡ ረድፎች በመደበኛ አገልግሎቶች በኩል ረቂቅ የንድፍ መዝገቦች ይሆናሉ።'),
+
+    $entry('design-suggestions.view', 'design-suggestions', 10, 'View document suggestions', 'የሰነድ ጥቆማዎችን ይመልከቱ',
+        'See what the document assistant suggested from an uploaded source document, with its uncertainty marks.', 'የሰነድ ረዳቱ ከተጫነ የምንጭ ሰነድ የጠቆመውን ከእርግጠኛ ያልሆኑ ምልክቶቹ ጋር ይመልከቱ።'),
+    $entry('design-suggestions.apply', 'design-suggestions', 20, 'Apply document suggestions', 'የሰነድ ጥቆማዎችን ይተግብሩ',
+        'Accept a suggestion into a draft record, or reject it. Nothing is published from a suggestion.', 'ጥቆማን ወደ ረቂቅ መዝገብ ይቀበሉ፣ ወይም ውድቅ ያድርጉ። ከጥቆማ ምንም ይፋ አይሆንም።'),
 ];
