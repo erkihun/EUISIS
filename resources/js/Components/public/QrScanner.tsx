@@ -57,6 +57,23 @@ function pickMainRearCamera(cameras: MediaDeviceInfo[]): MediaDeviceInfo | undef
     return rear.find((camera) => /camera2 0\b|^back camera$/i.test(camera.label)) ?? rear[0];
 }
 
+/**
+ * The scan box, from the video as rendered: nearly the whole picture.
+ *
+ * Width is 90% of the video's width. Height is 90% of the shorter side,
+ * because a portrait phone picture is clipped to a square by the container
+ * and a box taller than that would run out of sight. On a laptop the picture
+ * is landscape, so the box is a wide rectangle that fills the view; a QR is
+ * square but the decoder reads it anywhere inside the box. The aiming frame
+ * drawn over the video uses the same measure, so what is shown is what is read.
+ */
+function scanRegion(viewfinderWidth: number, viewfinderHeight: number): { width: number; height: number } {
+    return {
+        width: Math.max(120, Math.floor(viewfinderWidth * 0.9)),
+        height: Math.max(120, Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.9)),
+    };
+}
+
 /** Switch only from a lens that is known to be wrong for close-up codes. */
 function needsBetterLens(current: MediaDeviceInfo, main: MediaDeviceInfo): boolean {
     if (SECONDARY_LENS.test(current.label)) {
@@ -75,14 +92,15 @@ function needsBetterLens(current: MediaDeviceInfo, main: MediaDeviceInfo): boole
  * and is useless to a visitor who arrived by scanning a QR with their phone's
  * own camera, which is the common path on mobile.
  *
- * The camera area is a square that fills the width on a phone and is capped
- * on a wide screen. The video inside keeps its own shape and is centred, so a
- * tall phone picture is clipped top and bottom, never squeezed: html5-qrcode
- * maps its scan box from the video element to the camera frame, and an
- * earlier fixed 220px height that distorted the video made it decode the
- * wrong region and miss codes. Because the picture may be clipped, the
- * library's own shading is hidden and a frame measured from the video is
- * drawn instead, centred where the scan box is.
+ * The camera area fills the width on a phone and is capped on a wide screen.
+ * The video inside keeps its own shape and is centred, never squeezed:
+ * html5-qrcode maps its scan box from the video element to the camera frame,
+ * and an earlier fixed 220px height that distorted the video made it decode
+ * the wrong region and miss codes. A tall phone picture is clipped top and
+ * bottom to a square; a landscape laptop picture shrinks the area to its own
+ * height instead, so no black bars surround it. Because the picture may be
+ * clipped, the library's own shading is hidden and a frame measured from the
+ * video is drawn instead, centred where the scan box is.
  */
 export default function QrScanner({ onDecoded, autoStart = false }: Props) {
     const { t } = useLocale();
@@ -94,8 +112,10 @@ export default function QrScanner({ onDecoded, autoStart = false }: Props) {
     const [error, setError] = useState<string | null>(null);
     const [torchOn, setTorchOn] = useState(false);
     const [torchSupported, setTorchSupported] = useState(false);
-    // Edge of the aiming frame in pixels: the scan box html5-qrcode reads.
-    const [frame, setFrame] = useState(0);
+    // The aiming frame in pixels: the scan box html5-qrcode reads.
+    const [frame, setFrame] = useState<{ width: number; height: number } | null>(null);
+    // Height of the camera area once the video's shape is known (see below).
+    const [viewHeight, setViewHeight] = useState<number | null>(null);
 
     const stop = useCallback(async () => {
         try {
@@ -114,24 +134,30 @@ export default function QrScanner({ onDecoded, autoStart = false }: Props) {
     useEffect(() => () => void stop(), [stop]);
 
     /*
-     * The aiming frame matches the scan box: 75% of the shorter side of the
-     * video as rendered. Measured from the video itself, because the camera
-     * decides its shape (portrait on most phones, landscape on laptops).
+     * The aiming frame matches the scan box (scanRegion), and the camera area
+     * takes the video's own height when that is shorter than a square, so a
+     * landscape picture is not framed by black bars. Both are measured from
+     * the video itself, because the camera decides its shape (portrait on
+     * most phones, landscape on laptops). The video element's own box never
+     * changes here — only the container around it — so the library's mapping
+     * from that box to the camera frame stays exact.
      */
     useEffect(() => {
         const video = active ? document.getElementById(regionId)?.querySelector('video') : null;
 
         if (!video) {
-            setFrame(0);
+            setFrame(null);
+            setViewHeight(null);
 
             return;
         }
 
         const measure = () => {
-            const shorter = Math.min(video.clientWidth, video.clientHeight);
+            const { clientWidth, clientHeight } = video;
 
-            if (shorter > 0) {
-                setFrame(Math.max(120, Math.floor(shorter * 0.75)));
+            if (clientWidth > 0 && clientHeight > 0) {
+                setFrame(scanRegion(clientWidth, clientHeight));
+                setViewHeight(Math.min(clientWidth, clientHeight));
             }
         };
         const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
@@ -175,13 +201,8 @@ export default function QrScanner({ onDecoded, autoStart = false }: Props) {
                 // The full request, resolution hints included. Only "ideal"
                 // values: a camera that cannot meet them still opens.
                 videoConstraints: constraints,
-                // Square scan box at 75% of the shorter side: on a phone
-                // a card held at a comfortable distance fits inside it.
-                qrbox: (viewfinderWidth, viewfinderHeight) => {
-                    const edge = Math.max(120, Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.75));
-
-                    return { width: edge, height: edge };
-                },
+                // Nearly the whole picture: a card anywhere in view is read.
+                qrbox: scanRegion,
             },
             (decoded) => {
                 // This runs inside html5-qrcode's scan loop. Anything that
@@ -387,9 +408,11 @@ export default function QrScanner({ onDecoded, autoStart = false }: Props) {
     return (
         <div className="min-w-0 w-full">
             <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-panel border border-gray-200 bg-slate-950 dark:border-slate-800">
+                {/* Square until the video's shape is known; an explicit height then overrides the ratio. */}
                 <div
                     id={regionId}
                     className="flex aspect-square w-full items-center justify-center overflow-hidden [&_#qr-shaded-region]:hidden [&_video]:block [&_video]:shrink-0"
+                    style={viewHeight ? { height: viewHeight } : undefined}
                 />
 
                 {!active && (
@@ -413,11 +436,11 @@ export default function QrScanner({ onDecoded, autoStart = false }: Props) {
 
                 {active && (
                     <>
-                        {frame > 0 && (
+                        {frame && (
                             <div
                                 aria-hidden="true"
                                 className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-panel border-2 border-white/90 shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]"
-                                style={{ width: frame, height: frame }}
+                                style={{ width: frame.width, height: frame.height }}
                             />
                         )}
 
