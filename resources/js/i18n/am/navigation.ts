@@ -175,6 +175,7 @@ const navigation = {
     designPositions: 'የሥራ መደብ ንድፍና የሥራ መግለጫዎች',
     designReports: 'የአደረጃጀት ሪፖርቶች',
     designMapping: 'የመረጃ ማዛመጃ',
+    designLegalSources: 'የሕግ ምንጮች',
     transportProviders: 'የትራንስፖርት አቅራቢዎች',
     transportScan: 'መታወቂያ ካርድ ይቃኙ',
     transportRoutes: 'መስመሮች',

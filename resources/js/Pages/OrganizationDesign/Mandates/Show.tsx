@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import FunctionTree, { type FunctionNode, type PowerOption } from '@/Components/organizationDesign/FunctionTree';
-import MandateForm, { type InstrumentType, type MandateFormValues } from '@/Components/organizationDesign/MandateForm';
+import MandateForm, { type InstrumentType, type LegalSourceOption, type MandateFormValues } from '@/Components/organizationDesign/MandateForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, FieldError, FormField, Input, Textarea, actionLinkClassName } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -23,10 +23,11 @@ type Props = {
     functions: FunctionNode[];
     history: { from: string | null; to: string; actor: string | null; reason: string | null; at: string }[];
     instrumentTypes: InstrumentType[];
+    legalSources: LegalSourceOption[];
     can: { update: boolean; publish: boolean; version: boolean; manageFunctions: boolean };
 };
 
-export default function MandateShow({ mandate, versions, powers, functions, history, instrumentTypes, can }: Props) {
+export default function MandateShow({ mandate, versions, powers, functions, history, instrumentTypes, legalSources, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState(false);
@@ -38,6 +39,7 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
         description_en: mandate.description_en ?? '', description_am: mandate.description_am ?? '',
         legal_instrument_type_id: mandate.legal_instrument_type_id, legal_instrument_number: mandate.legal_instrument_number,
         legal_reference: mandate.legal_reference ?? '', article_reference: mandate.article_reference ?? '', issuing_authority: mandate.issuing_authority ?? '',
+        legal_source_id: mandate.legal_source_id ?? '',
         effective_from: mandate.effective_from ?? '', effective_to: mandate.effective_to ?? '',
     };
 
@@ -94,6 +96,7 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
                             {detail(tt('fields.legalReference'), mandate.legal_reference)}
                             {detail(tt('fields.articleReference'), mandate.article_reference)}
                             {detail(tt('fields.issuingAuthority'), mandate.issuing_authority)}
+                            {detail(tt('mandates.legalSource'), mandate.legal_source ? <Link href={route('organization-design.legal-sources.show', mandate.legal_source.id)} className="hover:underline">{mandate.legal_source.code} · {locale === 'am' && mandate.legal_source.title_am ? mandate.legal_source.title_am : mandate.legal_source.title_en}</Link> : null)}
                             {detail(tt('fields.effectiveFrom'), <LocalizedDateDisplay value={mandate.effective_from} />)}
                             {detail(tt('fields.effectiveTo'), mandate.effective_to ? <LocalizedDateDisplay value={mandate.effective_to} /> : null)}
                             {detail(tt('mandates.draftedBy'), mandate.created_by)}
@@ -172,7 +175,7 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
                 </div>
             </div>
 
-            {can.update && <MandateForm show={editing} onClose={() => setEditing(false)} title={tt('mandates.edit')} initial={values} url={route('organization-design.mandates.update', mandate.id)} method="put" instrumentTypes={instrumentTypes} />}
+            {can.update && <MandateForm show={editing} onClose={() => setEditing(false)} title={tt('mandates.edit')} initial={values} url={route('organization-design.mandates.update', mandate.id)} method="put" instrumentTypes={instrumentTypes} legalSources={legalSources} />}
             {can.version && <MandateForm show={versioning} onClose={() => setVersioning(false)} title={tt('mandates.newVersion')} help={tt('mandates.newVersionHelp')} initial={{ ...values, effective_from: '', effective_to: '' }} url={route('organization-design.mandates.versions.store', mandate.id)} method="post" instrumentTypes={instrumentTypes} lockCode />}
             {powerForm && <PowerForm mandateId={mandate.id} power={powerForm === 'new' ? null : powerForm} onClose={() => setPowerForm(null)} />}
         </AuthenticatedLayout>

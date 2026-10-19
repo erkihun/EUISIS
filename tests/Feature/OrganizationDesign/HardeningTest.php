@@ -118,9 +118,13 @@ function hdFixtures(Organization $organization): array
     $occupation = Occupation::query()->create(['code' => 'HD-'.substr(uniqid(), -4), 'isco_code' => '26'.random_int(10, 99), 'name_en' => 'Occupation', 'is_active' => true]);
     $line = ManpowerPlanLine::query()->create(['plan_id' => $plan->id, 'organization_id' => $o, 'organization_unit_id' => $unit->id, 'occupation_id' => $occupation->id, 'inputs' => [], 'sequence' => 1]);
     $export = OrganizationDesignReportExport::query()->create(['organization_id' => $o, 'report' => 'coverage', 'format' => 'csv', 'status' => 'ready', 'disk' => 'local', 'path' => 'organization-design/exports/none.csv', 'filename' => 'none.csv', 'requested_by' => $designer->id]);
+    $source = \App\Models\LegalSource::query()->create(['organization_id' => $o, 'code' => 'LS-'.substr(uniqid(), -4), 'title_en' => 'Source', 'source_type_id' => LegalInstrumentType::query()->value('id'), 'status' => 'active', 'created_by' => $designer->id]);
+    $attachment = \App\Models\LegalSourceAttachment::query()->create(['legal_source_id' => $source->id, 'disk' => 'local', 'path' => 'organization-design/legal-sources/none.pdf', 'original_name' => 'none.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1, 'sha256' => str_repeat('0', 64), 'uploaded_by' => $designer->id, 'created_at' => now()]);
+    $citation = \App\Models\LegalSourceCitation::query()->create(['legal_source_id' => $source->id, 'subject_type' => $mandate->getMorphClass(), 'subject_id' => $mandate->id, 'created_by' => $designer->id, 'created_at' => now()]);
 
     return [
         'organization' => $organization, 'unit' => $unit, 'mandate' => $mandate, 'power' => $power, 'function' => $function, 'service' => $service, 'process' => $process, 'activity' => $activity, 'task' => $task,
+        'source' => $source, 'attachment' => $attachment, 'citation' => $citation,
         'standard' => $standard, 'position' => $position, 'positionTask' => $positionTask, 'positionService' => $positionService, 'profile' => $profile, 'jobDescription' => $jd, 'study' => $study, 'proposal' => $proposal, 'plan' => $plan, 'line' => $line, 'export' => $export,
     ];
 }

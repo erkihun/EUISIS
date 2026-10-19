@@ -27,6 +27,7 @@ class MandateService
     public const FIELDS = [
         'code', 'title_en', 'title_am', 'description_en', 'description_am',
         'legal_instrument_type_id', 'legal_instrument_number', 'legal_reference', 'article_reference', 'issuing_authority',
+        'legal_source_id',
         'effective_from', 'effective_to',
     ];
 

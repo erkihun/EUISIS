@@ -732,6 +732,33 @@ enum AuditEventType: string
     case DisciplinaryAppealOutcomeRecorded = 'discipline.appeal_outcome_recorded';
     case DisciplinaryAppealImplemented = 'discipline.appeal_implemented';
     // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md)
+    // Legal sources and legacy baselines (docs/organization-design-legacy-baseline-plan.md)
+    case LegalSourceCreated = 'organization_design.legal_source_created';
+    case LegalSourceUpdated = 'organization_design.legal_source_updated';
+    case LegalSourceStatusChanged = 'organization_design.legal_source_status_changed';
+    case LegalSourceDeleted = 'organization_design.legal_source_deleted';
+    case LegalSourceAttachmentAdded = 'organization_design.legal_source_attachment_added';
+    case LegalSourceAttachmentRemoved = 'organization_design.legal_source_attachment_removed';
+    case LegalSourceAttachmentDownloaded = 'organization_design.legal_source_attachment_downloaded';
+    case LegalSourceCited = 'organization_design.legal_source_cited';
+    case LegalSourceCitationRemoved = 'organization_design.legal_source_citation_removed';
+    case LegacyBaselineCreated = 'organization_design.legacy_baseline_created';
+    case LegacyBaselineUpdated = 'organization_design.legacy_baseline_updated';
+    case LegacyBaselineStepSaved = 'organization_design.legacy_baseline_step_saved';
+    case LegacyBaselineSubmitted = 'organization_design.legacy_baseline_submitted';
+    case LegacyBaselineReturned = 'organization_design.legacy_baseline_returned';
+    case LegacyBaselineApproved = 'organization_design.legacy_baseline_approved';
+    case LegacyBaselinePublished = 'organization_design.legacy_baseline_published';
+    case LegacyBaselineSuperseded = 'organization_design.legacy_baseline_superseded';
+    case LegacyBaselineCancelled = 'organization_design.legacy_baseline_cancelled';
+    case DesignImportUploaded = 'organization_design.import_uploaded';
+    case DesignImportValidated = 'organization_design.import_validated';
+    case DesignImportMapped = 'organization_design.import_mapped';
+    case DesignImportCommitted = 'organization_design.import_committed';
+    case DesignImportCancelled = 'organization_design.import_cancelled';
+    case DesignSuggestionGenerated = 'organization_design.suggestion_generated';
+    case DesignSuggestionApplied = 'organization_design.suggestion_applied';
+    case DesignSuggestionRejected = 'organization_design.suggestion_rejected';
     case MandateCreated = 'organization_design.mandate_created';
     case MandateUpdated = 'organization_design.mandate_updated';
     case MandatePublished = 'organization_design.mandate_published';

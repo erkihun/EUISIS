@@ -175,6 +175,7 @@ const navigation = {
     designPositions: 'Position Design & Job Descriptions',
     designReports: 'Design Reports',
     designMapping: 'Mapping Workspace',
+    designLegalSources: 'Legal Sources',
     transportProviders: 'Transport Providers',
     transportScan: 'Scan ID Card',
     transportRoutes: 'Routes',

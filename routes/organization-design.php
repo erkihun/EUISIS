@@ -7,6 +7,7 @@ use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
+use App\Http\Controllers\OrganizationDesign\LegalSourceController;
 use App\Http\Controllers\OrganizationDesign\LookupController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
 use App\Http\Controllers\OrganizationDesign\ManpowerPlanController;
@@ -198,4 +199,17 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
         Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
         Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');
+
+        // Legal sources (docs/organization-design-legacy-baseline-plan.md, ADR-LB-001).
+        Route::get('/legal-sources', [LegalSourceController::class, 'index'])->name('legal-sources.index');
+        Route::post('/legal-sources', [LegalSourceController::class, 'store'])->middleware('throttle:60,1')->name('legal-sources.store');
+        Route::get('/legal-sources/{source}', [LegalSourceController::class, 'show'])->whereUuid('source')->name('legal-sources.show');
+        Route::put('/legal-sources/{source}', [LegalSourceController::class, 'update'])->whereUuid('source')->name('legal-sources.update');
+        Route::post('/legal-sources/{source}/status', [LegalSourceController::class, 'changeStatus'])->whereUuid('source')->name('legal-sources.status');
+        Route::delete('/legal-sources/{source}', [LegalSourceController::class, 'destroy'])->whereUuid('source')->name('legal-sources.destroy');
+        Route::post('/legal-sources/{source}/attachments', [LegalSourceController::class, 'storeAttachment'])->whereUuid('source')->middleware('throttle:30,1')->name('legal-sources.attachments.store');
+        Route::get('/legal-sources/{source}/attachments/{attachment}/download', [LegalSourceController::class, 'download'])->whereUuid(['source', 'attachment'])->name('legal-sources.attachments.download');
+        Route::delete('/legal-sources/{source}/attachments/{attachment}', [LegalSourceController::class, 'destroyAttachment'])->whereUuid(['source', 'attachment'])->name('legal-sources.attachments.destroy');
+        Route::post('/legal-sources/{source}/citations', [LegalSourceController::class, 'storeCitation'])->whereUuid('source')->name('legal-sources.citations.store');
+        Route::delete('/legal-sources/{source}/citations/{citation}', [LegalSourceController::class, 'destroyCitation'])->whereUuid(['source', 'citation'])->name('legal-sources.citations.destroy');
     });

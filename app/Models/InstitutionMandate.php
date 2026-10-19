@@ -25,6 +25,7 @@ class InstitutionMandate extends Model
         'organization_id', 'lineage_key', 'version_no', 'code',
         'title_en', 'title_am', 'description_en', 'description_am',
         'legal_instrument_type_id', 'legal_instrument_number', 'legal_reference', 'article_reference', 'issuing_authority',
+        'legal_source_id',
         'effective_from', 'effective_to', 'status', 'approved_by', 'approved_at', 'created_by', 'updated_by',
     ];
 
@@ -42,6 +43,12 @@ class InstitutionMandate extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /** The legal source register entry this mandate rests on, when one is recorded. */
+    public function legalSource(): BelongsTo
+    {
+        return $this->belongsTo(LegalSource::class, 'legal_source_id');
     }
 
     public function instrumentType(): BelongsTo

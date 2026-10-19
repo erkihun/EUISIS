@@ -300,6 +300,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(OrganizationUnitType::class, OrganizationUnitTypePolicy::class);
         Gate::policy(Occupation::class, OccupationPolicy::class);
         Gate::policy(InstitutionMandate::class, InstitutionMandatePolicy::class);
+        Gate::policy(\App\Models\LegalSource::class, \App\Policies\LegalSourcePolicy::class);
         Gate::policy(OrganizationFunction::class, OrganizationFunctionPolicy::class);
         Gate::policy(OrganizationPower::class, OrganizationFunctionPolicy::class);
         Gate::policy(Service::class, ServicePolicy::class);

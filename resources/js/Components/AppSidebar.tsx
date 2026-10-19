@@ -450,6 +450,7 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupOrganizationDesign',
         icon: RulerPenIcon,
         items: [
+            { routeName: 'organization-design.legal-sources.index', labelKey: 'nav.designLegalSources', icon: ScaleIcon, permission: 'legal-sources.viewAny' },
             { routeName: 'organization-design.mandates.index', labelKey: 'nav.designMandates', icon: DiplomaIcon, permission: 'institution-mandates.viewAny' },
             { routeName: 'organization-design.functions.index', labelKey: 'nav.designFunctions', icon: WidgetsIcon, permission: 'organization-functions.viewAny' },
             { routeName: 'organization-design.services.index', labelKey: 'nav.designServices', icon: Layers, permission: 'service-catalog.viewAny' },

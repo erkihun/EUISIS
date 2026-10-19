@@ -18,13 +18,16 @@ export type MandateFormValues = {
     legal_reference: string;
     article_reference: string;
     issuing_authority: string;
+    legal_source_id: string;
     effective_from: string;
     effective_to: string;
 };
 
+export type LegalSourceOption = { id: string; code: string; title_en: string; title_am: string | null };
+
 export const emptyMandate = (organizationId = ''): MandateFormValues => ({
     organization_id: organizationId, code: '', title_en: '', title_am: '', description_en: '', description_am: '',
-    legal_instrument_type_id: '', legal_instrument_number: '', legal_reference: '', article_reference: '', issuing_authority: '',
+    legal_instrument_type_id: '', legal_instrument_number: '', legal_reference: '', article_reference: '', issuing_authority: '', legal_source_id: '',
     effective_from: '', effective_to: '',
 });
 
@@ -33,7 +36,7 @@ export const emptyMandate = (organizationId = ''): MandateFormValues => ({
  * draft edit (PUT) and a new version of a published mandate (POST versions),
  * where the code names the lineage and cannot change.
  */
-export default function MandateForm({ show, onClose, title, help, initial, url, method, organizations, instrumentTypes, lockCode = false }: {
+export default function MandateForm({ show, onClose, title, help, initial, url, method, organizations, instrumentTypes, legalSources = [], lockCode = false }: {
     show: boolean;
     onClose: () => void;
     title: string;
@@ -43,6 +46,8 @@ export default function MandateForm({ show, onClose, title, help, initial, url, 
     method: 'post' | 'put';
     organizations?: { id: string; code: string; name_en: string; name_am: string | null }[];
     instrumentTypes: InstrumentType[];
+    /** Register entries the mandate may rest on; empty hides the field. */
+    legalSources?: LegalSourceOption[];
     lockCode?: boolean;
 }) {
     const { locale, tt } = useDesignText();
@@ -104,6 +109,16 @@ export default function MandateForm({ show, onClose, title, help, initial, url, 
                     <FormField {...field('article_reference', tt('fields.articleReference'))}>
                         {({ id }) => <Input id={id} value={form.data.article_reference} onChange={(e) => form.setData('article_reference', e.target.value)} />}
                     </FormField>
+                    {legalSources.length > 0 && (
+                        <FormField {...field('legal_source_id', tt('mandates.legalSource'))} className="sm:col-span-2" description={tt('mandates.legalSourceHelp')}>
+                            {({ id }) => (
+                                <Select id={id} value={form.data.legal_source_id ?? ''} onChange={(e) => form.setData('legal_source_id', e.target.value)}>
+                                    <option value="">—</option>
+                                    {legalSources.map((s) => <option key={s.id} value={s.id}>{s.code} · {locale === 'am' && s.title_am ? s.title_am : s.title_en}</option>)}
+                                </Select>
+                            )}
+                        </FormField>
+                    )}
                     <FormField {...field('effective_from', tt('fields.effectiveFrom'), true)}>
                         {({ id }) => <LocalizedDatePicker id={id} className="w-full" value={form.data.effective_from} onChange={(iso) => form.setData('effective_from', iso)} />}
                     </FormField>
