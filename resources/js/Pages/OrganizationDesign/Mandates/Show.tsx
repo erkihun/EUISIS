@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import Modal from '@/Components/Modal';
 import FunctionTree, { type FunctionNode, type PowerOption } from '@/Components/organizationDesign/FunctionTree';
+import DocumentSuggestions, { type Suggestion } from '@/Components/organizationDesign/DocumentSuggestions';
 import MandateForm, { type InstrumentType, type LegalSourceOption, type MandateFormValues } from '@/Components/organizationDesign/MandateForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, FieldError, FormField, Input, Textarea, actionLinkClassName } from '@/Components/ui';
@@ -24,10 +25,11 @@ type Props = {
     history: { from: string | null; to: string; actor: string | null; reason: string | null; at: string }[];
     instrumentTypes: InstrumentType[];
     legalSources: LegalSourceOption[];
-    can: { update: boolean; publish: boolean; version: boolean; manageFunctions: boolean };
+    suggestions: Suggestion[];
+    can: { update: boolean; publish: boolean; version: boolean; manageFunctions: boolean; suggest: boolean };
 };
 
-export default function MandateShow({ mandate, versions, powers, functions, history, instrumentTypes, legalSources, can }: Props) {
+export default function MandateShow({ mandate, versions, powers, functions, history, instrumentTypes, legalSources, suggestions, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState(false);
@@ -143,6 +145,8 @@ export default function MandateShow({ mandate, versions, powers, functions, hist
                             <FunctionTree tree={functions} mandateId={mandate.id} powers={powers as PowerOption[]} canManage={can.manageFunctions} emptyText={tt('functions.noneForMandate')} />
                         </div>
                     </Card>
+
+                    {(can.suggest || suggestions.length > 0) && <DocumentSuggestions mandateId={mandate.id} suggestions={suggestions} legalSources={legalSources} canSuggest={can.suggest} />}
                 </div>
 
                 <div className="space-y-4">

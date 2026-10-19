@@ -38,6 +38,24 @@ const organizationDesign = {
         legalSourceHelp: 'Optional: the register entry this mandate rests on. The instrument fields above stay as written.',
     },
 
+    suggestions: {
+        title: 'Suggest from a source document',
+        help: 'Paste a passage of the proclamation, regulation or study. The assistant only suggests powers and functions the passage states, marking uncertain ones; nothing is recorded until you apply an item with its code.',
+        passage: 'Passage',
+        passageHelp: 'Copy the article that lists the institution\'s powers and functions. It is sent through the redacted AI gateway and not stored.',
+        source: 'Legal source of the passage',
+        ask: 'Suggest',
+        none: 'No suggestions yet.',
+        chars: 'characters',
+        uncertain: 'Uncertain — check the source',
+        apply: 'Apply',
+        applyConfirm: 'Record it',
+        reject: 'Reject',
+        status: { ready: 'Suggestions ready', empty: 'Nothing found', unavailable: 'Assistant unavailable', failed: 'Assistant failed' },
+        state: { pending: 'Pending', applied: 'Recorded', rejected: 'Rejected' },
+        kind: { function: 'Function', power: 'Power' },
+    },
+
     overview: {
         title: 'Organization Design & Workforce Planning',
         description: 'From the legal mandate to the job description: where each institution\'s design stands, what needs attention, and what applied on any date.',
@@ -637,6 +655,7 @@ const organizationDesign = {
         recommended: 'Recommended',
         approvedHeadcount: 'Approved headcount',
         adjustmentReason: 'Reason for the override',
+        adjustmentReference: 'Decision reference (minute, letter)',
         adjustedBy: 'Adjusted by',
         trace: 'Calculation trace',
         requirements: 'Position requirements',

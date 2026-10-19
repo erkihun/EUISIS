@@ -16,7 +16,7 @@ import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Line = LineRecord & {
     id: string; calculated_fte: string | null; calculated_at: string | null; headcount: number | null; methodology_version_no: number | null; calculation_trace: Record<string, unknown> | null;
     unit: Named | null; proposal: { id: string; name_en: string; name_am: string | null } | null; task: Named | null; activity: Named | null;
-    occupation: (Named & { isco_code: string | null }) | null; profession: Named | null; methodology: { id: string; code: string; version_no: number } | null; adjusted_by: string | null;
+    occupation: (Named & { isco_code: string | null }) | null; profession: Named | null; methodology: { id: string; code: string; version_no: number } | null; adjusted_by: string | null; adjusted_at?: string | null;
 };
 type Requirement = {
     id: string; status: string; position_title_en: string; position_title_am: string | null; required_fte: string; approved_headcount: number | null;
@@ -147,7 +147,12 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                                             <Td muted className="text-xs">{l.workload_source_type ? <>{tt(`plans.workloadSources.${l.workload_source_type}`)}{l.workload_source_reference && <p>{l.workload_source_reference}</p>}</> : <span className={badgeClassName('warning')}>—</span>}</Td>
                                             <Td align="right" className="font-mono text-xs">{l.calculated_fte ?? <span className={badgeClassName('warning')}>{tt('plans.notCalculated')}</span>}{l.methodology_version_no != null && <span className="ml-1 text-(--app-muted-foreground)">v{l.methodology_version_no}</span>}</Td>
                                             <Td align="right">{l.recommended_headcount ?? '—'}</Td>
-                                            <Td align="right">{l.approved_headcount ?? '—'}{l.adjustment_reason && <p className="text-xs text-(--app-muted-foreground)">{l.adjustment_reason}</p>}</Td>
+                                            <Td align="right">
+                                                {l.approved_headcount ?? '—'}
+                                                {l.adjustment_reason && <p className="text-xs text-(--app-muted-foreground)">{l.adjustment_reason}</p>}
+                                                {/* The decision's evidence: who, when, on what reference. The calculated FTE beside it is never changed. */}
+                                                {l.adjusted_by && <p className="text-[11px] text-(--app-muted-foreground)">{l.adjusted_by}{l.adjusted_at && <> · <LocalizedDateDisplay value={l.adjusted_at} /></>}{l.adjustment_reference ? ` · ${l.adjustment_reference}` : ''}</p>}
+                                            </Td>
                                             <Td align="right">
                                                 <div className="flex justify-end">
                                                     <AppActionMenu

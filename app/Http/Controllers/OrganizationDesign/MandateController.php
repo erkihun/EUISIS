@@ -110,7 +110,9 @@ class MandateController extends Controller
                 ->map(fn ($h) => ['from' => $h->from_status, 'to' => $h->to_status, 'actor' => $h->actor?->name, 'reason' => $h->reason, 'at' => $h->created_at->toISOString()]),
             'instrumentTypes' => LegalInstrumentType::query()->where('is_active', true)->orderBy('sort_order')->get(['id', 'code', 'name_en', 'name_am']),
             'legalSources' => $this->legalSourceOptions($mandate->organization_id),
+            'suggestions' => $user->can('design-suggestions.view') ? DesignSuggestionController::forMandate($mandate) : [],
             'can' => [
+                'suggest' => $user->can('design-suggestions.apply') && $user->can('manageFunctions', $mandate),
                 'update' => $user->can('update', $mandate) && $mandate->status->isEditable(),
                 'publish' => $user->can('publish', $mandate) && $mandate->status->isEditable() && (int) $mandate->created_by !== (int) $user->getKey(),
                 'version' => $user->can('version', $mandate) && $mandate->status === OrganizationDesignStatus::Published,

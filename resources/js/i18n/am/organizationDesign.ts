@@ -38,6 +38,24 @@ const organizationDesign = {
         legalSourceHelp: 'አማራጭ፡ ይህ ሥልጣን የሚመሠረትበት የመዝገብ ግቤት። ከላይ ያሉት የሰነድ መስኮች እንደተጻፉ ይቀራሉ።',
     },
 
+    suggestions: {
+        title: 'ከምንጭ ሰነድ ጥቆማ',
+        help: 'የአዋጁን፣ የደንቡን ወይም የጥናቱን ክፍል ይለጥፉ። ረዳቱ ክፍሉ የሚገልጻቸውን ሥልጣንና ተግባራት ብቻ ይጠቁማል፤ እርግጠኛ ያልሆኑትን ምልክት ያደርጋል። አንድን ንጥል ከኮዱ ጋር እስኪተገብሩ ድረስ ምንም አይመዘገብም።',
+        passage: 'የሰነዱ ክፍል',
+        passageHelp: 'የተቋሙን ሥልጣንና ተግባራት የሚዘረዝረውን አንቀጽ ይቅዱ። በተጣራው የAI መግቢያ በኩል ይላካል፤ አይቀመጥም።',
+        source: 'የክፍሉ የሕግ ምንጭ',
+        ask: 'ይጠቁሙ',
+        none: 'እስካሁን ጥቆማ የለም።',
+        chars: 'ፊደላት',
+        uncertain: 'እርግጠኛ ያልሆነ — ምንጩን ያረጋግጡ',
+        apply: 'ይተግብሩ',
+        applyConfirm: 'ይመዝግቡት',
+        reject: 'ውድቅ ያድርጉ',
+        status: { ready: 'ጥቆማዎች ዝግጁ ናቸው', empty: 'ምንም አልተገኘም', unavailable: 'ረዳቱ አይገኝም', failed: 'ረዳቱ አልተሳካም' },
+        state: { pending: 'በመጠባበቅ', applied: 'ተመዝግቧል', rejected: 'ውድቅ ተደርጓል' },
+        kind: { function: 'ተግባር', power: 'ሥልጣን' },
+    },
+
     overview: {
         title: 'የተቋም አወቃቀርና የሰው ኃይል ዕቅድ',
         description: 'ከሕጋዊ ሥልጣን እስከ የሥራ መግለጫ፡ የእያንዳንዱ ተቋም ንድፍ የት እንዳለ፣ ትኩረት የሚፈልገው ምን እንደሆነ፣ በማንኛውም ቀን ምን ይሠራ እንደነበር።',
@@ -637,6 +655,7 @@ const organizationDesign = {
         recommended: 'የሚመከር',
         approvedHeadcount: 'የጸደቀ የሠራተኛ ብዛት',
         adjustmentReason: 'የመቀየሪያ ምክንያት',
+        adjustmentReference: 'የውሳኔ ማጣቀሻ (ቃለ ጉባኤ፣ ደብዳቤ)',
         adjustedBy: 'ያስተካከለው',
         trace: 'የስሌት ዱካ',
         requirements: 'የሥራ መደብ መስፈርቶች',

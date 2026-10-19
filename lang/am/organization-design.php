@@ -526,6 +526,16 @@ return [
     'baseline_not_under_review' => 'መነሻ መዝገቡ በግምገማ ላይ አይደለም።',
     'baseline_not_approved' => 'የጸደቀ መነሻ መዝገብ ብቻ ይፋ ሊሆን ይችላል።',
     'baseline_same_person' => 'መነሻ መዝገብ ያዘጋጀው ሰው ሊያጸድቀው ወይም ይፋ ሊያደርገው አይችልም።',
+    // በሰነድ የታገዘ ቀረጻ (ADR-LB-006)።
+    'suggestion_ready' => 'ጥቆማዎች ዝግጁ ናቸው። እያንዳንዱን ይተግብሩ ወይም ውድቅ ያድርጉ፤ እስኪያደርጉ ድረስ ምንም አይመዘገብም።',
+    'suggestion_empty' => 'ረዳቱ በዚያ ክፍል ውስጥ የተገለጸ ሥልጣን ወይም ተግባር አላገኘም።',
+    'suggestion_unavailable' => 'ረዳቱ አሁን አይገኝም። ተግባራቱን በእጅ ይመዝግቡ።',
+    'suggestion_failed' => 'ረዳቱ ያንን ክፍል ማንበብ አልቻለም። ተግባራቱን በእጅ ይመዝግቡ።',
+    'suggestion_applied' => 'ከጥቆማው ተመዝግቧል።',
+    'suggestion_rejected' => 'ጥቆማ ውድቅ ተደርጓል።',
+    'suggestion_passage_required' => 'የሚነበበውን ክፍል ይለጥፉ።',
+    'suggestion_item_unavailable' => 'ያ ጥቆማ አስቀድሞ ተተግብሯል ወይም ውድቅ ተደርጓል።',
+
     // የማቆያ ማስመጫዎች (ADR-LB-004)።
     'import_uploaded' => 'ፋይሉ ደርሷል። እየተነበበና እየተፈተሸ ነው፤ ትንሽ ቆይተው ያድሱ።',
     'import_file_type' => 'የ.xlsx እና .csv ፋይሎች ብቻ ይቀበላሉ።',

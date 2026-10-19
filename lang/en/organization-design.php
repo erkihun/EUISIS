@@ -526,6 +526,16 @@ return [
     'baseline_not_under_review' => 'The baseline is not under review.',
     'baseline_not_approved' => 'Only an approved baseline can be published.',
     'baseline_same_person' => 'The person who prepared a baseline cannot approve or publish it.',
+    // Document-assisted capture (ADR-LB-006).
+    'suggestion_ready' => 'Suggestions ready. Apply or reject each one; nothing is recorded until you do.',
+    'suggestion_empty' => 'The assistant found no power or function stated in that passage.',
+    'suggestion_unavailable' => 'The assistant is not available right now. Record the functions by hand.',
+    'suggestion_failed' => 'The assistant could not read that passage. Record the functions by hand.',
+    'suggestion_applied' => 'Recorded from the suggestion.',
+    'suggestion_rejected' => 'Suggestion rejected.',
+    'suggestion_passage_required' => 'Paste the passage to read.',
+    'suggestion_item_unavailable' => 'That suggestion was already applied or rejected.',
+
     // Staged imports (ADR-LB-004).
     'import_uploaded' => 'File received. It is being read and checked; refresh in a moment.',
     'import_file_type' => 'Only .xlsx and .csv files are accepted.',

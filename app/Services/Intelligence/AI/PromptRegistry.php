@@ -125,6 +125,30 @@ TXT,
             ],
             'max_output_tokens' => 500,
         ],
+        // Organization Design document-assisted capture (docs/organization-design-legacy-baseline-plan.md, ADR-LB-006):
+        // suggestions only; a person applies each one into a draft record or rejects it.
+        'design_extraction' => [
+            'version' => 'v1',
+            'feature' => 'organization_design',
+            'data_classes' => ['knowledge_documents'],
+            'system' => self::RULES,
+            'user' => <<<'TXT'
+The DATA is a passage that a designer copied from an institution's legal or administrative source document (proclamation, regulation, approved structure, BPR study). List the powers and functions the passage itself states for the institution, one item per distinct function, in the order they appear. Copy the wording closely; do not merge, generalise or add anything the passage does not say. Give the article or sub-article number in "legal_reference" only when the passage shows it. Set "uncertain" to true whenever the wording is ambiguous, cut off, or might be a power rather than a function. If the passage states no function, return an empty list.
+Language of the titles: {{locale}} (keep Amharic text in Amharic and English text in English as written).
+{{data}}
+Return JSON: {"items": [{"title": string, "kind": "function"|"power", "legal_reference": string, "uncertain": true|false}], "notes": string}
+TXT,
+            'schema' => [
+                'items' => ['type' => 'list', 'max_items' => 40, 'item' => [
+                    'title' => ['type' => 'string', 'max' => 500],
+                    'kind' => ['type' => 'enum', 'values' => ['function', 'power']],
+                    'legal_reference' => ['type' => 'string', 'max' => 120],
+                    'uncertain' => ['type' => 'bool'],
+                ]],
+                'notes' => ['type' => 'string', 'max' => 600],
+            ],
+            'max_output_tokens' => 1500,
+        ],
     ];
 
     /** @return array{version: string, data_classes: list<string>, system: string, user: string, schema: array<string, mixed>, max_output_tokens: int, feature: string} */

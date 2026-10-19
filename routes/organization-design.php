@@ -7,6 +7,7 @@ use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
 use App\Http\Controllers\OrganizationDesign\DesignImportController;
 use App\Http\Controllers\OrganizationDesign\DesignOverviewController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
+use App\Http\Controllers\OrganizationDesign\DesignSuggestionController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
 use App\Http\Controllers\OrganizationDesign\LegacyBaselineController;
@@ -231,6 +232,11 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/legacy-baselines/{baseline}/cancel', [LegacyBaselineController::class, 'cancel'])->whereUuid('baseline')->name('legacy-baselines.cancel');
         Route::get('/legacy-baselines/{baseline}/snapshot', [LegacyBaselineController::class, 'snapshot'])->whereUuid('baseline')->name('legacy-baselines.snapshot');
         Route::get('/legacy-baselines/{baseline}/compare/{other}', [LegacyBaselineController::class, 'compare'])->whereUuid(['baseline', 'other'])->name('legacy-baselines.compare');
+
+        // Document-assisted capture: suggestions only (ADR-LB-006).
+        Route::post('/mandates/{mandate}/suggestions', [DesignSuggestionController::class, 'store'])->whereUuid('mandate')->middleware('throttle:30,1')->name('mandates.suggestions.store');
+        Route::post('/suggestions/{suggestion}/items/{index}/apply', [DesignSuggestionController::class, 'apply'])->whereUuid('suggestion')->whereNumber('index')->name('suggestions.apply');
+        Route::post('/suggestions/{suggestion}/items/{index}/reject', [DesignSuggestionController::class, 'reject'])->whereUuid('suggestion')->whereNumber('index')->name('suggestions.reject');
 
         // Module landing page (brief §100–102).
         Route::get('/', DesignOverviewController::class)->name('overview');

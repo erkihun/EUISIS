@@ -130,8 +130,10 @@ function hdFixtures(Organization $organization): array
     $baseline = LegacyBaseline::query()->create(['organization_id' => $o, 'lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'reference_number' => 'LOB-'.substr(uniqid(), -8), 'title_en' => 'Baseline', 'status' => OrganizationDesignStatus::Draft, 'prepared_by' => $designer->id, 'created_by' => $designer->id]);
     $batch = DesignImportBatch::query()->create(['reference_number' => 'DIB-'.substr(uniqid(), -8), 'organization_id' => $o, 'entity_type' => 'mandates', 'file_name' => 'none.csv', 'file_disk' => 'local', 'file_path' => 'organization-design/imports/none.csv', 'fingerprint' => str_repeat('0', 64), 'status' => 'validated', 'uploaded_by' => $designer->id]);
     $row = DesignImportRow::query()->create(['batch_id' => $batch->id, 'row_number' => 2, 'data' => ['code' => 'X'], 'status' => 'valid', 'updated_at' => now()]);
+    $suggestion = \App\Models\DesignDocumentSuggestion::query()->create(['organization_id' => $o, 'mandate_id' => $mandate->id, 'kind' => 'functions', 'status' => 'ready', 'passage_sha256' => str_repeat('0', 64), 'passage_chars' => 1, 'items' => [['title' => 'T', 'kind' => 'function', 'legal_reference' => null, 'uncertain' => false, 'state' => 'pending', 'record_id' => null]], 'created_by' => $designer->id]);
 
     return [
+        'suggestion' => $suggestion,
         'organization' => $organization, 'unit' => $unit, 'mandate' => $mandate, 'power' => $power, 'function' => $function, 'service' => $service, 'process' => $process, 'activity' => $activity, 'task' => $task,
         'source' => $source, 'attachment' => $attachment, 'citation' => $citation, 'baseline' => $baseline, 'other' => $baseline, 'batch' => $batch, 'row' => $row,
         'standard' => $standard, 'position' => $position, 'positionTask' => $positionTask, 'positionService' => $positionService, 'profile' => $profile, 'jobDescription' => $jd, 'study' => $study, 'proposal' => $proposal, 'plan' => $plan, 'line' => $line, 'export' => $export,
@@ -175,6 +177,9 @@ test('every organization-design route refuses a fully permitted user of another 
                 $values['subject'] = $subjects[$short][1]->getKey();
             } elseif ($param === 'sectionKey') {
                 $values[$param] = 'authorities';
+            } elseif ($param === 'index') {
+                // An item of a foreign suggestion: the suggestion carries the scope.
+                $values[$param] = 0;
             } elseif ($param === 'step') {
                 // A wizard step of a foreign baseline: the baseline itself carries the scope.
                 $values[$param] = 'mandates';
