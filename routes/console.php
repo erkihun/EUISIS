@@ -56,3 +56,4 @@ Schedule::command('intelligence:collect --detect')->everyFiveMinutes()->withoutO
 Schedule::command('intelligence:prune')->dailyAt('03:35')->withoutOverlapping()->onOneServer();
 Schedule::command('intelligence:alerts')->hourly()->withoutOverlapping()->onOneServer();
 Schedule::command('intelligence:forecast --evaluate')->dailyAt('04:10')->withoutOverlapping()->onOneServer();
+Schedule::command('assistant:prune')->dailyAt('03:50')->withoutOverlapping()->onOneServer();

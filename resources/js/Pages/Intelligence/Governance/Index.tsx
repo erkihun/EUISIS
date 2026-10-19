@@ -24,6 +24,7 @@ type Props = {
     run_counts: Record<string, number>;
     reviews: Record<'rule' | 'ai', Record<string, number>>;
     forecast_quality: Record<string, { evaluated: number; mae: number | null; mape: number | null; last_generated_at: string | null }>;
+    assistant: { requests: number; ai_used: number; fallback_rate: number | null; denied: number; errors: number; avg_ai_ms: number | null; avg_ms: number | null; modes: Record<string, number>; helpful: number; not_helpful: number; tickets: number };
     inventory: Record<string, number | string | null>;
     can: { manage: boolean; manage_settings: boolean };
 };
@@ -48,7 +49,7 @@ function Facts({ rows }: { rows: Array<[string, React.ReactNode]> }) {
 }
 
 /** AI & data governance: read-only account of what the module is, reads, sends, and how its advice has been judged. */
-export default function GovernanceIndex({ gateway, features, prompts, data_classes, runs, run_counts, reviews, forecast_quality, inventory, can }: PageProps<Props>) {
+export default function GovernanceIndex({ gateway, features, prompts, data_classes, runs, run_counts, reviews, forecast_quality, inventory, assistant, can }: PageProps<Props>) {
     const { t } = useLocale();
     const { sr } = useSituationLabels();
     const g = (key: string) => t(`intelligence.governance.${key}`);
@@ -103,6 +104,16 @@ export default function GovernanceIndex({ gateway, features, prompts, data_class
                             {(['rule', 'ai'] as const).map((who) => <Tr key={who}><Td>{sr(`intelligence.sources_short.${who}`)}</Td>{Object.values(reviews[who]).map((v, i) => <Td key={i} numeric>{v}</Td>)}</Tr>)}
                         </TBody>
                     </Table>
+                </Section>
+
+                <Section title={g('assistant')}>
+                    <Facts rows={[
+                        [g('a.requests'), `${assistant.requests}`], [g('a.ai_used'), `${assistant.ai_used}`], [g('a.fallback_rate'), assistant.fallback_rate === null ? '—' : `${assistant.fallback_rate}%`],
+                        [g('a.denied'), `${assistant.denied}`], [g('a.errors'), `${assistant.errors}`], [g('a.avg_ms'), assistant.avg_ms === null ? '—' : `${assistant.avg_ms} ms`],
+                        [g('a.avg_ai_ms'), assistant.avg_ai_ms === null ? '—' : `${assistant.avg_ai_ms} ms`], [g('a.feedback'), `${assistant.helpful} / ${assistant.not_helpful}`], [g('a.tickets'), `${assistant.tickets}`],
+                        [g('a.modes'), Object.entries(assistant.modes).length === 0 ? '—' : Object.entries(assistant.modes).map(([mode, n]) => `${mode ?? '—'} ${n}`).join(' · ')],
+                    ]} />
+                    <p className="mt-3 text-xs text-(--app-muted-foreground)">{g('a.note')}</p>
                 </Section>
 
                 <Section title={g('forecastQuality')}>

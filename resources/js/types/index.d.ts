@@ -25,4 +25,8 @@ export type PageProps<
     };
     locale?: string;
     richText?: { licenseKey: string } | null;
+    /** Shared by HandleInertiaRequests: whether the Addis One Assistant trigger renders. */
+    assistant?: {
+        enabled: boolean;
+    };
 };

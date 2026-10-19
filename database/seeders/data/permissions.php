@@ -1482,6 +1482,8 @@ return [
     // Executive Situation Room (docs/situation-room-access-control.md).
     ...require database_path('seeders/data/situation-room-permissions.php'),
     ...require database_path('seeders/data/intelligence-permissions.php'),
+    // Support help desk (docs/assistant/support-helpdesk.md).
+    ...require database_path('seeders/data/support-permissions.php'),
 
     // API Management
     ['name' => 'api_management.view', 'group' => 'api_management', 'sort_order' => 10, 'is_system' => true,

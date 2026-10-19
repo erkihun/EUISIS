@@ -82,6 +82,9 @@ class SystemSettingsRegistry
 
     public const GROUP_INTELLIGENCE = 'intelligence';
 
+    /** Addis One Assistant (docs/assistant/architecture.md): capability switches, limits and retention. */
+    public const GROUP_ASSISTANT = 'assistant';
+
     /**
      * Communication & Collaboration policy (docs/communication-module.md).
      * Nothing about chat behaviour is hard-coded; a blank retention means
@@ -999,6 +1002,21 @@ class SystemSettingsRegistry
                 'exception_repeat_count' => self::field(type: 'integer', default: null, labelEn: 'Limit: Same Error Repeated (count)', labelAm: 'ገደብ፦ ተመሳሳይ ስህተት መደጋገም (ብዛት)', descriptionEn: 'One error signature seen this many times within the baseline window opens an incident. Blank: baseline-derived only.', descriptionAm: 'በመነሻ መስኮቱ ውስጥ ይህን ያህል ጊዜ የታየ አንድ የስህተት ፊርማ ክስተት ይከፍታል። ባዶ፦ ከመነሻ የተገኘ ብቻ።', validationRules: ['nullable', 'integer', 'min:2', 'max:100000'], sortOrder: 250),
                 'db_latency_ms' => self::field(type: 'integer', default: null, labelEn: 'Limit: Database Ping (ms)', labelAm: 'ገደብ፦ የመረጃ ቋት ምላሽ (ሚሴ)', descriptionEn: 'A database probe slower than this counts as degraded. Blank: baseline-derived only.', descriptionAm: 'ከዚህ የዘገየ የመረጃ ቋት ፍተሻ እንደ ተዳከመ ይቆጠራል። ባዶ፦ ከመነሻ የተገኘ ብቻ።', validationRules: ['nullable', 'integer', 'min:1', 'max:60000'], sortOrder: 260),
                 'cache_latency_ms' => self::field(type: 'integer', default: null, labelEn: 'Limit: Cache Ping (ms)', labelAm: 'ገደብ፦ የመሸጎጫ ምላሽ (ሚሴ)', descriptionEn: 'A cache probe slower than this counts as degraded. Blank: baseline-derived only.', descriptionAm: 'ከዚህ የዘገየ የመሸጎጫ ፍተሻ እንደ ተዳከመ ይቆጠራል። ባዶ፦ ከመነሻ የተገኘ ብቻ።', validationRules: ['nullable', 'integer', 'min:1', 'max:60000'], sortOrder: 270),
+            ],
+            // Addis One Assistant (docs/assistant/architecture.md). Each capability is its own switch; AI itself is the
+            // Intelligence provider above, so the assistant degrades to deterministic help when it is off.
+            self::GROUP_ASSISTANT => [
+                'enabled' => self::field(type: 'boolean', default: true, labelEn: 'Assistant Enabled', labelAm: 'ረዳቱ በርቷል', descriptionEn: 'Show the floating Addis One Assistant on authenticated pages.', descriptionAm: 'ተንሳፋፊውን የAddis One ረዳት በተመዘገቡ ገጾች ላይ ያሳያል።', validationRules: ['boolean'], sortOrder: 10),
+                'knowledge_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Knowledge Answers', labelAm: 'የዕውቀት መልሶች', descriptionEn: 'Answer from the approved knowledge base for people with the knowledge grant.', descriptionAm: 'የዕውቀት የመዳረሻ መብት ላላቸው ሰዎች ከተፈቀደው የዕውቀት ቋት ይመልሳል።', validationRules: ['boolean'], sortOrder: 20),
+                'analytics_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Business Questions', labelAm: 'የሥራ ጥያቄዎች', descriptionEn: 'Answer approved business questions from Intelligence figures inside the person\'s scope.', descriptionAm: 'በሰውየው ወሰን ውስጥ ከብልህ ትንተና አኃዞች የተፈቀዱ የሥራ ጥያቄዎችን ይመልሳል።', validationRules: ['boolean'], sortOrder: 30),
+                'diagnostics_enabled' => self::field(type: 'boolean', default: true, labelEn: 'System Diagnostics', labelAm: 'የሥርዓት ምርመራ', descriptionEn: 'Let technical staff ask about system status and incidents through the assistant.', descriptionAm: 'የቴክኒክ ሠራተኞች በረዳቱ በኩል ስለ ሥርዓት ሁኔታ እና ክስተቶች እንዲጠይቁ ይፈቅዳል።', validationRules: ['boolean'], sortOrder: 40),
+                'support_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Support Tickets', labelAm: 'የድጋፍ ጥያቄዎች', descriptionEn: 'Offer the support flow and explicit ticket creation from the assistant.', descriptionAm: 'ከረዳቱ የድጋፍ ፍሰት እና ግልጽ የጥያቄ መፍጠርን ያቀርባል።', validationRules: ['boolean'], sortOrder: 50),
+                'public_enabled' => self::field(type: 'boolean', default: false, labelEn: 'Public Pages', labelAm: 'የሕዝብ ገጾች', descriptionEn: 'Reserved: a safe public help subset on anonymous pages. No public tool set exists yet (NEEDS_POLICY_DECISION_PUBLIC_ASSISTANT).', descriptionAm: 'የተያዘ፦ በስም-አልባ ገጾች ላይ አስተማማኝ የሕዝብ እገዛ ንዑስ ስብስብ። እስካሁን የሕዝብ መሣሪያ ስብስብ የለም።', validationRules: ['boolean'], sortOrder: 60),
+                'max_message_chars' => self::field(type: 'integer', default: 2000, labelEn: 'Message Limit (characters)', labelAm: 'የመልእክት ገደብ (ፊደላት)', descriptionEn: 'The longest message a person may send (200 to 8,000).', descriptionAm: 'አንድ ሰው ሊልክ የሚችለው ረጅሙ መልእክት (ከ200 እስከ 8,000)።', validationRules: ['required', 'integer', 'min:200', 'max:8000'], sortOrder: 70),
+                'history_window' => self::field(type: 'integer', default: 6, labelEn: 'Context Window (turns)', labelAm: 'የዐውድ መስኮት (ዙሮች)', descriptionEn: 'How many recent turns the AI narrative may see (0 to 20).', descriptionAm: 'የሰው ሠራሽ ብልህነት ትረካ ሊያይ የሚችላቸው የቅርብ ዙሮች ብዛት (ከ0 እስከ 20)።', validationRules: ['required', 'integer', 'min:0', 'max:20'], sortOrder: 80),
+                'rate_limit_per_minute' => self::field(type: 'integer', default: 20, labelEn: 'Messages per Minute', labelAm: 'በደቂቃ መልእክቶች', descriptionEn: 'Per person; more answers 429 (1 to 120).', descriptionAm: 'በአንድ ሰው፤ ከዚያ በላይ 429 ይመልሳል (ከ1 እስከ 120)።', validationRules: ['required', 'integer', 'min:1', 'max:120'], sortOrder: 90),
+                'daily_message_cap' => self::field(type: 'integer', default: 300, labelEn: 'Messages per Day', labelAm: 'በቀን መልእክቶች', descriptionEn: 'Per person; a cost ceiling (10 to 5,000).', descriptionAm: 'በአንድ ሰው፤ የወጪ ጣሪያ (ከ10 እስከ 5,000)።', validationRules: ['required', 'integer', 'min:10', 'max:5000'], sortOrder: 100),
+                'retention_days' => self::field(type: 'integer', default: 30, labelEn: 'Conversation Retention (days)', labelAm: 'የውይይት ማቆያ (ቀናት)', descriptionEn: 'Conversations older than this are deleted nightly (1 to 365). Default pending NEEDS_POLICY_DECISION_ASSISTANT_RETENTION.', descriptionAm: 'ከዚህ የቆዩ ውይይቶች በየምሽቱ ይሰረዛሉ (ከ1 እስከ 365)። ነባሪው የፖሊሲ ውሳኔ ይጠብቃል።', validationRules: ['required', 'integer', 'min:1', 'max:365'], sortOrder: 110),
             ],
             self::GROUP_PUBLIC_SITE => [
                 // Off: Home, Announcements, Services and Support show the notice

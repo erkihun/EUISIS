@@ -64,6 +64,7 @@ import {
     HandStarsIcon,
     HandshakeIcon,
     HashIcon,
+    HelpIcon,
     HistoryIcon,
     IdCardIcon,
     ImportIcon,
@@ -310,7 +311,11 @@ const navGroups: NavGroup[] = [
         key: 'myWork',
         labelKey: 'nav.groupSelfService',
         icon: UserIcon,
-        items: selfServiceNav,
+        items: [
+            ...selfServiceNav,
+            // Every signed-in user may file and read their own support tickets (docs/assistant/support-helpdesk.md).
+            { routeName: 'support.tickets.index', labelKey: 'nav.supportTickets', icon: HelpIcon },
+        ],
     },
     {
         /*

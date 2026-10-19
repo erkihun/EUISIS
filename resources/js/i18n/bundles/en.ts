@@ -53,6 +53,8 @@ import enServiceFeedback from '@/i18n/en/serviceFeedback';
 import enSituationRoom from '@/i18n/en/situationRoom';
 import enIntelligence from '@/i18n/en/intelligence';
 import enIntelligenceKnowledge from '@/i18n/en/intelligenceKnowledge';
+import enAssistant from '@/i18n/en/assistant';
+import enSupport from '@/i18n/en/support';
 import enSettings from '@/i18n/en/settings';
 import enTransfers from '@/i18n/en/transfers';
 import enTransport from '@/i18n/en/transport';
@@ -122,6 +124,8 @@ const tree: TranslationTree = {
     situationRoom: enSituationRoom,
     intelligence: enIntelligence,
     intelligenceKnowledge: enIntelligenceKnowledge,
+    assistant: enAssistant,
+    support: enSupport,
     entitlementRules: enEntitlementRules,
     cafeteria: { ...((en.cafeteria as TranslationTree | undefined) ?? {}), ...enCafeteria },
     codeRules: enCodeRules,

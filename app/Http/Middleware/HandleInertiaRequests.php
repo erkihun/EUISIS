@@ -9,6 +9,7 @@ use App\Enums\TransferAnnouncementStatus;
 use App\Models\TransferAnnouncement;
 use App\Models\User;
 use App\Security\Passwords\PasswordPolicy;
+use App\Services\Assistant\AssistantSettings;
 use App\Services\Branding\BrandingService;
 use App\Services\Calendar\CalendarService;
 use App\Services\Communication\CommunicationInbox;
@@ -67,6 +68,8 @@ class HandleInertiaRequests extends Middleware
 
             // Module feature flags (config/features.php): hide out-of-scope modules.
             'features' => Features::shared(),
+            // The floating assistant mounts only for signed-in people and only while switched on (docs/assistant/architecture.md).
+            'assistant' => ['enabled' => $user !== null && app(AssistantSettings::class)->enabled()],
 
             // The top-bar Messages button: on/off, the unread total (cached briefly by
             // CommunicationInbox) and whether realtime is configured. Nothing else of

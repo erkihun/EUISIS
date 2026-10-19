@@ -15,6 +15,7 @@ use App\Http\Requests\Settings\TestNotificationChannelRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;
 use App\Http\Requests\Settings\UpdateEmailSettingsRequest;
 use App\Http\Requests\Settings\UpdateFieldWorkGpsSettingsRequest;
+use App\Http\Requests\Settings\UpdateAssistantSettingsRequest;
 use App\Http\Requests\Settings\UpdateIntelligenceSettingsRequest;
 use App\Http\Requests\Settings\UpdateSituationRoomSettingsRequest;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
@@ -277,6 +278,17 @@ class SystemSettingController extends Controller
         );
 
         return back()->with('flash', ['message' => __('settings.messages.situation_room_updated'), 'type' => 'success']);
+    }
+
+    public function updateAssistant(UpdateAssistantSettingsRequest $request): RedirectResponse
+    {
+        $this->updateGroupAction->execute(
+            SystemSettingsRegistry::GROUP_ASSISTANT,
+            $request->validated(),
+            $request->user(),
+        );
+
+        return back()->with('flash', ['message' => __('settings.messages.assistant_updated'), 'type' => 'success']);
     }
 
     public function updateIntelligence(UpdateIntelligenceSettingsRequest $request): RedirectResponse

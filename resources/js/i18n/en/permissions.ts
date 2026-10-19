@@ -160,6 +160,7 @@ const permissions = {
         'service_feedback': 'Public feedback',
         'situation_room': 'Executive Situation Room',
         'intelligence': 'Addis One Intelligence',
+        'support': 'Support Help Desk',
         'communication': 'Messages',
         'communication_groups': 'Message groups',
         'communication_channels': 'Channels',

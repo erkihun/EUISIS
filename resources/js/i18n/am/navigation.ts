@@ -204,6 +204,7 @@ const navigation = {
     myDocuments: 'የእኔ ሰነዶች',
     groupSelfService: 'የራስ አገልግሎት',
     myWork: 'የእኔ ሥራ',
+    supportTickets: 'የድጋፍ ጥያቄዎች',
     myDailyActivity: 'ዕለታዊ የሥራ እንቅስቃሴ',
     fieldWorkManagement: 'የመስክ ሥራ አስተዳደር',
     myActivityCalendar: 'የእንቅስቃሴ ቀን መቁጠሪያ',

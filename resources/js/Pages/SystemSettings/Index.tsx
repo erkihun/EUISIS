@@ -77,6 +77,7 @@ const SECTIONS: Section[] = [
     { id: 'field_work_gps', routeName: 'system-settings.field-work-gps.update', canKey: 'manageFieldWorkGps', icon: ShieldCheck, group: 'security' },
     { id: 'situation_room', routeName: 'system-settings.situation-room.update', canKey: 'manageSituationRoom', icon: SettingsIcon, group: 'organization' },
     { id: 'intelligence', routeName: 'system-settings.intelligence.update', canKey: 'manageIntelligence', icon: SettingsIcon, group: 'organization' },
+    { id: 'assistant', routeName: 'system-settings.assistant.update', canKey: 'manageIntelligence', icon: SettingsIcon, group: 'organization' },
 ];
 
 const NAV_GROUPS: NavGroupKey[] = ['organization', 'communication', 'security'];

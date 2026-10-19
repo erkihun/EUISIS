@@ -852,4 +852,12 @@ enum AuditEventType: string
     case IntelligenceKnowledgeDocumentChanged = 'intelligence.knowledge_document_changed';
     case IntelligenceAlertUpdated = 'intelligence.alert_updated';
     case IntelligenceIncidentExplained = 'intelligence.incident_explained';
+
+    /*
+     * Addis One Assistant and support tickets (docs/assistant/architecture.md).
+     * Sensitive tool use and ticket lifecycle; never ordinary chat text.
+     */
+    case AssistantToolUsed = 'assistant.tool_used';
+    case SupportTicketCreated = 'support.ticket_created';
+    case SupportTicketUpdated = 'support.ticket_updated';
 }
