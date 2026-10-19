@@ -64,7 +64,7 @@ final class GovernanceController extends Controller
             'reviews' => $this->reviews(),
             'forecast_quality' => $this->settings->forecastingEnabled() || Schema::hasTable('intelligence_forecasts') ? $this->forecasts->quality() : [],
             'inventory' => $this->inventory(),
-            'can' => ['manage' => $user->can(IntelligencePermissions::GOVERNANCE_MANAGE), 'settings' => $user->can(IntelligencePermissions::SETTINGS)],
+            'can' => ['manage' => $user->can(IntelligencePermissions::GOVERNANCE_MANAGE), 'manage_settings' => $user->can(IntelligencePermissions::SETTINGS)],
         ]);
     }
 

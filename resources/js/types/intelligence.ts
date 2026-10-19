@@ -15,7 +15,7 @@ export type IntelligenceFrame = {
     areas: IntelligenceAreaInfo[];
     sections: IntelligenceSection[];
     ai: { enabled: boolean; provider: string };
-    can: { governance: boolean; settings: boolean };
+    can: { governance: boolean; manage_settings: boolean };
 };
 
 export type InsightSeverity = 'info' | 'low' | 'medium' | 'high' | 'critical';

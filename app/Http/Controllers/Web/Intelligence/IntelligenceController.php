@@ -74,7 +74,7 @@ final class IntelligenceController extends Controller
             ],
             'can' => [
                 'governance' => $user->can(IntelligencePermissions::GOVERNANCE),
-                'settings' => $user->can(IntelligencePermissions::SETTINGS),
+                'manage_settings' => $user->can(IntelligencePermissions::SETTINGS),
             ],
         ];
     }

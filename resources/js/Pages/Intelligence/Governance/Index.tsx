@@ -25,7 +25,7 @@ type Props = {
     reviews: Record<'rule' | 'ai', Record<string, number>>;
     forecast_quality: Record<string, { evaluated: number; mae: number | null; mape: number | null; last_generated_at: string | null }>;
     inventory: Record<string, number | string | null>;
-    can: { manage: boolean; settings: boolean };
+    can: { manage: boolean; manage_settings: boolean };
 };
 
 const RUN_TONE: Record<string, Tone> = { ok: 'success', failed: 'danger', invalid: 'warning', refused: 'warning', unavailable: 'neutral' };
@@ -57,7 +57,7 @@ export default function GovernanceIndex({ gateway, features, prompts, data_class
 
     return (
         <AuthenticatedLayout header={<PageHeader title={title} description={t('intelligence.areas.governance.description')} backHref={route('intelligence.index')}
-            actions={can.settings ? <Link href={route('system-settings.index', { tab: 'intelligence' })} className="text-sm font-medium text-primary hover:underline">{g('openSettings')}</Link> : undefined} />}>
+            actions={can.manage_settings ? <Link href={route('system-settings.index', { tab: 'intelligence' })} className="text-sm font-medium text-primary hover:underline">{g('openSettings')}</Link> : undefined} />}>
             <Head title={`${title} · ${t('intelligence.title')}`} />
 
             <div className="grid gap-5 xl:grid-cols-2">
