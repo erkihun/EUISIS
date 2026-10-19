@@ -52,6 +52,7 @@ const permissions = {
     // Section headings on the role editor and the permissions page, by catalogue group.
     groupLabels: {
         'api_management': 'የAPI አስተዳደር',
+        'integrations': 'የክስተት ውህደት',
         'assessment_assignments': 'የምዘና ምደባዎች',
         'assessment_exclusions': 'የምዘና ማግለያዎች',
         'assessment_forms': 'የምዘና ቅጾች',

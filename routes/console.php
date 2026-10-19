@@ -57,3 +57,10 @@ Schedule::command('intelligence:prune')->dailyAt('03:35')->withoutOverlapping()-
 Schedule::command('intelligence:alerts')->hourly()->withoutOverlapping()->onOneServer();
 Schedule::command('intelligence:forecast --evaluate')->dailyAt('04:10')->withoutOverlapping()->onOneServer();
 Schedule::command('assistant:prune')->dailyAt('03:50')->withoutOverlapping()->onOneServer();
+
+// Event integration layer (docs/integration/transactional-outbox.md): outbox →
+// change feed every ten seconds without the queue; webhook deliveries fan out
+// one queued job per subscription; retention only when a policy is configured.
+Schedule::command('integrations:publish')->everyTenSeconds()->withoutOverlapping()->onOneServer();
+Schedule::command('integrations:deliver --queue')->everyTenSeconds()->withoutOverlapping()->onOneServer();
+Schedule::command('integrations:purge')->dailyAt('03:25')->withoutOverlapping()->onOneServer();

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\CardVerificationController;
+use App\Http\Controllers\Api\V1\ChangeFeedController;
 use App\Http\Controllers\Api\V1\EmployeeDirectoryApiController;
 use App\Http\Controllers\Api\V1\EmployeeEntitlementController;
 use App\Http\Controllers\Api\V1\EmployeePhotoApiController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Api\V1\PositionApiController;
 use App\Http\Controllers\Api\V1\ProviderSettlementController;
 use App\Http\Controllers\Api\V1\ServiceAuthorizationController;
 use App\Http\Controllers\Api\V1\ServiceTransactionController;
+use App\Http\Controllers\Api\V1\WebhookSubscriptionApiController;
 use App\Http\Middleware\NfcApplicationGate;
 use Illuminate\Support\Facades\Route;
 
@@ -152,4 +154,29 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'api.external'])->prefix('v1'
     Route::get('/employees/{employee}/assignment', [EmployeeDirectoryApiController::class, 'assignment'])
         ->middleware('api.scope:employee_assignments.read')
         ->name('api.v1.employees.assignment');
+
+    /*
+     * Event integration layer (docs/integration/change-feed.md). Registered
+     * applications only; each event type also needs its domain scope and the
+     * application's organization bound, applied in SQL.
+     */
+    Route::get('/changes', [ChangeFeedController::class, 'index'])
+        ->middleware('api.scope:changes.read')
+        ->name('api.v1.changes.index');
+    Route::get('/changes/watermark', [ChangeFeedController::class, 'watermark'])
+        ->middleware('api.scope:changes.read')
+        ->name('api.v1.changes.watermark');
+    Route::post('/changes/reconcile', [ChangeFeedController::class, 'reconcile'])
+        ->middleware('api.scope:changes.read')
+        ->name('api.v1.changes.reconcile');
+
+    Route::get('/webhook-subscriptions', [WebhookSubscriptionApiController::class, 'index'])
+        ->middleware('api.scope:webhooks.manage')
+        ->name('api.v1.webhook-subscriptions.index');
+    Route::get('/webhook-subscriptions/{subscription}/deliveries', [WebhookSubscriptionApiController::class, 'deliveries'])
+        ->middleware('api.scope:webhooks.manage')
+        ->name('api.v1.webhook-subscriptions.deliveries');
+    Route::post('/webhook-subscriptions/{subscription}/replay', [WebhookSubscriptionApiController::class, 'replay'])
+        ->middleware(['api.scope:webhooks.replay', 'throttle:10,1'])
+        ->name('api.v1.webhook-subscriptions.replay');
 });

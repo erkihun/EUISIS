@@ -31,6 +31,11 @@ enum ApiScope: string
     // Short-lived signed link to an employee's ID photo (F17). Separate from
     // card verification so a scan terminal is not given photos by default.
     case EmployeesPhotoRead = 'employees.photo_read';
+    // Event integration layer: the change feed, read-only view of the
+    // application's own webhook subscriptions, and bounded self-service replay.
+    case ChangesRead = 'changes.read';
+    case WebhooksManage = 'webhooks.manage';
+    case WebhooksReplay = 'webhooks.replay';
 
     /**
      * Scopes a legacy provider-portal token (`provider:access`) still satisfies,

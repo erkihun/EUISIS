@@ -306,6 +306,24 @@ final class TelemetryCollector
             $samples[] = $this->sample(Metrics::INTEGRATION_API_REQUESTS, Metrics::COMPONENT_INTEGRATIONS, (int) ($row->calls ?? 0), $bucket, null, 'count');
             $samples[] = $this->sample(Metrics::INTEGRATION_API_FAILURES, Metrics::COMPONENT_INTEGRATIONS, (int) ($row->failures ?? 0), $bucket, null, 'count');
         }
+        if (Schema::hasTable('integration_events')) {
+            $pending = DB::table('integration_events')->where('status', 'pending');
+            $oldest = (clone $pending)->min('created_at');
+            $samples[] = $this->sample(Metrics::INTEGRATION_OUTBOX_PENDING, Metrics::COMPONENT_INTEGRATIONS, (int) $pending->count(), $bucket, null, 'count');
+            $samples[] = $this->sample(Metrics::INTEGRATION_OUTBOX_OLDEST_SECONDS, Metrics::COMPONENT_INTEGRATIONS, $oldest === null ? 0 : max(0, $now->getTimestamp() - CarbonImmutable::parse($oldest)->getTimestamp()), $bucket, null, 'seconds');
+            $samples[] = $this->sample(Metrics::INTEGRATION_WEBHOOK_DEAD_TOTAL, Metrics::COMPONENT_INTEGRATIONS, (int) DB::table('webhook_deliveries')->where('status', 'dead')->count(), $bucket, null, 'count');
+            $failures = DB::table('webhook_delivery_attempts')
+                ->join('webhook_deliveries', 'webhook_deliveries.id', '=', 'webhook_delivery_attempts.webhook_delivery_id')
+                ->join('webhook_subscriptions', 'webhook_subscriptions.id', '=', 'webhook_deliveries.webhook_subscription_id')
+                ->join('external_applications', 'external_applications.id', '=', 'webhook_subscriptions.external_application_id')
+                ->where('webhook_delivery_attempts.started_at', '>=', $since)
+                ->where('webhook_delivery_attempts.outcome', '!=', 'succeeded')
+                ->selectRaw('external_applications.code as code, count(*) as failures')
+                ->groupBy('external_applications.code')->get();
+            foreach ($failures as $row) {
+                $samples[] = $this->sample(Metrics::INTEGRATION_WEBHOOK_FAILURES, Metrics::COMPONENT_INTEGRATIONS, (int) $row->failures, $bucket, (string) $row->code, 'count');
+            }
+        }
         if (class_exists(CommunicationBroadcaster::class) && defined(CommunicationBroadcaster::class.'::FAILURE_METRIC')) {
             $samples[] = $this->sample(Metrics::INTEGRATION_BROADCAST_FAILURES_TOTAL, Metrics::COMPONENT_INTEGRATIONS, (int) Cache::get(CommunicationBroadcaster::FAILURE_METRIC, 0), $bucket, null, 'count');
         }

@@ -21,6 +21,7 @@ use App\Services\Intelligence\System\Detection\Rules\FailedJobsRule;
 use App\Services\Intelligence\System\Detection\Rules\HttpErrorRateRule;
 use App\Services\Intelligence\System\Detection\Rules\HttpLatencyRule;
 use App\Services\Intelligence\System\Detection\Rules\IntegrationFailureRule;
+use App\Services\Intelligence\System\Detection\Rules\EventIntegrationRule;
 use App\Services\Intelligence\System\Detection\Rules\QueueBacklogRule;
 use App\Services\Intelligence\System\Detection\Rules\RedisUnavailableRule;
 use App\Services\Intelligence\System\Detection\Rules\SchedulerMissedRule;
@@ -41,6 +42,7 @@ final class IntelligenceServiceProvider extends ServiceProvider
         HttpErrorRateRule::class,
         HttpLatencyRule::class,
         QueueBacklogRule::class,
+        EventIntegrationRule::class,
         FailedJobsRule::class,
         ErrorRepeatRule::class,
         DbLatencyRule::class,

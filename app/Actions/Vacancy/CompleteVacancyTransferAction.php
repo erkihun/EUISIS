@@ -14,6 +14,7 @@ use App\Models\EmployeeTransfer;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\VacancyApplication;
+use App\Services\Integration\Events\TransferEvents;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\Vacancy\PositionCapacityService;
 use App\Services\Vacancy\VacancyTransferService;
@@ -29,6 +30,7 @@ readonly class CompleteVacancyTransferAction
         private RecalculateEntitlementsAction $recalculateEntitlements,
         private WriteAuditLogAction $writeAuditLogAction,
         private JobDescriptionService $jobDescriptions,
+        private TransferEvents $transferEvents,
     ) {}
 
     public function execute(VacancyApplication $application, array $data, User $actor): EmployeeTransfer
@@ -89,7 +91,7 @@ readonly class CompleteVacancyTransferAction
                 'reason' => __('vacancies.transferReason'),
             ]);
 
-            $employee->update(['current_assignment_id' => $newAssignment->id]);
+            $this->transferEvents->movePointer($employee, fn () => $employee->update(['current_assignment_id' => $newAssignment->id]));
 
             $establishment = $positionEntry->establishment;
 
@@ -116,6 +118,8 @@ readonly class CompleteVacancyTransferAction
                 'vacancy_application_id' => $application->id,
                 'vacancy_announcement_id' => $announcement?->id,
             ]);
+
+            $this->transferEvents->record($employee, $currentAssignment, $newAssignment, (string) $transfer->id, 'vacancy', $effectiveDate);
 
             $this->vacancyTransferService->markApplicationTransferred($application, $transfer->id);
 

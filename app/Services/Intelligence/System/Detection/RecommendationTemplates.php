@@ -29,6 +29,7 @@ final class RecommendationTemplates
         'storage' => ['immediate' => 'safe_check', 'short_term' => 'high_risk', 'verification' => 'safe_check'],
         'backup' => ['immediate' => 'safe_check', 'short_term' => 'potential_fix', 'verification' => 'safe_check'],
         'integration_failure' => ['immediate' => 'safe_check', 'short_term' => 'potential_fix', 'verification' => 'safe_check'],
+        'event_integration' => ['immediate' => 'safe_check', 'short_term' => 'potential_fix', 'verification' => 'safe_check'],
         'auth_failures' => ['immediate' => 'safe_check', 'short_term' => 'potential_fix', 'verification' => 'safe_check'],
     ];
 

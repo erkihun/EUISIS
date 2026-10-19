@@ -19,6 +19,7 @@ final class RunbookCatalog
         'database_pressure' => ['rules' => ['db_latency', 'db_connections'], 'steps' => 6, 'components' => ['database']],
         'redis_unavailable' => ['rules' => ['redis_unavailable', 'cache_unavailable'], 'steps' => 5, 'components' => ['redis', 'cache']],
         'integration_failure' => ['rules' => ['integration_failure'], 'steps' => 5, 'components' => ['integrations']],
+        'event_integration' => ['rules' => ['event_integration'], 'steps' => 5, 'components' => ['integrations']],
         'storage_full' => ['rules' => ['storage'], 'steps' => 5, 'components' => ['storage']],
         'deployment_regression' => ['rules' => ['http_error_rate', 'http_latency', 'error_repeat'], 'steps' => 6, 'components' => ['application']],
         'pdf_generation_failure' => ['rules' => ['error_repeat'], 'steps' => 5, 'components' => ['application']],

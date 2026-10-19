@@ -4,7 +4,7 @@ import { Alert, Button } from '@euisis/ui';
 import { useState } from 'react';
 
 /** A newly generated token, shown exactly once, with copy-to-clipboard and a manual fallback. */
-export default function TokenReveal({ token, hint }: { token: string; hint?: string }) {
+export default function TokenReveal({ token, hint, title }: { token: string; hint?: string; title?: string }) {
     const { t } = useLocale();
     const [copied, setCopied] = useState(false);
     const [copyFailed, setCopyFailed] = useState(false);
@@ -21,7 +21,7 @@ export default function TokenReveal({ token, hint }: { token: string; hint?: str
     }
 
     return (
-        <Alert tone="warning" title={<span className="inline-flex items-center gap-2"><KeyIcon className="h-4 w-4" aria-hidden="true" />{t('apiManagement.copyTokenNow')}</span>}>
+        <Alert tone="warning" title={<span className="inline-flex items-center gap-2"><KeyIcon className="h-4 w-4" aria-hidden="true" />{title ?? t('apiManagement.copyTokenNow')}</span>}>
             <div className="mt-2 flex flex-wrap items-center gap-2">
                 <code className="min-w-0 flex-1 select-all break-all rounded-control bg-(--app-surface) px-3 py-2 font-mono text-xs text-(--app-foreground) ring-1 ring-inset ring-amber-200 dark:ring-amber-900">
                     {token}

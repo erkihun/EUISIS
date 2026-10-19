@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\AssignmentStatus;
+use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EmployeeAssignment extends Model
 {
+    use HasIntegrationEvents;
     use HasUuidPrimaryKey;
 
     protected $fillable = [

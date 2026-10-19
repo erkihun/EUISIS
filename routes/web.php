@@ -47,6 +47,7 @@ use App\Http\Controllers\Transport\TransportSettingsController;
 use App\Http\Controllers\Transport\TransportTransactionController;
 use App\Http\Controllers\Transport\TransportVehicleController;
 use App\Http\Controllers\Web\ApiManagementController;
+use App\Http\Controllers\Web\IntegrationController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BackupRecoveryController;
 use App\Http\Controllers\Web\Cafeteria\CafeteriaAccessController;
@@ -1001,6 +1002,19 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/permissions/{permission}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
     Route::patch('/permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
     Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+
+    // Admin: System Settings → Event Integration (docs/integration/partner-onboarding.md)
+    Route::get('/system-settings/integrations', [IntegrationController::class, 'index'])->name('integrations.index');
+    Route::get('/system-settings/integrations/subscriptions/create', [IntegrationController::class, 'create'])->name('integrations.subscriptions.create');
+    Route::post('/system-settings/integrations/subscriptions', [IntegrationController::class, 'store'])->name('integrations.subscriptions.store');
+    Route::get('/system-settings/integrations/events/{eventId}', [IntegrationController::class, 'event'])->whereUuid('eventId')->name('integrations.events.show');
+    Route::get('/system-settings/integrations/subscriptions/{subscription}', [IntegrationController::class, 'show'])->name('integrations.subscriptions.show');
+    Route::get('/system-settings/integrations/subscriptions/{subscription}/edit', [IntegrationController::class, 'edit'])->name('integrations.subscriptions.edit');
+    Route::patch('/system-settings/integrations/subscriptions/{subscription}', [IntegrationController::class, 'update'])->name('integrations.subscriptions.update');
+    Route::post('/system-settings/integrations/subscriptions/{subscription}/rotate-secret', [IntegrationController::class, 'rotateSecret'])->middleware('throttle:10,1')->name('integrations.subscriptions.rotate');
+    Route::post('/system-settings/integrations/subscriptions/{subscription}/status', [IntegrationController::class, 'setStatus'])->name('integrations.subscriptions.status');
+    Route::post('/system-settings/integrations/subscriptions/{subscription}/test', [IntegrationController::class, 'test'])->middleware('throttle:10,1')->name('integrations.subscriptions.test');
+    Route::post('/system-settings/integrations/subscriptions/{subscription}/replay', [IntegrationController::class, 'replay'])->middleware('throttle:10,1')->name('integrations.subscriptions.replay');
 
     // Admin: System Settings → API Management
     Route::get('/system-settings/api-management', [ApiManagementController::class, 'index'])->name('api-management.index');

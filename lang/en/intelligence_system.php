@@ -41,6 +41,7 @@ return [
         'storage' => ['title' => 'Storage at risk (:free% free)', 'impact' => 'Uploads, exports, PDFs and logs fail when the disk is full.'],
         'backup' => ['title' => 'Backup health degraded', 'impact' => 'The recovery point is at risk; a restore may not be possible from a recent state.'],
         'integration_failure' => ['title' => 'Integration :provider failing', 'impact' => 'Messages through :provider are not being delivered.'],
+        'event_integration' => ['title' => 'Event integration: :subject needs attention (:value)', 'impact' => 'Partner systems receive master-data changes late or not at all until the backlog or the failing endpoint is resolved; nothing is lost — events stay in the outbox and remain replayable.'],
         'auth_failures' => ['title' => 'Unusual volume of denied or throttled requests', 'impact' => 'A spike in failed sign-ins, denied access or throttling may be a misconfiguration or an attempt; it names nobody.'],
     ],
 
@@ -115,6 +116,11 @@ return [
             'immediate' => ['title' => 'Check the provider status and configuration', 'body' => 'Confirm the provider is up, the credential is valid and the budget cap is not exhausted (External usage).'],
             'short_term' => ['title' => 'Repair and resend', 'body' => 'Fix the configuration and let the queued notifications retry; nothing is resent automatically from here.'],
             'verification' => ['title' => 'Calls succeed again', 'body' => 'Integration Health should show successful calls for the provider.'],
+        ],
+        'event_integration' => [
+            'immediate' => ['title' => 'Check the publisher, the queue and the partner endpoint', 'body' => 'Confirm the scheduler runs integrations:publish, the integrations queue has workers, and the failing partner endpoint answers (Event Integration page).'],
+            'short_term' => ['title' => 'Fix and replay', 'body' => 'Repair the cause, then replay dead deliveries for the affected subscription; the original event IDs are kept, so partners de-duplicate.'],
+            'verification' => ['title' => 'Backlog drains, deliveries succeed', 'body' => 'Pending events and the oldest pending age fall, and the subscription health returns to healthy.'],
         ],
         'auth_failures' => [
             'immediate' => ['title' => 'Check for a misconfiguration first', 'body' => 'A changed permission, an expired session policy or a broken client often explains a spike; look at which route group carries the 401/403.'],
@@ -224,6 +230,17 @@ return [
                 4 => 'Verify the heartbeat is current on System Health.',
             ],
         ],
+        'event_integration' => [
+            'title' => 'Event integration backlog or failing partner',
+            'summary' => 'Outbox events are not reaching the change feed in time, or a partner webhook keeps failing.',
+            'steps' => [
+                1 => 'Open System Settings → Event Integration and note pending events, the oldest pending age, dead deliveries and the failing subscription.',
+                2 => 'For a backlog: confirm the scheduler runs integrations:publish every ten seconds and the database is healthy; run php artisan integrations:publish once by hand if needed.',
+                3 => 'For a failing partner: read the error category on the deliveries (timeout, server_error, partner_auth_rejected …) and contact the partner; do not change their URL or secret without them.',
+                4 => 'After the cause is fixed, replay dead deliveries for that subscription with a reason; the original event IDs are kept.',
+                5 => 'Verify the backlog drains and the subscription health returns to healthy.',
+            ],
+        ],
         'auth_failure_spike' => [
             'title' => 'Spike of denied, throttled or failed MFA requests',
             'summary' => 'An unusual volume of 401/403/429 or failed MFA challenges. It may be a misconfiguration or an attempt; this page names nobody.',
@@ -324,6 +341,7 @@ return [
     'review' => ['pending' => 'Pending review', 'useful' => 'Useful', 'not_useful' => 'Not useful', 'accepted' => 'Accepted', 'rejected' => 'Rejected', 'incorrect_diagnosis' => 'Incorrect diagnosis'],
 
     'evidence' => [
+        'oldest_pending_minutes' => 'Oldest unpublished event (min)', 'limit_minutes' => 'Configured limit (min)', 'dead_deliveries' => 'Dead webhook deliveries', 'limit' => 'Configured limit', 'partner' => 'Partner application', 'failed_attempts' => 'Failed delivery attempts',
         'requests' => 'Requests', 'failures' => 'Failures', 'rate_percent' => 'Error rate (%)', 'baseline_median_percent' => 'Baseline median (%)',
         'baseline_samples' => 'Baseline samples', 'limit_percent' => 'Configured limit (%)', 'p95_ms' => 'p95 latency (ms)', 'baseline_median_ms' => 'Baseline median (ms)',
         'limit_ms' => 'Configured limit (ms)', 'pending' => 'Pending jobs', 'oldest_minutes' => 'Oldest waiting job (min)', 'baseline_median' => 'Baseline median',

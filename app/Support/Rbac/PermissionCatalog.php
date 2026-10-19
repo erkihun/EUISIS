@@ -58,7 +58,7 @@ final class PermissionCatalog
             'transport-providers', 'transport-routes', 'transport-vehicles', 'transport-drivers', 'transport-passes',
             'transport-transactions', 'transport-scan', 'transport-reports', 'transport-settings',
         ],
-        'Providers & External Applications' => ['service-providers', 'cafeteria-provider-users', 'cafeteria-portal', 'api_management'],
+        'Providers & External Applications' => ['service-providers', 'cafeteria-provider-users', 'cafeteria-portal', 'api_management', 'integrations'],
         'Security & Access Control' => ['users', 'user-organization-scopes', 'roles', 'permissions'],
         'Public Site' => [
             'public_site', 'public_home', 'public_announcements', 'public_services', 'public_support', 'public_navigation',

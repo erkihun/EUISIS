@@ -27,6 +27,7 @@ use App\Models\TransferApplication;
 use App\Models\TransferSetting;
 use App\Models\User;
 use App\Services\IdCards\IdCardSnapshotComparisonService;
+use App\Services\Integration\Events\TransferEvents;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\Performance\EmployeeAgreementService;
 use App\Services\Vacancy\PositionCapacityService;
@@ -44,6 +45,7 @@ readonly class CompleteTransferAction
         private PositionCapacityService $capacityService,
         private IdCardSnapshotComparisonService $idCardSnapshotComparison,
         private JobDescriptionService $jobDescriptions,
+        private TransferEvents $transferEvents,
     ) {}
 
     public function execute(TransferApplication $application, User $actor): TransferApplication
@@ -112,7 +114,7 @@ readonly class CompleteTransferAction
                     'reason' => 'Transfer from '.($application->releasingOrganization?->name_en ?? 'releasing organization'),
                 ]);
 
-                $employee->update(['current_assignment_id' => $newAssignment->id]);
+                $this->transferEvents->movePointer($employee, fn () => $employee->update(['current_assignment_id' => $newAssignment->id]));
                 $this->capacityService->recordOccupancy($establishment, $newAssignment, $effectiveDate);
                 $this->employeeAgreements->closeForAssignmentChange($currentAssignment, $newAssignment, $actor);
 
@@ -145,6 +147,7 @@ readonly class CompleteTransferAction
                     'destination_assignment_snapshot' => $newAssignment->toArray(),
                 ]);
                 $transfer->save();
+                $this->transferEvents->record($employee, $currentAssignment, $newAssignment, (string) $transfer->getKey(), 'announcement', $effectiveDate);
 
                 $application->update([
                     'status' => TransferApplicationStatus::Transferred->value,

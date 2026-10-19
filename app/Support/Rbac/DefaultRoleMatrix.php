@@ -44,7 +44,7 @@ final class DefaultRoleMatrix
         'recycle-bin.forceDelete', 'users.viewSensitive',
     ];
 
-    private const CITY_ADMIN_WITHHELD_MODULES = ['backups', 'api_management', 'cafeteria-portal', 'provider-cafeteria-transactions', 'provider-cafeteria-payment-claims'];
+    private const CITY_ADMIN_WITHHELD_MODULES = ['backups', 'api_management', 'integrations', 'cafeteria-portal', 'provider-cafeteria-transactions', 'provider-cafeteria-payment-claims'];
 
     private const STRUCTURE_READ = [
         'organizations.viewAny', 'organizations.view',
@@ -301,6 +301,7 @@ final class DefaultRoleMatrix
                 'api_management.delete', 'api_management.tokens.create', 'api_management.tokens.revoke',
                 'api_management.logs.view', 'api_management.docs.view', 'api_management.endpoints.view',
                 'api_management.endpoints.sync', 'api_management.endpoints.update',
+                'integrations.view', 'integrations.manage', 'integrations.deliveries.view',
             ], 'Manages external API applications, tokens, endpoints and logs. A token is shown once at issue and never again.',
                 'የውጭ API መተግበሪያዎችን፣ ቶከኖችን፣ መዳረሻዎችን እና ምዝግቦችን ያስተዳድራል። ቶከን አንድ ጊዜ ብቻ ይታያል።'),
             'Auditor' => self::role(self::SCOPE_SCOPED, [

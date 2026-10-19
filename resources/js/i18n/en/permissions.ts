@@ -52,6 +52,7 @@ const permissions = {
     // Section headings on the role editor and the permissions page, by catalogue group.
     groupLabels: {
         'api_management': 'API Management',
+        'integrations': 'Event Integration',
         'assessment_assignments': 'Assessment assignments',
         'assessment_exclusions': 'Assessment exclusions',
         'assessment_forms': 'Assessment forms',

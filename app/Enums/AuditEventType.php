@@ -887,4 +887,13 @@ enum AuditEventType: string
     case AssistantToolUsed = 'assistant.tool_used';
     case SupportTicketCreated = 'support.ticket_created';
     case SupportTicketUpdated = 'support.ticket_updated';
+
+    /*
+     * Event integration layer (docs/integration/transactional-outbox.md).
+     * Subscription governance, secret rotation, replay and payload inspection.
+     */
+    case IntegrationSubscriptionChanged = 'integration.subscription_changed';
+    case IntegrationSecretRotated = 'integration.secret_rotated';
+    case IntegrationReplayRequested = 'integration.replay_requested';
+    case IntegrationPayloadViewed = 'integration.payload_viewed';
 }

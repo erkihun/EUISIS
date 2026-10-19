@@ -118,6 +118,7 @@ class SystemSettingController extends Controller
                 'testChannels' => $user?->can('system-settings.testNotificationChannels') ?? false,
                 // Drives the API Management tab beside Security.
                 'apiManagement' => $user?->can('api_management.view') ?? false,
+                'integrations' => $user?->can('integrations.view') ?? false,
             ],
         ]);
     }
