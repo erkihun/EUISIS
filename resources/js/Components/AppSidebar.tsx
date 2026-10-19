@@ -101,6 +101,7 @@ import {
     QrCodeIcon,
     QuestionnaireIcon,
     RadarIcon,
+    ActivityIcon,
     RankingIcon,
     ReceiptTextIcon,
     RestartIcon,
@@ -324,6 +325,18 @@ const navGroups: NavGroup[] = [
             { routeName: 'situation-room.wall', labelKey: 'nav.situationRoomWall', icon: MonitorIcon, permission: 'situation_room.wall_mode' },
             { routeName: 'situation-room.actions.index', labelKey: 'nav.situationRoomActions', icon: ChecklistIcon, permission: 'situation_room.view' },
             { routeName: 'situation-room.reports', labelKey: 'nav.situationRoomReports', icon: FileChartIcon, permission: 'situation_room.export' },
+        ],
+    },
+    {
+        key: 'intelligence',
+        labelKey: 'nav.groupIntelligence',
+        icon: LightbulbIcon,
+        items: [
+            { routeName: 'intelligence.index', labelKey: 'nav.intelligence', icon: LayoutDashboard, permission: 'intelligence.view' },
+            { routeName: 'intelligence.area', labelKey: 'nav.intelligenceSystemHealth', icon: ActivityIcon, permission: 'intelligence.system-health.view', tab: 'system_health' },
+            { routeName: 'intelligence.area', labelKey: 'nav.intelligenceIncidents', icon: AlarmIcon, permission: 'intelligence.incidents.view', tab: 'incidents' },
+            { routeName: 'intelligence.area', labelKey: 'nav.intelligenceKnowledge', icon: BookIcon, permission: 'intelligence.knowledge.view', tab: 'knowledge' },
+            { routeName: 'intelligence.area', labelKey: 'nav.intelligenceGovernance', icon: ShieldUserIcon, permission: 'intelligence.governance.view', tab: 'governance' },
         ],
     },
     {
@@ -722,7 +735,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
     { keys: ['myWork'] },
 ];

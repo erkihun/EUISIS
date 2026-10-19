@@ -24,7 +24,7 @@ final class PermissionCatalog
 
     /** Module group (the `permissions.group` column) → UI category. */
     public const CATEGORIES = [
-        'Dashboard & Reports' => ['dashboard', 'functional-reporting', 'situation_room'],
+        'Dashboard & Reports' => ['dashboard', 'functional-reporting', 'situation_room', 'intelligence'],
         'Organization & Structure' => [
             'organizations', 'organization-types', 'organization-units', 'organization-unit-types', 'organization-unit-requests',
             'organization-edges', 'hierarchy-versions', 'relationships', 'institution-offices', 'structural-offices',

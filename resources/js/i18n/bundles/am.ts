@@ -46,6 +46,7 @@ import amRecycleBin from '@/i18n/am/recycleBin';
 import amServiceTypes from '@/i18n/am/serviceTypes';
 import amServiceFeedback from '@/i18n/am/serviceFeedback';
 import amSituationRoom from '@/i18n/am/situationRoom';
+import amIntelligence from '@/i18n/am/intelligence';
 import amSettings from '@/i18n/am/settings';
 import amOrganizationUnits from '@/i18n/am/organizationUnits';
 import amOrganizationUnitTypes from '@/i18n/am/organizationUnitTypes';
@@ -116,6 +117,7 @@ const tree: TranslationTree = {
     serviceTypes: amServiceTypes,
     serviceFeedback: amServiceFeedback,
     situationRoom: amSituationRoom,
+    intelligence: amIntelligence,
     entitlementRules: amEntitlementRules,
     cafeteria: { ...(((am as { cafeteria?: TranslationTree }).cafeteria) ?? {}), ...amCafeteria },
     codeRules: amCodeRules,

@@ -1,0 +1,46 @@
+const intelligence = {
+    title: 'Addis One Intelligence',
+    description: 'What is happening, what is abnormal, what it may mean and what to check — with the evidence. Every decision stays with a person.',
+    ai: {
+        on: 'AI explanations on',
+        off: 'AI explanations off',
+        unavailable: 'AI explanation temporarily unavailable. The figures below are computed without it.',
+    },
+    notReady: {
+        title: 'No analysis is available for this area yet',
+        body: 'This area shows only figures backed by authoritative data. Nothing is collected for it on this installation yet, so there is nothing to show.',
+    },
+    sections: {
+        business: { title: 'Business & management intelligence', description: 'Aggregates from the domain data inside your organization scope.' },
+        knowledge: { title: 'Knowledge', description: 'Answers grounded in approved Addis One knowledge sources, with references.' },
+        system: { title: 'System health', description: 'The health of the platform, from signals it actually collects.' },
+        diagnostics: { title: 'Diagnostics & guidance', description: 'Error analysis, deployment correlation, recommendations and runbooks for technical staff.' },
+        governance: { title: 'Governance', description: 'What the AI features are, what they read, and how they are evaluated.' },
+    },
+    areas: {
+        overview: { title: 'Overview', description: 'The permitted areas at a glance.' },
+        executive: { title: 'Executive Intelligence', description: 'Priority risks, impact, trend and recommended management action.' },
+        workforce: { title: 'Workforce Intelligence', description: 'Staffing gaps, vacancies, approved headcount against required FTE, assignment anomalies.' },
+        service: { title: 'Service Intelligence', description: 'Volume, backlog, delay and complaint rate where a service linkage exists.' },
+        public_voice: { title: 'Public Voice Intelligence', description: 'Feedback, suggestions and complaints: trends, spikes, backlog and routing.' },
+        performance: { title: 'Performance Intelligence', description: 'EPMS cycle progress, overdue steps, completion trends and reporting gaps.' },
+        forecasting: { title: 'Forecasting', description: 'Forecast snapshots with method, window, confidence and limitations.' },
+        data_quality: { title: 'Data Quality Intelligence', description: 'Detected data issues with where, how many, impact and remediation.' },
+        knowledge: { title: 'Knowledge Assistant', description: 'Ask about policies, procedures, manuals and runbooks you may read.' },
+        system_health: { title: 'System Health', description: 'Application, queues, database, cache, storage, scheduler, backups and integrations.' },
+        incidents: { title: 'Active Incidents', description: 'Detected technical incidents with severity, timeline and evidence.' },
+        diagnostics: { title: 'AI Diagnostics', description: 'Root-cause assistance: symptom, evidence, likely causes, confidence, next check.' },
+        errors: { title: 'Error & Failure Analysis', description: 'Repeated exception signatures by endpoint and component.' },
+        application_health: { title: 'Application Performance', description: 'HTTP error rate and latency by route group over time.' },
+        database_health: { title: 'Database Health', description: 'Response time, connections and slow-query patterns the database exposes.' },
+        queue_health: { title: 'Redis & Queue Health', description: 'Pending and failed jobs, oldest job age, worker activity, cache availability.' },
+        integration_health: { title: 'Integration Health', description: 'E-mail, SMS, external API and backup integrations: success, failure, last call.' },
+        deployment_analysis: { title: 'Deployment Analysis', description: 'Recorded releases and how incidents and errors line up with them.' },
+        predictive: { title: 'Predictive Failure Monitor', description: 'Deteriorating trends that may cause degradation if they continue.' },
+        recommendations: { title: 'Recommendations', description: 'Recorded recommendations with evidence, confidence and review status.' },
+        runbooks: { title: 'Runbooks', description: 'Step-by-step guidance for known technical situations. Read-only.' },
+        governance: { title: 'AI Governance & Audit', description: 'Provider, model, features, prompt versions, data sources, evaluations and the run log.' },
+    },
+} as const;
+
+export default intelligence;
