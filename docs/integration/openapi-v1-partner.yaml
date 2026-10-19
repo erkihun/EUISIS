@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Addis One partner API
-  version: "1.1.0"
+  version: "1.2.0"
   description: |
     Partner-facing v1 endpoints after the master backbone remediation
     (docs/architecture/master-backbone-remediation-implementation.md).
@@ -141,6 +141,44 @@ components:
             employee_status: { type: string, nullable: true }
             service_type: { type: string }
             quota_remaining: { type: integer, nullable: true }
+    EventEnvelope:
+      type: object
+      description: 'See docs/integration/event-catalog.md and schemas/event-envelope.v1.json.'
+      required: [event_id, event_type, event_version, aggregate_type, aggregate_uuid, organization_uuid, sequence, change_kind, occurred_at, effective_at, correlation_id, data]
+      properties:
+        event_id: { type: string, format: uuid }
+        event_type: { type: string, example: id_card.revoked }
+        event_version: { type: integer, example: 1 }
+        aggregate_type: { type: string, enum: [organization, organization_unit, position, employee, employee_placement, assignment, id_card, hierarchy_version] }
+        aggregate_uuid: { type: string }
+        organization_uuid: { type: string, format: uuid, nullable: true }
+        sequence: { type: integer }
+        change_kind: { type: string, enum: [upsert, tombstone] }
+        occurred_at: { type: string, format: date-time }
+        effective_at: { type: string, format: date, nullable: true }
+        correlation_id: { type: string, nullable: true }
+        data: { type: object, additionalProperties: true }
+    ChangePage:
+      type: object
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/EventEnvelope' } }
+        next_cursor: { type: string }
+        has_more: { type: boolean }
+        request_id: { type: string, nullable: true }
+    WebhookSubscription:
+      type: object
+      properties:
+        subscription_id: { type: string, format: uuid }
+        name: { type: string }
+        callback_url: { type: string, format: uri }
+        event_types: { type: array, items: { type: string } }
+        status: { type: string, enum: [active, disabled] }
+        health: { type: string, enum: [healthy, degraded, failing, unknown] }
+        secret_rotated_at: { type: string, format: date-time, nullable: true }
+        previous_secret_valid_until: { type: string, format: date-time, nullable: true }
+        last_success_at: { type: string, format: date-time, nullable: true }
+        last_failure_at: { type: string, format: date-time, nullable: true }
+        last_failure_category: { type: string, nullable: true }
   responses:
     Unauthorized: { description: Not authenticated, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
     Forbidden: { description: Not allowed (scope, endpoint, IP, status, provider binding, permission), content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
@@ -334,3 +372,95 @@ paths:
                   transaction_count: { type: integer }
         '403': { $ref: '#/components/responses/Forbidden' }
         '422': { description: invalid_period }
+  /changes:
+    get:
+      summary: Ordered change feed (changes.read + the domain scope of each type; organization bound applied)
+      parameters:
+        - { name: cursor, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 100 } }
+        - { name: event_types, in: query, schema: { type: string }, description: Comma-separated }
+        - { name: aggregate_types, in: query, schema: { type: string }, description: Comma-separated }
+      responses:
+        '200': { description: Page, content: { application/json: { schema: { $ref: '#/components/schemas/ChangePage' } } } }
+        '400': { description: invalid_cursor, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: change_feed_disabled }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /changes/watermark:
+    get:
+      summary: Current end of the feed (bootstrap)
+      responses:
+        '200': { description: Watermark, content: { application/json: { schema: { type: object, properties: { cursor: { type: string }, as_of: { type: string, format: date-time, nullable: true } } } } } }
+  /changes/reconcile:
+    post:
+      summary: Latest visible sequence per aggregate UUID (at most 100)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [aggregate_type, uuids]
+              properties:
+                aggregate_type: { type: string }
+                uuids: { type: array, maxItems: 100, items: { type: string } }
+      responses:
+        '200':
+          description: Versions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  aggregate_type: { type: string }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        aggregate_uuid: { type: string }
+                        found: { type: boolean }
+                        sequence: { type: integer }
+                        last_event_id: { type: string, format: uuid }
+                        last_event_type: { type: string }
+                        change_kind: { type: string }
+                        occurred_at: { type: string, format: date-time }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /webhook-subscriptions:
+    get:
+      summary: Own webhook subscriptions (webhooks.manage). Secrets are never returned.
+      responses:
+        '200': { description: List, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/WebhookSubscription' } } } } } } }
+  /webhook-subscriptions/{subscription}/deliveries:
+    get:
+      summary: Delivery history of an own subscription (metadata only)
+      parameters:
+        - { name: subscription, in: path, required: true, schema: { type: string, format: uuid } }
+        - { name: status, in: query, schema: { type: string, enum: [pending, in_flight, retrying, succeeded, dead, skipped] } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        '200': { description: Deliveries }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /webhook-subscriptions/{subscription}/replay:
+    post:
+      summary: Replay events to an own subscription with their original event_ids (webhooks.replay)
+      parameters:
+        - { name: subscription, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, maxLength: 500 }
+                event_ids: { type: array, items: { type: string, format: uuid } }
+                from: { type: string, format: date-time }
+                to: { type: string, format: date-time }
+                event_types: { type: array, items: { type: string } }
+                only_failed: { type: boolean }
+      responses:
+        '202': { description: Queued, content: { application/json: { schema: { type: object, properties: { replay_id: { type: string, format: uuid }, event_count: { type: integer }, status: { type: string } } } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }

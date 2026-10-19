@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://addis-one.example/schemas/event-envelope.v1.json",
+  "title": "Addis One integration event envelope, v1",
+  "type": "object",
+  "required": ["event_id", "event_type", "event_version", "aggregate_type", "aggregate_uuid", "organization_uuid", "sequence", "change_kind", "occurred_at", "effective_at", "correlation_id", "data"],
+  "additionalProperties": true,
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "organization.created", "organization.updated", "organization.status_changed",
+        "organization_unit.created", "organization_unit.updated", "organization_unit.moved", "organization_unit.status_changed",
+        "position.created", "position.updated", "position.status_changed", "position.archived",
+        "employee.created", "employee.updated", "employee.status_changed",
+        "assignment.created", "assignment.updated", "assignment.closed",
+        "employee.assignment_changed", "employee.transferred",
+        "id_card.issued", "id_card.reprinted", "id_card.revoked", "id_card.status_changed",
+        "hierarchy_version.published",
+        "webhook.test"
+      ]
+    },
+    "event_version": { "type": "integer", "minimum": 1 },
+    "aggregate_type": { "type": "string", "enum": ["organization", "organization_unit", "position", "employee", "employee_placement", "assignment", "id_card", "hierarchy_version", "webhook_subscription"] },
+    "aggregate_uuid": { "type": "string" },
+    "organization_uuid": { "type": ["string", "null"], "format": "uuid" },
+    "sequence": { "type": "integer", "minimum": 0 },
+    "change_kind": { "type": "string", "enum": ["upsert", "tombstone", "test"] },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "effective_at": { "type": ["string", "null"], "format": "date" },
+    "correlation_id": { "type": ["string", "null"] },
+    "data": {
+      "type": "object",
+      "description": "Type-specific, minimised fields (docs/integration/event-catalog.md). Values are scalars or null; changed_fields is a list of category names.",
+      "additionalProperties": {
+        "anyOf": [
+          { "type": ["string", "number", "boolean", "null"] },
+          { "type": "array", "items": { "type": "string" } }
+        ]
+      }
+    }
+  }
+}
