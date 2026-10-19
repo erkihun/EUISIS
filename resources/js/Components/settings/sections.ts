@@ -68,8 +68,9 @@ const CARDS: Record<string, CardDefinition[]> = {
         { key: 'thresholds', fields: ['http_5xx_rate_percent', 'http_p95_latency_ms', 'queue_backlog_jobs', 'queue_oldest_job_minutes', 'failed_jobs_per_hour', 'exception_repeat_count', 'db_latency_ms', 'cache_latency_ms'] },
     ],
     assistant: [
-        { key: 'capabilities', fields: ['enabled', 'knowledge_enabled', 'analytics_enabled', 'diagnostics_enabled', 'support_enabled', 'public_enabled'] },
+        { key: 'capabilities', fields: ['enabled', 'knowledge_enabled', 'analytics_enabled', 'diagnostics_enabled', 'support_enabled'] },
         { key: 'limits', fields: ['max_message_chars', 'history_window', 'rate_limit_per_minute', 'daily_message_cap', 'retention_days'] },
+        { key: 'publicHelp', fields: (field) => field.key.startsWith('public_') },
     ],
     // Global defaults only: template artwork and overrides are edited in ID Card Templates.
     id_cards: [

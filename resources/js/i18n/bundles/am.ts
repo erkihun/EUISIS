@@ -51,6 +51,7 @@ import amIntelligence from '@/i18n/am/intelligence';
 import amIntelligenceKnowledge from '@/i18n/am/intelligenceKnowledge';
 import amAssistant from '@/i18n/am/assistant';
 import amSupport from '@/i18n/am/support';
+import amPublicAssistant from '@/i18n/am/publicAssistant';
 import amSettings from '@/i18n/am/settings';
 import amOrganizationUnits from '@/i18n/am/organizationUnits';
 import amOrganizationUnitTypes from '@/i18n/am/organizationUnitTypes';
@@ -126,6 +127,7 @@ const tree: TranslationTree = {
     intelligenceKnowledge: amIntelligenceKnowledge,
     assistant: amAssistant,
     support: amSupport,
+    publicAssistant: amPublicAssistant,
     entitlementRules: amEntitlementRules,
     cafeteria: { ...(((am as { cafeteria?: TranslationTree }).cafeteria) ?? {}), ...amCafeteria },
     codeRules: amCodeRules,

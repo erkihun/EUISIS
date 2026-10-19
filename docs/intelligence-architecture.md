@@ -1,6 +1,6 @@
 # Addis One Intelligence — architecture
 
-Addis One Intelligence (Amharic: *የAddis One ብልህ ትንተና*) is the analytical and
+Addis One Intelligence (Amharic: *የAddis One አስተውሎት*) is the analytical and
 diagnostic layer of Addis One. It helps executives, HR, system administrators
 and developers understand what is happening, detect abnormal conditions, see
 emerging risks with their evidence, and receive recommendations — while every

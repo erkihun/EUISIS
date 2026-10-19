@@ -101,7 +101,7 @@ Modes (internal, inferred, never chosen by the user): `HELP`, `KNOWLEDGE`,
 | --- | --- | --- |
 | NEEDS_POLICY_DECISION_ASSISTANT_RETENTION | conversations | approved retention (default 30 days until decided) |
 | NEEDS_POLICY_DECISION_SUPPORT_ROUTING | tickets | which team owns which category (default: category → team name in settings) |
-| NEEDS_POLICY_DECISION_PUBLIC_ASSISTANT | public pages | whether a safe public help subset should exist (off) |
+| ~~NEEDS_POLICY_DECISION_PUBLIC_ASSISTANT~~ | public pages | decided 2026-10-19: "Addis One Help" exists as a separate public boundary (`docs/public-assistant/`) |
 | NEEDS_DATA_HELP_COVERAGE | page help | modules without approved guidance in the knowledge base answer from the registry's short purpose/steps text only |
 | NEEDS_DEPLOYMENT_CONFIGURATION | rate limits | Redis cache store in production for distributed limits; AI provider env for narratives |
 

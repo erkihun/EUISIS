@@ -162,6 +162,7 @@ use App\Services\Calendar\LocalizedDateService;
 use App\Services\Communication\AttachmentScanner;
 use App\Services\Communication\PendingAttachmentScanner;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
+use App\Services\PublicAssistant\PublicAssistantSettings;
 use App\Services\Security\SessionActivityService;
 use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
@@ -395,6 +396,16 @@ class AppServiceProvider extends ServiceProvider
             return [
                 Limit::perMinute($settings->rateLimitPerMinute())->by('assistant:'.$perUser($request)),
                 Limit::perDay($settings->dailyMessageCap())->by('assistant-d:'.$perUser($request)),
+            ];
+        });
+        // Addis One Help, anonymous (docs/public-assistant/security.md): both ceilings per address, from settings —
+        // a session key would let a cookieless client rotate its way around the per-minute limit.
+        RateLimiter::for('public-assistant', function (Request $request): array {
+            $settings = app(PublicAssistantSettings::class);
+
+            return [
+                Limit::perMinute($settings->rateLimitPerMinute())->by('pa:'.$request->ip()),
+                Limit::perDay($settings->dailyCap())->by('pa-d:'.$request->ip()),
             ];
         });
         RateLimiter::for('communication-send', fn (Request $request): array => [

@@ -96,7 +96,7 @@ return [
         'escalated' => ['title' => 'Incident :reference escalated to :severity', 'message' => 'The condition on :component worsened since detection.'],
     ],
 
-    'data_classes' => ['aggregates' => 'Aggregates', 'structured_signals' => 'Structured signals', 'redacted_logs' => 'Redacted error signatures', 'knowledge_documents' => 'Knowledge documents'],
+    'data_classes' => ['aggregates' => 'Aggregates', 'structured_signals' => 'Structured signals', 'redacted_logs' => 'Redacted error signatures', 'knowledge_documents' => 'Knowledge documents', 'public_content' => 'Published public content'],
     'sources_short' => ['rule' => 'Deterministic rules', 'ai' => 'AI assistant'],
     'forecast_metrics' => ['complaints_monthly' => 'Complaints per month', 'vacancies_monthly' => 'Vacant positions per month'],
     'domain' => ['business' => 'Business', 'technical' => 'Technical'],

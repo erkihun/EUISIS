@@ -108,6 +108,23 @@ TXT,
             ],
             'max_output_tokens' => 700,
         ],
+        'public_assistant_answer' => [
+            'version' => 'v1',
+            'feature' => 'public_assistant',
+            'data_classes' => ['public_content'],
+            'system' => self::RULES,
+            'user' => <<<'TXT'
+You are Addis One Help, answering an anonymous member of the public on the public website (page: {{page}}). Everything you may use is in the DATA below: published public guidance, published services, the public name and contact of a scanned institution, and the recent conversation. Write a short, friendly answer (at most 6 sentences or 5 bullets) that stays within that data. If the data does not cover the question, say that no approved public instruction covers it and point to the Support page. Never mention employees' personal details, internal procedures, statuses of submissions, administrators, systems or errors; never claim an action was taken; never give legal determinations.
+Language: {{locale}}.
+{{data}}
+Return JSON: {"answer": string, "confidence": "high"|"medium"|"low"}
+TXT,
+            'schema' => [
+                'answer' => ['type' => 'string', 'max' => 1500],
+                'confidence' => ['type' => 'enum', 'values' => ['high', 'medium', 'low']],
+            ],
+            'max_output_tokens' => 500,
+        ],
     ];
 
     /** @return array{version: string, data_classes: list<string>, system: string, user: string, schema: array<string, mixed>, max_output_tokens: int, feature: string} */

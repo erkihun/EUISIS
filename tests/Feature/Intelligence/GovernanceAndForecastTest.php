@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\IntelligenceAiRun;
 use App\Models\IntelligenceForecast;
 use App\Models\User;
 use App\Services\Intelligence\Forecasting\ForecastSnapshotService;
@@ -40,16 +41,21 @@ beforeEach(function (): void {
 test('governance needs its grant and shows the gateway and prompt catalog without secrets', function (): void {
     $this->actingAs(govUser([IntelligencePermissions::VIEW, IntelligencePermissions::EXECUTIVE]))->get(route('intelligence.governance.index'))->assertForbidden();
 
+    // A recorded run must render with its requester (the eager load uses the model's real relation).
+    $requester = govUser([IntelligencePermissions::VIEW]);
+    IntelligenceAiRun::query()->create(['feature' => 'assistant', 'prompt_key' => 'assistant_answer', 'prompt_version' => 'v1', 'provider' => 'anthropic', 'model' => 'claude-sonnet-5-5', 'status' => 'failed', 'triggered_by_user_id' => $requester->id, 'input_summary' => ['chars' => 10], 'error' => 'provider_http_400', 'input_chars' => 10, 'duration_ms' => 5, 'created_at' => now()]);
+
     $response = $this->actingAs(govUser([IntelligencePermissions::VIEW, IntelligencePermissions::GOVERNANCE]))->get(route('intelligence.governance.index'))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('Intelligence/Governance/Index')
             ->where('gateway.enabled', false)
             ->where('gateway.available', false)
-            ->has('prompts', 4)
+            ->has('prompts', 5)
             ->where('prompts.0.key', 'incident_root_cause')
             ->where('features.forecasting_enabled', false)
             ->has('inventory.signals')
             ->has('reviews.rule')
-            ->has('runs.data'));
+            ->has('runs.data', 1)
+            ->where('runs.data.0.user', $requester->name));
     expect($response->getContent())->not->toContain('sk-should-never-appear');
 });
 

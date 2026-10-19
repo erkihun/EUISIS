@@ -16,6 +16,7 @@ use App\Services\Communication\CommunicationInbox;
 use App\Services\Communication\CommunicationNavigation;
 use App\Services\Communication\CommunicationSettings;
 use App\Services\IdCards\IdCardTemplateService;
+use App\Services\PublicAssistant\PublicAssistantSettings;
 use App\Services\PublicSite\PublicSiteContent;
 use App\Services\Security\SessionActivityService;
 use App\Services\SystemSettings\SystemSettingsService;
@@ -70,6 +71,8 @@ class HandleInertiaRequests extends Middleware
             'features' => Features::shared(),
             // The floating assistant mounts only for signed-in people and only while switched on (docs/assistant/architecture.md).
             'assistant' => ['enabled' => $user !== null && app(AssistantSettings::class)->enabled()],
+            // Addis One Help for anonymous visitors (docs/public-assistant/architecture.md): a separate public boundary.
+            'publicAssistant' => ['enabled' => app(PublicAssistantSettings::class)->enabled()],
 
             // The top-bar Messages button: on/off, the unread total (cached briefly by
             // CommunicationInbox) and whether realtime is configured. Nothing else of

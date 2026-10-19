@@ -29,4 +29,8 @@ export type PageProps<
     assistant?: {
         enabled: boolean;
     };
+    /** Shared on public pages: whether the Addis One Help trigger renders. */
+    publicAssistant?: {
+        enabled: boolean;
+    };
 };

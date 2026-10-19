@@ -55,6 +55,7 @@ import enIntelligence from '@/i18n/en/intelligence';
 import enIntelligenceKnowledge from '@/i18n/en/intelligenceKnowledge';
 import enAssistant from '@/i18n/en/assistant';
 import enSupport from '@/i18n/en/support';
+import enPublicAssistant from '@/i18n/en/publicAssistant';
 import enSettings from '@/i18n/en/settings';
 import enTransfers from '@/i18n/en/transfers';
 import enTransport from '@/i18n/en/transport';
@@ -126,6 +127,7 @@ const tree: TranslationTree = {
     intelligenceKnowledge: enIntelligenceKnowledge,
     assistant: enAssistant,
     support: enSupport,
+    publicAssistant: enPublicAssistant,
     entitlementRules: enEntitlementRules,
     cafeteria: { ...((en.cafeteria as TranslationTree | undefined) ?? {}), ...enCafeteria },
     codeRules: enCodeRules,

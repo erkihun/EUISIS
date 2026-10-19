@@ -17,7 +17,7 @@ final class IntelligenceSettings
 {
     public const AI_PROVIDERS = ['none', 'openai_compatible', 'anthropic'];
 
-    public const DATA_CLASSES = ['aggregates', 'structured_signals', 'redacted_logs', 'knowledge_documents'];
+    public const DATA_CLASSES = ['aggregates', 'structured_signals', 'redacted_logs', 'knowledge_documents', 'public_content'];
 
     /** Nullable detection limits: key => [min, max]. */
     public const THRESHOLDS = [

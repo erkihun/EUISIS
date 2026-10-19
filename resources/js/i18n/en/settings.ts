@@ -286,6 +286,8 @@ const settings = {
             capabilities: 'Capabilities',
             capabilitiesHelp: 'Switch the assistant and each of its capabilities on or off; the panel only offers what is on and granted.',
             limits: 'Limits and retention',
+            publicHelp: 'Public site help',
+            publicHelpHelp: 'Addis One Help for anonymous visitors: capabilities, limits and the optional service-status message. Public tools only; nothing internal is reachable.',
             limitsHelp: 'Message size, the turns the AI narrative may see, per-minute and per-day ceilings, and how long conversations are kept.',
         },
         intelligence: {
