@@ -198,6 +198,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bindIf(AttachmentScanner::class, PendingAttachmentScanner::class);
         // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
         $this->app->scoped(SituationMemo::class);
+        // Event integration: one correlation id and suppression set per request / job.
+        $this->app->scoped(\App\Services\Integration\Events\IntegrationEventContext::class);
         // One instance per request: validation, rendering and storage read the same questionnaire version.
         $this->app->scoped(PublicFeedbackQuestionnaire::class);
 

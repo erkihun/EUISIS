@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Integration;
 
+use App\Enums\ApiScope;
 use App\Models\Employee;
 use App\Models\ExternalApplication;
 use App\Models\ServiceProvider;
@@ -111,7 +112,7 @@ class IntegrationAccessService
         if ($principal instanceof ExternalApplication) {
             $token = $principal->currentAccessToken();
 
-            return $token !== null && $token->can('employees.photo_read') && in_array('employees.photo_read', $principal->grantableScopes(), true);
+            return $token !== null && $token->can(ApiScope::EmployeesPhotoRead->value) && in_array(ApiScope::EmployeesPhotoRead->value, $principal->grantableScopes(), true);
         }
 
         return $principal instanceof User && $principal->can(self::HUMAN_PERMISSION['employees.photo_read']);

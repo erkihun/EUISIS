@@ -187,7 +187,7 @@ export default function IntegrationsShow({ subscription, deliveries, statusFilte
                                             <Td muted>{row.last_attempt_at ?? '—'}</Td>
                                             <Td muted>{row.next_attempt_at ?? '—'}</Td>
                                             <Td align="right">
-                                                <AppActionMenu items={[{ label: t('integrations.viewPayload'), href: route('integrations.events.show', row.event_id), show: can.payload }]} />
+                                                <AppActionMenu items={[{ label: t('integrations.payloadAction'), href: route('integrations.events.show', row.event_id), show: can.payload }]} />
                                             </Td>
                                         </Tr>
                                     ))}

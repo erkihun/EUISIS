@@ -79,7 +79,7 @@ export default {
     delivery_succeeded: 'ተሳክቷል',
     delivery_dead: 'ተትቷል',
     delivery_skipped: 'ታልፏል',
-    viewPayload: 'ይዘት',
+    payloadAction: 'ይዘት',
     secret: 'የመፈረሚያ ሚስጥር',
     secretRevealTitle: 'የመፈረሚያ ሚስጥሩን አሁን ይቅዱ',
     secretRevealHint: 'አንድ ጊዜ ብቻ ይታያል። በአጋሩ የሚስጥር ማከማቻ ውስጥ ያስቀምጡት፤ እያንዳንዱን አቅርቦት ይፈርማል (Addis-Signature)።',

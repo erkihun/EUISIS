@@ -49,7 +49,8 @@ test('governance needs its grant and shows the gateway and prompt catalog withou
         ->assertInertia(fn (Assert $page) => $page->component('Intelligence/Governance/Index')
             ->where('gateway.enabled', false)
             ->where('gateway.available', false)
-            ->has('prompts', 5)
+            // assistant/incident prompts plus organization design's design_extraction.
+            ->has('prompts', 6)
             ->where('prompts.0.key', 'incident_root_cause')
             ->where('features.forecasting_enabled', false)
             ->has('inventory.signals')

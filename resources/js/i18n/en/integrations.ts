@@ -79,7 +79,7 @@ export default {
     delivery_succeeded: 'Succeeded',
     delivery_dead: 'Dead',
     delivery_skipped: 'Skipped',
-    viewPayload: 'Payload',
+    payloadAction: 'Payload',
     secret: 'Signing Secret',
     secretRevealTitle: 'Copy the signing secret now',
     secretRevealHint: 'It is shown once. Store it in the partner\'s secret store; it signs every delivery (Addis-Signature).',
