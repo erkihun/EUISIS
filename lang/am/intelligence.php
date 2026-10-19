@@ -93,7 +93,7 @@ return [
         'escalated' => ['title' => 'ክስተት :reference ወደ :severity ከፍ ብሏል', 'message' => 'በ :component ላይ ያለው ሁኔታ ከተገኘበት ጊዜ ጀምሮ ተባብሷል።'],
     ],
 
-    'data_classes' => ['aggregates' => 'ድምር መረጃዎች', 'structured_signals' => 'የተዋቀሩ ምልክቶች', 'redacted_logs' => 'የተሰወሩ የስህተት ፊርማዎች', 'knowledge_documents' => 'የዕውቀት ሰነዶች'],
+    'data_classes' => ['aggregates' => 'ድምር መረጃዎች', 'structured_signals' => 'የተዋቀሩ ምልክቶች', 'redacted_logs' => 'የተሰወሩ የስህተት ፊርማዎች', 'knowledge_documents' => 'የዕውቀት ሰነዶች', 'public_content' => 'የታተመ የሕዝብ ይዘት'],
     'sources_short' => ['rule' => 'ቆራጥ ደንቦች', 'ai' => 'የሰው ሠራሽ ብልህነት ረዳት'],
     'forecast_metrics' => ['complaints_monthly' => 'በወር ቅሬታዎች', 'vacancies_monthly' => 'በወር ክፍት የሥራ መደቦች'],
     'domain' => ['business' => 'የሥራ', 'technical' => 'የቴክኒክ'],

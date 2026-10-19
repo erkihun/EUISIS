@@ -6,6 +6,7 @@ import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import AppToaster from '@/Components/ui/AppToaster';
 import PublicHeader from '@/Components/public/PublicHeader';
 import PublicFooter from '@/Components/public/PublicFooter';
+import PublicAssistant from '@/Components/public-ai/PublicAssistant';
 import { useBilingual } from '@/Components/public/bilingual';
 import '../../css/public-site.css';
 
@@ -92,6 +93,9 @@ export default function PublicLayout({ title, description, meta, noindex = false
             {/* Popup messages for every public page: a submission's outcome must be
                 visible wherever the visitor has scrolled, on a phone as on a desktop. */}
             <AppToaster flashToasts={flashToasts} />
+
+            {/* Addis One Help: the floating trigger; its panel loads on the first open. */}
+            <PublicAssistant />
         </LocalizedUiProvider>
     );
 }

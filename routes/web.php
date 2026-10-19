@@ -1500,6 +1500,7 @@ require __DIR__.'/court-cases.php';
 require __DIR__.'/intelligence.php';
 require __DIR__.'/assistant.php';
 require __DIR__.'/support.php';
+require __DIR__.'/public-assistant.php';
 
 // Cross-cutting platform endpoints (scoped lookups).
 require __DIR__.'/platform.php';

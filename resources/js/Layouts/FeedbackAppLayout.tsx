@@ -5,6 +5,7 @@ import AppToaster from '@/Components/ui/AppToaster';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import ThemeToggle from '@/Components/ThemeToggle';
 import { ChevronLeft, QrCodeIcon } from '@/Components/NavIcons';
+import PublicAssistant from '@/Components/public-ai/PublicAssistant';
 import { useBranding } from '@/hooks/useBranding';
 
 /**
@@ -82,6 +83,9 @@ export default function FeedbackAppLayout({ title, subtitle, backHref, backLabel
                         {dock}
                     </div>
                 )}
+
+                {/* Addis One Help, inside the frame so its trigger inherits the dock's height and sits above it. */}
+                <PublicAssistant />
             </div>
 
             {/* Every outcome of a submission is a popup, wherever the visitor has scrolled. */}
@@ -146,10 +150,22 @@ function useMeasuredHeight<T extends HTMLElement>(): [(node: T | null) => void, 
  * keeps the last field clear of it.
  */
 export function FeedbackActionBar({ children }: { children: ReactNode }) {
+    const [barRef, barHeight] = useMeasuredHeight<HTMLDivElement>();
+
+    // The bar is fixed inside <main>, so the floating help trigger mounted outside it (PublicAssistant)
+    // learns its height from the document root and stays clear of the Send button.
+    useEffect(() => {
+        document.documentElement.style.setProperty('--feedback-action-bar-height', `${barHeight}px`);
+
+        return () => {
+            document.documentElement.style.removeProperty('--feedback-action-bar-height');
+        };
+    }, [barHeight]);
+
     return (
         <>
             <div className="mt-auto h-[calc(4.25rem+var(--feedback-action-bar-padding))] shrink-0" aria-hidden="true" />
-            <div className="fixed inset-x-0 bottom-(--feedback-dock-height,0px) z-30 mx-auto w-full max-w-md border-t border-(--app-border) bg-(--app-surface) px-4 pb-(--feedback-action-bar-padding) pt-3 shadow-[0_-1px_8px_rgba(15,23,42,0.06)] sm:border-x sm:border-(--app-border)">
+            <div ref={barRef} className="fixed inset-x-0 bottom-(--feedback-dock-height,0px) z-30 mx-auto w-full max-w-md border-t border-(--app-border) bg-(--app-surface) px-4 pb-(--feedback-action-bar-padding) pt-3 shadow-[0_-1px_8px_rgba(15,23,42,0.06)] sm:border-x sm:border-(--app-border)">
                 {children}
             </div>
         </>
