@@ -121,6 +121,12 @@ const intelligence = {
         },
         reviews: 'የምክረ ሐሳብ ግምገማዎች',
         generatedBy: 'የተፈጠረው በ',
+        assistant: 'ረዳት (ያለፉት 30 ቀናት)',
+        a: {
+            requests: 'መልሶች', ai_used: 'በሰው ሠራሽ ብልህነት ትረካ', fallback_rate: 'የመውደቂያ መጠን', denied: 'በአቅም የተከለከሉ', errors: 'ስህተቶች',
+            avg_ms: 'አማካይ የመልስ ጊዜ', avg_ai_ms: 'አማካይ የሰው ሠራሽ ብልህነት መልስ ጊዜ', feedback: 'ጠቃሚ / ጠቃሚ ያልሆነ', tickets: 'ከረዳቱ የተፈጠሩ ጥያቄዎች', modes: 'በሁነታ',
+            note: 'ከመልእክት ሜታዳታ ብቻ የተሰላ፤ ረዳቱ እዚህ የመልእክት ጽሑፍን በጭራሽ አይተነትንም።',
+        },
         forecastQuality: 'የትንበያ ጥራት',
         noForecasts: 'እስካሁን የተገመገመ የትንበያ ቅጽበታዊ ምስል የለም።',
         metric: 'መለኪያ',

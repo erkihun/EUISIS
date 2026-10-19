@@ -91,6 +91,23 @@ TXT,
             ],
             'max_output_tokens' => 900,
         ],
+        'assistant_answer' => [
+            'version' => 'v1',
+            'feature' => 'assistant',
+            'data_classes' => ['aggregates', 'structured_signals', 'knowledge_documents'],
+            'system' => self::RULES,
+            'user' => <<<'TXT'
+You are the Addis One Assistant, answering one person inside the platform. Mode: {{mode}}. Current module: {{module}}. The person's question and the results the platform's own tools computed for them are in the DATA below (recent conversation turns, the question, tool results). Write a short, direct answer (at most 8 sentences or 6 bullets) that cites the tool figures as given, names what is observed versus what you infer, and says what to check next or where to open details. Do not claim access the tools did not return; if the tools returned nothing useful, say the approved sources do not contain enough information. Never give commands to run, never promise an action was taken, never rank or judge people.
+Language: {{locale}}.
+{{data}}
+Return JSON: {"answer": string, "confidence": "high"|"medium"|"low"}
+TXT,
+            'schema' => [
+                'answer' => ['type' => 'string', 'max' => 2000],
+                'confidence' => ['type' => 'enum', 'values' => ['high', 'medium', 'low']],
+            ],
+            'max_output_tokens' => 700,
+        ],
     ];
 
     /** @return array{version: string, data_classes: list<string>, system: string, user: string, schema: array<string, mixed>, max_output_tokens: int, feature: string} */

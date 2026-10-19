@@ -8,6 +8,7 @@ import Breadcrumbs from '@/Components/Breadcrumbs';
 import AppToaster from '@/Components/ui/AppToaster';
 import TemporaryPasswordNotice from '@/Components/TemporaryPasswordNotice';
 import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
+import GlobalAIAssistant from '@/Components/ai/GlobalAIAssistant';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
@@ -155,6 +156,7 @@ export default function Authenticated({
                 {t('publicSite.skipToContent')}
             </a>
             <AppToaster />
+            <GlobalAIAssistant />
 
             {/* Desktop sidebar — fixed, does not scroll with page content */}
             <div className="hidden lg:block">

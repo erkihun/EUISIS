@@ -67,6 +67,10 @@ const CARDS: Record<string, CardDefinition[]> = {
         { key: 'analysis', fields: ['cache_seconds', 'baseline_window_days', 'anomaly_sigma', 'retention_days', 'notify_min_severity'] },
         { key: 'thresholds', fields: ['http_5xx_rate_percent', 'http_p95_latency_ms', 'queue_backlog_jobs', 'queue_oldest_job_minutes', 'failed_jobs_per_hour', 'exception_repeat_count', 'db_latency_ms', 'cache_latency_ms'] },
     ],
+    assistant: [
+        { key: 'capabilities', fields: ['enabled', 'knowledge_enabled', 'analytics_enabled', 'diagnostics_enabled', 'support_enabled', 'public_enabled'] },
+        { key: 'limits', fields: ['max_message_chars', 'history_window', 'rate_limit_per_minute', 'daily_message_cap', 'retention_days'] },
+    ],
     // Global defaults only: template artwork and overrides are edited in ID Card Templates.
     id_cards: [
         { key: 'headerDefaults', fields: (field) => /^(city|bureau)_name_/.test(field.key) },

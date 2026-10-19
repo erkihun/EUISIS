@@ -204,6 +204,7 @@ const navigation = {
     myDocuments: 'My Documents',
     groupSelfService: 'Self-service',
     myWork: 'My Work',
+    supportTickets: 'Support Tickets',
     myDailyActivity: 'Daily Activity',
     fieldWorkManagement: 'Field Work Management',
     myActivityCalendar: 'My Activity Calendar',

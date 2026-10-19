@@ -18,6 +18,7 @@ return [
         'field_work_gps_updated' => 'የመስክ ሥራ የGPS ፖሊሲ ተዘምኗል።',
         'situation_room_updated' => 'የሁኔታ መከታተያ ቅንብሮች ተዘምነዋል።',
         'intelligence_updated' => 'የብልህ ትንተና ቅንብሮች ተዘምነዋል።',
+        'assistant_updated' => 'የረዳት ቅንብሮች ተዘምነዋል።',
         'setting_updated' => 'ቅንብሩ በተሳካ ሁኔታ ተዘምኗል።',
         'cache_cleared' => 'የቅንብር ካሽ በተሳካ ሁኔታ ተጽድቷል።',
         'test_channel_missing' => 'የ:channel የሙከራ መዳረሻ አልተቀናበረም።',

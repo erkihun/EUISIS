@@ -278,6 +278,12 @@ const settings = {
             attention: 'Critical Attention limits',
             attentionHelp: 'Leave a limit blank until it is decided: the rule then shows "not configured" and counts nothing.',
         },
+        assistant: {
+            capabilities: 'Capabilities',
+            capabilitiesHelp: 'Switch the assistant and each of its capabilities on or off; the panel only offers what is on and granted.',
+            limits: 'Limits and retention',
+            limitsHelp: 'Message size, the turns the AI narrative may see, per-minute and per-day ceilings, and how long conversations are kept.',
+        },
         intelligence: {
             ai: 'AI provider',
             aiHelp: 'Whether an AI provider explains signals, which driver, its limits, and what classes of data may reach it. Keys live in the environment.',
@@ -397,6 +403,7 @@ const settings = {
         field_work_gps: 'Field Work GPS',
         situation_room: 'Situation Room',
         intelligence: 'Intelligence',
+        assistant: 'Assistant',
         api_management: 'API Management',
     },
     descriptions: {
@@ -412,6 +419,7 @@ const settings = {
         field_work_gps: 'Configure explicit field-work location capture and enforcement. Values marked not configured do not impose a hidden rule.',
         situation_room: 'Default period, caching, wall timing, the small-group privacy rule and Critical Attention limits. Blank limits are not configured and count nothing.',
         intelligence: 'AI provider and limits, feature switches, baseline and retention, and the detection limits of Addis One Intelligence. Blank limits are not configured.',
+        assistant: 'The floating Addis One Assistant: which capabilities it offers, message and rate limits, and conversation retention. AI itself is configured under Intelligence.',
     },
     groups: {
         brandingPreview: 'Branding Preview',

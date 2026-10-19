@@ -181,6 +181,10 @@ import { PenNewRoundIcon as SolarPenNewRoundIcon } from '@solar-icons/react/line
 import { MedalStarIcon as SolarMedalStarIcon } from '@solar-icons/react/linear/medal-star';
 import { FileUserIcon as SolarFileUserIcon } from '@solar-icons/react/linear/file-user';
 import { ArchiveIcon as SolarArchiveIcon } from '@solar-icons/react/linear/archive';
+import { LikeIcon as SolarLikeIcon } from '@solar-icons/react/linear/like';
+import { DislikeIcon as SolarDislikeIcon } from '@solar-icons/react/linear/dislike';
+import { MaximizeSquareMinimalisticIcon as SolarMaximizeSquareMinimalisticIcon } from '@solar-icons/react/linear/maximize-square-minimalistic';
+import { MinimizeSquareIcon as SolarMinimizeSquareIcon } from '@solar-icons/react/linear/minimize-square';
 
 export type NavIcon = (props: Omit<SVGProps<SVGSVGElement>, 'ref'>) => JSX.Element;
 
@@ -373,3 +377,8 @@ export const ArrowLeftIcon = adapt(SolarArrowLeftIcon);
 export const RefreshIcon = adapt(SolarRefreshIcon);
 export const DangerCircleIcon = adapt(SolarDangerCircleIcon);
 export const TaskIcon = adapt(SolarChecklistMinimalisticIcon);
+// Addis One Assistant panel.
+export const LikeIcon = adapt(SolarLikeIcon);
+export const DislikeIcon = adapt(SolarDislikeIcon);
+export const MaximizeIcon = adapt(SolarMaximizeSquareMinimalisticIcon);
+export const MinimizeIcon = adapt(SolarMinimizeSquareIcon);

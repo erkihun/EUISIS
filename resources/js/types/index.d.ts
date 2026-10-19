@@ -24,4 +24,8 @@ export type PageProps<
         mode: CalendarMode;
     };
     locale?: string;
+    /** Shared by HandleInertiaRequests: whether the Addis One Assistant trigger renders. */
+    assistant?: {
+        enabled: boolean;
+    };
 };

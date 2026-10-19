@@ -1037,6 +1037,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/system-settings/field-work-gps', [SystemSettingController::class, 'updateFieldWorkGps'])->name('system-settings.field-work-gps.update');
     Route::patch('/system-settings/situation-room', [SystemSettingController::class, 'updateSituationRoom'])->name('system-settings.situation-room.update');
         Route::patch('/system-settings/intelligence', [SystemSettingController::class, 'updateIntelligence'])->name('system-settings.intelligence.update');
+        Route::patch('/system-settings/assistant', [SystemSettingController::class, 'updateAssistant'])->name('system-settings.assistant.update');
     Route::post('/system-settings/test-email', [SystemSettingController::class, 'testEmail'])->name('system-settings.test-email');
     Route::post('/system-settings/test-sms', [SystemSettingController::class, 'testSms'])->name('system-settings.test-sms');
     Route::post('/system-settings/test-telegram', [SystemSettingController::class, 'testTelegram'])->name('system-settings.test-telegram');
@@ -1497,6 +1498,8 @@ require __DIR__.'/organization-design.php';
 // Court Cases — planned standalone module, separate from Grievance Management.
 require __DIR__.'/court-cases.php';
 require __DIR__.'/intelligence.php';
+require __DIR__.'/assistant.php';
+require __DIR__.'/support.php';
 
 // Cross-cutting platform endpoints (scoped lookups).
 require __DIR__.'/platform.php';

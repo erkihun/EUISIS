@@ -160,6 +160,7 @@ const permissions = {
         'service_feedback': 'የሕዝብ አስተያየት',
         'situation_room': 'የአመራር ሁኔታ መከታተያ ማዕከል',
         'intelligence': 'የAddis One ብልህ ትንተና',
+        'support': 'የድጋፍ ማዕከል',
         'communication': 'መልዕክቶች',
         'communication_groups': 'የመልዕክት ቡድኖች',
         'communication_channels': 'ቻናሎች',

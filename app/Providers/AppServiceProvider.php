@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
+use App\Jobs\Communication\SyncEmployeeCommunicationMemberships;
 use App\Models\AssessmentForm;
 use App\Models\AuditLog;
 use App\Models\CafeteriaDayRule;
@@ -19,6 +20,14 @@ use App\Models\CafeteriaSubsidyRule;
 use App\Models\CafeteriaTransaction;
 use App\Models\CardRequest;
 use App\Models\CodeRule;
+use App\Models\Communication\Announcement;
+use App\Models\Communication\Channel;
+use App\Models\Communication\CommunicationAccessRequest;
+use App\Models\Communication\CommunicationReport;
+use App\Models\Communication\CommunicationTask;
+use App\Models\Communication\Conversation;
+use App\Models\Communication\Message;
+use App\Models\Communication\MessageAttachment;
 use App\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -48,7 +57,7 @@ use App\Models\OrganizationUnitType;
 use App\Models\Permission;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
-use App\Models\PositionProfile;
+use App\Models\PositionProfile; // alias to avoid clash with Illuminate\Support\ServiceProvider
 use App\Models\PositionService;
 use App\Models\Process;
 use App\Models\ProviderUser;
@@ -57,7 +66,7 @@ use App\Models\PublicHoliday;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\ServiceClassification;
-use App\Models\ServiceProvider as ServiceProviderModel; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
@@ -70,6 +79,7 @@ use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
 use App\Models\WorkforcePlanningMethodology;
 use App\Observers\EmployeeAssignmentCardImpactObserver;
+use App\Observers\EmployeeAssignmentCommunicationObserver;
 use App\Policies\AssessmentFormPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CafeteriaDayRulePolicy;
@@ -83,6 +93,14 @@ use App\Policies\CafeteriaSubsidyRulePolicy;
 use App\Policies\CafeteriaTransactionPolicy;
 use App\Policies\CardRequestPolicy;
 use App\Policies\CodeRulePolicy;
+use App\Policies\Communication\AnnouncementPolicy;
+use App\Policies\Communication\ChannelPolicy;
+use App\Policies\Communication\CommunicationAccessRequestPolicy;
+use App\Policies\Communication\CommunicationReportPolicy;
+use App\Policies\Communication\CommunicationTaskPolicy;
+use App\Policies\Communication\ConversationPolicy;
+use App\Policies\Communication\MessageAttachmentPolicy;
+use App\Policies\Communication\MessagePolicy;
 use App\Policies\DailyActivityLogPolicy;
 use App\Policies\EmployeeCafeteriaExclusionPolicy;
 use App\Policies\EmployeePolicy;
@@ -133,6 +151,7 @@ use App\Policies\WorkforcePlanningMethodologyPolicy;
 use App\Security\Hashing\MigratingArgon2IdHasher;
 use App\Security\Passwords\CompromisedPasswordChecker;
 use App\Security\Passwords\HibpCompromisedPasswordChecker;
+use App\Services\Assistant\AssistantSettings;
 use App\Services\Backup\Infrastructure\BackupInfrastructureAdapter;
 use App\Services\Backup\Infrastructure\DisabledBackupAdapter;
 use App\Services\Backup\Infrastructure\PgBackRestBackupAdapter;
@@ -140,6 +159,8 @@ use App\Services\Backup\Infrastructure\ReportBackupAdapter;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
+use App\Services\Communication\AttachmentScanner;
+use App\Services\Communication\PendingAttachmentScanner;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
 use App\Services\Security\SessionActivityService;
 use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
@@ -169,7 +190,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Communication malware-scan hook: replace with a real scanner binding in production.
-        $this->app->bindIf(\App\Services\Communication\AttachmentScanner::class, \App\Services\Communication\PendingAttachmentScanner::class);
+        $this->app->bindIf(AttachmentScanner::class, PendingAttachmentScanner::class);
         // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
         $this->app->scoped(SituationMemo::class);
         // One instance per request: validation, rendering and storage read the same questionnaire version.
@@ -209,11 +230,11 @@ class AppServiceProvider extends ServiceProvider
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);
         // Automatic Communication channel membership follows assignments and account status.
-        EmployeeAssignment::observe(\App\Observers\EmployeeAssignmentCommunicationObserver::class);
-        \App\Models\Employee::saved(fn (\App\Models\Employee $employee) => app(\App\Observers\EmployeeAssignmentCommunicationObserver::class)->employeeSaved($employee));
-        \App\Models\User::saved(function (\App\Models\User $user): void {
+        EmployeeAssignment::observe(EmployeeAssignmentCommunicationObserver::class);
+        Employee::saved(fn (Employee $employee) => app(EmployeeAssignmentCommunicationObserver::class)->employeeSaved($employee));
+        User::saved(function (User $user): void {
             if ($user->employee_id !== null && $user->wasChanged('status')) {
-                \App\Jobs\Communication\SyncEmployeeCommunicationMemberships::dispatch((string) $user->employee_id)->afterCommit();
+                SyncEmployeeCommunicationMemberships::dispatch((string) $user->employee_id)->afterCommit();
             }
         });
         $this->configureViteAssetMode();
@@ -294,14 +315,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(EmployeeCafeteriaExclusion::class, EmployeeCafeteriaExclusionPolicy::class);
 
         // Communication & Collaboration (docs/communication-module.md).
-        Gate::policy(\App\Models\Communication\Conversation::class, \App\Policies\Communication\ConversationPolicy::class);
-        Gate::policy(\App\Models\Communication\Message::class, \App\Policies\Communication\MessagePolicy::class);
-        Gate::policy(\App\Models\Communication\MessageAttachment::class, \App\Policies\Communication\MessageAttachmentPolicy::class);
-        Gate::policy(\App\Models\Communication\Channel::class, \App\Policies\Communication\ChannelPolicy::class);
-        Gate::policy(\App\Models\Communication\Announcement::class, \App\Policies\Communication\AnnouncementPolicy::class);
-        Gate::policy(\App\Models\Communication\CommunicationTask::class, \App\Policies\Communication\CommunicationTaskPolicy::class);
-        Gate::policy(\App\Models\Communication\CommunicationReport::class, \App\Policies\Communication\CommunicationReportPolicy::class);
-        Gate::policy(\App\Models\Communication\CommunicationAccessRequest::class, \App\Policies\Communication\CommunicationAccessRequestPolicy::class);
+        Gate::policy(Conversation::class, ConversationPolicy::class);
+        Gate::policy(Message::class, MessagePolicy::class);
+        Gate::policy(MessageAttachment::class, MessageAttachmentPolicy::class);
+        Gate::policy(Channel::class, ChannelPolicy::class);
+        Gate::policy(Announcement::class, AnnouncementPolicy::class);
+        Gate::policy(CommunicationTask::class, CommunicationTaskPolicy::class);
+        Gate::policy(CommunicationReport::class, CommunicationReportPolicy::class);
+        Gate::policy(CommunicationAccessRequest::class, CommunicationAccessRequestPolicy::class);
 
         /*
          * Super Admin passes every check, except the self-protection rules:
@@ -319,11 +340,11 @@ class AppServiceProvider extends ServiceProvider
             // Reported content and investigation access follow the same rule, whether the check is on a
             // record or on the class (viewAny, create).
             $private = [
-                \App\Models\Communication\Conversation::class,
-                \App\Models\Communication\Message::class,
-                \App\Models\Communication\MessageAttachment::class,
-                \App\Models\Communication\CommunicationAccessRequest::class,
-                \App\Models\Communication\CommunicationReport::class,
+                Conversation::class,
+                Message::class,
+                MessageAttachment::class,
+                CommunicationAccessRequest::class,
+                CommunicationReport::class,
             ];
             if ((is_object($target) && in_array($target::class, $private, true)) || (is_string($target) && in_array($target, $private, true))) {
                 return null;
@@ -346,6 +367,15 @@ class AppServiceProvider extends ServiceProvider
          * so one account cannot flood a conversation, the directory or the moderators.
          */
         $perUser = static fn (Request $request): string => (string) ($request->user()?->getAuthIdentifier() ?? $request->ip());
+        // Addis One Assistant (docs/assistant/security.md): per person, both ceilings from System Settings › Assistant.
+        RateLimiter::for('assistant', function (Request $request) use ($perUser): array {
+            $settings = app(AssistantSettings::class);
+
+            return [
+                Limit::perMinute($settings->rateLimitPerMinute())->by('assistant:'.$perUser($request)),
+                Limit::perDay($settings->dailyMessageCap())->by('assistant-d:'.$perUser($request)),
+            ];
+        });
         RateLimiter::for('communication-send', fn (Request $request): array => [
             Limit::perMinute(40)->by('comm-send:'.$perUser($request)),
             Limit::perHour(600)->by('comm-send-h:'.$perUser($request)),

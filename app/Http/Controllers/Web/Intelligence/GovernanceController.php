@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Intelligence;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssistantMessage;
 use App\Models\IntelligenceAiRun;
 use App\Models\IntelligenceAlert;
 use App\Models\IntelligenceIncident;
@@ -64,6 +65,7 @@ final class GovernanceController extends Controller
             'reviews' => $this->reviews(),
             'forecast_quality' => $this->settings->forecastingEnabled() || Schema::hasTable('intelligence_forecasts') ? $this->forecasts->quality() : [],
             'inventory' => $this->inventory(),
+            'assistant' => $this->assistantStats(),
             'can' => ['manage' => $user->can(IntelligencePermissions::GOVERNANCE_MANAGE), 'manage_settings' => $user->can(IntelligencePermissions::SETTINGS)],
         ]);
     }
@@ -90,6 +92,37 @@ final class GovernanceController extends Controller
     }
 
     /** @return array<string, int|string|null> */
+    /**
+     * Assistant operations over the last 30 days from message columns only — never message text
+     * (docs/assistant/architecture.md, A-11).
+     *
+     * @return array<string, int|float|null|array<string, int>>
+     */
+    private function assistantStats(): array
+    {
+        $since = now()->subDays(30);
+        $replies = AssistantMessage::query()->where('role', 'assistant')->where('created_at', '>=', $since);
+        $byStatus = (clone $replies)->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+        $byMode = (clone $replies)->selectRaw('mode, count(*) as c')->groupBy('mode')->pluck('c', 'mode');
+        $feedback = (clone $replies)->whereNotNull('feedback')->selectRaw('feedback, count(*) as c')->groupBy('feedback')->pluck('c', 'feedback');
+        $total = (int) $byStatus->sum();
+        $aiAverage = (clone $replies)->where('ai_used', true)->avg('duration_ms');
+
+        return [
+            'requests' => $total,
+            'ai_used' => (int) (clone $replies)->where('ai_used', true)->count(),
+            'fallback_rate' => $total > 0 ? round(100 * (int) ($byStatus['fallback'] ?? 0) / $total, 1) : null,
+            'denied' => (int) ($byStatus['denied'] ?? 0),
+            'errors' => (int) ($byStatus['error'] ?? 0),
+            'avg_ai_ms' => $aiAverage === null ? null : (int) round((float) $aiAverage),
+            'avg_ms' => $total > 0 ? (int) round((float) (clone $replies)->avg('duration_ms')) : null,
+            'modes' => array_map('intval', $byMode->all()),
+            'helpful' => (int) ($feedback['helpful'] ?? 0),
+            'not_helpful' => (int) ($feedback['not_helpful'] ?? 0),
+            'tickets' => Schema::hasTable('support_tickets') ? (int) \DB::table('support_tickets')->where('created_at', '>=', $since)->whereNotNull('conversation_id')->count() : 0,
+        ];
+    }
+
     private function inventory(): array
     {
         $knowledge = Schema::hasTable('intelligence_knowledge_documents') ? (int) \DB::table('intelligence_knowledge_documents')->count() : null;
