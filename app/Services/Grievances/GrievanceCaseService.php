@@ -40,6 +40,7 @@ use App\Models\GrievanceTask;
 use App\Models\User;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
+use App\Support\RichText\RichText;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -316,7 +317,9 @@ final class GrievanceCaseService
                     : GrievanceOriginLevel::Organization,
                 'category_id' => $category->getKey(),
                 'subject' => $issue->issue_subject,
-                'description' => $data['cause_of_grievance'] ?? $issue->issue_description,
+                // Plain text from the initial issue: escaped into paragraphs, so
+                // "<" and "&" survive the formatted-text sanitizer.
+                'description' => RichText::fromPlainText((string) ($data['cause_of_grievance'] ?? $issue->issue_description ?? '')),
                 'incident_date' => $data['incident_date'] ?? null,
                 'respondent_description' => $data['respondent_description'] ?? $issue->responsible_officer_name_snapshot,
                 'priority' => GrievancePriority::tryFrom((string) $category->default_priority) ?? GrievancePriority::Normal,

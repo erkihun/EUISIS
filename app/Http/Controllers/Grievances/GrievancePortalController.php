@@ -13,6 +13,7 @@ use App\Models\GrievanceCategory;
 use App\Models\GrievanceInformationRequest;
 use App\Models\GrievanceLetter;
 use App\Models\GrievanceReasonCode;
+use App\Rules\RichTextContent;
 use App\Services\Grievances\GrievanceAppealService;
 use App\Services\Grievances\GrievanceCaseAccessService;
 use App\Services\Grievances\GrievanceCaseService;
@@ -36,6 +37,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class GrievancePortalController extends Controller
 {
+    /** Largest file the grievance application form accepts: 2 MB. */
+    public const FORM_FILE_MAX_KB = 2048;
+
     public function __construct(
         private readonly GrievanceCaseService $cases,
         private readonly GrievanceCaseAccessService $access,
@@ -267,8 +271,8 @@ class GrievancePortalController extends Controller
         return [
             'categories' => GrievanceCategory::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am', 'description_en', 'description_am']),
             'evidenceTypes' => GrievanceEvidenceType::values(),
-            'allowedExtensions' => $this->settings->evidenceAllowedExtensions(),
-            'maxFileKb' => $this->settings->evidenceMaxSizeKb(),
+            'allowedExtensions' => ['pdf'],
+            'maxFileKb' => self::FORM_FILE_MAX_KB,
         ];
     }
 
@@ -279,7 +283,7 @@ class GrievancePortalController extends Controller
         $sending = $request->boolean('submit') ? 'required' : 'nullable';
         $data = $request->validate([
             'subject' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string', 'max:20000'],
+            'description' => [RichTextContent::required(maxLength: 20000)],
             'category_id' => ['required', 'uuid', 'exists:grievance_categories,id'],
             'incident_date' => [$sending, 'nullable', 'date', 'before_or_equal:today'],
             'respondent_description' => ['nullable', 'string', 'max:2000'],
@@ -296,7 +300,9 @@ class GrievancePortalController extends Controller
             'amendment_reason' => [$amendment ? 'nullable' : 'prohibited', 'string', 'max:2000'],
             'submit' => ['nullable', 'boolean'],
             'files' => ['nullable', 'array', 'max:10'],
-            'files.*' => ['file', 'max:'.$this->settings->evidenceMaxSizeKb()],
+            // The application form takes PDF only, at most 2 MB each,
+            // whatever the evidence settings allow elsewhere.
+            'files.*' => ['file', 'mimes:pdf', 'mimetypes:application/pdf', 'max:'.self::FORM_FILE_MAX_KB],
             'file_types' => ['nullable', 'array'],
             'file_types.*' => ['nullable', 'in:'.implode(',', GrievanceEvidenceType::values())],
         ]);

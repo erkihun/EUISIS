@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\RichTextHtml;
 use App\Enums\Grievance\GrievanceConfidentiality;
 use App\Enums\Grievance\GrievanceHandlerType;
 use App\Enums\Grievance\GrievancePriority;
@@ -107,6 +108,8 @@ class Grievance extends Model
     {
         return [
             'status' => GrievanceStatus::class,
+            // Formatted text, sanitized on every write; older cases keep their plain text.
+            'description' => RichTextHtml::class,
             'origin_level' => GrievanceOriginLevel::class,
             'priority' => GrievancePriority::class,
             'confidentiality_level' => GrievanceConfidentiality::class,

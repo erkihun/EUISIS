@@ -7,6 +7,7 @@ const grievancePortal = {
     information: 'Information requests', response: 'Your response', respond: 'Send response', evidence: 'Supporting evidence', letters: 'Official letters',
     outcome: 'Outcome and appeal', appeal: 'File appeal', accept: 'Accept outcome and close', accept_help: 'Accepting the outcome closes this grievance. Review the issued letter before continuing.',
     requested_remedy: 'Remedy you are asking for', requested_remedy_help: 'What decision or correction would resolve the grievance.',
+    file_rejected: 'Not attached (PDF only, 2 MB at most)',
     prior_step: 'Raised first with your supervisor', prior_step_help: 'A grievance goes to the committee only after you presented the matter in writing to your immediate supervisor or manager and it was not resolved. File within 10 working days of that date.',
     immediate_supervisor_name: 'Immediate supervisor or manager', written_issue_raised_at: 'Date you presented the matter in writing',
     late_filing: 'Filing after the 10 working days?', late_filing_help: 'A late grievance is accepted only if a force-majeure cause prevented filing, and only within 10 working days after that cause ended. A person reviews every late filing.',

@@ -328,3 +328,44 @@ it('refuses every My Portal action on another employee grievance', function (): 
     $g->refresh();
     expect([$g->status, $g->evidence()->count(), $g->appeals()->count()])->toEqual($before);
 });
+
+it('takes the application description as formatted text and sanitizes it', function (): void {
+    $base = [
+        'subject' => 'Overtime not paid',
+        'category_id' => $this->s->category->id,
+        ...GrievanceScenario::application(),
+    ];
+
+    $this->actingAs($this->s->complainant)->post(route('employee.grievances.store'), [
+        ...$base,
+        'description' => '<p><strong>Unpaid</strong> for 3 months</p><script>alert(1)</script><p onclick="x()"><a href="javascript:alert(1)">link</a></p>',
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $stored = Grievance::query()->latest('created_at')->value('description');
+    expect($stored)->toContain('<strong>Unpaid</strong> for 3 months')
+        ->not->toContain('<script')
+        ->not->toContain('onclick')
+        ->not->toContain('javascript:');
+
+    // An empty editor is no description at all.
+    $this->actingAs($this->s->complainant)->post(route('employee.grievances.store'), [...$base, 'description' => '<p><br></p>'])
+        ->assertSessionHasErrors('description');
+});
+
+it('attaches only PDF files of at most 2 MB to the application', function (): void {
+    $base = [
+        'subject' => 'Overtime not paid',
+        'description' => '<p>Narrative</p>',
+        'category_id' => $this->s->category->id,
+        'file_types' => ['document'],
+        ...GrievanceScenario::application(),
+    ];
+    $post = fn (UploadedFile $file) => $this->actingAs($this->s->complainant)
+        ->post(route('employee.grievances.store'), [...$base, 'files' => [$file]]);
+
+    $post(UploadedFile::fake()->image('photo.jpg'))->assertSessionHasErrors('files.0');
+    $post(UploadedFile::fake()->create('big.pdf', 2049, 'application/pdf'))->assertSessionHasErrors('files.0');
+    $post(UploadedFile::fake()->create('ok.pdf', 2048, 'application/pdf'))->assertSessionHasNoErrors();
+
+    expect(GrievanceEvidence::query()->count())->toBe(1);
+});
