@@ -227,6 +227,22 @@ test('1. an active employee can register today\'s activity with the work context
         ->and(AuditLog::query()->where('event_type', 'daily_activity.created')->exists())->toBeTrue();
 });
 
+test('1b. work performed is formatted text, sanitized on save', function (): void {
+    $items = daItems(2);
+    $items[0]['description'] = '<p><strong>Filed</strong> 12 records</p><script>alert(1)</script><p onclick="x()">Checked <a href="javascript:alert(1)">this</a></p>';
+    daPost($this->userA, DA_TODAY, $items)->assertSessionHasNoErrors();
+
+    $stored = daLog($this->employeeA, DA_TODAY)->items()->orderBy('sort_order')->value('description');
+    expect($stored)->toContain('<strong>Filed</strong> 12 records')
+        ->not->toContain('<script')
+        ->not->toContain('onclick')
+        ->not->toContain('javascript:');
+
+    // An empty editor is not a description: a non-task activity is refused on submit.
+    $items[0]['description'] = '<p><br></p>';
+    daPost($this->userA, DA_TODAY, $items, 'submit')->assertSessionHasErrors('items.0.description');
+});
+
 test('2. an employee can add multiple activity items to one daily log, including a related task', function (): void {
     $items = daItems(3);
     $items[0]['position_service_id'] = $this->task->id;

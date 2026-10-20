@@ -1,4 +1,6 @@
 import PortalPage from '@/Components/employees/portal/PortalPage';
+import RichTextEditor from '@/Components/forms/RichTextEditor';
+import { isRichTextEmpty } from '@/richtext/policy';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { DayStatusBadge, LateMark, LogStatusBadge } from '@/Components/dailyActivity/StatusBadges';
@@ -174,7 +176,7 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
     const dirty = can.edit && signature !== savedSignature;
     const busy = form.processing || uploading || removing || confirming;
     // A measured task is ready with its times; other work needs a description.
-    const readyCount = form.data.items.filter((item) => (item.task_id ? Boolean(item.started_at && item.ended_at) : Boolean(item.title.trim() && item.description?.trim()))
+    const readyCount = form.data.items.filter((item) => (item.task_id ? Boolean(item.started_at && item.ended_at) : Boolean(item.title.trim() && !isRichTextEmpty(item.description)))
         && (!rules.require_output_result || item.output_result?.trim())).length;
     const step = log?.status === 'approved' ? 3 : log && !can.edit ? 2 : 1;
     const allowNavigation = useRef(false);
@@ -732,11 +734,17 @@ function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRu
                     <input id={id('title')} className={inputCls} value={item.title} maxLength={255} placeholder={t('dailyActivities.fields.titlePlaceholder')} onChange={(e) => onChange({ title: e.target.value })} />
                     {error('title') && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error('title')}</p>}
                 </div>
-                <div>
-                    <label htmlFor={id('description')} className={labelCls}>{t('dailyActivities.fields.description')} {!structured && <span className="text-red-600">*</span>}</label>
-                    <AutoTextarea id={id('description')} minRows={3} className={inputCls} value={text(item.description)} placeholder={t('dailyActivities.fields.descriptionPlaceholder')} onChange={(e) => onChange({ description: e.target.value })} />
-                    {error('description') && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error('description')}</p>}
-                </div>
+                <RichTextEditor
+                    id={id('description')}
+                    label={t('dailyActivities.fields.description')}
+                    required={!structured}
+                    preset="basic"
+                    value={item.description}
+                    onChange={(html) => onChange({ description: html })}
+                    placeholder={t('dailyActivities.fields.descriptionPlaceholder')}
+                    maxLength={5000}
+                    error={error('description')}
+                />
                 <div className="grid gap-3 sm:grid-cols-[1fr_11rem]">
                     <div>
                         <label htmlFor={id('output')} className={labelCls}>

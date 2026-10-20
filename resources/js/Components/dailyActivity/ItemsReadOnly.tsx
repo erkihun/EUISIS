@@ -1,4 +1,6 @@
+import RichTextViewer from '@/Components/forms/RichTextViewer';
 import StatusBadge from '@/Components/StatusBadge';
+import { isRichTextEmpty } from '@/richtext/policy';
 import { useLocale } from '@/hooks/useLocale';
 import { named } from './helpers';
 import type { ActivityItem } from './types';
@@ -46,10 +48,11 @@ export default function ItemsReadOnly({ items, showReviewerNotes = true }: { ite
                             <StatusBadge status={item.progress_status} label={t(`dailyActivities.progress.${item.progress_status}`)} />
                         </div>
                         <dl className="mt-1.5 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[9rem_1fr]">
-                            {item.description && (
+                            {!isRichTextEmpty(item.description) && (
                                 <>
                                     <dt className="text-(--app-muted-foreground)">{t('dailyActivities.fields.description')}</dt>
-                                    <dd className="whitespace-pre-line wrap-break-word text-(--app-foreground)">{item.description}</dd>
+                                    {/* Formatted HTML, or plain text from days saved before the editor. */}
+                                    <dd className="min-w-0 wrap-break-word text-(--app-foreground)"><RichTextViewer html={item.description} /></dd>
                                 </>
                             )}
                             {item.output_result && (
