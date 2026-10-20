@@ -58,7 +58,8 @@ return new class extends Migration
             // external_applications.id is VARCHAR(36) (aligned with the Sanctum
             // tokenable_id column in 2026_08_14_000300), so the key matches it.
             $table->string('external_application_id', 36);
-            $table->foreign('external_application_id')->references('id')->on('external_applications')->cascadeOnDelete();
+            // Named: the generated name is 72 characters, over MySQL's 64-character limit.
+            $table->foreign('external_application_id', 'eaos_application_fk')->references('id')->on('external_applications')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->string('scope_type', 20);
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
@@ -78,9 +79,9 @@ return new class extends Migration
             $table->string('status', 20);
             $table->unsignedSmallInteger('response_status')->nullable();
             $table->json('response_body')->nullable();
-            $table->timestamp('created_at');
+            $table->dateTime('created_at'); // dateTime: a NOT NULL TIMESTAMP needs a default on MySQL
             $table->timestamp('completed_at')->nullable();
-            $table->timestamp('expires_at');
+            $table->dateTime('expires_at'); // dateTime: a NOT NULL TIMESTAMP needs a default on MySQL
 
             $table->unique(['principal_type', 'principal_id', 'route', 'idempotency_key'], 'api_idempotency_keys_unique');
             $table->index('expires_at', 'api_idempotency_keys_expires_idx');

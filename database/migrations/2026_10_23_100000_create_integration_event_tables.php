@@ -42,7 +42,7 @@ return new class extends Migration
             $table->uuid('related_organization_id')->nullable();
             $table->boolean('is_global')->default(false);
             $table->string('change_kind', 16)->default('upsert');
-            $table->timestamp('occurred_at', 6);
+            $table->dateTime('occurred_at', 6);
             $table->date('effective_at')->nullable();
             $table->string('correlation_id', 64)->nullable();
             $table->uuid('causation_id')->nullable();
@@ -50,7 +50,7 @@ return new class extends Migration
             $table->jsonb('metadata')->nullable();
             $table->string('status', 16)->default('pending');
             $table->unsignedInteger('attempt_count')->default(0);
-            $table->timestamp('available_at', 6);
+            $table->dateTime('available_at', 6);
             $table->timestamp('published_at', 6)->nullable();
             $table->unsignedBigInteger('feed_position')->nullable()->unique('integration_events_feed_position_unique');
             $table->string('error', 255)->nullable();
@@ -154,7 +154,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('http_status')->nullable();
             $table->string('error_category', 40)->nullable();
             $table->unsignedInteger('latency_ms')->nullable();
-            $table->timestamp('started_at', 6);
+            $table->dateTime('started_at', 6);
             $table->timestamp('completed_at', 6)->nullable();
 
             $table->unique(['webhook_delivery_id', 'attempt'], 'webhook_delivery_attempts_unique');

@@ -169,7 +169,10 @@ return new class extends Migration
             $table->foreignUuid('organization_id')->nullable()->constrained('organizations')->nullOnDelete();
             $table->foreignUuid('provider_id')->constrained('providers')->cascadeOnDelete();
             $table->unsignedSmallInteger('version_no')->default(1);
-            $table->foreignUuid('supersedes_contract_id')->nullable()->constrained('transport_contracts')->nullOnDelete();
+            // Self-reference: its foreign key is added below, once the table and
+            // its primary key exist. Inline, PostgreSQL rejects it (42830: no
+            // unique constraint on the referenced table yet).
+            $table->uuid('supersedes_contract_id')->nullable();
             $table->string('status', 16)->default('draft');
             $table->string('currency_code', 3)->default('ETB');
             $table->string('settlement_model', 40);
@@ -192,6 +195,10 @@ return new class extends Migration
             $table->unique(['contract_reference', 'version_no'], 'tc_reference_version_unique');
             $table->index(['provider_id', 'status'], 'tc_provider_status_idx');
             $table->index('organization_id', 'tc_organization_idx');
+        });
+
+        Schema::table('transport_contracts', function (Blueprint $table): void {
+            $table->foreign('supersedes_contract_id', 'tc_supersedes_contract_fk')->references('id')->on('transport_contracts')->nullOnDelete();
         });
     }
 
@@ -335,7 +342,8 @@ return new class extends Migration
                 $table->foreignUuid('to_driver_id')->nullable()->constrained('transport_drivers')->nullOnDelete();
                 $table->text('reason');
                 $table->timestamp('changed_at');
-                $table->foreignUuid('changed_by_provider_user_id')->nullable()->constrained('provider_users')->nullOnDelete();
+                // Named: the generated name exceeds MySQL's 64-character limit.
+                $table->foreignUuid('changed_by_provider_user_id')->nullable()->constrained('provider_users', 'id', 'ttvc_changed_by_provider_user_fk')->nullOnDelete();
                 $table->foreignId('changed_by_user_id')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();
 
@@ -657,7 +665,8 @@ return new class extends Migration
                 $table->text('reason');
                 $table->string('evidence_path')->nullable();
                 $table->string('status', 16)->default('pending');
-                $table->foreignUuid('requested_by_provider_user_id')->nullable()->constrained('provider_users')->nullOnDelete();
+                // Named: the generated name exceeds MySQL's 64-character limit.
+                $table->foreignUuid('requested_by_provider_user_id')->nullable()->constrained('provider_users', 'id', 'tsa_requested_by_provider_user_fk')->nullOnDelete();
                 $table->foreignId('requested_by_user_id')->nullable()->constrained('users')->nullOnDelete();
                 $table->foreignId('decided_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamp('decided_at')->nullable();
