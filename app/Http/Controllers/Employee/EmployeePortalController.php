@@ -30,6 +30,7 @@ use App\Models\EmployeeCorrectionRequest;
 use App\Models\EmployeeDocument;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\IdCard;
+use App\Models\OrganizationCafeteriaAccess;
 use App\Models\PerformanceAppeal;
 use App\Models\ServiceTransaction;
 use App\Models\TransferAnnouncement;
@@ -45,6 +46,7 @@ use App\Models\User;
 use App\Services\Cafeteria\CafeteriaAvailableSubsidyService;
 use App\Services\Cafeteria\CafeteriaLedgerService;
 use App\Services\Cafeteria\CafeteriaSubsidyRuleResolver;
+use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
 use App\Services\Cafeteria\WorkingDayCalendarService;
 use App\Services\DailyActivity\DailyActivityCalendarService;
 use App\Services\DailyActivity\DailyActivitySettings;
@@ -532,6 +534,36 @@ class EmployeePortalController extends Controller
         ]);
     }
 
+    /**
+     * The daily subsidy under the cafeteria service policy that the scan
+     * terminal itself applies. Organizations configured only through service
+     * policies (no legacy subsidy rule) otherwise showed no daily rate.
+     * Resolved at the organization's primary cafeteria, with the same
+     * resolver a scan uses, so the portal never shows a rate a scan would not
+     * charge.
+     */
+    private function policyDailySubsidy(Employee $employee, Carbon $today): ?float
+    {
+        $organizationId = $employee->currentAssignment?->organization_id;
+        if ($organizationId === null) {
+            return null;
+        }
+
+        $cafeteria = OrganizationCafeteriaAccess::query()
+            ->where('organization_id', $organizationId)
+            ->whereNotNull('primary_cafeteria_id')
+            ->effectiveOn($today)
+            ->with('primaryCafeteria')
+            ->first()?->primaryCafeteria;
+        if ($cafeteria === null) {
+            return null;
+        }
+
+        $resolution = app(CafeteriaPolicyResolver::class)->resolve($employee, $cafeteria, $today);
+
+        return $resolution->resolved() ? (float) $resolution->policy->daily_subsidy_amount : null;
+    }
+
     private function buildCafeteriaActivity(
         Employee $employee,
         Carbon $today,
@@ -543,7 +575,7 @@ class EmployeePortalController extends Controller
         $rule = $resolver->resolve($employee, $today);
         $balance = $ledger->getBalance($employee);
         $pending = $ledger->getPendingDeduction($employee);
-        $dailyAmount = $rule ? (float) $rule->subsidy_amount : null;
+        $dailyAmount = $rule ? (float) $rule->subsidy_amount : $this->policyDailySubsidy($employee, $today);
         $availData = $rule ? $available->calculate($employee, $today, $rule) : null;
 
         // Week bounds (Mon–Fri)

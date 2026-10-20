@@ -20,8 +20,11 @@ use App\Models\TransferApplication;
 use App\Models\TransportPass;
 use App\Models\TransportTransaction;
 use App\Models\User;
+use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Support\DailyActivity\DailyActivityRoles;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Support\CafeteriaScenario;
 
 /**
  * /my-portal — the one screen an ordinary employee uses.
@@ -384,6 +387,36 @@ test('my services shows transport passes and rides from the transport module', f
             ->where('entitlements.0.activity.transactions.1.rejection_reason', 'Pass not valid for this route')
             ->missing('entitlements.0.activity.transactions.0.qr_reference_hash')
             ->missing('entitlements.0.activity.transactions.0.scan_nonce'));
+});
+
+test('my services shows cafeteria consumption from a real scan', function (): void {
+    $scenario = CafeteriaScenario::make();
+    $organization = $scenario->organization('Cafeteria Portal Org');
+    $scenario->enroll($organization, '55.00');
+    [$employee, $card] = $scenario->employee($organization);
+
+    $user = User::factory()->create(['email' => 'eater@example.test', 'status' => 'active', 'employee_id' => $employee->id]);
+
+    $type = ServiceType::query()->firstOrCreate(['code' => 'cafeteria'], ['name_en' => 'Cafeteria', 'name_am' => 'ካፍቴሪያ']);
+    Entitlement::query()->create(['employee_id' => $employee->id, 'service_type_id' => $type->id, 'status' => 'active', 'effective_from' => now()->subMonth()->toDateString()]);
+
+    // A real scan at the cafeteria, not a hand-written ledger row: this is the
+    // integration the page claims — scan terminal → ledger → My Services.
+    $scan = app(CafeteriaQrScanService::class)->process($card, $scenario->main, Carbon::today()->setTime(12, 0));
+    expect($scan['denial_reason'] ?? null)->toBeNull();
+
+    $this->actingAs($user)->get(route('employee.services'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Employee/MyEntitlements')
+            ->where('entitlements.0.activity.type', 'cafeteria')
+            ->where('entitlements.0.activity.daily.consumed', true)
+            ->where('entitlements.0.activity.daily.subsidy', 55)
+            ->where('entitlements.0.activity.weekly.days_consumed', 1)
+            ->where('entitlements.0.activity.weekly.subsidy_used', 55)
+            // From the service policy the scan used, with no legacy subsidy rule.
+            ->where('entitlements.0.activity.weekly.daily_rate', 55)
+            ->has('entitlements.0.activity.transactions', 1));
 });
 
 test('the old entitlements address sends employees to my services', function (): void {
