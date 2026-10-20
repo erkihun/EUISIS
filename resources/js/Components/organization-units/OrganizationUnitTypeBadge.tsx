@@ -26,7 +26,7 @@ interface Props {
 
 export default function OrganizationUnitTypeBadge({ unitType, className = '' }: Props) {
     const { t } = useLocale();
-    const colorClass = colorMap[unitType as OrganizationUnitType] ?? 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]';
+    const colorClass = colorMap[unitType as OrganizationUnitType] ?? 'bg-(--app-surface-muted) text-(--app-muted-foreground)';
     const labelKey = labelKeyMap[unitType as OrganizationUnitType];
     const label = labelKey ? t(labelKey) : unitType;
     return (

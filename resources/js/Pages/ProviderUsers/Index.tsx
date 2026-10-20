@@ -45,8 +45,8 @@ export default function ProviderUsersIndex({ rows, meta, filters, stats, provide
             header: t('providerUsers.account'),
             cell: ({ row }) => (
                 <div className="min-w-0">
-                    <Link href={route('provider-users.show', row.original.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{row.original.name}</Link>
-                    <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{[row.original.email, row.original.username].filter(Boolean).join(' · ')}</p>
+                    <Link href={route('provider-users.show', row.original.id)} className="font-medium text-primary hover:underline">{row.original.name}</Link>
+                    <p className="truncate text-xs text-(--app-muted-foreground)">{[row.original.email, row.original.username].filter(Boolean).join(' · ')}</p>
                     {row.original.must_change_password && !row.original.deleted_at && (
                         <StatusBadge tone="warning" className="mt-1">{t('providerUsers.statMustChange')}</StatusBadge>
                     )}
@@ -59,7 +59,7 @@ export default function ProviderUsersIndex({ rows, meta, filters, stats, provide
             cell: ({ row }) => row.original.provider ? (
                 <div>
                     <p>{label(row.original.provider)}</p>
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{[row.original.provider.code, label(row.original.provider.type, '')].filter(Boolean).join(' · ')}</p>
+                    <p className="text-xs text-(--app-muted-foreground)">{[row.original.provider.code, label(row.original.provider.type, '')].filter(Boolean).join(' · ')}</p>
                 </div>
             ) : '—',
         },
@@ -109,14 +109,14 @@ export default function ProviderUsersIndex({ rows, meta, filters, stats, provide
                     {statCards.map((card) => (
                         <Card key={card.key} className="p-3">
                             {card.onClick ? (
-                                <button type="button" onClick={card.onClick} className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]">
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t(`providerUsers.${card.key}`)}</p>
-                                    <p className="text-xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{card.value}</p>
+                                <button type="button" onClick={card.onClick} className="w-full text-left focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary">
+                                    <p className="text-xs text-(--app-muted-foreground)">{t(`providerUsers.${card.key}`)}</p>
+                                    <p className="text-xl font-semibold tabular-nums text-(--app-foreground)">{card.value}</p>
                                 </button>
                             ) : (
                                 <>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t(`providerUsers.${card.key}`)}</p>
-                                    <p className="text-xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{card.value}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{t(`providerUsers.${card.key}`)}</p>
+                                    <p className="text-xl font-semibold tabular-nums text-(--app-foreground)">{card.value}</p>
                                 </>
                             )}
                         </Card>

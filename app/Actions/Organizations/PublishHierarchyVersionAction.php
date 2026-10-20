@@ -11,13 +11,17 @@ use App\Models\HierarchyVersion;
 use App\Models\OrganizationClosurePath;
 use App\Models\OrganizationEdge;
 use App\Models\User;
+use App\Services\Integration\Events\IntegrationEventRecorder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 readonly class PublishHierarchyVersionAction
 {
-    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+    public function __construct(
+        private WriteAuditLogAction $writeAuditLogAction,
+        private IntegrationEventRecorder $integrationEvents,
+    ) {}
 
     public function execute(HierarchyVersion $version, User $actor): HierarchyVersion
     {
@@ -45,6 +49,15 @@ readonly class PublishHierarchyVersionAction
                 'approved_by' => $actor->getKey(),
                 'approval_date' => now(),
             ]);
+
+            // Structure changes reach partners as one global event tied to the
+            // version; the version's own history is never overwritten.
+            $this->integrationEvents->record('hierarchy_version.published', (string) $version->getKey(), [
+                'hierarchy_version_uuid' => (string) $version->getKey(),
+                'version_name' => $version->version_name,
+                'effective_from' => $version->effective_from?->toDateString(),
+                'published_at' => now()->toIso8601String(),
+            ], null, global: true, effectiveAt: $version->effective_from?->toDateString());
 
             OrganizationClosurePath::query()->where('hierarchy_version_id', $version->id)->delete();
 

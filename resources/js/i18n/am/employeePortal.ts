@@ -100,6 +100,14 @@ const employeePortal = {
     noTransportPass: 'እስካሁን የትራንስፖርት ፓስ አልተሰጠም።',
     recentRides: 'የቅርብ ጉዞዎች',
     noRides: 'እስካሁን የተመዘገበ ጉዞ የለም።',
+    myRoute: 'የእኔ መስመር',
+    boardingStop: 'የመሳፈሪያ ፌርማታ',
+    eveningStop: 'የማታ ፌርማታ',
+    todayTrips: 'በእኔ መስመር ላይ የዛሬ ጉዞዎች',
+    noTripsToday: 'ዛሬ በመስመርዎ ላይ የታቀደ ጉዞ የለም።',
+    morningRides: 'ጠዋት',
+    eveningRides: 'ማታ',
+    transportPrivacyNote: 'መሳፈሮችዎ አገልግሎቱ መሰጠቱን እንደ ማስረጃ ይመዘገባሉ። የመገኘት መዝገብ አይደሉም፤ ለደመወዝ ወይም ለዲሲፕሊን በጭራሽ አይውሉም።',
     statuses: {
         active: 'ንቁ', paused: 'ለጊዜው የቆመ', suspended: 'የታገደ', revoked: 'የተሻረ', expired: 'ጊዜው ያለፈበት',
         exhausted: 'ያለቀ', accepted: 'ተቀባይነት ያገኘ', rejected: 'ውድቅ የተደረገ', completed: 'የተጠናቀቀ',
@@ -123,6 +131,7 @@ const employeePortal = {
         submitted: 'ቀርቧል', under_review: 'በግምገማ ላይ', verified: 'ተረጋግጧል', selected: 'ተመርጧል',
         release_pending: 'መልቀቂያን በመጠባበቅ ላይ', receiving_pending: 'ተቀባይ መሥሪያ ቤትን በመጠባበቅ ላይ', final_approval_pending: 'የመጨረሻ ማጽደቂያን በመጠባበቅ ላይ',
         approved: 'ጸድቋል', transferred: 'ተዛውሯል', rejected: 'አልተመረጡም', withdrawn: 'ተሰርዟል', cancelled: 'ተቋርጧል',
+        implementation_failed: 'ጸድቋል፤ በሂደት ላይ',
     },
     correctionFields: {
         full_name: 'ሕጋዊ ስም', date_of_birth: 'የትውልድ ቀን', national_id: 'ብሔራዊ መታወቂያ', nationality: 'ዜግነት',

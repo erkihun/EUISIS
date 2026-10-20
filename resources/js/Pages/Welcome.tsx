@@ -88,15 +88,15 @@ function useInView(threshold = 0.12) {
 
 type Tone = 'primary' | 'success' | 'warning' | 'neutral';
 const TONE_ICON: Record<Tone, string> = {
-    primary: 'bg-[color:var(--color-primary)]/10 text-[color:var(--color-primary)] ring-[color:var(--color-primary)]/15',
+    primary: 'bg-primary/10 text-primary ring-primary/15',
     success: 'bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900/50',
-    warning: 'bg-[color:var(--color-accent)]/10 text-[color:var(--color-accent)] ring-[color:var(--color-accent)]/15',
+    warning: 'bg-accent/10 text-accent ring-accent/15',
     neutral: 'bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700',
 };
 const TONE_GLOW: Record<Tone, string> = {
-    primary: 'bg-[color:var(--color-primary)]/10',
+    primary: 'bg-primary/10',
     success: 'bg-emerald-500/10',
-    warning: 'bg-[color:var(--color-accent)]/10',
+    warning: 'bg-accent/10',
     neutral: 'bg-slate-500/10',
 };
 
@@ -129,8 +129,7 @@ const MANAGE_CARDS: Card[] = [
 const SERVICE_CARDS: Card[] = [
     { key: 'serviceCard', icon: CreditCard, tone: 'primary', status: 'available' },
     { key: 'serviceCafeteria', icon: Store, tone: 'success', status: 'available' },
-    // Transport Management is a future phase, not part of the current production scope.
-    { key: 'serviceTransport', icon: ArrowLeftRightIcon, tone: 'neutral', status: 'planned' },
+    { key: 'serviceTransport', icon: ArrowLeftRightIcon, tone: 'success', status: 'available' },
     { key: 'serviceProviders', icon: HandshakeIcon, tone: 'neutral', status: 'available' },
     { key: 'serviceIntegration', icon: NetworkIcon, tone: 'primary', status: 'available' },
     { key: 'serviceConsumer', icon: BoxesIcon, tone: 'neutral', status: 'planned' },
@@ -158,9 +157,9 @@ const STEP_COUNT = 8;
 // The rest of the questions are on the Support page.
 const FAQ_COUNT = 5;
 
-const primaryCtaCls = 'inline-flex items-center gap-2 rounded-card bg-[color:var(--color-primary)] px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-[color:var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]';
-const heroPrimaryCls = 'inline-flex items-center gap-2 rounded-card bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white';
-const heroSecondaryCls = 'inline-flex items-center gap-2 rounded-card border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white';
+const primaryCtaCls = 'inline-flex items-center gap-2 rounded-card bg-primary px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-primary-hover focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:bg-blue-500 dark:hover:bg-primary-hover';
+const heroPrimaryCls = 'inline-flex items-center gap-2 rounded-card bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white';
+const heroSecondaryCls = 'inline-flex items-center gap-2 rounded-card border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-xs transition-all hover:bg-white/20 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white';
 
 interface WelcomePageProps extends PageProps {
     auth: { user: { id: number; name: string; email: string } | null };
@@ -196,7 +195,7 @@ function InfoCard({ card, index, inView, muted = false }: { card: Card; index: n
             className="home-card group relative overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.65)] dark:border-slate-800/80 dark:bg-slate-900/95 dark:hover:border-slate-700"
             style={inView ? { animation: `fade-up 0.6s ease-out ${0.1 + index * 0.08}s both` } : { opacity: 0 }}
         >
-            <div className="absolute left-0 top-0 h-1 w-1/2 bg-gradient-to-r from-[var(--color-primary)] via-[color:var(--color-primary)]/45 to-transparent" style={{ borderTopLeftRadius: 'inherit' }} />
+            <div className="absolute left-0 top-0 h-1 w-1/2 bg-linear-to-r from-primary via-primary/45 to-transparent" style={{ borderTopLeftRadius: 'inherit' }} />
             <div className={`pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full blur-3xl ${TONE_GLOW[card.tone]}`} />
             <div className="relative flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -207,7 +206,7 @@ function InfoCard({ card, index, inView, muted = false }: { card: Card; index: n
                     )}
                     <p className={`${muted ? 'mt-3 text-gray-600 dark:text-slate-300' : 'mt-2 text-gray-600 dark:text-slate-400'} text-[13px] leading-relaxed`}>{t(`home.${card.key}Desc`)}</p>
                 </div>
-                <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[card.tone]}`}>
+                <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel ring-1 shadow-xs transition duration-200 group-hover:scale-105 ${TONE_ICON[card.tone]}`}>
                     <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
             </div>
@@ -249,7 +248,7 @@ function ServicesSection() {
             <div ref={ref} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <SectionHeader id="services-heading" title={t('home.servicesSectionTitle')} subtitle={t('home.servicesSectionSubtitle')} inView={inView} />
 
-                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-[color:var(--color-primary)]">
+                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-primary">
                     <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-600" />
                     {t('home.statusAvailable')}
                 </h3>
@@ -278,8 +277,8 @@ function ServicesSection() {
                     })}
                 </div>
 
-                <div role="note" className="mt-8 flex items-start gap-3 rounded-card border border-[color:var(--color-primary)]/15 bg-[color:var(--color-primary)]/5 px-5 py-4 text-sm leading-relaxed text-gray-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
-                    <InfoIcon className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--color-primary)]" aria-hidden="true" />
+                <div role="note" className="mt-8 flex items-start gap-3 rounded-card border border-primary/15 bg-primary/5 px-5 py-4 text-sm leading-relaxed text-gray-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                    <InfoIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
                     <p>{t('home.servicesNote')}</p>
                 </div>
             </div>
@@ -368,7 +367,7 @@ export default function Welcome() {
                             className="home-platform mx-auto w-full max-w-sm lg:max-w-none"
                             aria-label={t('home.platformOverview')}
                         >
-                            <div className="home-platform-panel rounded-panel border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm sm:p-6">
+                            <div className="home-platform-panel rounded-panel border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-xs sm:p-6">
                                 <p className="mb-4 text-center text-xs font-semibold text-blue-200">
                                     {t('home.platformOverview')}
                                 </p>
@@ -437,7 +436,7 @@ export default function Welcome() {
                                 {steps.map((stepNum) => (
                                     <li key={stepNum} className="flex flex-col items-center text-center">
                                         <div
-                                            className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--color-primary)] bg-white font-bold text-[color:var(--color-primary)] text-sm dark:border-blue-400 dark:bg-slate-900 dark:text-[color:var(--color-primary)]"
+                                            className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-primary bg-white font-bold text-primary text-sm dark:border-blue-400 dark:bg-slate-900 dark:text-primary"
                                             style={stepsInView ? { animation: `pop-in 0.4s ease-out ${0.2 + stepNum * 0.12}s both` } : { opacity: 0 }}
                                         >
                                             {stepNum}
@@ -468,7 +467,7 @@ export default function Welcome() {
                                 className="flex gap-4 rounded-card border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800"
                                 style={stepsInView ? { animation: `fade-up 0.5s ease-out ${idx * 0.07}s both` } : { opacity: 0 }}
                             >
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-sm font-bold text-white dark:bg-blue-500">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-white dark:bg-blue-500">
                                     {stepNum}
                                 </div>
                                 <div className="min-w-0">
@@ -502,7 +501,7 @@ export default function Welcome() {
             <section aria-label={t('home.verifySectionTitle')} className="bg-white py-16 sm:py-20 dark:bg-slate-950">
                 <div ref={verifyRef} className="mx-auto grid max-w-7xl items-start gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
                     <div
-                        className="flex flex-col gap-4 rounded-panel bg-[color:var(--color-primary)] p-6 text-white sm:p-8 lg:col-span-5 dark:bg-[color:var(--color-primary-900)]"
+                        className="flex flex-col gap-4 rounded-panel bg-primary p-6 text-white sm:p-8 lg:col-span-5 dark:bg-primary-900"
                         style={verifyInView ? { animation: 'fade-up 0.65s ease-out both' } : { opacity: 0 }}
                     >
                         <QrCodeIcon className="h-8 w-8" aria-hidden="true" />
@@ -520,8 +519,8 @@ export default function Welcome() {
                     <div className="space-y-3">
                         {faqs.map((n) => (
                             <details key={n} className={`${publicCardClass} group py-2`}>
-                                <summary className="relative flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm font-semibold text-gray-900 marker:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:text-slate-100 [&::-webkit-details-marker]:hidden">
-                                    <span className="[overflow-wrap:anywhere]">{withBrand(t(`home.faq${n}Q`))}</span>
+                                <summary className="relative flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm font-semibold text-gray-900 marker:hidden focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary dark:text-slate-100 [&::-webkit-details-marker]:hidden">
+                                    <span className="wrap-anywhere">{withBrand(t(`home.faq${n}Q`))}</span>
                                     <span aria-hidden="true" className="shrink-0 text-gray-400 transition-transform group-open:rotate-45">+</span>
                                 </summary>
                                 <p className="relative pb-2 text-sm text-gray-700 dark:text-slate-300">{withBrand(t(`home.faq${n}A`))}</p>
@@ -529,7 +528,7 @@ export default function Welcome() {
                         ))}
                     </div>
                     <p className="mt-6 text-sm">
-                        <Link href={route('public.support')} className="font-semibold text-[color:var(--color-primary)] hover:underline">{t('home.faqMore')} <span aria-hidden="true">→</span></Link>
+                        <Link href={route('public.support')} className="font-semibold text-primary hover:underline">{t('home.faqMore')} <span aria-hidden="true">→</span></Link>
                     </p>
                     </div>
                 </div>

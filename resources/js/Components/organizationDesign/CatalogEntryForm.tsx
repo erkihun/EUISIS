@@ -50,7 +50,7 @@ export default function CatalogEntryForm({ title, record, url, method, fields, o
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{title}</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     {fields.occupation && (
                         <FormField id="cat-occupation" label={tt('fields.occupation')} required className="sm:col-span-2" error={errors.occupation_id}>
@@ -85,12 +85,12 @@ export default function CatalogEntryForm({ title, record, url, method, fields, o
                     )}
                     {(fields.flags ?? []).map((f) => (
                         <label key={f.key} className="flex items-center gap-2 text-sm">
-                            <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={Boolean(form.data.flags[f.key])} onChange={(e) => form.setData('flags', { ...form.data.flags, [f.key]: e.target.checked })} />
+                            <input type="checkbox" className="rounded-sm border-(--app-border-strong) text-primary focus:ring-primary" checked={Boolean(form.data.flags[f.key])} onChange={(e) => form.setData('flags', { ...form.data.flags, [f.key]: e.target.checked })} />
                             <span>{f.label}</span>
                         </label>
                     ))}
                     <label className="flex items-center gap-2 text-sm sm:col-span-2">
-                        <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
+                        <input type="checkbox" className="rounded-sm border-(--app-border-strong) text-primary focus:ring-primary" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
                         <span>{tt('fields.isActive')}</span>
                     </label>
                 </div>

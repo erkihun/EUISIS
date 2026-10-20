@@ -14,7 +14,7 @@ export default function Index({ letters, filters, options, seals, can }: Corresp
     const w = (k: string) => t(`grievanceWork.${k}`);
 
     return <Workspace title={w('correspondence')}>
-        <p className="text-sm text-[color:var(--app-muted-foreground)]">{w('correspondence_help')}</p>
+        <p className="text-sm text-(--app-muted-foreground)">{w('correspondence_help')}</p>
         <ActionForm method="get" url={route('grievances.correspondence.index')} initial={{ ...filters }} submitLabel={t('grievances.common.filter')} fields={[
             { name: 'search', label: w('search_reference') },
             { name: 'status', label: t('grievances.common.status'), type: 'select', options: options.statuses.map(v => ({ value: v, label: label('letter_status', v) })) },

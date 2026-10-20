@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
-import { Field, Problems, Section, compactInputCls, dangerLinkBtn, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, type Bilingual } from '@/Components/performance/ui';
+import { Field, Problems, Section, compactInputCls, dangerLinkBtn, inputCls, textareaCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, type Bilingual } from '@/Components/performance/ui';
 import LookupPicker from '@/Components/assessmentForms/LookupPicker';
 import SectionsEditor, { fmt, newUid, sectionMax, withoutUids, type SectionDraft } from '@/Components/assessmentForms/SectionsEditor';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -115,12 +115,12 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
             <div className={pageCls}>
                 {cloning && <CloneForm formId={record.id} onClose={() => setCloning(false)} />}
 
-                <div className="flex flex-wrap items-center gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm">
+                <div className="flex flex-wrap items-center gap-3 rounded-panel border border-(--app-border) bg-(--app-surface) px-4 py-3 text-sm">
                     <span className="font-semibold">{t('assessments.version')} {version.version_no}</span>
                     <StatusBadge status={version.status} />
-                    {version.published_at && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.publishedOn')} <LocalizedDateDisplay value={version.published_at} /></span>}
-                    {!editable && version.status === 'draft' && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.readOnly')}</span>}
-                    {version.status !== 'draft' && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.immutableNote')}</span>}
+                    {version.published_at && <span className="text-(--app-muted-foreground)">{t('assessments.publishedOn')} <LocalizedDateDisplay value={version.published_at} /></span>}
+                    {!editable && version.status === 'draft' && <span className="text-(--app-muted-foreground)">{t('assessments.readOnly')}</span>}
+                    {version.status !== 'draft' && <span className="text-(--app-muted-foreground)">{t('assessments.immutableNote')}</span>}
                     <Link href={route('assessment-forms.versions.preview', version.id)} className={`${linkBtn} ms-auto`}>{t('assessments.actions.preview')}</Link>
                 </div>
 
@@ -134,10 +134,10 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                             <div className="grid gap-3 md:grid-cols-2">
                                 <Field label={t('assessments.fields.nameEn')} htmlFor="v-name-en" error={errors.name_en}><input id="v-name-en" className={inputCls} value={data.name_en} onChange={(e) => set('name_en', e.target.value)} /></Field>
                                 <Field label={t('assessments.fields.nameAm')} htmlFor="v-name-am"><input id="v-name-am" className={inputCls} value={data.name_am} onChange={(e) => set('name_am', e.target.value)} /></Field>
-                                <Field label={t('assessments.fields.descriptionEn')} htmlFor="v-desc-en"><textarea id="v-desc-en" rows={2} className={inputCls} value={data.description_en} onChange={(e) => set('description_en', e.target.value)} /></Field>
-                                <Field label={t('assessments.fields.descriptionAm')} htmlFor="v-desc-am"><textarea id="v-desc-am" rows={2} className={inputCls} value={data.description_am} onChange={(e) => set('description_am', e.target.value)} /></Field>
-                                <Field label={t('assessments.fields.instructionsEn')} htmlFor="v-ins-en"><textarea id="v-ins-en" rows={2} className={inputCls} value={data.instructions_en} onChange={(e) => set('instructions_en', e.target.value)} /></Field>
-                                <Field label={t('assessments.fields.instructionsAm')} htmlFor="v-ins-am"><textarea id="v-ins-am" rows={2} className={inputCls} value={data.instructions_am} onChange={(e) => set('instructions_am', e.target.value)} /></Field>
+                                <Field label={t('assessments.fields.descriptionEn')} htmlFor="v-desc-en"><textarea id="v-desc-en" rows={2} className={textareaCls} value={data.description_en} onChange={(e) => set('description_en', e.target.value)} /></Field>
+                                <Field label={t('assessments.fields.descriptionAm')} htmlFor="v-desc-am"><textarea id="v-desc-am" rows={2} className={textareaCls} value={data.description_am} onChange={(e) => set('description_am', e.target.value)} /></Field>
+                                <Field label={t('assessments.fields.instructionsEn')} htmlFor="v-ins-en"><textarea id="v-ins-en" rows={2} className={textareaCls} value={data.instructions_en} onChange={(e) => set('instructions_en', e.target.value)} /></Field>
+                                <Field label={t('assessments.fields.instructionsAm')} htmlFor="v-ins-am"><textarea id="v-ins-am" rows={2} className={textareaCls} value={data.instructions_am} onChange={(e) => set('instructions_am', e.target.value)} /></Field>
                             </div>
                         </Section>
 
@@ -197,8 +197,8 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                     </fieldset>
 
                     {editable && (
-                        <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur">
-                            <p className="me-auto text-sm text-[color:var(--app-muted-foreground)]">{dirty ? t('assessments.unsaved') : t('assessments.saved')}</p>
+                        <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 rounded-panel border border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur-sm">
+                            <p className="me-auto text-sm text-(--app-muted-foreground)">{dirty ? t('assessments.unsaved') : t('assessments.saved')}</p>
                             {can.discard && <button type="button" className={secondaryBtn} onClick={() => act(t('assessments.actions.discard'), t('assessments.confirm.discard'), () => router.delete(route('assessment-forms.versions.discard', version.id)))}>{t('assessments.actions.discard')}</button>}
                             <button type="button" className={secondaryBtn} disabled={dirty || form.processing} title={dirty ? t('assessments.saveFirst') : undefined} onClick={() => router.post(route('assessment-forms.versions.validate', version.id), {}, { preserveScroll: true })}>{t('assessments.actions.validate')}</button>
                             <button type="submit" className={secondaryBtn} disabled={form.processing || !dirty}>{t('assessments.actions.saveDraft')}</button>
@@ -208,12 +208,12 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                 </form>
 
                 <Section title={t('assessments.sections.versions')}>
-                    <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+                    <ul className="divide-y divide-(--app-border) text-sm">
                         {versions.map((v) => (
                             <li key={v.id} className="flex flex-wrap items-center gap-3 py-2">
                                 <span className="font-medium">v{v.version_no}</span>
                                 <StatusBadge status={v.status} />
-                                {v.published_at && <span className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={v.published_at} /></span>}
+                                {v.published_at && <span className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={v.published_at} /></span>}
                                 {v.id === record.current_version_id && <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">{t('assessments.current')}</span>}
                                 <span className="ms-auto flex gap-3">
                                     {v.id !== version.id && <Link href={route('assessment-forms.show', { form: record.id, version: v.id })} className={linkBtn}>{t('assessments.actions.view')}</Link>}
@@ -233,12 +233,12 @@ function TargetRules({ rules, editable, options, organizationId, errors, onChang
     const update = (i: number, patch: Partial<Rule>) => onChange(rules.map((r, n) => (n === i ? { ...r, ...patch } : r)));
     const idTypes = ['position', 'occupation', 'organization', 'organization_unit'];
 
-    if (rules.length === 0) return <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessments.noRules')}</p>;
+    if (rules.length === 0) return <p className="text-sm text-(--app-muted-foreground)">{t('assessments.noRules')}</p>;
 
     return (
         <div className="space-y-2">
             {rules.map((rule, i) => (
-                <div key={i} className="grid items-end gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-2 lg:grid-cols-[9rem_11rem_minmax(0,1fr)_6rem_auto]">
+                <div key={i} className="grid items-end gap-2 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-2 lg:grid-cols-[9rem_11rem_minmax(0,1fr)_6rem_auto]">
                     <Field label={t('assessments.fields.effect')} htmlFor={`r${i}-effect`}>
                         <select id={`r${i}-effect`} className={compactInputCls} value={rule.effect} onChange={(e) => update(i, { effect: e.target.value })}>
                             <option value="include">{t('assessments.effects.include')}</option>
@@ -269,7 +269,7 @@ function TargetRules({ rules, editable, options, organizationId, errors, onChang
                                 <datalist id={`r${i}-families`}>{options.job_families.map((f) => <option key={f} value={f} />)}</datalist>
                             </Field>
                         )}
-                        {rule.target_type === 'everyone' && <p className="pb-1.5 text-sm text-[color:var(--app-muted-foreground)]">{t('assessments.everyoneNote')}</p>}
+                        {rule.target_type === 'everyone' && <p className="pb-1.5 text-sm text-(--app-muted-foreground)">{t('assessments.everyoneNote')}</p>}
                         {rule.target_type === 'organization_unit' && (
                             <label className="mt-1 flex items-center gap-2 text-xs"><input type="checkbox" checked={rule.include_descendants} onChange={(e) => update(i, { include_descendants: e.target.checked })} /> {t('assessments.fields.includeSubUnits')}</label>
                         )}
@@ -290,21 +290,21 @@ function Evaluators({ evaluators, editable, options, onChange }: { evaluators: E
     const update = (i: number, patch: Partial<Evaluator>) => onChange(evaluators.map((e, n) => (n === i ? { ...e, ...patch } : e)));
     const total = evaluators.reduce((sum, e) => sum + (Number.isNaN(num(e.contribution_weight)) ? 0 : num(e.contribution_weight)), 0);
 
-    if (evaluators.length === 0) return <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessments.noEvaluators')}</p>;
+    if (evaluators.length === 0) return <p className="text-sm text-(--app-muted-foreground)">{t('assessments.noEvaluators')}</p>;
 
     return (
         <div className="space-y-2">
             {evaluators.map((evaluator, i) => (
-                <div key={i} className="grid items-end gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-3 lg:grid-cols-[minmax(0,1fr)_6rem_7rem_minmax(0,1fr)_auto_auto]">
+                <div key={i} className="grid items-end gap-2 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-3 lg:grid-cols-[minmax(0,1fr)_6rem_7rem_minmax(0,1fr)_auto_auto]">
                     <Field label={t('assessments.fields.evaluatorType')} htmlFor={`e${i}-type`}>
-                        <select id={`e${i}-type`} className={compactInputCls} value={evaluator.evaluator_type} onChange={(e) => update(i, { evaluator_type: e.target.value })}>
+                        <select id={`e${i}-type`} className={`${compactInputCls} w-full`} value={evaluator.evaluator_type} onChange={(e) => update(i, { evaluator_type: e.target.value })}>
                             {options.evaluator_types.map((type) => <option key={type} value={type} disabled={type !== evaluator.evaluator_type && evaluators.some((x) => x.evaluator_type === type)}>{t(`assessments.evaluatorTypes.${type}`)}</option>)}
                         </select>
                     </Field>
-                    <Field label={t('assessments.fields.count')} htmlFor={`e${i}-count`}><input id={`e${i}-count`} type="number" min={1} max={50} className={compactInputCls} value={evaluator.required_count} onChange={(e) => update(i, { required_count: Number(e.target.value) })} /></Field>
-                    <Field label={t('assessments.fields.weightPercent')} htmlFor={`e${i}-weight`}><input id={`e${i}-weight`} type="number" min={0} max={100} step="any" className={compactInputCls} value={evaluator.contribution_weight} onChange={(e) => update(i, { contribution_weight: e.target.value })} /></Field>
+                    <Field label={t('assessments.fields.count')} htmlFor={`e${i}-count`}><input id={`e${i}-count`} type="number" min={1} max={50} className={`${compactInputCls} w-full`} value={evaluator.required_count} onChange={(e) => update(i, { required_count: Number(e.target.value) })} /></Field>
+                    <Field label={t('assessments.fields.weightPercent')} htmlFor={`e${i}-weight`}><input id={`e${i}-weight`} type="number" min={0} max={100} step="any" className={`${compactInputCls} w-full`} value={evaluator.contribution_weight} onChange={(e) => update(i, { contribution_weight: e.target.value })} /></Field>
                     <Field label={t('assessments.fields.selection')} htmlFor={`e${i}-selection`}>
-                        <select id={`e${i}-selection`} className={compactInputCls} value={evaluator.selection_method} onChange={(e) => update(i, { selection_method: e.target.value })}>
+                        <select id={`e${i}-selection`} className={`${compactInputCls} w-full`} value={evaluator.selection_method} onChange={(e) => update(i, { selection_method: e.target.value })}>
                             {options.selection_methods.map((m) => <option key={m} value={m}>{t(`assessments.selectionMethods.${m}`)}</option>)}
                         </select>
                     </Field>
@@ -315,7 +315,7 @@ function Evaluators({ evaluators, editable, options, onChange }: { evaluators: E
                     {editable && <button type="button" className={`${dangerLinkBtn} pb-2`} onClick={() => onChange(evaluators.filter((_, n) => n !== i))}>{t('assessments.actions.remove')}</button>}
                 </div>
             ))}
-            {evaluators.length > 1 && <p className={`text-xs ${total === 100 ? 'text-[color:var(--app-muted-foreground)]' : 'font-medium text-red-700 dark:text-red-400'}`}>{t('assessments.weightTotal')}: {fmt(total)}%</p>}
+            {evaluators.length > 1 && <p className={`text-xs ${total === 100 ? 'text-(--app-muted-foreground)' : 'font-medium text-red-700 dark:text-red-400'}`}>{t('assessments.weightTotal')}: {fmt(total)}%</p>}
         </div>
     );
 }
@@ -335,9 +335,9 @@ function AssignmentPreview({ formId }: { formId: string }) {
     }
 
     return (
-        <div className="mt-4 rounded-lg border border-dashed border-[color:var(--app-border-strong)] p-3">
-            <p className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('assessments.preview.title')}</p>
-            <p className="mb-2 text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.preview.help')}</p>
+        <div className="mt-4 rounded-lg border border-dashed border-(--app-border-strong) p-3">
+            <p className="text-sm font-semibold text-(--app-foreground)">{t('assessments.preview.title')}</p>
+            <p className="mb-2 text-xs text-(--app-muted-foreground)">{t('assessments.preview.help')}</p>
             <div className="flex flex-wrap items-end gap-2">
                 <div className="w-48"><LocalizedDatePicker value={date} onChange={setDate} /></div>
                 <button type="button" className={smallBtn} disabled={loading} onClick={() => void run()}>{loading ? t('assessments.preview.running') : t('assessments.preview.run')}</button>
@@ -355,12 +355,12 @@ function AssignmentPreview({ formId }: { formId: string }) {
 }
 
 function Stat({ label, value, hint, tone }: { label: string; value: number; hint?: ReactNode; tone?: 'warn' | 'bad' }) {
-    const color = tone === 'bad' ? 'text-red-700 dark:text-red-400' : tone === 'warn' ? 'text-amber-700 dark:text-amber-400' : 'text-[color:var(--app-foreground)]';
+    const color = tone === 'bad' ? 'text-red-700 dark:text-red-400' : tone === 'warn' ? 'text-amber-700 dark:text-amber-400' : 'text-(--app-foreground)';
     return (
-        <div className="rounded-lg bg-[color:var(--app-surface-muted)] px-3 py-2">
-            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
+        <div className="rounded-lg bg-(--app-surface-muted) px-3 py-2">
+            <dt className="text-xs text-(--app-muted-foreground)">{label}</dt>
             <dd className={`text-lg font-semibold tabular-nums ${color}`}>{value.toLocaleString()}</dd>
-            {hint && <dd className="truncate text-xs text-[color:var(--app-muted-foreground)]">{hint}</dd>}
+            {hint && <dd className="truncate text-xs text-(--app-muted-foreground)">{hint}</dd>}
         </div>
     );
 }

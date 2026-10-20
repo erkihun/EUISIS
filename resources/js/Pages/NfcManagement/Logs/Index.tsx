@@ -114,12 +114,12 @@ export default function NfcLogsIndex({ logs, filters, organizations, terminals, 
             </AppFilterBar>
 
             {rows.length === 0 ? (
-                <p className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="rounded-panel border border-dashed border-(--app-border-strong) bg-(--app-surface) py-12 text-center text-sm text-(--app-muted-foreground)">
                     {t('nfc.noLogs')}
                 </p>
             ) : (
                 <>
-                    <div className="hidden overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] md:block">
+                    <div className="hidden overflow-x-auto rounded-panel border border-(--app-border) bg-(--app-surface) md:block">
                         <table className={cx(tableClassName, 'min-w-full')}>
                             <thead className={cx(tableHeadClassName, 'text-left')}>
                                 <tr>
@@ -137,14 +137,14 @@ export default function NfcLogsIndex({ logs, filters, organizations, terminals, 
                             <tbody className={tableBodyClassName}>
                                 {rows.map((row) => (
                                     <tr key={row.id} className={tableRowClassName}>
-                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={row.occurred_at} withTime />
                                         </td>
                                         <td className={cx(tableCellClassName, 'font-mono text-xs')}>
                                             {row.credential_id ? (
                                                 <Link
                                                     href={route('nfc-management.credentials.show', row.credential_id)}
-                                                    className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                    className="text-primary hover:underline dark:text-primary"
                                                 >
                                                     {row.credential_id.slice(0, 14)}…
                                                 </Link>
@@ -152,25 +152,25 @@ export default function NfcLogsIndex({ logs, filters, organizations, terminals, 
                                                 '—'
                                             )}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.employee?.full_name ?? '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.terminal?.terminal_code ?? '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.terminal ? terminalTypeLabel(row.terminal.terminal_type) : '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.terminal?.service_type ?? '—'}
                                         </td>
                                         <td className={tableCellClassName}>
                                             <NfcResultBadge result={row.result} />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>
                                             {row.reason_code ?? '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {row.external_application ?? '—'}
                                         </td>
                                     </tr>
@@ -183,20 +183,20 @@ export default function NfcLogsIndex({ logs, filters, organizations, terminals, 
                         {rows.map((row) => (
                             <div
                                 key={row.id}
-                                className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
+                                className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4"
                             >
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="truncate font-medium text-[color:var(--app-foreground)]">
+                                        <p className="truncate font-medium text-(--app-foreground)">
                                             {row.employee?.full_name ?? row.credential_id?.slice(0, 14) ?? '—'}
                                         </p>
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="text-xs text-(--app-muted-foreground)">
                                             <LocalizedDateDisplay value={row.occurred_at} withTime />
                                         </p>
                                     </div>
                                     <NfcResultBadge result={row.result} />
                                 </div>
-                                <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-2 text-xs text-(--app-muted-foreground)">
                                     {row.terminal?.terminal_code ?? '—'}
                                     {row.reason_code ? ` · ${row.reason_code}` : ''}
                                 </p>

@@ -33,17 +33,17 @@ export default function SettlementShow({ settlement, lines, byOrganization, can 
                 <div className="flex flex-wrap gap-2">
                     {can.finalize
                         ? <ActionButton primary label={tt('finalize')} description={tt('finalizeWarning')} url={route('cafeteria.settlements.finalize', settlement.id)} />
-                        : <p className="self-center text-sm text-[color:var(--app-muted-foreground)]">{tt('finalizeByAnother')}</p>}
+                        : <p className="self-center text-sm text-(--app-muted-foreground)">{tt('finalizeByAnother')}</p>}
                     <ActionButton destructive label={tt('cancelSettlement')} url={route('cafeteria.settlements.cancel', settlement.id)} />
                 </div>
             ) : undefined} />}>
             <Head title={settlement.settlement_number} />
             <div className="space-y-6">
                 <Card className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
-                    <div><p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('period')}</p><p className="font-medium"><LocalizedDateDisplay value={settlement.period_start} /> — <LocalizedDateDisplay value={settlement.period_end} /></p></div>
-                    <div><p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('status')}</p><StatusPill status={settlement.status} /></div>
-                    <div><p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('subsidyAmount')}</p><p className="font-medium"><Money value={settlement.total_subsidy_amount} currency={c} /></p></div>
-                    <div><p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('providerAmount')}</p><p className="text-lg font-semibold"><Money value={settlement.total_provider_amount} currency={c} /></p></div>
+                    <div><p className="text-xs text-(--app-muted-foreground)">{tt('period')}</p><p className="font-medium"><LocalizedDateDisplay value={settlement.period_start} /> — <LocalizedDateDisplay value={settlement.period_end} /></p></div>
+                    <div><p className="text-xs text-(--app-muted-foreground)">{tt('status')}</p><StatusPill status={settlement.status} /></div>
+                    <div><p className="text-xs text-(--app-muted-foreground)">{tt('subsidyAmount')}</p><p className="font-medium"><Money value={settlement.total_subsidy_amount} currency={c} /></p></div>
+                    <div><p className="text-xs text-(--app-muted-foreground)">{tt('providerAmount')}</p><p className="text-lg font-semibold"><Money value={settlement.total_provider_amount} currency={c} /></p></div>
                 </Card>
 
                 <Card className="overflow-x-auto p-0">
@@ -76,7 +76,7 @@ export default function SettlementShow({ settlement, lines, byOrganization, can 
                             {lines.map((line) => (
                                 <tr key={line.id} className={tableRowClassName}>
                                     <Td>{label(line.employee_organization, tt('unattributed'))}</Td>
-                                    <Td>{label(line.cafeteria)}{line.cafeteria?.location_type && <span className="ms-1 text-xs text-[color:var(--app-muted-foreground)]">{t(`cafeteriaPolicy.locationTypes.${line.cafeteria.location_type}`)}</span>}</Td>
+                                    <Td>{label(line.cafeteria)}{line.cafeteria?.location_type && <span className="ms-1 text-xs text-(--app-muted-foreground)">{t(`cafeteriaPolicy.locationTypes.${line.cafeteria.location_type}`)}</span>}</Td>
                                     <Td end>{line.transaction_count}</Td>
                                     <Td end><Money value={line.subsidy_amount} currency={c} /></Td>
                                     <Td end><Money value={line.employee_amount} currency={c} /></Td>
@@ -86,7 +86,7 @@ export default function SettlementShow({ settlement, lines, byOrganization, can 
                         </tbody>
                     </table>
                 </Card>
-                {settlement.notes && <p className="text-sm text-[color:var(--app-muted-foreground)]">{settlement.notes}</p>}
+                {settlement.notes && <p className="text-sm text-(--app-muted-foreground)">{settlement.notes}</p>}
             </div>
         </AuthenticatedLayout>
     );

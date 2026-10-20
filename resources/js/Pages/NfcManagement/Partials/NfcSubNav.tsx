@@ -56,7 +56,7 @@ export default function NfcSubNav({ can, current }: { can: NfcCapabilities; curr
     if (visible.length < 2) return null;
 
     return (
-        <nav className="my-4 flex flex-wrap gap-1 border-b border-[color:var(--app-border)]">
+        <nav className="my-4 flex flex-wrap gap-1 border-b border-(--app-border)">
             {visible.map((tab) => (
                 <Link
                     key={tab.key}
@@ -64,8 +64,8 @@ export default function NfcSubNav({ can, current }: { can: NfcCapabilities; curr
                     aria-current={tab.key === current ? 'page' : undefined}
                     className={`-mb-px rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium transition ${
                         tab.key === current
-                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-[color:var(--color-primary)]'
-                            : 'border-transparent text-[color:var(--app-muted-foreground)] hover:border-[color:var(--app-border-strong)] hover:text-[color:var(--app-foreground)]'
+                            ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-primary'
+                            : 'border-transparent text-(--app-muted-foreground) hover:border-(--app-border-strong) hover:text-(--app-foreground)'
                     }`}
                 >
                     {tab.label}

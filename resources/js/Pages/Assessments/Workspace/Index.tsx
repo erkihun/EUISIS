@@ -3,8 +3,8 @@ import { actionLinkClassName } from '@/Components/ui';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { AppFilterBar, FilterField, filterInputCls, pageCls, Stat, Table, TablePanel, tdCls, thCls } from '@/Components/performance/ui';
-import { DeadlineBadge, ProgressMeter, RecordStatusBadge, ResponseStatus, usePick } from '@/Components/assessmentWorkspace/kit';
-import { Head } from '@inertiajs/react';
+import { DeadlineBadge, ProgressMeter, ResponseStatus, usePick } from '@/Components/assessmentWorkspace/kit';
+import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 
@@ -23,7 +23,7 @@ export default function AssignedAssessments({ rows, filters, counts, options }: 
     return <AuthenticatedLayout header={<PageHeader title={t('assessmentWorkspace.title')} description={t('assessmentWorkspace.description')} />}>
         <Head title={t('assessmentWorkspace.title')} />
         <div className={pageCls}>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
                 {kpis.map((key) => <Stat key={key} label={t(`assessmentWorkspace.kpi.${key}`)} value={counts[key] ?? 0} />)}
             </div>
             <AppFilterBar routeName="assessment-workspace.index" filters={filters}>
@@ -42,7 +42,7 @@ export default function AssignedAssessments({ rows, filters, counts, options }: 
             </AppFilterBar>
             <TablePanel page={rows} empty={t('assessmentWorkspace.empty')}>
                 <Table head={<><th className={thCls}>{t('assessmentWorkspace.columns.employee')}</th><th className={thCls}>{t('assessmentWorkspace.columns.form')}</th><th className={thCls}>{t('assessmentWorkspace.columns.cycle')}</th><th className={thCls}>{t('assessmentWorkspace.columns.evaluatorType')}</th><th className={thCls}>{t('assessmentWorkspace.columns.dueDate')}</th><th className={thCls}>{t('assessmentWorkspace.columns.status')}</th><th className={thCls}>{t('assessmentWorkspace.columns.progress')}</th><th className={thCls}><span className="sr-only">{t('assessmentWorkspace.columns.action')}</span></th></>}>
-                    {rows.data.map((row) => <tr key={row.id}><td className={tdCls}><p className="font-medium">{employee(row.employee)}</p><p className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee.number}</p><p className="text-xs text-[color:var(--app-muted-foreground)]">{pick(row.employee.unit, row.employee.unit_am)} · {pick(row.employee.position, row.employee.position_am)}</p></td><td className={tdCls}>{row.form ? `${pick(row.form.name_en, row.form.name_am)} · v${row.form.version_no}` : '—'}</td><td className={tdCls}>{label(row.cycle)}</td><td className={tdCls}>{t(`assessmentWorkspace.evaluatorTypes.${row.evaluator_type}`)}</td><td className={tdCls}>{row.due_at ? <><LocalizedDateDisplay value={row.due_at} /><div className="mt-1"><DeadlineBadge value={row.deadline} /></div></> : '—'}</td><td className={tdCls}><ResponseStatus value={row.status} /><div className="mt-1"><RecordStatusBadge value={row.record_status} /></div></td><td className={tdCls}><ProgressMeter {...row.progress} /></td><td className={`${tdCls} text-right`}>
+                    {rows.data.map((row) => <tr key={row.id}><td className={tdCls}><Link href={route('assessment-workspace.show', row.id)} className="font-medium text-primary hover:underline">{employee(row.employee)}</Link><p className="text-xs text-(--app-muted-foreground)">{row.employee.number}</p><p className="text-xs text-(--app-muted-foreground)">{pick(row.employee.unit, row.employee.unit_am)} · {pick(row.employee.position, row.employee.position_am)}</p></td><td className={tdCls}>{row.form ? `${pick(row.form.name_en, row.form.name_am)} · v${row.form.version_no}` : '—'}</td><td className={tdCls}>{label(row.cycle)}</td><td className={tdCls}>{t(`assessmentWorkspace.evaluatorTypes.${row.evaluator_type}`)}</td><td className={tdCls}>{row.due_at ? <><LocalizedDateDisplay value={row.due_at} /><div className="mt-1"><DeadlineBadge value={row.deadline} /></div></> : '—'}</td><td className={tdCls}><ResponseStatus value={row.status} />{row.status === 'submitted' && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t(`assessmentWorkspace.recordStatuses.${row.record_status}`)}</p>}</td><td className={tdCls}><ProgressMeter {...row.progress} /></td><td className={`${tdCls} text-right`}>
                         <div className="flex justify-end">
                             <AppActionMenu
                                 items={[

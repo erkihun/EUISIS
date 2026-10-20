@@ -302,7 +302,7 @@ export default function EmployeesCreate({
                     >
                         {placementContext ? (
                             <div className="md:col-span-2 xl:col-span-3">
-                                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4">
+                                <div className="rounded-card border border-(--app-border) bg-(--app-surface-muted) p-4">
                                     <dl className="grid gap-4 sm:grid-cols-3">
                                         <ReadOnlyValue
                                             label={t('employees.selectedOrganization')}
@@ -324,8 +324,8 @@ export default function EmployeesCreate({
                                             value={localizedName(placementContext.position.name_en, placementContext.position.name_am, locale)}
                                         />
                                     </dl>
-                                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[color:var(--app-border)] pt-3">
-                                        <p className="min-w-0 text-xs text-[color:var(--app-muted-foreground)]">
+                                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-(--app-border) pt-3">
+                                        <p className="min-w-0 text-xs text-(--app-muted-foreground)">
                                             {t('employees.placementFromPositionContext')}
                                             {' - '}
                                             {t('employees.positionContextLocked')}
@@ -508,8 +508,8 @@ export default function EmployeesCreate({
                             <label className={labelCls} htmlFor="photo">{t('employees.photo')}</label>
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                                 {photoPreview ? (
-                                    <div className="relative flex-shrink-0 self-start">
-                                        <img src={photoPreview} alt="" className="h-20 w-16 rounded-lg border border-[color:var(--app-border)] object-cover" />
+                                    <div className="relative shrink-0 self-start">
+                                        <img src={photoPreview} alt="" className="h-20 w-16 rounded-lg border border-(--app-border) object-cover" />
                                         <button
                                             type="button"
                                             onClick={clearPhoto}
@@ -521,7 +521,7 @@ export default function EmployeesCreate({
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center self-start rounded-lg border-2 border-dashed border-[color:var(--app-border-strong)] text-[color:var(--app-muted-foreground)]">
+                                    <div className="flex h-20 w-16 shrink-0 items-center justify-center self-start rounded-lg border-2 border-dashed border-(--app-border-strong) text-(--app-muted-foreground)">
                                         <BasicIcon />
                                     </div>
                                 )}
@@ -532,7 +532,7 @@ export default function EmployeesCreate({
                                         type="file"
                                         accept="image/jpeg,image/png,image/webp"
                                         onChange={handlePhotoChange}
-                                        className="w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm text-[color:var(--app-foreground)] file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
+                                        className="w-full rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-sm text-(--app-foreground) file:mr-3 file:rounded-sm file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
                                     />
                                     <p className={helpCls}>{t('employees.photoHint')}</p>
                                     {form.errors.photo && <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.photo}</p>}
@@ -597,7 +597,7 @@ export default function EmployeesCreate({
 
                     <FormCard icon={<SystemIcon />} title={t('employees.sectionSystem')} description={t('employees.sectionSystemHelp')} grid={false}>
                         <Field label={t('employees.assignmentReason')} error={form.errors.reason} htmlFor="reason">
-                            <textarea id="reason" className={`${inputCls} min-h-[6rem]`} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />
+                            <textarea id="reason" className={`${inputCls} min-h-24`} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} />
                         </Field>
                     </FormCard>
                 </div>

@@ -163,7 +163,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose }: Props) {
 
             {/* Modal overlay */}
             <div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm no-print"
+                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs no-print"
                 onMouseDown={(e) => {
                     if (e.target === e.currentTarget) onClose();
                 }}
@@ -199,7 +199,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose }: Props) {
                                 onClick={() => setTab(value)}
                                 className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                     tab === value
-                                        ? 'bg-white shadow text-gray-900 dark:bg-slate-700 dark:text-slate-100'
+                                        ? 'bg-white shadow-sm text-gray-900 dark:bg-slate-700 dark:text-slate-100'
                                         : 'text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
                                 }`}
                             >

@@ -62,13 +62,13 @@ export default function Login({
     ];
 
     const fieldClass = (invalid: boolean) =>
-        `h-11 w-full rounded-control border bg-[color:var(--app-surface)] pl-10 pr-11 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)] transition-[box-shadow,border-color] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] ${
-            invalid ? 'border-red-400 dark:border-red-500' : 'border-[color:var(--app-border-strong)] focus:border-[color:var(--color-primary)]'
+        `h-11 w-full rounded-control border bg-(--app-surface) pl-10 pr-11 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) transition-[box-shadow,border-color] focus:outline-hidden focus:ring-2 focus:ring-primary ${
+            invalid ? 'border-red-400 dark:border-red-500' : 'border-(--app-border-strong) focus:border-primary'
         }`;
 
     const brand = (
         <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-control bg-white/10 ring-1 ring-white/15 backdrop-blur">
+            <div className="flex h-11 w-11 items-center justify-center rounded-control bg-white/10 ring-1 ring-white/15 backdrop-blur-sm">
                 {systemLogoUrl ? (
                     <img src={systemLogoUrl} alt={systemName} width={32} height={32} decoding="async" className="h-8 w-8 object-contain" />
                 ) : (
@@ -83,14 +83,14 @@ export default function Login({
     );
 
     return (
-        <div className="min-h-screen bg-[color:var(--app-background)] text-[color:var(--app-foreground)]">
+        <div className="min-h-screen bg-(--app-background) text-(--app-foreground)">
             <Head title={t('auth.signIn')} />
 
             <div className="grid min-h-screen lg:grid-cols-[1.1fr_minmax(0,1fr)]">
                 {/* ── Brand stage ─────────────────────────────────────────── */}
                 <section className="relative isolate hidden min-w-0 overflow-hidden bg-[#0a1230] text-white lg:flex">
-                    <div className="login-blob absolute -left-40 -top-44 h-[34rem] w-[34rem] rounded-full bg-[color:var(--color-primary)] opacity-70 blur-[110px]" />
-                    <div className="login-blob absolute -bottom-40 right-[-12%] h-[32rem] w-[32rem] rounded-full bg-[color:var(--color-accent)] opacity-30 blur-[120px]" style={{ animationDelay: '-9s', animationDuration: '27s' }} />
+                    <div className="login-blob absolute -left-40 -top-44 h-136 w-136 rounded-full bg-primary opacity-70 blur-[110px]" />
+                    <div className="login-blob absolute -bottom-40 right-[-12%] h-128 w-lg rounded-full bg-accent opacity-30 blur-[120px]" style={{ animationDelay: '-9s', animationDuration: '27s' }} />
                     <div className="login-blob absolute left-[30%] top-[38%] h-72 w-72 rounded-full bg-sky-400 opacity-20 blur-[90px]" style={{ animationDelay: '-16s', animationDuration: '19s' }} />
                     <div
                         className="pointer-events-none absolute inset-0 opacity-[0.07]"
@@ -101,7 +101,7 @@ export default function Login({
                             WebkitMaskImage: 'radial-gradient(ellipse at 50% 45%, black 25%, transparent 72%)',
                         }}
                     />
-                    <svg className="pointer-events-none absolute -right-28 top-1/2 h-[38rem] w-[38rem] -translate-y-1/2" viewBox="0 0 400 400" aria-hidden="true">
+                    <svg className="pointer-events-none absolute -right-28 top-1/2 h-152 w-152 -translate-y-1/2" viewBox="0 0 400 400" aria-hidden="true">
                         <circle cx="200" cy="200" r="190" fill="none" stroke="rgba(255,255,255,0.09)" />
                         <circle cx="200" cy="200" r="142" fill="none" stroke="rgba(255,255,255,0.08)" strokeDasharray="3 9" />
                         <circle cx="200" cy="200" r="94" fill="none" stroke="rgba(255,255,255,0.06)" />
@@ -132,7 +132,7 @@ export default function Login({
                             <h1 className="login-rise mt-6 text-[2.6rem] font-bold leading-[1.1] tracking-tight xl:text-[3rem]" style={{ animationDelay: '160ms' }}>
                                 {t('auth.systemHeadline1')}
                                 <br />
-                                <span className="bg-gradient-to-r from-orange-200 via-orange-400 to-amber-300 bg-clip-text text-transparent">{t('auth.systemHeadlineHighlight')}</span>{' '}
+                                <span className="bg-linear-to-r from-orange-200 via-orange-400 to-amber-300 bg-clip-text text-transparent">{t('auth.systemHeadlineHighlight')}</span>{' '}
                                 {t('auth.systemHeadline2')}
                             </h1>
                             <p className="login-rise mt-5 max-w-lg text-[15px] leading-relaxed text-white/70" style={{ animationDelay: '240ms' }}>
@@ -143,7 +143,7 @@ export default function Login({
                                 {features.map(({ icon, label }, i) => (
                                     <li
                                         key={label}
-                                        className="login-rise flex items-center gap-2.5 rounded-control border border-white/10 bg-white/[0.06] px-3 py-2.5 backdrop-blur-sm transition-colors hover:border-white/25 hover:bg-white/10"
+                                        className="login-rise flex items-center gap-2.5 rounded-control border border-white/10 bg-white/6 px-3 py-2.5 backdrop-blur-xs transition-colors hover:border-white/25 hover:bg-white/10"
                                         style={{ animationDelay: `${320 + i * 70}ms` }}
                                     >
                                         <svg className={`h-4 w-4 shrink-0 ${i % 2 === 0 ? 'text-sky-300' : 'text-orange-300'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
@@ -167,21 +167,21 @@ export default function Login({
                 <section className="relative flex min-w-0 flex-col">
                     {/* Compact stage for phones and tablets */}
                     <div className="relative isolate overflow-hidden bg-[#0a1230] px-5 py-5 text-white lg:hidden">
-                        <div className="login-blob absolute -right-16 -top-20 h-56 w-56 rounded-full bg-[color:var(--color-accent)] opacity-30 blur-[70px]" />
-                        <div className="login-blob absolute -left-20 bottom-[-6rem] h-56 w-56 rounded-full bg-[color:var(--color-primary)] opacity-80 blur-[70px]" style={{ animationDelay: '-11s' }} />
+                        <div className="login-blob absolute -right-16 -top-20 h-56 w-56 rounded-full bg-accent opacity-30 blur-[70px]" />
+                        <div className="login-blob absolute -left-20 -bottom-24 h-56 w-56 rounded-full bg-primary opacity-80 blur-[70px]" style={{ animationDelay: '-11s' }} />
                         <div className="relative z-10">{brand}</div>
                     </div>
 
                     <div className="flex flex-1 items-center justify-center px-4 py-10 sm:px-8">
                         <div className="login-rise w-full max-w-[420px]" style={{ animationDelay: '120ms' }}>
-                            <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-[0_30px_70px_-30px_rgba(18,33,112,0.45)]">
+                            <div className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) shadow-[0_30px_70px_-30px_rgba(18,33,112,0.45)]">
                                 <div className="login-sheen h-1 w-full bg-[linear-gradient(90deg,var(--color-primary),var(--color-accent),var(--color-primary))]" aria-hidden="true" />
 
                                 <div className="px-6 py-8 sm:px-9">
                                     <div className="mb-7">
-                                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-accent)]">{systemName}</p>
-                                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-[color:var(--app-foreground)]">{t('auth.welcomeBack')}</h2>
-                                        <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('auth.signInSubtitle')}</p>
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent">{systemName}</p>
+                                        <h2 className="mt-2 text-2xl font-bold tracking-tight text-(--app-foreground)">{t('auth.welcomeBack')}</h2>
+                                        <p className="mt-1 text-sm text-(--app-muted-foreground)">{t('auth.signInSubtitle')}</p>
                                     </div>
 
                                     {sessionNotice && (
@@ -204,11 +204,11 @@ export default function Login({
 
                                     <form onSubmit={submit} className="space-y-5" noValidate={false}>
                                         <div>
-                                            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
+                                            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
                                                 {t('auth.emailAddress')}
                                             </label>
                                             <div className="relative">
-                                                <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
+                                                <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                                                 </svg>
                                                 <input
@@ -233,20 +233,20 @@ export default function Login({
 
                                         <div>
                                             <div className="mb-1.5 flex items-center justify-between">
-                                                <label htmlFor="password" className="text-sm font-medium text-[color:var(--app-foreground)]">
+                                                <label htmlFor="password" className="text-sm font-medium text-(--app-foreground)">
                                                     {t('auth.password')}
                                                 </label>
                                                 {canResetPassword && (
                                                     <Link
                                                         href={route('password.request')}
-                                                        className="text-xs font-medium text-[color:var(--color-accent)] underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                                                        className="text-xs font-medium text-accent underline-offset-4 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                                                     >
                                                         {t('auth.forgotPassword')}
                                                     </Link>
                                                 )}
                                             </div>
                                             <div className="relative">
-                                                <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
+                                                <svg className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                                                 </svg>
                                                 <input
@@ -267,7 +267,7 @@ export default function Login({
                                                     onClick={() => setShowPassword((v) => !v)}
                                                     aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                                                     aria-pressed={showPassword}
-                                                    className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-control text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                                                    className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-control text-(--app-muted-foreground) transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                                                 >
                                                     {showPassword ? (
                                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
@@ -289,9 +289,9 @@ export default function Login({
                                         <button
                                             type="submit"
                                             disabled={processing}
-                                            className="group relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-control bg-[color:var(--color-primary)] px-4 text-sm font-semibold text-[color:var(--color-on-primary)] shadow-lg shadow-[rgba(18,33,112,0.25)] transition-[transform,box-shadow,background-color] hover:-translate-y-px hover:bg-[color:var(--color-primary-hover)] hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--app-surface)] active:translate-y-0 disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
+                                            className="group relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-control bg-primary px-4 text-sm font-semibold text-(--color-on-primary) shadow-lg shadow-[rgba(18,33,112,0.25)] transition-[transform,box-shadow,background-color] hover:-translate-y-px hover:bg-primary-hover hover:shadow-xl focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-(--app-surface) active:translate-y-0 disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
                                         >
-                                            <span className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[320%]" aria-hidden="true" />
+                                            <span className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-full bg-linear-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[320%]" aria-hidden="true" />
                                             {processing ? (
                                                 <>
                                                     <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -312,11 +312,11 @@ export default function Login({
                                     </form>
 
                                     {registrationEnabled && (
-                                        <div className="mt-6 border-t border-[color:var(--app-border)] pt-6">
-                                            <p className="mb-3 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('auth.noAccount')}</p>
+                                        <div className="mt-6 border-t border-(--app-border) pt-6">
+                                            <p className="mb-3 text-center text-sm text-(--app-muted-foreground)">{t('auth.noAccount')}</p>
                                             <Link
                                                 href={route('register')}
-                                                className="flex h-11 w-full items-center justify-center gap-2 rounded-control border border-[color:var(--app-border-strong)] bg-transparent px-4 text-sm font-semibold text-[color:var(--app-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                                                className="flex h-11 w-full items-center justify-center gap-2 rounded-control border border-(--app-border-strong) bg-transparent px-4 text-sm font-semibold text-(--app-foreground) transition-colors hover:bg-(--app-surface-muted) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
                                             >
                                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21C7.043 21 4.862 20.355 3 19.234Z" />
@@ -328,7 +328,7 @@ export default function Login({
                                 </div>
                             </div>
 
-                            <p className="mt-6 text-center text-[11px] text-[color:var(--app-muted-foreground)]">
+                            <p className="mt-6 text-center text-[11px] text-(--app-muted-foreground)">
                                 © {new Date().getFullYear()} {orgName} · {t('auth.footerGov')}
                             </p>
                         </div>

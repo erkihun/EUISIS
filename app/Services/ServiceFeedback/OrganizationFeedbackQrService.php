@@ -179,7 +179,7 @@ class OrganizationFeedbackQrService
         }
 
         return OrganizationFeedbackQrCode::query()
-            ->with('organization:id,code,name_en,name_am,logo_path,status')
+            ->with('organization:id,code,name_en,name_am,logo_path,status,public_contact_phone')
             ->where('public_token', $token)
             ->where('status', OrganizationFeedbackQrStatus::Active->value)
             ->whereHas('organization', fn ($query) => $query->where('status', OrganizationStatus::Active->value))

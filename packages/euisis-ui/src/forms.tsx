@@ -18,22 +18,28 @@ import { useUiMessages } from './context';
  * `w-full`. Callers add their own width.
  */
 const controlBase = cx(
-    'rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)]',
-    'bg-[color:var(--app-surface)] px-3 text-sm text-[color:var(--app-foreground)] placeholder:text-[color:var(--app-muted-foreground)]',
-    'focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20',
-    'disabled:cursor-not-allowed disabled:bg-[color:var(--app-surface-muted)] disabled:opacity-70',
-    'aria-[invalid=true]:border-red-600 aria-[invalid=true]:ring-red-600/20',
+    'rounded-control border border-(--app-border-strong)',
+    'bg-(--app-surface) px-3 text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground)',
+    'focus:border-primary focus:outline-hidden focus:ring-2 focus:ring-primary/20',
+    'disabled:cursor-not-allowed disabled:bg-(--app-surface-muted) disabled:opacity-70',
+    'aria-invalid:border-red-600 aria-invalid:ring-red-600/20',
+    // The browser's own checks (required, type=email, min/max…) mark a field
+    // only after the person has edited it or tried to submit, never on load.
+    'user-invalid:border-red-600 user-invalid:ring-red-600/20',
     // On a <select>, keep room for the native chevron: `:is(select)` outranks
     // `px-3`, so one shared input style serves inputs and selects alike.
-    '[&:is(select)]:pr-9',
+    '[select]:pr-9',
 );
 
 /** Single-line input; no width (add `w-full`, `w-40`, …). */
-export const inputClassName = cx('h-[var(--control-h-md)]', controlBase);
+// Touch screens get a 44px target (WCAG 2.5.8 / platform guidance); mouse and pen keep 36px.
+export const inputClassName = cx('h-(--control-h-md) pointer-coarse:h-11', controlBase);
 /** Native select; no width. */
-export const selectClassName = cx('h-[var(--control-h-md)] pr-9', controlBase);
+export const selectClassName = cx('h-(--control-h-md) pointer-coarse:h-11 pr-9', controlBase);
 /** Multi-line input; no width and no fixed height. */
-export const textareaClassName = cx('min-h-24 py-2', controlBase);
+// Grows with its text (field-sizing: content) up to a limit, then scrolls;
+// browsers without field-sizing keep the fixed minimum height and scroll.
+export const textareaClassName = cx('min-h-24 max-h-80 field-sizing-content py-2', controlBase);
 /** Full-width single-line control, as the Input and Select components render. */
 export const controlClassName = cx(inputClassName, 'w-full');
 
@@ -50,17 +56,19 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 });
 
 export function FormLabel({ required, className, children, ...props }: LabelHTMLAttributes<HTMLLabelElement> & { required?: boolean }) {
+    const messages = useUiMessages();
+
     return (
-        <label className={cx('block text-label text-[color:var(--app-foreground)]', className)} {...props}>
+        <label className={cx('block text-label text-(--app-foreground)', className)} {...props}>
             {children}
             {required && <span className="ml-1 text-red-600" aria-hidden="true">*</span>}
-            {required && <span className="sr-only"> required</span>}
+            {required && <span className="sr-only"> {messages.required}</span>}
         </label>
     );
 }
 
 export function FormDescription({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
-    return <p className={cx('text-helper text-[color:var(--app-muted-foreground)]', className)} {...props} />;
+    return <p className={cx('text-helper text-(--app-muted-foreground)', className)} {...props} />;
 }
 
 export function FieldError({ className, children, ...props }: HTMLAttributes<HTMLParagraphElement>) {
@@ -101,7 +109,7 @@ export function SearchInput({ value, onChange, onClear, label, className, ...pro
     const messages = useUiMessages();
     return (
         <div className={cx('relative min-w-0', className)}>
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true">⌕</span>
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true">⌕</span>
             <Input
                 type="search"
                 value={value}
@@ -111,7 +119,7 @@ export function SearchInput({ value, onChange, onClear, label, className, ...pro
                 {...props}
             />
             {value && (
-                <button type="button" onClick={() => { onChange(''); onClear?.(); }} aria-label={messages.clear} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]">×</button>
+                <button type="button" onClick={() => { onChange(''); onClear?.(); }} aria-label={messages.clear} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-(--app-muted-foreground) hover:bg-(--app-surface-muted)">×</button>
             )}
         </div>
     );
@@ -141,7 +149,7 @@ export function FileUpload({ id, label, value, accept, maxSizeMb, disabled, erro
                         onChange(file);
                     }} className="cursor-pointer py-1.5 file:mr-3 file:border-0 file:bg-transparent file:text-sm file:font-medium" />
                     {value && <div className="flex min-w-0 items-center justify-between gap-2 text-sm"><span className="truncate">{value.name}</span>{onRemove && <Button variant="ghost" size="sm" onClick={() => { onRemove(); onChange(null); }}>{messages.remove}</Button>}</div>}
-                    {progress !== undefined && <progress className="w-full accent-[color:var(--color-primary)]" max={100} value={progress} aria-label={messages.loading} />}
+                    {progress !== undefined && <progress className="w-full accent-primary" max={100} value={progress} aria-label={messages.loading} />}
                 </div>
             )}
         </FormField>

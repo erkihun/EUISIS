@@ -131,7 +131,7 @@ export default function AccessForm({ access, organizations, networks, cafeterias
                 </FormSection>
 
                 <div className="flex justify-end gap-3">
-                    <Link href={route('cafeteria.access.index')} className="rounded-[var(--radius-control)] border border-[color:var(--app-border)] px-4 py-2 text-sm font-medium">{tt('cancel')}</Link>
+                    <Link href={route('cafeteria.access.index')} className="rounded-control border border-(--app-border) px-4 py-2 text-sm font-medium">{tt('cancel')}</Link>
                     <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>{tt('save')}</button>
                 </div>
             </form>

@@ -1203,7 +1203,7 @@
       "id": "backup",
       "domain": "settings",
       "en": "Backup / recovery",
-      "am": "ምትኬ / መልሶ ማግኛ",
+      "am": "ባካፕ / መልሶ ማግኛ",
       "status": "approved"
     },
     {
@@ -1810,11 +1810,11 @@
       "reason": "ምርምር is research."
     },
     {
-      "current": "ባካፕ",
-      "recommended": "ምትኬ",
-      "pattern": "ባካፕ|ባክ ?አፕ",
+      "current": "ምትኬ",
+      "recommended": "ባካፕ",
+      "pattern": "ምትኬ|ባክ ?አፕ",
       "block": true,
-      "reason": "Backup is ምትኬ."
+      "reason": "Backup is ባካፕ (term changed 2026-10-19)."
     },
     {
       "current": "Other spelling variants: ሃሳብ, ሃብት, እቅድ, እለት, ሃይል, ስልጣን, ስልጠና, አሰራር, ማኅደር, ፀደቀ, ማፅደቅ, ቅርፀት, ፀና, አመት, ህግ, መንግስት",

@@ -24,6 +24,7 @@ use App\Services\Grievances\GrievanceSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -96,6 +97,7 @@ class GrievancePortalController extends Controller
             return $grievance;
         });
         if ($request->boolean('submit')) {
+            $this->assertApplicationComplete($grievance->refresh());
             $grievance = $this->cases->submit($grievance, $user);
         }
 
@@ -141,6 +143,12 @@ class GrievancePortalController extends Controller
                 'category_id' => $grievance->category_id,
                 'incident_date' => $grievance->incident_date?->toDateString(),
                 'respondent_description' => $grievance->respondent_description,
+                'written_issue_raised_at' => $grievance->written_issue_raised_at?->toDateString(),
+                'immediate_supervisor_name' => $grievance->immediate_supervisor_name,
+                'applicant_address' => $grievance->applicant_address,
+                'requested_remedy' => $grievance->requested_remedy,
+                'late_submission_reason' => $grievance->late_submission_reason,
+                'cause_ended_at' => $grievance->cause_ended_at?->toDateString(),
                 'intake_reason_code' => $grievance->intake_reason_code,
                 'intake_notes' => $grievance->intake_notes,
             ],
@@ -158,6 +166,7 @@ class GrievancePortalController extends Controller
             $this->attachFiles($request, $grievance->refresh(), $evidence);
         });
         if ($request->boolean('submit')) {
+            $this->assertApplicationComplete($grievance->refresh());
             $this->cases->submit($grievance->refresh(), $user);
         }
 
@@ -166,6 +175,8 @@ class GrievancePortalController extends Controller
 
     public function submit(Request $request, Grievance $grievance): RedirectResponse
     {
+        abort_unless($this->access->isComplainant($request->user(), $grievance), 403);
+        $this->assertApplicationComplete($grievance);
         $this->cases->submit($grievance, $request->user());
 
         return back()->with('flash', ['message' => __('grievances.flash.submitted'), 'type' => 'success']);
@@ -264,12 +275,24 @@ class GrievancePortalController extends Controller
     /** @return array<string, mixed> */
     private function validateForm(Request $request, bool $amendment = false): array
     {
-        return $request->validate([
+        // Sending needs the whole Art. 32 application; a draft may be saved incomplete.
+        $sending = $request->boolean('submit') ? 'required' : 'nullable';
+        $data = $request->validate([
             'subject' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:20000'],
             'category_id' => ['required', 'uuid', 'exists:grievance_categories,id'],
-            'incident_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'incident_date' => [$sending, 'nullable', 'date', 'before_or_equal:today'],
             'respondent_description' => ['nullable', 'string', 'max:2000'],
+            // Art. 33(1): when the matter was presented in writing to the supervisor or manager, and to whom.
+            'written_issue_raised_at' => [$this->writtenIssueRequired() ? $sending : 'nullable', 'nullable', 'date', 'before_or_equal:today'],
+            'immediate_supervisor_name' => [$sending, 'nullable', 'string', 'max:255'],
+            // Art. 32(2)(a), (g), (h): address, remedy sought, and the applicant's declaration.
+            'applicant_address' => [$sending, 'nullable', 'string', 'max:500'],
+            'requested_remedy' => [$sending, 'nullable', 'string', 'max:5000'],
+            'declaration' => [$request->boolean('submit') ? 'accepted' : 'nullable'],
+            // Art. 33(2): a late filing must state the force-majeure ground and when it ended.
+            'late_submission_reason' => ['nullable', 'string', 'max:2000'],
+            'cause_ended_at' => ['nullable', 'date', 'before_or_equal:today'],
             'amendment_reason' => [$amendment ? 'nullable' : 'prohibited', 'string', 'max:2000'],
             'submit' => ['nullable', 'boolean'],
             'files' => ['nullable', 'array', 'max:10'],
@@ -277,6 +300,37 @@ class GrievancePortalController extends Controller
             'file_types' => ['nullable', 'array'],
             'file_types.*' => ['nullable', 'in:'.implode(',', GrievanceEvidenceType::values())],
         ]);
+        if ($request->boolean('submit')) {
+            $data['applicant_declared_at'] = now();
+        }
+        unset($data['declaration']);
+
+        return $data;
+    }
+
+    private function writtenIssueRequired(): bool
+    {
+        return (bool) config('grievance.initial_resolution.require_before_formal', true);
+    }
+
+    /**
+     * The stored application has everything Art. 32(2) and Art. 33(1) ask for
+     * before it may be sent — also when a saved draft is sent on its own.
+     */
+    private function assertApplicationComplete(Grievance $grievance): void
+    {
+        $missing = [];
+        foreach (['incident_date', 'immediate_supervisor_name', 'applicant_address', 'requested_remedy', 'applicant_declared_at'] as $field) {
+            if (blank($grievance->{$field})) {
+                $missing[$field] = __('grievances.errors.application_incomplete');
+            }
+        }
+        if ($this->writtenIssueRequired() && $grievance->written_issue_raised_at === null) {
+            $missing['written_issue_raised_at'] = __('grievances.errors.written_issue_required');
+        }
+        if ($missing !== []) {
+            throw ValidationException::withMessages($missing);
+        }
     }
 
     private function attachFiles(Request $request, Grievance $grievance, GrievanceEvidenceService $evidence): void

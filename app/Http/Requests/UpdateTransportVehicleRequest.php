@@ -8,6 +8,6 @@ class UpdateTransportVehicleRequest extends StoreTransportVehicleRequest
 {
     public function authorize(): bool
     {
-        return ($this->user()?->can('transport-vehicles.update') ?? false) || (auth('provider')->user()?->canUseServicePermission('provider.transport.vehicles.manage') ?? false);
+        return $this->authorizeTransport('transport-vehicles.update', 'provider.transport.vehicles.manage');
     }
 }

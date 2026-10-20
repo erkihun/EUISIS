@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
+use App\Http\Middleware\AuthenticateTransportDevice;
+use App\Jobs\Communication\SyncEmployeeCommunicationMemberships;
 use App\Models\AssessmentForm;
 use App\Models\AuditLog;
 use App\Models\CafeteriaDayRule;
@@ -19,7 +21,16 @@ use App\Models\CafeteriaSubsidyRule;
 use App\Models\CafeteriaTransaction;
 use App\Models\CardRequest;
 use App\Models\CodeRule;
+use App\Models\Communication\Announcement;
+use App\Models\Communication\Channel;
+use App\Models\Communication\CommunicationAccessRequest;
+use App\Models\Communication\CommunicationReport;
+use App\Models\Communication\CommunicationTask;
+use App\Models\Communication\Conversation;
+use App\Models\Communication\Message;
+use App\Models\Communication\MessageAttachment;
 use App\Models\DailyActivityLog;
+use App\Models\DesignImportBatch;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeCafeteriaExclusion;
@@ -30,34 +41,35 @@ use App\Models\EntitlementRule;
 use App\Models\FieldWorkRequest;
 use App\Models\GradeLevel;
 use App\Models\IdCard;
-use App\Models\IsicActivity;
 use App\Models\InstitutionMandate;
-use App\Models\Occupation;
-use App\Models\OrganizationFunction;
-use App\Models\OrganizationPower;
+use App\Models\IsicActivity;
 use App\Models\JobDescription;
+use App\Models\LegacyBaseline;
+use App\Models\LegalSource;
 use App\Models\ManpowerPlan;
-use App\Models\OrganizationDesignReportExport;
-use App\Models\PublicFeedbackReportExport;
-use App\Models\PositionProfile;
-use App\Models\OrganizationDesignStudy;
-use App\Models\WorkforcePlanningMethodology;
-use App\Models\Process;
-use App\Models\Service;
-use App\Models\ServiceClassification;
+use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\OrganizationalChangeRequest;
+use App\Models\OrganizationDesignReportExport;
+use App\Models\OrganizationDesignStudy;
 use App\Models\OrganizationEdge;
+use App\Models\OrganizationFunction;
+use App\Models\OrganizationPower;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
-use App\Models\Permission;
+use App\Models\Permission; // alias to avoid clash with Illuminate\Support\ServiceProvider
 use App\Models\Position;
 use App\Models\PositionEstablishment;
+use App\Models\PositionProfile;
 use App\Models\PositionService;
+use App\Models\Process;
 use App\Models\ProviderUser;
+use App\Models\PublicFeedbackReportExport;
 use App\Models\PublicHoliday;
-use App\Models\Role; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\Role;
+use App\Models\Service;
+use App\Models\ServiceClassification;
 use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
@@ -69,7 +81,10 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
+use App\Models\WorkforcePlanningMethodology;
 use App\Observers\EmployeeAssignmentCardImpactObserver;
+use App\Observers\EmployeeAssignmentCommunicationObserver;
+use App\Observers\TransportEligibilityObserver;
 use App\Policies\AssessmentFormPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CafeteriaDayRulePolicy;
@@ -83,7 +98,16 @@ use App\Policies\CafeteriaSubsidyRulePolicy;
 use App\Policies\CafeteriaTransactionPolicy;
 use App\Policies\CardRequestPolicy;
 use App\Policies\CodeRulePolicy;
+use App\Policies\Communication\AnnouncementPolicy;
+use App\Policies\Communication\ChannelPolicy;
+use App\Policies\Communication\CommunicationAccessRequestPolicy;
+use App\Policies\Communication\CommunicationReportPolicy;
+use App\Policies\Communication\CommunicationTaskPolicy;
+use App\Policies\Communication\ConversationPolicy;
+use App\Policies\Communication\MessageAttachmentPolicy;
+use App\Policies\Communication\MessagePolicy;
 use App\Policies\DailyActivityLogPolicy;
+use App\Policies\DesignImportBatchPolicy;
 use App\Policies\EmployeeCafeteriaExclusionPolicy;
 use App\Policies\EmployeePolicy;
 use App\Policies\EmployeeServiceFeedbackPolicy;
@@ -93,32 +117,33 @@ use App\Policies\EntitlementRulePolicy;
 use App\Policies\FieldWorkRequestPolicy;
 use App\Policies\GradeLevelPolicy;
 use App\Policies\IdCardPolicy;
-use App\Policies\IsicActivityPolicy;
 use App\Policies\InstitutionMandatePolicy;
-use App\Policies\OccupationPolicy;
-use App\Policies\OrganizationFunctionPolicy;
+use App\Policies\IsicActivityPolicy;
+use App\Policies\LegacyBaselinePolicy;
+use App\Policies\LegalSourcePolicy;
 use App\Policies\ManpowerPlanPolicy;
-use App\Policies\OrganizationDesignReportExportPolicy;
-use App\Policies\PublicFeedbackReportExportPolicy;
-use App\Policies\PositionDesignPolicy;
-use App\Policies\OrganizationDesignStudyPolicy;
-use App\Policies\WorkforcePlanningMethodologyPolicy;
-use App\Policies\ProcessPolicy;
-use App\Policies\ServiceClassificationPolicy;
-use App\Policies\ServicePolicy;
+use App\Policies\OccupationPolicy;
 use App\Policies\OrganizationalChangeRequestPolicy;
+use App\Policies\OrganizationDesignReportExportPolicy;
+use App\Policies\OrganizationDesignStudyPolicy;
 use App\Policies\OrganizationEdgePolicy;
+use App\Policies\OrganizationFunctionPolicy;
 use App\Policies\OrganizationPolicy;
 use App\Policies\OrganizationTypePolicy;
 use App\Policies\OrganizationUnitPolicy;
 use App\Policies\OrganizationUnitTypePolicy;
 use App\Policies\PermissionPolicy;
+use App\Policies\PositionDesignPolicy;
 use App\Policies\PositionEstablishmentPolicy;
 use App\Policies\PositionPolicy;
 use App\Policies\PositionServicePolicy;
+use App\Policies\ProcessPolicy;
 use App\Policies\ProviderUserPolicy;
+use App\Policies\PublicFeedbackReportExportPolicy;
 use App\Policies\PublicHolidayPolicy;
 use App\Policies\RolePolicy;
+use App\Policies\ServiceClassificationPolicy;
+use App\Policies\ServicePolicy;
 use App\Policies\ServiceProviderPolicy;
 use App\Policies\ServiceTransactionPolicy;
 use App\Policies\ServiceTypePolicy;
@@ -130,9 +155,11 @@ use App\Policies\UserOrganizationScopePolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VacancyAnnouncementPolicy;
 use App\Policies\VacancyApplicationPolicy;
+use App\Policies\WorkforcePlanningMethodologyPolicy;
 use App\Security\Hashing\MigratingArgon2IdHasher;
 use App\Security\Passwords\CompromisedPasswordChecker;
 use App\Security\Passwords\HibpCompromisedPasswordChecker;
+use App\Services\Assistant\AssistantSettings;
 use App\Services\Backup\Infrastructure\BackupInfrastructureAdapter;
 use App\Services\Backup\Infrastructure\DisabledBackupAdapter;
 use App\Services\Backup\Infrastructure\PgBackRestBackupAdapter;
@@ -140,18 +167,28 @@ use App\Services\Backup\Infrastructure\ReportBackupAdapter;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
+use App\Services\Communication\AttachmentScanner;
+use App\Services\Communication\PendingAttachmentScanner;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
+use App\Services\Integration\Events\IntegrationEventContext;
+use App\Services\PublicAssistant\PublicAssistantSettings;
 use App\Services\Security\SessionActivityService;
-use App\Services\Sms\BudgetedSmsGateway;
+use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
+use App\Services\SituationRoom\SituationMemo;
+use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
+use App\Support\Mail\RuntimeMailSettings;
+use App\Support\RichText\RichTextSanitizer;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
@@ -166,6 +203,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Communication malware-scan hook: replace with a real scanner binding in production.
+        $this->app->bindIf(AttachmentScanner::class, PendingAttachmentScanner::class);
+        // Situation Room: per-request memo of shared figures, never shared across requests or viewers.
+        $this->app->scoped(SituationMemo::class);
+        // Event integration: one correlation id and suppression set per request / job.
+        $this->app->scoped(IntegrationEventContext::class);
+        // One instance per request: validation, rendering and storage read the same questionnaire version.
+        $this->app->scoped(PublicFeedbackQuestionnaire::class);
+
+        $this->app->singleton(RuntimeMailSettings::class);
+        $this->app->singleton(RichTextSanitizer::class, fn (): RichTextSanitizer => new RichTextSanitizer((array) config('richtext')));
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);
@@ -196,14 +244,40 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Formatted text in server-rendered output (PDF, email): `@richtext($value)`
+        // sanitizes against config/richtext.php and prints it; legacy plain text
+        // becomes escaped paragraphs. The only sanctioned way to echo stored HTML.
+        Blade::directive('richtext', fn (string $expression): string => "<?php echo app(\\App\\Support\\RichText\\RichTextSanitizer::class)->sanitize({$expression}) ?? ''; ?>");
+
         EmployeeAssignment::observe(EmployeeAssignmentCardImpactObserver::class);
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);
+        // Automatic Communication channel membership follows assignments and account status.
+        EmployeeAssignment::observe(EmployeeAssignmentCommunicationObserver::class);
+        Employee::saved(fn (Employee $employee) => app(EmployeeAssignmentCommunicationObserver::class)->employeeSaved($employee));
+        // Transport route assignments follow placement and status (docs/transport/eligibility.md).
+        EmployeeAssignment::observe(TransportEligibilityObserver::class);
+        Employee::saved(fn (Employee $employee) => app(TransportEligibilityObserver::class)->employeeSaved($employee));
+        User::saved(function (User $user): void {
+            if ($user->employee_id !== null && $user->wasChanged('status')) {
+                SyncEmployeeCommunicationMemberships::dispatch((string) $user->employee_id)->afterCommit();
+            }
+        });
         $this->configureViteAssetMode();
         // No Vite::prefetch(): with 500+ page chunks it downloaded the whole 8 MB
         // bundle on every full page load, which is what made phones crawl. Pages
         // load their own chunk on demand (a few KB each, cached for a year).
         $this->applyRuntimeSystemSettings();
+
+        // A worker boots once and runs for an hour or more: pick up email
+        // settings an administrator saved since, before each job sends.
+        Queue::before(function (): void {
+            try {
+                $this->app->make(RuntimeMailSettings::class)->apply();
+            } catch (Throwable) {
+                // The job still runs with the settings already in effect.
+            }
+        });
 
         // GET /up is the load balancer health check. It also proves the database
         // and the cache store answer: a listener that throws turns it into a 500,
@@ -240,6 +314,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(OrganizationUnitType::class, OrganizationUnitTypePolicy::class);
         Gate::policy(Occupation::class, OccupationPolicy::class);
         Gate::policy(InstitutionMandate::class, InstitutionMandatePolicy::class);
+        Gate::policy(LegalSource::class, LegalSourcePolicy::class);
+        Gate::policy(LegacyBaseline::class, LegacyBaselinePolicy::class);
+        Gate::policy(DesignImportBatch::class, DesignImportBatchPolicy::class);
         Gate::policy(OrganizationFunction::class, OrganizationFunctionPolicy::class);
         Gate::policy(OrganizationPower::class, OrganizationFunctionPolicy::class);
         Gate::policy(Service::class, ServicePolicy::class);
@@ -276,6 +353,16 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(CafeteriaSpecialDay::class, CafeteriaSpecialDayPolicy::class);
         Gate::policy(EmployeeCafeteriaExclusion::class, EmployeeCafeteriaExclusionPolicy::class);
 
+        // Communication & Collaboration (docs/communication-module.md).
+        Gate::policy(Conversation::class, ConversationPolicy::class);
+        Gate::policy(Message::class, MessagePolicy::class);
+        Gate::policy(MessageAttachment::class, MessageAttachmentPolicy::class);
+        Gate::policy(Channel::class, ChannelPolicy::class);
+        Gate::policy(Announcement::class, AnnouncementPolicy::class);
+        Gate::policy(CommunicationTask::class, CommunicationTaskPolicy::class);
+        Gate::policy(CommunicationReport::class, CommunicationReportPolicy::class);
+        Gate::policy(CommunicationAccessRequest::class, CommunicationAccessRequestPolicy::class);
+
         /*
          * Super Admin passes every check, except the self-protection rules:
          * nobody (Super Admin included) deletes, deactivates, archives or
@@ -287,6 +374,20 @@ class AppServiceProvider extends ServiceProvider
                 return null;
             }
             $target = $arguments[0] ?? null;
+            // Private communication is never opened by role (docs/communication-module.md §Privacy):
+            // the policy decides, by membership or an approved break-glass grant.
+            // Reported content and investigation access follow the same rule, whether the check is on a
+            // record or on the class (viewAny, create).
+            $private = [
+                Conversation::class,
+                Message::class,
+                MessageAttachment::class,
+                CommunicationAccessRequest::class,
+                CommunicationReport::class,
+            ];
+            if ((is_object($target) && in_array($target::class, $private, true)) || (is_string($target) && in_array($target, $private, true))) {
+                return null;
+            }
             if ($target instanceof User && $target->is($user)
                 && in_array($ability, ['delete', 'forceDelete', 'archive', 'deactivate', 'assignRoles', 'assignOrganizationScope'], true)) {
                 return null;
@@ -300,6 +401,43 @@ class AppServiceProvider extends ServiceProvider
          * spend another card's budget, and so a single card cannot be used to
          * spam its holder with codes from many addresses.
          */
+        /*
+         * Communication (docs/communication-module.md §Abuse protection): per person,
+         * so one account cannot flood a conversation, the directory or the moderators.
+         */
+        $perUser = static fn (Request $request): string => (string) ($request->user()?->getAuthIdentifier() ?? $request->ip());
+        // Addis One Assistant (docs/assistant/security.md): per person, both ceilings from System Settings › Assistant.
+        RateLimiter::for('assistant', function (Request $request) use ($perUser): array {
+            $settings = app(AssistantSettings::class);
+
+            return [
+                Limit::perMinute($settings->rateLimitPerMinute())->by('assistant:'.$perUser($request)),
+                Limit::perDay($settings->dailyMessageCap())->by('assistant-d:'.$perUser($request)),
+            ];
+        });
+        // Addis One Help, anonymous (docs/public-assistant/security.md): both ceilings per address, from settings —
+        // a session key would let a cookieless client rotate its way around the per-minute limit.
+        RateLimiter::for('public-assistant', function (Request $request): array {
+            $settings = app(PublicAssistantSettings::class);
+
+            return [
+                Limit::perMinute($settings->rateLimitPerMinute())->by('pa:'.$request->ip()),
+                Limit::perDay($settings->dailyCap())->by('pa-d:'.$request->ip()),
+            ];
+        });
+        RateLimiter::for('communication-send', fn (Request $request): array => [
+            Limit::perMinute(40)->by('comm-send:'.$perUser($request)),
+            Limit::perHour(600)->by('comm-send-h:'.$perUser($request)),
+        ]);
+        RateLimiter::for('communication-start', fn (Request $request): Limit => Limit::perMinute(20)->by('comm-start:'.$perUser($request)));
+        RateLimiter::for('communication-upload', fn (Request $request): Limit => Limit::perMinute(20)->by('comm-upload:'.$perUser($request)));
+        RateLimiter::for('communication-search', fn (Request $request): Limit => Limit::perMinute(40)->by('comm-search:'.$perUser($request)));
+        RateLimiter::for('communication-react', fn (Request $request): Limit => Limit::perMinute(90)->by('comm-react:'.$perUser($request)));
+        RateLimiter::for('communication-typing', fn (Request $request): Limit => Limit::perMinute(30)->by('comm-typing:'.$perUser($request)));
+        RateLimiter::for('communication-group', fn (Request $request): Limit => Limit::perHour(15)->by('comm-group:'.$perUser($request)));
+        RateLimiter::for('communication-channel', fn (Request $request): Limit => Limit::perHour(15)->by('comm-channel:'.$perUser($request)));
+        RateLimiter::for('communication-report', fn (Request $request): Limit => Limit::perHour(20)->by('comm-report:'.$perUser($request)));
+
         RateLimiter::for('id-checker-send-otp', fn (Request $request): array => [
             Limit::perMinutes(10, 3)->by('pic-send:'.$request->route('cardUuid').'|'.$request->ip()),
             // Second ceiling: one IP may not farm codes across many cards.
@@ -330,13 +468,42 @@ class AppServiceProvider extends ServiceProvider
                     $perSource = $policy->rateLimitPerSource();
                     $perIp = $policy->rateLimitPerIp();
                 }
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Defaults stand while the database is unavailable.
             }
 
             return [
                 Limit::perMinutes(10, $perSource)->by('sf-submit:'.$request->route('token').'|'.$request->ip()),
                 Limit::perMinutes(10, $perIp)->by('sf-submit-ip:'.$request->ip()),
+            ];
+        });
+
+        /*
+         * The photo on the employee feedback page: about one request per screen
+         * of a visit, and the browser reuses it, so this only stops a script
+         * pulling photos in bulk. The per-IP ceiling stays generous because a
+         * whole service hall can share one mobile carrier address.
+         */
+        RateLimiter::for('service-feedback-photo', fn (Request $request): array => [
+            Limit::perMinute(30)->by('sf-photo:'.$request->route('token').'|'.$request->ip()),
+            Limit::perMinute(120)->by('sf-photo-ip:'.$request->ip()),
+        ]);
+
+        /*
+         * Transport scanner devices (docs/transport/device-security.md): a bus
+         * door boards at most a few people a second, so 300 scans a minute per
+         * device never throttles a legitimate queue, while a provider's whole
+         * fleet shares a wider ceiling and unknown credentials are capped by IP.
+         */
+        RateLimiter::for('transport-device', function (Request $request): array {
+            $device = $request->attributes->get(AuthenticateTransportDevice::ATTRIBUTE);
+            if ($device === null) {
+                return [Limit::perMinute(60)->by('transport-device-ip:'.$request->ip())];
+            }
+
+            return [
+                Limit::perMinute(300)->by('transport-device:'.$device->id),
+                Limit::perMinute(3000)->by('transport-provider:'.$device->provider_id),
             ];
         });
 
@@ -393,10 +560,6 @@ class AppServiceProvider extends ServiceProvider
             // docs/session-management.md.
             $idleTimeout = max(5, min(1440, (int) $settingsService->get('security', 'session_timeout_minutes', (int) config('security.session.idle_timeout_minutes', 120))));
             $forceHttps = filter_var($settingsService->get('security', 'force_https', false), FILTER_VALIDATE_BOOLEAN);
-            $mailPort = (int) $settingsService->get('email', 'mail_port', config('mail.mailers.smtp.port', 587));
-            $mailEncryption = $this->normalizeMailEncryption(
-                $settingsService->get('email', 'mail_encryption', config('mail.mailers.smtp.encryption')),
-            );
 
             config([
                 'app.name' => $appName,
@@ -405,20 +568,9 @@ class AppServiceProvider extends ServiceProvider
                 'app.timezone' => $timezone,
                 'security.session.idle_timeout_minutes' => $idleTimeout,
                 'session.lifetime' => SessionActivityService::storageLifetimeMinutes($idleTimeout),
-                'mail.default' => (string) $settingsService->get('email', 'mail_mailer', config('mail.default', 'smtp')),
-                'mail.mailers.smtp.host' => (string) $settingsService->get('email', 'mail_host', config('mail.mailers.smtp.host')),
-                'mail.mailers.smtp.port' => $mailPort,
-                'mail.mailers.smtp.username' => $settingsService->get('email', 'mail_username', config('mail.mailers.smtp.username')),
-                'mail.mailers.smtp.password' => $settingsService->get('email', 'mail_password', config('mail.mailers.smtp.password')),
-                'mail.mailers.smtp.encryption' => $mailEncryption,
-                // Laravel 12 ignores "encryption" and connects by "scheme", so
-                // the setting has to become one, or MAIL_SCHEME in .env wins
-                // and can contradict the port chosen here.
-                'mail.mailers.smtp.scheme' => $this->mailScheme($mailEncryption, $mailPort),
-                'mail.mailers.smtp.auto_tls' => $mailEncryption !== null,
-                'mail.from.address' => (string) $settingsService->get('email', 'mail_from_address', config('mail.from.address')),
-                'mail.from.name' => (string) $settingsService->get('email', 'mail_from_name', config('mail.from.name', $appName)),
             ]);
+
+            $this->app->make(RuntimeMailSettings::class)->apply(force: true);
 
             date_default_timezone_set($timezone);
 
@@ -428,25 +580,5 @@ class AppServiceProvider extends ServiceProvider
         } catch (Throwable) {
             // Runtime settings should never block app boot.
         }
-    }
-
-    /**
-     * SSL, or port 465, is a TLS connection from the first byte ("smtps").
-     * TLS on 587 or 25 is a plain connection upgraded with STARTTLS, which
-     * the "smtp" scheme does on its own. Implicit TLS on 587 (smtps with
-     * port 587) never completes a handshake, and every message fails.
-     */
-    private function mailScheme(?string $encryption, int $port): string
-    {
-        return $encryption === 'ssl' || $port === 465 ? 'smtps' : 'smtp';
-    }
-
-    private function normalizeMailEncryption(mixed $value): ?string
-    {
-        if ($value === null || $value === '' || $value === 'none') {
-            return null;
-        }
-
-        return (string) $value;
     }
 }

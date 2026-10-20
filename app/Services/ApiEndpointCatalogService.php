@@ -205,7 +205,8 @@ class ApiEndpointCatalogService
     {
         foreach ($middleware as $entry) {
             if (str_starts_with($entry, 'api.scope:')) {
-                return substr($entry, strlen('api.scope:'));
+                // `api.scope:<scope>,provider` — the mode flag is not part of the scope.
+                return explode(',', substr($entry, strlen('api.scope:')))[0];
             }
         }
 

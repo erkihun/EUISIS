@@ -10,6 +10,7 @@ use App\Enums\CardStatus;
 use App\Models\IdCard;
 use App\Models\User;
 use DomainException;
+use Illuminate\Support\Facades\DB;
 
 readonly class RevokeCardAction
 {
@@ -24,18 +25,27 @@ readonly class RevokeCardAction
             CardStatus::PendingPrint,
         ];
 
-        if (! in_array($card->status, $revokableStatuses, true)) {
-            throw new DomainException('Cannot revoke a card with status: '.$card->status->value);
-        }
+        // The card row lock orders a revocation strictly against a service
+        // transaction in flight (RecordServiceTransactionAction locks the same
+        // row and re-reads it), and two concurrent revokes cannot both pass.
+        [$card, $oldValues] = DB::transaction(function () use ($card, $revokableStatuses, $reason): array {
+            $card = IdCard::query()->whereKey($card->getKey())->lockForUpdate()->firstOrFail();
 
-        $oldValues = $card->only(['status', 'revoked_at', 'revoke_reason']);
+            if (! in_array($card->status, $revokableStatuses, true)) {
+                throw new DomainException('Cannot revoke a card with status: '.$card->status->value);
+            }
 
-        $card->update([
-            'status' => CardStatus::Revoked,
-            'revoked_at' => now(),
-            'revoke_reason' => $reason,
-            'is_current' => false,
-        ]);
+            $oldValues = $card->only(['status', 'revoked_at', 'revoke_reason']);
+
+            $card->update([
+                'status' => CardStatus::Revoked,
+                'revoked_at' => now(),
+                'revoke_reason' => $reason,
+                'is_current' => false,
+            ]);
+
+            return [$card, $oldValues];
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::CardRevoked,

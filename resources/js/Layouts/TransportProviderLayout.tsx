@@ -1,4 +1,4 @@
-import { Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { PropsWithChildren, ReactNode, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import ThemeToggle from '@/Components/ThemeToggle';
@@ -6,25 +6,33 @@ import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import AppToaster from '@/Components/ui/AppToaster';
 import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import Dropdown from '@/Components/Dropdown';
-import { ActivityIcon, ChevronDown, LayoutDashboard, LogOut, MenuIcon, QrCodeIcon, ReceiptTextIcon, ScrollText, UserIcon, X } from '@/Components/Icons';
+import { ActivityIcon, AlertTriangle, ChevronDown, LayoutDashboard, LogOut, MenuIcon, QrCodeIcon, ReceiptTextIcon, ScrollText, UserIcon, X } from '@/Components/Icons';
+import { FileSpreadsheetIcon, HandMoneyIcon, MonitorIcon } from '@/Components/NavIcons';
 import type { PageProps } from '@/types';
+import type { TransportPortalCan } from '@/types/transport';
 
 import { badgeClassName } from '@/Components/ui';
 type ProviderPortal = {
+    can?: Partial<TransportPortalCan>;
     user?: { name?: string | null; email?: string | null; initials?: string | null } | null;
     provider?: { code?: string | null; name_en?: string | null; name_am?: string | null } | null;
 };
 
+// Each link shows only when the provider user holds its permission (the route middleware checks the same key).
 const NAV = [
-    ['provider.portal.transport.dashboard', 'transport.dashboard', LayoutDashboard],
-    ['provider.portal.transport.scan', 'transport.scan_id', QrCodeIcon],
-    ['provider.portal.transport.transactions.index', 'transport.transactions', ReceiptTextIcon],
-    ['provider.portal.transport.routes.index', 'transport.routes', ScrollText],
-    ['provider.portal.transport.vehicles.index', 'transport.vehicles', ActivityIcon],
-    ['provider.portal.transport.drivers.index', 'transport.drivers', UserIcon],
-    ['provider.portal.transport.trips.index', 'transport.trips', ActivityIcon],
-    ['provider.portal.transport.reports.index', 'transport.reports', ScrollText],
-] as const;
+    ['provider.portal.transport.dashboard', 'transport.portalHome', LayoutDashboard, 'transportDashboardView'],
+    ['provider.portal.transport.scan', 'transport.scan_id', QrCodeIcon, 'transportScan'],
+    ['provider.portal.transport.transactions.index', 'transport.transactionsAdmin', ReceiptTextIcon, 'transportTransactionsView'],
+    ['provider.portal.transport.trips.index', 'transport.trips', ActivityIcon, 'transportTripsManage'],
+    ['provider.portal.transport.routes.index', 'transport.routes', ScrollText, 'transportRoutesManage'],
+    ['provider.portal.transport.vehicles.index', 'transport.vehicles', ActivityIcon, 'transportVehiclesManage'],
+    ['provider.portal.transport.drivers.index', 'transport.drivers', UserIcon, 'transportDriversManage'],
+    ['provider.portal.transport.exceptions.index', 'transport.exceptions', AlertTriangle, 'transportExceptionsView'],
+    ['provider.portal.transport.devices.index', 'transport.devices', MonitorIcon, 'transportDevicesView'],
+    ['provider.portal.transport.invoices.index', 'transport.invoices', FileSpreadsheetIcon, 'transportInvoicesManage'],
+    ['provider.portal.transport.settlements.index', 'transport.settlements', HandMoneyIcon, 'transportInvoicesManage'],
+    ['provider.portal.transport.reports.index', 'transport.reports', ScrollText, 'transportReportsView'],
+] as const satisfies readonly (readonly [string, string, unknown, keyof TransportPortalCan])[];
 
 function BusIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
@@ -43,24 +51,24 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
     const currentRoute = route().current();
 
     return (
-        <aside className="flex h-full w-full flex-col border-r border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-            <div className="flex h-16 items-center gap-3 border-b border-[color:var(--app-border)] px-4">
+        <aside className="flex h-full w-full flex-col border-r border-(--app-border) bg-(--app-surface)">
+            <div className="flex h-16 items-center gap-3 border-b border-(--app-border) px-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white">
                     <BusIcon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{t('transport.portal')}</p>
-                    <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{providerName ?? provider?.code}</p>
+                    <p className="truncate text-xs text-(--app-muted-foreground)">{providerName ?? provider?.code}</p>
                 </div>
                 {onClose && (
-                    <button type="button" onClick={onClose} className="rounded-md p-2 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                    <button type="button" onClick={onClose} className="rounded-md p-2 text-(--app-muted-foreground) hover:bg-(--app-surface-muted)">
                         <X className="h-4 w-4" />
                     </button>
                 )}
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-                {NAV.map(([routeName, labelKey, Icon]) => {
-                    const active = currentRoute === routeName;
+                {NAV.filter(([, , , ability]) => providerPortal?.can?.[ability]).map(([routeName, labelKey, Icon]) => {
+                    const active = currentRoute === routeName || (routeName.endsWith('.index') && Boolean(currentRoute?.startsWith(routeName.slice(0, -'index'.length))));
 
                     return (
                         <Link
@@ -70,7 +78,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium',
                                 active
                                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                    : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]',
+                                    : 'text-(--app-muted-foreground) hover:bg-(--app-surface-muted)',
                             ].join(' ')}
                         >
                             <Icon className="h-4 w-4" />
@@ -79,7 +87,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                     );
                 })}
             </nav>
-            <div className="border-t border-[color:var(--app-border)] px-4 py-3">
+            <div className="border-t border-(--app-border) px-4 py-3">
                 <span className={badgeClassName('success')}>
                     {t('transport.badge')}
                 </span>
@@ -95,23 +103,26 @@ function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void
     const initials = user?.initials ?? (user?.name ?? 'TP').split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
 
     return (
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4">
-            <button type="button" onClick={onMenuClick} className="rounded-md p-2 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] lg:hidden">
+        <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-(--app-border) bg-(--app-surface) px-4">
+            <button type="button" onClick={onMenuClick} className="rounded-md p-2 text-(--app-muted-foreground) hover:bg-(--app-surface-muted) lg:hidden">
                 <MenuIcon className="h-5 w-5" />
             </button>
-            <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{title}</p>
+            <p className="truncate text-sm font-semibold text-(--app-foreground)">{title}</p>
             <div className="flex-1" />
             <LanguageSwitcher />
             <ThemeToggle />
             <Dropdown>
                 <Dropdown.Trigger>
-                    <button type="button" className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-[color:var(--app-surface-muted)]">
+                    <button type="button" className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-(--app-surface-muted)">
                         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">{initials}</span>
-                        <ChevronDown className="h-4 w-4 text-[color:var(--app-muted-foreground)]" />
+                        <ChevronDown className="h-4 w-4 text-(--app-muted-foreground)" />
                     </button>
                 </Dropdown.Trigger>
                 <Dropdown.Content>
-                    <div className="px-4 py-2 text-sm text-[color:var(--app-foreground)]">{user?.name}</div>
+                    <div className="px-4 py-2 text-sm text-(--app-foreground)">{user?.name}</div>
+                    <Dropdown.Link href={route('provider.portal.profile.show')}>
+                        <span className="flex items-center gap-2"><UserIcon className="h-4 w-4" /> {t('providerPortal.profile')}</span>
+                    </Dropdown.Link>
                     <Dropdown.Link href={route('provider.portal.logout')} method="post" as="button">
                         <span className="flex items-center gap-2 text-red-600"><LogOut className="h-4 w-4" /> {t('providerPortal.logout')}</span>
                     </Dropdown.Link>
@@ -126,7 +137,8 @@ export default function TransportProviderLayout({ title, header, children }: Pro
 
     return (
         <LocalizedUiProvider>
-        <div className="min-h-screen bg-[color:var(--app-surface-muted)]">
+        <div className="min-h-screen bg-(--app-surface-muted)">
+            <Head title={title} />
             <AppToaster />
             <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:w-64">
                 <Sidebar />
@@ -141,7 +153,7 @@ export default function TransportProviderLayout({ title, header, children }: Pro
             )}
             <div className="flex min-h-screen flex-col lg:ml-64">
                 <TopBar title={title} onMenuClick={() => setOpen(true)} />
-                {header && <div className="border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4">{header}</div>}
+                {header && <div className="border-b border-(--app-border) bg-(--app-surface) px-4 py-4">{header}</div>}
                 <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
             </div>
         </div>

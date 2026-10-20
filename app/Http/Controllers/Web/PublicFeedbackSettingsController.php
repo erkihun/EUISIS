@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Enums\SubmitterIdentityMode;
+use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdatePublicFeedbackSettingsRequest;
 use App\Models\User;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
+use App\Services\ServiceFeedback\PublicSubmissionPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -25,7 +26,11 @@ class PublicFeedbackSettingsController extends Controller
 
         return Inertia::render('ServiceFeedback/Settings', [
             'feedbackSettings' => $this->settings->toArray(),
-            'identityModes' => SubmitterIdentityMode::values(),
+            // The fixed identity matrix, shown read-only beside the switches.
+            'identityPolicy' => array_map(
+                fn (ServiceFeedbackType $type): array => app(PublicSubmissionPolicy::class)->for($type)->toPublicArray(),
+                ServiceFeedbackType::cases(),
+            ),
         ]);
     }
 

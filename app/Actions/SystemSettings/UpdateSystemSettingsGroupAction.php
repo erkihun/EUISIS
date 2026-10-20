@@ -22,8 +22,11 @@ class UpdateSystemSettingsGroupAction
 
     /**
      * @param  array<string, mixed>  $data
+     * @param  list<string>  $clear  Secret keys whose saved value is removed. A blank
+     *                               secret in $data keeps the saved one, so removing
+     *                               it has to be asked for by name.
      */
-    public function execute(string $group, array $data, User $actor): void
+    public function execute(string $group, array $data, User $actor, array $clear = []): void
     {
         $definitions = SystemSettingsRegistry::group($group);
         if ($definitions === []) {
@@ -33,15 +36,17 @@ class UpdateSystemSettingsGroupAction
         $oldSnapshot = [];
         $newSnapshot = [];
 
-        DB::transaction(function () use ($group, $data, $definitions, $actor, &$oldSnapshot, &$newSnapshot): void {
+        DB::transaction(function () use ($group, $data, $clear, $definitions, $actor, &$oldSnapshot, &$newSnapshot): void {
             foreach ($definitions as $key => $def) {
-                if (! array_key_exists($key, $data)) {
+                $isEncrypted = (bool) ($def['is_encrypted'] ?? false);
+                $isSecret = $isEncrypted || $def['type'] === 'password';
+                $removing = $isSecret && in_array($key, $clear, true);
+
+                if (! $removing && ! array_key_exists($key, $data)) {
                     continue;
                 }
 
-                $isEncrypted = (bool) ($def['is_encrypted'] ?? false);
-                $isSecret = $isEncrypted || $def['type'] === 'password';
-                $incoming = $data[$key];
+                $incoming = $removing ? null : $data[$key];
 
                 /** @var SystemSetting $row */
                 $row = SystemSetting::query()->firstOrNew([
@@ -68,7 +73,7 @@ class UpdateSystemSettingsGroupAction
                 $row->fill($metaFields);
 
                 // For encrypted fields: blank submission = keep old value
-                if ($isEncrypted && ($incoming === null || $incoming === '')) {
+                if (! $removing && $isEncrypted && ($incoming === null || $incoming === '')) {
                     $oldSnapshot[$key] = $row->value ? 'configured' : 'not_configured';
                     $newSnapshot[$key] = $row->value ? 'configured' : 'not_configured';
 

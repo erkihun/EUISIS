@@ -85,14 +85,14 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
 
             <div className="space-y-6">
 
-                <ol className="grid overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:grid-cols-3">
+                <ol className="grid overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) sm:grid-cols-3">
                     <Step number="1" label={t('employees.import.stepTemplate')} active />
                     <Step number="2" label={t('employees.import.stepUpload')} active={batch === null} complete={batch !== null} />
                     <Step number="3" label={t('employees.import.stepReview')} active={batch !== null} />
                 </ol>
 
                 <div className={`grid gap-5 ${can.upload ? 'lg:grid-cols-2' : ''}`}>
-                    <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
                         <SectionHeading
                             icon={<DownloadIcon />}
                             number="01"
@@ -104,7 +104,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                                 the page is being viewed in. */}
                             <input type="hidden" name="locale" value={locale} />
                             <div>
-                                <label htmlFor="template-organization" className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
+                                <label htmlFor="template-organization" className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
                                     {t('employees.import.templateOrganization')}
                                 </label>
                                 <select
@@ -130,7 +130,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                                 {t('employees.import.downloadTemplate')}
                             </button>
 
-                            <p id="template-help" className="text-xs leading-5 text-[color:var(--app-muted-foreground)]">
+                            <p id="template-help" className="text-xs leading-5 text-(--app-muted-foreground)">
                                 {t('employees.import.templateOrganizationHelp').replace(':max', String(maxRows))}
                             </p>
                             {allowedOrganizations.length === 0 && <Notice tone="warning">{t('employees.import.noTemplateOrganizations')}</Notice>}
@@ -138,7 +138,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                     </section>
 
                     {can.upload && (
-                        <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                        <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
                             <SectionHeading
                                 icon={<UploadIcon />}
                                 number="02"
@@ -164,15 +164,15 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                                         setDragging(false);
                                         chooseFile(event.dataTransfer.files?.[0] ?? null);
                                     }}
-                                    className={`flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-panel border-2 border-dashed px-5 py-6 text-center transition ${dragging ? 'border-[color:var(--color-primary)] bg-blue-50 dark:bg-blue-950/20' : form.data.file ? 'border-emerald-300 bg-emerald-50/60 dark:border-emerald-700 dark:bg-emerald-950/20' : 'border-[color:var(--app-border-strong)] bg-gray-50/70 hover:border-[color:var(--color-primary)] hover:bg-blue-50/50 dark:bg-slate-950/40 dark:hover:bg-blue-950/10'}`}
+                                    className={`flex min-h-44 cursor-pointer flex-col items-center justify-center rounded-panel border-2 border-dashed px-5 py-6 text-center transition ${dragging ? 'border-primary bg-blue-50 dark:bg-blue-950/20' : form.data.file ? 'border-emerald-300 bg-emerald-50/60 dark:border-emerald-700 dark:bg-emerald-950/20' : 'border-(--app-border-strong) bg-gray-50/70 hover:border-primary hover:bg-blue-50/50 dark:bg-slate-950/40 dark:hover:bg-blue-950/10'}`}
                                 >
-                                    <span className={`flex h-11 w-11 items-center justify-center rounded-full ${form.data.file ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'bg-[color:var(--app-surface)] text-[color:var(--app-muted-foreground)] shadow-sm'}`}>
+                                    <span className={`flex h-11 w-11 items-center justify-center rounded-full ${form.data.file ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : 'bg-(--app-surface) text-(--app-muted-foreground) shadow-xs'}`}>
                                         {form.data.file ? <CheckIcon /> : <UploadIcon />}
                                     </span>
-                                    <span className="mt-3 max-w-full truncate text-sm font-semibold text-[color:var(--app-foreground)]">
+                                    <span className="mt-3 max-w-full truncate text-sm font-semibold text-(--app-foreground)">
                                         {form.data.file?.name ?? t('employees.import.dropTitle')}
                                     </span>
-                                    <span className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                    <span className="mt-1 text-xs text-(--app-muted-foreground)">
                                         {form.data.file ? formatFileSize(form.data.file.size) : t('employees.import.dropHint')}
                                     </span>
                                 </label>
@@ -188,9 +188,9 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                                     {t('employees.import.numberGenerationHelp')}
                                 </p>
 
-                                <details className="mt-4 rounded-control bg-[color:var(--app-surface-muted)] px-3 py-2 text-xs">
-                                    <summary className="cursor-pointer font-medium text-[color:var(--app-foreground)]">{t('employees.import.requiredColumns')}</summary>
-                                    <p className="mt-2 break-words font-mono leading-5 text-[color:var(--app-muted-foreground)]">{columns.join(', ')}</p>
+                                <details className="mt-4 rounded-control bg-(--app-surface-muted) px-3 py-2 text-xs">
+                                    <summary className="cursor-pointer font-medium text-(--app-foreground)">{t('employees.import.requiredColumns')}</summary>
+                                    <p className="mt-2 wrap-break-word font-mono leading-5 text-(--app-muted-foreground)">{columns.join(', ')}</p>
                                 </details>
                             </form>
                         </section>
@@ -198,13 +198,13 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                 </div>
 
                 {allowedOrganizations.length > 0 && (
-                    <details className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-5 py-4">
-                        <summary className="cursor-pointer text-sm font-medium text-[color:var(--app-foreground)]">
-                            {t('employees.import.allowedOrganizations')} <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]">({allowedOrganizations.length})</span>
+                    <details className="rounded-panel border border-(--app-border) bg-(--app-surface) px-5 py-4">
+                        <summary className="cursor-pointer text-sm font-medium text-(--app-foreground)">
+                            {t('employees.import.allowedOrganizations')} <span className="ml-1 text-xs text-(--app-muted-foreground)">({allowedOrganizations.length})</span>
                         </summary>
                         <div className="mt-3 flex flex-wrap gap-2">
                             {allowedOrganizations.map((organization) => (
-                                <span key={organization.id} className="rounded-full border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                <span key={organization.id} className="rounded-full border border-(--app-border) bg-(--app-surface-muted) px-3 py-1 text-xs text-(--app-muted-foreground)">
                                     {organizationLabel(organization)}
                                 </span>
                             ))}
@@ -219,13 +219,13 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                 )}
 
                 {batch && (
-                    <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                        <div className="border-b border-[color:var(--app-border)] p-5">
+                    <section className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+                        <div className="border-b border-(--app-border) p-5">
                             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                                 <div className="min-w-0">
-                                    <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--color-primary)]">{t('employees.import.stepReview')}</p>
-                                    <h2 className="mt-1 text-lg font-semibold text-[color:var(--app-foreground)]">{t('employees.import.preview')}</h2>
-                                    <p className="mt-1 truncate text-sm text-[color:var(--app-muted-foreground)]">{batch.file_name}</p>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-primary">{t('employees.import.stepReview')}</p>
+                                    <h2 className="mt-1 text-lg font-semibold text-(--app-foreground)">{t('employees.import.preview')}</h2>
+                                    <p className="mt-1 truncate text-sm text-(--app-muted-foreground)">{batch.file_name}</p>
                                 </div>
                                 <StatusPill importable={batch.importable} label={batch.importable ? t('employees.import.readyToImport') : t('employees.import.fixErrors')} />
                             </div>
@@ -255,7 +255,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                             </table>
                         </div>
 
-                        <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
+                        <ul className="divide-y divide-(--app-border) md:hidden">
                             {preview.map((row) => (
                                 <PreviewCard
                                     key={row.row_number}
@@ -268,7 +268,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                             ))}
                         </ul>
 
-                        <div className="flex flex-col gap-3 border-t border-[color:var(--app-border)] bg-gray-50/70 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-slate-950/40">
+                        <div className="flex flex-col gap-3 border-t border-(--app-border) bg-gray-50/70 p-4 sm:flex-row sm:items-center sm:justify-between dark:bg-slate-950/40">
                             <div className="text-xs">
                                 {batch.importable ? (
                                     <span className="text-emerald-700 dark:text-emerald-300">{t('employees.import.reviewDescription')}</span>
@@ -297,34 +297,34 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
 
 function Step({ number, label, active = false, complete = false }: { number: string; label: string; active?: boolean; complete?: boolean }): JSX.Element {
     return (
-        <li className={`flex items-center gap-3 border-b px-4 py-3 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 ${active ? 'bg-blue-50/70 dark:bg-blue-950/20' : ''} border-[color:var(--app-border)]`}>
-            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${complete ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : active ? 'bg-[color:var(--color-primary)] text-white' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
+        <li className={`flex items-center gap-3 border-b px-4 py-3 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 ${active ? 'bg-blue-50/70 dark:bg-blue-950/20' : ''} border-(--app-border)`}>
+            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${complete ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300' : active ? 'bg-primary text-white' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>
                 {complete ? '✓' : number}
             </span>
-            <span className={`text-sm font-medium ${active || complete ? 'text-[color:var(--app-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}`}>{label}</span>
+            <span className={`text-sm font-medium ${active || complete ? 'text-(--app-foreground)' : 'text-(--app-muted-foreground)'}`}>{label}</span>
         </li>
     );
 }
 
 function SectionHeading({ icon, number, title, description }: { icon: ReactNode; number: string; title: string; description: string }): JSX.Element {
     return (
-        <div className="flex gap-3 border-b border-[color:var(--app-border)] px-5 py-4">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-blue-50 text-[color:var(--color-primary)] dark:bg-blue-950/40">{icon}</span>
+        <div className="flex gap-3 border-b border-(--app-border) px-5 py-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-blue-50 text-primary dark:bg-blue-950/40">{icon}</span>
             <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--app-muted-foreground)]">{number}</p>
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-(--app-muted-foreground)">{number}</p>
+                <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
+                <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{description}</p>
             </div>
         </div>
     );
 }
 
 function Metric({ label, value, tone = 'neutral' }: { label: string; value: number; tone?: 'neutral' | 'success' | 'danger' }): JSX.Element {
-    const colors = { neutral: 'text-[color:var(--app-foreground)]', success: 'text-emerald-600 dark:text-emerald-400', danger: 'text-red-600 dark:text-red-400' };
+    const colors = { neutral: 'text-(--app-foreground)', success: 'text-emerald-600 dark:text-emerald-400', danger: 'text-red-600 dark:text-red-400' };
     return (
-        <div className="rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-3">
+        <div className="rounded-control border border-(--app-border) bg-(--app-surface-muted) px-3 py-3">
             <p className={`text-xl font-bold tabular-nums ${colors[tone]}`}>{value}</p>
-            <p className="mt-0.5 truncate text-xs text-[color:var(--app-muted-foreground)]">{label}</p>
+            <p className="mt-0.5 truncate text-xs text-(--app-muted-foreground)">{label}</p>
         </div>
     );
 }
@@ -336,11 +336,11 @@ function StatusPill({ importable, label }: { importable: boolean; label: string 
 function PreviewTableRow({ row, validLabel, generatedLabel }: { row: PreviewRow; validLabel: string; generatedLabel: string }): JSX.Element {
     return (
         <tr className={row.status === 'invalid' ? 'bg-red-50/60 dark:bg-red-950/20' : 'hover:bg-gray-50/70 dark:hover:bg-slate-800/30'}>
-            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>{row.row_number}</td>
-            <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}>{row.name || '—'}</td>
-            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>{row.employee_number ?? generatedLabel}</td>
-            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}><div>{row.organization ?? '—'}</div>{row.organization_unit && <div className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{row.organization_unit}</div>}</td>
-            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{row.position ?? '—'}</td>
+            <td className={cx(tableCellClassName, 'tabular-nums text-(--app-muted-foreground)')}>{row.row_number}</td>
+            <td className={cx(tableCellClassName, 'font-medium text-(--app-foreground)')}>{row.name || '—'}</td>
+            <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>{row.employee_number ?? generatedLabel}</td>
+            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}><div>{row.organization ?? '—'}</div>{row.organization_unit && <div className="mt-0.5 text-xs text-(--app-muted-foreground)">{row.organization_unit}</div>}</td>
+            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{row.position ?? '—'}</td>
             <td className={tableCellClassName}><RowStatus row={row} validLabel={validLabel} /></td>
         </tr>
     );
@@ -349,8 +349,8 @@ function PreviewTableRow({ row, validLabel, generatedLabel }: { row: PreviewRow;
 function PreviewCard({ row, validLabel, generatedLabel, organizationLabel, positionLabel }: { row: PreviewRow; validLabel: string; generatedLabel: string; organizationLabel: string; positionLabel: string }): JSX.Element {
     return (
         <li className={`p-4 ${row.status === 'invalid' ? 'bg-red-50/60 dark:bg-red-950/20' : ''}`}>
-            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-medium text-[color:var(--app-foreground)]">{row.name || '—'}</p><p className="mt-0.5 font-mono text-xs text-[color:var(--app-muted-foreground)]">#{row.row_number} · {row.employee_number ?? generatedLabel}</p></div><RowStatus row={row} validLabel={validLabel} compact /></div>
-            <dl className="mt-3 grid gap-2 text-xs"><div><dt className="text-[color:var(--app-muted-foreground)]">{organizationLabel}</dt><dd className="text-[color:var(--app-foreground)]">{row.organization ?? '—'}{row.organization_unit ? ` · ${row.organization_unit}` : ''}</dd></div><div><dt className="text-[color:var(--app-muted-foreground)]">{positionLabel}</dt><dd className="text-[color:var(--app-foreground)]">{row.position ?? '—'}</dd></div></dl>
+            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-medium text-(--app-foreground)">{row.name || '—'}</p><p className="mt-0.5 font-mono text-xs text-(--app-muted-foreground)">#{row.row_number} · {row.employee_number ?? generatedLabel}</p></div><RowStatus row={row} validLabel={validLabel} compact /></div>
+            <dl className="mt-3 grid gap-2 text-xs"><div><dt className="text-(--app-muted-foreground)">{organizationLabel}</dt><dd className="text-(--app-foreground)">{row.organization ?? '—'}{row.organization_unit ? ` · ${row.organization_unit}` : ''}</dd></div><div><dt className="text-(--app-muted-foreground)">{positionLabel}</dt><dd className="text-(--app-foreground)">{row.position ?? '—'}</dd></div></dl>
             {row.status === 'invalid' && <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-red-600 dark:text-red-400">{row.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
         </li>
     );

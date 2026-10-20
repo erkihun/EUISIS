@@ -47,23 +47,23 @@ export default function FieldWorkDashboard({ figures, awaitingApproval, attentio
                     {tiles.map((tile) => {
                         const card = <StatCard label={t(`fieldWork.management.figures.${tile.key}`)} value={figures[tile.key]} tone={tile.tone} />;
                         return tile.href
-                            ? <Link key={tile.key} href={tile.href} className="block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]">{card}</Link>
+                            ? <Link key={tile.key} href={tile.href} className="block rounded-card focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary">{card}</Link>
                             : <div key={tile.key}>{card}</div>;
                     })}
                 </div>
 
                 {can.approvals && (
                     <section className="space-y-2">
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('fieldWork.management.awaiting')}</h2>
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">{t('fieldWork.management.awaiting')}</h2>
                         <RequestTable rows={awaitingApproval} emptyText={t('fieldWork.management.emptyApprovals')} href={show} />
                     </section>
                 )}
                 <section className="space-y-2">
-                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('fieldWork.management.attention')}</h2>
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">{t('fieldWork.management.attention')}</h2>
                     <RequestTable rows={attention} emptyText={t('fieldWork.management.emptyOverdue')} href={show} />
                 </section>
                 <section className="space-y-2">
-                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('fieldWork.management.inField')}</h2>
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">{t('fieldWork.management.inField')}</h2>
                     <RequestTable rows={inField} emptyText={t('fieldWork.management.emptyTeam')} href={show} />
                 </section>
             </div>

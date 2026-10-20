@@ -40,14 +40,14 @@ export default function RemoveRelationDialog({
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
-            <div className="border-b border-[color:var(--app-border)] px-6 py-4">
-                <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">
+            <div className="border-b border-(--app-border) px-6 py-4">
+                <h3 className="text-lg font-semibold text-(--app-foreground)">
                     {t('hierarchyVersions.confirmRemoveRelation')}
                 </h3>
             </div>
 
             <div className="space-y-3 px-6 py-5">
-                <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="text-sm text-(--app-muted-foreground)">
                     {t('hierarchyVersions.removeRelationWarning')}
                 </p>
                 {relation && (
@@ -58,7 +58,7 @@ export default function RemoveRelationDialog({
                 )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] px-6 py-4">
+            <div className="flex items-center justify-end gap-3 border-t border-(--app-border) px-6 py-4">
                 <button
                     type="button"
                     onClick={onClose}

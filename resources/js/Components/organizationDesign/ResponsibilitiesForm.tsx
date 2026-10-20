@@ -31,10 +31,10 @@ export default function ResponsibilitiesForm({ subjectType, subjectId, title, ro
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('responsibilities.edit')} · {title}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{tt('responsibilities.edit')} · {title}</h2>
                 <ul className="mt-5 space-y-3">
                     {form.data.items.map((item, index) => (
-                        <li key={index} className="grid gap-2 rounded-[var(--radius-control)] border border-[color:var(--app-border)] p-3 sm:grid-cols-[8rem_1fr_10rem_auto]">
+                        <li key={index} className="grid gap-2 rounded-control border border-(--app-border) p-3 sm:grid-cols-[8rem_1fr_10rem_auto]">
                             <FormField id={`resp-ot-${index}`} label={tt('fields.objectType')} error={errors[`items.${index}.object_type`]}>
                                 {({ id }) => <Select id={id} value={item.object_type} onChange={(e) => setItem(index, { object_type: e.target.value, object_id: '' })}>{OBJECT_TYPES.map((k) => <option key={k} value={k}>{tt(`responsibilities.objects.${k}`)}</option>)}</Select>}
                             </FormField>
@@ -68,7 +68,7 @@ export default function ResponsibilitiesForm({ subjectType, subjectId, title, ro
 /** Compact list of a subject's responsibilities. */
 export function ResponsibilitiesSummary({ rows }: { rows: ResponsibilityRow[] }) {
     const { locale, tt } = useDesignText();
-    if (rows.length === 0) return <p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('responsibilities.none')}</p>;
+    if (rows.length === 0) return <p className="text-xs text-(--app-muted-foreground)">{tt('responsibilities.none')}</p>;
     return (
         <ul className="flex flex-wrap gap-1">
             {rows.map((r, i) => (

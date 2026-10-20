@@ -69,7 +69,7 @@ export default function EditHierarchyVersionTree({
                         <div className="flex flex-wrap items-center gap-2">
                             <Link
                                 href={route('hierarchy-versions.tree', { hierarchyVersion: version.id })}
-                                className="rounded-card border border-[color:var(--app-border-strong)] px-3 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                className="rounded-card border border-(--app-border-strong) px-3 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                             >
                                 {t('hierarchyVersions.viewTree')}
                             </Link>
@@ -102,13 +102,13 @@ export default function EditHierarchyVersionTree({
                 />
 
                 <section className="space-y-4">
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
-                                <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">
+                                <h3 className="text-lg font-semibold text-(--app-foreground)">
                                     {t('hierarchyVersions.treeEditor')}
                                 </h3>
-                                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-1 text-sm text-(--app-muted-foreground)">
                                     {t('hierarchyVersions.editableDraftVersion')}
                                 </p>
                             </div>

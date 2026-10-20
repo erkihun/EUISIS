@@ -26,12 +26,12 @@ type Props = { payload: SettingsGroupPayload; readOnly: boolean; management: Tem
 type SettingValue = string | number | boolean;
 
 const templateFormId = 'id-card-template-editor';
-const inputClass = 'mt-1 min-h-11 w-full min-w-0 rounded-lg border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-sm';
+const inputClass = 'mt-1 min-h-11 w-full min-w-0 rounded-lg border-(--app-border-strong) bg-(--app-surface) text-sm';
 
 function Card({ title, helper, children }: { title: string; helper?: string; children: ReactNode }) {
-    return <section className="min-w-0 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-5">
-        <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>
-        {helper && <p className="mt-1 text-xs leading-relaxed text-[color:var(--app-muted-foreground)]">{helper}</p>}
+    return <section className="min-w-0 rounded-panel border border-(--app-border) bg-(--app-surface) p-4 sm:p-5">
+        <h3 className="text-sm font-semibold text-(--app-foreground)">{title}</h3>
+        {helper && <p className="mt-1 text-xs leading-relaxed text-(--app-muted-foreground)">{helper}</p>}
         <div className="mt-4 min-w-0 space-y-4">{children}</div>
     </section>;
 }
@@ -157,8 +157,8 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
             <Card title={label('visibility')} helper={label('visibility_help')}>{renderFields(visibility)}</Card>
             <Card title={label('front_fields')}>{renderFields(front)}</Card>
             <Card title={label('back_fields')}>{renderFields(back)}</Card>
-            <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-3 rounded-card border bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] p-3 backdrop-blur border-[color:var(--app-border)]">
-                <span role="status" className="mr-auto text-xs text-[color:var(--app-muted-foreground)]">{settings.isDirty ? t('settings.unsavedChanges') : ''}</span>
+            <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-3 rounded-card border bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] p-3 backdrop-blur-sm border-(--app-border)">
+                <span role="status" className="mr-auto text-xs text-(--app-muted-foreground)">{settings.isDirty ? t('settings.unsavedChanges') : ''}</span>
                 <Button type="button" variant="outline" disabled={readOnly || settings.processing || !settings.isDirty} onClick={() => { settings.reset(); settings.clearErrors(); }}>{label('reset')}</Button>
                 <Button type="submit" loading={settings.processing} disabled={readOnly || !settings.isDirty}>{label('save_fields')}</Button>
             </div>
@@ -174,8 +174,8 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
                         </select>
                     </label>
                     {management.can.create && <Button type="button" variant="outline" className="min-h-11" onClick={() => chooseTemplate('')}>{templateLabel('create')}</Button>}
-                </div> : <p className="text-sm text-[color:var(--app-muted-foreground)]">{label('template_read_only')}</p>}
-                <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('gradient_unused')}</p>
+                </div> : <p className="text-sm text-(--app-muted-foreground)">{label('template_read_only')}</p>}
+                <p className="text-xs text-(--app-muted-foreground)">{label('gradient_unused')}</p>
             </Card>
 
             {management && <form id={templateFormId} onSubmit={saveTemplate} className="min-w-0 space-y-5" aria-label={label('template_settings')}>
@@ -197,9 +197,9 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
                     const remove = `remove_${side}_background` as const;
                     const url = side === 'front' ? frontUrl : backUrl;
                     return <Card key={side} title={templateLabel(field)} helper={templateLabel('upload_help').replace(':max', String(management.uploadLimitMb))}>
-                        {url && <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-2"><img src={url} alt={label('background_preview')} className="h-28 w-full object-contain" /></div>}
+                        {url && <div className="rounded-lg bg-(--app-surface-muted) p-2"><img src={url} alt={label('background_preview')} className="h-28 w-full object-contain" /></div>}
                         <div className="flex flex-wrap gap-2">
-                            <label className={`relative flex min-h-11 max-w-full cursor-pointer items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 focus-within:ring-2 focus-within:ring-[color:var(--color-primary)] dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200 ${!canEdit ? 'opacity-50' : ''}`}>
+                            <label className={`relative flex min-h-11 max-w-full cursor-pointer items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 focus-within:ring-2 focus-within:ring-primary dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200 ${!canEdit ? 'opacity-50' : ''}`}>
                                 {templateLabel(url ? 'replace_background' : 'browse_png')}
                                 <input type="file" accept=".png,image/png" aria-label={templateLabel(field)} className="absolute inset-0 w-full cursor-pointer opacity-0" disabled={!canEdit || editor.processing}
                                     onChange={event => {
@@ -213,16 +213,16 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
                             </label>
                             {url && <Button type="button" variant="outline" className="min-h-11" disabled={!canEdit || editor.processing} onClick={() => editor.setData(data => ({ ...data, [field]: null, [remove]: true }))}>{templateLabel('remove_background')}</Button>}
                         </div>
-                        <p role="status" className="break-all text-xs text-[color:var(--app-muted-foreground)]">{editor.data[field] ? `${editor.data[field]?.name} · ${label('ready_to_upload')}` : editor.data[remove] ? label('remove_pending') : url ? label('uploaded') : label('no_background')}</p>
+                        <p role="status" className="break-all text-xs text-(--app-muted-foreground)">{editor.data[field] ? `${editor.data[field]?.name} · ${label('ready_to_upload')}` : editor.data[remove] ? label('remove_pending') : url ? label('uploaded') : label('no_background')}</p>
                         {error(field)}
                     </Card>;
                 })}
                 <Card title={label('default_template')} helper={label('default_help')}>
-                    <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" className="h-5 w-5 rounded" checked={editor.data.is_default} disabled={!canEdit || !management.can.set_default || editor.processing}
+                    <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" className="h-5 w-5 rounded-sm" checked={editor.data.is_default} disabled={!canEdit || !management.can.set_default || editor.processing}
                         onChange={event => editor.setData('is_default', event.target.checked)} />{templateLabel('set_default')}</label>{error('is_default')}
                     {selected && !selected.is_default && selected.status === 'active' && management.can.set_default && <Button type="button" variant="outline" disabled={editor.isDirty} onClick={() => router.post(route('id-card-templates.set-default', selected.id), {}, { preserveScroll: true, onSuccess: () => { editor.setData('is_default', true); } })}>{templateLabel('set_default')}</Button>}
                 </Card>
-                <div className="sticky bottom-0 z-10 space-y-2 rounded-card border bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] p-3 backdrop-blur border-[color:var(--app-border)]">
+                <div className="sticky bottom-0 z-10 space-y-2 rounded-card border bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] p-3 backdrop-blur-sm border-(--app-border)">
                     {editor.progress && <progress aria-label={templateLabel('upload_background')} className="w-full" value={editor.progress.percentage} max="100" />}
                     <div className="flex flex-wrap justify-end gap-3">
                         <Button type="button" variant="outline" disabled={!canEdit || editor.processing || !editor.isDirty} onClick={() => { editor.reset(); editor.clearErrors(); }}>{label('reset')}</Button>
@@ -234,18 +234,18 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
             <Card title={templateLabel('live_preview')} helper={label('preview_help')}>
                 <IdCardTemplateContext.Provider value={preview}>
                     <SystemSettingsPreviewContext.Provider value={previewSettings}>
-                        <div data-card-live-preview className={`min-w-0 space-y-5 ${exportPreview ? 'rounded-card bg-[color:var(--app-surface-muted)] p-3' : ''}`}>
-                            <div className="min-w-0"><p className="mb-2 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('idCards.cardFront')}</p>
+                        <div data-card-live-preview className={`min-w-0 space-y-5 ${exportPreview ? 'rounded-card bg-(--app-surface-muted) p-3' : ''}`}>
+                            <div className="min-w-0"><p className="mb-2 text-xs font-medium text-(--app-muted-foreground)">{t('idCards.cardFront')}</p>
                                 <Front cardNumber="CARD-0001" employeeNumber="EMP-0001" fullName={templateLabel('sample_employee')} fullNameAm="ምሳሌ ሠራተኛ" organizationName={templateLabel('sample_organization')} status="active" rootStyle={{ maxWidth: preview?.orientation === 'portrait' ? 270 : 428 }} />
                             </div>
-                            <div className="min-w-0"><p className="mb-2 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('idCards.cardBack')}</p>
+                            <div className="min-w-0"><p className="mb-2 text-xs font-medium text-(--app-muted-foreground)">{t('idCards.cardBack')}</p>
                                 <Back cardNumber="CARD-0001" qrValue="https://example.invalid/id-card-preview" rootStyle={{ maxWidth: preview?.orientation === 'portrait' ? 270 : 428 }} />
                             </div>
                         </div>
                     </SystemSettingsPreviewContext.Provider>
                 </IdCardTemplateContext.Provider>
                 <Button type="button" variant="outline" className="min-h-11" aria-pressed={exportPreview} onClick={() => setExportPreview(value => !value)}>{label('print_export_preview')}</Button>
-                {exportPreview && <p role="status" className="text-xs text-[color:var(--app-muted-foreground)]">{label('export_help')} {preview?.width_mm ?? 85.6} × {preview?.height_mm ?? 54} mm</p>}
+                {exportPreview && <p role="status" className="text-xs text-(--app-muted-foreground)">{label('export_help')} {preview?.width_mm ?? 85.6} × {preview?.height_mm ?? 54} mm</p>}
             </Card>
         </div>
     </div>;

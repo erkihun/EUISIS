@@ -41,6 +41,7 @@ const performance = {
         addResults: 'ወደ ስብሰባው ያክሉ', open: 'ይክፈቱ', appeal: 'በዚህ ውጤት ላይ ይግባኝ በል', upload: 'ማስረጃ ይጫኑ', search: 'ይፈልጉ',
     },
     fields: {
+        verified: 'ተረጋግጧል',
         positionService: 'የሥራ መደብ አገልግሎት',
         upstreamObjective: 'የላይኛው ደረጃ ዓላማ',
 

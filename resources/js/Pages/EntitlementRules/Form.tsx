@@ -43,12 +43,12 @@ export default function EntitlementRuleForm({
 
     return (
         <form
-            className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+            className="space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
             onSubmit={onSubmit}
         >
             <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                    <label className="text-sm font-medium text-(--app-foreground)">
                         {t('entitlementRules.serviceType')}
                     </label>
                     <select
@@ -66,10 +66,10 @@ export default function EntitlementRuleForm({
                     {renderError('service_type_id')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                    <label className="text-sm font-medium text-(--app-foreground)">
                         {t('common.status')}
                     </label>
-                    <label className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm text-[color:var(--app-foreground)]">
+                    <label className="flex items-center gap-2 rounded-lg border border-(--app-border-strong) px-3 py-2 text-sm text-(--app-foreground)">
                         <input
                             type="checkbox"
                             checked={form.data.is_active}
@@ -80,7 +80,7 @@ export default function EntitlementRuleForm({
                     {renderError('is_active')}
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                    <label className="text-sm font-medium text-(--app-foreground)">
                         {t('entitlementRules.ruleName')}
                     </label>
                     <input
@@ -91,7 +91,7 @@ export default function EntitlementRuleForm({
                     {renderError('name')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                    <label className="text-sm font-medium text-(--app-foreground)">
                         {t('entitlementRules.quotaLimit')}
                     </label>
                     <input
@@ -107,7 +107,7 @@ export default function EntitlementRuleForm({
                     {renderError('rule_definition.quota_limit')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                    <label className="text-sm font-medium text-(--app-foreground)">
                         {t('entitlementRules.periodDays')}
                     </label>
                     <input
@@ -125,7 +125,7 @@ export default function EntitlementRuleForm({
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium text-[color:var(--app-foreground)]">
+                <label className="text-sm font-medium text-(--app-foreground)">
                     {t('entitlementRules.notes')}
                 </label>
                 <textarea
@@ -149,7 +149,7 @@ export default function EntitlementRuleForm({
                 </button>
                 <Link
                     href={cancelHref}
-                    className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
+                    className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground)"
                 >
                     {t('common.cancel')}
                 </Link>

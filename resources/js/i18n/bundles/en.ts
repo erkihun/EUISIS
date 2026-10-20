@@ -8,6 +8,8 @@ import enCommon from '@/i18n/en/common';
 import enDailyActivities from '@/i18n/en/dailyActivities';
 import enFieldWork from '@/i18n/en/fieldWork';
 import enPerformance from '@/i18n/en/performance';
+import enCommunication from '@/i18n/en/communication';
+import enRichText from '@/i18n/en/richText';
 import enAuth from '@/i18n/en/auth';
 import enConfirmations from '@/i18n/en/confirmations';
 import enEntitlements from '@/i18n/en/entitlements';
@@ -35,6 +37,7 @@ import enOrganizationUnits from '@/i18n/en/organizationUnits';
 import enOrganizationUnitTypes from '@/i18n/en/organizationUnitTypes';
 import enOrganizationStructureImport from '@/i18n/en/organizationStructureImport';
 import enApiManagement from '@/i18n/en/apiManagement';
+import enIntegrations from '@/i18n/en/integrations';
 import enIdChecker from '@/i18n/en/idChecker';
 import enPublicSite from '@/i18n/en/publicSite';
 import enOrganizations from '@/i18n/en/organizations';
@@ -48,6 +51,12 @@ import enRecycleBin from '@/i18n/en/recycleBin';
 import enBackup from '@/i18n/en/backup';
 import enServiceTypes from '@/i18n/en/serviceTypes';
 import enServiceFeedback from '@/i18n/en/serviceFeedback';
+import enSituationRoom from '@/i18n/en/situationRoom';
+import enIntelligence from '@/i18n/en/intelligence';
+import enIntelligenceKnowledge from '@/i18n/en/intelligenceKnowledge';
+import enAssistant from '@/i18n/en/assistant';
+import enSupport from '@/i18n/en/support';
+import enPublicAssistant from '@/i18n/en/publicAssistant';
 import enSettings from '@/i18n/en/settings';
 import enTransfers from '@/i18n/en/transfers';
 import enTransport from '@/i18n/en/transport';
@@ -80,6 +89,8 @@ const tree: TranslationTree = {
     fieldWork: enFieldWork,
     dailyActivities: enDailyActivities,
     performance: enPerformance,
+    communication: enCommunication,
+    richText: enRichText,
     entitlements: enEntitlements,
     gradeLevels: enGradeLevels,
     idCards: { ...((en.idCards as TranslationTree | undefined) ?? {}), ...enIdCards },
@@ -88,6 +99,7 @@ const tree: TranslationTree = {
     occupations: enOccupations,
     organizationDesign: enOrganizationDesign,
     apiManagement: enApiManagement,
+    integrations: enIntegrations,
     idChecker: enIdChecker,
     publicSite: enPublicSite,
     organizations: { ...((en.organizations as TranslationTree | undefined) ?? {}), ...enOrganizations },
@@ -112,6 +124,12 @@ const tree: TranslationTree = {
     backup: enBackup,
     serviceTypes: enServiceTypes,
     serviceFeedback: enServiceFeedback,
+    situationRoom: enSituationRoom,
+    intelligence: enIntelligence,
+    intelligenceKnowledge: enIntelligenceKnowledge,
+    assistant: enAssistant,
+    support: enSupport,
+    publicAssistant: enPublicAssistant,
     entitlementRules: enEntitlementRules,
     cafeteria: { ...((en.cafeteria as TranslationTree | undefined) ?? {}), ...enCafeteria },
     codeRules: enCodeRules,

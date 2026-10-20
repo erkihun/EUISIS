@@ -251,7 +251,7 @@ class CodeRuleController extends Controller
 
         $action->execute($codeRule, $request->user(), $request->string('reason')->toString() ?: null, $request);
 
-        return to_route('code-rules.index')->with('flash', ['message' => __('recycle-bin.deleted_successfully'), 'type' => 'success']);
+        return to_route('code-rules.index')->with('flash', ['message' => __('recycle-bin.archived_successfully'), 'type' => 'success']);
     }
 
     public function restore(Request $request, string $codeRule, RestoreCodeRuleAction $action): RedirectResponse

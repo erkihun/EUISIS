@@ -9,9 +9,14 @@ use App\Enums\TransferAnnouncementStatus;
 use App\Models\TransferAnnouncement;
 use App\Models\User;
 use App\Security\Passwords\PasswordPolicy;
+use App\Services\Assistant\AssistantSettings;
 use App\Services\Branding\BrandingService;
 use App\Services\Calendar\CalendarService;
+use App\Services\Communication\CommunicationInbox;
+use App\Services\Communication\CommunicationNavigation;
+use App\Services\Communication\CommunicationSettings;
 use App\Services\IdCards\IdCardTemplateService;
+use App\Services\PublicAssistant\PublicAssistantSettings;
 use App\Services\PublicSite\PublicSiteContent;
 use App\Services\Security\SessionActivityService;
 use App\Services\SystemSettings\SystemSettingsService;
@@ -64,8 +69,35 @@ class HandleInertiaRequests extends Middleware
 
             // Module feature flags (config/features.php): hide out-of-scope modules.
             'features' => Features::shared(),
+            // The floating assistant mounts only for signed-in people and only while switched on (docs/assistant/architecture.md).
+            'assistant' => ['enabled' => $user !== null && app(AssistantSettings::class)->enabled()],
+            // Addis One Help for anonymous visitors (docs/public-assistant/architecture.md): a separate public boundary.
+            'publicAssistant' => ['enabled' => app(PublicAssistantSettings::class)->enabled()],
+
+            // The top-bar Messages button: on/off, the unread total (cached briefly by
+            // CommunicationInbox) and whether realtime is configured. Nothing else of
+            // Communication travels with every page.
+            'communication' => function () use ($user, $request): ?array {
+                if ($user === null || ! app(CommunicationSettings::class)->enabled() || ! $user->can('communication.access')) {
+                    return null;
+                }
+
+                return [
+                    'enabled' => true,
+                    // The workspace's own navigation (Communication has no sidebar entry), only on its pages.
+                    'nav' => $request->routeIs('communication.*') ? app(CommunicationNavigation::class)->for($user) : null,
+                    'unread_count' => app(CommunicationInbox::class)->totals($user)['total'],
+                    'realtime' => ! in_array(config('broadcasting.default'), [null, 'null', 'log'], true),
+                ];
+            },
 
             'locale' => $locale,
+            // The rich-text editor's licence (config/richtext.php). Only signed-in
+            // people edit formatted text; public pages never load the editor.
+            'richText' => fn (): ?array => $user ? ['licenseKey' => (string) config('richtext.editor.license_key', 'gpl')] : null,
+            // The language the server wrote this page's own text in (SetClientLocale), read when the page renders.
+            // The browser reloads once when it shows another language (LocaleContext).
+            'textLocale' => fn (): string => app()->getLocale(),
             'calendar' => [
                 'system' => $calendarSystem->value,
                 'mode' => $calendarMode,

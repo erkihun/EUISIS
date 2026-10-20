@@ -89,18 +89,18 @@ export default function OrganizationalChangeRequestsImplement({ request, impact,
             <Head title={`${request.request_no} — ${t('organizationalChangeRequests.implementation.heading')}`} />
 
             <div className="space-y-4">
-                <section className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3">
+                <section className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-(--app-border) bg-(--app-surface) px-4 py-3">
                     <div className="flex flex-wrap items-center gap-4">
                         <StatusBadge status={request.status} label={t(`organizationalChangeRequests.statuses.${request.status}`)} />
-                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="text-xs text-(--app-muted-foreground)">
                             {organizationName}
                         </span>
-                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="text-xs text-(--app-muted-foreground)">
                             {t('organizationalChangeRequests.implementation.approvedBy')}: {request.approver?.name ?? '—'}
                             {request.approved_at ? ' · ' : ''}
                             {request.approved_at ? <LocalizedDateDisplay value={request.approved_at} withTime /> : null}
                         </span>
-                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="text-xs text-(--app-muted-foreground)">
                             {t('organizationalChangeRequests.fields.effectiveDate')}:{' '}
                             {request.requested_effective_date
                                 ? <LocalizedDateDisplay value={request.requested_effective_date} />
@@ -146,9 +146,9 @@ export default function OrganizationalChangeRequestsImplement({ request, impact,
 
                 {/* Actions */}
                 {(can.implement || can.complete || can.returnForAmendment) && (
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                         {can.implement && !alreadyApplied && (
-                            <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <label className="block space-y-1.5 text-xs font-medium text-(--app-muted-foreground)">
                                 <span>{t('organizationalChangeRequests.fields.note')}</span>
                                 <textarea
                                     rows={2}
@@ -183,8 +183,8 @@ export default function OrganizationalChangeRequestsImplement({ request, impact,
                         </div>
 
                         {showAmendment && (
-                            <div className="mt-4 border-t border-[color:var(--app-border)] pt-4">
-                                <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <div className="mt-4 border-t border-(--app-border) pt-4">
+                                <label className="block space-y-1.5 text-xs font-medium text-(--app-muted-foreground)">
                                     <span>{t('organizationalChangeRequests.fields.comment')}</span>
                                     <textarea
                                         rows={3}

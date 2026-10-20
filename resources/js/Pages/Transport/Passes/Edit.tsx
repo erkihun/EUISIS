@@ -1,4 +1,18 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { TransportPassAdminForm } from '@/Components/transport/TransportAdminForms';
+import PageHeader from '@/Components/PageHeader';
+import { Head } from '@inertiajs/react';
+import { PassForm } from '@/Components/transport/TransportForms';
 import { useLocale } from '@/hooks/useLocale';
-export default function Edit(props: any) { const { t } = useLocale(); return <AuthenticatedLayout><h1 className="mb-4 text-lg font-semibold">{t('transport.editPass')}</h1><TransportPassAdminForm {...props} /></AuthenticatedLayout>; }
+import type { ProviderOption, TransportPass, TransportRoute, TransportRouteStop } from '@/types/transport';
+
+export default function Edit({ pass, today, providers, routes, stops }: { pass: TransportPass; today: string; providers: ProviderOption[]; routes: TransportRoute[]; stops: TransportRouteStop[] }) {
+    const { t } = useLocale();
+    const title = t('transport.editPass');
+
+    return (
+        <AuthenticatedLayout header={<PageHeader title={title} backHref={route('transport.passes.index')} />}>
+            <Head title={title} />
+            <PassForm pass={pass} today={today} providers={providers} routes={routes} stops={stops} />
+        </AuthenticatedLayout>
+    );
+}

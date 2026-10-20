@@ -86,8 +86,8 @@ export default function StudiesIndex({ studies, filters, organizations, statuses
                                     <Tr key={s.id}>
                                         <Td className="font-mono text-xs">{s.reference_number}</Td>
                                         <Td>
-                                            <Link href={route('organization-design.studies.show', s.id)} className="font-medium text-[color:var(--app-foreground)] hover:underline">{titleOf(s, locale)}</Link>
-                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{s.prepared_by ?? '—'}</p>
+                                            <Link href={route('organization-design.studies.show', s.id)} className="font-medium text-(--app-foreground) hover:underline">{titleOf(s, locale)}</Link>
+                                            <p className="text-xs text-(--app-muted-foreground)">{s.prepared_by ?? '—'}</p>
                                         </Td>
                                         <Td muted>{nameOf(s.organization, locale)}</Td>
                                         <Td muted>{tt(`studies.types.${s.study_type}`)}</Td>

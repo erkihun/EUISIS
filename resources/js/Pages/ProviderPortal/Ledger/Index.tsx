@@ -9,7 +9,7 @@ import { useLocale } from '@/hooks/useLocale';
 type Provider = { id: string; code: string; name_en: string; name_am?: string | null };
 type Entry = { id: string; entry_date: string; entry_type: string; debit: number; credit: number; balance_after: number; description?: string | null };
 
-const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400/20';
+const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-hidden focus:ring-1 focus:ring-orange-400/20';
 
 function KpiCard({ label, value, color, bg }: { label: string; value: string; color: string; bg: string }) {
     return (
@@ -51,7 +51,7 @@ export default function LedgerIndex({ providers, selected_provider_id, entries, 
                 <div className="grid gap-4 sm:grid-cols-3">
                     <KpiCard label={t('providerPortal.credit')}  value={totalCredit.toFixed(2)} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
                     <KpiCard label={t('providerPortal.debit')}   value={totalDebit.toFixed(2)}  color="text-red-600" bg="bg-red-50 dark:bg-red-900/20" />
-                    <KpiCard label={t('providerPortal.balance')} value={balance.toFixed(2)}     color="text-[color:var(--color-primary)]" bg="bg-blue-50 dark:bg-blue-900/20" />
+                    <KpiCard label={t('providerPortal.balance')} value={balance.toFixed(2)}     color="text-primary" bg="bg-blue-50 dark:bg-blue-900/20" />
                 </div>
 
                 {/* Filters */}
@@ -93,7 +93,7 @@ export default function LedgerIndex({ providers, selected_provider_id, entries, 
                                         <td className="px-4 py-3 text-gray-900 dark:text-slate-100">{e.description ?? e.entry_type}</td>
                                         <td className="px-4 py-3 text-right font-semibold text-emerald-600">{e.credit > 0 ? e.credit.toFixed(2) : '—'}</td>
                                         <td className="px-4 py-3 text-right font-semibold text-red-600">{e.debit > 0 ? e.debit.toFixed(2) : '—'}</td>
-                                        <td className="px-4 py-3 text-right font-bold text-[color:var(--color-primary)]">{e.balance_after.toFixed(2)}</td>
+                                        <td className="px-4 py-3 text-right font-bold text-primary">{e.balance_after.toFixed(2)}</td>
                                     </tr>
                                 ))}
                             </tbody>

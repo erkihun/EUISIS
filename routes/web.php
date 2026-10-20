@@ -7,6 +7,7 @@ use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileDeviceController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderPasswordResetController;
 use App\Http\Controllers\ProviderPortal\ProviderDashboardController;
@@ -18,10 +19,14 @@ use App\Http\Controllers\ProviderPortal\ProviderReportController;
 use App\Http\Controllers\ProviderPortal\ProviderScanController;
 use App\Http\Controllers\ProviderPortal\ProviderTransactionController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportDashboardController as ProviderTransportDashboardController;
+use App\Http\Controllers\ProviderPortal\Transport\TransportDeviceController as ProviderTransportDeviceController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportDriverController as ProviderTransportDriverController;
+use App\Http\Controllers\ProviderPortal\Transport\TransportExceptionController as ProviderTransportExceptionController;
+use App\Http\Controllers\ProviderPortal\Transport\TransportInvoiceController as ProviderTransportInvoiceController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportReportController as ProviderTransportReportController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportRouteController as ProviderTransportRouteController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportScanController as ProviderTransportScanController;
+use App\Http\Controllers\ProviderPortal\Transport\TransportSettlementController as ProviderTransportSettlementController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportTransactionController as ProviderTransportTransactionController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportTripController as ProviderTransportTripController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportVehicleController as ProviderTransportVehicleController;
@@ -35,13 +40,26 @@ use App\Http\Controllers\Transfers\TransferAnnouncementController;
 use App\Http\Controllers\Transfers\TransferApplicationController;
 use App\Http\Controllers\Transfers\TransferDashboardController;
 use App\Http\Controllers\Transfers\TransferSettingController;
+use App\Http\Controllers\Transport\TransportContractController;
+use App\Http\Controllers\Transport\TransportDeviceController;
 use App\Http\Controllers\Transport\TransportDriverController;
+use App\Http\Controllers\Transport\TransportEligibilityController;
+use App\Http\Controllers\Transport\TransportExceptionController;
+use App\Http\Controllers\Transport\TransportInvoiceController;
+use App\Http\Controllers\Transport\TransportManualLookupController;
+use App\Http\Controllers\Transport\TransportOrganizationLookupController;
+use App\Http\Controllers\Transport\TransportOverviewController;
 use App\Http\Controllers\Transport\TransportPassController;
 use App\Http\Controllers\Transport\TransportProviderController;
 use App\Http\Controllers\Transport\TransportReportController;
 use App\Http\Controllers\Transport\TransportRouteController;
+use App\Http\Controllers\Transport\TransportRouteStopController;
 use App\Http\Controllers\Transport\TransportScanController;
+use App\Http\Controllers\Transport\TransportScheduleController;
 use App\Http\Controllers\Transport\TransportSettingsController;
+use App\Http\Controllers\Transport\TransportSettlementController;
+use App\Http\Controllers\Transport\TransportTransactionController;
+use App\Http\Controllers\Transport\TransportTripController;
 use App\Http\Controllers\Transport\TransportVehicleController;
 use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
@@ -68,6 +86,7 @@ use App\Http\Controllers\Web\CafeteriaTransactionController;
 use App\Http\Controllers\Web\CardPrintBatchController;
 use App\Http\Controllers\Web\CardRequestController;
 use App\Http\Controllers\Web\CodeRuleController;
+use App\Http\Controllers\Web\CommunityVoiceRoomController;
 use App\Http\Controllers\Web\DailyActivityAttachmentController;
 use App\Http\Controllers\Web\DailyActivityController;
 use App\Http\Controllers\Web\DailyActivityReviewerController;
@@ -76,13 +95,6 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
-use App\Http\Controllers\Web\OrganizationFeedbackQrController;
-use App\Http\Controllers\Web\PublicFeedbackCategoryController;
-use App\Http\Controllers\Web\PublicFeedbackReferralController;
-use App\Http\Controllers\Web\PublicFeedbackReportController;
-use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
-use App\Http\Controllers\Web\PublicFeedbackSettingsController;
-use App\Http\Controllers\Web\PublicFeedbackSubjectController;
 use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
@@ -93,6 +105,7 @@ use App\Http\Controllers\Web\IdCardController;
 use App\Http\Controllers\Web\IdCardExportController;
 use App\Http\Controllers\Web\IdCardTemplateController;
 use App\Http\Controllers\Web\InstitutionOfficeController;
+use App\Http\Controllers\Web\IntegrationController;
 use App\Http\Controllers\Web\IsicActivityController;
 use App\Http\Controllers\Web\NfcAdminController;
 use App\Http\Controllers\Web\NfcManagementController;
@@ -101,6 +114,7 @@ use App\Http\Controllers\Web\OccupationController;
 use App\Http\Controllers\Web\OrganizationalChangeRequestController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationEdgeController;
+use App\Http\Controllers\Web\OrganizationFeedbackQrController;
 use App\Http\Controllers\Web\OrganizationStructureImportController;
 use App\Http\Controllers\Web\OrganizationTypeController;
 use App\Http\Controllers\Web\OrganizationUnitController;
@@ -111,10 +125,20 @@ use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
 use App\Http\Controllers\Web\ProviderUserController;
+use App\Http\Controllers\Web\PublicFeedbackCategoryController;
+use App\Http\Controllers\Web\PublicFeedbackEmployeePhotoController;
+use App\Http\Controllers\Web\PublicFeedbackOrganizationLogoController;
+use App\Http\Controllers\Web\PublicFeedbackQuestionnaireController;
+use App\Http\Controllers\Web\PublicFeedbackReferralController;
+use App\Http\Controllers\Web\PublicFeedbackReportController;
+use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
+use App\Http\Controllers\Web\PublicFeedbackSettingsController;
+use App\Http\Controllers\Web\PublicFeedbackSubjectController;
 use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
 use App\Http\Controllers\Web\PublicServiceFeedbackController;
 use App\Http\Controllers\Web\PublicSiteManagementController;
+use App\Http\Controllers\Web\PublicSubmissionListController;
 use App\Http\Controllers\Web\RecycleBinController;
 use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
@@ -122,6 +146,9 @@ use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceSubmissionController;
 use App\Http\Controllers\Web\ServiceTypeController;
+use App\Http\Controllers\Web\SituationRoom\SituationReportController;
+use App\Http\Controllers\Web\SituationRoom\SituationRoomController;
+use App\Http\Controllers\Web\SituationRoomActionController;
 use App\Http\Controllers\Web\SystemSettingController;
 use App\Http\Controllers\Web\TypographyTestController;
 use App\Http\Controllers\Web\UserController;
@@ -130,6 +157,7 @@ use App\Http\Controllers\Web\VacancyAnnouncementController;
 use App\Http\Controllers\Web\VacancyApplicationController;
 use App\Http\Controllers\Web\WorkStructureController;
 use App\Models\IdCard;
+use App\Services\SituationRoom\SituationCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -255,32 +283,56 @@ Route::middleware(['auth:provider', 'provider.portal', 'provider.portal.context'
         Route::middleware('provider.service:transport')->prefix('transport')->name('transport.')->group(function (): void {
             Route::get('/', ProviderTransportDashboardController::class)->name('index');
             Route::get('/dashboard', ProviderTransportDashboardController::class)->name('dashboard');
-            Route::get('/scan', [ProviderTransportScanController::class, 'index'])->name('scan');
-            Route::post('/scan', [ProviderTransportScanController::class, 'store'])->middleware('throttle:60,1')->name('scan.store');
-            Route::get('/transactions', [ProviderTransportTransactionController::class, 'index'])->name('transactions.index');
-            Route::get('/transactions/export/csv', [ProviderTransportTransactionController::class, 'exportCsv'])->middleware('throttle:10,1')->name('transactions.export.csv');
-            Route::get('/transactions/{transaction}', [ProviderTransportTransactionController::class, 'show'])->name('transactions.show');
-            Route::get('/routes', [ProviderTransportRouteController::class, 'index'])->name('routes.index');
-            Route::get('/routes/create', [ProviderTransportRouteController::class, 'create'])->name('routes.create');
-            Route::post('/routes', [ProviderTransportRouteController::class, 'store'])->name('routes.store');
-            Route::get('/routes/{route}/edit', [ProviderTransportRouteController::class, 'edit'])->name('routes.edit');
-            Route::patch('/routes/{route}', [ProviderTransportRouteController::class, 'update'])->name('routes.update');
-            Route::get('/vehicles', [ProviderTransportVehicleController::class, 'index'])->name('vehicles.index');
-            Route::get('/vehicles/create', [ProviderTransportVehicleController::class, 'create'])->name('vehicles.create');
-            Route::post('/vehicles', [ProviderTransportVehicleController::class, 'store'])->name('vehicles.store');
-            Route::get('/vehicles/{vehicle}/edit', [ProviderTransportVehicleController::class, 'edit'])->name('vehicles.edit');
-            Route::patch('/vehicles/{vehicle}', [ProviderTransportVehicleController::class, 'update'])->name('vehicles.update');
-            Route::get('/drivers', [ProviderTransportDriverController::class, 'index'])->name('drivers.index');
-            Route::get('/drivers/create', [ProviderTransportDriverController::class, 'create'])->name('drivers.create');
-            Route::post('/drivers', [ProviderTransportDriverController::class, 'store'])->name('drivers.store');
-            Route::get('/drivers/{driver}/edit', [ProviderTransportDriverController::class, 'edit'])->name('drivers.edit');
-            Route::patch('/drivers/{driver}', [ProviderTransportDriverController::class, 'update'])->name('drivers.update');
-            Route::get('/trips', [ProviderTransportTripController::class, 'index'])->name('trips.index');
-            Route::get('/trips/create', [ProviderTransportTripController::class, 'create'])->name('trips.create');
-            Route::post('/trips', [ProviderTransportTripController::class, 'store'])->name('trips.store');
-            Route::get('/trips/{trip}/edit', [ProviderTransportTripController::class, 'edit'])->name('trips.edit');
-            Route::patch('/trips/{trip}', [ProviderTransportTripController::class, 'update'])->name('trips.update');
-            Route::get('/reports', [ProviderTransportReportController::class, 'index'])->name('reports.index');
+            Route::get('/scan', [ProviderTransportScanController::class, 'index'])->middleware('provider.permission:provider.transport.scan')->name('scan');
+            Route::post('/scan', [ProviderTransportScanController::class, 'store'])->middleware(['provider.permission:provider.transport.scan', 'throttle:60,1'])->name('scan.store');
+            Route::get('/scan/today', [ProviderTransportScanController::class, 'today'])->middleware('provider.permission:provider.transport.scan')->name('scan.today');
+            Route::post('/scan/lookup', TransportManualLookupController::class)->middleware(['provider.permission:provider.transport.manual_exception', 'throttle:30,1'])->name('scan.lookup');
+            Route::get('/transactions', [ProviderTransportTransactionController::class, 'index'])->middleware('provider.permission:provider.transport.reports.view')->name('transactions.index');
+            Route::get('/transactions/export/csv', [ProviderTransportTransactionController::class, 'exportCsv'])->middleware(['provider.permission:provider.transport.reports.view', 'throttle:10,1'])->name('transactions.export.csv');
+            Route::get('/transactions/{transaction}', [ProviderTransportTransactionController::class, 'show'])->middleware('provider.permission:provider.transport.reports.view')->name('transactions.show');
+            Route::get('/routes', [ProviderTransportRouteController::class, 'index'])->middleware('provider.permission:provider.transport.routes.manage')->name('routes.index');
+            Route::get('/routes/create', [ProviderTransportRouteController::class, 'create'])->middleware('provider.permission:provider.transport.routes.manage')->name('routes.create');
+            Route::post('/routes', [ProviderTransportRouteController::class, 'store'])->middleware('provider.permission:provider.transport.routes.manage')->name('routes.store');
+            Route::get('/routes/{route}/edit', [ProviderTransportRouteController::class, 'edit'])->middleware('provider.permission:provider.transport.routes.manage')->name('routes.edit');
+            Route::patch('/routes/{route}', [ProviderTransportRouteController::class, 'update'])->middleware('provider.permission:provider.transport.routes.manage')->name('routes.update');
+            Route::get('/vehicles', [ProviderTransportVehicleController::class, 'index'])->middleware('provider.permission:provider.transport.vehicles.manage')->name('vehicles.index');
+            Route::get('/vehicles/create', [ProviderTransportVehicleController::class, 'create'])->middleware('provider.permission:provider.transport.vehicles.manage')->name('vehicles.create');
+            Route::post('/vehicles', [ProviderTransportVehicleController::class, 'store'])->middleware('provider.permission:provider.transport.vehicles.manage')->name('vehicles.store');
+            Route::get('/vehicles/{vehicle}/edit', [ProviderTransportVehicleController::class, 'edit'])->middleware('provider.permission:provider.transport.vehicles.manage')->name('vehicles.edit');
+            Route::patch('/vehicles/{vehicle}', [ProviderTransportVehicleController::class, 'update'])->middleware('provider.permission:provider.transport.vehicles.manage')->name('vehicles.update');
+            Route::get('/drivers', [ProviderTransportDriverController::class, 'index'])->middleware('provider.permission:provider.transport.drivers.manage')->name('drivers.index');
+            Route::get('/drivers/create', [ProviderTransportDriverController::class, 'create'])->middleware('provider.permission:provider.transport.drivers.manage')->name('drivers.create');
+            Route::post('/drivers', [ProviderTransportDriverController::class, 'store'])->middleware('provider.permission:provider.transport.drivers.manage')->name('drivers.store');
+            Route::get('/drivers/{driver}/edit', [ProviderTransportDriverController::class, 'edit'])->middleware('provider.permission:provider.transport.drivers.manage')->name('drivers.edit');
+            Route::patch('/drivers/{driver}', [ProviderTransportDriverController::class, 'update'])->middleware('provider.permission:provider.transport.drivers.manage')->name('drivers.update');
+            Route::get('/trips', [ProviderTransportTripController::class, 'index'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.index');
+            Route::get('/trips/create', [ProviderTransportTripController::class, 'create'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.create');
+            Route::post('/trips', [ProviderTransportTripController::class, 'store'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.store');
+            Route::get('/trips/{trip}/edit', [ProviderTransportTripController::class, 'edit'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.edit');
+            Route::patch('/trips/{trip}', [ProviderTransportTripController::class, 'update'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.update');
+            // Trip board, dispatch and manifests (provider tier: no organization column).
+            Route::get('/trips/{trip}', [ProviderTransportTripController::class, 'show'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.show');
+            Route::post('/trips/{trip}/dispatch', [ProviderTransportTripController::class, 'dispatch'])->middleware(['provider.permission:provider.transport.dispatch', 'throttle:60,1'])->name('trips.dispatch');
+            Route::get('/trips/{trip}/manifest.pdf', [ProviderTransportTripController::class, 'manifestPdf'])->middleware(['provider.permission:provider.transport.manifests.view', 'throttle:20,1'])->name('trips.manifest.pdf');
+            Route::get('/exceptions', [ProviderTransportExceptionController::class, 'index'])->middleware('provider.permission:provider.transport.exceptions.view')->name('exceptions.index');
+            Route::get('/devices', [ProviderTransportDeviceController::class, 'index'])->middleware('provider.permission:provider.transport.devices.view')->name('devices.index');
+            Route::post('/devices/{device}/revoke', [ProviderTransportDeviceController::class, 'revoke'])->middleware(['provider.permission:provider.transport.devices.view', 'throttle:10,1'])->name('devices.revoke');
+            // Invoices and statements (feature transport_settlement).
+            Route::middleware('provider.permission:provider.transport.invoices.manage')->group(function (): void {
+                Route::get('/invoices', [ProviderTransportInvoiceController::class, 'index'])->name('invoices.index');
+                Route::get('/invoices/create', [ProviderTransportInvoiceController::class, 'create'])->name('invoices.create');
+                Route::post('/invoices', [ProviderTransportInvoiceController::class, 'store'])->name('invoices.store');
+                Route::get('/invoices/{invoice}', [ProviderTransportInvoiceController::class, 'show'])->name('invoices.show');
+                Route::get('/invoices/{invoice}/edit', [ProviderTransportInvoiceController::class, 'edit'])->name('invoices.edit');
+                Route::match(['put', 'patch'], '/invoices/{invoice}', [ProviderTransportInvoiceController::class, 'update'])->name('invoices.update');
+                Route::post('/invoices/{invoice}/submit', [ProviderTransportInvoiceController::class, 'submit'])->name('invoices.submit');
+                Route::post('/invoices/{invoice}/withdraw', [ProviderTransportInvoiceController::class, 'withdraw'])->name('invoices.withdraw');
+                Route::get('/settlements', [ProviderTransportSettlementController::class, 'index'])->name('settlements.index');
+                Route::get('/settlements/{settlement}', [ProviderTransportSettlementController::class, 'show'])->name('settlements.show');
+                Route::get('/settlements/{settlement}/statement.pdf', [ProviderTransportSettlementController::class, 'pdf'])->middleware('throttle:20,1')->name('settlements.pdf');
+                Route::post('/settlements/{settlement}/disputes', [ProviderTransportSettlementController::class, 'dispute'])->middleware('throttle:20,1')->name('settlements.disputes.store');
+            });
+            Route::get('/reports', [ProviderTransportReportController::class, 'index'])->middleware('provider.permission:provider.transport.reports.view')->name('reports.index');
         });
         Route::get('/profile', [ProviderProfileController::class, 'show'])->name('profile.show');
         Route::patch('/profile', [ProviderProfileController::class, 'update'])->name('profile.update');
@@ -456,35 +508,42 @@ Route::post('/id-checker/{cardUuid}/verify-otp', [PublicIdCheckerController::cla
 /*
  * Public Client Service Feedback — anonymous, no login.
  *
- * A separate QR from the ID card. Scanning opens a rating form for the service
- * an employee provided; the page shows the office, unit and role but never the
- * employee's name or any contact detail, so a leaked QR cannot be used to look
- * a person up.
+ * The feedback QR on the back of the ID card, separate from the OTP-gated ID
+ * Checker QR on the front. Scanning shows the employee's photo and full name
+ * — while the employee is active, whatever the card's status — and nothing else: no
+ * number, contact, office or role. The token is the only way in; there is no
+ * search or list, and `qr.private` keeps the pages out of search engines,
+ * Referer headers and shared caches.
  *
  * Rate limits: viewing is generous enough for a busy service desk, submitting
  * is tight and keyed on both token and IP so neither one client nor one desk
  * can be flooded with fabricated ratings.
  */
 Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'show'])
-    ->middleware('throttle:30,1')
+    ->middleware(['qr.private', 'throttle:30,1'])
     ->name('service-feedback.show');
 
 Route::post('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'store'])
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('service-feedback.store');
+
+// The employee's photo, through the signed short-lived link the page carries.
+Route::get('/service-feedback/{token}/photo', PublicFeedbackEmployeePhotoController::class)
+    ->middleware(['qr.private', 'signed:relative', 'throttle:service-feedback-photo'])
+    ->name('service-feedback.photo');
 
 Route::get('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'form'])
     ->where('type', 'feedback|suggestion|complaint')
-    ->middleware('throttle:30,1')
+    ->middleware(['qr.private', 'throttle:30,1'])
     ->name('service-feedback.form');
 
 Route::post('/service-feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeTypedFeedback'])
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('service-feedback.feedback.store');
 
 Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeEntry'])
     ->where('type', 'suggestion|complaint')
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('service-feedback.entry.store');
 
 /*
@@ -493,21 +552,31 @@ Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController
  * sheet (OrganizationFeedbackQrCode::publicUrl()).
  */
 Route::get('/feedback/{token}', [PublicServiceFeedbackController::class, 'showOrganization'])
-    ->middleware('throttle:30,1')
+    ->middleware(['qr.private', 'throttle:30,1'])
     ->name('public-feedback.organization.show');
+
+// The institution's logo, by the scanned token: the page never carries the organization id or a storage path.
+Route::get('/feedback/{token}/logo', PublicFeedbackOrganizationLogoController::class)
+    ->middleware(['qr.private', 'throttle:service-feedback-photo'])
+    ->name('public-feedback.organization.logo');
+
+// The institution's published services, searched — only for a catalog too large to send with the form.
+Route::get('/feedback/{token}/services', [PublicServiceFeedbackController::class, 'searchOrganizationServices'])
+    ->middleware(['qr.private', 'throttle:30,1'])
+    ->name('public-feedback.organization.services');
 
 Route::get('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'formOrganization'])
     ->where('type', 'feedback|suggestion|complaint')
-    ->middleware('throttle:30,1')
+    ->middleware(['qr.private', 'throttle:30,1'])
     ->name('public-feedback.organization.form');
 
 Route::post('/feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeOrganizationFeedback'])
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('public-feedback.organization.feedback.store');
 
 Route::post('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeOrganizationEntry'])
     ->where('type', 'suggestion|complaint')
-    ->middleware('throttle:service-feedback-submit')
+    ->middleware(['qr.private', 'throttle:service-feedback-submit'])
     ->name('public-feedback.organization.entry.store');
 
 /*
@@ -770,6 +839,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/transfer-applications', [TransferApplicationController::class, 'index'])->name('transfer-applications.index');
     Route::post('/transfer-applications', [TransferApplicationController::class, 'store'])->name('transfer-applications.store');
     Route::get('/transfer-applications/{transferApplication}', [TransferApplicationController::class, 'show'])->name('transfer-applications.show');
+    Route::get('/transfer-applications/{transferApplication}/documents/{document}', [TransferApplicationController::class, 'downloadDocument'])
+        ->whereUuid('document')->name('transfer-applications.documents.download');
     Route::post('/transfer-applications/{transferApplication}/screen', [TransferApplicationController::class, 'screen'])->name('transfer-applications.screen');
     Route::post('/transfer-applications/{transferApplication}/select', [TransferApplicationController::class, 'select'])->name('transfer-applications.select');
     Route::post('/transfer-applications/{transferApplication}/reject', [TransferApplicationController::class, 'reject'])->name('transfer-applications.reject');
@@ -971,6 +1042,19 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
     Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
 
+    // Admin: System Settings → Event Integration (docs/integration/partner-onboarding.md)
+    Route::get('/system-settings/integrations', [IntegrationController::class, 'index'])->name('integrations.index');
+    Route::get('/system-settings/integrations/subscriptions/create', [IntegrationController::class, 'create'])->name('integrations.subscriptions.create');
+    Route::post('/system-settings/integrations/subscriptions', [IntegrationController::class, 'store'])->name('integrations.subscriptions.store');
+    Route::get('/system-settings/integrations/events/{eventId}', [IntegrationController::class, 'event'])->whereUuid('eventId')->name('integrations.events.show');
+    Route::get('/system-settings/integrations/subscriptions/{subscription}', [IntegrationController::class, 'show'])->name('integrations.subscriptions.show');
+    Route::get('/system-settings/integrations/subscriptions/{subscription}/edit', [IntegrationController::class, 'edit'])->name('integrations.subscriptions.edit');
+    Route::patch('/system-settings/integrations/subscriptions/{subscription}', [IntegrationController::class, 'update'])->name('integrations.subscriptions.update');
+    Route::post('/system-settings/integrations/subscriptions/{subscription}/rotate-secret', [IntegrationController::class, 'rotateSecret'])->middleware('throttle:10,1')->name('integrations.subscriptions.rotate');
+    Route::post('/system-settings/integrations/subscriptions/{subscription}/status', [IntegrationController::class, 'setStatus'])->name('integrations.subscriptions.status');
+    Route::post('/system-settings/integrations/subscriptions/{subscription}/test', [IntegrationController::class, 'test'])->middleware('throttle:10,1')->name('integrations.subscriptions.test');
+    Route::post('/system-settings/integrations/subscriptions/{subscription}/replay', [IntegrationController::class, 'replay'])->middleware('throttle:10,1')->name('integrations.subscriptions.replay');
+
     // Admin: System Settings → API Management
     Route::get('/system-settings/api-management', [ApiManagementController::class, 'index'])->name('api-management.index');
     Route::post('/system-settings/api-management', [ApiManagementController::class, 'store'])->name('api-management.store');
@@ -1006,6 +1090,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/system-settings/appearance', [SystemSettingController::class, 'updateAppearance'])->name('system-settings.appearance.update');
     Route::patch('/system-settings/id-cards', [SystemSettingController::class, 'updateIdCards'])->name('system-settings.id-cards.update');
     Route::patch('/system-settings/field-work-gps', [SystemSettingController::class, 'updateFieldWorkGps'])->name('system-settings.field-work-gps.update');
+    Route::patch('/system-settings/situation-room', [SystemSettingController::class, 'updateSituationRoom'])->name('system-settings.situation-room.update');
+    Route::patch('/system-settings/intelligence', [SystemSettingController::class, 'updateIntelligence'])->name('system-settings.intelligence.update');
+    Route::patch('/system-settings/assistant', [SystemSettingController::class, 'updateAssistant'])->name('system-settings.assistant.update');
     Route::post('/system-settings/test-email', [SystemSettingController::class, 'testEmail'])->name('system-settings.test-email');
     Route::post('/system-settings/test-sms', [SystemSettingController::class, 'testSms'])->name('system-settings.test-sms');
     Route::post('/system-settings/test-telegram', [SystemSettingController::class, 'testTelegram'])->name('system-settings.test-telegram');
@@ -1033,37 +1120,105 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::prefix('transport')->name('transport.')->group(function (): void {
         Route::get('/providers', [TransportProviderController::class, 'index'])->middleware('can:transport-providers.viewAny')->name('providers.index');
         Route::get('/providers/create', [TransportProviderController::class, 'create'])->middleware('can:transport-providers.create')->name('providers.create');
-        Route::post('/providers', [TransportProviderController::class, 'store'])->name('providers.store');
+        Route::post('/providers', [TransportProviderController::class, 'store'])->middleware('can:transport-providers.create')->name('providers.store');
         Route::get('/providers/{provider}', [TransportProviderController::class, 'show'])->middleware('can:transport-providers.view')->name('providers.show');
         Route::get('/providers/{provider}/edit', [TransportProviderController::class, 'edit'])->middleware('can:transport-providers.update')->name('providers.edit');
-        Route::match(['put', 'patch'], '/providers/{provider}', [TransportProviderController::class, 'update'])->name('providers.update');
-        Route::delete('/providers/{provider}', [TransportProviderController::class, 'destroy'])->name('providers.destroy');
+        Route::match(['put', 'patch'], '/providers/{provider}', [TransportProviderController::class, 'update'])->middleware('can:transport-providers.update')->name('providers.update');
+        Route::delete('/providers/{provider}', [TransportProviderController::class, 'destroy'])->middleware('can:transport-providers.delete')->name('providers.destroy');
         // The scan screen lists every provider, route and today's trips: operators only.
         Route::get('/scan', [TransportScanController::class, 'index'])->middleware('can:transport-scan.create')->name('scan');
-        Route::post('/scan', [TransportScanController::class, 'store'])->middleware('throttle:60,1')->name('scan.store');
+        Route::post('/scan', [TransportScanController::class, 'store'])->middleware(['can:transport-scan.create', 'throttle:60,1'])->name('scan.store');
+        Route::get('/scan/today', [TransportScanController::class, 'today'])->middleware('can:transport-scan.create')->name('scan.today');
+        Route::post('/scan/lookup', TransportManualLookupController::class)->middleware(['can:transport-scan.manual', 'throttle:30,1'])->name('scan.lookup');
         Route::get('/settings', [TransportSettingsController::class, 'index'])->middleware('can:transport-settings.view')->name('settings.index');
         Route::patch('/settings', [TransportSettingsController::class, 'update'])->middleware('can:transport-settings.update')->name('settings.update');
         Route::get('/routes', [TransportRouteController::class, 'index'])->middleware('can:transport-routes.viewAny')->name('routes.index');
         Route::get('/routes/create', [TransportRouteController::class, 'create'])->middleware('can:transport-routes.create')->name('routes.create');
-        Route::post('/routes', [TransportRouteController::class, 'store'])->name('routes.store');
+        Route::post('/routes', [TransportRouteController::class, 'store'])->middleware('can:transport-routes.create')->name('routes.store');
         Route::get('/routes/{route}/edit', [TransportRouteController::class, 'edit'])->middleware('can:transport-routes.update')->name('routes.edit');
-        Route::patch('/routes/{route}', [TransportRouteController::class, 'update'])->name('routes.update');
+        Route::patch('/routes/{route}', [TransportRouteController::class, 'update'])->middleware('can:transport-routes.update')->name('routes.update');
         Route::get('/vehicles', [TransportVehicleController::class, 'index'])->middleware('can:transport-vehicles.viewAny')->name('vehicles.index');
         Route::get('/vehicles/create', [TransportVehicleController::class, 'create'])->middleware('can:transport-vehicles.create')->name('vehicles.create');
-        Route::post('/vehicles', [TransportVehicleController::class, 'store'])->name('vehicles.store');
+        Route::post('/vehicles', [TransportVehicleController::class, 'store'])->middleware('can:transport-vehicles.create')->name('vehicles.store');
         Route::get('/vehicles/{vehicle}/edit', [TransportVehicleController::class, 'edit'])->middleware('can:transport-vehicles.update')->name('vehicles.edit');
-        Route::patch('/vehicles/{vehicle}', [TransportVehicleController::class, 'update'])->name('vehicles.update');
+        Route::patch('/vehicles/{vehicle}', [TransportVehicleController::class, 'update'])->middleware('can:transport-vehicles.update')->name('vehicles.update');
         Route::get('/drivers', [TransportDriverController::class, 'index'])->middleware('can:transport-drivers.viewAny')->name('drivers.index');
         Route::get('/drivers/create', [TransportDriverController::class, 'create'])->middleware('can:transport-drivers.create')->name('drivers.create');
-        Route::post('/drivers', [TransportDriverController::class, 'store'])->name('drivers.store');
+        Route::post('/drivers', [TransportDriverController::class, 'store'])->middleware('can:transport-drivers.create')->name('drivers.store');
         Route::get('/drivers/{driver}/edit', [TransportDriverController::class, 'edit'])->middleware('can:transport-drivers.update')->name('drivers.edit');
-        Route::patch('/drivers/{driver}', [TransportDriverController::class, 'update'])->name('drivers.update');
+        Route::patch('/drivers/{driver}', [TransportDriverController::class, 'update'])->middleware('can:transport-drivers.update')->name('drivers.update');
         Route::get('/passes', [TransportPassController::class, 'index'])->middleware('can:transport-passes.viewAny')->name('passes.index');
         Route::get('/passes/create', [TransportPassController::class, 'create'])->middleware('can:transport-passes.create')->name('passes.create');
-        Route::post('/passes', [TransportPassController::class, 'store'])->name('passes.store');
+        Route::post('/passes', [TransportPassController::class, 'store'])->middleware('can:transport-passes.create')->name('passes.store');
         Route::get('/passes/{pass}/edit', [TransportPassController::class, 'edit'])->middleware('can:transport-passes.update')->name('passes.edit');
-        Route::patch('/passes/{pass}', [TransportPassController::class, 'update'])->name('passes.update');
+        Route::patch('/passes/{pass}', [TransportPassController::class, 'update'])->middleware('can:transport-passes.update')->name('passes.update');
         Route::get('/reports', [TransportReportController::class, 'index'])->middleware('can:transport-reports.view')->name('reports.index');
+        Route::get('/transactions', [TransportTransactionController::class, 'index'])->middleware('can:transport-transactions.viewAny')->name('transactions.index');
+        Route::get('/transactions/export', [TransportTransactionController::class, 'export'])->middleware(['can:transport-transactions.export', 'throttle:10,1'])->name('transactions.export');
+        Route::get('/transactions/{transaction}', [TransportTransactionController::class, 'show'])->middleware('can:transport-transactions.view')->name('transactions.show');
+        Route::post('/transactions/{transaction}/void', [TransportTransactionController::class, 'void'])->middleware('can:transport-transactions.void')->name('transactions.void');
+        Route::get('/reports/{type}/export/{format}', [TransportReportController::class, 'export'])->middleware(['can:transport-reports.export', 'throttle:10,1'])->name('reports.export');
+        // Scoped organization search for the provider and route forms.
+        Route::get('/organizations/lookup', TransportOrganizationLookupController::class)->middleware('throttle:120,1')->name('organizations.lookup');
+
+        // ── Verified usage: the desk, trips and dispatch, stops, schedules ──
+        Route::get('/overview', TransportOverviewController::class)->name('overview');
+        Route::post('/routes/{route}/stops', [TransportRouteStopController::class, 'store'])->middleware('can:transport-routes.update')->name('routes.stops.store');
+        Route::patch('/routes/{route}/stops/{stop}', [TransportRouteStopController::class, 'update'])->middleware('can:transport-routes.update')->name('routes.stops.update');
+        Route::delete('/routes/{route}/stops/{stop}', [TransportRouteStopController::class, 'destroy'])->middleware('can:transport-routes.update')->name('routes.stops.destroy');
+        Route::get('/schedules', [TransportScheduleController::class, 'index'])->middleware('can:transport-schedules.viewAny')->name('schedules.index');
+        Route::get('/schedules/create', [TransportScheduleController::class, 'create'])->middleware('can:transport-schedules.create')->name('schedules.create');
+        Route::post('/schedules', [TransportScheduleController::class, 'store'])->middleware('can:transport-schedules.create')->name('schedules.store');
+        Route::post('/schedules/plan', [TransportScheduleController::class, 'plan'])->middleware('can:transport-trips.create')->name('schedules.plan');
+        Route::post('/schedules/calendar-days', [TransportScheduleController::class, 'storeCalendarDay'])->middleware('can:transport-schedules.update')->name('schedules.calendar-days.store');
+        Route::delete('/schedules/calendar-days/{calendarDay}', [TransportScheduleController::class, 'destroyCalendarDay'])->middleware('can:transport-schedules.update')->name('schedules.calendar-days.destroy');
+        Route::get('/schedules/{schedule}/edit', [TransportScheduleController::class, 'edit'])->middleware('can:transport-schedules.update')->name('schedules.edit');
+        Route::patch('/schedules/{schedule}', [TransportScheduleController::class, 'update'])->middleware('can:transport-schedules.update')->name('schedules.update');
+        Route::get('/trips', [TransportTripController::class, 'index'])->middleware('can:transport-trips.viewAny')->name('trips.index');
+        Route::get('/trips/create', [TransportTripController::class, 'create'])->middleware('can:transport-trips.create')->name('trips.create');
+        Route::post('/trips', [TransportTripController::class, 'store'])->middleware('can:transport-trips.create')->name('trips.store');
+        Route::get('/trips/{trip}', [TransportTripController::class, 'show'])->middleware('can:transport-trips.view')->name('trips.show');
+        Route::post('/trips/{trip}/dispatch', [TransportTripController::class, 'dispatch'])->middleware('can:transport-trips.dispatch')->name('trips.dispatch');
+        Route::get('/trips/{trip}/manifest.pdf', [TransportTripController::class, 'manifestPdf'])->middleware(['can:transport-manifests.view', 'throttle:20,1'])->name('trips.manifest.pdf');
+        // ── Eligibility, devices, exceptions ──
+        Route::get('/eligibility', [TransportEligibilityController::class, 'index'])->middleware('can:transport-eligibility.viewAny')->name('eligibility.index');
+        Route::get('/eligibility/create', [TransportEligibilityController::class, 'create'])->middleware('can:transport-eligibility.create')->name('eligibility.create');
+        Route::post('/eligibility', [TransportEligibilityController::class, 'store'])->middleware('can:transport-eligibility.create')->name('eligibility.store');
+        Route::get('/eligibility/{eligibility}/edit', [TransportEligibilityController::class, 'edit'])->middleware('can:transport-eligibility.update')->name('eligibility.edit');
+        Route::patch('/eligibility/{eligibility}', [TransportEligibilityController::class, 'update'])->middleware('can:transport-eligibility.update')->name('eligibility.update');
+        Route::get('/devices', [TransportDeviceController::class, 'index'])->middleware('can:transport-devices.viewAny')->name('devices.index');
+        Route::get('/devices/create', [TransportDeviceController::class, 'create'])->middleware('can:transport-devices.create')->name('devices.create');
+        Route::post('/devices', [TransportDeviceController::class, 'store'])->middleware('can:transport-devices.create')->name('devices.store');
+        Route::post('/devices/{device}/revoke', [TransportDeviceController::class, 'revoke'])->middleware('can:transport-devices.revoke')->name('devices.revoke');
+        Route::post('/devices/{device}/rotate', [TransportDeviceController::class, 'rotate'])->middleware('can:transport-devices.update')->name('devices.rotate');
+        Route::post('/devices/{device}/status', [TransportDeviceController::class, 'setStatus'])->middleware('can:transport-devices.update')->name('devices.status');
+        Route::get('/exceptions', [TransportExceptionController::class, 'index'])->middleware('can:transport-exceptions.viewAny')->name('exceptions.index');
+        Route::post('/exceptions/{exception}/review', [TransportExceptionController::class, 'review'])->middleware('can:transport-exceptions.review')->name('exceptions.review');
+        // ── Contracts, invoices, settlements (feature transport_settlement) ──
+        Route::get('/contracts', [TransportContractController::class, 'index'])->middleware('can:transport-contracts.viewAny')->name('contracts.index');
+        Route::get('/contracts/create', [TransportContractController::class, 'create'])->middleware('can:transport-contracts.create')->name('contracts.create');
+        Route::post('/contracts', [TransportContractController::class, 'store'])->middleware('can:transport-contracts.create')->name('contracts.store');
+        Route::get('/contracts/{contract}', [TransportContractController::class, 'show'])->middleware('can:transport-contracts.view')->name('contracts.show');
+        Route::get('/contracts/{contract}/edit', [TransportContractController::class, 'edit'])->middleware('can:transport-contracts.update')->name('contracts.edit');
+        Route::match(['put', 'patch'], '/contracts/{contract}', [TransportContractController::class, 'update'])->middleware('can:transport-contracts.update')->name('contracts.update');
+        Route::post('/contracts/{contract}/approve', [TransportContractController::class, 'approve'])->middleware('can:transport-contracts.update')->name('contracts.approve');
+        Route::post('/contracts/{contract}/versions', [TransportContractController::class, 'newVersion'])->middleware('can:transport-contracts.create')->name('contracts.versions.store');
+        Route::post('/contracts/{contract}/end', [TransportContractController::class, 'end'])->middleware('can:transport-contracts.update')->name('contracts.end');
+        Route::post('/contracts/{contract}/cancel', [TransportContractController::class, 'cancel'])->middleware('can:transport-contracts.update')->name('contracts.cancel');
+        Route::get('/contracts/{contract}/agreement', [TransportContractController::class, 'agreement'])->middleware('can:transport-contracts.view')->name('contracts.agreement');
+        Route::get('/invoices', [TransportInvoiceController::class, 'index'])->middleware('can:transport-invoices.viewAny')->name('invoices.index');
+        Route::get('/invoices/{invoice}', [TransportInvoiceController::class, 'show'])->middleware('can:transport-invoices.view')->name('invoices.show');
+        Route::post('/invoices/{invoice}/review', [TransportInvoiceController::class, 'takeUnderReview'])->middleware('can:transport-invoices.review')->name('invoices.review');
+        Route::post('/invoices/{invoice}/return', [TransportInvoiceController::class, 'returnToProvider'])->middleware('can:transport-invoices.review')->name('invoices.return');
+        Route::get('/settlements', [TransportSettlementController::class, 'index'])->middleware('can:transport-settlements.viewAny')->name('settlements.index');
+        Route::get('/settlements/create', [TransportSettlementController::class, 'create'])->middleware('can:transport-settlements.manage')->name('settlements.create');
+        Route::post('/settlements', [TransportSettlementController::class, 'store'])->middleware('can:transport-settlements.manage')->name('settlements.store');
+        Route::get('/settlements/{settlement}', [TransportSettlementController::class, 'show'])->middleware('can:transport-settlements.view')->name('settlements.show');
+        Route::get('/settlements/{settlement}/statement.pdf', [TransportSettlementController::class, 'pdf'])->middleware(['can:transport-settlements.view', 'throttle:20,1'])->name('settlements.pdf');
+        Route::post('/settlements/{settlement}/recompute', [TransportSettlementController::class, 'recompute'])->middleware('can:transport-settlements.manage')->name('settlements.recompute');
+        Route::post('/settlements/{settlement}/transition', [TransportSettlementController::class, 'transition'])->middleware('can:transport-settlements.view')->name('settlements.transition');
+        Route::post('/settlements/{settlement}/adjustments', [TransportSettlementController::class, 'storeAdjustment'])->middleware('can:transport-settlements.manage')->name('settlements.adjustments.store');
+        Route::post('/settlements/{settlement}/adjustments/{adjustment}/decide', [TransportSettlementController::class, 'decideAdjustment'])->middleware('can:transport-settlements.view')->name('settlements.adjustments.decide');
     });
 
     // Institution Offices — deprecated; GET routes redirect to Organization Units.
@@ -1308,6 +1463,39 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/work-structure/standards/{standard}/approve', [WorkStructureController::class, 'approveStandard'])->whereUuid('standard')->name('work-structure.standards.approve');
     Route::post('/work-structure/standards/{standard}/retire', [WorkStructureController::class, 'retireStandard'])->whereUuid('standard')->name('work-structure.standards.retire');
 
+    /*
+     * Executive Situation Room (docs/situation-room-architecture.md). One room:
+     * the category launcher and its categories (SituationRoomController), the
+     * Community Voice institution view with its targeted-employee pages and
+     * queued exports (CommunityVoiceRoomController), one wall, one Action
+     * Register (SituationRoomActionController). Routes gate the grant; every
+     * controller resolves the organization scope (403 outside it) before
+     * counting. Literal paths come before the {category} wildcard.
+     */
+    Route::prefix('situation-room')->name('situation-room.')->group(function (): void {
+        Route::get('/', [SituationRoomController::class, 'index'])->middleware('can:situation_room.view')->name('index');
+        Route::get('/wall', [SituationRoomController::class, 'wall'])->middleware(['can:situation_room.view', 'can:situation_room.wall_mode'])->name('wall');
+        Route::get('/reports', [SituationReportController::class, 'index'])->middleware(['can:situation_room.view', 'can:situation_room.export'])->name('reports');
+        Route::get('/reports/export', [SituationReportController::class, 'export'])->middleware(['can:situation_room.view', 'throttle:20,1'])->name('reports.export');
+
+        Route::get('/community-voice', [CommunityVoiceRoomController::class, 'index'])->name('community-voice');
+        Route::get('/community-voice/organizations/{organization}', [CommunityVoiceRoomController::class, 'organization'])->whereUuid('organization')->name('organization');
+        Route::post('/refresh', [CommunityVoiceRoomController::class, 'refresh'])->middleware('throttle:30,1')->name('refresh');
+        Route::get('/organization-options', [CommunityVoiceRoomController::class, 'organizationOptions'])->middleware('throttle:120,1')->name('organization-options');
+        Route::get('/targeted-employees', [CommunityVoiceRoomController::class, 'targetedEmployees'])->name('employees');
+        Route::get('/targeted-employees/{employee}', [CommunityVoiceRoomController::class, 'targetedEmployee'])->whereUuid('employee')->name('employee');
+        Route::post('/exports', [CommunityVoiceRoomController::class, 'export'])->middleware('throttle:10,1')->name('exports.store');
+        Route::get('/exports/{export}', [CommunityVoiceRoomController::class, 'download'])->whereUuid('export')->name('exports.download');
+
+        Route::get('/actions', [SituationRoomActionController::class, 'index'])->name('actions.index');
+        Route::get('/actions/owners', [SituationRoomActionController::class, 'owners'])->middleware('throttle:120,1')->name('actions.owners');
+        Route::post('/actions', [SituationRoomActionController::class, 'store'])->name('actions.store');
+        Route::patch('/actions/{action}', [SituationRoomActionController::class, 'update'])->whereUuid('action')->name('actions.update');
+
+        Route::get('/{category}', [SituationRoomController::class, 'category'])->middleware('can:situation_room.view')
+            ->whereIn('category', array_column(SituationCategory::cases(), 'value'))->name('category');
+    });
+
     // Public feedback categories: before the {serviceFeedback} wildcard below.
     Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');
     Route::get('/feedback-admin/categories/create', [PublicFeedbackCategoryController::class, 'create'])->name('service-feedback.categories.create');
@@ -1321,6 +1509,14 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/feedback-admin/submission-reports/exports/{export}', [PublicFeedbackReportController::class, 'download'])->whereUuid('export')->name('service-feedback.submission-reports.download');
     Route::get('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'index'])->name('service-feedback.settings.index');
     Route::put('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'update'])->name('service-feedback.settings.update');
+    // The organization feedback questionnaire: versions, the one draft, publish and withdraw (city-level).
+    Route::get('/feedback-admin/questionnaire', [PublicFeedbackQuestionnaireController::class, 'index'])->name('service-feedback.questionnaire.index');
+    Route::post('/feedback-admin/questionnaire', [PublicFeedbackQuestionnaireController::class, 'store'])->name('service-feedback.questionnaire.store');
+    Route::get('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'edit'])->whereUuid('questionSet')->name('service-feedback.questionnaire.edit');
+    Route::put('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'update'])->whereUuid('questionSet')->name('service-feedback.questionnaire.update');
+    Route::post('/feedback-admin/questionnaire/{questionSet}/publish', [PublicFeedbackQuestionnaireController::class, 'publish'])->whereUuid('questionSet')->name('service-feedback.questionnaire.publish');
+    Route::post('/feedback-admin/questionnaire/{questionSet}/retire', [PublicFeedbackQuestionnaireController::class, 'retire'])->whereUuid('questionSet')->name('service-feedback.questionnaire.retire');
+    Route::delete('/feedback-admin/questionnaire/{questionSet}', [PublicFeedbackQuestionnaireController::class, 'destroy'])->whereUuid('questionSet')->name('service-feedback.questionnaire.destroy');
     Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');
     Route::get('/feedback-admin/routing-rules/handlers', [PublicFeedbackRoutingRuleController::class, 'handlers'])->name('service-feedback.routing-rules.handlers');
     Route::get('/feedback-admin/routing-rules/create', [PublicFeedbackRoutingRuleController::class, 'create'])->name('service-feedback.routing-rules.create');
@@ -1337,6 +1533,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/{serviceFeedback}/hide', [ServiceFeedbackController::class, 'hide'])->name('service-feedback.admin.hide');
     Route::delete('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'destroy'])->name('service-feedback.admin.destroy');
 
+    // Every public submission the user may read, and the queue of routed ones with no handler yet.
+    Route::get('/service-submissions', [PublicSubmissionListController::class, 'index'])->name('service-submissions.index');
+    Route::get('/service-submissions/unrouted', [PublicSubmissionListController::class, 'unrouted'])->name('service-submissions.unrouted');
     Route::get('/service-suggestions', [ServiceSubmissionController::class, 'suggestions'])->name('service-submissions.suggestions');
     Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');
     Route::get('/service-submissions/{type}/{submission}', [ServiceSubmissionController::class, 'show'])
@@ -1354,7 +1553,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/service-submissions/{type}/{submission}/referrals/{referral}', [PublicFeedbackReferralController::class, 'update'])
         ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'referral'])->name('service-submissions.referrals.update');
     Route::get('/service-submissions/{type}/{submission}/attachments/{attachment}', [ServiceSubmissionController::class, 'download'])
-        ->where('type', 'complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
+        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
 
     // Per-employee feedback QR management.
     Route::get('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'show'])->name('employees.feedback-qr.show');
@@ -1382,6 +1581,9 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Devices tab: end one of the account's own sessions, or all but this one.
+    Route::delete('/profile/devices', [ProfileDeviceController::class, 'destroyOthers'])->middleware('throttle:10,1')->name('profile.devices.destroy-others');
+    Route::delete('/profile/devices/{session}', [ProfileDeviceController::class, 'destroy'])->middleware('throttle:10,1')->name('profile.devices.destroy');
 });
 
 // Typography check sheet for the PDF renderer (docs/ui-typography.md).
@@ -1394,6 +1596,9 @@ if (! app()->isProduction()) {
 
 // Employee Performance Management (EPMS).
 require __DIR__.'/performance.php';
+
+// Communication & Collaboration: chat, channels, official announcements.
+require __DIR__.'/communication.php';
 
 // Assessment Management: forms, assessments, oversight & compliance.
 require __DIR__.'/assessments.php';
@@ -1411,6 +1616,10 @@ require __DIR__.'/organization-design.php';
 
 // Court Cases — planned standalone module, separate from Grievance Management.
 require __DIR__.'/court-cases.php';
+require __DIR__.'/intelligence.php';
+require __DIR__.'/assistant.php';
+require __DIR__.'/support.php';
+require __DIR__.'/public-assistant.php';
 
 // Cross-cutting platform endpoints (scoped lookups).
 require __DIR__.'/platform.php';

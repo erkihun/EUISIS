@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\ProviderPortal;
 
+use App\Http\Requests\Concerns\TransportScanRules;
 use App\Models\ProviderUser;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProviderTransportScanRequest extends FormRequest
 {
+    use TransportScanRules;
+
     public function authorize(): bool
     {
         /** @var ProviderUser|null $providerUser */
@@ -21,12 +24,9 @@ class ProviderTransportScanRequest extends FormRequest
     /** @return array<string, list<mixed>> */
     public function rules(): array
     {
-        return [
-            'qr_token' => ['required', 'string', 'min:10'],
-            'scan_nonce' => ['required', 'uuid'],
-            'transport_route_id' => ['nullable', 'uuid', 'exists:transport_routes,id'],
-            'transport_trip_id' => ['nullable', 'uuid', 'exists:transport_trips,id'],
-            'scanned_at' => ['nullable', 'date'],
-        ];
+        /** @var ProviderUser|null $providerUser */
+        $providerUser = auth('provider')->user();
+
+        return $this->scanRules(manualAllowed: $providerUser?->canUseServicePermission('provider.transport.manual_exception') ?? false);
     }
 }

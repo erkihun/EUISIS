@@ -12,7 +12,7 @@ type Order = {
 
 const STATUS_CLS: Record<string, string> = {
     pending:    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    confirmed:  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]',
+    confirmed:  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-primary',
     preparing:  'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     ready:      'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
     served:     'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -21,7 +21,7 @@ const STATUS_CLS: Record<string, string> = {
 };
 
 const ACTION_TRANSITIONS: { status: string; labelKey: string; cls: string }[] = [
-    { status: 'confirm', labelKey: 'markConfirmed', cls: 'bg-blue-500 text-white hover:bg-[color:var(--color-primary-hover)]' },
+    { status: 'confirm', labelKey: 'markConfirmed', cls: 'bg-blue-500 text-white hover:bg-primary-hover' },
     { status: 'prepare', labelKey: 'markPreparing', cls: 'bg-purple-500 text-white hover:bg-purple-600' },
     { status: 'serve', labelKey: 'markServed', cls: 'bg-emerald-500 text-white hover:bg-emerald-600' },
     { status: 'reject', labelKey: 'reject', cls: 'bg-red-500 text-white hover:bg-red-600' },

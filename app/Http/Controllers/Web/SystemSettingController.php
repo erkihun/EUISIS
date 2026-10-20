@@ -8,18 +8,21 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Settings\UpdateSystemSettingAction;
 use App\Actions\SystemSettings\UpdateSystemSettingsGroupAction;
 use App\Actions\SystemSettings\UploadSystemAssetAction;
-use App\Enums\AuditEventType;
 use App\Contracts\SmsGateway;
+use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\TestNotificationChannelRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;
+use App\Http\Requests\Settings\UpdateAssistantSettingsRequest;
 use App\Http\Requests\Settings\UpdateEmailSettingsRequest;
 use App\Http\Requests\Settings\UpdateFieldWorkGpsSettingsRequest;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
 use App\Http\Requests\Settings\UpdateIdCardSettingsRequest;
+use App\Http\Requests\Settings\UpdateIntelligenceSettingsRequest;
 use App\Http\Requests\Settings\UpdateLocalizationSettingsRequest;
 use App\Http\Requests\Settings\UpdateNotificationSettingsRequest;
 use App\Http\Requests\Settings\UpdateSecuritySettingsRequest;
+use App\Http\Requests\Settings\UpdateSituationRoomSettingsRequest;
 use App\Http\Requests\Settings\UpdateSmsSettingsRequest;
 use App\Http\Requests\Settings\UpdateTelegramSettingsRequest;
 use App\Models\SystemSetting;
@@ -108,11 +111,14 @@ class SystemSettingController extends Controller
                 'manageAppearance' => $user?->can('system-settings.manageAppearance') ?? false,
                 'manageIdCards' => $user?->can('system-settings.manageIdCards') ?? false,
                 'manageFieldWorkGps' => $user?->can('system-settings.manageFieldWorkGps') ?? false,
+                'manageSituationRoom' => $user?->can('system-settings.manageSituationRoom') ?? false,
+                'manageIntelligence' => $user?->can('system-settings.manageIntelligence') ?? false,
                 'viewIdCardTemplates' => $user?->can('id_card_templates.view') ?? false,
                 'clearCache' => $user?->can('system-settings.clearCache') ?? false,
                 'testChannels' => $user?->can('system-settings.testNotificationChannels') ?? false,
                 // Drives the API Management tab beside Security.
                 'apiManagement' => $user?->can('api_management.view') ?? false,
+                'integrations' => $user?->can('integrations.view') ?? false,
             ],
         ]);
     }
@@ -169,8 +175,9 @@ class SystemSettingController extends Controller
     {
         $this->updateGroupAction->execute(
             SystemSettingsRegistry::GROUP_EMAIL,
-            $request->validated(),
+            $request->safe()->except('clear'),
             $request->user(),
+            $request->validated('clear') ?? [],
         );
 
         return back()->with('flash', ['message' => __('settings.messages.email_updated'), 'type' => 'success']);
@@ -263,6 +270,39 @@ class SystemSettingController extends Controller
         return back()->with('flash', ['message' => __('settings.messages.field_work_gps_updated'), 'type' => 'success']);
     }
 
+    public function updateSituationRoom(UpdateSituationRoomSettingsRequest $request): RedirectResponse
+    {
+        $this->updateGroupAction->execute(
+            SystemSettingsRegistry::GROUP_SITUATION_ROOM,
+            $request->validated(),
+            $request->user(),
+        );
+
+        return back()->with('flash', ['message' => __('settings.messages.situation_room_updated'), 'type' => 'success']);
+    }
+
+    public function updateAssistant(UpdateAssistantSettingsRequest $request): RedirectResponse
+    {
+        $this->updateGroupAction->execute(
+            SystemSettingsRegistry::GROUP_ASSISTANT,
+            $request->validated(),
+            $request->user(),
+        );
+
+        return back()->with('flash', ['message' => __('settings.messages.assistant_updated'), 'type' => 'success']);
+    }
+
+    public function updateIntelligence(UpdateIntelligenceSettingsRequest $request): RedirectResponse
+    {
+        $this->updateGroupAction->execute(
+            SystemSettingsRegistry::GROUP_INTELLIGENCE,
+            $request->validated(),
+            $request->user(),
+        );
+
+        return back()->with('flash', ['message' => __('settings.messages.intelligence_updated'), 'type' => 'success']);
+    }
+
     public function clearCache(Request $request): RedirectResponse
     {
         abort_unless($request->user()?->can('system-settings.clearCache'), 403);
@@ -286,6 +326,9 @@ class SystemSettingController extends Controller
             ?: $this->settingsService->get('email', 'email_test_recipient')
             ?: $request->user()?->email;
 
+        // "log" accepts every message and delivers none.
+        $mailer = (string) config('mail.default');
+
         return $this->handleTestChannelResult(
             $request,
             channel: 'email',
@@ -297,6 +340,7 @@ class SystemSettingController extends Controller
 
                 return null;
             },
+            notSent: $mailer === 'log' ? __('settings.messages.test_email_not_sent', ['mailer' => $mailer]) : null,
         );
     }
 
@@ -345,10 +389,6 @@ class SystemSettingController extends Controller
     }
 
     /**
-     * @param  (callable(string): ?string)|null  $send  Delivers a test message;
-     *                                                   returns an error, or null when delivered.
-     */
-    /**
      * The mail settings this server actually uses, and where each comes from.
      * A blank field on the page falls back to the server's .env, so the form
      * alone cannot tell an administrator what the mailer will do. No secrets:
@@ -380,11 +420,18 @@ class SystemSettingController extends Controller
         ];
     }
 
+    /**
+     * @param  (callable(string): ?string)|null  $send  Delivers a test message;
+     *                                                  returns an error, or null when delivered.
+     * @param  string|null  $notSent  Shown instead of "delivered" when the transport
+     *                                accepts the message but sends nothing.
+     */
     private function handleTestChannelResult(
         Request $request,
         string $channel,
         ?string $target,
         ?callable $send = null,
+        ?string $notSent = null,
     ): RedirectResponse {
         $configured = $target !== null && $target !== '';
         $error = null;
@@ -409,7 +456,7 @@ class SystemSettingController extends Controller
                 'channel' => $channel,
                 'configured' => $configured,
                 'target' => $configured ? 'configured' : 'not_configured',
-                'delivered' => $configured && $send !== null ? $error === null : null,
+                'delivered' => $configured && $send !== null ? $error === null && $notSent === null : null,
             ],
             reason: 'system_settings_test_channel',
         );
@@ -428,8 +475,12 @@ class SystemSettingController extends Controller
             ]);
         }
 
-        return back()->with('flash', $error === null
-            ? ['message' => __('settings.messages.test_channel_sent', ['channel' => ucfirst($channel), 'target' => $target]), 'type' => 'success']
-            : ['message' => __('settings.messages.test_channel_failed', ['channel' => ucfirst($channel), 'error' => $error]), 'type' => 'error']);
+        if ($error !== null) {
+            return back()->with('flash', ['message' => __('settings.messages.test_channel_failed', ['channel' => ucfirst($channel), 'error' => $error]), 'type' => 'error']);
+        }
+
+        return back()->with('flash', $notSent !== null
+            ? ['message' => $notSent, 'type' => 'warning']
+            : ['message' => __('settings.messages.test_channel_sent', ['channel' => ucfirst($channel), 'target' => $target]), 'type' => 'success']);
     }
 }

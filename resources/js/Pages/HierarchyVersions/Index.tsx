@@ -149,7 +149,7 @@ export default function HierarchyVersionsIndex({
                                         className={tableRowClassName}
                                     >
                                         <td className={tableCellClassName}>
-                                            <div className="font-medium text-[color:var(--app-foreground)]">
+                                            <div className="font-medium text-(--app-foreground)">
                                                 {version.version_name}
                                             </div>
                                         </td>
@@ -157,13 +157,13 @@ export default function HierarchyVersionsIndex({
                                             <StatusBadge status={version.status} />
                                         </td>
                                         <td className={tableCellClassName}>{version.edges_count}</td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {version.approver?.name ?? '-'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={version.approval_date} withTime />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={version.effective_from} />
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>

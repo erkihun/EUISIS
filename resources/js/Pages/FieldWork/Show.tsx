@@ -41,7 +41,7 @@ export default function FieldWorkShow({ fieldWork, can }: Props): JSX.Element {
 
                 {anyDecision && (
                     <section className={`${panelCls} p-4`}>
-                        <h2 className="mb-2 text-sm font-semibold text-[color:var(--app-foreground)]">{t('fieldWork.show.decide')}</h2>
+                        <h2 className="mb-2 text-sm font-semibold text-(--app-foreground)">{t('fieldWork.show.decide')}</h2>
                         {mode === null ? (
                             <div className="flex flex-wrap gap-2">
                                 {can.approve && <button type="button" className={primaryBtn} onClick={() => setMode('approve')}>{t('fieldWork.actions.approve')}</button>}
@@ -56,7 +56,7 @@ export default function FieldWorkShow({ fieldWork, can }: Props): JSX.Element {
                                         {mode !== 'approve' && <span className="text-red-600"> *</span>}
                                     </label>
                                     <textarea id="decision-reason" rows={3} maxLength={2000} className={inputCls} value={form.data.reason} onChange={(e) => form.setData('reason', e.target.value)} required={mode !== 'approve'} />
-                                    {mode !== 'approve' && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('fieldWork.show.reasonRequired')}</p>}
+                                    {mode !== 'approve' && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('fieldWork.show.reasonRequired')}</p>}
                                     {errors.reason && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{errors.reason}</p>}
                                 </div>
                                 {(errors.status || errors.conflicts) && (

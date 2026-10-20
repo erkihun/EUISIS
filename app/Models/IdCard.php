@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\CardStatus;
+use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class IdCard extends Model
 {
+    use HasIntegrationEvents;
     use HasUuidPrimaryKey;
 
     protected $hidden = ['token_hash', 'qr_payload'];

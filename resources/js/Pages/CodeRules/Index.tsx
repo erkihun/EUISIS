@@ -87,9 +87,9 @@ export default function CodeRulesIndex({
                         { label: 'scopedRules', value: summary.scoped, icon: Layers, color: 'text-violet-600 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-300' },
                         { label: 'coveredEntities', value: summary.entity_types, icon: SettingsIcon, color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-300' },
                     ].map(({ label, value, icon: Icon, color }) => (
-                        <div key={label} className="flex items-center gap-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 shadow-sm">
+                        <div key={label} className="flex items-center gap-4 rounded-panel border border-(--app-border) bg-(--app-surface) p-5 shadow-xs">
                             <span className={`hidden rounded-panel p-3 sm:block ${color}`}><Icon className="h-5 w-5" aria-hidden="true" /></span>
-                            <div><p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t(`codeRules.${label}`)}</p><p className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{value}</p></div>
+                            <div><p className="text-xs font-medium text-(--app-muted-foreground)">{t(`codeRules.${label}`)}</p><p className="mt-1 text-2xl font-semibold tabular-nums text-(--app-foreground)">{value}</p></div>
                         </div>
                     ))}
                 </div>
@@ -134,27 +134,27 @@ export default function CodeRulesIndex({
                     {codeRules.data.length === 0 ? (
                         <EmptyState title={t('codeRules.noRules')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
-                        <div className="divide-y divide-[color:var(--app-border)]">
+                        <div className="divide-y divide-(--app-border)">
                                     {codeRules.data.map((ruleRow) => (
                                         <article key={ruleRow.id} className="p-5 transition hover:bg-gray-50/60 dark:hover:bg-slate-800/30">
                                             <div className="grid gap-5 lg:grid-cols-3">
                                                 <div className="min-w-0">
                                                     <div className="mb-3 flex flex-wrap gap-2"><CodeRuleEntityTypeBadge entityType={ruleRow.entity_type} /><CodeRuleStatusBadge isActive={ruleRow.is_active} /></div>
-                                                    <h3 className="break-words font-semibold text-[color:var(--app-foreground)]">{ruleRow.can.view ? <Link className="hover:underline" href={route('code-rules.show', ruleRow.id)}>{ruleRow.name_en}</Link> : ruleRow.name_en}</h3>
-                                                    <p className="mt-1 break-words text-xs text-[color:var(--app-muted-foreground)]">{t('codeRules.scope')}: {ruleRow.scope_label ?? t('codeRules.globalRule')}</p>
+                                                    <h3 className="wrap-break-word font-semibold text-(--app-foreground)">{ruleRow.can.view ? <Link className="hover:underline" href={route('code-rules.show', ruleRow.id)}>{ruleRow.name_en}</Link> : ruleRow.name_en}</h3>
+                                                    <p className="mt-1 wrap-break-word text-xs text-(--app-muted-foreground)">{t('codeRules.scope')}: {ruleRow.scope_label ?? t('codeRules.globalRule')}</p>
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="mb-2 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.ruleConfiguration')}</p>
-                                                    <code className="block break-all rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-2 text-xs leading-5 text-[color:var(--app-foreground)]">{ruleRow.format}</code>
-                                                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[color:var(--app-muted-foreground)]"><span>{t('codeRules.prefix')}: {ruleRow.prefix || '—'}</span><span>{t('codeRules.resetFrequency')}: {t(`codeRules.resetFrequencies.${ruleRow.reset_frequency}`)}</span></div>
+                                                    <p className="mb-2 text-xs font-medium text-(--app-muted-foreground)">{t('codeRules.ruleConfiguration')}</p>
+                                                    <code className="block break-all rounded-lg border border-(--app-border) bg-(--app-surface-muted) px-3 py-2 text-xs leading-5 text-(--app-foreground)">{ruleRow.format}</code>
+                                                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-(--app-muted-foreground)"><span>{t('codeRules.prefix')}: {ruleRow.prefix || '—'}</span><span>{t('codeRules.resetFrequency')}: {t(`codeRules.resetFrequencies.${ruleRow.reset_frequency}`)}</span></div>
                                                 </div>
                                                 <div className="min-w-0 rounded-panel border border-blue-100 bg-blue-50/60 p-3 dark:border-blue-900/40 dark:bg-blue-950/20">
                                                     <p className="text-xs font-medium text-blue-700 dark:text-blue-300">{t('codeRules.previewCode')}</p>
                                                     <p className="mt-2 break-all font-mono text-sm font-semibold text-blue-900 dark:text-blue-200">{ruleRow.preview || t('codeRules.previewUnavailable')}</p>
-                                                    <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('codeRules.nextNumber')}: <span className="tabular-nums">{ruleRow.next_number}</span></p>
+                                                    <p className="mt-2 text-xs text-(--app-muted-foreground)">{t('codeRules.nextNumber')}: <span className="tabular-nums">{ruleRow.next_number}</span></p>
                                                 </div>
                                             </div>
-                                            <div className="mt-4 border-t border-[color:var(--app-border)] pt-3"><CodeRuleActionMenu rule={ruleRow} /></div>
+                                            <div className="mt-4 border-t border-(--app-border) pt-3"><CodeRuleActionMenu rule={ruleRow} /></div>
                                         </article>
                                     ))}
                         </div>

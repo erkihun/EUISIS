@@ -47,7 +47,7 @@ export default function RecentActivityFeed({ items, t }: Props) {
     }
 
     return (
-        <div className="divide-y divide-[color:var(--app-border)]">
+        <div className="divide-y divide-(--app-border)">
             {items.map((item) => (
                 <div
                     key={item.id}
@@ -61,15 +61,15 @@ export default function RecentActivityFeed({ items, t }: Props) {
 
                     <div className="min-w-0 flex-1">
                         {/* Event label */}
-                        <p className="text-sm font-medium text-[color:var(--app-foreground)]">
+                        <p className="text-sm font-medium text-(--app-foreground)">
                             {eventLabel(item.event)}
                         </p>
 
                         {/* Actor + subject */}
-                        <p className="mt-0.5 break-words text-xs text-[color:var(--app-muted-foreground)]">
+                        <p className="mt-0.5 wrap-break-word text-xs text-(--app-muted-foreground)">
                             {item.actor !== 'system' ? item.actor : t('auditLogs.system')}
                             {item.subject && (
-                                <span className="ml-1 text-[color:var(--app-muted-foreground)]">
+                                <span className="ml-1 text-(--app-muted-foreground)">
                                     · {item.subject}
                                 </span>
                             )}
@@ -81,7 +81,7 @@ export default function RecentActivityFeed({ items, t }: Props) {
                         <LocalizedDateDisplay
                             value={item.timestamp}
                             withTime
-                            className="text-xs text-[color:var(--app-muted-foreground)]"
+                            className="text-xs text-(--app-muted-foreground)"
                         />
                     </div>
                 </div>

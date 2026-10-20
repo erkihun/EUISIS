@@ -32,6 +32,10 @@ class PublicFeedbackReportExportPolicy
 
     public function download(User $user, PublicFeedbackReportExport $export): bool
     {
+        // A Situation Room export was computed with its requester's grants: only they read it back.
+        if (($export->report ?? 'submissions') !== 'submissions') {
+            return (int) $export->requested_by === (int) $user->getKey() && $user->hasAnyPermission(['situation_room.export']);
+        }
         if (! $user->hasAnyPermission(['service_feedback.export'])) {
             return false;
         }

@@ -98,7 +98,7 @@ class ServiceTypeController extends Controller
 
         $action->execute($serviceType, $request->user(), $request->string('reason')->toString() ?: null, $request);
 
-        return to_route('service-types.index')->with('flash', ['message' => __('recycle-bin.deleted_successfully'), 'type' => 'success']);
+        return to_route('service-types.index')->with('flash', ['message' => __('recycle-bin.archived_successfully'), 'type' => 'success']);
     }
 
     public function restore(Request $request, string $serviceType, RestoreServiceTypeAction $action): RedirectResponse

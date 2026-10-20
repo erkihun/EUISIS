@@ -126,7 +126,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
     return (
         <Modal show={show} onClose={handleClose} maxWidth="2xl">
             <form onSubmit={handleSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-[color:var(--app-foreground)] mb-5">
+                <h2 className="text-lg font-semibold text-(--app-foreground) mb-5">
                     {t('organizationUnits.copyStructureTitle')}
                 </h2>
 
@@ -275,22 +275,22 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]"
+                            className="rounded-sm border-(--app-border-strong) text-primary"
                             checked={data.copy_positions}
                             onChange={(e) => setData('copy_positions', e.target.checked)}
                         />
-                        <span className="text-sm text-[color:var(--app-foreground)]">
+                        <span className="text-sm text-(--app-foreground)">
                             {t('organizationUnits.copyPositions')}
                         </span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]"
+                            className="rounded-sm border-(--app-border-strong) text-primary"
                             checked={data.copy_functional_relationships}
                             onChange={(e) => setData('copy_functional_relationships', e.target.checked)}
                         />
-                        <span className="text-sm text-[color:var(--app-foreground)]">
+                        <span className="text-sm text-(--app-foreground)">
                             {t('organizationUnits.copyFunctionalRelationships')}
                         </span>
                     </label>
@@ -299,14 +299,14 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                 {/* Preview */}
                 {data.source_organization_id && previewUnits.length > 0 && (
                     <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-950/20">
-                        <p className="text-xs font-semibold text-blue-700 dark:text-[color:var(--color-primary)] mb-2">
+                        <p className="text-xs font-semibold text-blue-700 dark:text-primary mb-2">
                             {t('organizationUnits.previewUnits')} ({previewUnits.length})
                         </p>
                         <ul className="space-y-1 max-h-40 overflow-y-auto">
                             {previewUnits.map((unit) => (
                                 <li
                                     key={unit.id}
-                                    className="text-sm text-[color:var(--app-foreground)]"
+                                    className="text-sm text-(--app-foreground)"
                                     style={{ paddingLeft: `${unit.depth * 1}rem` }}
                                 >
                                     {data.name_prefix}{unit.name_en}{data.name_suffix}
@@ -317,7 +317,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                 )}
 
                 {data.source_organization_id && !data.source_unit_id && previewUnits.length === 0 && !loadingSourceUnits && (
-                    <p className="mt-4 text-sm text-[color:var(--app-muted-foreground)]">
+                    <p className="mt-4 text-sm text-(--app-muted-foreground)">
                         {t('organizationUnits.allUnitsWillBeCopied')}
                     </p>
                 )}

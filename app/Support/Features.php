@@ -53,6 +53,10 @@ final class Features
     {
         return [
             'transport' => self::enabled('transport'),
+            'transport_nfc' => self::enabled('transport') && self::enabled('transport_nfc'),
+            'transport_offline' => self::enabled('transport') && self::enabled('transport_offline'),
+            'transport_settlement' => self::enabled('transport') && self::enabled('transport_settlement'),
+            'transport_gps' => self::enabled('transport') && self::enabled('transport_gps'),
             'court_cases' => self::enabled('court_cases'),
         ];
     }

@@ -15,12 +15,14 @@ use App\Models\DisciplinaryDecision;
 use App\Models\DisciplinaryEvidence;
 use App\Models\DisciplinaryRecommendation;
 use App\Models\DisciplinaryResponse;
+use App\Models\DisciplinarySuspension;
 use App\Models\DisciplinaryWitness;
 use App\Models\Employee;
 use App\Models\GrievanceCommittee;
 use App\Models\StatutoryDeadline;
 use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
+use App\Support\Legal\Regulation201;
 
 /**
  * Shapes disciplinary cases for Inertia. The accused's view leaves out the
@@ -43,6 +45,8 @@ final class DisciplinaryCasePresenter
             'status' => $case->status->value,
             'track' => $case->track->value,
             'severity' => $case->severity->value,
+            // Transitional provision: a case begun under the earlier regulation stays under it.
+            'legacy_regulation' => ($case->governing_regulation ?? Regulation201::CODE) !== Regulation201::CODE,
             'accused' => $this->employee($case->accused),
             'organization' => $case->organization ? ['id' => $case->organization->getKey(), 'name' => $this->name($case->organization, $locale)] : null,
             'charged_at' => $case->charged_at?->toIso8601String(),
@@ -54,7 +58,7 @@ final class DisciplinaryCasePresenter
     /** @return array<string, mixed> */
     public function detail(DisciplinaryCase $case, User $viewer, string $locale): array
     {
-        $case->loadMissing(['accused', 'organization', 'organizationUnit', 'position', 'committee', 'members.employee', 'charges', 'responses', 'evidence', 'witnesses', 'recommendations.votes', 'decisions', 'history.actor', 'deadlines']);
+        $case->loadMissing(['accused', 'organization', 'organizationUnit', 'position', 'committee', 'members.employee', 'charges', 'responses', 'evidence', 'witnesses', 'recommendations.votes', 'decisions.appeal', 'suspensions', 'history.actor', 'deadlines']);
         $asAccused = $this->access->isAccused($viewer, $case);
 
         $data = [
@@ -85,7 +89,7 @@ final class DisciplinaryCasePresenter
             'responses' => $case->responses->map(fn (DisciplinaryResponse $r): array => [
                 'id' => $r->getKey(), 'version' => $r->version, 'objection_ground' => $r->objection_ground?->value,
                 'objection_text' => $r->objection_text, 'objection_decision' => $r->objection_decision,
-                'defense_evidence_list' => $r->defense_evidence_list, 'acknowledged_name' => $r->acknowledged_name,
+                'defense_evidence_list' => $r->defense_evidence_list, 'acknowledged_name' => $r->acknowledged_name, 'pleas' => $r->pleas ?? [],
                 'received_at' => $r->received_at?->toIso8601String(),
             ])->values(),
             'evidence' => $case->evidence->map(fn (DisciplinaryEvidence $e): array => [
@@ -107,7 +111,31 @@ final class DisciplinaryCasePresenter
                     'reason' => $d->reason, 'decided_at' => $d->decided_at?->toIso8601String(),
                     'delivered_at' => $d->delivered_at?->toIso8601String(), 'delivery_method' => $d->delivery_method,
                     'effective_on' => $d->effective_on?->toDateString(),
+                    // Art. 29: while an appeal is pending the penalty is not executed.
+                    'execution_stayed' => $d->appeal !== null && $d->appeal->isPending(),
+                    'appeal' => $d->appeal === null ? null : [
+                        'notice_received_at' => $d->appeal->notice_received_at?->toIso8601String(),
+                        'record_copy_requested' => $d->appeal->record_copy_requested,
+                        'record_copy_delivered_at' => $d->appeal->record_copy_delivered_at?->toIso8601String(),
+                        'filed_on' => $d->appeal->filed_on?->toDateString(),
+                        'court_case_number' => $d->appeal->court_case_number,
+                        'outcome' => $d->appeal->outcome?->value,
+                        'outcome_decided_on' => $d->appeal->outcome_decided_on?->toDateString(),
+                        'outcome_received_at' => $d->appeal->outcome_received_at?->toIso8601String(),
+                        'outcome_summary' => $d->appeal->outcome_summary,
+                        'implemented_at' => $d->appeal->implemented_at?->toIso8601String(),
+                        'implementation_note' => $d->appeal->implementation_note,
+                    ],
                 ])->values(),
+            // Art. 12(1): the employee is told the reason in writing, so the accused sees it too.
+            'suspensions' => $case->suspensions->sortBy('starts_on')->map(fn (DisciplinarySuspension $s): array => [
+                'id' => $s->getKey(), 'reason' => $s->reason, 'without_pay' => $s->without_pay,
+                'starts_on' => $s->starts_on?->toDateString(), 'ends_on' => $s->ends_on?->toDateString(),
+                'served_at' => $s->served_at?->toIso8601String(), 'service_method' => $s->service_method,
+                'posting_ends_on' => $s->posting_ends_on?->toDateString(), 'in_force' => $s->isInForce(),
+                'lifted_on' => $s->lifted_on?->toDateString(), 'lift_reason' => $s->lift_reason,
+                'back_pay_status' => $s->back_pay_status, 'back_pay_paid_on' => $s->back_pay_paid_on?->toDateString(),
+            ])->values(),
             'deadlines' => $case->deadlines->sortBy('started_at')->map(fn (StatutoryDeadline $d): array => $d->toPresentation($locale))->values(),
         ];
 
@@ -153,6 +181,12 @@ final class DisciplinaryCasePresenter
         $canInvestigate = $this->access->canInvestigate($user, $case);
         $asAccused = $this->access->canRespondAsAccused($user, $case);
         $latest = $case->latestResponse();
+        $decision = $status === DisciplinaryCaseStatus::DecisionDelivered ? $case->currentDecision() : null;
+        $appeal = $decision === null ? null : $case->currentAppeal();
+        $manage = $this->access->canOperate($user, $case, 'discipline.manage');
+        $headActs = $this->access->canOperate($user, $case, 'discipline.decide') && $this->access->seat($user, $case) === null;
+        $inForce = $case->suspensionInForce();
+        $appealBlocksClose = $appeal !== null && ($appeal->isPending() || ($appeal->outcome->requiresImplementation() && $appeal->implemented_at === null));
 
         return [
             'addCharge' => $status === DisciplinaryCaseStatus::Draft && $this->access->canOperate($user, $case, 'discipline.create'),
@@ -172,7 +206,18 @@ final class DisciplinaryCasePresenter
             'deliver' => $status === DisciplinaryCaseStatus::Decided && $this->access->canOperate($user, $case, 'discipline.deliver_decision'),
             'discontinue' => $open && $this->access->canOperate($user, $case, 'discipline.charge'),
             'terminate' => ! $status->isFinal() && ! in_array($status, [DisciplinaryCaseStatus::Decided, DisciplinaryCaseStatus::DecisionDelivered], true) && $this->access->canOperate($user, $case, 'discipline.manage'),
-            'close' => $status === DisciplinaryCaseStatus::DecisionDelivered && $this->access->canOperate($user, $case, 'discipline.manage'),
+            'close' => $status === DisciplinaryCaseStatus::DecisionDelivered && $manage && ! $appealBlocksClose,
+            // Regulation 201/2018 Art. 12: suspension pending the case.
+            'suspend' => $headActs && $inForce === null && ! $status->isFinal() && $status !== DisciplinaryCaseStatus::DecisionDelivered,
+            'liftSuspension' => $headActs && $inForce !== null,
+            'suspensionBackPay' => $manage && $case->suspensions()->where('back_pay_status', DisciplinarySuspension::BACK_PAY_DUE)->exists(),
+            // Regulation 201/2018 Part Five: the employee's appeal to the Administrative Court.
+            'appealNotice' => $decision?->penalty !== null && $appeal === null && $manage,
+            'appealRecordCopy' => $appeal !== null && $appeal->isPending() && $appeal->record_copy_requested && $appeal->record_copy_delivered_at === null
+                && $this->access->canOperate($user, $case, 'discipline.deliver_decision'),
+            'appealFiling' => $appeal !== null && $appeal->isPending() && $appeal->filed_on === null && $manage,
+            'appealOutcome' => $appeal !== null && $appeal->isPending() && $manage,
+            'appealImplemented' => $appeal !== null && $appeal->outcome?->requiresImplementation() === true && $appeal->implemented_at === null && $manage,
         ];
     }
 

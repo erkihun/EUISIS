@@ -55,6 +55,23 @@ const CARDS: Record<string, CardDefinition[]> = {
         { key: 'layout', fields: ['table_density', 'button_style', 'card_radius', 'logo_position', 'sidebar_compact_default', 'show_breadcrumbs', 'show_language_switcher'] },
         { key: 'dashboard', fields: ['dashboard_layout', 'dashboard_refresh_seconds', 'default_page_size', 'sticky_table_headers'] },
     ],
+    situation_room: [
+        { key: 'display', fields: ['default_period', 'top_n', 'cache_seconds'] },
+        { key: 'privacy', fields: ['small_cell_threshold'] },
+        { key: 'wall', fields: ['wall_refresh_seconds', 'wall_rotation_seconds'] },
+        { key: 'attention', fields: ['complaint_open_days', 'tip_off_unassigned_days', 'daily_review_backlog_days', 'field_work_overdue_hours', 'vacancy_rate_percent'] },
+    ],
+    intelligence: [
+        { key: 'ai', fields: ['ai_enabled', 'ai_provider', 'ai_model', 'ai_timeout_seconds', 'ai_max_input_chars', 'ai_outbound_data_classes'] },
+        { key: 'features', fields: ['knowledge_enabled', 'forecasting_enabled', 'runbook_execution_enabled', 'telemetry_enabled'] },
+        { key: 'analysis', fields: ['cache_seconds', 'baseline_window_days', 'anomaly_sigma', 'retention_days', 'notify_min_severity'] },
+        { key: 'thresholds', fields: ['http_5xx_rate_percent', 'http_p95_latency_ms', 'queue_backlog_jobs', 'queue_oldest_job_minutes', 'failed_jobs_per_hour', 'exception_repeat_count', 'db_latency_ms', 'cache_latency_ms'] },
+    ],
+    assistant: [
+        { key: 'capabilities', fields: ['enabled', 'knowledge_enabled', 'analytics_enabled', 'diagnostics_enabled', 'support_enabled'] },
+        { key: 'limits', fields: ['max_message_chars', 'history_window', 'rate_limit_per_minute', 'daily_message_cap', 'retention_days'] },
+        { key: 'publicHelp', fields: (field) => field.key.startsWith('public_') },
+    ],
     // Global defaults only: template artwork and overrides are edited in ID Card Templates.
     id_cards: [
         { key: 'headerDefaults', fields: (field) => /^(city|bureau)_name_/.test(field.key) },

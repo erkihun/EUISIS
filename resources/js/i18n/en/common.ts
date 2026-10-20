@@ -94,6 +94,7 @@ const common = {
     dismiss: 'Dismiss',
     remove: 'Remove',
     replace: 'Replace',
+    requiredField: 'required',
     undo: 'Undo',
     user: 'User',
     optional: 'Optional',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Enums\PublicFeedbackTargetType;
+use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePublicServiceEntryRequest;
@@ -12,14 +13,21 @@ use App\Http\Requests\StoreServiceFeedbackRequest;
 use App\Models\EmployeeServiceFeedback;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
+use App\Services\ServiceFeedback\PublicEmployeeFeedbackIdentity;
+use App\Services\ServiceFeedback\PublicEvidencePolicy;
 use App\Services\ServiceFeedback\PublicFeedbackCategoryService;
 use App\Services\ServiceFeedback\PublicFeedbackFormToken;
+use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\ServiceFeedback\PublicFeedbackSubmissionService;
 use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
+use App\Services\ServiceFeedback\PublicOrganizationServiceContext;
 use App\Services\ServiceFeedback\PublicServiceFeedbackService;
+use App\Services\ServiceFeedback\PublicSubmissionPolicy;
 use App\Services\ServiceFeedback\TargetContext;
+use App\Support\Phone\PublicContactPhone;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -29,7 +37,8 @@ use Inertia\Response;
 use Throwable;
 
 /**
- * Public Feedback, Suggestion and Complaint — no authentication.
+ * Public Feedback, Tip-off (internal type `suggestion`) and Complaint — no
+ * authentication.
  *
  * One experience for both QR kinds: the employee feedback QR
  * (/service-feedback/{token}) and the organization feedback QR
@@ -37,9 +46,12 @@ use Throwable;
  * resolver turns it into the target server-side and nothing the browser
  * posts can replace it (brief §14, 17).
  *
- * Unknown, suspended, revoked and disabled tokens, and inactive
- * organizations, all produce the SAME "unavailable" page. Distinguishing them
- * would let anyone with a token list learn which targets exist.
+ * Unknown, suspended, revoked and disabled tokens, inactive employees and
+ * inactive organizations all produce the SAME "unavailable" page.
+ * Distinguishing them would let anyone with a token list learn which targets
+ * exist. Every submission resolves the token again, so a token revoked or an
+ * employee leaving service while the form was open blocks the send. The
+ * employee QR does not depend on the ID card's status.
  */
 class PublicServiceFeedbackController extends Controller
 {
@@ -52,6 +64,9 @@ class PublicServiceFeedbackController extends Controller
         private readonly PublicFeedbackFormToken $formTokens,
         private readonly PublicFeedbackCategoryService $categories,
         private readonly PublicFeedbackSettings $settings,
+        private readonly PublicSubmissionPolicy $policy,
+        private readonly PublicFeedbackQuestionnaire $questionnaire,
+        private readonly PublicOrganizationServiceContext $serviceContext,
     ) {}
 
     // ── Employee feedback QR ─────────────────────────────────────────────
@@ -104,6 +119,24 @@ class PublicServiceFeedbackController extends Controller
         return $this->storeFor($request, PublicFeedbackTargetType::Organization, $token, $this->entryType($type));
     }
 
+    /**
+     * Search the scanned institution's published services — used only when
+     * its catalog is too large to send with the page. The token decides the
+     * institution; an unknown, disabled or revoked token gets the same empty
+     * answer as a search with no match, so the endpoint reveals nothing.
+     */
+    public function searchOrganizationServices(Request $request, string $token): JsonResponse
+    {
+        $context = $this->settings->enabled() ? $this->resolver->resolveOrganizationToken($token) : null;
+        $term = is_string($request->query('q')) ? mb_substr($request->query('q'), 0, 100) : '';
+
+        $items = $context?->organizationTargetId === null
+            ? []
+            : $this->serviceContext->searchServices($context->organizationTargetId, $term, app()->getLocale());
+
+        return response()->json(['items' => $items])->header('Cache-Control', 'no-store');
+    }
+
     // ── Shared ───────────────────────────────────────────────────────────
 
     private function render(Request $request, PublicFeedbackTargetType $kind, string $token, ?ServiceFeedbackType $type): Response
@@ -134,8 +167,9 @@ class PublicServiceFeedbackController extends Controller
                 'receipt' => null,
                 'formToken' => null,
                 'enabledTypes' => $this->settings->enabledTypes(),
-                'identityMode' => $this->settings->identityMode()->value,
-                'allowAttachments' => $this->settings->allowAttachments(),
+                ...$this->formContract(),
+                ...$this->organizationForm(null, null, 'en'),
+                'call' => null,
             ]);
         }
 
@@ -143,24 +177,40 @@ class PublicServiceFeedbackController extends Controller
 
         $locale = app()->getLocale();
         $receipt = $request->session()->get('feedback_receipt');
+        $receiptContext = $request->session()->get('feedback_receipt_context');
+        $receiptMatches = is_array($receipt)
+            && is_string($receiptContext)
+            && hash_equals($this->receiptContext($kind, $token), $receiptContext)
+            && ($type === null || ($receipt['type'] ?? null) === $type->value);
+        $receipt = $receiptMatches ? $receipt : null;
 
         return Inertia::render('Public/ServiceFeedback', [
             'available' => true,
             'token' => $token,
-            'target' => $context->publicDisplay($locale),
+            // Employee: photo and full name only (PublicEmployeeFeedbackIdentity). Organization: unchanged.
+            'target' => $context->targetType === PublicFeedbackTargetType::Employee
+                ? PublicEmployeeFeedbackIdentity::fromContext($context, $token, $locale)->toArray()
+                : $context->publicDisplay($locale),
             'links' => $links,
             'serviceTypes' => $context->targetType === PublicFeedbackTargetType::Employee
                 ? $this->feedback->serviceOptions($context->contextPositionId, $locale)
                 : [],
             'categories' => $type === null ? [] : $this->categories->optionsFor($context, $type, $locale),
-            'submitted' => (bool) $request->session()->get('feedback_submitted', false),
+            'submitted' => $receiptMatches && (bool) $request->session()->get('feedback_submitted', false),
             'type' => $type?->value,
             'reference' => $receipt['reference'] ?? null,
             'receipt' => $receipt,
             'formToken' => $type === null ? null : $this->formTokens->issue(),
             'enabledTypes' => $this->settings->enabledTypes(),
-            'identityMode' => $this->settings->identityMode()->value,
-            'allowAttachments' => $this->settings->allowAttachments(),
+            ...$this->formContract(),
+            ...$this->organizationForm($context, $type, $locale),
+            /*
+             * The Call action: the institution's validated public number as a
+             * tel: link and a readable form — the scanned institution, or the
+             * one the scanned employee serves now. Never the employee's own
+             * number. Null (no Call button) when none is set or it is invalid.
+             */
+            'call' => PublicContactPhone::parse($context->extras['public_contact_phone'] ?? null)?->toPublicArray(),
         ]);
     }
 
@@ -188,10 +238,6 @@ class PublicServiceFeedbackController extends Controller
         /** @var array<string, mixed> $validated */
         $validated = $request->validated();
 
-        if (isset($validated['form_token']) && ! $this->formTokens->consume((string) $validated['form_token'])) {
-            return back()->withErrors(['form_token' => __('service-feedback.form_replayed')]);
-        }
-
         // A category is accepted only if this visitor could have been offered it.
         if (! empty($validated['category_id']) && ! $this->categories->isApplicable((string) $validated['category_id'], $context, $type)) {
             return back()->withErrors(['category_id' => __('service-feedback.category_not_applicable')]);
@@ -209,11 +255,43 @@ class PublicServiceFeedbackController extends Controller
             return back()->withErrors(['position_service_id' => __('service-feedback.service_not_provided')]);
         }
 
+        // Service information is checked against the institution the token resolved to, never one the browser names.
+        if ($context->targetType === PublicFeedbackTargetType::Organization && $context->organizationTargetId !== null) {
+            if (! empty($validated['service_id']) && $this->serviceContext->availableService((string) $validated['service_id'], $context->organizationTargetId) === null) {
+                return back()->withErrors(['service_id' => __('service-feedback.service_not_provided')]);
+            }
+
+            if (! empty($validated['organization_unit_id']) && $this->serviceContext->availableFeedbackUnit((string) $validated['organization_unit_id'], $context->organizationTargetId) === null) {
+                return back()->withErrors(['organization_unit_id' => __('service-feedback.validation.relevant_unit_invalid')]);
+            }
+
+            // The current public form always sends an explicit answer. Treat
+            // legacy posts that predate this field as GENERAL so they remain
+            // readable and submit safely during a rolling deployment.
+            if ($type !== ServiceFeedbackType::Feedback
+                && $this->serviceContext->hasFeedbackUnits($context->organizationTargetId)
+                && empty($validated['organization_unit_id'])
+                && array_key_exists('unit_selection_mode', $validated)
+                && ($validated['unit_selection_mode'] ?? null) !== 'GENERAL') {
+                return back()->withErrors(['organization_unit_id' => __('service-feedback.validation.relevant_unit_required')]);
+            }
+        }
+
+        $formToken = isset($validated['form_token']) ? (string) $validated['form_token'] : null;
+
+        if ($formToken !== null && ! $this->formTokens->consume($formToken)) {
+            return back()->withErrors(['form_token' => __('service-feedback.form_replayed')]);
+        }
+
         try {
             $entry = $this->submissions->submit($context, $type, $validated, $request);
         } catch (ValidationException $exception) {
+            $this->restoreFormToken($formToken);
+
             throw $exception;
         } catch (Throwable $exception) {
+            $this->restoreFormToken($formToken);
+
             // Brief §76–78: storage or database trouble rolls the submission back (nothing is kept) and the
             // citizen is told to try again. A query exception embeds the bound values, so it is logged by class
             // and SQLSTATE only; the citizen's words never reach the log.
@@ -228,7 +306,69 @@ class PublicServiceFeedbackController extends Controller
 
         return redirect()->to($legacyRedirect ? $links['landing'] : $links[$type->value])
             ->with('feedback_submitted', true)
-            ->with('feedback_receipt', $this->receipt($entry, $context));
+            ->with('feedback_receipt', $this->receipt($entry, $context))
+            ->with('feedback_receipt_context', $this->receiptContext($kind, $token));
+    }
+
+    /**
+     * What each form asks, from the one policy matrix, and what evidence it
+     * takes. The page renders from this; validation enforces the same object.
+     *
+     * @return array{requirements: array<string, array<string, bool|string>>, evidence: array<string, mixed>, tipTypes: list<string>}
+     */
+    private function formContract(): array
+    {
+        $requirements = [];
+        foreach (ServiceFeedbackType::cases() as $type) {
+            $requirements[$type->value] = $this->policy->for($type, $this->settings->allowAttachments())->toPublicArray();
+        }
+
+        return [
+            'requirements' => $requirements,
+            'evidence' => PublicEvidencePolicy::toPublicArray(),
+            'tipTypes' => PublicTipType::values(),
+        ];
+    }
+
+    /**
+     * What the organization form adds to a typed form page: the questionnaire
+     * of this type, the institution's services (or a search link, or nothing
+     * for free text) and its offices. Empty on the landing, on the employee
+     * QR and on an unavailable page.
+     *
+     * @return array{questionnaire: array<string, mixed>|null, serviceOptions: array<string, mixed>, offices: list<array{id: string, name: string}>}
+     */
+    private function organizationForm(?TargetContext $context, ?ServiceFeedbackType $type, string $locale): array
+    {
+        if ($context === null || $type === null || $context->targetType !== PublicFeedbackTargetType::Organization || $context->organizationTargetId === null) {
+            return ['questionnaire' => null, 'serviceOptions' => ['mode' => 'none', 'items' => []], 'offices' => []];
+        }
+
+        return [
+            'questionnaire' => $this->questionnaire->toPublicArray($type, $locale),
+            'serviceOptions' => $this->serviceContext->serviceOptions($context->organizationTargetId, $locale),
+            // Kept as `offices` for a non-breaking Inertia rollout. Values are
+            // now the safe, explicit public work-unit list.
+            'offices' => $this->serviceContext->feedbackUnitOptions($context->organizationTargetId, $locale),
+        ];
+    }
+
+    private function receiptContext(PublicFeedbackTargetType $kind, string $token): string
+    {
+        return hash('sha256', $kind->value."\0".$token);
+    }
+
+    private function restoreFormToken(?string $token): void
+    {
+        if ($token === null) {
+            return;
+        }
+
+        try {
+            $this->formTokens->restore($token);
+        } catch (Throwable $exception) {
+            Log::warning('Public feedback form token could not be restored', ['exception' => $exception::class]);
+        }
     }
 
     private function resolve(PublicFeedbackTargetType $kind, string $token): ?TargetContext
@@ -277,6 +417,7 @@ class PublicServiceFeedbackController extends Controller
             'submitFeedback' => route('public-feedback.organization.feedback.store', $token),
             'submitSuggestion' => route('public-feedback.organization.entry.store', ['token' => $token, 'type' => 'suggestion']),
             'submitComplaint' => route('public-feedback.organization.entry.store', ['token' => $token, 'type' => 'complaint']),
+            'serviceSearch' => route('public-feedback.organization.services', $token),
         ];
     }
 
@@ -293,6 +434,7 @@ class PublicServiceFeedbackController extends Controller
             'target_type' => $context->targetType->value,
             'target_name' => (string) $context->publicDisplay(app()->getLocale())['display_name'],
             'reference' => $entry->reference_number,
+            'tip_type' => $entry->tip_type?->value,
             'submitted_at' => $entry->submitted_at?->toIso8601String(),
         ];
     }

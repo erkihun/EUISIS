@@ -100,7 +100,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
 
                 <div className="grid gap-5 lg:grid-cols-3">
                     {/* QR card */}
-                    <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 text-center">
+                    <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-5 text-center">
                         {token === null ? (
                             <>
                                 {/*
@@ -111,7 +111,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                   * employee is not active, so the copy explains
                                   * which rather than implying a failure.
                                   */}
-                                <p className="py-6 text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="py-6 text-sm text-(--app-muted-foreground)">
                                     {unavailableReason === 'disabled'
                                         ? t('serviceFeedback.qrDisabledByAdmin')
                                         : t('serviceFeedback.qrInactiveEmployee')}
@@ -134,13 +134,13 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                     <img
                                         src={token.qr_svg}
                                         alt={t('serviceFeedback.employeeFeedbackQr')}
-                                        className="mx-auto mt-4 h-52 w-52 rounded-lg bg-[color:var(--app-surface)] p-2"
+                                        className="mx-auto mt-4 h-52 w-52 rounded-lg bg-(--app-surface) p-2"
                                     />
                                 )}
 
-                                <p className="mt-3 break-all text-xs text-[color:var(--app-muted-foreground)]">{token.url}</p>
+                                <p className="mt-3 break-all text-xs text-(--app-muted-foreground)">{token.url}</p>
 
-                                <p className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-3 text-xs text-(--app-muted-foreground)">
                                     {t('serviceFeedback.feedbackQrDescription')}
                                 </p>
 
@@ -164,13 +164,13 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                     <div className="grid grid-cols-2 gap-2">
                                         <a
                                             href={route('employees.feedback-qr.png', employee.id)}
-                                            className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                            className="rounded-lg border border-(--app-border-strong) px-3 py-1.5 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                                         >
                                             {t('serviceFeedback.exportQrPng')}
                                         </a>
                                         <a
                                             href={route('employees.feedback-qr.pdf', employee.id)}
-                                            className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                            className="rounded-lg border border-(--app-border-strong) px-3 py-1.5 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                                         >
                                             {t('serviceFeedback.exportQrPdf')}
                                         </a>
@@ -191,10 +191,10 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                     </button>
                                 </div>
 
-                                <dl className="mt-4 space-y-1.5 border-t border-[color:var(--app-border)] pt-3 text-left text-xs">
+                                <dl className="mt-4 space-y-1.5 border-t border-(--app-border) pt-3 text-left text-xs">
                                     <div className="flex justify-between">
-                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.lastScanned')}</dt>
-                                        <dd className="text-[color:var(--app-foreground)]">
+                                        <dt className="text-(--app-muted-foreground)">{t('serviceFeedback.lastScanned')}</dt>
+                                        <dd className="text-(--app-foreground)">
                                             <LocalizedDateDisplay value={token.last_scanned_at} withTime />
                                         </dd>
                                     </div>
@@ -206,21 +206,21 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                     {/* Feedback summary */}
                     <div className="space-y-5 lg:col-span-2">
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                                <div className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                            <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                                <div className="text-xs font-semibold text-(--app-muted-foreground)">
                                     {t('serviceFeedback.feedbackCount')}
                                 </div>
-                                <div className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">
+                                <div className="mt-1 text-2xl font-semibold text-(--app-foreground)">
                                     {stats.total}
                                 </div>
                             </div>
 
-                            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                                <div className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                            <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                                <div className="text-xs font-semibold text-(--app-muted-foreground)">
                                     {t('serviceFeedback.averageRating')}
                                 </div>
                                 <div className="mt-1 flex items-center gap-2">
-                                    <span className="text-2xl font-semibold text-[color:var(--app-foreground)]">
+                                    <span className="text-2xl font-semibold text-(--app-foreground)">
                                         {stats.average.toFixed(2)}
                                     </span>
                                     <RatingStars rating={Math.round(stats.average)} />
@@ -228,29 +228,29 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                             </div>
                         </div>
 
-                        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                            <h2 className="border-b border-[color:var(--app-border)] px-5 py-3 text-sm font-semibold text-[color:var(--app-foreground)]">
+                        <div className="rounded-card border border-(--app-border) bg-(--app-surface)">
+                            <h2 className="border-b border-(--app-border) px-5 py-3 text-sm font-semibold text-(--app-foreground)">
                                 {t('serviceFeedback.recentComments')}
                             </h2>
 
                             {stats.recent.length === 0 ? (
-                                <p className="px-5 py-6 text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="px-5 py-6 text-sm text-(--app-muted-foreground)">
                                     {t('serviceFeedback.noFeedbackYet')}
                                 </p>
                             ) : (
-                                <ul className="divide-y divide-[color:var(--app-border)]">
+                                <ul className="divide-y divide-(--app-border)">
                                     {stats.recent.map((item) => (
                                         <li key={item.id} className="px-5 py-3">
                                             <div className="flex items-center gap-2">
                                                 <RatingStars rating={item.rating} />
-                                                <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                <span className="text-xs text-(--app-muted-foreground)">
                                                     {item.service_type ?? '—'}
                                                 </span>
                                             </div>
                                             {item.comment && (
-                                                <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{item.comment}</p>
+                                                <p className="mt-1 text-sm text-(--app-foreground)">{item.comment}</p>
                                             )}
-                                            <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="mt-1 text-xs text-(--app-muted-foreground)">
                                                 <LocalizedDateDisplay value={item.created_at} withTime />
                                             </p>
                                         </li>

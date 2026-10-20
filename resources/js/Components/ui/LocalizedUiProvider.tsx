@@ -21,6 +21,7 @@ export default function LocalizedUiProvider({ children }: { children: ReactNode 
             range: t('common.paginationRange'),
             remove: t('common.remove'),
             replace: t('common.replace'),
+            required: t('common.requiredField'),
             reset: t('common.reset'),
             results: t('common.results'),
             search: t('common.search'),

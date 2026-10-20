@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSession;
+use App\Http\Middleware\AuthenticateTransportDevice;
 use App\Http\Middleware\BlockDisabledModules;
 use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnforceSessionIdleTimeout;
@@ -12,11 +13,14 @@ use App\Http\Middleware\EnsureMfaNotRequired;
 use App\Http\Middleware\EnsureProviderHasActiveAssignment;
 use App\Http\Middleware\EnsureProviderPortalUser;
 use App\Http\Middleware\EnsureProviderServiceEnabled;
+use App\Http\Middleware\EnsureProviderServicePermission;
 use App\Http\Middleware\EnsureProviderServiceScope;
 use App\Http\Middleware\EnsurePublicSiteEnabled;
 use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PrivateQrPageHeaders;
+use App\Http\Middleware\RecordRequestTelemetry;
 use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
@@ -56,9 +60,16 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::group([], __DIR__.'/../routes/health.php');
         },
     )
+    // Channel authorization runs behind the same gates as the pages that use it,
+    // so a session that has not finished MFA or a forced password change cannot subscribe.
+    ->withBroadcasting(__DIR__.'/../routes/channels.php', [
+        'middleware' => ['web', 'auth', 'mfa', 'force.password', 'admin.access', 'throttle:120,1'],
+    ])
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend(RequestCorrelationId::class);
         $middleware->prepend(SecurityHeaders::class);
+        // Addis One Intelligence: per-minute request counters in the cache, written after the response (terminable).
+        $middleware->append(RecordRequestTelemetry::class);
 
         /*
          * Session policy (docs/session-management.md):
@@ -86,8 +97,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.external' => ExternalApplicationGate::class,
             'api.idempotency' => EnforceIdempotencyKey::class,
             'provider.scope' => EnsureProviderServiceScope::class,
+            'transport.device' => AuthenticateTransportDevice::class,
             'provider.portal' => EnsureProviderPortalUser::class,
             'provider.service' => EnsureProviderServiceEnabled::class,
+            'provider.permission' => EnsureProviderServicePermission::class,
             'provider.portal.context' => SetProviderPortalContext::class,
             'provider.assigned' => EnsureProviderHasActiveAssignment::class,
             'cafeteria.portal' => EnsureCafeteriaPortalUser::class,
@@ -98,6 +111,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'force.password' => ForcePasswordChange::class,
             'mfa.setup' => EnsureMfaNotRequired::class,
             'public.site' => EnsurePublicSiteEnabled::class,
+            'qr.private' => PrivateQrPageHeaders::class,
         ]);
 
         /*
@@ -245,6 +259,20 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (TooManyRequestsHttpException $e, Request $request) use ($isApi, $apiError, $inertiaError) {
             if ($isApi($request)) {
                 return $apiError(__('errors.too_many_requests'), 429);
+            }
+
+            // A visitor sending feedback, a suggestion or a complaint from a QR page keeps the form
+            // and what they typed: the refusal comes back to the same page as a popup message,
+            // instead of an error page that replaced the form. A plain (non-Inertia) POST still
+            // gets the 429.
+            if ($request->isMethod('post') && $request->header('X-Inertia') && $request->routeIs(
+                'service-feedback.store',
+                'service-feedback.feedback.store',
+                'service-feedback.entry.store',
+                'public-feedback.organization.feedback.store',
+                'public-feedback.organization.entry.store',
+            )) {
+                return back()->with('flash', ['message' => __('service-feedback.too_many_submissions'), 'type' => 'error']);
             }
 
             return $inertiaError($request, 429, 'too_many_requests');

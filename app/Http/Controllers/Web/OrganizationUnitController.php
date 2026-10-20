@@ -198,7 +198,26 @@ class OrganizationUnitController extends Controller
             }
         }
 
+        // The KPI row, over the organizations this user may see (the same set as the
+        // tree). CASE sums rather than FILTER: the same SQL runs on PostgreSQL, SQLite and MySQL.
+        $unitStats = OrganizationUnit::query()
+            ->withTrashed()
+            ->when(! empty($accessibleOrgIds), fn ($q) => $q->whereIn('organization_id', $accessibleOrgIds))
+            ->selectRaw('sum(case when deleted_at is null then 1 else 0 end) as total')
+            ->selectRaw("sum(case when deleted_at is null and status = 'active' then 1 else 0 end) as active")
+            ->selectRaw("sum(case when deleted_at is null and status <> 'active' then 1 else 0 end) as inactive")
+            ->selectRaw('sum(case when deleted_at is not null then 1 else 0 end) as archived')
+            ->selectRaw('count(distinct case when deleted_at is null then organization_id end) as organizations')
+            ->first();
+
         return Inertia::render('OrganizationUnits/Index', [
+            'stats' => [
+                'total' => (int) ($unitStats->total ?? 0),
+                'active' => (int) ($unitStats->active ?? 0),
+                'inactive' => (int) ($unitStats->inactive ?? 0),
+                'archived' => (int) ($unitStats->archived ?? 0),
+                'organizations' => (int) ($unitStats->organizations ?? 0),
+            ],
             'organizationTree' => $organizationTree,
             'hasPublishedHierarchy' => $hasPublishedHierarchy,
             'usingDraftFallback' => $usingDraftFallback,
@@ -377,7 +396,7 @@ class OrganizationUnitController extends Controller
         $action->execute($organizationUnit, $request->user(), $request->string('reason')->toString() ?: null, $request);
 
         return redirect()->route('organization-units.index')
-            ->with('success', __('recycle-bin.deleted_successfully'));
+            ->with('success', __('recycle-bin.archived_successfully'));
     }
 
     public function restore(Request $request, string $organizationUnit, RestoreOrganizationUnitAction $action): RedirectResponse

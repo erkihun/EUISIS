@@ -32,8 +32,8 @@ export function ProgressMeter({ answered, required }: { answered: number; requir
     const width = required === 0 ? 0 : Math.round((answered / required) * 100);
     return (
         <div className="min-w-24">
-            <div className="h-1.5 rounded-full bg-[color:var(--app-surface-muted)]" role="presentation"><div className="h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${width}%` }} /></div>
-            <span className="mt-1 block text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{t('assessmentWorkspace.progressOf').replace(':answered', String(answered)).replace(':required', String(required))}</span>
+            <div className="h-1.5 rounded-full bg-(--app-surface-muted)" role="presentation"><div className="h-1.5 rounded-full bg-primary" style={{ width: `${width}%` }} /></div>
+            <span className="mt-1 block text-xs tabular-nums text-(--app-muted-foreground)">{t('assessmentWorkspace.progressOf').replace(':answered', String(answered)).replace(':required', String(required))}</span>
         </div>
     );
 }

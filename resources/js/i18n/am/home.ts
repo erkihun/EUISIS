@@ -90,7 +90,7 @@ const home = {
     trust3Title: 'የኦዲት መዝገብ',
     trust3Desc: 'ሚስጥራዊ ለውጦች፣ ማጽደቆች፣ የካርድ ሥራዎችና ግብይቶች ይመዘገባሉ።',
     trust4Title: 'ግላዊነትና መልሶ ማግኛ',
-    trust4Desc: 'የግል የሰነድ ማከማቻ፣ አነስተኛ ይፋዊ መረጃና መደበኛ ምትኬ።',
+    trust4Desc: 'የግል የሰነድ ማከማቻ፣ አነስተኛ ይፋዊ መረጃና መደበኛ ባካፕ።',
 
     // How it works
     howItWorksSectionTitle: 'መድረኩ እንዴት ይሠራል',
@@ -169,8 +169,16 @@ const home = {
 
     // Verify page
     verifyScanQr: 'QR ኮድ ይቃኙ',
+    verifyScanTitle: 'የQR ኮዱን ይቃኙ',
+    verifyScanIntro: 'ካሜራዎን በካርዱ ላይ ወደታተመው የQR ኮድ ያዙሩ።',
+    verifyScanHelp: 'በቀጥታ የተቃኘ ኮድ የካርዱን ውጤት ወዲያውኑ ይከፍታል። ካሜራው ካልተፈቀደ መለያ ቁጥሩን ይጠቀሙ።',
     verifyEnterReference: 'ወይም የካርዱን መለያ ቁጥር ያስገቡ',
+    verifyEnterReferenceTitle: 'የካርዱን መለያ ቁጥር ያስገቡ',
+    verifyReferenceIntro: 'መለያ ቁጥሩ በካርዱ ላይ ከQR ኮዱ ሥር ታትሟል።',
+    verifyReferenceHint: 'ከካርዱ የተቀዳ አገናኝ መለጠፍም ይሠራል።',
+    verifyOr: 'ወይም',
     verifyHowTitle: 'ማረጋገጫው እንዴት ይሠራል',
+    verifyHowSubtitle: 'ሦስት ደረጃዎች፤ ያለ ባለቤቱ ፈቃድ ምንም የግል መረጃ አይታይም።',
     verifyHowStep1: 'የQR ኮዱን ይቃኙ ወይም የካርዱን መለያ ቁጥር ያስገቡ።',
     verifyHowStep2: 'ካርዱ ንቁ መሆኑን ይመልከቱ።',
     verifyHowStep3: 'የባለቤቱ ዝርዝር መረጃ የሚታየው ለባለቤቱ በተላከ የአንድ ጊዜ ኮድ ከተረጋገጠ በኋላ ብቻ ነው።',

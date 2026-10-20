@@ -72,7 +72,7 @@ export default function IdCardPortraitFront({
     // header settings are intentionally not repeated above it.
     const amharicOrganizationName = organizationNameAm?.trim();
     const englishOrganizationName = organizationName?.trim();
-    const organizationNameClass = 'w-full whitespace-normal break-words font-bold leading-tight [overflow-wrap:anywhere]';
+    const organizationNameClass = 'w-full whitespace-normal wrap-break-word font-bold leading-tight wrap-anywhere';
     const watermark = status ? WATERMARK_STATUSES[status] : null;
 
     return (
@@ -86,7 +86,7 @@ export default function IdCardPortraitFront({
                 {!backgroundUrl && <div className="pointer-events-none absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(15,23,42,0.045) 1px, transparent 1px)', backgroundSize: '10px 10px' }} />}
                 {watermark && <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"><span className="font-black tracking-widest text-red-600/20" style={{ transform: 'rotate(-30deg)' }}>{watermark}</span></div>}
 
-                <div className="flex flex-col items-center justify-center bg-slate-900/[0.04] px-2 py-1 text-center" style={{ ...layoutStyle(cardTemplate, 'header'), ...headerStyle }}>
+                <div className="flex flex-col items-center justify-center bg-slate-900/4 px-2 py-1 text-center" style={{ ...layoutStyle(cardTemplate, 'header'), ...headerStyle }}>
                     {amharicOrganizationName && <p lang="am" className={organizationNameClass}>{amharicOrganizationName}</p>}
                     {englishOrganizationName && <p lang="en" className={organizationNameClass}>{englishOrganizationName}</p>}
                 </div>

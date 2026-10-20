@@ -58,7 +58,7 @@ class IdCardFieldImpactService
         $values = [];
         foreach ($fields as $field) {
             $value = match ($field) {
-                'name' => [$employee->metadata['name_am'] ?? ($employee->full_name ?: $employee->name_en), $employee->name_en ?: ($employee->metadata['name_en'] ?? $employee->full_name)],
+                'name' => [$employee->fullNameAm(), $employee->fullNameEn()],
                 'photo' => ($uri = app(IdCardAssetResolver::class)->resolvePhotoPath($employee->photo_path)) ? hash('sha256', $uri) : null,
                 'date_of_birth' => $employee->date_of_birth?->toDateString(),
                 'employment_type' => $employee->employment_type?->value,

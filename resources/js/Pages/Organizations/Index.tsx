@@ -157,14 +157,14 @@ export default function OrganizationsIndex({
             </TableCard>
 
             {hierarchyVersions.length > 0 && (
-                <section className="mt-4 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section className="mt-4 rounded-card border border-(--app-border) bg-(--app-surface) p-5">
                     <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('organizations.hierarchyVersion')}</h3>
-                        <Link href={route('hierarchy-versions.index')} className="rounded-lg border border-[color:var(--app-border)] px-3 py-1.5 text-sm font-medium text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">{t('organizations.viewAllHierarchyVersions')}</Link>
+                        <h3 className="font-semibold text-(--app-foreground)">{t('organizations.hierarchyVersion')}</h3>
+                        <Link href={route('hierarchy-versions.index')} className="rounded-lg border border-(--app-border) px-3 py-1.5 text-sm font-medium text-primary dark:text-primary">{t('organizations.viewAllHierarchyVersions')}</Link>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-3">
                         {hierarchyVersions.map((version) => (
-                            <Link key={version.id} href={route('hierarchy-versions.show', { hierarchyVersion: version.id })} className="flex items-center gap-2 rounded-card border border-[color:var(--app-border)] px-4 py-2.5 text-sm text-[color:var(--app-foreground)] hover:border-blue-400">
+                            <Link key={version.id} href={route('hierarchy-versions.show', { hierarchyVersion: version.id })} className="flex items-center gap-2 rounded-card border border-(--app-border) px-4 py-2.5 text-sm text-(--app-foreground) hover:border-blue-400">
                                 <span className="font-medium">{version.version_name}</span>
                                 <StatusBadge status={version.status} />
                             </Link>

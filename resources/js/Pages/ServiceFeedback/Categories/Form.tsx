@@ -17,15 +17,17 @@ export type CategoryRecord = {
     target_types: TargetType[];
     organization_id: string | null;
     is_active: boolean;
+    /** Offered on the public form; unticked = internal classification only. */
+    is_public_selectable: boolean;
     sort_order: number;
 };
 
 export type OrganizationOption = { id: string; code: string; name_en: string; name_am: string | null };
 
 export const SUBMISSION_TYPES: Array<{ value: SubmissionType; key: string }> = [
-    { value: 'feedback', key: 'typeFeedback' },
-    { value: 'suggestion', key: 'typeSuggestion' },
-    { value: 'complaint', key: 'typeComplaint' },
+    { value: 'feedback', key: 'adminTypeFeedback' },
+    { value: 'suggestion', key: 'adminTypeSuggestion' },
+    { value: 'complaint', key: 'adminTypeComplaint' },
 ];
 export const TARGET_TYPES: Array<{ value: TargetType; key: string }> = [
     { value: 'employee', key: 'targetEmployee' },
@@ -51,6 +53,7 @@ export default function CategoryForm({ record, organizations, canManageCityWide 
         target_types: record?.target_types ?? (['employee', 'organization'] as TargetType[]),
         organization_id: record?.organization_id ?? (canManageCityWide ? '' : organizations[0]?.id ?? ''),
         is_active: record?.is_active ?? true,
+        is_public_selectable: record?.is_public_selectable ?? true,
         sort_order: record?.sort_order ?? 0,
     });
 
@@ -102,20 +105,20 @@ export default function CategoryForm({ record, organizations, canManageCityWide 
                     </FormField>
 
                     <fieldset className="space-y-1.5">
-                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.appliesToTypes')}</legend>
+                        <legend className="text-sm font-medium text-(--app-foreground)">{t('serviceFeedback.appliesToTypes')}</legend>
                         {SUBMISSION_TYPES.map((item) => (
                             <label key={item.value} className="flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={form.data.submission_types.includes(item.value)} onChange={() => form.setData('submission_types', toggle(form.data.submission_types, item.value))} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
+                                <input type="checkbox" checked={form.data.submission_types.includes(item.value)} onChange={() => form.setData('submission_types', toggle(form.data.submission_types, item.value))} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />
                                 {t(`serviceFeedback.${item.key}`)}
                             </label>
                         ))}
                         {errors.submission_types && <p role="alert" className="text-sm text-red-600">{errors.submission_types}</p>}
                     </fieldset>
                     <fieldset className="space-y-1.5">
-                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.appliesToTargets')}</legend>
+                        <legend className="text-sm font-medium text-(--app-foreground)">{t('serviceFeedback.appliesToTargets')}</legend>
                         {TARGET_TYPES.map((item) => (
                             <label key={item.value} className="flex items-center gap-2 text-sm">
-                                <input type="checkbox" checked={form.data.target_types.includes(item.value)} onChange={() => form.setData('target_types', toggle(form.data.target_types, item.value))} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
+                                <input type="checkbox" checked={form.data.target_types.includes(item.value)} onChange={() => form.setData('target_types', toggle(form.data.target_types, item.value))} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />
                                 {t(`serviceFeedback.${item.key}`)}
                             </label>
                         ))}
@@ -125,12 +128,21 @@ export default function CategoryForm({ record, organizations, canManageCityWide 
                     <FormField id="category-sort" label={t('serviceFeedback.sortOrder')} error={errors.sort_order}>
                         {({ id, describedBy, invalid }) => <Input id={id} type="number" min={0} max={9999} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.sort_order} onChange={(e) => form.setData('sort_order', Number(e.target.value))} />}
                     </FormField>
-                    <label className="flex items-center gap-2 self-end pb-2 text-sm">
-                        <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
-                        {t('serviceFeedback.qrActive')}
-                    </label>
+                    <div className="space-y-2 self-end pb-2 text-sm">
+                        <label className="flex items-center gap-2">
+                            <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded-sm border-(--app-border-strong)" />
+                            {t('serviceFeedback.qrActive')}
+                        </label>
+                        <label className="flex items-start gap-2">
+                            <input type="checkbox" checked={form.data.is_public_selectable} onChange={(e) => form.setData('is_public_selectable', e.target.checked)} className="mt-0.5 h-4 w-4 rounded-sm border-(--app-border-strong)" aria-describedby="category-public-hint" />
+                            <span>
+                                {t('serviceFeedback.categoryPublicSelectable')}
+                                <span id="category-public-hint" className="block text-xs text-(--app-muted-foreground)">{t('serviceFeedback.categoryPublicSelectableHint')}</span>
+                            </span>
+                        </label>
+                    </div>
                 </div>
-                <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] px-6 py-4">
+                <div className="flex justify-end gap-2 border-t border-(--app-border) px-6 py-4">
                     <Button as={Link} href={route('service-feedback.categories.index')} variant="outline">{t('common.cancel')}</Button>
                     <Button type="submit" variant="primary" loading={form.processing}>{t('common.save')}</Button>
                 </div>

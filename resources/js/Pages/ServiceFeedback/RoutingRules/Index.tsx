@@ -16,6 +16,7 @@ type NamePair = { en: string; am: string | null } | null;
 type Rule = RuleRecord & {
     organization: NamePair;
     category: NamePair;
+    unit: NamePair;
     handler_name: string | null;
     handler_name_am: string | null;
     referenced: boolean;
@@ -116,25 +117,25 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                                 {rules.map((row) => (
                                     <Tr key={row.id}>
                                         <Td>
-                                            <div className="font-medium text-[color:var(--app-foreground)]">
+                                            <div className="font-medium text-(--app-foreground)">
                                                 {row.can_manage
                                                     ? <Link href={route('service-feedback.routing-rules.edit', row.id)} className="hover:underline">{pair(row.organization, t('serviceFeedback.cityWide'))}</Link>
                                                     : pair(row.organization, t('serviceFeedback.cityWide'))}
                                             </div>
                                         </Td>
                                         <Td>
-                                            <div className="text-sm">{row.target_type ? t(row.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee') : t('serviceFeedback.anyTargetType')} · {row.submission_type ? t(row.submission_type === 'complaint' ? 'serviceFeedback.typeComplaint' : 'serviceFeedback.typeSuggestion') : t('serviceFeedback.anySubmissionType')}</div>
-                                            <div className="text-xs text-[color:var(--app-muted-foreground)]">{pair(row.category, t('serviceFeedback.anyCategory'))}</div>
+                                            <div className="text-sm">{row.target_type ? t(row.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee') : t('serviceFeedback.anyTargetType')} · {row.submission_type ? t(row.submission_type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion') : t('serviceFeedback.anySubmissionType')}</div>
+                                            <div className="text-xs text-(--app-muted-foreground)">{pair(row.category, t('serviceFeedback.anyCategory'))} · {pair(row.unit, t('serviceFeedback.anyUnit'))}</div>
                                         </Td>
                                         <Td>
                                             <div className="font-medium">{locale === 'am' && row.handler_name_am ? row.handler_name_am : row.handler_name ?? '—'}</div>
-                                            <div className="text-xs text-[color:var(--app-muted-foreground)]">{t(`serviceFeedback.${HANDLER_TYPE_KEY[row.handler_type]}`)}{row.referenced && <> · {t('serviceFeedback.ruleReferenced')}</>}</div>
+                                            <div className="text-xs text-(--app-muted-foreground)">{t(`serviceFeedback.${HANDLER_TYPE_KEY[row.handler_type]}`)}{row.referenced && <> · {t('serviceFeedback.ruleReferenced')}</>}</div>
                                         </Td>
                                         <Td align="right" numeric>{row.priority}</Td>
                                         <Td>
                                             {row.effective_from || row.effective_to
                                                 ? <span className="text-sm"><LocalizedDateDisplay value={row.effective_from} /> → <LocalizedDateDisplay value={row.effective_to} /></span>
-                                                : <span className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.alwaysInEffect')}</span>}
+                                                : <span className="text-sm text-(--app-muted-foreground)">{t('serviceFeedback.alwaysInEffect')}</span>}
                                         </Td>
                                         <Td><StatusBadge status={row.is_active ? 'active' : 'inactive'} label={t(row.is_active ? 'serviceFeedback.qrActive' : 'serviceFeedback.qrStatusDisabled')} /></Td>
                                         <Td align="right">

@@ -14,8 +14,8 @@ type OrgType = { id: string; name_en: string; name_am: string | null; code: stri
 type HierarchyVersion = { id: string; version_name: string; status: string };
 const inputCls = cx(inputClassName, 'w-full');
 
-const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
-const helpCls = 'mt-1 text-xs text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
+const helpCls = 'mt-1 text-xs text-(--app-muted-foreground)';
 
 function Field({ label, error, children, help }: { label: string; error?: string; children: React.ReactNode; help?: string }) {
     return (
@@ -58,6 +58,7 @@ export default function CreateOrganization({
         logo: File | null;
         branding_primary_color: string;
         branding_secondary_color: string;
+        public_contact_phone: string;
     }>({
         organization_type_id: organizationTypes[0]?.id ?? '',
         code: '',
@@ -73,6 +74,7 @@ export default function CreateOrganization({
         logo: null,
         branding_primary_color: '',
         branding_secondary_color: '',
+        public_contact_phone: '',
     });
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -107,6 +109,7 @@ export default function CreateOrganization({
             relationship_type: data.relationship_type || null,
             branding_primary_color: data.branding_primary_color || null,
             branding_secondary_color: data.branding_secondary_color || null,
+            public_contact_phone: data.public_contact_phone.trim() || null,
         }));
         form.post(route('organizations.store'), {
             forceFormData: form.data.logo !== null,
@@ -147,7 +150,7 @@ export default function CreateOrganization({
             <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="w-full rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
+                    className="w-full rounded-panel border border-(--app-border) bg-(--app-surface) p-4 sm:p-6 lg:p-8"
                 >
                     {errorMessages.length > 0 && (
                         <div className="mb-6 rounded-card border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
@@ -187,6 +190,22 @@ export default function CreateOrganization({
                                     placeholder={t('organizations.legalBasisPlaceholder')}
                                     value={form.data.legal_basis_ref}
                                     onChange={(event) => form.setData('legal_basis_ref', event.target.value)}
+                                />
+                            </Field>
+                        </FormSection>
+
+                        {/* Public contact: the Call action on this institution's and its employees' feedback QR pages. */}
+                        <FormSection title={t('organizations.sectionPublicContact')} description={t('organizations.sectionPublicContactHelp')}>
+                            <Field label={t('organizations.publicContactPhone')} error={form.errors.public_contact_phone} help={t('organizations.publicContactPhoneHelp')}>
+                                <input
+                                    className={inputCls}
+                                    type="tel"
+                                    inputMode="tel"
+                                    autoComplete="off"
+                                    maxLength={32}
+                                    placeholder="011 123 4567"
+                                    value={form.data.public_contact_phone}
+                                    onChange={(event) => form.setData('public_contact_phone', event.target.value)}
                                 />
                             </Field>
                         </FormSection>
@@ -284,13 +303,13 @@ export default function CreateOrganization({
                                             <div className="text-xs font-medium uppercase text-blue-700 dark:text-blue-300">
                                                 {t('organizations.selectedParent')}
                                             </div>
-                                            <div className="mt-1 text-sm font-medium text-[color:var(--app-foreground)]">
+                                            <div className="mt-1 text-sm font-medium text-(--app-foreground)">
                                                 {selectedParent.code} - {locale === 'am'
                                                     ? (selectedParent.name_am || selectedParent.name_en)
                                                     : selectedParent.name_en}
                                             </div>
                                             {selectedParent.parent_path && (
-                                                <div className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                                <div className="mt-1 text-xs text-(--app-muted-foreground)">
                                                     {t('organizations.parentOrganizationPath')}: {selectedParent.parent_path}
                                                 </div>
                                             )}
@@ -351,7 +370,7 @@ export default function CreateOrganization({
                                                 <img
                                                     src={logoPreview}
                                                     alt={t('organizations.logoPreview')}
-                                                    className="h-14 w-14 rounded-lg border border-[color:var(--app-border)] object-contain p-1"
+                                                    className="h-14 w-14 rounded-lg border border-(--app-border) object-contain p-1"
                                                 />
                                                 <button
                                                     type="button"
@@ -367,9 +386,9 @@ export default function CreateOrganization({
                                             type="file"
                                             accept="image/jpeg,image/png,image/webp"
                                             onChange={handleLogoChange}
-                                            className="w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm text-[color:var(--app-foreground)] file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
+                                            className="w-full rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-sm text-(--app-foreground) file:mr-3 file:rounded-sm file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
                                         />
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="text-xs text-(--app-muted-foreground)">
                                             {t('organizations.logoHint')}
                                         </p>
                                         {form.errors.logo && (
@@ -385,7 +404,7 @@ export default function CreateOrganization({
                                                 type="color"
                                                 value={primary || '#1D4ED8'}
                                                 onChange={(event) => form.setData('branding_primary_color', event.target.value)}
-                                                className="h-9 w-10 cursor-pointer rounded border border-[color:var(--app-border-strong)] p-0.5"
+                                                className="h-9 w-10 cursor-pointer rounded-sm border border-(--app-border-strong) p-0.5"
                                             />
                                             <input
                                                 className={inputCls}
@@ -403,7 +422,7 @@ export default function CreateOrganization({
                                                 type="color"
                                                 value={secondary || '#F97316'}
                                                 onChange={(event) => form.setData('branding_secondary_color', event.target.value)}
-                                                className="h-9 w-10 cursor-pointer rounded border border-[color:var(--app-border-strong)] p-0.5"
+                                                className="h-9 w-10 cursor-pointer rounded-sm border border-(--app-border-strong) p-0.5"
                                             />
                                             <input
                                                 className={inputCls}
@@ -417,7 +436,7 @@ export default function CreateOrganization({
 
                                     {(primary || secondary) && (
                                         <div
-                                            className="flex items-center gap-2 rounded-lg border border-l-4 border-[color:var(--app-border)] px-3 py-2"
+                                            className="flex items-center gap-2 rounded-lg border border-l-4 border-(--app-border) px-3 py-2"
                                             style={{ borderLeftColor: primary || '#1D4ED8' }}
                                         >
                                             <div className="flex gap-1.5">
@@ -428,7 +447,7 @@ export default function CreateOrganization({
                                                     <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: secondary }} />
                                                 )}
                                             </div>
-                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="text-xs text-(--app-muted-foreground)">
                                                 {t('organizations.colorPreview')}
                                             </span>
                                         </div>
@@ -439,10 +458,10 @@ export default function CreateOrganization({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
+                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
                         <Link
                             href={route('organizations.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </Link>

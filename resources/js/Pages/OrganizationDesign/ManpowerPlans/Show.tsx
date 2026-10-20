@@ -16,7 +16,7 @@ import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Line = LineRecord & {
     id: string; calculated_fte: string | null; calculated_at: string | null; headcount: number | null; methodology_version_no: number | null; calculation_trace: Record<string, unknown> | null;
     unit: Named | null; proposal: { id: string; name_en: string; name_am: string | null } | null; task: Named | null; activity: Named | null;
-    occupation: (Named & { isco_code: string | null }) | null; profession: Named | null; methodology: { id: string; code: string; version_no: number } | null; adjusted_by: string | null;
+    occupation: (Named & { isco_code: string | null }) | null; profession: Named | null; methodology: { id: string; code: string; version_no: number } | null; adjusted_by: string | null; adjusted_at?: string | null;
 };
 type Requirement = {
     id: string; status: string; position_title_en: string; position_title_am: string | null; required_fte: string; approved_headcount: number | null;
@@ -66,8 +66,8 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
 
     const detail = (label: string, value: React.ReactNode) => (
         <div className="min-w-0">
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 break-words text-sm text-[color:var(--app-foreground)]">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 wrap-break-word text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
         </div>
     );
     const subjectOf = (x: { unit: Named | null; proposal: { name_en: string; name_am: string | null } | null }) => x.unit ? `${x.unit.code} · ${nameOf(x.unit, locale)}` : x.proposal ? `${tt('plans.proposedUnit')}: ${nameOf(x.proposal, locale)}` : '—';
@@ -110,19 +110,19 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                             {detail(tt('plans.reviewComment'), plan.review_comment)}
                             {detail(tt('plans.approvedBy'), plan.approved_by)}
                         </dl>
-                        {plan.status === 'under_review' && !can.approve && can.review && <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">{tt('plans.approveByOther')}</p>}
+                        {plan.status === 'under_review' && !can.approve && can.review && <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{tt('plans.approveByOther')}</p>}
                     </Card>
 
                     <Card>
                         <CardHeader className="flex flex-wrap items-center justify-between gap-3">
-                            <div><CardTitle>{tt('plans.lines')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('plans.linesHelp')}</p></div>
+                            <div><CardTitle>{tt('plans.lines')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('plans.linesHelp')}</p></div>
                             <div className="flex items-center gap-2">
                                 <span className={badgeClassName('info')}>{tt('plans.totalFte').replace(':fte', num(totals.calculated_fte))}</span>
                                 <span className={badgeClassName('success')}>{tt('plans.totalHeadcount').replace(':count', String(totals.headcount))}</span>
                                 {can.update && <Button size="sm" variant="primary" onClick={() => setLineEdit('new')}>{tt('plans.addLine')}</Button>}
                             </div>
                         </CardHeader>
-                        {lines.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('plans.noLines')}</p> : (
+                        {lines.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('plans.noLines')}</p> : (
                             <Table>
                                 <THead>
                                     <tr>
@@ -145,9 +145,14 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                                             <Td muted>{l.task ? `${l.task.code} · ${nameOf(l.task, locale)}` : '—'}</Td>
                                             <Td muted className="text-xs">{Object.entries(l.inputs ?? {}).map(([k, v]) => `${tt(`methodologies.inputNames.${k}`)}: ${v}`).join(' · ') || '—'}</Td>
                                             <Td muted className="text-xs">{l.workload_source_type ? <>{tt(`plans.workloadSources.${l.workload_source_type}`)}{l.workload_source_reference && <p>{l.workload_source_reference}</p>}</> : <span className={badgeClassName('warning')}>—</span>}</Td>
-                                            <Td align="right" className="font-mono text-xs">{l.calculated_fte ?? <span className={badgeClassName('warning')}>{tt('plans.notCalculated')}</span>}{l.methodology_version_no != null && <span className="ml-1 text-[color:var(--app-muted-foreground)]">v{l.methodology_version_no}</span>}</Td>
+                                            <Td align="right" className="font-mono text-xs">{l.calculated_fte ?? <span className={badgeClassName('warning')}>{tt('plans.notCalculated')}</span>}{l.methodology_version_no != null && <span className="ml-1 text-(--app-muted-foreground)">v{l.methodology_version_no}</span>}</Td>
                                             <Td align="right">{l.recommended_headcount ?? '—'}</Td>
-                                            <Td align="right">{l.approved_headcount ?? '—'}{l.adjustment_reason && <p className="text-xs text-[color:var(--app-muted-foreground)]">{l.adjustment_reason}</p>}</Td>
+                                            <Td align="right">
+                                                {l.approved_headcount ?? '—'}
+                                                {l.adjustment_reason && <p className="text-xs text-(--app-muted-foreground)">{l.adjustment_reason}</p>}
+                                                {/* The decision's evidence: who, when, on what reference. The calculated FTE beside it is never changed. */}
+                                                {l.adjusted_by && <p className="text-[11px] text-(--app-muted-foreground)">{l.adjusted_by}{l.adjusted_at && <> · <LocalizedDateDisplay value={l.adjusted_at} /></>}{l.adjustment_reference ? ` · ${l.adjustment_reference}` : ''}</p>}
+                                            </Td>
                                             <Td align="right">
                                                 <div className="flex justify-end">
                                                     <AppActionMenu
@@ -168,8 +173,8 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                     </Card>
 
                     <Card>
-                        <CardHeader><CardTitle>{tt('plans.requirements')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('plans.requirementsHelp')}</p></CardHeader>
-                        {requirements.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('plans.noRequirements')}</p> : (
+                        <CardHeader><CardTitle>{tt('plans.requirements')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('plans.requirementsHelp')}</p></CardHeader>
+                        {requirements.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('plans.noRequirements')}</p> : (
                             <Table>
                                 <THead>
                                     <tr>
@@ -184,7 +189,7 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                                 <TBody>
                                     {requirements.map((r) => (
                                         <Tr key={r.id}>
-                                            <Td>{subjectOf(r)}{!r.unit && r.proposal && r.status !== 'implemented' && <p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('plans.waitingForUnit')}</p>}</Td>
+                                            <Td>{subjectOf(r)}{!r.unit && r.proposal && r.status !== 'implemented' && <p className="text-xs text-(--app-muted-foreground)">{tt('plans.waitingForUnit')}</p>}</Td>
                                             <Td muted>{r.occupation ? `${r.occupation.isco_code ?? r.occupation.code} · ${nameOf(r.occupation, locale)}` : '—'}{r.profession ? ` › ${nameOf(r.profession, locale)}` : ''}</Td>
                                             <Td align="right" className="font-mono text-xs">{r.required_fte}</Td>
                                             <Td align="right">{r.approved_headcount ?? '—'}</Td>
@@ -205,12 +210,12 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                     <ValidationReport report={validation} compact />
                     <Card>
                         <CardHeader><CardTitle>{tt('plans.history')}</CardTitle></CardHeader>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {history.map((h, i) => (
                                 <li key={i} className="px-5 py-3 text-sm">
-                                    <p className="font-medium text-[color:var(--app-foreground)]">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
-                                    {h.reason && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{h.reason}</p>}
+                                    <p className="font-medium text-(--app-foreground)">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
+                                    {h.reason && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{h.reason}</p>}
                                 </li>
                             ))}
                         </ul>
@@ -233,14 +238,14 @@ function TraceModal({ line, onClose }: { line: Line; onClose: () => void }) {
     const nested = ['parameters', 'inputs'] as const;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" onClick={onClose}>
-            <div className="max-h-[80vh] w-full max-w-xl overflow-y-auto rounded-[var(--radius-card)] bg-[color:var(--app-surface)] p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('plans.trace')}</h2>
+            <div className="max-h-[80vh] w-full max-w-xl overflow-y-auto rounded-card bg-(--app-surface) p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{tt('plans.trace')}</h2>
                 <dl className="mt-4 space-y-2 text-sm">
-                    {rows.map(([k, v]) => <div key={k} className="grid grid-cols-[12rem_1fr] gap-2"><dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{k}</dt><dd className="break-all font-mono text-xs">{String(v)}</dd></div>)}
+                    {rows.map(([k, v]) => <div key={k} className="grid grid-cols-[12rem_1fr] gap-2"><dt className="text-xs font-medium text-(--app-muted-foreground)">{k}</dt><dd className="break-all font-mono text-xs">{String(v)}</dd></div>)}
                     {nested.map((group) => (
                         <div key={group}>
-                            <dt className="mt-3 text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{group}</dt>
-                            {Object.entries((line.calculation_trace?.[group] as Record<string, string>) ?? {}).map(([k, v]) => <div key={k} className="grid grid-cols-[12rem_1fr] gap-2"><dt className="text-xs text-[color:var(--app-muted-foreground)]">{k}</dt><dd className="font-mono text-xs">{v}</dd></div>)}
+                            <dt className="mt-3 text-xs font-semibold uppercase text-(--app-muted-foreground)">{group}</dt>
+                            {Object.entries((line.calculation_trace?.[group] as Record<string, string>) ?? {}).map(([k, v]) => <div key={k} className="grid grid-cols-[12rem_1fr] gap-2"><dt className="text-xs text-(--app-muted-foreground)">{k}</dt><dd className="font-mono text-xs">{v}</dd></div>)}
                         </div>
                     ))}
                 </dl>

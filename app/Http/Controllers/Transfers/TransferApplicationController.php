@@ -14,17 +14,23 @@ use App\Actions\Transfers\SelectTransferCandidateAction;
 use App\Actions\Transfers\WithdrawTransferApplicationAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transfers\StoreTransferApplicationRequest;
+use App\Http\Resources\Transfers\TransferApplicationResource;
 use App\Models\Employee;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
+use App\Models\TransferApplicationDocument;
 use App\Models\TransferApproval;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Closure;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TransferApplicationController extends Controller
 {
@@ -36,8 +42,13 @@ class TransferApplicationController extends Controller
 
         $scopeIds = $scopeService->accessibleOrganizationIds($user);
         $query = TransferApplication::query()
-            // Display fields only: never the applicant's contact or birth data (SEC-9).
-            ->with(['employee:id,employee_number,full_name,name_en', 'announcement.position', 'releasingOrganization', 'receivingOrganization'])
+            ->with([
+                'employee:id,employee_number,full_name,name_en',
+                'announcement.position',
+                'announcementPosition.position',
+                'releasingOrganization',
+                'receivingOrganization',
+            ])
             ->when(! $scopeService->isUnrestricted($user), function ($query) use ($scopeIds): void {
                 $query->where(function ($scoped) use ($scopeIds): void {
                     $scoped->whereIn('releasing_organization_id', $scopeIds)
@@ -46,11 +57,32 @@ class TransferApplicationController extends Controller
             })
             ->when($request->filled('announcement_id'), fn ($q) => $q->where('announcement_id', $request->string('announcement_id')))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            // Grouped so the OR cannot escape the scope and status filters above.
+            ->when($request->filled('search'), function ($q) use ($request): void {
+                $term = '%'.$request->string('search')->trim().'%';
+                $q->where(fn ($search) => $search
+                    ->where('application_number', ci_like_operator(), $term)
+                    ->orWhereHas('employee', fn ($employee) => $employee
+                        ->where('employee_number', ci_like_operator(), $term)
+                        ->orWhere('full_name', ci_like_operator(), $term)));
+            })
             ->latest();
 
+        $announcement = $request->filled('announcement_id')
+            ? TransferAnnouncement::query()->with('position')->find($request->string('announcement_id')->toString())
+            : null;
+
         return Inertia::render('Transfers/Applications/Index', [
-            'applications' => $query->paginate(20)->withQueryString(),
-            'filters' => $request->only('status', 'announcement_id'),
+            // The flat paginator shape ListPagination reads; a resource collection would nest it under meta.
+            'applications' => $query->paginate(20)->withQueryString()
+                ->through(fn (TransferApplication $application): array => TransferApplicationResource::make($application)->resolve()),
+            'filters' => $request->only('status', 'announcement_id', 'search'),
+            // Names the announcement a list was narrowed to, so the filter can be seen and cleared.
+            'announcement' => $announcement === null ? null : [
+                'id' => $announcement->id,
+                'title_en' => $announcement->position?->title_en,
+                'title_am' => $announcement->position?->title_am,
+            ],
         ]);
     }
 
@@ -59,35 +91,43 @@ class TransferApplicationController extends Controller
         $this->authorize('view', $transferApplication);
 
         $transferApplication->load([
-            // Display fields only: never the applicant's contact or birth data (SEC-9).
-            'employee:id,employee_number,full_name,name_en,current_assignment_id',
-            'employee.currentAssignment.position',
-            'announcement.organization',
+            'employee:id,employee_number,full_name,name_en',
+            'currentAssignment.position',
             'announcement.position',
+            'announcementPosition.position',
             'releasingOrganization',
             'receivingOrganization',
             'documents.verifiedBy',
             'screeningReviews.reviewer',
             'approvals.approver',
-            'ruleOverrides.requestedBy',
-            'ruleOverrides.approvedBy',
         ]);
 
         $user = Auth::user();
+        $can = fn (string $ability): bool => $user?->can($ability, $transferApplication) ?? false;
 
         return Inertia::render('Transfers/Applications/Show', [
-            'application' => $transferApplication,
+            'application' => TransferApplicationResource::make($transferApplication)->resolve(),
             'can' => [
-                'screen' => $user?->can('screen', $transferApplication) ?? false,
-                'select' => $user?->can('select', $transferApplication) ?? false,
-                'reject' => $user?->can('reject', $transferApplication) ?? false,
-                'withdraw' => $user?->can('withdraw', $transferApplication) ?? false,
-                'approveRelease' => $user?->can('approveRelease', $transferApplication) ?? false,
-                'approveReceiving' => $user?->can('approveReceiving', $transferApplication) ?? false,
-                'approveFinal' => $user?->can('approveFinal', $transferApplication) ?? false,
-                'complete' => $user?->can('complete', $transferApplication) ?? false,
+                'screen' => $can('screen'),
+                'select' => $can('select'),
+                'reject' => $can('reject'),
+                'withdraw' => $can('withdraw'),
+                'approveRelease' => $can('approveRelease'),
+                'approveReceiving' => $can('approveReceiving'),
+                'approveFinal' => $can('approveFinal'),
+                'complete' => $can('complete'),
             ],
         ]);
+    }
+
+    /** An applicant's evidence, for the staff who screen and approve the application. */
+    public function downloadDocument(TransferApplication $transferApplication, TransferApplicationDocument $document): StreamedResponse
+    {
+        $this->authorize('view', $transferApplication);
+        abort_unless($document->transfer_application_id === $transferApplication->id, 404);
+        abort_unless(Storage::disk('local')->exists($document->file_path), 404);
+
+        return Storage::disk('local')->download($document->file_path, $document->original_name);
     }
 
     public function store(
@@ -99,7 +139,7 @@ class TransferApplicationController extends Controller
 
         try {
             $application = $action->execute($announcement, $employee, Auth::user(), $request->validated());
-        } catch (\DomainException $e) {
+        } catch (DomainException $e) {
             throw ValidationException::withMessages(['announcement_id' => $e->getMessage()]);
         }
 
@@ -114,7 +154,9 @@ class TransferApplicationController extends Controller
     ): RedirectResponse {
         $this->authorize('screen', $transferApplication);
 
-        $action->execute($transferApplication, Auth::user(), $request->string('notes')->toString() ?: null);
+        if ($refused = $this->refusal(fn () => $action->execute($transferApplication, Auth::user(), $request->string('notes')->toString() ?: null))) {
+            return $refused;
+        }
 
         return back()->with('flash', ['message' => __('transfers.applicationScreened'), 'type' => 'success']);
     }
@@ -134,8 +176,10 @@ class TransferApplicationController extends Controller
                 $request->string('notes')->toString() ?: null,
                 $request->input('effective_date'),
             );
-        } catch (\DomainException $e) {
-            throw ValidationException::withMessages(['status' => $e->getMessage()]);
+        } catch (DomainException $e) {
+            // Posted from a button, not a form: a `status` field error has no field
+            // to sit under on the page, so the refusal is a toast.
+            return back()->with('flash', ['message' => $e->getMessage(), 'type' => 'error']);
         }
 
         return back()->with('flash', ['message' => __('transfers.applicationSelected'), 'type' => 'success']);
@@ -150,7 +194,9 @@ class TransferApplicationController extends Controller
 
         $request->validate(['reason' => ['required', 'string', 'max:1000']]);
 
-        $action->execute($transferApplication, Auth::user(), $request->string('reason'));
+        if ($refused = $this->refusal(fn () => $action->execute($transferApplication, Auth::user(), $request->string('reason')->trim()->toString()))) {
+            return $refused;
+        }
 
         return back()->with('flash', ['message' => __('transfers.applicationRejected'), 'type' => 'success']);
     }
@@ -162,8 +208,10 @@ class TransferApplicationController extends Controller
 
         try {
             $action->execute($transferApplication, Auth::user(), $data['reason']);
-        } catch (\DomainException $e) {
-            throw ValidationException::withMessages(['status' => $e->getMessage()]);
+        } catch (DomainException $e) {
+            // The page posts from a dialog, not a form, so a validation error under
+            // `status` had nowhere to render; the refusal is a toast.
+            return back()->with('flash', ['message' => $e->getMessage(), 'type' => 'error']);
         }
 
         return back()->with('flash', ['message' => __('transfers.applicationWithdrawn'), 'type' => 'success']);
@@ -177,8 +225,8 @@ class TransferApplicationController extends Controller
 
         try {
             $action->execute($transferApplication, Auth::user());
-        } catch (\DomainException $e) {
-            throw ValidationException::withMessages(['status' => $e->getMessage()]);
+        } catch (DomainException $e) {
+            return back()->with('flash', ['message' => $e->getMessage(), 'type' => 'error']);
         }
 
         return back()->with('flash', ['message' => __('transfers.transferCompleted'), 'type' => 'success']);
@@ -195,7 +243,9 @@ class TransferApplicationController extends Controller
             ->where('approval_type', 'release')
             ->firstOrFail();
 
-        $action->execute($approval, Auth::user());
+        if ($refused = $this->refusal(fn () => $action->execute($approval, Auth::user()))) {
+            return $refused;
+        }
 
         return back()->with('flash', ['message' => __('transfers.releaseApproved'), 'type' => 'success']);
     }
@@ -214,7 +264,9 @@ class TransferApplicationController extends Controller
             ->where('approval_type', 'release')
             ->firstOrFail();
 
-        $action->execute($approval, Auth::user(), $request->string('reason'));
+        if ($refused = $this->refusal(fn () => $action->execute($approval, Auth::user(), $request->string('reason')->trim()->toString()))) {
+            return $refused;
+        }
 
         return back()->with('flash', ['message' => __('transfers.releaseRejected'), 'type' => 'success']);
     }
@@ -230,7 +282,9 @@ class TransferApplicationController extends Controller
             ->where('approval_type', 'receiving')
             ->firstOrFail();
 
-        $action->execute($approval, Auth::user());
+        if ($refused = $this->refusal(fn () => $action->execute($approval, Auth::user()))) {
+            return $refused;
+        }
 
         return back()->with('flash', ['message' => __('transfers.receivingApproved'), 'type' => 'success']);
     }
@@ -249,7 +303,9 @@ class TransferApplicationController extends Controller
             ->where('approval_type', 'receiving')
             ->firstOrFail();
 
-        $action->execute($approval, Auth::user(), $request->string('reason'));
+        if ($refused = $this->refusal(fn () => $action->execute($approval, Auth::user(), $request->string('reason')->trim()->toString()))) {
+            return $refused;
+        }
 
         return back()->with('flash', ['message' => __('transfers.receivingRejected'), 'type' => 'success']);
     }
@@ -265,7 +321,9 @@ class TransferApplicationController extends Controller
             ->where('approval_type', 'final')
             ->firstOrFail();
 
-        $action->execute($approval, Auth::user());
+        if ($refused = $this->refusal(fn () => $action->execute($approval, Auth::user()))) {
+            return $refused;
+        }
 
         return back()->with('flash', ['message' => __('transfers.finalApproved'), 'type' => 'success']);
     }
@@ -284,8 +342,27 @@ class TransferApplicationController extends Controller
             ->where('approval_type', 'final')
             ->firstOrFail();
 
-        $action->execute($approval, Auth::user(), $request->string('reason'));
+        if ($refused = $this->refusal(fn () => $action->execute($approval, Auth::user(), $request->string('reason')->trim()->toString()))) {
+            return $refused;
+        }
 
         return back()->with('flash', ['message' => __('transfers.finalRejected'), 'type' => 'success']);
+    }
+
+    /**
+     * Runs a workflow step and turns a refusal into a toast. These steps are
+     * posted from buttons and dialogs, so a refusal has no field to sit under,
+     * and an uncaught DomainException (a second click, a stale page after
+     * someone else decided) used to end on the 500 page.
+     */
+    private function refusal(Closure $step): ?RedirectResponse
+    {
+        try {
+            $step();
+        } catch (DomainException $e) {
+            return back()->with('flash', ['message' => $e->getMessage(), 'type' => 'error']);
+        }
+
+        return null;
     }
 }

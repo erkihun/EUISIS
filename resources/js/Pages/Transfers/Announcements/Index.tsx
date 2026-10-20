@@ -8,7 +8,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useState } from 'react';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import EmptyState from '@/Components/EmptyState';
+import { AppActionMenu, FilterField, FilterPanel, Input, ListPagination, Select, Table, TableCard, TBody, Td, Th, THead, Tr, buttonClassName, type LaravelPageMeta } from '@/Components/ui';
 type AnnouncementCan = {
     update: boolean;
     publish: boolean;
@@ -38,12 +39,6 @@ type Props = {
 
 const STATUSES = ['draft', 'published', 'closed', 'cancelled'] as const;
 
-
-// Row actions use the shared small buttons.
-const btnGray = buttonClassName({ variant: 'outline', size: 'sm' });
-const btnBlue = buttonClassName({ variant: 'primary', size: 'sm' });
-const btnAmber = buttonClassName({ variant: 'outline', size: 'sm' });
-const btnRed = buttonClassName({ variant: 'destructiveOutline', size: 'sm' });
 
 export default function TransferAnnouncementsIndex({ announcements, filters, can }: Props) {
     const { locale, t } = useLocale();
@@ -76,7 +71,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
     async function handleClose(a: Announcement) {
         const { confirmed } = await confirm({
             title: t('transfers.closeAnnouncement'),
-            description: `${(useAmharic ? a.position?.title_am : null) ?? a.position?.title_en ?? ''} — ${(useAmharic ? a.organization?.name_am : null) ?? a.organization?.name_en ?? ''}`,
+            description: t('transfers.closeConfirmation'),
             confirmLabel: t('transfers.closeAnnouncement'),
             cancelLabel: t('common.cancel'),
             variant: 'warning',
@@ -92,9 +87,10 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
     async function handleCancel(a: Announcement) {
         const { confirmed } = await confirm({
             title: t('transfers.cancelAnnouncement'),
-            description: `${(useAmharic ? a.position?.title_am : null) ?? a.position?.title_en ?? ''} — ${(useAmharic ? a.organization?.name_am : null) ?? a.organization?.name_en ?? ''}`,
-            confirmLabel: t('transfers.cancelAnnouncement'),
-            cancelLabel: t('common.cancel'),
+            description: t('transfers.cancelConfirmation'),
+            // Both buttons would read "Cancel" otherwise.
+            confirmLabel: t('transfers.cancelAnnouncementConfirm'),
+            cancelLabel: t('transfers.keepAnnouncement'),
             variant: 'danger',
         });
         if (!confirmed) return;
@@ -159,135 +155,72 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                     </FilterField>
                 </FilterPanel>
 
-                {/* Table */}
-                <div className={tableContainerClassName}>
-                    <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
-                        <thead className={tableHeadClassName}>
-                            <tr>
-                                {[
-                                    t('transfers.organization'),
-                                    t('transfers.position'),
-                                    t('transfers.gradeLevel'),
-                                    t('transfers.vacancies'),
-                                    t('transfers.openingDate'),
-                                    t('transfers.closingDate'),
-                                    t('transfers.applicationsCount'),
-                                    t('common.status'),
-                                    t('common.actions'),
-                                ].map((h, i) => (
-                                    <th
-                                        key={h}
-                                        className={`whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)] ${i === 8 ? 'text-right' : ''}`}
-                                    >
-                                        {h}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className={tableBodyClassName}>
-                            {announcements.data.length === 0 ? (
-                                <tr>
-                                    <td colSpan={9} className={cx(tableCellClassName, 'text-center')}>
-                                        <div className="flex flex-col items-center gap-2 text-[color:var(--app-muted-foreground)]">
-                                            <svg className="h-10 w-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                                            </svg>
-                                            <p className="text-sm">{t('transfers.noAnnouncements')}</p>
-                                            {can.create && (
-                                                <Link href={route('transfer-announcements.create')} className={actionLinkClassName({ size: 'sm', className: 'mt-1' })}>
-                                                    {t('transfers.createAnnouncement')}
-                                                </Link>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                announcements.data.map((a) => (
-                                    <tr key={a.id} className={tableRowClassName}>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
-                                            {(useAmharic ? a.organization?.name_am : null) ?? a.organization?.name_en ?? '—'}
-                                        </td>
-                                        <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}>
+                <TableCard>
+                    <Table>
+                        <THead>
+                            <Tr>
+                                <Th>{t('transfers.position')}</Th>
+                                <Th>{t('transfers.organization')}</Th>
+                                <Th align="right">{t('transfers.vacancies')}</Th>
+                                <Th>{t('transfers.applicationPeriod')}</Th>
+                                <Th align="right">{t('transfers.applicationsCount')}</Th>
+                                <Th>{t('common.status')}</Th>
+                                <Th align="right"><span className="sr-only">{t('common.actions')}</span></Th>
+                            </Tr>
+                        </THead>
+                        <TBody>
+                            {announcements.data.map((a) => (
+                                <Tr key={a.id}>
+                                    <Td>
+                                        <Link href={route('transfer-announcements.show', a.id)} className="font-medium text-primary hover:underline">
                                             {(useAmharic ? a.position?.title_am : null) ?? a.position?.title_en ?? '—'}
-                                        </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{a.grade_level ?? '—'}</td>
-                                        <td className={cx(tableCellClassName, 'text-center font-semibold text-[color:var(--app-foreground)]')}>{a.number_of_vacancies}</td>
-                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.opening_date} /></td>
-                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.closing_date} /></td>
-                                        <td className={cx(tableCellClassName, 'text-center')}>
-                                            {a.applications_count > 0 ? (
-                                                <Link href={route('transfer-applications.index') + `?announcement_id=${a.id}`} className="font-semibold text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
-                                                    {a.applications_count}
-                                                </Link>
-                                            ) : (
-                                                <span className="text-[color:var(--app-muted-foreground)]">{a.applications_count}</span>
-                                            )}
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            <StatusBadge status={a.status} />
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            <div className="flex flex-wrap items-center justify-end gap-1.5">
-                                                <Link href={route('transfer-announcements.show', a.id)} className={btnGray}>
-                                                    {t('common.view')}
-                                                </Link>
-                                                {a.can.update && (
-                                                    <Link href={route('transfer-announcements.edit', a.id)} className={btnGray}>
-                                                        {t('common.edit')}
-                                                    </Link>
-                                                )}
-                                                {a.can.publish && (
-                                                    <button
-                                                        type="button"
-                                                        className={btnBlue}
-                                                        disabled={processing === a.id + 'publish'}
-                                                        onClick={() => handlePublish(a)}
-                                                    >
-                                                        {t('transfers.publishAnnouncement')}
-                                                    </button>
-                                                )}
-                                                {a.can.close && (
-                                                    <button
-                                                        type="button"
-                                                        className={btnAmber}
-                                                        disabled={processing === a.id + 'close'}
-                                                        onClick={() => handleClose(a)}
-                                                    >
-                                                        {t('transfers.closeAnnouncement')}
-                                                    </button>
-                                                )}
-                                                {a.can.cancel && (
-                                                    <button
-                                                        type="button"
-                                                        className={btnRed}
-                                                        disabled={processing === a.id + 'cancel'}
-                                                        onClick={() => handleCancel(a)}
-                                                    >
-                                                        {t('transfers.cancelAnnouncement')}
-                                                    </button>
-                                                )}
-                                                {a.can.delete && (
-                                                    <button
-                                                        type="button"
-                                                        className={btnRed}
-                                                        disabled={processing === a.id + 'delete'}
-                                                        onClick={() => handleDelete(a)}
-                                                    >
-                                                        {t('common.delete')}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                    </div>
+                                        </Link>
+                                        {a.grade_level && <span className="block text-xs text-(--app-muted-foreground)">{t('transfers.gradeLevel')}: {a.grade_level}</span>}
+                                    </Td>
+                                    <Td className="text-(--app-foreground)">{(useAmharic ? a.organization?.name_am : null) ?? a.organization?.name_en ?? '—'}</Td>
+                                    <Td numeric>{a.number_of_vacancies}</Td>
+                                    <Td className="whitespace-nowrap text-(--app-muted-foreground)">
+                                        <LocalizedDateDisplay value={a.opening_date} /> – <LocalizedDateDisplay value={a.closing_date} />
+                                    </Td>
+                                    <Td numeric>
+                                        {a.applications_count > 0 ? (
+                                            <Link href={`${route('transfer-applications.index')}?announcement_id=${a.id}`} className="font-semibold text-primary hover:underline">
+                                                {a.applications_count}
+                                            </Link>
+                                        ) : (
+                                            <span className="text-(--app-muted-foreground)">0</span>
+                                        )}
+                                    </Td>
+                                    <Td><StatusBadge status={a.status} /></Td>
+                                    <Td align="right">
+                                        <AppActionMenu
+                                            label={`${t('common.actions')}: ${(useAmharic ? a.position?.title_am : null) ?? a.position?.title_en ?? ''}`}
+                                            items={[
+                                                { label: t('common.view'), href: route('transfer-announcements.show', a.id) },
+                                                { label: t('common.edit'), href: route('transfer-announcements.edit', a.id), show: a.can.update },
+                                                { label: t('transfers.publishAnnouncement'), onClick: () => handlePublish(a), show: a.can.publish, disabled: processing !== null },
+                                                { label: t('transfers.applications'), href: `${route('transfer-applications.index')}?announcement_id=${a.id}`, show: a.status !== 'draft' },
+                                                { label: t('transfers.closeAnnouncement'), onClick: () => handleClose(a), show: a.can.close, variant: 'warning', separatorBefore: true, disabled: processing !== null },
+                                                { label: t('transfers.cancelAnnouncement'), onClick: () => handleCancel(a), show: a.can.cancel, variant: 'danger', disabled: processing !== null },
+                                                { label: t('common.delete'), onClick: () => handleDelete(a), show: a.can.delete, variant: 'danger', disabled: processing !== null },
+                                            ]}
+                                        />
+                                    </Td>
+                                </Tr>
+                            ))}
+                        </TBody>
+                    </Table>
+                    {announcements.data.length === 0 && (
+                        <EmptyState
+                            title={t('transfers.noAnnouncements')}
+                            description={filters.search || filters.status ? t('common.noMatchingRecords') : t('transfers.noAnnouncementsHint')}
+                            action={can.create && !filters.search && !filters.status ? (
+                                <Link href={route('transfer-announcements.create')} className={buttonClassName({ variant: 'primary' })}>{t('transfers.createAnnouncement')}</Link>
+                            ) : undefined}
+                        />
+                    )}
                     <ListPagination meta={announcements} />
-                </div>
-
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

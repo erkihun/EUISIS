@@ -82,7 +82,7 @@ class PerformanceCalibrationController extends PerformanceController
             'candidates' => $candidates->map(fn ($r) => ['id' => $r->getKey(), 'employee' => $r->employee?->full_name, 'employee_en' => $r->employee?->name_en, 'final_score' => $r->final_score, 'rating_en' => $r->rating_label_en, 'rating_am' => $r->rating_label_am])->all(),
             'can' => [
                 'manage' => $this->access->inScope($user, 'performance_calibration.manage', $session->organization_id),
-                'decide' => $user->can('performance_calibration.manage') && ($member || $session->committee_id === null),
+                'decide' => $user->can('performance_calibration.manage') && ($member || $session->committee_id === null && $this->access->inScope($user, 'performance_calibration.manage', $session->organization_id)),
                 'finalize' => $this->access->inScope($user, 'performance_calibration.finalize', $session->organization_id),
             ],
         ]);

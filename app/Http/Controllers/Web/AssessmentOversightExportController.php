@@ -89,7 +89,12 @@ class AssessmentOversightExportController extends Controller
                 return $this->streamCsv($filename, $headings, $source, $map);
             }
             if ($count > self::DOCUMENT_ROW_LIMIT) {
-                return back()->withErrors(['export' => __('assessments.oversight.export_too_large', ['limit' => self::DOCUMENT_ROW_LIMIT])]);
+                // The export is a plain link, so there is no form to show a field
+                // error against; the refusal has to arrive as a toast.
+                return back()->with('flash', [
+                    'message' => __('assessments.oversight.export_too_large', ['limit' => self::DOCUMENT_ROW_LIMIT]),
+                    'type' => 'error',
+                ]);
             }
             $rows = $source->get()->map($map)->all();
         } else {

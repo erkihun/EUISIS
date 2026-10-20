@@ -198,16 +198,16 @@ export default function UsersIndex({
                                         className={tableRowClassName}
                                     >
                                         <td className={tableCellClassName}>
-                                            <p className="font-medium text-[color:var(--app-foreground)]">
+                                            <p className="font-medium text-(--app-foreground)">
                                                 <span className="inline-flex items-center gap-2">
                                                     <UserAvatar src={u.profile_photo_url} name={u.name} size={32} />
                                                     <span>{u.name}</span>
                                                 </span>
                                             </p>
-                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="text-xs text-(--app-muted-foreground)">
                                                 {u.email}
                                             </p>
-                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="text-xs text-(--app-muted-foreground)">
                                                 {[u.phone_number, u.gender ? genderLabels[u.gender] : null]
                                                     .filter(Boolean)
                                                     .join(' · ')}
@@ -216,7 +216,7 @@ export default function UsersIndex({
                                         <td className={tableCellClassName}>
                                             <div className="flex flex-wrap gap-1">
                                                 {u.roles.length === 0 ? (
-                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <span className="text-xs text-(--app-muted-foreground)">
                                                         {t('users.noRoles')}
                                                     </span>
                                                 ) : (
@@ -229,7 +229,7 @@ export default function UsersIndex({
                                         <td className={tableCellClassName}>
                                             <StatusBadge status={u.status} />
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                             {u.last_login_at
                                                 ? <LocalizedDateDisplay value={u.last_login_at} withTime />
                                                 : t('users.notAvailable')}

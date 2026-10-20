@@ -75,7 +75,12 @@ final class GrievanceCaseAccessService
             return true;
         }
 
-        return $user->employee_id !== null && $grievance->respondent_employee_id === $user->employee_id;
+        // The person complained about, and the supervisor the matter was first raised with (Art. 33(1)),
+        // never handle, decide or read the committee's deliberations on it.
+        return $user->employee_id !== null && in_array((string) $user->employee_id, array_filter([
+            (string) $grievance->respondent_employee_id,
+            (string) $grievance->immediate_supervisor_employee_id,
+        ]), true);
     }
 
     /** Active, non-recused panel seat of the user on this stage. */
@@ -188,7 +193,8 @@ final class GrievanceCaseAccessService
 
     public function isOversight(User $user, Grievance $grievance): bool
     {
-        if ($this->isComplainant($user, $grievance)) {
+        // Oversight reads internal notes, minutes and votes: never for the complainant, the respondent or their supervisor.
+        if ($this->isConflicted($user, $grievance)) {
             return false;
         }
 

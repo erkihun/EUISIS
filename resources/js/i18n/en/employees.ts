@@ -161,6 +161,7 @@ const employees = {
     registryApplyHint: 'Press Filter to apply your changes.',
     registryDependentHint: 'Unit and position options follow the selected organization.',
     registryPagination: 'Employee registry pagination',
+    registryPageLimit: 'Only the first 10,000 matches can be paged through. Search by name or employee number, or filter by organization, to find someone further down.',
     registryLoadError: 'Could not load the employee registry. Please try again.',
     sortByColumn: 'Sort by :column',
     sortedAscending: 'Sorted ascending',

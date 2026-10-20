@@ -72,10 +72,10 @@ export default function OrganizationSearchSelect({
 
     return (
         <div>
-            <label className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
+            <label className="mb-1.5 block text-sm font-medium text-(--app-foreground)">
                 {label}
             </label>
-            <div className="space-y-2 rounded-panel border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] p-3">
+            <div className="space-y-2 rounded-panel border border-(--app-border-strong) bg-(--app-surface-muted) p-3">
                 <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
@@ -96,7 +96,7 @@ export default function OrganizationSearchSelect({
                         </option>
                     ))}
                 </select>
-                <div className="flex items-center justify-between gap-2 text-xs text-[color:var(--app-muted-foreground)]">
+                <div className="flex items-center justify-between gap-2 text-xs text-(--app-muted-foreground)">
                     <span>{loading ? t('common.loading') : `${options.length} ${t('common.results')}`}</span>
                     <span>{selectedOption ? optionLabel(selectedOption, locale) : t('hierarchyVersions.noEligibleParentOrganizationsFound')}</span>
                 </div>

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\OrganizationRelationshipType;
 use App\Enums\OrganizationUnitStatus;
+use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\OrganizationUnitType as OrganizationUnitTypeModel;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrganizationUnit extends Model
 {
+    use HasIntegrationEvents;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 
@@ -31,6 +33,7 @@ class OrganizationUnit extends Model
         'description_en',
         'description_am',
         'status',
+        'is_public_feedback_selectable',
         'effective_from',
         'effective_to',
         'sort_order',
@@ -46,6 +49,7 @@ class OrganizationUnit extends Model
         return [
             // unit_type is kept as a plain string to allow custom type codes beyond the enum
             'status' => OrganizationUnitStatus::class,
+            'is_public_feedback_selectable' => 'boolean',
             'effective_from' => 'date',
             'effective_to' => 'date',
             'metadata' => 'array',
@@ -110,5 +114,17 @@ class OrganizationUnit extends Model
     public function scopeForOrganization(Builder $query, string $organizationId): Builder
     {
         return $query->where('organization_id', $organizationId);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $unit): void {
+            // The earlier public feedback flow deliberately exposed service
+            // offices. All non-office unit types stay private unless opted in.
+            if ($unit->getAttribute('is_public_feedback_selectable') === null
+                && ($unit->unit_type === 'office' || $unit->institution_office_id !== null)) {
+                $unit->is_public_feedback_selectable = true;
+            }
+        });
     }
 }

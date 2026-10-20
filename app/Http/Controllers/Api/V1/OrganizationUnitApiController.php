@@ -10,6 +10,7 @@ use App\Models\Employee;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Services\Api\OrganizationDataPresenter;
+use App\Services\Integration\IntegrationAccessService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,18 +18,25 @@ use Illuminate\Http\Request;
  * Organization-unit reads for approved external applications.
  *
  * Payloads come from OrganizationDataPresenter; nothing sensitive is exposed.
+ * Units are bounded to the caller's organizations (F2).
  */
 class OrganizationUnitApiController extends Controller
 {
     use FiltersOrganizationData;
 
-    public function __construct(private readonly OrganizationDataPresenter $presenter) {}
+    public function __construct(
+        private readonly OrganizationDataPresenter $presenter,
+        private readonly IntegrationAccessService $access,
+    ) {}
 
     /** GET /api/v1/organization-units */
     public function index(Request $request): JsonResponse
     {
+        $this->access->assertHumanPermission($request, 'organization_units.read');
+
         $query = OrganizationUnit::query();
 
+        $this->access->scopeQuery($query, $request);
         $this->applyCodeFilter($query, $request, 'organization_unit_code', 'code');
         $this->applyStatusFilter($query, $request);
         $this->applyUpdatedAfter($query, $request);
@@ -38,8 +46,7 @@ class OrganizationUnitApiController extends Controller
         $organizationCode = $request->string('organization_code')->trim()->toString();
 
         if ($organizationCode !== '') {
-            $query->whereHas('organization', fn ($organization) => $organization
-                ->where('code', ci_like_operator(), $organizationCode));
+            $query->whereHas('organization', fn ($organization) => $this->whereCodeEquals($organization, 'code', $organizationCode));
         }
 
         $units = $query->orderBy('sort_order')->orderBy('name_en')->paginate($this->perPage($request));
@@ -51,14 +58,20 @@ class OrganizationUnitApiController extends Controller
     }
 
     /** GET /api/v1/organization-units/{unit} */
-    public function show(OrganizationUnit $unit): JsonResponse
+    public function show(Request $request, OrganizationUnit $unit): JsonResponse
     {
+        $this->access->assertHumanPermission($request, 'organization_units.read');
+        $this->access->assertOrganization($request, (string) $unit->organization_id);
+
         return response()->json(['data' => $this->presenter->unit($unit)]);
     }
 
     /** GET /api/v1/organization-units/{unit}/positions */
     public function positions(Request $request, OrganizationUnit $unit): JsonResponse
     {
+        $this->access->assertHumanPermission($request, 'positions.read');
+        $this->access->assertOrganization($request, (string) $unit->organization_id);
+
         $query = Position::query()
             ->where('organization_unit_id', $unit->getKey())
             ->withCount(['assignments as current_assignments_count' => fn ($assignments) => $assignments
@@ -84,6 +97,9 @@ class OrganizationUnitApiController extends Controller
     /** GET /api/v1/organization-units/{unit}/employees */
     public function employees(Request $request, OrganizationUnit $unit): JsonResponse
     {
+        $this->access->assertHumanPermission($request, 'employees.basic_read');
+        $this->access->assertOrganization($request, (string) $unit->organization_id);
+
         $query = Employee::query()
             ->select(OrganizationDataPresenter::EMPLOYEE_COLUMNS)
             ->with(['currentAssignment:id,employee_id,organization_id,organization_unit_id,position_id,assignment_status,is_current,effective_from,effective_to'])

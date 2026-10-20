@@ -14,9 +14,9 @@ export default function PayeesIndex({ rows, meta, filters, can }: { rows: Row[];
     const [search, setSearch] = useState(filters.search ?? '');
 
     const columns: ColumnDef<Row, unknown>[] = [
-        { id: 'provider', header: t('cafeteriaPolicy.provider'), cell: ({ row }) => <span className="font-medium">{label(row.original)} <span className="text-xs text-[color:var(--app-muted-foreground)]">{row.original.code}</span></span> },
+        { id: 'provider', header: t('cafeteriaPolicy.provider'), cell: ({ row }) => <span className="font-medium">{label(row.original)} <span className="text-xs text-(--app-muted-foreground)">{row.original.code}</span></span> },
         { id: 'contact', header: t('cafeteriaPolicy.contactPerson'), cell: ({ row }) => row.original.contact_person ?? '—' },
-        { id: 'networks', header: t('cafeteriaPolicy.networks'), cell: ({ row }) => <Link href={route('cafeteria.networks.index', { provider_id: row.original.id })} className="text-[color:var(--color-primary)] hover:underline">{row.original.network_count}</Link> },
+        { id: 'networks', header: t('cafeteriaPolicy.networks'), cell: ({ row }) => <Link href={route('cafeteria.networks.index', { provider_id: row.original.id })} className="text-primary hover:underline">{row.original.network_count}</Link> },
         { id: 'cafeterias', header: t('cafeteriaPolicy.cafeterias'), cell: ({ row }) => row.original.cafeteria_count },
         { id: 'status', header: t('cafeteriaPolicy.status'), cell: ({ row }) => <StatusPill status={row.original.status} /> },
         { id: 'actions', header: t('cafeteriaPolicy.actions'), cell: ({ row }) => can.manage ? (

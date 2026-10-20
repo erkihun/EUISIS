@@ -1,19 +1,24 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
 import OrganizationUnitTreeRow from '@/Components/organization-units/OrganizationUnitTreeRow';
 import EmptyState from '@/Components/EmptyState';
-import { Plus, SearchIcon } from '@/Components/Icons';
+import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationUnitTreeNode } from '@/types/organizationUnit';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { TableCard, buttonClassName, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+
+export type UnitFilters = { search: string; unitType: string; status: string };
+
 interface Props {
     units: OrganizationUnitTreeNode[];
+    filters: UnitFilters;
     canCreate: boolean;
     canUpdate: boolean;
     canDelete: boolean;
     canRestore: boolean;
     selectedOrgId: string;
+    title: ReactNode;
 }
 
 function collectAllIds(nodes: OrganizationUnitTreeNode[]): string[] {
@@ -27,205 +32,107 @@ function collectAllIds(nodes: OrganizationUnitTreeNode[]): string[] {
     return ids;
 }
 
-function matchesSearch(node: OrganizationUnitTreeNode, query: string): boolean {
-    const q = query.toLowerCase();
-    return (
-        node.name_en.toLowerCase().includes(q) ||
-        (node.name_am ?? '').includes(query) ||
-        node.code.toLowerCase().includes(q)
-    );
+function matchesFilters(node: OrganizationUnitTreeNode, { search, unitType, status }: UnitFilters): boolean {
+    const q = search.trim().toLowerCase();
+    if (q && !(node.name_en.toLowerCase().includes(q) || (node.name_am ?? '').includes(search.trim()) || node.code.toLowerCase().includes(q))) return false;
+    if (unitType && node.organization_unit_type_id !== unitType && node.unit_type !== unitType) return false;
+    const deleted = Boolean(node.is_deleted);
+    if (status === 'archived') return deleted || node.status === 'archived';
+    if (status) return !deleted && node.status === status;
+    return !deleted || node.status === 'archived';
 }
 
-function filterTree(nodes: OrganizationUnitTreeNode[], query: string): OrganizationUnitTreeNode[] {
-    if (!query.trim()) return nodes;
+/** Keeps a unit when it matches, or when a unit under it does (its ancestors stay, so the path is visible). */
+function filterTree(nodes: OrganizationUnitTreeNode[], filters: UnitFilters): OrganizationUnitTreeNode[] {
     return nodes
         .map((node) => {
-            const filteredChildren = filterTree(node.children ?? [], query);
-            if (matchesSearch(node, query) || filteredChildren.length > 0) {
-                return { ...node, children: filteredChildren };
-            }
+            const children = filterTree(node.children ?? [], filters);
+            if (matchesFilters(node, filters) || children.length > 0) return { ...node, children };
             return null;
         })
         .filter((n): n is OrganizationUnitTreeNode => n !== null);
 }
 
-function renderRows(
-    nodes: OrganizationUnitTreeNode[],
-    parentNumber: string,
-    expanded: Set<string>,
-    onToggle: (id: string) => void,
-    canCreate: boolean,
-    canUpdate: boolean,
-    canDelete: boolean,
-    canRestore: boolean,
-    selectedOrgId: string,
-): React.ReactNode[] {
-    const rows: React.ReactNode[] = [];
-    nodes.forEach((node, index) => {
-        const hierarchyNumber = parentNumber ? `${parentNumber}.${index + 1}` : `${index + 1}`;
-        rows.push(
-            <OrganizationUnitTreeRow
-                key={node.id}
-                node={node}
-                hierarchyNumber={hierarchyNumber}
-                expanded={expanded.has(node.id)}
-                onToggle={onToggle}
-                canCreate={canCreate}
-                canUpdate={canUpdate}
-                canDelete={canDelete}
-                canRestore={canRestore}
-                selectedOrgId={selectedOrgId}
-            />,
-        );
+function countNodes(nodes: OrganizationUnitTreeNode[]): number {
+    return nodes.reduce((total, node) => total + 1 + countNodes(node.children ?? []), 0);
+}
+
+function renderRows(nodes: OrganizationUnitTreeNode[], expanded: Set<string>, onToggle: (id: string) => void, props: Omit<Props, 'units' | 'filters' | 'title'>): ReactNode[] {
+    const rows: ReactNode[] = [];
+    for (const node of nodes) {
+        rows.push(<OrganizationUnitTreeRow key={node.id} node={node} expanded={expanded.has(node.id)} onToggle={onToggle} {...props} />);
         if (expanded.has(node.id) && node.children && node.children.length > 0) {
-            rows.push(
-                ...renderRows(
-                    node.children,
-                    hierarchyNumber,
-                    expanded,
-                    onToggle,
-                    canCreate,
-                    canUpdate,
-                    canDelete,
-                    canRestore,
-                    selectedOrgId,
-                ),
-            );
+            rows.push(...renderRows(node.children, expanded, onToggle, props));
         }
-    });
+    }
     return rows;
 }
 
-export default function OrganizationUnitTree({
-    units,
-    canCreate,
-    canUpdate,
-    canDelete,
-    canRestore,
-    selectedOrgId,
-}: Props) {
+/** The selected organization's units as a tree inside the shared list frame, filtered by the page's filter panel. */
+export default function OrganizationUnitTree({ units, filters, canCreate, canUpdate, canDelete, canRestore, selectedOrgId, title }: Props) {
     const { t } = useLocale();
-    const [search, setSearch] = useState('');
-    const [expanded, setExpanded] = useState<Set<string>>(() => {
-        const allIds = collectAllIds(units);
-        return new Set(allIds);
-    });
-
-    const filteredUnits = useMemo(() => filterTree(units, search), [units, search]);
-
     const allIds = useMemo(() => collectAllIds(units), [units]);
+    const [expanded, setExpanded] = useState<Set<string>>(() => new Set(allIds));
+
+    const filtered = useMemo(() => filterTree(units, filters), [units, filters]);
+    const filtering = Boolean(filters.search.trim() || filters.unitType || filters.status);
+    // A filter opens every path to a match; otherwise the operator's own expansion holds.
+    const effectiveExpanded = filtering ? new Set(collectAllIds(filtered)) : expanded;
+    const shown = countNodes(filtered);
 
     function toggleNode(id: string) {
         setExpanded((prev) => {
             const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-            }
+            if (next.has(id)) next.delete(id); else next.add(id);
             return next;
         });
     }
 
-    function expandAll() {
-        setExpanded(new Set(allIds));
-    }
-
-    function collapseAll() {
-        setExpanded(new Set());
-    }
-
     return (
-        <div className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="relative flex-1 min-w-48">
-                    <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
-                    <input
-                        type="text"
-                        className={cx(inputClassName, 'w-full pl-9 pr-3')}
-                        placeholder={t('organizationUnits.searchUnits')}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        type="button"
-                        onClick={expandAll}
-                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                    >
+        <TableCard
+            title={title}
+            description={`${shown} ${t('organizationUnits.unitCount').toLowerCase()}`}
+            actions={
+                <>
+                    <button type="button" onClick={() => setExpanded(new Set(allIds))} className={buttonClassName({ variant: 'outline', size: 'sm' })} disabled={filtering}>
                         {t('organizationUnits.expandAll')}
                     </button>
-                    <button
-                        type="button"
-                        onClick={collapseAll}
-                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                    >
+                    <button type="button" onClick={() => setExpanded(new Set())} className={buttonClassName({ variant: 'outline', size: 'sm' })} disabled={filtering}>
                         {t('organizationUnits.collapseAll')}
                     </button>
-                    {canCreate && (
-                        <Link
-                            href={route('organization-units.create', { organization_id: selectedOrgId })}
-                            className={buttonClassName({ variant: 'primary', size: 'sm' })}
-                        >
-                            <Plus className="h-3.5 w-3.5" />
+                </>
+            }
+        >
+            {filtered.length === 0 ? (
+                <EmptyState
+                    title={filtering ? t('organizationUnits.noUnitsMatchFilters') : t('organizationUnits.noOrganizationUnitsFound')}
+                    action={!filtering && canCreate ? (
+                        <Link href={route('organization-units.create', { organization_id: selectedOrgId })} className={buttonClassName({ variant: 'primary' })}>
+                            <Plus className="h-4 w-4" aria-hidden="true" />
                             {t('organizationUnits.addOrganizationUnit')}
                         </Link>
-                    )}
-                </div>
-            </div>
-
-            {filteredUnits.length === 0 ? (
-                <EmptyState
-                    title={t('organizationUnits.noOrganizationUnitsFound')}
-                    action={
-                        canCreate ? (
-                            <Link
-                                href={route('organization-units.create', { organization_id: selectedOrgId })}
-                                className={buttonClassName({ variant: 'primary' })}
-                            >
-                                <Plus className="h-4 w-4" />
-                                {t('organizationUnits.addOrganizationUnit')}
-                            </Link>
-                        ) : undefined
-                    }
+                    ) : undefined}
                 />
             ) : (
-                <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <table className={tableClassName}>
+                <div className="overflow-x-auto">
+                    <table className={cx(tableClassName, 'min-w-full')}>
                         <thead className={tableHeadClassName}>
                             <tr>
-                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
-                                    {t('common.name')}
-                                </th>
-                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
-                                    {t('organizationUnits.unitType')}
-                                </th>
-                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
-                                    {t('common.status')}
-                                </th>
-                                <th className={cx(tableHeaderCellClassName, 'text-center')}>
-                                    {t('organizationUnits.childUnits')}
-                                </th>
-                                <th className={cx(tableHeaderCellClassName, 'text-left')} />
+                                <th className={tableHeaderCellClassName}>{t('common.code')}</th>
+                                <th className={tableHeaderCellClassName}>{t('common.name')}</th>
+                                <th className={tableHeaderCellClassName}>{t('organizationUnits.unitType')}</th>
+                                <th className={tableHeaderCellClassName}>{t('common.status')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('organizationUnits.childUnits')}</th>
+                                <th className={tableHeaderCellClassName}>{t('common.effectiveFrom')}</th>
+                                <th className={tableHeaderCellClassName}><span className="sr-only">{t('common.actions')}</span></th>
                             </tr>
                         </thead>
                         <tbody className={tableBodyClassName}>
-                            {renderRows(
-                                filteredUnits,
-                                '',
-                                expanded,
-                                toggleNode,
-                                canCreate,
-                                canUpdate,
-                                canDelete,
-                                canRestore,
-                                selectedOrgId,
-                            )}
+                            {renderRows(filtered, effectiveExpanded, toggleNode, { canCreate, canUpdate, canDelete, canRestore, selectedOrgId })}
                         </tbody>
                     </table>
                 </div>
             )}
-        </div>
+        </TableCard>
     );
 }

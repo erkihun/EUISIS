@@ -94,7 +94,7 @@ export default function ServiceShow({ service, preview = false }: { service: Ser
                     {service.contact_info && (
                         <section aria-labelledby="contact-heading">
                             <h2 id="contact-heading" className={publicHeadingClass}>{t('publicSite.contact')}</h2>
-                            <p className="mt-2 text-gray-700 [overflow-wrap:anywhere] dark:text-slate-300">{service.contact_info}</p>
+                            <p className="mt-2 text-gray-700 wrap-anywhere dark:text-slate-300">{service.contact_info}</p>
                         </section>
                     )}
 

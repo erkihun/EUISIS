@@ -101,7 +101,7 @@ export default function VacanciesCreate({ organizations, units, establishments, 
         post(route('vacancy-announcements.store'));
     };
 
-    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const labelCls = 'block text-sm font-medium text-(--app-foreground)';
     const inputCls = cx(inputClassName, 'mt-1 block w-full');
     const errorCls = 'mt-1 text-xs text-red-500';
 
@@ -118,7 +118,7 @@ export default function VacanciesCreate({ organizations, units, establishments, 
             <Head title={t('vacancies.createAnnouncement')} />
 
             <div>
-                <form onSubmit={submit} className="space-y-6 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                <form onSubmit={submit} className="space-y-6 rounded-card border border-(--app-border) bg-(--app-surface) p-6">
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
                             <label className={labelCls}>{t('vacancies.titleEn')}</label>
@@ -179,7 +179,7 @@ export default function VacanciesCreate({ organizations, units, establishments, 
 
                     <section className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('vacancies.eligibilityRules')}</h3>
+                            <h3 className="text-base font-semibold text-(--app-foreground)">{t('vacancies.eligibilityRules')}</h3>
                             <button
                                 type="button"
                                 onClick={() => setData('eligibility_rules', [...data.eligibility_rules, ''])}
@@ -189,7 +189,7 @@ export default function VacanciesCreate({ organizations, units, establishments, 
                             </button>
                         </div>
                         {data.eligibility_rules.length === 0 && (
-                            <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>
+                            <p className="text-sm text-(--app-muted-foreground)">—</p>
                         )}
                         {data.eligibility_rules.map((rule, index) => (
                             <div key={index} className="flex gap-2">
@@ -217,8 +217,8 @@ export default function VacanciesCreate({ organizations, units, establishments, 
                     <section className="space-y-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('vacancies.includedPositions')}</h3>
-                                <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('vacancies.totalVacancySlots')}: {totalSlots}</p>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('vacancies.includedPositions')}</h3>
+                                <p className="text-sm text-(--app-muted-foreground)">{t('vacancies.totalVacancySlots')}: {totalSlots}</p>
                             </div>
                             <button type="button" onClick={addPosition} className={buttonClassName({ variant: 'outline' })}>
                                 {t('vacancies.addPosition')}
@@ -237,9 +237,9 @@ export default function VacanciesCreate({ organizations, units, establishments, 
                             ));
 
                             return (
-                                <div key={index} className="rounded-lg border border-[color:var(--app-border)] p-4">
+                                <div key={index} className="rounded-lg border border-(--app-border) p-4">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('vacancies.positionLine')} {index + 1}</span>
+                                        <span className="text-sm font-semibold text-(--app-foreground)">{t('vacancies.positionLine')} {index + 1}</span>
                                         {data.positions.length > 1 && (
                                             <button type="button" onClick={() => removePosition(index)} className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400">
                                                 {t('common.remove')}

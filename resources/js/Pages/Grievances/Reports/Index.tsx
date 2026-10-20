@@ -26,7 +26,7 @@ export default function Index({ report, reports, result, filters, minGroupSize, 
     };
 
     return <Workspace title={w('reports')}>
-        <p className="text-sm text-[color:var(--app-muted-foreground)]">{w('reports_note')}</p>
+        <p className="text-sm text-(--app-muted-foreground)">{w('reports_note')}</p>
         <TabLinks items={reports.map(r => ({ label: w(`report_${r}`), href: route('grievances.reports.index', { ...query, report: r }), active: r === report }))} />
         <ActionForm method="get" url={route('grievances.reports.index')} initial={{ ...query, report }} submitLabel={t('grievances.common.filter')} fields={[
             { name: 'from', label: t('grievances.common.from'), type: 'date' }, { name: 'to', label: t('grievances.common.to'), type: 'date' },
@@ -44,6 +44,6 @@ export default function Index({ report, reports, result, filters, minGroupSize, 
                     </Table>
                     : <Empty>{w('no_rows')}</Empty>}
         </Section>
-        {result.suppressed > 0 && <p role="note" className="text-sm text-[color:var(--app-muted-foreground)]">{fmt(w('suppressed'), { count: result.suppressed, min: minGroupSize })}</p>}
+        {result.suppressed > 0 && <p role="note" className="text-sm text-(--app-muted-foreground)">{fmt(w('suppressed'), { count: result.suppressed, min: minGroupSize })}</p>}
     </Workspace>;
 }

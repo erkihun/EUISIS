@@ -3,11 +3,11 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import OfficialAssessmentSheet, { type SheetColumn } from '@/Components/assessmentForms/OfficialAssessmentSheet';
 import { RecordStatus } from '@/Components/assessmentOversight/RecordStatus';
-import { Details, Field, Section, formatScore, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, titleOf } from '@/Components/performance/ui';
+import { Details, Field, Section, formatScore, inputCls, textareaCls, nameOf, pageCls, primaryBtn, secondaryBtn, titleOf } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Alert } from '@euisis/ui';
 import { Head, Link, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 
 type Option = { id: string; label_en: string; label_am: string | null; description_en: string | null; description_am: string | null; score: string | number };
 type Props = {
@@ -29,6 +29,8 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
     const form = useForm({ answers: response?.answers ?? {} as Record<string, string> });
     const signoff = useForm({});
     const absence = useForm({ reason: 'illness', note: '' });
+    // Marking a record unassessed ends the wait for ratings, so the form opens on request rather than on every record.
+    const [absenceOpen, setAbsenceOpen] = useState(false);
     const title = `${record.employee_snapshot.name} · ${nameOf(version, locale)}`;
     const count = version.sections.reduce((sum, section) => sum + section.criteria.filter((c) => c.is_required).length, 0);
     const answered = version.sections.reduce((sum, section) => sum + section.criteria.filter((c) => c.is_required && c.options.some((o) => String(o.id) === String(form.data.answers[c.id] ?? ''))).length, 0);
@@ -80,19 +82,19 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                                 <div className="space-y-5">
                                     {section.criteria.map((criterion, index) => (
                                         <fieldset key={criterion.id} disabled={!can.submit || form.processing} className="space-y-2">
-                                            <legend className="mb-2 text-sm font-semibold text-[color:var(--app-foreground)]">{si + 1}.{index + 1} {titleOf(criterion, locale)}{criterion.is_required && <span className="text-red-600"> *</span>}</legend>
+                                            <legend className="mb-2 text-sm font-semibold text-(--app-foreground)">{si + 1}.{index + 1} {titleOf(criterion, locale)}{criterion.is_required && <span className="text-red-600"> *</span>}</legend>
                                             {criterion.options.map((option) => {
                                                 const selected = String(form.data.answers[criterion.id] ?? '') === String(option.id);
                                                 const description = (locale === 'am' && option.description_am) || option.description_en;
                                                 return (
-                                                    <label key={option.id} className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-card border px-3.5 py-3 text-sm ${selected ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary-light)]/50' : 'border-[color:var(--app-border)] hover:bg-[color:var(--app-surface-muted)]'}`}>
+                                                    <label key={option.id} className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-card border px-3.5 py-3 text-sm ${selected ? 'border-primary bg-primary-light/50' : 'border-(--app-border) hover:bg-(--app-surface-muted)'}`}>
                                                         <input type="radio" name={`criterion-${criterion.id}`} value={option.id} checked={selected} required={criterion.is_required}
-                                                            onChange={() => form.setData('answers', { ...form.data.answers, [criterion.id]: String(option.id) })} className="mt-1 accent-[color:var(--color-primary)]" />
+                                                            onChange={() => form.setData('answers', { ...form.data.answers, [criterion.id]: String(option.id) })} className="mt-1 accent-primary" />
                                                         <span className="min-w-0 flex-1">
                                                             {labelOf(option) && <span className="block font-medium">{labelOf(option)}</span>}
-                                                            {description && <span className="block text-[color:var(--app-muted-foreground)]">{description}</span>}
+                                                            {description && <span className="block text-(--app-muted-foreground)">{description}</span>}
                                                         </span>
-                                                        <span className="shrink-0 tabular-nums text-[color:var(--app-muted-foreground)]">{formatScore(option.score)}</span>
+                                                        <span className="shrink-0 tabular-nums text-(--app-muted-foreground)">{formatScore(option.score)}</span>
                                                     </label>
                                                 );
                                             })}
@@ -102,8 +104,8 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                             </Section>
                         ))}
                         {can.submit && (
-                            <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur print-hidden">
-                                <span className="text-sm text-[color:var(--app-muted-foreground)]">{r('answered').replace(':answered', String(answered)).replace(':count', String(count))}</span>
+                            <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur-sm print-hidden">
+                                <span className="text-sm text-(--app-muted-foreground)">{r('answered').replace(':answered', String(answered)).replace(':count', String(count))}</span>
                                 <button disabled={form.processing || answered !== count} className={primaryBtn}>{r('submitRatings')}</button>
                             </div>
                         )}
@@ -127,8 +129,9 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                 </Section>
 
                 {can.unassessed && (
-                    <Section className="print-hidden" title={r('nonAssessmentTitle')}>
-                        <form className="grid gap-3 sm:max-w-xl" onSubmit={(e) => { e.preventDefault(); absence.post(route('assessment-records.unassessed', record.id), { preserveScroll: true }); }}>
+                    <Section className="print-hidden" title={r('nonAssessmentTitle')} description={r('nonAssessmentHelp')}>
+                        {!absenceOpen && <button type="button" className={secondaryBtn} onClick={() => setAbsenceOpen(true)}>{r('markUnassessed')}</button>}
+                        {absenceOpen && <form className="grid gap-3 sm:max-w-xl" onSubmit={(e) => { e.preventDefault(); absence.post(route('assessment-records.unassessed', record.id), { preserveScroll: true }); }}>
                             <Field label={r('reason')} htmlFor="absence-reason">
                                 <select id="absence-reason" className={inputCls} value={absence.data.reason} onChange={(e) => absence.setData('reason', e.target.value)}>
                                     <option value="illness">{r('illness')}</option>
@@ -136,10 +139,10 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                                 </select>
                             </Field>
                             <Field label={r('explanation')} htmlFor="absence-note">
-                                <textarea required id="absence-note" maxLength={2000} rows={3} className={inputCls} value={absence.data.note} onChange={(e) => absence.setData('note', e.target.value)} />
+                                <textarea required id="absence-note" maxLength={2000} rows={3} className={textareaCls} value={absence.data.note} onChange={(e) => absence.setData('note', e.target.value)} />
                             </Field>
-                            <div><button disabled={absence.processing} className={secondaryBtn}>{r('markUnassessed')}</button></div>
-                        </form>
+                            <div className="flex gap-2"><button disabled={absence.processing} className={secondaryBtn}>{r('markUnassessed')}</button><button type="button" className={secondaryBtn} onClick={() => setAbsenceOpen(false)}>{t('common.cancel')}</button></div>
+                        </form>}
                     </Section>
                 )}
             </div>

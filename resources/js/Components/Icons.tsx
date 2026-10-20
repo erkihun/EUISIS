@@ -869,3 +869,38 @@ export function MapPinned(p: IconProps) {
         </svg>
     );
 }
+
+export function MonitorIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <rect x="2" y="4" width="20" height="13" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+        </svg>
+    );
+}
+
+export function SmartphoneIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <rect x="6" y="2" width="12" height="20" rx="2" />
+            <path d="M11 18h2" />
+        </svg>
+    );
+}
+
+export function TabletIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <rect x="4" y="2" width="16" height="20" rx="2" />
+            <path d="M11 18h2" />
+        </svg>
+    );
+}
+
+export function ShieldIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6z" />
+        </svg>
+    );
+}

@@ -24,11 +24,19 @@ class TransportVehicleResource extends JsonResource
             'route' => $this->whenLoaded('route', fn () => $this->route ? [
                 'id' => $this->route->id,
                 'name_en' => $this->route->name_en,
+                'name_am' => $this->route->name_am,
                 'route_code' => $this->route->route_code,
             ] : null),
             'model' => $this->model,
             'year' => $this->year,
             'color' => $this->color,
+            'notes' => $this->notes,
+            'provider' => $this->whenLoaded('provider', fn () => $this->provider ? [
+                'id' => $this->provider->id,
+                'provider_code' => $this->provider->provider_code,
+                'name_en' => $this->provider->name_en,
+                'name_am' => $this->provider->name_am,
+            ] : null),
         ];
     }
 }

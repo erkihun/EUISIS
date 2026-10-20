@@ -162,16 +162,26 @@ final class EmployeeScoreCalculator
             $previous = $predecessor->supersedes_item_id;
         }
 
+        // Manual, document-evidence and survey figures are all entered by hand; an item
+        // of any of those sources reads the whole family (rows recorded before the
+        // source was stored precisely are MANUAL).
+        $manualFamily = [KpiDataSource::Manual, KpiDataSource::DocumentEvidence, KpiDataSource::Survey];
+        $sources = in_array($item->data_source_type, $manualFamily, true)
+            ? array_map(fn (KpiDataSource $s) => $s->value, $manualFamily)
+            : [$item->data_source_type->value];
+
         $rows = KpiActual::query()->whereIn('employee_performance_item_id', $chain)
-            ->where('source_type', $item->data_source_type->value)
+            ->whereIn('source_type', $sources)
             ->where('period_start', '>=', $from->toDateString())
             ->where('period_end', '<=', $to->toDateString())->orderBy('period_end')->get();
-        if ($item->data_source_type === KpiDataSource::DailyActivity) {
-            $priority = array_flip($chain);
-            $rows = $rows->sortBy(fn (KpiActual $row) => $priority[$row->employee_performance_item_id])
-                ->unique(fn (KpiActual $row) => $row->period_start->toDateString().':'.$row->period_end->toDateString())
-                ->sortBy(fn (KpiActual $row) => $row->period_end->toDateString())->values();
-        }
+
+        // One figure per period and source across the amendment chain: the newest
+        // item's row wins, so an entry re-made after an amendment is never added to
+        // the predecessor's entry for the same period.
+        $priority = array_flip($chain);
+        $rows = $rows->sortBy(fn (KpiActual $row) => $priority[$row->employee_performance_item_id])
+            ->unique(fn (KpiActual $row) => $row->period_start->toDateString().':'.$row->period_end->toDateString().':'.$row->source_key)
+            ->sortBy(fn (KpiActual $row) => $row->period_end->toDateString())->values();
 
         return [$chain, $rows];
     }

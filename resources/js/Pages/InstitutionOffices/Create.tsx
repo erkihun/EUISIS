@@ -103,12 +103,12 @@ export default function InstitutionOfficeCreate({
                         </div>
                     )}
 
-                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                    <section className="rounded-lg border border-(--app-border) bg-(--app-surface) p-6">
                         <div className="mb-4">
-                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
+                            <h2 className="text-base font-semibold text-(--app-foreground)">
                                 {t('institutionOffices.structuralPlacement')}
                             </h2>
-                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                            <p className="mt-1 text-sm text-(--app-muted-foreground)">
                                 {t('institutionOffices.createdAsOrganizationUnitHelp')}
                             </p>
                         </div>
@@ -129,7 +129,7 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-1 text-xs text-(--app-muted-foreground)">
                                     {t('institutionOffices.structuralOrganizationHelp')}
                                 </p>
                                 <FieldError>{errors.organization_id}</FieldError>
@@ -173,8 +173,8 @@ export default function InstitutionOfficeCreate({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                        <h2 className="mb-4 text-base font-semibold text-[color:var(--app-foreground)]">
+                    <section className="rounded-lg border border-(--app-border) bg-(--app-surface) p-6">
+                        <h2 className="mb-4 text-base font-semibold text-(--app-foreground)">
                             {t('institutionOffices.officeUnitIdentity')}
                         </h2>
 
@@ -229,12 +229,12 @@ export default function InstitutionOfficeCreate({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                    <section className="rounded-lg border border-(--app-border) bg-(--app-surface) p-6">
                         <div className="mb-4">
-                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
+                            <h2 className="text-base font-semibold text-(--app-foreground)">
                                 {t('institutionOffices.reportingRelationship')}
                             </h2>
-                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                            <p className="mt-1 text-sm text-(--app-muted-foreground)">
                                 {t('institutionOffices.functionalReportingNoManagementAccess')}
                             </p>
                         </div>
@@ -254,7 +254,7 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-1 text-xs text-(--app-muted-foreground)">
                                     {t('institutionOffices.functionalReportingHelp')}
                                 </p>
                                 <FieldError>{errors.functional_reporting_organization_id}</FieldError>
@@ -306,9 +306,9 @@ export default function InstitutionOfficeCreate({
 
 function PreviewRow({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-md border border-blue-100 bg-[color:var(--app-surface)] px-3 py-2 dark:border-blue-900/50">
+        <div className="rounded-md border border-blue-100 bg-(--app-surface) px-3 py-2 dark:border-blue-900/50">
             <div className="text-xs font-medium uppercase text-blue-700 dark:text-blue-300">{label}</div>
-            <div className="mt-1 text-sm font-semibold text-[color:var(--app-foreground)]">{value}</div>
+            <div className="mt-1 text-sm font-semibold text-(--app-foreground)">{value}</div>
         </div>
     );
 }

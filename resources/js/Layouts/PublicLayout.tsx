@@ -3,8 +3,10 @@ import { Head } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
+import AppToaster from '@/Components/ui/AppToaster';
 import PublicHeader from '@/Components/public/PublicHeader';
 import PublicFooter from '@/Components/public/PublicFooter';
+import PublicAssistant from '@/Components/public-ai/PublicAssistant';
 import { useBilingual } from '@/Components/public/bilingual';
 import '../../css/public-site.css';
 
@@ -30,6 +32,11 @@ interface Props {
      * never appear in search results whatever the SEO settings say.
      */
     noindex?: boolean;
+    /**
+     * Show the server's flash messages as popup toasts (default). A page that
+     * already shows its flash inline turns this off so a message is not shown twice.
+     */
+    flashToasts?: boolean;
     children: ReactNode;
 }
 
@@ -40,7 +47,7 @@ interface Props {
  * Management. The layout owns no content of its own — changing a menu label
  * or a page description never needs a code change.
  */
-export default function PublicLayout({ title, description, meta, noindex = false, children }: Props) {
+export default function PublicLayout({ title, description, meta, noindex = false, flashToasts = true, children }: Props) {
     const { t } = useLocale();
     const { getBoolean } = useSystemSettings();
     const pick = useBilingual();
@@ -64,24 +71,31 @@ export default function PublicLayout({ title, description, meta, noindex = false
                 (resources/css/public-site.css); motion follows the same
                 appearance setting the home page reads. */}
             <div
-                className="public-site flex min-h-screen flex-col bg-[color:var(--app-background)]"
+                className="public-site flex min-h-screen flex-col bg-(--app-background)"
                 data-motion={getBoolean('appearance.enable_ui_animations', true) ? 'on' : 'off'}
             >
                 <a
                     href="#main-content"
-                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-[color:var(--app-surface)] focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-[color:var(--app-foreground)] focus:shadow focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
+                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-60 focus:rounded-control focus:bg-(--app-surface) focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-(--app-foreground) focus:shadow-sm focus:outline-hidden focus:ring-2 focus:ring-primary"
                 >
                     {t('publicSite.skipToContent')}
                 </a>
 
                 <PublicHeader />
 
-                <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-none">
+                <main id="main-content" tabIndex={-1} className="flex-1 focus:outline-hidden">
                     {children}
                 </main>
 
                 <PublicFooter />
             </div>
+
+            {/* Popup messages for every public page: a submission's outcome must be
+                visible wherever the visitor has scrolled, on a phone as on a desktop. */}
+            <AppToaster flashToasts={flashToasts} />
+
+            {/* Addis One Help: the floating trigger; its panel loads on the first open. */}
+            <PublicAssistant />
         </LocalizedUiProvider>
     );
 }

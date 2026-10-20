@@ -1,16 +1,18 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
+import { Head } from '@inertiajs/react';
 import TransportScanPanel from '@/Components/transport/TransportScanPanel';
 import { useLocale } from '@/hooks/useLocale';
+import type { ProviderOption, TransportRoute, TransportRouteStop, TransportTrip } from '@/types/transport';
+import type { TerminalConfig } from '@/Components/transport/TransportScanPanel';
 
-export default function Scan({ providers = [], routes = [], trips = [] }: { providers?: any[]; routes?: any[]; trips?: any[] }) {
+export default function Scan({ providers, routes, trips, stops, terminal }: { providers: ProviderOption[]; routes: TransportRoute[]; trips: TransportTrip[]; stops: TransportRouteStop[]; terminal: TerminalConfig }) {
     const { t } = useLocale();
 
     return (
-        <AuthenticatedLayout>
-            <div className="space-y-4">
-                <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">{t('transport.scan_id')}</h1>
-                <TransportScanPanel providers={providers} routes={routes} trips={trips} scanRouteName="transport.scan.store" />
-            </div>
+        <AuthenticatedLayout header={<PageHeader title={t('transport.scan_id')} description={t('transport.scanIntro')} />}>
+            <Head title={t('transport.scan_id')} />
+            <TransportScanPanel providers={providers} routes={routes} trips={trips} stops={stops} terminal={terminal} scanRouteName="transport.scan.store" lookupRouteName="transport.scan.lookup" dispatchRouteName="transport.trips.dispatch" todayRouteName="transport.scan.today" />
         </AuthenticatedLayout>
     );
 }

@@ -39,9 +39,12 @@ readonly class TransferEligibilityService
             'passed' => $assignment !== null && $assignment->is_current,
             'reason_code' => 'no_current_assignment',
         ];
-        $rules['same_organization'] = [
-            'passed' => $settings->allow_cross_institution || $assignment?->organization_id !== $destinationOrganizationId,
-            'reason_code' => 'same_organization_not_allowed',
+        // "Allow cross-institution transfer" off keeps a transfer inside the
+        // employee's own institution; it was read the other way round and
+        // refused exactly the same-institution moves it should allow.
+        $rules['cross_institution'] = [
+            'passed' => $settings->allow_cross_institution || $assignment?->organization_id === $destinationOrganizationId,
+            'reason_code' => 'cross_institution_not_allowed',
         ];
         $rules['same_position'] = [
             'passed' => ! $settings->require_same_position || $assignment?->position_id === $destination?->id,

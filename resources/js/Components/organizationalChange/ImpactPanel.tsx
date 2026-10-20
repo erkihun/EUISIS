@@ -18,11 +18,11 @@ export default function ImpactPanel({ impact, live = true }: Props): JSX.Element
 
     if (!impact || impact.kind === 'none' || impact.kind === 'narrative') {
         return (
-            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+            <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">
                     {t('organizationalChangeRequests.impact.heading')}
                 </h2>
-                <p className="mt-2 text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="mt-2 text-sm text-(--app-muted-foreground)">
                     {t('organizationalChangeRequests.impact.noImpact')}
                 </p>
             </section>
@@ -86,31 +86,31 @@ export default function ImpactPanel({ impact, live = true }: Props): JSX.Element
     };
 
     return (
-        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-            <header className="flex items-center justify-between border-b border-[color:var(--app-border)] px-4 py-3">
-                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+        <section className="rounded-panel border border-(--app-border) bg-(--app-surface)">
+            <header className="flex items-center justify-between border-b border-(--app-border) px-4 py-3">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">
                     {t('organizationalChangeRequests.impact.heading')}
                 </h2>
-                <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                <span className="text-xs text-(--app-muted-foreground)">
                     {live ? t('organizationalChangeRequests.impact.live') : t('organizationalChangeRequests.impact.atApproval')}
                 </span>
             </header>
 
-            <dl className="grid grid-cols-2 gap-px bg-[color:var(--app-surface-muted)] sm:grid-cols-3 lg:grid-cols-4">
+            <dl className="grid grid-cols-2 gap-px bg-(--app-surface-muted) sm:grid-cols-3 lg:grid-cols-4">
                 {keys.map(key => {
                     const value = impact[key];
                     const unavailable = value === null;
 
                     return (
-                        <div key={key} className="bg-[color:var(--app-surface)] p-3">
-                            <dt className="text-xs leading-5 text-[color:var(--app-muted-foreground)]">
+                        <div key={key} className="bg-(--app-surface) p-3">
+                            <dt className="text-xs leading-5 text-(--app-muted-foreground)">
                                 {t(`organizationalChangeRequests.impact.${labelFor[key]}`)}
                             </dt>
                             <dd
                                 className={`mt-1 text-lg font-semibold tabular-nums ${
                                     unavailable
-                                        ? 'text-[color:var(--app-muted-foreground)]'
-                                        : 'text-[color:var(--app-foreground)]'
+                                        ? 'text-(--app-muted-foreground)'
+                                        : 'text-(--app-foreground)'
                                 }`}
                             >
                                 {unavailable ? '—' : String(value)}
@@ -121,7 +121,7 @@ export default function ImpactPanel({ impact, live = true }: Props): JSX.Element
             </dl>
 
             {isPosition && !hasEstablishment && (
-                <p className="border-t border-[color:var(--app-border)] px-4 py-2.5 text-xs leading-5 text-[color:var(--app-muted-foreground)]">
+                <p className="border-t border-(--app-border) px-4 py-2.5 text-xs leading-5 text-(--app-muted-foreground)">
                     {t('organizationalChangeRequests.impact.noEstablishmentData')}
                 </p>
             )}

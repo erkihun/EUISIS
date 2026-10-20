@@ -98,7 +98,7 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
     if (crumbs.length < 2) return null;
 
     return (
-        <nav aria-label="Breadcrumb" className={'min-w-0 overflow-x-auto text-xs text-[color:var(--app-muted-foreground)] ' + className}>
+        <nav aria-label="Breadcrumb" className={'min-w-0 overflow-x-auto text-xs text-(--app-muted-foreground) ' + className}>
             <ol className="flex min-w-max items-center gap-1.5 whitespace-nowrap">
                 {crumbs.map((crumb, index) => {
                     const last = index === crumbs.length - 1;
@@ -106,9 +106,9 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
                         <li key={index} className="flex min-w-0 items-center gap-1.5">
                             {index > 0 && <ChevronRight className="h-3 w-3 shrink-0 opacity-60" aria-hidden="true" />}
                             {last ? (
-                                <span aria-current="page" className="max-w-64 truncate font-medium text-[color:var(--app-foreground)]">{crumb.label}</span>
+                                <span aria-current="page" className="max-w-64 truncate font-medium text-(--app-foreground)">{crumb.label}</span>
                             ) : crumb.href ? (
-                                <Link href={crumb.href} className="max-w-48 truncate rounded transition-colors hover:text-[color:var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]">
+                                <Link href={crumb.href} className="max-w-48 truncate rounded-sm transition-colors hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary">
                                     {crumb.label}
                                 </Link>
                             ) : (

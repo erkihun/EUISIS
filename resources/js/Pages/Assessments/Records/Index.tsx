@@ -5,6 +5,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { RecordStatus } from '@/Components/assessmentOversight/RecordStatus';
 import { AppFilterBar, Field, FilterField, Section, Stat, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, formatScore, type Paginator } from '@/Components/performance/ui';
 import { cx } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -73,8 +74,8 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                                 </select>
                             </Field>
                             <fieldset className="md:col-span-2">
-                                <legend className="mb-2 text-sm font-medium text-[color:var(--app-foreground)]">{t('assessments.records.peers')}</legend>
-                                <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-[color:var(--app-border)] p-3 sm:grid-cols-2">
+                                <legend className="mb-2 text-sm font-medium text-(--app-foreground)">{t('assessments.records.peers')}</legend>
+                                <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-(--app-border) p-3 sm:grid-cols-2">
                                     {users.map((u) => (
                                         <label key={u.id} className="flex items-center gap-2 text-sm">
                                             <input type="checkbox" checked={form.data.evaluator_ids.includes(Number(u.id))}
@@ -133,12 +134,12 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                     </>}>
                         {records.data.map((r) => (
                             <tr key={r.id}>
-                                <td className={tdCls}>{r.employee_snapshot.name}<div className="text-xs text-[color:var(--app-muted-foreground)]">{r.employee_snapshot.number}</div></td>
-                                <td className={tdCls}>{nameOf(r.version, locale)} · v{r.version.version_no}<div className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={r.period_start} /> – <LocalizedDateDisplay value={r.period_end} /></div></td>
+                                <td className={tdCls}><Link className="font-medium text-primary hover:underline" href={route('assessment-records.show', r.id)}>{r.employee_snapshot.name}</Link><div className="text-xs text-(--app-muted-foreground)">{r.employee_snapshot.number}</div></td>
+                                <td className={tdCls}>{nameOf(r.version, locale)} · v{r.version.version_no}<div className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={r.period_start} /> – <LocalizedDateDisplay value={r.period_end} /></div></td>
                                 <td className={`${tdCls} tabular-nums`}>{r.evaluators ? `${r.evaluators.submitted}/${r.evaluators.total}` : '—'}</td>
                                 <td className={tdCls}><RecordStatus value={r.status} /></td>
-                                <td className={`${tdCls} tabular-nums`}>{r.percentage == null ? '—' : `${formatScore(r.percentage)}%`}{r.contribution != null && <div className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.records.contribution')}: {formatScore(r.contribution)}</div>}</td>
-                                <td className={`${tdCls} text-right`}><Link className={linkBtn} href={route('assessment-records.show', r.id)}>{t('assessments.records.open')}</Link></td>
+                                <td className={`${tdCls} tabular-nums`}>{r.percentage == null ? '—' : `${formatScore(r.percentage)}%`}{r.contribution != null && <div className="text-xs text-(--app-muted-foreground)">{t('assessments.records.contribution')}: {formatScore(r.contribution)}</div>}</td>
+                                <td className={`${tdCls} text-right`}><div className="flex justify-end"><AppActionMenu items={[{ label: t('common.view'), href: route('assessment-records.show', r.id) }]} /></div></td>
                             </tr>
                         ))}
                     </Table>

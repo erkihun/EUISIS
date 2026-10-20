@@ -18,7 +18,7 @@ type Exclusion = {
 
 const STATUS_COLORS: Record<string, string> = {
     active:    'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-    ended:     'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
+    ended:     'bg-(--app-surface-muted) text-(--app-muted-foreground)',
     cancelled: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400',
 };
 
@@ -36,9 +36,9 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
         if (confirmed) router.delete(route('cafeteria.employee-exclusions.archive', exclusion.id));
     }
 
-    const rowCls = 'flex items-start gap-4 py-3 border-b border-[color:var(--app-border)] last:border-0';
-    const keyC = 'w-48 flex-shrink-0 text-sm text-[color:var(--app-muted-foreground)]';
-    const valC = 'text-sm font-medium text-[color:var(--app-foreground)]';
+    const rowCls = 'flex items-start gap-4 py-3 border-b border-(--app-border) last:border-0';
+    const keyC = 'w-48 shrink-0 text-sm text-(--app-muted-foreground)';
+    const valC = 'text-sm font-medium text-(--app-foreground)';
 
     return (
         <AuthenticatedLayout
@@ -49,7 +49,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                     actions={
                         <div className="flex gap-2">
                             {exclusion.can.update && (
-                                <Link href={route('cafeteria.employee-exclusions.edit', exclusion.id)} className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                <Link href={route('cafeteria.employee-exclusions.edit', exclusion.id)} className="rounded-lg border border-(--app-border-strong) px-3 py-1.5 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                     {t('common.edit')}
                                 </Link>
                             )}
@@ -70,12 +70,12 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
         >
             <Head title={t('cafeteria.employeeExclusion')} />
             <div>
-                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-6">
                     <div className={rowCls}>
                         <span className={keyC}>{t('common.employee')}</span>
                         <div>
                             <div className={valC}>{exclusion.employee_name ?? '—'}</div>
-                            {exclusion.employee_number && <div className="text-xs text-[color:var(--app-muted-foreground)]">{exclusion.employee_number}</div>}
+                            {exclusion.employee_number && <div className="text-xs text-(--app-muted-foreground)">{exclusion.employee_number}</div>}
                         </div>
                     </div>
                     <div className={rowCls}>
@@ -94,7 +94,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                     </div>
                     <div className={rowCls}>
                         <span className={keyC}>{t('cafeteria.endsOn')}</span>
-                        <span className={valC}>{exclusion.is_open_ended ? <em className="text-[color:var(--app-muted-foreground)]">Open-ended</em> : <LocalizedDateDisplay value={exclusion.ends_on} />}</span>
+                        <span className={valC}>{exclusion.is_open_ended ? <em className="text-(--app-muted-foreground)">Open-ended</em> : <LocalizedDateDisplay value={exclusion.ends_on} />}</span>
                     </div>
                     {exclusion.return_to_work_on && (
                         <div className={rowCls}>

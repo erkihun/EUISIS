@@ -284,6 +284,15 @@ class FieldWorkController extends Controller
             'canAddTeam' => $request->user()->can('field_work.create_team'),
             'canSubmit' => $request->user()->can('field_work.submit_own'),
             'today' => $this->settings->today()->toDateString(),
+            // The expected-location map (config/maps.php) and the largest geofence the rules accept.
+            'map' => [
+                'tileUrl' => (string) config('maps.tile_url'),
+                'attribution' => (string) config('maps.attribution'),
+                'maxZoom' => (int) config('maps.max_zoom'),
+                'center' => config('maps.default_center'),
+                'zoom' => (int) config('maps.default_zoom'),
+                'maxRadius' => $this->settings->maxGeofenceRadius(),
+            ],
         ];
     }
 

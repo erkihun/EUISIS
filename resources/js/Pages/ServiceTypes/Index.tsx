@@ -112,14 +112,14 @@ export default function ServiceTypesIndex({
                                             <td className={cx(tableCellClassName, 'font-mono text-xs')}>{serviceType.code}</td>
                                             <td className={tableCellClassName}>
                                                 {serviceType.can.view ? (
-                                                    <Link href={route('service-types.show', serviceType.id)} className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
+                                                    <Link href={route('service-types.show', serviceType.id)} className="font-medium text-primary hover:text-primary-hover dark:text-primary">
                                                         {serviceType.name_en}
                                                     </Link>
                                                 ) : (
                                                     serviceType.name_en
                                                 )}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{serviceType.name_am ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{serviceType.name_am ?? '—'}</td>
                                             <td className={cx(tableCellClassName, 'tabular-nums')}>{serviceType.providers_count ?? 0}</td>
                                             <td className={cx(tableCellClassName, 'tabular-nums')}>{serviceType.rules_count ?? 0}</td>
                                             <td className={tableCellClassName}>

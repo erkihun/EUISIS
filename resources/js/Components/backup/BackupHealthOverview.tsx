@@ -22,8 +22,8 @@ function ToneMark({ tone, size = 'md' }: { tone: Tone; size?: 'md' | 'lg' }) {
 export function Fact({ label, children, title }: { label: string; children: ReactNode; title?: string }) {
     return (
         <div className="min-w-0">
-            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 break-words text-sm font-medium text-[color:var(--app-foreground)]" title={title}>{children}</dd>
+            <dt className="text-xs text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 wrap-break-word text-sm font-medium text-(--app-foreground)" title={title}>{children}</dd>
         </div>
     );
 }
@@ -31,18 +31,18 @@ export function Fact({ label, children, title }: { label: string; children: Reac
 export function FactRow({ label, children, title }: { label: string; children: ReactNode; title?: string }) {
     return (
         <div className="flex items-baseline justify-between gap-3">
-            <dt className="text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="text-right font-medium tabular-nums text-[color:var(--app-foreground)]" title={title}>{children}</dd>
+            <dt className="text-(--app-muted-foreground)">{label}</dt>
+            <dd className="text-right font-medium tabular-nums text-(--app-foreground)" title={title}>{children}</dd>
         </div>
     );
 }
 
 function Chip({ label, children, tone }: { label: string; children: ReactNode; tone?: Tone }) {
     return (
-        <span className="inline-flex items-center gap-1.5 rounded-[var(--radius-control)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-2 py-1 text-xs">
+        <span className="inline-flex items-center gap-1.5 rounded-control border border-(--app-border) bg-(--app-surface) px-2 py-1 text-xs">
             {tone && <span className={cx('h-1.5 w-1.5 rounded-full', toneClasses[tone].solid)} aria-hidden="true" />}
-            <span className="text-[color:var(--app-muted-foreground)]">{label}</span>
-            <span className="font-medium text-[color:var(--app-foreground)]">{children}</span>
+            <span className="text-(--app-muted-foreground)">{label}</span>
+            <span className="font-medium text-(--app-foreground)">{children}</span>
         </span>
     );
 }
@@ -59,16 +59,16 @@ export function BackupHealthCard({ status }: { status: BackupHealth }) {
                 <ToneMark tone={tone} />
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{text.t('backup.title')}</h2>
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">{text.t('backup.title')}</h2>
                         <StatusBadge tone={tone}>{text.state(status.overall_status)}</StatusBadge>
                     </div>
-                    <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{headline(status, text)}</p>
+                    <p className="mt-1 text-sm text-(--app-muted-foreground)">{headline(status, text)}</p>
                 </div>
                 <Link href={route('backups.index')} className={actionLinkClassName({ size: 'sm', className: 'inline-flex items-center gap-1' })}>
                     {text.t('backup.openPage')}<ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
             </div>
-            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-[color:var(--app-border)] pt-4 lg:grid-cols-4">
+            <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-(--app-border) pt-4 lg:grid-cols-4">
                 <Fact label={text.t('backup.lastBackup')} title={time.absolute(status.latest_backup_at)}>{time.relative(status.latest_backup_at)}</Fact>
                 <Fact label={text.t('backup.cards.repository')}><StatusBadge tone={toneFor(status.repository_status)}>{text.state(status.repository_status)}</StatusBadge></Fact>
                 <Fact label={text.t('backup.cards.wal')}><StatusBadge tone={toneFor(status.wal_status)}>{text.state(status.wal_status)}</StatusBadge></Fact>
@@ -92,9 +92,9 @@ export function HealthHero({ status }: { status: BackupHealth }) {
                 <div className="flex min-w-0 items-start gap-4">
                     <ToneMark tone={tone} size="lg" />
                     <div className="min-w-0">
-                        <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{text.t('backup.overallStatus')}</p>
+                        <p className="text-xs font-medium uppercase tracking-wide text-(--app-muted-foreground)">{text.t('backup.overallStatus')}</p>
                         <h2 className={cx('mt-0.5 text-2xl font-semibold', toneClasses[tone].text)}>{text.state(status.overall_status)}</h2>
-                        <p className="mt-1 max-w-2xl text-sm text-[color:var(--app-foreground)]">{headline(status, text)}</p>
+                        <p className="mt-1 max-w-2xl text-sm text-(--app-foreground)">{headline(status, text)}</p>
                         <div className="mt-3 flex flex-wrap gap-2">
                             <Chip label={text.t('backup.environment')}>{status.environment}</Chip>
                             <Chip label={text.t('backup.productionBlocker')} tone={status.production_blocker ? 'danger' : 'neutral'}>{blocker}</Chip>
@@ -103,13 +103,13 @@ export function HealthHero({ status }: { status: BackupHealth }) {
                         </div>
                     </div>
                 </div>
-                <dl className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-6 lg:w-[27rem]">
+                <dl className="grid shrink-0 grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-6 lg:w-108">
                     <Fact label={text.t('backup.lastBackup')} title={time.absolute(status.latest_backup_at)}>{time.relative(status.latest_backup_at)}</Fact>
                     <Fact label={text.t('backup.lastWal')} title={time.absolute(status.latest_wal_at)}>{time.relative(status.latest_wal_at)}</Fact>
                     <Fact label={text.t('backup.lastRestoreTest')} title={time.absolute(status.latest_restore_test_at)}>{time.relative(status.latest_restore_test_at)}</Fact>
                 </dl>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-6 py-2.5 text-xs text-[color:var(--app-muted-foreground)]">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-(--app-border) bg-(--app-surface-muted) px-6 py-2.5 text-xs text-(--app-muted-foreground)">
                 <span title={time.absolute(status.checked_at)}>{text.t('backup.checkedAt')} {time.relative(status.checked_at)} · {text.t('backup.driver')}: {status.driver}</span>
                 <span>{text.t('backup.runbookHint')} <code className="font-mono">docs/runbooks/backup-health-troubleshooting.md</code></span>
             </div>
@@ -125,14 +125,14 @@ function ComponentCard({ icon, title, component, children }: { icon: ReactNode; 
         <Card className="flex flex-col p-5">
             <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]" aria-hidden="true">{icon}</span>
-                    <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>
+                    <span className="flex h-8 w-8 items-center justify-center rounded-control bg-(--app-surface-muted) text-(--app-muted-foreground)" aria-hidden="true">{icon}</span>
+                    <h3 className="text-sm font-semibold text-(--app-foreground)">{title}</h3>
                 </div>
                 <StatusBadge tone={toneFor(component.status)}>{text.state(component.status)}</StatusBadge>
             </div>
-            <p className="mb-4 mt-3 text-sm text-[color:var(--app-muted-foreground)]">{reason ? text.reason(reason) : text.t('backup.noAction')}</p>
+            <p className="mb-4 mt-3 text-sm text-(--app-muted-foreground)">{reason ? text.reason(reason) : text.t('backup.noAction')}</p>
             {/* mt-auto aligns the facts along the bottom edge of every card in a row. */}
-            {children && <dl className="mt-auto space-y-1.5 border-t border-[color:var(--app-border)] pt-3 text-sm">{children}</dl>}
+            {children && <dl className="mt-auto space-y-1.5 border-t border-(--app-border) pt-3 text-sm">{children}</dl>}
         </Card>
     );
 }

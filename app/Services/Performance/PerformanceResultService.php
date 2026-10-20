@@ -216,7 +216,7 @@ final class PerformanceResultService
 
     public function release(PerformanceResult $result, User $actor): PerformanceResult
     {
-        $this->access->authorize($this->access->inScope($actor, 'performance_reviews.finalize', $result->organization_id));
+        $this->access->authorize($this->access->inScope($actor, 'performance_reviews.finalize', $result->organization_id) && ! $this->access->isOwn($actor, $result->agreement));
         if ($result->status !== ResultStatus::PendingRelease) {
             throw ValidationException::withMessages(['result' => __('performance.errors.stale')]);
         }
@@ -235,7 +235,7 @@ final class PerformanceResultService
      *
      * @return array{score: ?string, parts: list<array<string, mixed>>, formula: string}
      */
-    public function combinedForCycle(string $employeeId, string $cycleId): array
+    public function combinedForCycle(string $employeeId, string $cycleId, ?User $viewer = null): array
     {
         $results = PerformanceResult::query()->with('agreement')
             ->where('employee_id', $employeeId)->where('cycle_id', $cycleId)->where('is_current', true)->get();
@@ -243,10 +243,18 @@ final class PerformanceResultService
         $total = Dec::zero();
         $days = Dec::zero();
         $parts = [];
+        $hidden = 0;
         foreach ($results as $result) {
             $agreement = $result->agreement;
             if ($agreement->is_temporary) {
                 continue; // acting duty is reported, not blended into the primary score
+            }
+            // A viewer sees only the agreements they may view (after a transfer the new
+            // manager is not entitled to the old unit's score); a partial set has no total.
+            if ($viewer !== null && ! $this->access->canViewAgreement($viewer, $agreement)) {
+                $hidden++;
+
+                continue;
             }
             $span = BigDecimal::of($agreement->effective_from->diffInDays($agreement->effective_to) + 1);
             $total = $total->plus(Dec::of($result->final_score)->multipliedBy($span));
@@ -255,13 +263,15 @@ final class PerformanceResultService
         }
 
         return [
-            'score' => $this->settings->prorateTransferResults() ? Dec::str(Dec::div($total, $days)) : null,
+            'score' => $this->settings->prorateTransferResults() && $hidden === 0 ? Dec::str(Dec::div($total, $days)) : null,
             'parts' => $parts,
+            'partial' => $hidden > 0,
             'formula' => 'Σ(final score × days in agreement) ÷ Σ days',
         ];
     }
 
-    private function assertReadyForFinalization(PerformanceResult $result): void
+    /** The documented preconditions of a final result; calibration finalize applies them too. */
+    public function assertReadyForFinalization(PerformanceResult $result): void
     {
         $agreement = $result->agreement;
         $yearEnd = $agreement->reviews()->where('review_type', ReviewType::YearEnd->value)->first();
@@ -274,7 +284,7 @@ final class PerformanceResultService
         if (! ($result->snapshot_json['competency_complete'] ?? true)) {
             throw ValidationException::withMessages(['result' => __('performance.errors.competency_incomplete')]);
         }
-        if ($agreement->status !== AgreementStatus::Closed && $result->adjustments()->where('status', AdjustmentStatus::Pending->value)->exists()) {
+        if ($result->adjustments()->where('status', AdjustmentStatus::Pending->value)->exists()) {
             throw ValidationException::withMessages(['result' => __('performance.errors.adjustment_pending')]);
         }
     }

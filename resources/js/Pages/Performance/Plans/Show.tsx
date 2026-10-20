@@ -98,15 +98,15 @@ export default function PlanShow(props: Props) {
             </div>} />}>
             <Head title={plan.title} />
             <div className={pageCls}>
-                <div className="flex flex-wrap items-center gap-3 text-sm text-[color:var(--app-muted-foreground)]">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-(--app-muted-foreground)">
                     <Pill group="plan" value={plan.status} />
                     <span>{t('performance.fields.version')} {plan.version}</span>
-                    {plan.parent && <span>{t('performance.fields.parentPlan')}: <Link className="text-[color:var(--color-primary)] hover:underline" href={route('performance.plans.show', plan.parent.id)}>{plan.parent.title}</Link></span>}
+                    {plan.parent && <span>{t('performance.fields.parentPlan')}: <Link className="text-primary hover:underline" href={route('performance.plans.show', plan.parent.id)}>{plan.parent.title}</Link></span>}
                     {!plan.parent && plan.type === 'ORGANIZATION' && <span>{t('performance.plans.noParent')}</span>}
                     {(plan.effective_from || plan.effective_to) && <span><LocalizedDateDisplay value={plan.effective_from} /> – <LocalizedDateDisplay value={plan.effective_to} /></span>}
                 </div>
                 {plan.return_reason && plan.status === 'DRAFT' && <Problems title={t('performance.enums.plan.DRAFT')} problems={[plan.return_reason]} />}
-                {!plan.editable && plan.status === 'PUBLISHED' && <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.plans.editLocked')}</p>}
+                {!plan.editable && plan.status === 'PUBLISHED' && <p className="text-xs text-(--app-muted-foreground)">{t('performance.plans.editLocked')}</p>}
                 <Problems title={t('performance.plans.validation')} problems={validation} />
 
                 {objectives.length > 0 && (
@@ -127,7 +127,7 @@ export default function PlanShow(props: Props) {
 
                 {props.parentObjectives.length > 0 && (
                     <Section title={t('performance.plans.cascadeFromParent')}>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {parentObjectives.map((parent) => <CascadeRow key={parent.id} planId={plan.id} parent={parent} modes={props.options.cascade_modes} canEdit={can.edit} />)}
                         </ul>
                     </Section>
@@ -135,12 +135,12 @@ export default function PlanShow(props: Props) {
 
                 {pendingAmendments.length > 0 && (
                     <Section title={t('performance.plans.amendments')}>
-                        <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+                        <ul className="divide-y divide-(--app-border) text-sm">
                             {pendingAmendments.map((a) => (
                                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                                     <div>
                                         <AmendmentDiff original={a.original_values} proposed={a.proposed_values} />
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{a.reason} · <LocalizedDateDisplay value={a.effective_date} /></p>
+                                        <p className="text-xs text-(--app-muted-foreground)">{a.reason} · <LocalizedDateDisplay value={a.effective_date} /></p>
                                     </div>
                                     {can.decideAmendment && (
                                         <div className="flex gap-2">
@@ -162,10 +162,10 @@ export default function PlanShow(props: Props) {
                 <div className="grid gap-6 lg:grid-cols-2">
                     <Section title={t('performance.plans.childPlans')}>
                         {childPlans.length === 0 ? <Empty>—</Empty> : (
-                            <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+                            <ul className="divide-y divide-(--app-border) text-sm">
                                 {childPlans.map((child) => (
                                     <li key={child.id} className="flex items-center justify-between gap-2 py-2">
-                                        <Link href={route('performance.plans.show', child.id)} className="text-[color:var(--color-primary)] hover:underline">{child.title} <span className="text-xs text-[color:var(--app-muted-foreground)]">· {nameOf(child.unit, locale) || titleOf(child.position, locale)}</span></Link>
+                                        <Link href={route('performance.plans.show', child.id)} className="text-primary hover:underline">{child.title} <span className="text-xs text-(--app-muted-foreground)">· {nameOf(child.unit, locale) || titleOf(child.position, locale)}</span></Link>
                                         <Pill group="plan" value={child.status} />
                                     </li>
                                 ))}
@@ -173,20 +173,20 @@ export default function PlanShow(props: Props) {
                         )}
                         {cascades.length > 0 && (
                             <>
-                                <h3 className="mt-4 text-xs font-semibold text-[color:var(--app-foreground)]">{t('performance.plans.cascades')}</h3>
-                                <ul className="mt-1 space-y-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                <h3 className="mt-4 text-xs font-semibold text-(--app-foreground)">{t('performance.plans.cascades')}</h3>
+                                <ul className="mt-1 space-y-1 text-xs text-(--app-muted-foreground)">
                                     {cascades.map((c, i) => <li key={i}>{c.parent} → {c.child_code} {c.child_title_en} · {c.child_plan} · {label('cascadeType', c.type)}</li>)}
                                 </ul>
                             </>
                         )}
                     </Section>
                     <Section title={t('performance.plans.versions')}>
-                        <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+                        <ul className="divide-y divide-(--app-border) text-sm">
                             {versions.map((v) => (
                                 <li key={v.id} className="flex items-center justify-between gap-2 py-2">
                                     <div>
-                                        {v.id === plan.id ? <span className="font-medium">v{v.version_no}</span> : <Link href={route('performance.plans.show', v.id)} className="text-[color:var(--color-primary)] hover:underline">v{v.version_no}</Link>}
-                                        {v.change_reason && <span className="ml-2 text-xs text-[color:var(--app-muted-foreground)]">{v.change_reason}</span>}
+                                        {v.id === plan.id ? <span className="font-medium">v{v.version_no}</span> : <Link href={route('performance.plans.show', v.id)} className="text-primary hover:underline">v{v.version_no}</Link>}
+                                        {v.change_reason && <span className="ml-2 text-xs text-(--app-muted-foreground)">{v.change_reason}</span>}
                                     </div>
                                     <span className="flex items-center gap-2 text-xs"><LocalizedDateDisplay value={v.published_at} withTime fallback="" /><Pill group="plan" value={v.status} /></span>
                                 </li>
@@ -218,16 +218,16 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
     }
 
     return (
-        <article className={`rounded-lg border p-3 ${rejected ? 'border-red-200 bg-red-50/40 dark:border-red-900 dark:bg-red-950/20' : 'border-[color:var(--app-border)]'}`}>
+        <article className={`rounded-lg border p-3 ${rejected ? 'border-red-200 bg-red-50/40 dark:border-red-900 dark:bg-red-950/20' : 'border-(--app-border)'}`}>
             <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
-                    <p className="font-medium text-[color:var(--app-foreground)]">{objective.code} — {titleOf(objective, locale)}</p>
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                    <p className="font-medium text-(--app-foreground)">{objective.code} — {titleOf(objective, locale)}</p>
+                    <p className="text-xs text-(--app-muted-foreground)">
                         {label('objectiveType', objective.objective_type)} · {t('performance.fields.weight')} {formatScore(objective.weight)}
                         {objective.is_mandatory && ` · ${t('performance.fields.mandatory')}`}
                         {objective.lineage && ` · ${t('performance.plans.lineage')} ${objective.lineage.code} (${objective.lineage.plan ?? ''})`}
                     </p>
-                    {objective.position_service && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('performance.fields.positionService')}: {objective.position_service.service_no} — {nameOf(objective.position_service, locale)}</p>}
+                    {objective.position_service && <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('performance.fields.positionService')}: {objective.position_service.service_no} — {nameOf(objective.position_service, locale)}</p>}
                     {rejected && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{t('performance.actions.decline')}: {objective.rejection_reason}</p>}
                 </div>
                 {can.edit && !rejected && (
@@ -239,7 +239,7 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
                 )}
             </div>
 
-            {objective.cascade_trace.length > 0 && <details className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">
+            {objective.cascade_trace.length > 0 && <details className="mt-3 text-xs text-(--app-muted-foreground)">
                 <summary className="cursor-pointer font-medium">{t('performance.plans.cascadeTrace')}</summary>
                 <ol className="mt-2 space-y-2 border-l-2 border-blue-200 pl-3 dark:border-blue-900">
                     {objective.cascade_trace.map((step, index) => <li key={`${step.type}-${step.id}-${index}`}>
@@ -265,7 +265,7 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
                             <tr key={target.id}>
                                 <td className={tdCls}>
                                     <p>{target.kpi.code} — {nameOf(target.kpi, locale)}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('direction', target.kpi.direction)} · {label('aggregation', target.kpi.aggregation)} · {label('source', target.kpi.source)}{target.version_no > 1 ? ` · v${target.version_no}` : ''}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{label('direction', target.kpi.direction)} · {label('aggregation', target.kpi.aggregation)} · {label('source', target.kpi.source)}{target.version_no > 1 ? ` · v${target.version_no}` : ''}</p>
                                     {targetPanel?.id === target.id && targetPanel.kind === 'actual' && <ActualForm url={route('performance.targets.actuals.store', target.id)} period={target.period} onDone={() => setTargetPanel(null)} />}
                                     {targetPanel?.id === target.id && targetPanel.kind === 'amend' && <AmendmentForm url={route('performance.targets.amendments.store', target.id)} onDone={() => setTargetPanel(null)} />}
                                     {targetPanel?.id === target.id && targetPanel.kind === 'edit' && <TargetForm target={target} kpis={kpis} parentTargets={parentTargets} onDone={() => setTargetPanel(null)} />}
@@ -273,7 +273,7 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
                                 </td>
                                 <td className={`${tdCls} tabular-nums`}>
                                     {target.target_numerator !== null ? `${formatScore(target.target_numerator)} / ${formatScore(target.target_denominator)}` : formatScore(target.target_value)} {target.kpi.unit ?? ''}
-                                    {target.baseline_value !== null && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t('performance.fields.baseline')}: {formatScore(target.baseline_value)}</span>}
+                                    {target.baseline_value !== null && <span className="block text-xs text-(--app-muted-foreground)">{t('performance.fields.baseline')}: {formatScore(target.baseline_value)}</span>}
                                 </td>
                                 <td className={`${tdCls} whitespace-nowrap text-xs`}><LocalizedDateDisplay value={target.period[0]} /> – <LocalizedDateDisplay value={target.period[1]} /></td>
                                 <td className={`${tdCls} tabular-nums`}>{formatScore(target.weight)}</td>
@@ -315,10 +315,10 @@ function PeriodTargetsForm({ target, cycleStart, onDone }: { target: Target; cyc
         form.transform((data) => ({ period_targets: data.period_targets.filter((row) => String(row.target_value ?? '').trim() !== '').map((row) => nullify(row)) }));
         form.put(route('performance.targets.period-targets.replace', target.id), { preserveScroll: true, onSuccess: onDone });
     }
-    return <form onSubmit={submit} className="mt-3 rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
+    return <form onSubmit={submit} className="mt-3 rounded-lg border border-(--app-border) bg-(--app-surface) p-3">
         <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-semibold">{t('performance.plans.periodTargets')}</p><select className={`${inputCls} w-auto`} value={periodType} onChange={(e) => switchType(e.target.value as 'QUARTER' | 'MONTH')}><option value="QUARTER">{t('performance.plans.quarterly')}</option><option value="MONTH">{t('performance.plans.monthly')}</option></select></div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{form.data.period_targets.map((row, index) => <Field key={row.period_number} label={periodType === 'QUARTER' ? quarterLabel(t, row.period_number) : months[row.period_number - 1]} error={(form.errors as Record<string, string>)[`period_targets.${index}.target_value`]}><input className={inputCls} inputMode="decimal" value={row.target_value} onChange={(e) => form.setData('period_targets', form.data.period_targets.map((item, i) => i === index ? { ...item, target_value: e.target.value } : item))} /></Field>)}</div>
-        <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('performance.plans.periodTargetsHelp')}</p>
+        <p className="mt-2 text-xs text-(--app-muted-foreground)">{t('performance.plans.periodTargetsHelp')}</p>
         <div className="mt-3 flex justify-end gap-2"><button type="button" className={secondaryBtn} onClick={onDone}>{t('performance.actions.cancel')}</button><button className={primaryBtn} disabled={form.processing}>{t('performance.actions.save')}</button></div>
     </form>;
 }
@@ -342,7 +342,7 @@ function ObjectiveForm({ planId, planType, types, strategicGoals, positionServic
     }
 
     return (
-        <form onSubmit={submit} className="my-3 grid gap-3 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-2 lg:grid-cols-4">
+        <form onSubmit={submit} className="my-3 grid gap-3 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-2 lg:grid-cols-4">
             {planType !== 'ORGANIZATION' && <Field label={t('performance.fields.upstreamObjective')} error={form.errors.parent_objective_id} className="sm:col-span-2">
                 <select className={inputCls} value={form.data.parent_objective_id} disabled={!!objective} onChange={(e) => form.setData('parent_objective_id', e.target.value)}>
                     <option value="">—</option>
@@ -401,7 +401,7 @@ function TargetForm({ objectiveId, target, kpis, parentTargets, onDone }: { obje
     }
 
     return (
-        <form onSubmit={submit} className="my-3 grid gap-3 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-2 lg:grid-cols-4">
+        <form onSubmit={submit} className="my-3 grid gap-3 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-2 lg:grid-cols-4">
             {!target && (
                 <Field label={t('performance.fields.kpi')} error={form.errors.kpi_id} className="sm:col-span-2">
                     <select className={inputCls} value={form.data.kpi_id} onChange={(e) => form.setData({ ...form.data, kpi_id: e.target.value, parent_target_id: '' })} required>
@@ -460,7 +460,7 @@ function CascadeRow({ planId, parent, modes, canEdit }: { planId: string; parent
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0 text-sm">
                     <p className="font-medium">{parent.code} — {titleOf(parent, locale)}</p>
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.fields.weight')} {formatScore(parent.weight)}{parent.is_mandatory && ` · ${t('performance.fields.mandatory')}`}</p>
+                    <p className="text-xs text-(--app-muted-foreground)">{t('performance.fields.weight')} {formatScore(parent.weight)}{parent.is_mandatory && ` · ${t('performance.fields.mandatory')}`}</p>
                 </div>
                 {parent.cascaded ? <span className="text-xs text-emerald-700 dark:text-emerald-400">{t('performance.plans.alreadyCascaded')}</span> : canEdit && (
                     <div className="flex gap-2">
@@ -470,7 +470,7 @@ function CascadeRow({ planId, parent, modes, canEdit }: { planId: string; parent
                 )}
             </div>
             {open && (
-                <form onSubmit={submit} className="mt-2 grid gap-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3 sm:grid-cols-3">
+                <form onSubmit={submit} className="mt-2 grid gap-2 rounded-lg bg-(--app-surface-muted) p-3 sm:grid-cols-3">
                     <Field label={t('performance.fields.mode')} error={errors.mode}>
                         <select className={inputCls} value={form.data.mode} onChange={(e) => form.setData('mode', e.target.value)}>
                             {modes.map((m) => <option key={m} value={m}>{label('cascade', m)}</option>)}
@@ -480,7 +480,7 @@ function CascadeRow({ planId, parent, modes, canEdit }: { planId: string; parent
                     {form.data.mode !== 'SPLIT' && <Field label={t('performance.fields.weight')} error={errors.weight}><input className={inputCls} inputMode="decimal" value={form.data.weight} onChange={(e) => form.setData('weight', e.target.value)} /></Field>}
                     {form.data.mode === 'SPLIT' && (
                         <div className="space-y-2 sm:col-span-3">
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.fields.parts')}</p>
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">{t('performance.fields.parts')}</p>
                             {form.data.parts.map((part, i) => (
                                 <div key={i} className="grid grid-cols-[1fr_6rem_auto] gap-2">
                                     <input aria-label={t('performance.fields.titleEn')} className={inputCls} value={part.title_en} onChange={(e) => form.setData('parts', form.data.parts.map((p, j) => j === i ? { ...p, title_en: e.target.value } : p))} required />
@@ -509,7 +509,7 @@ function PlanTraceView({ trace }: { trace: PlanTrace }) {
     const label = useEnumLabel();
     return (
         <div className="space-y-4">
-            <p className="text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{trace.score === null ? <span className="text-sm font-normal text-[color:var(--app-muted-foreground)]">{t('performance.notCalculated')}</span> : `${formatScore(trace.score)}%`}</p>
+            <p className="text-2xl font-semibold tabular-nums text-(--app-foreground)">{trace.score === null ? <span className="text-sm font-normal text-(--app-muted-foreground)">{t('performance.notCalculated')}</span> : `${formatScore(trace.score)}%`}</p>
             {trace.objectives.map((objective) => (
                 <div key={objective.objective_id}>
                     <div className="flex items-center justify-between gap-2 text-sm">
@@ -525,18 +525,18 @@ function PlanTraceView({ trace }: { trace: PlanTrace }) {
                     </>}>
                         {objective.targets.map((row) => (
                             <tr key={row.target_id}>
-                                <td className={tdCls}>{row.kpi_code} — {(locale === 'am' && row.kpi_name_am) || row.kpi_name_en}{row.achievement_formula && <p className="font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{row.achievement_formula}</p>}</td>
+                                <td className={tdCls}>{row.kpi_code} — {(locale === 'am' && row.kpi_name_am) || row.kpi_name_en}{row.achievement_formula && <p className="font-mono text-[11px] text-(--app-muted-foreground)">{row.achievement_formula}</p>}</td>
                                 <td className={`${tdCls} tabular-nums`}>{formatScore(row.target)}</td>
                                 <td className={`${tdCls} tabular-nums`}>{formatScore(row.actual)}</td>
                                 <td className={`${tdCls} w-40`}><span className="tabular-nums">{row.achievement === null ? '—' : `${formatScore(row.achievement)}%`}</span><Bar value={row.achievement} /></td>
-                                <td className={tdCls}><Pill group="health" value={row.health} />{row.lineage?.source === 'contributors' && <span className="block text-[11px] text-[color:var(--app-muted-foreground)]">{label('source', 'FORMULA')}</span>}</td>
+                                <td className={tdCls}><Pill group="health" value={row.health} />{row.lineage?.source === 'contributors' && <span className="block text-[11px] text-(--app-muted-foreground)">{label('source', 'FORMULA')}</span>}</td>
                             </tr>
                         ))}
                     </Table>
                 </div>
             ))}
             {trace.formula && (
-                <details className="text-xs text-[color:var(--app-muted-foreground)]">
+                <details className="text-xs text-(--app-muted-foreground)">
                     <summary className="cursor-pointer font-medium">{t('performance.plans.scoreTrace')}</summary>
                     <ul className="mt-1 space-y-0.5 font-mono">{Object.entries(trace.formula).map(([k, v]) => <li key={k}>{k}: {v}</li>)}</ul>
                 </details>

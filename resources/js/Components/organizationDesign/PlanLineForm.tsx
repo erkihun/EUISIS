@@ -14,7 +14,7 @@ export const WORKLOAD_SOURCES = ['historical_transactions', 'approved_forecast',
 
 export type LineRecord = {
     id?: string; organization_unit_id: string | null; unit_design_proposal_id: string | null; task_id: string | null; occupation_id: string; profession_id: string | null;
-    inputs: Record<string, string> | null; recommended_headcount: number | null; approved_headcount: number | null; adjustment_reason: string | null; notes: string | null; sequence: number;
+    inputs: Record<string, string> | null; recommended_headcount: number | null; approved_headcount: number | null; adjustment_reason: string | null; adjustment_reference?: string | null; notes: string | null; sequence: number;
     workload_source_type: string | null; workload_source_reference: string | null;
     task?: Named | null; occupation?: (Named & { isco_code: string | null; professions?: Profession[] }) | null; profession?: Named | null;
 };
@@ -33,7 +33,7 @@ export default function PlanLineForm({ planId, organizationId, record, units, pr
         subject_kind: record?.unit_design_proposal_id ? 'proposal' : 'unit', organization_unit_id: record?.organization_unit_id ?? '', unit_design_proposal_id: record?.unit_design_proposal_id ?? '',
         task_id: record?.task_id ?? '', occupation_id: record?.occupation_id ?? '', profession_id: record?.profession_id ?? '',
         inputs: { ...(record?.inputs ?? {}) } as Record<string, string>, approved_headcount: record?.approved_headcount == null ? '' : String(record.approved_headcount),
-        adjustment_reason: record?.adjustment_reason ?? '', notes: record?.notes ?? '', sequence: String(record?.sequence ?? 0),
+        adjustment_reason: record?.adjustment_reason ?? '', adjustment_reference: record?.adjustment_reference ?? '', notes: record?.notes ?? '', sequence: String(record?.sequence ?? 0),
         workload_source_type: record?.workload_source_type ?? '', workload_source_reference: record?.workload_source_reference ?? '',
     });
     const [taskLabel, setTaskLabel] = useState(label(record?.task));
@@ -53,8 +53,8 @@ export default function PlanLineForm({ planId, organizationId, record, units, pr
                 workload_source_type: data.workload_source_type || null, workload_source_reference: data.workload_source_reference || null,
                 inputs: Object.fromEntries(Object.entries(data.inputs).filter(([, v]) => v !== '')), sequence: Number(data.sequence || 0),
             };
-            if (record?.id) { out.approved_headcount = data.approved_headcount === '' ? null : Number(data.approved_headcount); out.adjustment_reason = data.adjustment_reason || null; }
-            else { delete out.approved_headcount; delete out.adjustment_reason; }
+            if (record?.id) { out.approved_headcount = data.approved_headcount === '' ? null : Number(data.approved_headcount); out.adjustment_reason = data.adjustment_reason || null; out.adjustment_reference = data.adjustment_reference || null; }
+            else { delete out.approved_headcount; delete out.adjustment_reason; delete out.adjustment_reference; }
             return out;
         });
         const options = { preserveScroll: true, onSuccess: onClose };
@@ -66,7 +66,7 @@ export default function PlanLineForm({ planId, organizationId, record, units, pr
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{record?.id ? tt('plans.editLine') : tt('plans.addLine')}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{record?.id ? tt('plans.editLine') : tt('plans.addLine')}</h2>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField id="line-subject" label={tt('plans.unitOrProposal')}>
                         {({ id }) => (
@@ -102,7 +102,7 @@ export default function PlanLineForm({ planId, organizationId, record, units, pr
                     </FormField>
 
                     <fieldset className="sm:col-span-2">
-                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{tt('plans.inputs')}</legend>
+                        <legend className="text-sm font-medium text-(--app-foreground)">{tt('plans.inputs')}</legend>
                         <div className="mt-2 grid gap-3 sm:grid-cols-3">
                             {Object.entries(inputSchema).map(([key, rule]) => (
                                 <FormField key={key} id={`line-input-${key}`} label={tt(`methodologies.inputNames.${key}`)} error={errors[`inputs.${key}`]} description={`${rule.min ?? '−∞'} – ${rule.max ?? '∞'}`}>
@@ -123,6 +123,7 @@ export default function PlanLineForm({ planId, organizationId, record, units, pr
                                 {({ id }) => <Input id={id} type="number" min={0} value={form.data.approved_headcount} onChange={(e) => form.setData('approved_headcount', e.target.value)} />}
                             </FormField>
                             <FormField {...field('adjustment_reason', tt('plans.adjustmentReason'))}>{({ id }) => <Input id={id} value={form.data.adjustment_reason} maxLength={2000} onChange={(e) => form.setData('adjustment_reason', e.target.value)} />}</FormField>
+                            <FormField {...field('adjustment_reference', tt('plans.adjustmentReference'))}>{({ id }) => <Input id={id} value={form.data.adjustment_reference} maxLength={255} onChange={(e) => form.setData('adjustment_reference', e.target.value)} />}</FormField>
                         </>
                     )}
                     <FormField {...field('sequence', tt('fields.sequence'))}>{({ id }) => <Input id={id} type="number" min={0} value={form.data.sequence} onChange={(e) => form.setData('sequence', e.target.value)} />}</FormField>

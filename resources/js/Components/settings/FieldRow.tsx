@@ -26,12 +26,12 @@ export default function FieldRow({ htmlFor, labelId, label, description, require
         <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 {htmlFor
-                    ? <label id={labelId} htmlFor={htmlFor} className="text-sm font-medium text-[color:var(--app-foreground)]">{label}</label>
-                    : <span id={labelId} className="text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>}
+                    ? <label id={labelId} htmlFor={htmlFor} className="text-sm font-medium text-(--app-foreground)">{label}</label>
+                    : <span id={labelId} className="text-sm font-medium text-(--app-foreground)">{label}</span>}
                 {required && <span aria-hidden="true" className="text-sm text-red-600 dark:text-red-400">*</span>}
                 {badge}
             </div>
-            {description && <p className="mt-1 text-xs leading-5 text-[color:var(--app-muted-foreground)]">{description}</p>}
+            {description && <p className="mt-1 text-xs leading-5 text-(--app-muted-foreground)">{description}</p>}
         </div>
     );
 
@@ -79,12 +79,12 @@ export function Switch({ id, checked, disabled, onChange, labelledBy, describedB
             onClick={() => onChange(!checked)}
             className={cx(
                 'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--app-surface)]',
+                'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-(--app-surface)',
                 'disabled:cursor-not-allowed disabled:opacity-60',
-                checked ? 'bg-[color:var(--color-primary)]' : 'bg-[color:var(--app-border-strong)]',
+                checked ? 'bg-primary' : 'bg-(--app-border-strong)',
             )}
         >
-            <span aria-hidden="true" className={cx('inline-block h-5 w-5 rounded-full bg-[color:var(--app-surface)] shadow-sm transition-transform motion-reduce:transition-none', checked ? 'translate-x-5' : 'translate-x-0.5')} />
+            <span aria-hidden="true" className={cx('inline-block h-5 w-5 rounded-full bg-(--app-surface) shadow-xs transition-transform motion-reduce:transition-none', checked ? 'translate-x-5' : 'translate-x-0.5')} />
         </button>
     );
 }
@@ -110,14 +110,14 @@ export function ChoiceChips({ options, value, disabled, labelledBy, onChange }: 
                         onClick={() => onChange(selected ? value.filter((entry) => entry !== option.value) : [...value, option.value])}
                         className={cx(
                             'inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors',
-                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60',
+                            'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-60',
                             selected
-                                ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)]/10 font-medium text-[color:var(--app-foreground)]'
-                                : 'border-[color:var(--app-border-strong)] text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+                                ? 'border-primary bg-primary/10 font-medium text-(--app-foreground)'
+                                : 'border-(--app-border-strong) text-(--app-muted-foreground) hover:text-(--app-foreground)',
                         )}
                     >
                         {selected && (
-                            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5 text-[color:var(--color-primary)]" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7" /></svg>
+                            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5 text-primary" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 5 5L20 7" /></svg>
                         )}
                         {option.label}
                     </button>

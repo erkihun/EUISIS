@@ -26,9 +26,15 @@ class DashboardDataService
         // one computation (risk register DB-5); the header stays per user.
         // kpis() receives the user that first fills the entry: it must stay
         // scope-only, never user-specific.
-        $figures = Cache::remember(
+        //
+        // Fresh for 5 minutes; for 25 more an expired entry is served while
+        // ONE refresh runs after the response (lock held at most 5 minutes).
+        // A cold city-wide computation takes ~1 minute of database time at 3M
+        // employees (docs/production-readiness/database-capacity.md), so expiry
+        // must not make every viewer recompute at once (cache stampede).
+        $figures = Cache::flexible(
             $this->cacheKey($scope, $can),
-            now()->addSeconds(120),
+            [300, 1800],
             fn (): array => [
                 'computedAt' => now()->toIso8601String(),
                 'kpis' => $this->metricService->kpis($user, $scope, $can),
@@ -38,6 +44,7 @@ class DashboardDataService
                 'alerts' => $this->metricService->alerts($scope, $can),
                 'recentActivity' => $this->metricService->recentActivity($scope, $can['audit']),
             ],
+            ['seconds' => 300],
         );
 
         return [

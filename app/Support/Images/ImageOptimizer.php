@@ -30,7 +30,8 @@ final class ImageOptimizer
 
     private const READABLE = ['image/png', 'image/jpeg', 'image/webp'];
 
-    public function optimize(string $sourcePath, ImageKind $kind): ?OptimizedImage
+    /** @param  int|null  $maxDimension  a smaller longest side than the kind's, for a derived copy such as a thumbnail */
+    public function optimize(string $sourcePath, ImageKind $kind, ?int $maxDimension = null): ?OptimizedImage
     {
         if (! is_file($sourcePath) || ! function_exists('imagecreatetruecolor')) {
             return null;
@@ -61,7 +62,7 @@ final class ImageOptimizer
             }
 
             $keepsAlpha = $mime !== 'image/jpeg';
-            $max = $kind->maxDimension();
+            $max = min($kind->maxDimension(), $maxDimension ?? PHP_INT_MAX);
             $scale = min(1.0, $max / max(imagesx($image), imagesy($image)));
             $downscaled = $scale < 1.0;
 

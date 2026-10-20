@@ -24,9 +24,9 @@ type OrgType = {
 
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
     return (
-        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4">
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-1 text-sm font-semibold text-[color:var(--app-foreground)]">{value}</dd>
+        <div className="rounded-card border border-(--app-border) bg-(--app-surface-muted) p-4">
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-1 text-sm font-semibold text-(--app-foreground)">{value}</dd>
         </div>
     );
 }
@@ -45,7 +45,7 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
                         <div className="flex items-center gap-2">
                             <Link
                                 href={route('organization-types.index')}
-                                className="rounded-lg px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                className="rounded-lg px-3 py-1.5 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                             >
                                 {t('common.back')}
                             </Link>
@@ -64,7 +64,7 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
         >
             <Head title={type.name_en} />
 
-            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+            <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                 <dl className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     <Detail label={t('organizationTypes.code')} value={<span className="font-mono">{type.code}</span>} />
                     <Detail
@@ -73,7 +73,7 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
                             type.prefix ? (
                                 <span className="font-mono">{type.prefix}</span>
                             ) : (
-                                <span className="text-[color:var(--app-muted-foreground)]">{t('organizationTypes.noPrefix')}</span>
+                                <span className="text-(--app-muted-foreground)">{t('organizationTypes.noPrefix')}</span>
                             )
                         }
                     />

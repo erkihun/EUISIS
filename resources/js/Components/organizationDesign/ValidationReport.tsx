@@ -17,7 +17,7 @@ export default function ValidationReport({ report, compact = false }: { report: 
             <CardHeader className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <CardTitle>{tt('validation.title')}</CardTitle>
-                    {!compact && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('validation.help')}</p>}
+                    {!compact && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('validation.help')}</p>}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <span className={badgeClassName(report.ok ? 'success' : 'danger')}>{report.ok ? tt('validation.ok') : tt('validation.blocked')}</span>
@@ -26,8 +26,8 @@ export default function ValidationReport({ report, compact = false }: { report: 
                     <span className={badgeClassName('info')}>{tt('validation.infos')} {report.summary.infos}</span>
                 </div>
             </CardHeader>
-            {groups.length === 0 ? <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">{tt('validation.none')}</p> : (
-                <div className="divide-y divide-[color:var(--app-border)]">
+            {groups.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('validation.none')}</p> : (
+                <div className="divide-y divide-(--app-border)">
                     {groups.map((g) => (
                         <ul key={g.severity} className="space-y-1 px-5 py-3 text-sm">
                             {g.items.map((f, i) => (
@@ -40,7 +40,7 @@ export default function ValidationReport({ report, compact = false }: { report: 
                     ))}
                 </div>
             )}
-            <p className="border-t border-[color:var(--app-border)] px-5 py-2 text-xs text-[color:var(--app-muted-foreground)]">{tt('validation.generatedAt')}: <LocalizedDateDisplay value={report.generated_at} withTime /></p>
+            <p className="border-t border-(--app-border) px-5 py-2 text-xs text-(--app-muted-foreground)">{tt('validation.generatedAt')}: <LocalizedDateDisplay value={report.generated_at} withTime /></p>
         </Card>
     );
 }

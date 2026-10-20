@@ -6,6 +6,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AppMetricCard from '@/Components/ui/AppMetricCard';
 import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
 import EndpointAssignment, { AssignableEndpoint } from '@/Components/apiManagement/EndpointAssignment';
+import OrganizationAccessFields, { type Option, type OrganizationGrant } from '@/Components/apiManagement/OrganizationAccessFields';
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import { ActivityIcon, ChevronRight, ComponentIcon, KeyIcon, NetworkIcon, Plus, ScrollText, ShieldCheck } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
@@ -25,12 +26,16 @@ type ApplicationRow = {
     rate_limit_per_minute: number;
     tokens_count: number;
     last_used_at: string | null;
+    organization_access: string;
+    access_findings: string[];
 };
 
 interface Props {
     applications: ApplicationRow[];
     scopes: ScopeOption[];
     assignableEndpoints: AssignableEndpoint[];
+    organizationOptions: Option[];
+    providerOptions: Option[];
     endpoints_count: number;
     can: {
         create: boolean;
@@ -58,12 +63,12 @@ function SectionNav({ can }: { can: Props['can'] }) {
     ].filter((item) => item.show);
 
     return (
-        <nav aria-label={t('apiManagement.sections')} className="flex gap-1 overflow-x-auto border-b border-[color:var(--app-border)]">
+        <nav aria-label={t('apiManagement.sections')} className="flex gap-1 overflow-x-auto border-b border-(--app-border)">
             {items.map(({ href, label, Icon, active }) => (
                 <Link key={href} href={href} aria-current={active ? 'page' : undefined}
                     className={cx('-mb-px inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2 text-sm transition-colors',
-                        active ? 'border-[color:var(--color-primary)] font-medium text-[color:var(--color-primary)]'
-                            : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]')}>
+                        active ? 'border-primary font-medium text-primary'
+                            : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
                     <Icon className="h-4 w-4" aria-hidden="true" />{label}
                 </Link>
             ))}
@@ -72,7 +77,7 @@ function SectionNav({ can }: { can: Props['can'] }) {
 }
 
 function MetricLink({ href, children }: { href: string; children: ReactNode }) {
-    return <Link href={href} className="block rounded-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">{children}</Link>;
+    return <Link href={href} className="block rounded-card focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2">{children}</Link>;
 }
 
 /** One numbered block of the registration form. */
@@ -80,16 +85,16 @@ function FormStep({ step, title, description, children }: { step: number; title:
     return (
         <section className="grid gap-4 px-5 py-5 lg:grid-cols-[14rem_1fr] lg:gap-8">
             <div>
-                <p className="text-xs font-semibold tabular-nums text-[color:var(--color-primary)]">{String(step).padStart(2, '0')}</p>
-                <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>
-                {description && <p className="mt-1 text-xs leading-relaxed text-[color:var(--app-muted-foreground)]">{description}</p>}
+                <p className="text-xs font-semibold tabular-nums text-primary">{String(step).padStart(2, '0')}</p>
+                <h3 className="text-sm font-semibold text-(--app-foreground)">{title}</h3>
+                {description && <p className="mt-1 text-xs leading-relaxed text-(--app-muted-foreground)">{description}</p>}
             </div>
             <div className="min-w-0">{children}</div>
         </section>
     );
 }
 
-export default function ApiManagementIndex({ applications, scopes, assignableEndpoints, endpoints_count, can }: Props) {
+export default function ApiManagementIndex({ applications, scopes, assignableEndpoints, organizationOptions, providerOptions, endpoints_count, can }: Props) {
     const { t, locale } = useLocale();
     const flash = (usePage().props as { flash?: { generated_token?: string } }).flash;
     const [showForm, setShowForm] = useState(false);
@@ -109,6 +114,9 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
         rate_limit_per_minute: 60,
         allowed_ips: [] as string[],
         endpoint_ids: [] as string[],
+        organization_access: 'scoped',
+        service_provider_id: '',
+        organization_scopes: [] as OrganizationGrant[],
     });
 
     // Scopes the server will add automatically because a selected endpoint
@@ -204,13 +212,13 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                     <div ref={formRef} className="scroll-mt-6">
                         <form onSubmit={submit}>
                             <Card className="overflow-hidden p-0">
-                                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--app-border)] px-5 py-4">
+                                <div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--app-border) px-5 py-4">
                                     <div>
-                                        <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.registerApplication')}</h2>
-                                        <p className="mt-1 max-w-2xl text-sm text-[color:var(--app-muted-foreground)]">{t('apiManagement.registerApplicationHint')}</p>
+                                        <h2 className="text-base font-semibold text-(--app-foreground)">{t('apiManagement.registerApplication')}</h2>
+                                        <p className="mt-1 max-w-2xl text-sm text-(--app-muted-foreground)">{t('apiManagement.registerApplicationHint')}</p>
                                     </div>
                                 </div>
-                                <div className="divide-y divide-[color:var(--app-border)]">
+                                <div className="divide-y divide-(--app-border)">
                                     <FormStep step={1} title={t('apiManagement.applicationDetails')}>
                                         <ApplicationFields values={form.data} onChange={(values) => form.setData({ ...form.data, ...values })} errors={form.errors} disabled={form.processing} />
                                     </FormStep>
@@ -221,20 +229,20 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                                                 {scopes.map((scope) => {
                                                     const checked = form.data.allowed_scopes.includes(scope.value);
                                                     return (
-                                                        <label key={scope.value} className={cx('flex cursor-pointer items-start gap-3 rounded-[var(--radius-control)] border px-3 py-2.5 text-sm transition-colors',
-                                                            checked ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary-50)] dark:bg-[color:var(--color-primary-950)]'
-                                                                : 'border-[color:var(--app-border)] hover:bg-[color:var(--app-surface-muted)]')}>
-                                                            <input type="checkbox" className="mt-0.5 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                                                        <label key={scope.value} className={cx('flex cursor-pointer items-start gap-3 rounded-control border px-3 py-2.5 text-sm transition-colors',
+                                                            checked ? 'border-primary bg-primary-50 dark:bg-primary-950'
+                                                                : 'border-(--app-border) hover:bg-(--app-surface-muted)')}>
+                                                            <input type="checkbox" className="mt-0.5 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
                                                                 checked={checked} onChange={() => toggleScope(scope.value)} />
                                                             <span className="min-w-0">
-                                                                <span className="block font-medium text-[color:var(--app-foreground)]">{scope.label}</span>
-                                                                {scope.label !== scope.value && <code className="block truncate font-mono text-xs text-[color:var(--app-muted-foreground)]">{scope.value}</code>}
+                                                                <span className="block font-medium text-(--app-foreground)">{scope.label}</span>
+                                                                {scope.label !== scope.value && <code className="block truncate font-mono text-xs text-(--app-muted-foreground)">{scope.value}</code>}
                                                             </span>
                                                         </label>
                                                     );
                                                 })}
                                             </div>
-                                            <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{form.data.allowed_scopes.length} / {scopes.length} {t('apiManagement.scopesSelected')}</p>
+                                            <p className="mt-2 text-xs text-(--app-muted-foreground)">{form.data.allowed_scopes.length} / {scopes.length} {t('apiManagement.scopesSelected')}</p>
                                         </fieldset>
                                     </FormStep>
                                     <FormStep step={3} title={t('apiManagement.endpointAssignment')} description={t('apiManagement.endpointAssignmentHint')}>
@@ -245,11 +253,15 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                                             </Alert>
                                         )}
                                     </FormStep>
+                                    <FormStep step={4} title={t('apiManagement.organizationAccess')} description={t('apiManagement.organizationAccessHint_scoped')}>
+                                        <OrganizationAccessFields values={form.data} onChange={(values) => form.setData({ ...form.data, ...values })}
+                                            organizations={organizationOptions} providers={providerOptions} errors={form.errors} disabled={form.processing} />
+                                    </FormStep>
                                 </div>
                                 {Object.keys(form.errors).length > 0 && (
                                     <div className="px-5 pb-4"><Alert tone="danger" title={t('apiManagement.formErrors')}>{Object.values(form.errors).join(' ')}</Alert></div>
                                 )}
-                                <div className="flex flex-wrap justify-end gap-2 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-5 py-4">
+                                <div className="flex flex-wrap justify-end gap-2 border-t border-(--app-border) bg-(--app-surface-muted) px-5 py-4">
                                     <Button variant="outline" onClick={closeForm} disabled={form.processing}>{t('common.cancel')}</Button>
                                     <Button type="submit" variant="primary" loading={form.processing}>{t('apiManagement.saveApplication')}</Button>
                                 </div>
@@ -259,19 +271,19 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                 )}
 
                 <Card className="overflow-hidden p-0">
-                    <div className="flex flex-col gap-3 border-b border-[color:var(--app-border)] px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-col gap-3 border-b border-(--app-border) px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.externalApplications')}</h2>
-                            <p className="mt-0.5 text-sm text-[color:var(--app-muted-foreground)]">{t('apiManagement.externalApplicationsHint')}</p>
+                            <h2 className="text-base font-semibold text-(--app-foreground)">{t('apiManagement.externalApplications')}</h2>
+                            <p className="mt-0.5 text-sm text-(--app-muted-foreground)">{t('apiManagement.externalApplicationsHint')}</p>
                         </div>
                         {applications.length > 0 && (
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                                <div role="group" aria-label={t('common.status')} className="inline-flex w-fit rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] p-0.5">
+                                <div role="group" aria-label={t('common.status')} className="inline-flex w-fit rounded-control bg-(--app-surface-muted) p-0.5">
                                     {STATUS_FILTERS.map((key) => (
                                         <button key={key} type="button" aria-pressed={status === key} onClick={() => setStatus(key)}
                                             className={cx('rounded-[calc(var(--radius-control)-2px)] px-2.5 py-1 text-xs font-medium transition-colors',
-                                                status === key ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm'
-                                                    : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]')}>
+                                                status === key ? 'bg-(--app-surface) text-(--app-foreground) shadow-xs'
+                                                    : 'text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
                                             {key === 'all' ? t('common.all') : t(`common.${key}`)} <span className="tabular-nums opacity-70">{counts[key]}</span>
                                         </button>
                                     ))}
@@ -308,38 +320,48 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
                                                 onClick={() => router.visit(route('api-management.show', application.id))}>
                                                 <td className={cx(cell, 'pl-5')}>
                                                     <Link href={route('api-management.show', application.id)} onClick={(event) => event.stopPropagation()}
-                                                        className="font-medium text-[color:var(--app-foreground)] group-hover:text-[color:var(--color-primary)]">
+                                                        className="font-medium text-(--app-foreground) group-hover:text-primary">
                                                         {application.name}
                                                     </Link>
-                                                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-(--app-muted-foreground)">
                                                         <code className="font-mono">{application.code}</code>
                                                         {application.owner_institution && <span>· {application.owner_institution}</span>}
                                                     </div>
                                                 </td>
-                                                <td className={cell}><StatusBadge status={application.status} label={t(`common.${application.status}`)} /></td>
+                                                <td className={cell}>
+                                                    <StatusBadge status={application.status} label={t(`common.${application.status}`)} />
+                                                    <div className="mt-1 text-xs text-(--app-muted-foreground)">{t(`apiManagement.organizationAccess_${application.organization_access}`)}</div>
+                                                    {application.access_findings.length > 0 && (
+                                                        <div className="mt-1 flex flex-wrap gap-1" aria-label={t('apiManagement.accessReview')}>
+                                                            {application.access_findings.map((finding) => (
+                                                                <span key={finding} className="rounded-sm bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">{t(`apiManagement.accessFinding_${finding}`)}</span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </td>
                                                 <td className={cx(cell, 'text-right tabular-nums')} title={application.allowed_scopes.join(', ') || undefined}>{application.allowed_scopes.length}</td>
-                                                <td className={cx(cell, 'text-right tabular-nums')}>{application.rate_limit_per_minute}<span className="text-[color:var(--app-muted-foreground)]">{t('apiManagement.perMinute')}</span></td>
+                                                <td className={cx(cell, 'text-right tabular-nums')}>{application.rate_limit_per_minute}<span className="text-(--app-muted-foreground)">{t('apiManagement.perMinute')}</span></td>
                                                 <td className={cx(cell, 'text-right tabular-nums')}>{application.tokens_count}</td>
                                                 <td className={cx(cell, 'whitespace-nowrap')} title={application.last_used_at ?? undefined}>
-                                                    {lastUsed(application.last_used_at) ?? <span className="text-[color:var(--app-muted-foreground)]">{t('apiManagement.neverUsed')}</span>}
+                                                    {lastUsed(application.last_used_at) ?? <span className="text-(--app-muted-foreground)">{t('apiManagement.neverUsed')}</span>}
                                                 </td>
-                                                <td className={cx(cell, 'pr-5 text-right')}><ChevronRight className="inline h-4 w-4 text-[color:var(--app-muted-foreground)] group-hover:text-[color:var(--color-primary)]" aria-hidden="true" /></td>
+                                                <td className={cx(cell, 'pr-5 text-right')}><ChevronRight className="inline h-4 w-4 text-(--app-muted-foreground) group-hover:text-primary" aria-hidden="true" /></td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
 
-                            <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
+                            <ul className="divide-y divide-(--app-border) md:hidden">
                                 {visible.map((application) => (
                                     <li key={application.id}>
-                                        <Link href={route('api-management.show', application.id)} className="flex items-start justify-between gap-3 px-5 py-4 hover:bg-[color:var(--app-surface-muted)]">
+                                        <Link href={route('api-management.show', application.id)} className="flex items-start justify-between gap-3 px-5 py-4 hover:bg-(--app-surface-muted)">
                                             <div className="min-w-0">
-                                                <p className="font-medium text-[color:var(--app-foreground)]">{application.name}</p>
-                                                <p className="mt-0.5 truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                                <p className="font-medium text-(--app-foreground)">{application.name}</p>
+                                                <p className="mt-0.5 truncate text-xs text-(--app-muted-foreground)">
                                                     <code className="font-mono">{application.code}</code>{application.owner_institution && ` · ${application.owner_institution}`}
                                                 </p>
-                                                <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                                <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-(--app-muted-foreground)">
                                                     <span>{application.allowed_scopes.length} {t('apiManagement.scopesLabel')}</span>
                                                     <span>{application.rate_limit_per_minute}{t('apiManagement.perMinute')}</span>
                                                     <span>{application.tokens_count} {t('apiManagement.tokensLabel')}</span>

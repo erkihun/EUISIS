@@ -1,4 +1,18 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { TransportRouteAdminForm } from '@/Components/transport/TransportAdminForms';
+import PageHeader from '@/Components/PageHeader';
+import { Head } from '@inertiajs/react';
+import { RouteForm } from '@/Components/transport/TransportForms';
 import { useLocale } from '@/hooks/useLocale';
-export default function Create({ providers = [] }: { providers: any[] }) { const { t } = useLocale(); return <AuthenticatedLayout><h1 className="mb-4 text-lg font-semibold">{t('transport.newRoute')}</h1><TransportRouteAdminForm providers={providers} /></AuthenticatedLayout>; }
+import type { ProviderOption } from '@/types/transport';
+
+export default function Create({ providers }: { providers: ProviderOption[] }) {
+    const { t } = useLocale();
+    const title = t('transport.newRoute');
+
+    return (
+        <AuthenticatedLayout header={<PageHeader title={title} backHref={route('transport.routes.index')} />}>
+            <Head title={title} />
+            <RouteForm mode="admin" providers={providers} />
+        </AuthenticatedLayout>
+    );
+}

@@ -7,6 +7,9 @@ namespace App\Models;
 use App\Casts\EncryptedOrPlaintext;
 use App\Enums\PublicFeedbackSourceType;
 use App\Enums\PublicFeedbackTargetType;
+use App\Enums\PublicIntakeChannel;
+use App\Enums\PublicServiceTimeBand;
+use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Enums\SubmitterIdentityMode;
@@ -50,14 +53,29 @@ class EmployeeServiceFeedback extends Model
         'incident_location',
         'organization_id',
         'organization_unit_id',
+        'organization_unit_name_snapshot',
+        'organization_unit_name_am_snapshot',
+        'organization_unit_type_snapshot',
+        'unit_selection_mode',
         'position_id',
         'position_service_id',
         'service_no_snapshot',
         'service_name_snapshot',
+        'question_set_id',
+        'service_id',
+        'service_text',
+        'service_date',
+        'service_time_band',
         'rating',
         'comment',
         'client_name',
         'client_contact',
+        'client_email',
+        'submitter_organization',
+        'submitter_address',
+        'tip_type',
+        'intake_channel',
+        'involved_parties',
         'ip_address',
         'user_agent',
         'status',
@@ -74,6 +92,12 @@ class EmployeeServiceFeedback extends Model
     protected $hidden = [
         'ip_address',
         'user_agent',
+        // Who sent it is a separate grant (PublicFeedbackVisibility::IDENTITY); screens add it explicitly.
+        'client_name',
+        'client_contact',
+        'client_email',
+        'submitter_organization',
+        'submitter_address',
     ];
 
     protected function casts(): array
@@ -86,8 +110,15 @@ class EmployeeServiceFeedback extends Model
             'submitter_identity_mode' => SubmitterIdentityMode::class,
             // Encrypted at rest (brief §35); rows written before encryption read through.
             'client_contact' => EncryptedOrPlaintext::class,
+            // Tipster/submitter details added with Tip-offs: encrypted from the first row.
+            'client_email' => 'encrypted',
+            'submitter_address' => 'encrypted:array',
+            'tip_type' => PublicTipType::class,
+            'intake_channel' => PublicIntakeChannel::class,
             'rating' => 'integer',
             'incident_date' => 'date',
+            'service_date' => 'date',
+            'service_time_band' => PublicServiceTimeBand::class,
             'submitted_at' => 'datetime',
             'acknowledged_at' => 'datetime',
             'assigned_at' => 'datetime',
@@ -102,6 +133,8 @@ class EmployeeServiceFeedback extends Model
         // PHP's copy of the PostgreSQL CHECK constraints: every driver, every path.
         static::saving(function (self $submission): void {
             $submission->assertTargetIntegrity();
+            $submission->assertTipTypeIntegrity();
+            $submission->assertServiceContextIntegrity();
         });
     }
 
@@ -131,9 +164,52 @@ class EmployeeServiceFeedback extends Model
         }
     }
 
+    /** A tip type belongs to a Tip-off (a `suggestion` row) only — the PHP copy of esf_tip_type_chk. */
+    public function assertTipTypeIntegrity(): void
+    {
+        if ($this->tip_type !== null && $this->type !== ServiceFeedbackType::Suggestion) {
+            throw new InvalidArgumentException('Only a Tip-off carries a tip type.');
+        }
+    }
+
+    /**
+     * Service information and questionnaire answers belong to an organization
+     * submission — the PHP copy of esf_org_service_context_chk. An employee
+     * submission takes its service from the employee's post instead.
+     */
+    public function assertServiceContextIntegrity(): void
+    {
+        if ($this->isEmployeeTarget() && ($this->service_id !== null || $this->service_text !== null || $this->question_set_id !== null)) {
+            throw new InvalidArgumentException('Service information and questionnaire answers belong to an organization submission only.');
+        }
+    }
+
+    public function isTipOff(): bool
+    {
+        return $this->type === ServiceFeedbackType::Suggestion;
+    }
+
     public function isEmployeeTarget(): bool
     {
         return ($this->target_type ?? PublicFeedbackTargetType::Employee) === PublicFeedbackTargetType::Employee;
+    }
+
+    /** The questionnaire version this submission answered; null when it answered none. */
+    public function questionSet(): BelongsTo
+    {
+        return $this->belongsTo(PublicFeedbackQuestionSet::class, 'question_set_id');
+    }
+
+    /** @return HasMany<PublicFeedbackAnswer, $this> */
+    public function answers(): HasMany
+    {
+        return $this->hasMany(PublicFeedbackAnswer::class, 'submission_id');
+    }
+
+    /** The institution's catalog service the visitor received (organization target). */
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class)->withTrashed();
     }
 
     public function employee(): BelongsTo
@@ -155,6 +231,26 @@ class EmployeeServiceFeedback extends Model
     public function organizationUnit(): BelongsTo
     {
         return $this->belongsTo(OrganizationUnit::class);
+    }
+
+    /**
+     * The relevant work unit as it was named when this submission was made.
+     * Null for rows older than the snapshot columns and for "General / Not sure"
+     * (unit_selection_mode GENERAL), which deliberately names no unit.
+     */
+    public function relevantUnitName(string $locale): ?string
+    {
+        if ($locale === 'am' && filled($this->organization_unit_name_am_snapshot)) {
+            return $this->organization_unit_name_am_snapshot;
+        }
+
+        return $this->organization_unit_name_snapshot;
+    }
+
+    /** The visitor explicitly answered "General / Not sure" instead of naming a unit. */
+    public function isGeneralUnitSelection(): bool
+    {
+        return $this->unit_selection_mode === 'GENERAL';
     }
 
     public function position(): BelongsTo

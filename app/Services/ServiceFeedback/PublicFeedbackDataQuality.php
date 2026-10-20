@@ -12,6 +12,7 @@ use App\Models\PublicFeedbackAssignment;
 use App\Models\PublicFeedbackRoutingRule;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\Phone\PublicContactPhone;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -61,6 +62,16 @@ final class PublicFeedbackDataQuality
                     ->whereColumn('q.organization_id', 'organizations.id')->where('q.status', 'active'))
                 ->pluck('id'));
 
+        // The Call action on QR pages (docs/public-qr-mobile-actions.md). A missing number is a policy choice;
+        // a stored value that is not a valid number silently hides the button, so a person must correct it.
+        $add('active_organizations_without_public_phone', 'Active institutions without a public contact phone (no Call action on their QR pages)', self::SEVERITY_INFO,
+            DB::table('organizations')->where('status', 'active')->whereNull('deleted_at')->whereNull('public_contact_phone')->pluck('id'));
+
+        $add('organizations_with_invalid_public_phone', 'Institutions whose public contact phone is not a valid number (Call action hidden)', self::SEVERITY_REVIEW,
+            DB::table('organizations')->whereNull('deleted_at')->whereNotNull('public_contact_phone')->get(['id', 'public_contact_phone'])
+                ->filter(fn (object $row): bool => PublicContactPhone::parse((string) $row->public_contact_phone) === null)
+                ->pluck('id'));
+
         $add('qr_without_organization', 'Feedback QR codes whose institution is missing or archived', self::SEVERITY_WARN,
             DB::table('organization_feedback_qr_codes as q')->leftJoin('organizations as o', 'o.id', '=', 'q.organization_id')
                 ->where('q.status', 'active')->where(fn ($q) => $q->whereNull('o.id')->orWhereNotNull('o.deleted_at'))
@@ -101,6 +112,11 @@ final class PublicFeedbackDataQuality
         $add('broken_category_reference', 'Submissions referring to a category that no longer exists', self::SEVERITY_REVIEW,
             DB::table('employee_service_feedback as s')->leftJoin('public_feedback_categories as c', 'c.id', '=', 's.category_id')
                 ->whereNotNull('s.category_id')->whereNull('c.id')->pluck('s.id'));
+
+        // The database normally forbids this (pfa_one_open_per_submission); a server that refused the index relies on this check.
+        $add('several_open_assignments', 'Submissions with more than one open assignment', self::SEVERITY_FAIL,
+            DB::table('public_feedback_assignments')->whereNull('ended_at')->groupBy('submission_id')
+                ->havingRaw('COUNT(*) > 1')->pluck('submission_id'));
 
         $add('invalid_handler', 'Open assignments whose handler no longer exists', self::SEVERITY_WARN,
             PublicFeedbackAssignment::query()->whereNull('ended_at')->get(['id', 'handler_type', 'handler_id'])

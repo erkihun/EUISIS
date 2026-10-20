@@ -221,10 +221,10 @@ function NotificationsSection({ notifications, l }: { notifications: Props['noti
     return (
         <ul className={`${panelCls} divide-y divide-gray-100 dark:divide-slate-800`}>
             {notifications.map((item) => (
-                <li key={item.id} className={`px-4 py-3 ${item.read ? '' : 'bg-[color:var(--color-primary-50)]/40 dark:bg-slate-800/40'}`}>
+                <li key={item.id} className={`px-4 py-3 ${item.read ? '' : 'bg-primary-50/40 dark:bg-slate-800/40'}`}>
                     <div className="flex flex-wrap items-start justify-between gap-2">
                         <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-slate-100">
-                            {!item.read && <span className="h-2 w-2 shrink-0 rounded-full bg-[color:var(--color-primary)]" aria-label={l('unread')} />}
+                            {!item.read && <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-label={l('unread')} />}
                             {item.title}
                         </h2>
                         <span className="text-xs text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={item.created_at} /></span>

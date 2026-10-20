@@ -9,6 +9,8 @@ use App\Actions\Users\UploadUserProfilePhotoAction;
 use App\Enums\AuditEventType;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
+use App\Services\Security\UserSessionRegistry;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +20,7 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    public function edit(Request $request): Response|RedirectResponse
+    public function edit(Request $request, UserSessionRegistry $sessions): Response|RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
@@ -48,6 +50,22 @@ class ProfileController extends Controller
                 'roles' => $user->getRoleNames()->toArray(),
                 'status' => $user->status,
                 'last_login_at' => $user->last_login_at?->toDateTimeString(),
+                'created_at' => $user->created_at?->toIso8601String(),
+            ],
+            // Security tab: the second factor's state. Setup and removal stay on the MFA routes.
+            'security' => [
+                'two_factor_enabled' => $user->hasMfaEnabled(),
+                'two_factor_required' => $user->requiresMfa(),
+                'two_factor_confirmed_at' => $user->two_factor_confirmed_at?->toIso8601String(),
+                'two_factor_last_used_at' => $user->two_factor_last_used_at !== null
+                    ? CarbonImmutable::parse($user->two_factor_last_used_at)->toIso8601String()
+                    : null,
+            ],
+            // Devices tab: live sessions (database driver only) and the last sign-ins from the audit log.
+            'devices' => [
+                'supported' => $sessions->supported(),
+                'sessions' => $sessions->forUser($user, $request->session()->getId()),
+                'recent_sign_ins' => $sessions->recentSignIns($user),
             ],
         ]);
     }

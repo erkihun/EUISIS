@@ -132,7 +132,7 @@ export default function GradeLevelsIndex({
                                             <td className={cx(tableCellClassName, 'font-medium')}>
                                                 <Link
                                                     href={route('grade-levels.show', gl.id)}
-                                                    className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                                                    className="text-primary hover:text-primary-hover dark:text-primary"
                                                 >
                                                     {gl.name}
                                                 </Link>

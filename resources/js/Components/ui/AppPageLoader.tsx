@@ -7,7 +7,7 @@ export default function AppPageLoader({ fullScreen = false }: AppPageLoaderProps
         <div
             className={[
                 'flex items-center justify-center bg-gray-50 dark:bg-slate-950',
-                fullScreen ? 'fixed inset-0 z-[9998]' : 'min-h-[60vh]',
+                fullScreen ? 'fixed inset-0 z-9998' : 'min-h-[60vh]',
             ].join(' ')}
             role="status"
             aria-label="Loading"

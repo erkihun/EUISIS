@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import JobDescriptionForm from '@/Components/organizationDesign/JobDescriptionForm';
 import SectionForm from '@/Components/organizationDesign/SectionForm';
+import RichTextViewer from '@/Components/forms/RichTextViewer';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
@@ -52,21 +53,21 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
 
     const detail = (label: string, value: React.ReactNode) => (
         <div className="min-w-0">
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-            <dd className="mt-0.5 break-words text-sm text-[color:var(--app-foreground)]">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+            <dd className="mt-0.5 wrap-break-word text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
         </div>
     );
-    const empty = <p className="text-sm text-[color:var(--app-muted-foreground)]">{tt('positionDesign.jd.empty')}</p>;
+    const empty = <p className="text-sm text-(--app-muted-foreground)">{tt('positionDesign.jd.empty')}</p>;
     const dutyList = (label: string, rows: DutyRow[]) => rows.length === 0 ? null : (
         <div key={label}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{label}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{label}</p>
             <ul className="mt-1 space-y-1 text-sm">
                 {rows.map((r) => (
                     <li key={r.id} className="flex flex-wrap items-baseline gap-x-2">
-                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{r.code ?? r.service_no}</span>
+                        <span className="font-mono text-xs text-(--app-muted-foreground)">{r.code ?? r.service_no}</span>
                         <span>{nameOf(r, locale)}</span>
                         {r.is_primary && <span className={badgeClassName('success')}>{tt('positionDesign.primary')}</span>}
-                        {r.required_output && <span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.jd.duties.requiredOutput')}: {r.required_output}</span>}
+                        {r.required_output && <span className="text-xs text-(--app-muted-foreground)">{tt('positionDesign.jd.duties.requiredOutput')}: {r.required_output}</span>}
                     </li>
                 ))}
             </ul>
@@ -104,13 +105,12 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                 return rows.length === 0 ? empty : (
                     <Table>
                         <THead><tr><Th>{tt('positionDesign.jd.standards.task')}</Th><Th align="right">{tt('positionDesign.jd.standards.quantity')}</Th><Th align="right">{tt('positionDesign.jd.standards.time')}</Th><Th align="right">{tt('positionDesign.jd.standards.quality')}</Th><Th>{tt('positionDesign.jd.standards.from')}</Th></tr></THead>
-                        <TBody>{rows.map((r, i) => <Tr key={i}><Td className="font-mono text-xs">{r.task_code ?? '—'} <span className="text-[color:var(--app-muted-foreground)]">v{r.version_no}</span></Td><Td align="right">{num(r.planned_quantity)} {r.quantity_unit ?? ''}</Td><Td align="right">{num(r.planned_time_minutes)}</Td><Td align="right">{num(r.planned_quality)} {r.quality_unit ?? ''}</Td><Td muted><LocalizedDateDisplay value={r.effective_from} /></Td></Tr>)}</TBody>
+                        <TBody>{rows.map((r, i) => <Tr key={i}><Td className="font-mono text-xs">{r.task_code ?? '—'} <span className="text-(--app-muted-foreground)">v{r.version_no}</span></Td><Td align="right">{num(r.planned_quantity)} {r.quantity_unit ?? ''}</Td><Td align="right">{num(r.planned_time_minutes)}</Td><Td align="right">{num(r.planned_quality)} {r.quality_unit ?? ''}</Td><Td muted><LocalizedDateDisplay value={r.effective_from} /></Td></Tr>)}</TBody>
                     </Table>
                 );
             }
             default: {
-                const content = text(section.content_en, section.content_am);
-                return content ? <p className="whitespace-pre-wrap text-sm text-[color:var(--app-foreground)]">{content}</p> : empty;
+                return <RichTextViewer html={text(section.content_en, section.content_am)} empty={empty} />;
             }
         }
     }
@@ -155,7 +155,7 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                             {detail(tt('positionDesign.jd.publishedBy'), jd.published_by)}
                             {detail(tt('positionDesign.jd.generatedAt'), jd.generated_at ? <LocalizedDateDisplay value={jd.generated_at} withTime /> : null)}
                         </dl>
-                        {jd.status === 'under_review' && !can.approve && can.review && <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.jd.approveByOther')}</p>}
+                        {jd.status === 'under_review' && !can.approve && can.review && <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{tt('positionDesign.jd.approveByOther')}</p>}
                     </Card>
 
                     {sections.map((s) => (
@@ -165,9 +165,13 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                                     <CardTitle>{(locale === 'am' && s.title_am) || s.title_en}</CardTitle>
                                     <span className={badgeClassName(s.source === 'derived' ? 'info' : 'neutral')}>{tt(`positionDesign.jd.${s.source}`)}</span>
                                 </div>
-                                {can.update && s.source === 'custom' && <button type="button" className={actionLinkClassName()} onClick={() => setEditing(s)}>{t('common.edit')}</button>}
+                                {can.update && s.source === 'custom' && editing?.id !== s.id && <button type="button" className={actionLinkClassName()} onClick={() => setEditing(s)}>{t('common.edit')}</button>}
                             </CardHeader>
-                            <div className="p-5">{body(s)}</div>
+                            <div className="p-5">
+                                {editing?.id === s.id
+                                    ? <SectionForm key={s.id} jobDescriptionId={jd.id} sectionKey={s.section_key} title={(locale === 'am' && s.title_am) || s.title_en} contentEn={s.content_en} contentAm={s.content_am} onClose={() => setEditing(null)} />
+                                    : body(s)}
+                            </div>
                         </Card>
                     ))}
                 </div>
@@ -176,7 +180,7 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                     <ValidationReport report={validation} compact />
                     <Card>
                         <CardHeader><CardTitle>{tt('positionDesign.versions')}</CardTitle></CardHeader>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {versions.map((v) => (
                                 <li key={v.id} className="flex items-center justify-between gap-2 px-5 py-2 text-sm">
                                     <span>{v.id === jd.id ? <strong>v{v.version_no}</strong> : <Link href={route('organization-design.job-descriptions.show', v.id)} className={actionLinkClassName({ size: 'sm' })}>v{v.version_no}</Link>} · <LocalizedDateDisplay value={v.effective_from} /></span>
@@ -187,12 +191,12 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                     </Card>
                     <Card>
                         <CardHeader><CardTitle>{tt('positionDesign.history')}</CardTitle></CardHeader>
-                        <ul className="divide-y divide-[color:var(--app-border)]">
+                        <ul className="divide-y divide-(--app-border)">
                             {history.map((h, i) => (
                                 <li key={i} className="px-5 py-3 text-sm">
-                                    <p className="font-medium text-[color:var(--app-foreground)]">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
-                                    {h.reason && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{h.reason}</p>}
+                                    <p className="font-medium text-(--app-foreground)">{h.from ? `${tt(`status.${h.from}`)} → ` : ''}{tt(`status.${h.to}`)}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{h.actor ?? '—'} · <LocalizedDateDisplay value={h.at} withTime /></p>
+                                    {h.reason && <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{h.reason}</p>}
                                 </li>
                             ))}
                         </ul>
@@ -200,7 +204,6 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                 </div>
             </div>
 
-            {editing && <SectionForm jobDescriptionId={jd.id} sectionKey={editing.section_key} title={(locale === 'am' && editing.title_am) || editing.title_en} contentEn={editing.content_en} contentAm={editing.content_am} onClose={() => setEditing(null)} />}
             {can.version && <JobDescriptionForm show={versionOpen} onClose={() => setVersionOpen(false)} title={tt('positionDesign.jd.newVersion')} url={route('organization-design.job-descriptions.versions.store', jd.id)} />}
         </AuthenticatedLayout>
     );

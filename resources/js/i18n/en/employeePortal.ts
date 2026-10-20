@@ -103,6 +103,14 @@ const employeePortal = {
     noTransportPass: 'No transport pass issued yet.',
     recentRides: 'Recent rides',
     noRides: 'No rides recorded yet.',
+    myRoute: 'My route',
+    boardingStop: 'Boarding stop',
+    eveningStop: 'Evening stop',
+    todayTrips: "Today's trips on my route",
+    noTripsToday: 'No trips planned on your route today.',
+    morningRides: 'Morning',
+    eveningRides: 'Evening',
+    transportPrivacyNote: 'Your boardings are recorded as proof that the service was delivered. They are not attendance and are never used for pay or discipline.',
     statuses: {
         active: 'Active', paused: 'Paused', suspended: 'Suspended', revoked: 'Revoked', expired: 'Expired',
         exhausted: 'Exhausted', accepted: 'Accepted', rejected: 'Rejected', completed: 'Completed',
@@ -126,6 +134,8 @@ const employeePortal = {
         submitted: 'Submitted', under_review: 'Under review', verified: 'Verified', selected: 'Selected',
         release_pending: 'Awaiting release', receiving_pending: 'Awaiting receiving office', final_approval_pending: 'Awaiting final approval',
         approved: 'Approved', transferred: 'Transferred', rejected: 'Not selected', withdrawn: 'Withdrawn', cancelled: 'Cancelled',
+        // A failed implementation is HR's to retry; to the applicant the transfer is still approved.
+        implementation_failed: 'Approved, being processed',
     },
     correctionFields: {
         full_name: 'Legal name', date_of_birth: 'Date of birth', national_id: 'National ID', nationality: 'Nationality',

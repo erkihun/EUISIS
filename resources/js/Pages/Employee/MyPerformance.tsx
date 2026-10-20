@@ -60,7 +60,7 @@ function PerformanceBody({ agreements, agreement, appeals, appealWindowDays, can
                 <div className="flex flex-wrap gap-2">
                     {agreements.map((a) => (
                         <button key={a.id} type="button" onClick={() => router.get(route('employee.performance.index'), { agreement: a.id }, { preserveScroll: true })}
-                            className={`${smallBtn} ${agreement?.id === a.id ? 'ring-2 ring-[color:var(--color-primary)]' : ''}`}>
+                            className={`${smallBtn} ${agreement?.id === a.id ? 'ring-2 ring-primary' : ''}`}>
                             {nameOf(a.cycle, locale)} · <LocalizedDateDisplay value={a.effective_from} />{a.is_temporary ? ` · ${t('performance.fields.temporary')}` : ''}
                         </button>
                     ))}
@@ -71,7 +71,7 @@ function PerformanceBody({ agreements, agreement, appeals, appealWindowDays, can
                 <Section title={t('performance.my.noAgreement')} description={t('performance.my.noAgreementHelp')}>
                     <ol className="grid gap-4 py-3 md:grid-cols-3">
                         {['agreeStep', 'recordStep', 'reviewStep'].map((step, index) => <li key={step} className="rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-slate-700 dark:bg-slate-800/40">
-                            <span className="mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-semibold text-[color:var(--color-primary)] shadow-sm dark:bg-slate-900">{index + 1}</span>
+                            <span className="mb-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-semibold text-primary shadow-xs dark:bg-slate-900">{index + 1}</span>
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t(`performance.my.${step}`)}</h3>
                             <p className="mt-2 text-sm leading-relaxed text-gray-500 dark:text-slate-400">{t(`performance.my.${step}Help`)}</p>
                         </li>)}
@@ -120,7 +120,7 @@ function PerformanceBody({ agreements, agreement, appeals, appealWindowDays, can
                         </Section>
                         <Section title={t('performance.fields.evidence')} actions={['AGREED', 'ACTIVE', 'UNDER_REVIEW'].includes(agreement.status) && <button type="button" className={smallBtn} onClick={() => toggle('evidence')}>{t('performance.actions.upload')}</button>}>
                             {open === 'evidence' && <div className="mb-3"><EvidenceForm url={route('employee.performance.evidence.store', agreement.id)} items={agreement.items.map((i) => ({ id: i.id, label: `${i.kpi.code} — ${nameOf(i.kpi, locale)}` }))} onDone={() => setOpen(null)} /></div>}
-                            <EvidenceList evidence={agreement.evidence} />
+                            <EvidenceList evidence={agreement.evidence} downloadRoute="employee.performance.evidence.download" />
                         </Section>
                     </div>
 

@@ -8,6 +8,7 @@ use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\Grievance\GrievanceApprovalAction;
+use App\Enums\Grievance\GrievanceCommitteeRole;
 use App\Enums\Grievance\GrievanceDecisionStatus;
 use App\Enums\Grievance\GrievanceDecisionType;
 use App\Enums\Grievance\GrievanceHandlerType;
@@ -22,8 +23,10 @@ use App\Models\GrievanceDecisionApproval;
 use App\Models\GrievanceDecisionVote;
 use App\Models\GrievanceDelegation;
 use App\Models\User;
+use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -169,11 +172,11 @@ final class GrievanceDecisionService
         $grievance = $decision->grievance;
         $seat = $this->access->panelSeat($actor, $decision->stage);
         $this->access->authorize($grievance !== null && $seat !== null && $this->access->canReview($actor, $grievance));
-        if (! $this->settings->votingEnabled() && ! ($vote === GrievanceVoteType::Dissent && $this->settings->dissentEnabled())) {
-            throw ValidationException::withMessages(['vote' => __('grievances.errors.voting_disabled')]);
-        }
-        if ($vote === GrievanceVoteType::Dissent && ! $this->settings->dissentEnabled()) {
-            throw ValidationException::withMessages(['vote' => __('grievances.errors.dissent_disabled')]);
+        // Only committee seats vote, and a committee recommendation always passes by
+        // vote (Regulation 201/2018 Art. 8(3)) — the voting settings cannot turn that off.
+        // Art. 8(4): a dissenting member states the reason in writing.
+        if ($vote === GrievanceVoteType::Dissent && trim((string) $opinion) === '') {
+            throw ValidationException::withMessages(['opinion' => __('grievances.errors.dissent_reason_required')]);
         }
         if (! in_array($decision->status, [GrievanceDecisionStatus::Draft, GrievanceDecisionStatus::UnderInternalReview], true)) {
             throw ValidationException::withMessages(['decision' => __('grievances.errors.stale')]);
@@ -240,9 +243,11 @@ final class GrievanceDecisionService
             $this->logAction($decision, $actor, GrievanceApprovalAction::SubmitForApproval, null);
             $this->cases->setWorkingStatus($grievance->setRelation('currentStage', $decision->stage), GrievanceStageStatus::PendingApproval);
 
-            // Regulation 201/2018 Art. 35(1): the institution head decides on the
-            // grievance report within 10 working days of receiving it.
-            app(StatutoryDeadlineService::class)->snapshot($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, now());
+            // Regulation 201/2018 Art. 34(3) is met when the committee's report reaches the head,
+            // and Art. 35(1) starts: the head decides within 10 working days of receiving it.
+            $deadlines = app(StatutoryDeadlineService::class);
+            $deadlines->complete($grievance, Regulation201::GRIEVANCE_COMMITTEE_REPORT, now());
+            $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, now());
 
             $this->audit->record(AuditEventType::GrievanceDecisionSubmittedForApproval, $actor, $decision, ['version_no' => $decision->version_no, 'approver_position_id' => $requirement['position_id']]);
             $this->timeline->record($grievance, 'decision_submitted_for_approval', $actor, ['version_no' => $decision->version_no], $decision->case_stage_id);
@@ -314,17 +319,19 @@ final class GrievanceDecisionService
             $decision->stage->forceFill(['decision_id' => $decision->getKey()])->save();
             $this->logAction($decision, $actor, GrievanceApprovalAction::Finalize, null);
 
-            // The head-decision deadline (Art. 35(1)) is met at finalization, and
-            // the Art. 35(2) 5-working-day delivery clock starts now.
             $deadlines = app(StatutoryDeadlineService::class);
             // Without an executive-approval step, submitForApproval() never ran,
             // so the report reaches the deciding authority at finalization:
-            // record the Art. 35(1) clock here so it is tracked on every path.
+            // close Art. 34(3) and record the Art. 35(1) clock here so both are tracked on every path.
+            $deadlines->complete($grievance, Regulation201::GRIEVANCE_COMMITTEE_REPORT, now());
             if ($grievance->statutoryDeadline(Regulation201::GRIEVANCE_HEAD_DECISION) === null) {
                 $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, now());
             }
-            $deadlines->complete($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, now());
-            $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_DECISION_DELIVERY, now());
+            // The head decided when the decision was approved (or now, on the no-approval path):
+            // Art. 35(1) is met then, and the Art. 35(2) five-working-day delivery clock runs from that decision.
+            $decidedAt = $decision->approved_at !== null ? Carbon::parse($decision->approved_at) : now();
+            $deadlines->complete($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, $decidedAt);
+            $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_DECISION_DELIVERY, $decidedAt);
 
             $this->audit->record(AuditEventType::GrievanceDecisionFinalized, $actor, $decision, ['decision_no' => $decision->decision_no]);
             $this->timeline->record($grievance, 'decision_finalized', $actor, ['decision_no' => $decision->decision_no], $decision->case_stage_id);
@@ -363,6 +370,14 @@ final class GrievanceDecisionService
             'resolved_at' => now(),
             'appeal_deadline_at' => $appealDeadline,
         ])->save();
+
+        // Art. 35(2): issuing the signed decision letter is the written delivery to the applicant.
+        // That meets the delivery deadline and opens the Art. 38(1) 30-day window to appeal to the
+        // Administrative Court (rolled to the next working day per Art. 38(4)). The internal review
+        // above, if the institution offers one, never stops that statutory clock.
+        $deadlines = app(StatutoryDeadlineService::class);
+        $deadlines->complete($grievance, Regulation201::GRIEVANCE_DECISION_DELIVERY, now());
+        $deadlines->snapshot($grievance, Regulation201::APPEAL_FILING, now());
 
         $this->audit->record(AuditEventType::GrievanceDecisionIssued, $actor, $decision, ['decision_no' => $decision->decision_no, 'appeal_deadline_at' => $appealDeadline?->toIso8601String()]);
         $this->timeline->record($grievance, 'decision_issued', $actor, ['decision_no' => $decision->decision_no, 'appeal_deadline_at' => $appealDeadline?->toIso8601String()], $stage->getKey());
@@ -460,12 +475,45 @@ final class GrievanceDecisionService
 
         $stage = $decision->stage;
         if ($stage->handler_type === GrievanceHandlerType::Committee) {
+            $this->assertStatutoryVote($decision, $stage);
             $votes = $this->settings->votingEnabled() ? $decision->votes()->count() : null;
             $quorum = $this->committees->quorum($stage, $votes);
             $decision->forceFill(['quorum_met' => $quorum['met']])->save();
             if (! $quorum['met']) {
                 throw ValidationException::withMessages(['decision' => __('grievances.errors.quorum_not_met', ['present' => $quorum['present'], 'required' => $quorum['required']])]);
             }
+        }
+    }
+
+    /**
+     * Regulation 201/2018 Art. 8 for a committee recommendation. A vote on the
+     * draft records the member as present and voting.
+     *  (2) quorum: the chairperson and at least two other seated members;
+     *  (3) adopted by majority of concurring over dissenting votes, the
+     *      chairperson's side prevailing on a tie;
+     *  (4) every dissent states its reason.
+     */
+    private function assertStatutoryVote(GrievanceDecision $decision, GrievanceCaseStage $stage): void
+    {
+        $seats = $stage->members()->eligible()->get()->keyBy('employee_id');
+        $votes = $decision->votes()->get()->filter(fn ($v) => $seats->has($v->employee_id));
+        $chair = $seats->first(fn ($m) => $m->role === GrievanceCommitteeRole::Chairperson);
+        $chairVote = $chair !== null ? $votes->firstWhere('employee_id', $chair->employee_id) : null;
+
+        $rules = app(StatutoryCommitteeRules::class);
+        if (! $rules->quorumMet($chairVote !== null ? 1 : 0, $votes->count() - ($chairVote !== null ? 1 : 0))) {
+            throw ValidationException::withMessages(['decision' => __('grievances.errors.statutory_quorum_not_met')]);
+        }
+        if ($votes->contains(fn ($v) => $v->vote === GrievanceVoteType::Dissent && trim((string) $v->opinion) === '')) {
+            throw ValidationException::withMessages(['decision' => __('grievances.errors.dissent_reason_required')]);
+        }
+        $tally = $rules->tally(
+            $votes->where('vote', GrievanceVoteType::Concur)->count(),
+            $votes->where('vote', GrievanceVoteType::Dissent)->count(),
+            $chairVote?->vote === GrievanceVoteType::Concur,
+        );
+        if (! $tally['adopted']) {
+            throw ValidationException::withMessages(['decision' => __('grievances.errors.recommendation_not_carried')]);
         }
     }
 

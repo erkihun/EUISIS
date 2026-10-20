@@ -24,7 +24,11 @@ class SecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
 
         // ── Referrer control ─────────────────────────────────────────────────
-        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        // A stricter policy set by a route (no-referrer on QR token pages,
+        // PrivateQrPageHeaders) is kept.
+        if (! $response->headers->has('Referrer-Policy')) {
+            $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        }
 
         // ── Browser feature restrictions ─────────────────────────────────────
         // geolocation=(self): Field Work GPS check-in/out reads the position
@@ -56,7 +60,7 @@ class SecurityHeaders
         //   form-action 'self'     — prevents cross-origin form submission
         //
         // In local development the Vite dev server runs on a separate origin
-        // (typically http://[::1]:5173 or http://localhost:5173). Scripts and
+        // (typically http://127.0.0.1:5173 or http://localhost:5173). Scripts and
         // WebSocket HMR connections from that origin are explicitly allowed here so
         // the browser does not block hot-module replacement.
         //
@@ -68,10 +72,12 @@ class SecurityHeaders
         // LAN testing against http://<ip>:8000 can still reach the Vite dev
         // server. A fixed localhost list only works when the browser and the
         // server are the same machine — a phone scanning a QR is not.
-        $devHosts = ['localhost', '127.0.0.1', '[::1]'];
+        $devHosts = ['localhost', '127.0.0.1'];
 
-        if ($isLocal && ! in_array($request->getHost(), $devHosts, true)) {
-            $devHosts[] = $request->getHost();
+        $requestHost = $request->getHost();
+
+        if ($isLocal && filter_var($requestHost, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false && ! in_array($requestHost, $devHosts, true)) {
+            $devHosts[] = $requestHost;
         }
 
         $viteHttp = implode(' ', array_map(static fn (string $host): string => "http://{$host}:5173", $devHosts));
@@ -92,11 +98,14 @@ class SecurityHeaders
             ? "font-src 'self' data: {$viteHttp}"
             : "font-src 'self' data:";
 
+        // Map tiles (config/maps.php) are the one outside image source.
+        $imgSrc = trim("img-src 'self' data: blob: ".self::tileOrigin((string) config('maps.tile_url', '')));
+
         $response->headers->set('Content-Security-Policy', implode('; ', [
             "default-src 'self'",
             $scriptSrc,
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: blob:",
+            $imgSrc,
             $fontSrc,
             $connectSrc,
             "frame-ancestors 'none'",
@@ -117,5 +126,22 @@ class SecurityHeaders
         }
 
         return $response;
+    }
+
+    /**
+     * The scheme and host of the map tile template, for img-src. A `{s}`
+     * subdomain placeholder becomes a wildcard; anything that is not an
+     * http(s) URL adds nothing.
+     */
+    public static function tileOrigin(string $template): string
+    {
+        $wildcard = str_contains($template, '://{s}.');
+        $parts = parse_url(str_replace('://{s}.', '://sub.', $template));
+        if (! is_array($parts) || ! in_array($parts['scheme'] ?? null, ['http', 'https'], true) || empty($parts['host'])) {
+            return '';
+        }
+        $host = $wildcard ? '*.'.substr($parts['host'], 4) : $parts['host'];
+
+        return $parts['scheme'].'://'.$host.(isset($parts['port']) ? ':'.$parts['port'] : '');
     }
 }

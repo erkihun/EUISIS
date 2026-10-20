@@ -44,8 +44,8 @@ export const toneClasses: Record<StatusTone, string> = {
         'bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200 ' +
         'dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900',
     info:
-        'bg-[color:var(--color-primary-50)] text-[color:var(--color-primary-800)] ring-1 ring-inset ring-[color:var(--color-primary-200)] ' +
-        'dark:bg-[color:var(--color-primary-950)] dark:text-[color:var(--color-primary-200)] dark:ring-[color:var(--color-primary-800)]',
+        'bg-primary-50 text-primary-800 ring-1 ring-inset ring-primary-200 ' +
+        'dark:bg-primary-950 dark:text-primary-200 dark:ring-primary-800',
     warning:
         'bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200 ' +
         'dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900',
@@ -72,6 +72,7 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     vacant: ['Vacant', 'neutral'],
     draft: ['Draft', 'neutral'],
     cancelled: ['Cancelled', 'neutral'],
+    withdrawn: ['Withdrawn', 'neutral'],
     canceled: ['Canceled', 'neutral'],
     unknown: ['Unknown', 'neutral'],
     // Daily activity: exempt or untracked days need nothing from anyone.
@@ -107,6 +108,7 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     in_progress: ['In Progress', 'info'],
     processing: ['Processing', 'info'],
     transferred: ['Transferred', 'info'],
+    selected: ['Selected', 'info'],
     printed: ['Printed', 'info'],
     queued: ['Queued', 'info'],
     open: ['Open', 'info'],
@@ -128,6 +130,9 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     expiring_soon: ['Expiring Soon', 'warning'],
     returned_for_correction: ['Returned for correction', 'warning'],
     returned: ['Returned', 'warning'],
+    release_pending: ['Release pending', 'warning'],
+    receiving_pending: ['Receiving pending', 'warning'],
+    final_approval_pending: ['Final approval pending', 'warning'],
     check_in_missing: ['Check-in missing', 'warning'],
     supervisor_not_resolved: ['Supervisor not resolved', 'warning'],
     outside_expected_area: ['Outside expected area', 'warning'],
@@ -138,6 +143,7 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     lost: ['Lost', 'danger'],
     denied: ['Denied', 'danger'],
     rejected: ['Rejected', 'danger'],
+    implementation_failed: ['Implementation failed', 'danger'],
     dissolved: ['Dissolved', 'danger'],
     failed: ['Failed', 'danger'],
     blocked: ['Blocked', 'danger'],

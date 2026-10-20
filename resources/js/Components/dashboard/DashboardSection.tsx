@@ -12,11 +12,11 @@ export default function DashboardSection({ title, description, actions, children
         <section className="space-y-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <h2 className="text-lg font-semibold text-[color:var(--app-foreground)]">
+                    <h2 className="text-lg font-semibold text-(--app-foreground)">
                         {title}
                     </h2>
                     {description && (
-                        <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                        <p className="mt-1 text-sm text-(--app-muted-foreground)">
                             {description}
                         </p>
                     )}

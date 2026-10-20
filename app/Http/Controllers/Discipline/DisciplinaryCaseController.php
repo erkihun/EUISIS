@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Discipline;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
+use App\Enums\Discipline\DisciplinaryAppealOutcome;
 use App\Enums\Discipline\DisciplinaryCaseStatus;
 use App\Enums\Discipline\DisciplinaryEvidenceSide;
 use App\Enums\Discipline\DisciplinaryFinding;
@@ -24,10 +25,10 @@ use App\Services\Discipline\DisciplinaryCasePresenter;
 use App\Services\Discipline\DisciplinaryCaseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -290,7 +291,7 @@ class DisciplinaryCaseController extends Controller
             'reason' => ['required', 'string', 'max:10000'],
         ]));
 
-        return back()->with('success', __('discipline.flash.decided'));
+        return back()->with('success', __($request->input('action') === DisciplinaryHeadAction::ReferToCommittee->value ? 'discipline.flash.referred' : 'discipline.flash.decided'));
     }
 
     public function deliver(Request $request, DisciplinaryCase $case): RedirectResponse
@@ -302,6 +303,96 @@ class DisciplinaryCaseController extends Controller
         ]));
 
         return back()->with('success', __('discipline.flash.delivered'));
+    }
+
+    /** Art. 12(1): the head's suspension order, with its written reason and how it was served. */
+    public function suspend(Request $request, DisciplinaryCase $case): RedirectResponse
+    {
+        $this->cases->suspend($case, $request->user(), $request->validate([
+            'starts_on' => ['required', 'date_format:Y-m-d'],
+            'without_pay' => ['required', 'boolean'],
+            'ends_on' => ['nullable', 'date_format:Y-m-d', 'required_if_accepted:without_pay'],
+            'reason' => ['required', 'string', 'max:5000'],
+            'served_at' => ['required', 'date'],
+            'service_method' => ['required', Rule::in(['personal', 'family_member', 'posted'])],
+        ]));
+
+        return back()->with('success', __('discipline.flash.suspended'));
+    }
+
+    public function liftSuspension(Request $request, DisciplinaryCase $case): RedirectResponse
+    {
+        $data = $request->validate(['lifted_on' => ['required', 'date_format:Y-m-d'], 'reason' => ['required', 'string', 'max:2000']]);
+        $this->cases->liftSuspension($case, $request->user(), $data['lifted_on'], $data['reason']);
+
+        return back()->with('success', __('discipline.flash.suspension_lifted'));
+    }
+
+    public function suspensionBackPay(Request $request, DisciplinaryCase $case): RedirectResponse
+    {
+        $data = $request->validate([
+            'suspension_id' => ['required', 'uuid'],
+            'paid_on' => ['required', 'date_format:Y-m-d'],
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+        $this->cases->recordSuspensionBackPay($case, $request->user(), $data['suspension_id'], $data['paid_on'], $data['note'] ?? null);
+
+        return back()->with('success', __('discipline.flash.suspension_back_paid'));
+    }
+
+    /** Art. 37(1): the employee's appeal notice, optionally asking for the committee record. */
+    public function appealNotice(Request $request, DisciplinaryCase $case): RedirectResponse
+    {
+        $this->cases->recordAppealNotice($case, $request->user(), $request->validate([
+            'notice_received_at' => ['required', 'date'],
+            'record_copy_requested' => ['required', 'boolean'],
+        ]));
+
+        return back()->with('success', __('discipline.flash.appeal_noticed'));
+    }
+
+    /** Art. 37(2): the sealed, certified record copy handed over. */
+    public function appealRecordCopy(Request $request, DisciplinaryCase $case): RedirectResponse
+    {
+        $data = $request->validate(['delivered_at' => ['required', 'date']]);
+        $this->cases->recordAppealRecordCopy($case, $request->user(), $data['delivered_at']);
+
+        return back()->with('success', __('discipline.flash.appeal_record_copy'));
+    }
+
+    public function appealFiling(Request $request, DisciplinaryCase $case): RedirectResponse
+    {
+        $data = $request->validate([
+            'filed_on' => ['required', 'date_format:Y-m-d'],
+            'court_case_number' => ['nullable', 'string', 'max:100'],
+        ]);
+        $this->cases->recordAppealFiling($case, $request->user(), $data['filed_on'], $data['court_case_number'] ?? null);
+
+        return back()->with('success', __('discipline.flash.appeal_filed'));
+    }
+
+    public function appealOutcome(Request $request, DisciplinaryCase $case): RedirectResponse
+    {
+        $this->cases->recordAppealOutcome($case, $request->user(), $request->validate([
+            'outcome' => ['required', Rule::in(DisciplinaryAppealOutcome::values())],
+            'decided_on' => ['required', 'date_format:Y-m-d'],
+            'received_at' => ['required', 'date'],
+            'summary' => ['required', 'string', 'max:5000'],
+        ]));
+
+        return back()->with('success', __('discipline.flash.appeal_outcome'));
+    }
+
+    /** Art. 54(1): a ruling for the employee carried out. */
+    public function appealImplemented(Request $request, DisciplinaryCase $case): RedirectResponse
+    {
+        $data = $request->validate([
+            'implemented_at' => ['required', 'date'],
+            'note' => ['required', 'string', 'max:2000'],
+        ]);
+        $this->cases->recordAppealImplemented($case, $request->user(), $data['implemented_at'], $data['note']);
+
+        return back()->with('success', __('discipline.flash.appeal_implemented'));
     }
 
     public function discontinue(Request $request, DisciplinaryCase $case): RedirectResponse
@@ -361,7 +452,7 @@ class DisciplinaryCaseController extends Controller
     {
         return [
             'penalties' => array_map(fn (DisciplinaryPenalty $p): array => [
-                'value' => $p->value, 'severity' => $p->severity()->value, 'article' => $p->article(),
+                'value' => $p->value, 'severity' => $p->severity()->value,
                 'unit' => $p->amountUnit(), 'max' => $p->maxAmount(),
             ], DisciplinaryPenalty::cases()),
             'objectionGrounds' => array_column(DisciplinaryObjectionGround::cases(), 'value'),

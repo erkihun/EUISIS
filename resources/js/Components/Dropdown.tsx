@@ -53,7 +53,7 @@ const Trigger = ({ children }: PropsWithChildren) => {
 const Content = ({
     align = 'right',
     width = '48',
-    contentClasses = 'py-1 bg-[color:var(--app-surface)]',
+    contentClasses = 'py-1 bg-(--app-surface)',
     children,
 }: PropsWithChildren<{
     align?: 'left' | 'right';
@@ -65,9 +65,9 @@ const Content = ({
     let alignmentClasses = 'origin-top';
 
     if (align === 'left') {
-        alignmentClasses = 'ltr:origin-top-left rtl:origin-top-right start-0';
+        alignmentClasses = 'ltr:origin-top-left rtl:origin-top-right inset-s-0';
     } else if (align === 'right') {
-        alignmentClasses = 'ltr:origin-top-right rtl:origin-top-left end-0';
+        alignmentClasses = 'ltr:origin-top-right rtl:origin-top-left inset-e-0';
     }
 
     let widthClasses = '';
@@ -114,7 +114,7 @@ const DropdownLink = ({
         <Link
             {...props}
             className={
-                'block w-full px-4 py-2 text-start text-sm leading-5 text-[color:var(--app-foreground)] transition duration-150 ease-in-out hover:bg-[color:var(--app-surface-muted)] focus:bg-[color:var(--app-surface-muted)] focus:outline-none ' +
+                'block w-full px-4 py-2 text-start text-sm leading-5 text-(--app-foreground) transition duration-150 ease-in-out hover:bg-(--app-surface-muted) focus:bg-(--app-surface-muted) focus:outline-hidden ' +
                 className
             }
         >

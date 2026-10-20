@@ -81,7 +81,7 @@ export default function OrganizationFeedbackQr({ organization, qr, history, stat
         });
     }
 
-    const card = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
+    const card = 'rounded-card border border-(--app-border) bg-(--app-surface)';
 
     return (
         <AuthenticatedLayout header={<PageHeader
@@ -97,7 +97,7 @@ export default function OrganizationFeedbackQr({ organization, qr, history, stat
                     <div className={`${card} p-5 text-center`}>
                         {qr === null ? (
                             <>
-                                <p className="py-6 text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.orgQrNone')}</p>
+                                <p className="py-6 text-sm text-(--app-muted-foreground)">{t('serviceFeedback.orgQrNone')}</p>
                                 {abilities.create && (
                                     <button
                                         type="button"
@@ -115,19 +115,19 @@ export default function OrganizationFeedbackQr({ organization, qr, history, stat
                                 </div>
 
                                 {qr.status === 'disabled' && (
-                                    <p className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.orgQrDisabledNotice')}</p>
+                                    <p className="mt-3 text-xs text-(--app-muted-foreground)">{t('serviceFeedback.orgQrDisabledNotice')}</p>
                                 )}
 
                                 {qr.qr_svg && (
                                     <img
                                         src={qr.qr_svg}
                                         alt={t('serviceFeedback.organizationFeedbackQr')}
-                                        className="mx-auto mt-4 h-52 w-52 rounded-lg bg-[color:var(--app-surface)] p-2"
+                                        className="mx-auto mt-4 h-52 w-52 rounded-lg bg-(--app-surface) p-2"
                                     />
                                 )}
 
-                                <p className="mt-3 break-all text-xs text-[color:var(--app-muted-foreground)]">{qr.url}</p>
-                                <p className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.orgQrDescription')}</p>
+                                <p className="mt-3 break-all text-xs text-(--app-muted-foreground)">{qr.url}</p>
+                                <p className="mt-3 text-xs text-(--app-muted-foreground)">{t('serviceFeedback.orgQrDescription')}</p>
 
                                 <div className="mt-4 grid gap-2">
                                     {qr.status === 'active' && (
@@ -176,7 +176,7 @@ export default function OrganizationFeedbackQr({ organization, qr, history, stat
                                 </div>
 
                                 {pending !== null && (
-                                    <form onSubmit={submitReason} className="mt-4 space-y-3 border-t border-[color:var(--app-border)] pt-4 text-left">
+                                    <form onSubmit={submitReason} className="mt-4 space-y-3 border-t border-(--app-border) pt-4 text-left">
                                         <Alert tone={pending === 'rotate' ? 'warning' : 'danger'}>
                                             {t(pending === 'rotate' ? 'serviceFeedback.rotateQrWarning' : 'serviceFeedback.revokeQrWarning')}
                                         </Alert>
@@ -210,14 +210,14 @@ export default function OrganizationFeedbackQr({ organization, qr, history, stat
                                     </form>
                                 )}
 
-                                <dl className="mt-4 space-y-1.5 border-t border-[color:var(--app-border)] pt-3 text-left text-xs">
+                                <dl className="mt-4 space-y-1.5 border-t border-(--app-border) pt-3 text-left text-xs">
                                     <div className="flex justify-between">
-                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.qrEnabledAt')}</dt>
-                                        <dd className="text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={qr.enabled_at} withTime /></dd>
+                                        <dt className="text-(--app-muted-foreground)">{t('serviceFeedback.qrEnabledAt')}</dt>
+                                        <dd className="text-(--app-foreground)"><LocalizedDateDisplay value={qr.enabled_at} withTime /></dd>
                                     </div>
                                     <div className="flex justify-between">
-                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.lastScanned')}</dt>
-                                        <dd className="text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={qr.last_scanned_at} withTime /></dd>
+                                        <dt className="text-(--app-muted-foreground)">{t('serviceFeedback.lastScanned')}</dt>
+                                        <dd className="text-(--app-foreground)"><LocalizedDateDisplay value={qr.last_scanned_at} withTime /></dd>
                                     </div>
                                 </dl>
                             </>
@@ -226,34 +226,34 @@ export default function OrganizationFeedbackQr({ organization, qr, history, stat
 
                     <div className="space-y-5 lg:col-span-2">
                         <div className={`${card} p-5`}>
-                            <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.submissionsAboutInstitution')}</h2>
+                            <h2 className="text-sm font-semibold text-(--app-foreground)">{t('serviceFeedback.submissionsAboutInstitution')}</h2>
                             <dl className="mt-4 grid gap-4 sm:grid-cols-3">
-                                {([['feedback', 'typeFeedback'], ['suggestion', 'typeSuggestion'], ['complaint', 'typeComplaint']] as const).map(([key, label]) => (
-                                    <div key={key} className="rounded-card border border-[color:var(--app-border)] p-4">
-                                        <dt className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">{t(`serviceFeedback.${label}`)}</dt>
-                                        <dd className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">{stats[key]}</dd>
+                                {([['feedback', 'adminTypeFeedback'], ['suggestion', 'adminTypeSuggestion'], ['complaint', 'adminTypeComplaint']] as const).map(([key, label]) => (
+                                    <div key={key} className="rounded-card border border-(--app-border) p-4">
+                                        <dt className="text-xs font-semibold text-(--app-muted-foreground)">{t(`serviceFeedback.${label}`)}</dt>
+                                        <dd className="mt-1 text-2xl font-semibold text-(--app-foreground)">{stats[key]}</dd>
                                     </div>
                                 ))}
                             </dl>
-                            <p className="mt-4 text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.qrPrintSheetHint')}</p>
+                            <p className="mt-4 text-xs text-(--app-muted-foreground)">{t('serviceFeedback.qrPrintSheetHint')}</p>
                         </div>
 
                         <div className={card}>
-                            <h2 className="border-b border-[color:var(--app-border)] px-5 py-3 text-sm font-semibold text-[color:var(--app-foreground)]">
+                            <h2 className="border-b border-(--app-border) px-5 py-3 text-sm font-semibold text-(--app-foreground)">
                                 {t('serviceFeedback.qrHistory')}
                             </h2>
                             {history.length === 0 ? (
-                                <p className="px-5 py-6 text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.qrNoHistory')}</p>
+                                <p className="px-5 py-6 text-sm text-(--app-muted-foreground)">{t('serviceFeedback.qrNoHistory')}</p>
                             ) : (
-                                <ul className="divide-y divide-[color:var(--app-border)]">
+                                <ul className="divide-y divide-(--app-border)">
                                     {history.map((item) => (
                                         <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
                                             <StatusBadge status={item.status} label={statusLabel(item.status)} />
-                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="text-xs text-(--app-muted-foreground)">
                                                 {t('serviceFeedback.qrEnabledAt')}: <LocalizedDateDisplay value={item.enabled_at} withTime />
                                                 {item.revoked_at && <> · {t('serviceFeedback.qrRevokedAt')}: <LocalizedDateDisplay value={item.revoked_at} withTime /></>}
                                             </span>
-                                            {item.revocation_reason && <span className="w-full text-xs text-[color:var(--app-foreground)]">{item.revocation_reason}</span>}
+                                            {item.revocation_reason && <span className="w-full text-xs text-(--app-foreground)">{item.revocation_reason}</span>}
                                         </li>
                                     ))}
                                 </ul>

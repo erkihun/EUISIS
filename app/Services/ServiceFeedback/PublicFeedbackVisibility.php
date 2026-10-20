@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\ServiceFeedback;
 
 use App\Enums\PublicFeedbackTargetType;
+use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,6 +25,50 @@ final class PublicFeedbackVisibility
     public const EMPLOYEE_TARGET = 'service_feedback.view_employee_target';
 
     public const ORGANIZATION_TARGET = 'service_feedback.view_organization_target';
+
+    /** Feedback and Tip-offs: the general grant. */
+    public const VIEW = 'service_feedback.view';
+
+    /** Complaints: a narrower grant held by selected service-quality roles. */
+    public const COMPLAINTS_VIEW = 'service_feedback.complaints.view';
+
+    /**
+     * The submission types the user may read, from the same grants as the
+     * per-type inboxes, so an aggregate, a list or an export across types
+     * never carries a Complaint to someone without the Complaint grant.
+     *
+     * @return list<string>
+     */
+    public function visibleTypes(User $user): array
+    {
+        $types = [];
+        if ($user->hasAnyPermission([self::VIEW])) {
+            $types[] = ServiceFeedbackType::Feedback->value;
+            $types[] = ServiceFeedbackType::Suggestion->value;
+        }
+        if ($user->hasAnyPermission([self::COMPLAINTS_VIEW])) {
+            $types[] = ServiceFeedbackType::Complaint->value;
+        }
+
+        return $types;
+    }
+
+    /**
+     * Confine a submissions query to the types the user may read.
+     *
+     * @param  Builder<EmployeeServiceFeedback>  $query
+     * @return Builder<EmployeeServiceFeedback>
+     */
+    public function applyTypeScope(Builder $query, User $user): Builder
+    {
+        $types = $this->visibleTypes($user);
+
+        return match (count($types)) {
+            0 => $query->whereRaw('1 = 0'),
+            3 => $query,
+            default => $query->whereIn('type', $types),
+        };
+    }
 
     public function canSeeIdentity(User $user): bool
     {
@@ -81,16 +126,38 @@ final class PublicFeedbackVisibility
     }
 
     /**
-     * The submitter's name and contact, or nothing plus a flag that says so.
+     * The submitter's — or tipster's — details, or nothing plus a flag that
+     * says so. A Tip-off's identity is confidential: it never appears in
+     * aggregate views, the dashboard or a public page, only here and in an
+     * export, both behind the identity grant (and audited by the caller).
      *
-     * @return array{client_name: ?string, client_contact: ?string, identity_hidden: bool}
+     * @return array{client_name: ?string, client_contact: ?string, client_email: ?string, submitter_organization: ?string, submitter_address: ?array<string, string>, identity_hidden: bool}
      */
     public function identity(User $user, EmployeeServiceFeedback $submission): array
     {
         if (! $this->canSeeIdentity($user)) {
-            return ['client_name' => null, 'client_contact' => null, 'identity_hidden' => true];
+            return ['client_name' => null, 'client_contact' => null, 'client_email' => null, 'submitter_organization' => null, 'submitter_address' => null, 'identity_hidden' => true];
         }
 
-        return ['client_name' => $submission->client_name, 'client_contact' => $submission->client_contact, 'identity_hidden' => false];
+        return [
+            'client_name' => $submission->client_name,
+            'client_contact' => $submission->client_contact,
+            'client_email' => $submission->client_email,
+            'submitter_organization' => $submission->submitter_organization,
+            'submitter_address' => $submission->submitter_address,
+            'identity_hidden' => false,
+        ];
+    }
+
+    /** Whether the submitter gave anything about themselves; an anonymous Tip-off did not. */
+    public function hasIdentity(EmployeeServiceFeedback $submission): bool
+    {
+        foreach (['client_name', 'client_contact', 'client_email', 'submitter_organization', 'submitter_address'] as $field) {
+            if (! empty($submission->{$field})) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

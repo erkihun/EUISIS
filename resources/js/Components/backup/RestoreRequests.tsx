@@ -23,14 +23,14 @@ function WorkflowGuide() {
     const { t } = useBackupText();
     return (
         <div>
-            <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('backup.workflowTitle')}</h3>
-            <p className="mt-1 max-w-3xl text-sm text-[color:var(--app-muted-foreground)]">{t('backup.requestsHelp')}</p>
+            <h3 className="text-sm font-semibold text-(--app-foreground)">{t('backup.workflowTitle')}</h3>
+            <p className="mt-1 max-w-3xl text-sm text-(--app-muted-foreground)">{t('backup.requestsHelp')}</p>
             <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
                 {STAGES.map(({ status, role }, index) => (
-                    <li key={status} className="rounded-[var(--radius-control)] border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-2">
-                        <span className="text-xs font-semibold tabular-nums text-[color:var(--color-primary)]">{index + 1}</span>
-                        <p className="text-xs font-medium leading-snug text-[color:var(--app-foreground)]">{t(`backup.statuses.${status}`)}</p>
-                        <p className="mt-0.5 text-[11px] text-[color:var(--app-muted-foreground)]">{t(`backup.roles.${role}`)}</p>
+                    <li key={status} className="rounded-control border border-(--app-border) bg-(--app-surface-muted) px-3 py-2">
+                        <span className="text-xs font-semibold tabular-nums text-primary">{index + 1}</span>
+                        <p className="text-xs font-medium leading-snug text-(--app-foreground)">{t(`backup.statuses.${status}`)}</p>
+                        <p className="mt-0.5 text-[11px] text-(--app-muted-foreground)">{t(`backup.roles.${role}`)}</p>
                     </li>
                 ))}
             </ol>
@@ -41,17 +41,17 @@ function WorkflowGuide() {
 function StageProgress({ status }: { status: string }) {
     const { t } = useBackupText();
     const index = STAGES.findIndex((stage) => stage.status === status);
-    const fill = status === 'COMPLETED' ? toneClasses.success.solid : 'bg-[color:var(--color-primary)]';
+    const fill = status === 'COMPLETED' ? toneClasses.success.solid : 'bg-primary';
 
     return (
         <div>
             <ol className="flex gap-1" aria-label={t('backup.stage')}>
                 {STAGES.map((stage, position) => (
                     <li key={stage.status} title={t(`backup.statuses.${stage.status}`)}
-                        className={cx('h-1.5 flex-1 rounded-full', index >= position ? fill : 'bg-[color:var(--app-surface-muted)]')} />
+                        className={cx('h-1.5 flex-1 rounded-full', index >= position ? fill : 'bg-(--app-surface-muted)')} />
                 ))}
             </ol>
-            <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+            <p className="mt-1 text-xs text-(--app-muted-foreground)">
                 {index >= 0 ? `${t('backup.stage')} ${index + 1} / ${STAGES.length}` : t(`backup.statuses.${status}`)}
             </p>
         </div>
@@ -65,7 +65,7 @@ export function RequestForm() {
 
     return (
         <Card className="p-5">
-            <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('backup.newRequest')}</h3>
+            <h3 className="text-sm font-semibold text-(--app-foreground)">{t('backup.newRequest')}</h3>
             <form className="mt-4 grid gap-4 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); submit(); }}>
                 <FormField label={t('backup.restoreType')} required error={form.errors.restore_type}>
                     {({ id, describedBy, invalid }) => (
@@ -138,11 +138,11 @@ function RequestActions({ record, can }: { record: Recovery; can: RequestPermiss
     if (actions.length === 0 && !OPERATOR_STATUSES.includes(record.status)) return null;
 
     return (
-        <div className="space-y-2 border-t border-[color:var(--app-border)] pt-3">
-            {OPERATOR_STATUSES.includes(record.status) && <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('backup.operatorStep')}</p>}
+        <div className="space-y-2 border-t border-(--app-border) pt-3">
+            {OPERATOR_STATUSES.includes(record.status) && <p className="text-xs text-(--app-muted-foreground)">{t('backup.operatorStep')}</p>}
             {actions.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
-                    <Input className="h-[var(--control-h-sm)] w-44" aria-label={t('backup.evidenceTicket')} placeholder={t('backup.evidenceTicket')}
+                    <Input className="h-(--control-h-sm) w-44" aria-label={t('backup.evidenceTicket')} placeholder={t('backup.evidenceTicket')}
                         value={form.data.evidence_reference} onChange={(event) => form.setData('evidence_reference', event.target.value)} />
                     {actions.map((action) => (
                         <Button key={action} size="sm" loading={form.processing}
@@ -173,10 +173,10 @@ export function RequestList({ requests, can }: { requests: Recovery[]; can: Requ
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <h4 className="text-sm font-semibold text-[color:var(--app-foreground)]">{record.incident_reference}</h4>
+                                    <h4 className="text-sm font-semibold text-(--app-foreground)">{record.incident_reference}</h4>
                                     <StatusBadge tone="neutral">{t(`backup.types.${record.restore_type}`)}</StatusBadge>
                                 </div>
-                                <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
                                     {record.target_time ? time.absolute(record.target_time) : record.backup_reference ?? t(`backup.types.${record.restore_type}`)}
                                     {' · '}{t('backup.evidence')}: {record.evidence_reference ?? t('backup.pending')}
                                 </p>
@@ -184,12 +184,12 @@ export function RequestList({ requests, can }: { requests: Recovery[]; can: Requ
                             <StatusBadge tone={toneFor(record.status)}>{t(`backup.statuses.${record.status}`)}</StatusBadge>
                         </div>
                         <StageProgress status={record.status} />
-                        <p className="whitespace-pre-line text-sm text-[color:var(--app-foreground)]">{record.reason}</p>
+                        <p className="whitespace-pre-line text-sm text-(--app-foreground)">{record.reason}</p>
                         <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
                             {([['requestedBy', record.requester], ['reviewedBy', record.reviewer], ['approvedBy', record.approver], ['productionAuthorizedBy', record.production_authorizer]] as const).map(([label, name]) => (
                                 <div key={label}>
-                                    <dt className="text-[color:var(--app-muted-foreground)]">{t(`backup.${label}`)}</dt>
-                                    <dd className="font-medium text-[color:var(--app-foreground)]">{name ?? '—'}</dd>
+                                    <dt className="text-(--app-muted-foreground)">{t(`backup.${label}`)}</dt>
+                                    <dd className="font-medium text-(--app-foreground)">{name ?? '—'}</dd>
                                 </div>
                             ))}
                         </dl>

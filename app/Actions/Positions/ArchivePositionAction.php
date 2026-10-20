@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Actions\Positions;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
+use App\Models\EmployeeAssignment;
 use App\Models\Position;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 readonly class ArchivePositionAction
 {
@@ -16,6 +19,21 @@ readonly class ArchivePositionAction
 
     public function execute(Position $position, User $actor, ?string $reason = null, ?Request $request = null): Position
     {
+        // Master backbone audit: a position holding a live assignment used to
+        // be archived underneath its occupant, leaving the employee placed on
+        // a seat that no longer exists. The occupant must be moved first.
+        $occupants = EmployeeAssignment::query()
+            ->where('position_id', $position->getKey())
+            ->where('is_current', true)
+            ->where('assignment_status', AssignmentStatus::Active->value)
+            ->count();
+
+        if ($occupants > 0) {
+            throw ValidationException::withMessages([
+                'position' => __('positions.archive_blocked_active_assignments', ['count' => $occupants]),
+            ]);
+        }
+
         $oldValues = $position->toArray();
 
         $position->forceFill([

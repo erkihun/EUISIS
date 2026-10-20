@@ -35,12 +35,16 @@ class PublicFeedbackCategoryService
      * Active categories a visitor may choose for this target and type:
      * city-wide ones plus the target organization's own, in display order.
      *
-     * @return list<array{id: string, name: string}>
+     * Only categories offered to the public (active, public-selectable) that
+     * apply to this submission type and target type; nothing internal, nothing
+     * archived. The payload is the visitor's language only: name and helper.
+     *
+     * @return list<array{id: string, name: string, description: string|null}>
      */
     public function optionsFor(TargetContext $target, ServiceFeedbackType $type, string $locale = 'en'): array
     {
         return PublicFeedbackCategory::query()
-            ->active()
+            ->publicSelectable()
             ->visibleToOrganization($target->contextOrganizationId)
             ->orderBy('sort_order')
             ->orderBy('name_en')
@@ -49,15 +53,21 @@ class PublicFeedbackCategoryService
             ->map(fn (PublicFeedbackCategory $category): array => [
                 'id' => (string) $category->getKey(),
                 'name' => $category->localizedName($locale),
+                'description' => $category->localizedDescription($locale),
             ])
             ->values()
             ->all();
     }
 
-    /** A category the browser named must be one the visitor could have been offered. */
+    /**
+     * A category the browser named must be one the visitor could have been
+     * offered: public-selectable, applicable to this type and target, and
+     * city-wide or the resolved institution's own. An archived or internal
+     * category, or one configured for another type, is refused.
+     */
     public function isApplicable(string $categoryId, TargetContext $target, ServiceFeedbackType $type): bool
     {
-        $category = PublicFeedbackCategory::query()->active()->find($categoryId);
+        $category = PublicFeedbackCategory::query()->publicSelectable()->find($categoryId);
 
         if ($category === null || ! $category->appliesTo($type, $target->targetType)) {
             return false;
@@ -164,6 +174,7 @@ class PublicFeedbackCategoryService
             'target_types' => array_values(array_unique((array) $data['target_types'])),
             'organization_id' => $data['organization_id'] ?? null,
             'is_active' => (bool) ($data['is_active'] ?? true),
+            'is_public_selectable' => (bool) ($data['is_public_selectable'] ?? true),
             'sort_order' => (int) ($data['sort_order'] ?? 0),
         ];
     }

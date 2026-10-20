@@ -29,14 +29,14 @@ export default function LookupPicker({ type, label, value, valueLabel, editable,
                 <div className="relative">
                     <input type="search" aria-label={label} className={`${compactInputCls} w-full`} value={query} placeholder={t('assessments.searchPlaceholder')} onChange={(e) => void search(e.target.value)} />
                     {results.length > 0 && (
-                        <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-sm shadow-lg">
+                        <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-(--app-border) bg-(--app-surface) text-sm shadow-lg">
                             {results.map((r) => (
-                                <li key={r.id}><button type="button" className="block w-full px-3 py-1.5 text-left hover:bg-[color:var(--app-surface-muted)]" onClick={() => { onPick({ id: r.id, label: (locale === 'am' && r.label_am) || r.label_en }); setQuery(''); setResults([]); }}>{(locale === 'am' && r.label_am) || r.label_en}</button></li>
+                                <li key={r.id}><button type="button" className="block w-full px-3 py-1.5 text-left hover:bg-(--app-surface-muted)" onClick={() => { onPick({ id: r.id, label: (locale === 'am' && r.label_am) || r.label_en }); setQuery(''); setResults([]); }}>{(locale === 'am' && r.label_am) || r.label_en}</button></li>
                             ))}
                         </ul>
                     )}
                 </div>
-            ) : <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>}
+            ) : <p className="text-sm text-(--app-muted-foreground)">—</p>}
         </div>
     );
 }

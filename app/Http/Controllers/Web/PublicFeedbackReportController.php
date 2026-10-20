@@ -40,12 +40,18 @@ class PublicFeedbackReportController extends Controller
         return Inertia::render('ServiceFeedback/SubmissionReports', [
             'filters' => $filters,
             'summary' => $this->metrics->overview($query),
+            // Counts of reports received; never a ranking, a score or a finding.
+            'tipOffs' => $this->metrics->tipOffs($query),
+            'tipOffsByOrganization' => $this->metrics->tipOffsByOrganization($query)->all(),
+            'employeeTargetedTipOffs' => $this->metrics->employeeTargetedTipOffs($query, $user, $filters)->all(),
             'byOrganization' => $this->metrics->byOrganization($query)->all(),
             'byCategory' => $this->metrics->byCategory($query)->all(),
             'byHandler' => $this->metrics->byHandler($query)->all(),
+            'byUnit' => $this->metrics->byUnit($query)->all(),
             'filterOptions' => $this->metrics->filterOptions($user),
             'exports' => PublicFeedbackReportExport::query()
                 ->where('requested_by', $user->getKey())
+                ->where('report', 'submissions')
                 ->latest('created_at')
                 ->limit(10)
                 ->get()
@@ -79,6 +85,8 @@ class PublicFeedbackReportController extends Controller
         $export = PublicFeedbackReportExport::query()->create([
             'organization_id' => $organizationId,
             'format' => $data['format'],
+            // The job has no request: it writes labels, names and dates in the language the export was asked for.
+            'locale' => app()->getLocale(),
             'filters' => $filters,
             'status' => 'queued',
             'disk' => 'local',

@@ -75,7 +75,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
         >
             <Head title={isicActivity.name_en ?? isicActivity.isic_code} />
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 lg:col-span-2">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5 lg:col-span-2">
                     <div className="grid gap-4 md:grid-cols-2 text-sm">
                         <Field label={t('isicActivities.isicCode')} value={isicActivity.isic_code} mono />
                         <Field
@@ -95,23 +95,23 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                         <Field label={t('isicActivities.sortOrder')} value={isicActivity.sort_order} />
                     </div>
                     {(isicActivity.description_en || isicActivity.description_am) && (
-                        <div className="mt-4 space-y-3 border-t border-[color:var(--app-border)] pt-4">
+                        <div className="mt-4 space-y-3 border-t border-(--app-border) pt-4">
                             {isicActivity.description_en && (
                                 <div>
-                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
+                                    <div className="text-xs text-(--app-muted-foreground)">
                                         {t('isicActivities.descriptionEn')}
                                     </div>
-                                    <div className="mt-1 text-sm text-[color:var(--app-foreground)] whitespace-pre-wrap">
+                                    <div className="mt-1 text-sm text-(--app-foreground) whitespace-pre-wrap">
                                         {isicActivity.description_en}
                                     </div>
                                 </div>
                             )}
                             {isicActivity.description_am && (
                                 <div>
-                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
+                                    <div className="text-xs text-(--app-muted-foreground)">
                                         {t('isicActivities.descriptionAm')}
                                     </div>
-                                    <div className="mt-1 text-sm text-[color:var(--app-foreground)] whitespace-pre-wrap">
+                                    <div className="mt-1 text-sm text-(--app-foreground) whitespace-pre-wrap">
                                         {isicActivity.description_am}
                                     </div>
                                 </div>
@@ -120,13 +120,13 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                     )}
                 </section>
                 <aside className="space-y-4">
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.createdAt')}</div>
-                        <div className="mt-1 text-sm text-[color:var(--app-foreground)]">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <div className="text-xs text-(--app-muted-foreground)">{t('common.createdAt')}</div>
+                        <div className="mt-1 text-sm text-(--app-foreground)">
                             <LocalizedDateDisplay value={isicActivity.created_at} withTime />
                         </div>
-                        <div className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">{t('common.updatedAt')}</div>
-                        <div className="mt-1 text-sm text-[color:var(--app-foreground)]">
+                        <div className="mt-3 text-xs text-(--app-muted-foreground)">{t('common.updatedAt')}</div>
+                        <div className="mt-1 text-sm text-(--app-foreground)">
                             <LocalizedDateDisplay value={isicActivity.updated_at} withTime />
                         </div>
                     </section>
@@ -147,7 +147,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
 function Field({ label, value, mono }: { label: string; value: any; mono?: boolean }) {
     return (
         <div>
-            <div className="text-xs text-[color:var(--app-muted-foreground)]">{label}</div>
+            <div className="text-xs text-(--app-muted-foreground)">{label}</div>
             <div className={`mt-1 ${mono ? 'font-mono' : ''}`}>{value ?? '—'}</div>
         </div>
     );

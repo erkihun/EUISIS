@@ -119,7 +119,7 @@ export default function TransactionShow({
                                     className="h-16 w-16 rounded-full object-cover ring-3 ring-orange-200 dark:ring-orange-900/60"
                                 />
                             ) : (
-                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-xl font-bold text-white shadow-md">
+                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-orange-400 to-orange-600 text-xl font-bold text-white shadow-md">
                                     {(transaction.employee?.display_name ?? 'E').charAt(0).toUpperCase()}
                                 </div>
                             )}

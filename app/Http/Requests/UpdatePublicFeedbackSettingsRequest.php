@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Enums\SubmitterIdentityMode;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdatePublicFeedbackSettingsRequest extends FormRequest
 {
@@ -23,7 +21,6 @@ class UpdatePublicFeedbackSettingsRequest extends FormRequest
     {
         return [
             'enabled' => ['sometimes', 'boolean'],
-            'identity_mode' => ['sometimes', Rule::in(SubmitterIdentityMode::values())],
             'allow_attachments' => ['sometimes', 'boolean'],
             'feedback_enabled' => ['sometimes', 'boolean'],
             'suggestion_enabled' => ['sometimes', 'boolean'],
@@ -31,6 +28,13 @@ class UpdatePublicFeedbackSettingsRequest extends FormRequest
             'acknowledgement_enabled' => ['sometimes', 'boolean'],
             'rate_limit_per_source' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'rate_limit_per_ip' => ['sometimes', 'integer', 'min:1', 'max:500'],
+            // Executive Situation Room rules: empty switches the rule off.
+            'sla_days_feedback' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:365'],
+            'sla_days_suggestion' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:365'],
+            'sla_days_complaint' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:365'],
+            'spike_threshold_percent' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:1000'],
+            'spike_minimum_count' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:10000'],
+            'repeat_threshold_count' => ['sometimes', 'nullable', 'integer', 'min:2', 'max:10000'],
         ];
     }
 }

@@ -165,7 +165,7 @@ export default function ProviderPortalScan({
         usage_mode: scanOptions?.default_usage_mode ?? 'single_day',
     });
 
-    const inputCls = 'w-full rounded-card border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-400/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100';
+    const inputCls = 'w-full rounded-card border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-orange-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-orange-400/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100';
 
     // ── Camera ───────────────────────────────────────────────────────────────
 
@@ -421,14 +421,14 @@ export default function ProviderPortalScan({
                         <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
                             <div className="border-b border-gray-100 bg-gray-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40">
                                 <div className="flex items-center justify-between">
-                                    <button type="button" onClick={prevMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700">
+                                    <button type="button" onClick={prevMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-white hover:shadow-xs dark:text-slate-400 dark:hover:bg-slate-700">
                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                                     </button>
                                     <div className="text-center">
                                         <p className="text-sm font-semibold text-gray-900 dark:text-white">{getMonthLabel(calYear, calMonth, locale, isEthiopian)}</p>
                                         <span className={`text-[10px] font-medium ${isEthiopian ? 'text-orange-500' : 'text-gray-400'}`}>{isEthiopian ? t('calendar.ethiopianCalendar') : t('calendar.gregorianCalendar')}</span>
                                     </div>
-                                    <button type="button" onClick={nextMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700">
+                                    <button type="button" onClick={nextMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-white hover:shadow-xs dark:text-slate-400 dark:hover:bg-slate-700">
                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                                     </button>
                                 </div>
@@ -446,7 +446,7 @@ export default function ProviderPortalScan({
                                         const scanCount = scannedDateMap.get(dateStr) ?? 0;
                                         const isConsumed = dayMeta?.is_consumed || scanCount > 0;
                                         let cellCls: string;
-                                        if (dayMeta?.is_consumed) cellCls = 'bg-emerald-500 text-white font-bold shadow-sm';
+                                        if (dayMeta?.is_consumed) cellCls = 'bg-emerald-500 text-white font-bold shadow-xs';
                                         else if (dayMeta?.is_employee_excluded) cellCls = 'bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400';
                                         else if (dayMeta?.is_public_holiday || dayMeta?.reason_code === 'special_no_subsidy_day') cellCls = 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400';
                                         else if (dayMeta?.reason_code === 'special_open_day') cellCls = 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400';
@@ -469,7 +469,7 @@ export default function ProviderPortalScan({
                             <div className="border-t border-gray-100 px-4 py-3 dark:border-slate-800">
                                 <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
                                     {[['bg-orange-50 border border-orange-200', t('cafeteria.calendar_available')], ['bg-emerald-500', t('cafeteria.calendar_consumed')], ['bg-gray-100', t('cafeteria.calendar_closed')], ['bg-amber-100', t('cafeteria.calendar_public_holiday')], ['bg-purple-100', t('cafeteria.calendar_special_open_day')], ['bg-red-100', t('cafeteria.calendar_employee_leave')]].map(([color, label]) => (
-                                        <span key={label} className="inline-flex items-center gap-1.5 text-[11px] text-gray-500"><span className={`h-2.5 w-2.5 shrink-0 rounded-sm ${color}`} />{label}</span>
+                                        <span key={label} className="inline-flex items-center gap-1.5 text-[11px] text-gray-500"><span className={`h-2.5 w-2.5 shrink-0 rounded-xs ${color}`} />{label}</span>
                                     ))}
                                 </div>
                             </div>

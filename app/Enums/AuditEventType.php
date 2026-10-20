@@ -311,6 +311,32 @@ enum AuditEventType: string
     case CafeteriaSettlementFinalized = 'cafeteria_settlement.finalized';
     case CafeteriaSettlementCancelled = 'cafeteria_settlement.cancelled';
 
+    // ── Transport (verified usage) ────────────────────────────────────────
+    case TransportEligibilityChanged = 'transport_eligibility.changed';
+    case TransportRouteAssignmentChanged = 'transport_route_assignment.changed';
+    case TransportTripCreated = 'transport_trip.created';
+    case TransportTripDispatched = 'transport_trip.dispatched';
+    case TransportTripStarted = 'transport_trip.started';
+    case TransportTripCompleted = 'transport_trip.completed';
+    case TransportTripCancelled = 'transport_trip.cancelled';
+    case TransportTripVehicleReplaced = 'transport_trip.vehicle_replaced';
+    case TransportManualBoarding = 'transport_boarding.manual';
+    case TransportBoardingVoided = 'transport_boarding.voided';
+    case TransportDeviceRegistered = 'transport_device.registered';
+    case TransportDeviceRevoked = 'transport_device.revoked';
+    case TransportContractChanged = 'transport_contract.changed';
+    case TransportInvoiceSubmitted = 'transport_invoice.submitted';
+    case TransportInvoiceReviewed = 'transport_invoice.reviewed';
+    case TransportSettlementComputed = 'transport_settlement.computed';
+    case TransportSettlementReviewed = 'transport_settlement.reviewed';
+    case TransportSettlementApproved = 'transport_settlement.approved';
+    case TransportSettlementRejected = 'transport_settlement.rejected';
+    case TransportSettlementPaymentRecorded = 'transport_settlement.payment_recorded';
+    case TransportAdjustmentRequested = 'transport_adjustment.requested';
+    case TransportAdjustmentDecided = 'transport_adjustment.decided';
+    case TransportExceptionReviewed = 'transport_exception.reviewed';
+    case TransportSettingsUpdated = 'transport_settings.updated';
+
     // ── Provider portal accounts (/provider-users) ─────────────────────────
     case ProviderUserCreated = 'provider_user.created';
     case ProviderUserUpdated = 'provider_user.updated';
@@ -520,6 +546,9 @@ enum AuditEventType: string
     case ServiceSuggestionSubmitted = 'service_feedback.suggestion_submitted';
     case ServiceComplaintSubmitted = 'service_feedback.complaint_submitted';
     case ServiceComplaintAttachmentDownloaded = 'service_feedback.complaint_attachment_downloaded';
+    // Tip-off evidence and any submitter's identity are confidential: each opening is recorded.
+    case ServiceTipOffAttachmentDownloaded = 'service_feedback.tip_off_attachment_downloaded';
+    case PublicSubmitterIdentityViewed = 'service_feedback.submitter_identity_viewed';
     case ServiceFeedbackBlocked = 'service_feedback.blocked';
     case ServiceFeedbackReviewed = 'service_feedback.reviewed';
     case ServiceFeedbackResolved = 'service_feedback.resolved';
@@ -564,6 +593,17 @@ enum AuditEventType: string
     case ServiceFeedbackSubjectRemoved = 'service_feedback.subject_removed';
     case ServiceFeedbackReferralRequested = 'service_feedback.referral_requested';
     case ServiceFeedbackReferralDecided = 'service_feedback.referral_decided';
+
+    /*
+     * Executive Situation Room: management actions, exports and drill-downs
+     * that open submission text. Counts and identifiers are recorded; never
+     * the submission text itself.
+     */
+    case SituationRoomActionCreated = 'situation_room.action_created';
+    case SituationRoomActionAssigned = 'situation_room.action_assigned';
+    case SituationRoomActionStatusChanged = 'situation_room.action_status_changed';
+    case SituationRoomExportRequested = 'situation_room.export_requested';
+    case SituationRoomDetailViewed = 'situation_room.detail_viewed';
 
     /*
      * Public Site Management. Changed field NAMES are recorded, never uploaded
@@ -704,11 +744,47 @@ enum AuditEventType: string
     case DisciplinaryRecommendationAdopted = 'discipline.recommendation_adopted';
     case DisciplinaryReportSubmitted = 'discipline.report_submitted';
     case DisciplinaryDecisionIssued = 'discipline.decision_issued';
+    case DisciplinaryReferredToCommittee = 'discipline.referred_to_committee';
+    case DisciplinarySuspended = 'discipline.suspended';
+    case DisciplinarySuspensionLifted = 'discipline.suspension_lifted';
+    case DisciplinarySuspensionBackPaid = 'discipline.suspension_back_paid';
     case DisciplinaryDecisionDelivered = 'discipline.decision_delivered';
     case DisciplinaryCaseDiscontinued = 'discipline.case_discontinued';
     case DisciplinaryCaseTerminated = 'discipline.case_terminated';
     case DisciplinaryCaseClosed = 'discipline.case_closed';
+    case DisciplinaryAppealNoticed = 'discipline.appeal_noticed';
+    case DisciplinaryAppealRecordCopyDelivered = 'discipline.appeal_record_copy_delivered';
+    case DisciplinaryAppealFiled = 'discipline.appeal_filed';
+    case DisciplinaryAppealOutcomeRecorded = 'discipline.appeal_outcome_recorded';
+    case DisciplinaryAppealImplemented = 'discipline.appeal_implemented';
     // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md)
+    // Legal sources and legacy baselines (docs/organization-design-legacy-baseline-plan.md)
+    case LegalSourceCreated = 'organization_design.legal_source_created';
+    case LegalSourceUpdated = 'organization_design.legal_source_updated';
+    case LegalSourceStatusChanged = 'organization_design.legal_source_status_changed';
+    case LegalSourceDeleted = 'organization_design.legal_source_deleted';
+    case LegalSourceAttachmentAdded = 'organization_design.legal_source_attachment_added';
+    case LegalSourceAttachmentRemoved = 'organization_design.legal_source_attachment_removed';
+    case LegalSourceAttachmentDownloaded = 'organization_design.legal_source_attachment_downloaded';
+    case LegalSourceCited = 'organization_design.legal_source_cited';
+    case LegalSourceCitationRemoved = 'organization_design.legal_source_citation_removed';
+    case LegacyBaselineCreated = 'organization_design.legacy_baseline_created';
+    case LegacyBaselineUpdated = 'organization_design.legacy_baseline_updated';
+    case LegacyBaselineStepSaved = 'organization_design.legacy_baseline_step_saved';
+    case LegacyBaselineSubmitted = 'organization_design.legacy_baseline_submitted';
+    case LegacyBaselineReturned = 'organization_design.legacy_baseline_returned';
+    case LegacyBaselineApproved = 'organization_design.legacy_baseline_approved';
+    case LegacyBaselinePublished = 'organization_design.legacy_baseline_published';
+    case LegacyBaselineSuperseded = 'organization_design.legacy_baseline_superseded';
+    case LegacyBaselineCancelled = 'organization_design.legacy_baseline_cancelled';
+    case DesignImportUploaded = 'organization_design.import_uploaded';
+    case DesignImportValidated = 'organization_design.import_validated';
+    case DesignImportMapped = 'organization_design.import_mapped';
+    case DesignImportCommitted = 'organization_design.import_committed';
+    case DesignImportCancelled = 'organization_design.import_cancelled';
+    case DesignSuggestionGenerated = 'organization_design.suggestion_generated';
+    case DesignSuggestionApplied = 'organization_design.suggestion_applied';
+    case DesignSuggestionRejected = 'organization_design.suggestion_rejected';
     case MandateCreated = 'organization_design.mandate_created';
     case MandateUpdated = 'organization_design.mandate_updated';
     case MandatePublished = 'organization_design.mandate_published';
@@ -777,4 +853,73 @@ enum AuditEventType: string
     case OccupationLinked = 'organization_design.occupation_linked';
     case CompetencyLinked = 'organization_design.competency_linked';
     case PositionServiceLinked = 'organization_design.position_service_linked';
+
+    /*
+     * Executive Situation Room categories. Aggregates are not audited per
+     * view; what is audited is what reaches beyond aggregates (an
+     * employee-level breakdown) and what leaves the system (an export). The
+     * Action Register and Community Voice events are listed above.
+     */
+    case SituationRoomEmployeeBreakdownViewed = 'situation_room.employee_breakdown_viewed';
+    case SituationRoomExported = 'situation_room.exported';
+    // Communication & Collaboration: metadata only, never message content (docs/communication-module.md).
+    case CommunicationGroupCreated = 'communication.group_created';
+    case CommunicationGroupUpdated = 'communication.group_updated';
+    case CommunicationGroupArchived = 'communication.group_archived';
+    case CommunicationChannelCreated = 'communication.channel_created';
+    case CommunicationChannelUpdated = 'communication.channel_updated';
+    case CommunicationChannelArchived = 'communication.channel_archived';
+    case CommunicationMemberAdded = 'communication.member_added';
+    case CommunicationMemberRemoved = 'communication.member_removed';
+    case CommunicationMemberRoleChanged = 'communication.member_role_changed';
+    case CommunicationMembershipsSynced = 'communication.memberships_synced';
+    case CommunicationAnnouncementCreated = 'communication.announcement_created';
+    case CommunicationAnnouncementUpdated = 'communication.announcement_updated';
+    case CommunicationAnnouncementTargetsChanged = 'communication.announcement_targets_changed';
+    case CommunicationAnnouncementPublished = 'communication.announcement_published';
+    case CommunicationAnnouncementCancelled = 'communication.announcement_cancelled';
+    case CommunicationAnnouncementExpired = 'communication.announcement_expired';
+    case CommunicationAcknowledgementsExported = 'communication.acknowledgements_exported';
+    case CommunicationMessageModeratorDeleted = 'communication.message_moderator_deleted';
+    case CommunicationReportCreated = 'communication.report_created';
+    case CommunicationReportReviewed = 'communication.report_reviewed';
+    case CommunicationReportedContentAccessed = 'communication.reported_content_accessed';
+    case CommunicationAccessRequested = 'communication.access_requested';
+    case CommunicationAccessDecided = 'communication.access_decided';
+    case CommunicationAccessRevoked = 'communication.access_revoked';
+    case CommunicationAccessUsed = 'communication.access_used';
+    case CommunicationAttachmentDownloaded = 'communication.attachment_downloaded';
+    case CommunicationSettingsUpdated = 'communication.settings_updated';
+    case CommunicationRetentionApplied = 'communication.retention_applied';
+    case CommunicationTaskCreated = 'communication.task_created';
+    case CommunicationUserBlocked = 'communication.user_blocked';
+
+    /*
+     * Addis One Intelligence (docs/intelligence-architecture.md). Human decisions
+     * on machine findings; never the finding itself.
+     */
+    case IntelligenceIncidentUpdated = 'intelligence.incident_updated';
+    case IntelligenceRecommendationReviewed = 'intelligence.recommendation_reviewed';
+    case IntelligenceAiRunRecorded = 'intelligence.ai_run_recorded';
+    case IntelligenceKnowledgeAsked = 'intelligence.knowledge_asked';
+    case IntelligenceKnowledgeDocumentChanged = 'intelligence.knowledge_document_changed';
+    case IntelligenceAlertUpdated = 'intelligence.alert_updated';
+    case IntelligenceIncidentExplained = 'intelligence.incident_explained';
+
+    /*
+     * Addis One Assistant and support tickets (docs/assistant/architecture.md).
+     * Sensitive tool use and ticket lifecycle; never ordinary chat text.
+     */
+    case AssistantToolUsed = 'assistant.tool_used';
+    case SupportTicketCreated = 'support.ticket_created';
+    case SupportTicketUpdated = 'support.ticket_updated';
+
+    /*
+     * Event integration layer (docs/integration/transactional-outbox.md).
+     * Subscription governance, secret rotation, replay and payload inspection.
+     */
+    case IntegrationSubscriptionChanged = 'integration.subscription_changed';
+    case IntegrationSecretRotated = 'integration.secret_rotated';
+    case IntegrationReplayRequested = 'integration.replay_requested';
+    case IntegrationPayloadViewed = 'integration.payload_viewed';
 }

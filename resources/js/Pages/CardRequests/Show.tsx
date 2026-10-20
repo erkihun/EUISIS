@@ -58,10 +58,10 @@ type PageProps = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">
                 {label}
             </dt>
-            <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">{children}</dd>
+            <dd className="mt-1 text-sm text-(--app-foreground)">{children}</dd>
         </div>
     );
 }
@@ -95,16 +95,16 @@ function ConfirmModal({
     };
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
             onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="w-full max-w-md rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-[color:var(--app-border-strong)]">
+            <div className="w-full max-w-md rounded-panel bg-(--app-surface) shadow-2xl ring-1 ring-(--app-border-strong)">
                 <div className="flex items-start justify-between px-6 pt-5">
-                    <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h3>
+                    <h3 className="text-base font-semibold text-(--app-foreground)">{title}</h3>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="ml-4 rounded-lg p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                        className="ml-4 rounded-lg p-1 text-(--app-muted-foreground) hover:bg-(--app-surface-muted)"
                     >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -112,10 +112,10 @@ function ConfirmModal({
                     </button>
                 </div>
                 {description && (
-                    <p className="mt-1 px-6 text-sm text-[color:var(--app-muted-foreground)]">{description}</p>
+                    <p className="mt-1 px-6 text-sm text-(--app-muted-foreground)">{description}</p>
                 )}
                 {children && <div className="mt-4 px-6 space-y-3">{children}</div>}
-                <div className="mt-5 flex justify-end gap-2 rounded-b-panel border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-6 py-4">
+                <div className="mt-5 flex justify-end gap-2 rounded-b-panel border-t border-(--app-border) bg-(--app-surface-muted) px-6 py-4">
                     <button
                         type="button"
                         onClick={onClose}
@@ -127,7 +127,7 @@ function ConfirmModal({
                         type="button"
                         onClick={onConfirm}
                         disabled={processing}
-                        className={`rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 ${variantCls[variant]}`}
+                        className={`rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-hidden focus:ring-2 focus:ring-offset-2 disabled:opacity-60 ${variantCls[variant]}`}
                     >
                         {processing ? t('common.saving') : confirmLabel}
                     </button>
@@ -179,14 +179,14 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                 <div className="space-y-5">
 
                     {/* Header: status + type + meta */}
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                         <div className="flex flex-wrap items-center gap-2 mb-4">
                             <CardRequestStatusBadge status={cardRequest.status} />
                             {cardRequest.request_type && (
                                 <CardRequestTypeBadge type={cardRequest.request_type} />
                             )}
                             {cardRequest.submitted_at && (
-                                <span className="ml-auto text-xs text-[color:var(--app-muted-foreground)]">
+                                <span className="ml-auto text-xs text-(--app-muted-foreground)">
                                     <LocalizedDateDisplay value={cardRequest.submitted_at} withTime />
                                 </span>
                             )}
@@ -267,8 +267,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
 
                     {/* Employee summary */}
                     {cardRequest.employee && (
-                        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                            <h3 className="mb-3 text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                        <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                            <h3 className="mb-3 text-xs font-semibold text-(--app-muted-foreground)">
                                 {t('employees.title')}
                             </h3>
                             <div className="flex items-center gap-4">
@@ -279,22 +279,22 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                         className="h-14 w-14 rounded-card object-cover ring-2 ring-gray-100 dark:ring-slate-700"
                                     />
                                 ) : (
-                                    <div className="h-14 w-14 rounded-card bg-[color:var(--app-surface-muted)] flex items-center justify-center text-[color:var(--app-muted-foreground)] text-lg font-bold shrink-0">
+                                    <div className="h-14 w-14 rounded-card bg-(--app-surface-muted) flex items-center justify-center text-(--app-muted-foreground) text-lg font-bold shrink-0">
                                         {cardRequest.employee.full_name?.charAt(0) ?? '?'}
                                     </div>
                                 )}
                                 <div className="min-w-0">
-                                    <p className="font-semibold text-[color:var(--app-foreground)] truncate">
+                                    <p className="font-semibold text-(--app-foreground) truncate">
                                         {cardRequest.employee.full_name}
                                     </p>
-                                    <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                                    <p className="text-sm text-(--app-muted-foreground)">
                                         {cardRequest.employee.employee_number}
                                         {cardRequest.employee.current_assignment?.position?.title_en && (
-                                            <span className="mx-1.5 text-[color:var(--app-muted-foreground)]">·</span>
+                                            <span className="mx-1.5 text-(--app-muted-foreground)">·</span>
                                         )}
                                         {cardRequest.employee.current_assignment?.position?.title_en}
                                     </p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)] truncate">
+                                    <p className="text-xs text-(--app-muted-foreground) truncate">
                                         {cardRequest.employee.current_assignment?.organization?.name_en}
                                     </p>
                                 </div>
@@ -310,8 +310,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
 
                     {/* Linked cards */}
                     {(cardRequest.cards?.length ?? 0) > 0 && (
-                        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                            <h3 className="mb-3 text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                        <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                            <h3 className="mb-3 text-xs font-semibold text-(--app-muted-foreground)">
                                 {t('idCards.title')}
                             </h3>
                             <div className="space-y-2">
@@ -319,9 +319,9 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     <Link
                                         key={card.id}
                                         href={route('id-cards.show', card.id)}
-                                        className="flex items-center justify-between gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-2.5 hover:bg-[color:var(--app-surface-muted)] transition-colors"
+                                        className="flex items-center justify-between gap-3 rounded-card border border-(--app-border) bg-(--app-surface-muted) px-4 py-2.5 hover:bg-(--app-surface-muted) transition-colors"
                                     >
-                                        <span className="font-mono text-sm font-medium text-[color:var(--app-foreground)]">
+                                        <span className="font-mono text-sm font-medium text-(--app-foreground)">
                                             {card.card_number}
                                         </span>
                                         <CardStatusBadge status={card.status} />
@@ -342,8 +342,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
 
                     {/* Actions */}
                     {hasAnyAction && !isFinal && (
-                        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                            <h4 className="mb-3 text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                        <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
+                            <h4 className="mb-3 text-xs font-semibold text-(--app-muted-foreground)">
                                 {t('common.actions')}
                             </h4>
                             <div className="space-y-2">
@@ -373,7 +373,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     </button>
                                 )}
                                 {(can.reject || can.cancel) && (
-                                    <div className="border-t border-[color:var(--app-border)] my-1" />
+                                    <div className="border-t border-(--app-border) my-1" />
                                 )}
                                 {can.reject && (
                                     <button
@@ -401,7 +401,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                     )}
 
                     {/* Lifecycle timeline */}
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                         <CardLifecycleTimeline
                             cardStatus={cardRequest.status}
                             events={timelineEvents}
@@ -427,7 +427,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                     }}
                 >
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                        <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                             {t('common.notes')}
                         </label>
                         <textarea
@@ -456,7 +456,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                     }}
                 >
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                        <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                             {t('common.notes')}
                         </label>
                         <textarea
@@ -486,7 +486,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                     }}
                 >
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                        <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                             {t('idCards.rejectionReason')}
                             <span className="ml-1 text-red-500">*</span>
                         </label>
@@ -519,7 +519,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                     }}
                 >
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                        <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                             {t('idCards.cancellationReason')}
                         </label>
                         <textarea

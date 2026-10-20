@@ -20,7 +20,7 @@ export default function ManagementNav({ can, current }: { can: ManagementAbiliti
     ].filter((entry) => entry.show);
 
     return (
-        <nav className="-mx-1 flex gap-1 overflow-x-auto border-b border-[color:var(--app-border)] pb-px text-sm" aria-label={t('nav.fieldWorkManagement')}>
+        <nav className="-mx-1 flex gap-1 overflow-x-auto border-b border-(--app-border) pb-px text-sm" aria-label={t('nav.fieldWorkManagement')}>
             {entries.map((entry) => {
                 const active = entry.route === current;
                 return (
@@ -31,8 +31,8 @@ export default function ManagementNav({ can, current }: { can: ManagementAbiliti
                         className={[
                             'whitespace-nowrap border-b-2 px-2.5 py-2',
                             active
-                                ? 'border-[color:var(--color-primary)] font-semibold text-[color:var(--color-primary)]'
-                                : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+                                ? 'border-primary font-semibold text-primary'
+                                : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)',
                         ].join(' ')}
                     >
                         {t(entry.label)}

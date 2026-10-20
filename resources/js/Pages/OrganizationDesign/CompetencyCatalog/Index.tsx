@@ -34,13 +34,13 @@ export default function CompetencyCatalogIndex({ types, levels, educationLevels,
     const typeName = (id: string | null) => { const type = types.find((x) => x.id === id); return type ? nameOf(type, locale) : tt('competencyCatalog.untyped'); };
 
     const list = (rows: Entry[], empty: string, onEdit: (row: Entry) => void, extra?: (row: Entry) => React.ReactNode) => rows.length === 0 ? (
-        <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">{empty}</p>
+        <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{empty}</p>
     ) : (
-        <ul className="divide-y divide-[color:var(--app-border)]">
+        <ul className="divide-y divide-(--app-border)">
             {rows.map((row) => (
                 <li key={row.id} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
-                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{row.code}</span>
-                    <span className="min-w-0 flex-1 font-medium text-[color:var(--app-foreground)]">{nameOf(row, locale)}</span>
+                    <span className="font-mono text-xs text-(--app-muted-foreground)">{row.code}</span>
+                    <span className="min-w-0 flex-1 font-medium text-(--app-foreground)">{nameOf(row, locale)}</span>
                     {extra?.(row)}
                     <StatusPill status={row.is_active ? 'active' : 'inactive'} />
                     {can.manage && <button type="button" className={actionLinkClassName()} onClick={() => onEdit(row)}>{t('common.edit')}</button>}
@@ -61,18 +61,18 @@ export default function CompetencyCatalogIndex({ types, levels, educationLevels,
                             <CardTitle>{tt('competencyCatalog.types')}</CardTitle>
                             {can.manage && <Button size="sm" variant="outline" onClick={() => setEditing({ kind: 'type', record: null })}>{tt('competencyCatalog.addType')}</Button>}
                         </CardHeader>
-                        {list(types, tt('competencyCatalog.noTypes'), (row) => setEditing({ kind: 'type', record: row as TypeRow }), (row) => <span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('competencyCatalog.competenciesCount').replace(':count', String((row as TypeRow).competencies_count))}</span>)}
+                        {list(types, tt('competencyCatalog.noTypes'), (row) => setEditing({ kind: 'type', record: row as TypeRow }), (row) => <span className="text-xs text-(--app-muted-foreground)">{tt('competencyCatalog.competenciesCount').replace(':count', String((row as TypeRow).competencies_count))}</span>)}
                     </Card>
                     <Card>
                         <CardHeader className="flex items-center justify-between gap-3">
-                            <div><CardTitle>{tt('competencyCatalog.levels')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('competencyCatalog.levelsHelp')}</p></div>
+                            <div><CardTitle>{tt('competencyCatalog.levels')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('competencyCatalog.levelsHelp')}</p></div>
                             {can.manage && <Button size="sm" variant="outline" onClick={() => setEditing({ kind: 'level', record: null })}>{tt('competencyCatalog.addLevel')}</Button>}
                         </CardHeader>
                         {list(levels, tt('competencyCatalog.noLevels'), (row) => setEditing({ kind: 'level', record: row as LevelRow }), (row) => <span className={badgeClassName('info')}>{tt('fields.rank')} {(row as LevelRow).rank}</span>)}
                     </Card>
                     <Card>
                         <CardHeader className="flex items-center justify-between gap-3">
-                            <div><CardTitle>{tt('competencyCatalog.educationLevels')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('competencyCatalog.educationHelp')}</p></div>
+                            <div><CardTitle>{tt('competencyCatalog.educationLevels')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('competencyCatalog.educationHelp')}</p></div>
                             {can.manage && <Button size="sm" variant="outline" onClick={() => setEditing({ kind: 'education', record: null })}>{tt('competencyCatalog.addEducationLevel')}</Button>}
                         </CardHeader>
                         {list(educationLevels, tt('competencyCatalog.noEducationLevels'), (row) => setEditing({ kind: 'education', record: row as LevelRow }), (row) => <span className={badgeClassName('info')}>{tt('fields.rank')} {(row as LevelRow).rank}</span>)}
@@ -82,7 +82,7 @@ export default function CompetencyCatalogIndex({ types, levels, educationLevels,
                 {frameworks.map((f) => (
                     <Card key={f.id}>
                         <CardHeader className="flex items-center justify-between gap-3">
-                            <CardTitle><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{f.code}</span> {nameOf(f, locale)}</CardTitle>
+                            <CardTitle><span className="font-mono text-xs text-(--app-muted-foreground)">{f.code}</span> {nameOf(f, locale)}</CardTitle>
                             {can.manage && <Button size="sm" variant="outline" onClick={() => setEditing({ kind: 'competency', record: null, frameworkId: f.id })}>{tt('competencyCatalog.addCompetency')}</Button>}
                         </CardHeader>
                         {list(f.competencies, tt('competencyCatalog.noCompetencies'), (row) => setEditing({ kind: 'competency', record: row as CompetencyRow, frameworkId: f.id }), (row) => <span className={badgeClassName('neutral')}>{typeName((row as CompetencyRow).competency_type_id)}</span>)}

@@ -6,19 +6,28 @@ namespace App\Http\Controllers\Web;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
+use App\Enums\PublicFeedbackTargetType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
+use App\Models\OrganizationUnit;
 use App\Models\PositionService;
+use App\Models\PublicFeedbackCategory;
+use App\Models\PublicFeedbackStatusHistory;
+use App\Services\Calendar\LocalizedDateService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\PublicFeedbackMetrics;
+use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\ServiceFeedback\PublicFeedbackVisibility;
+use App\Services\ServiceFeedback\PublicFeedbackWorkflow;
 use App\Services\ServiceFeedback\ServiceFeedbackQueryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -49,6 +58,9 @@ class ServiceFeedbackController extends Controller
         'date_to',
         // Free text over comment, client name and employee.
         'q',
+        // Who the feedback is about: an employee (their QR) or an institution (its QR).
+        'target_type',
+        'category_id',
     ];
 
     public function __construct(
@@ -56,6 +68,7 @@ class ServiceFeedbackController extends Controller
         private readonly WriteAuditLogAction $writeAuditLogAction,
         private readonly PublicFeedbackVisibility $visibility,
         private readonly PublicFeedbackMetrics $metrics,
+        private readonly PublicFeedbackWorkflow $workflow,
     ) {}
 
     public function dashboard(Request $request): Response
@@ -68,6 +81,7 @@ class ServiceFeedbackController extends Controller
         $base = $this->feedbackQuery->applyFilters(
             $this->feedbackQuery->scopedQuery($user),
             $filters,
+            $user,
         );
 
         return Inertia::render('ServiceFeedback/Dashboard', [
@@ -84,7 +98,7 @@ class ServiceFeedbackController extends Controller
                 ->map(fn (EmployeeServiceFeedback $item): array => $this->summarise($item)),
             'oldestPendingAt' => $this->feedbackQuery->oldestPendingAt($base),
             'filters' => $filters,
-            'filterOptions' => $this->filterOptions($user),
+            'filterOptions' => $this->filterOptions($user, $filters),
         ]);
     }
 
@@ -96,13 +110,15 @@ class ServiceFeedbackController extends Controller
         $filters = $request->only(self::FILTER_KEYS);
 
         $feedback = $this->feedbackQuery
-            ->applyFilters($this->feedbackQuery->scopedQuery($user), $filters)
+            ->applyFilters($this->feedbackQuery->scopedQuery($user), $filters, $user)
             ->with([
                 'employee:id,full_name,employee_number',
                 'organization:id,name_en,name_am',
                 'organizationUnit:id,name_en,name_am',
                 'position:id,title_en,title_am',
                 'positionService:id,service_no,name_en,name_am',
+                'organizationTarget:id,code,name_en,name_am',
+                'category:id,name_en,name_am',
             ])
             ->latest('created_at')
             ->paginate(20)
@@ -114,6 +130,7 @@ class ServiceFeedbackController extends Controller
             $this->feedbackQuery->applyFilters(
                 $this->feedbackQuery->scopedQuery($user),
                 array_diff_key($filters, ['status' => true]),
+                $user,
             ),
         );
 
@@ -121,18 +138,30 @@ class ServiceFeedbackController extends Controller
             'feedback' => $feedback,
             'statusCounts' => $statusCounts,
             'filters' => $filters,
-            'filterOptions' => $this->filterOptions($user),
+            'filterOptions' => $this->filterOptions($user, $filters),
             'statuses' => array_column(ServiceFeedbackStatus::cases(), 'value'),
             'can' => $this->abilities(),
         ]);
     }
 
-    public function show(EmployeeServiceFeedback $serviceFeedback): Response
+    public function show(Request $request, EmployeeServiceFeedback $serviceFeedback): Response
     {
         abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
         // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
         abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('view', $serviceFeedback);
+
+        // Who sent it is a separate grant, and each opening of it is recorded.
+        if ($this->visibility->canSeeIdentity(Auth::user()) && $this->visibility->hasIdentity($serviceFeedback)) {
+            $this->writeAuditLogAction->execute(
+                eventType: AuditEventType::PublicSubmitterIdentityViewed,
+                actor: Auth::user(),
+                auditable: $serviceFeedback,
+                organizationId: $serviceFeedback->organization_id,
+                reason: 'Submitter identity viewed on public feedback',
+                request: $request,
+            );
+        }
 
         $serviceFeedback->load([
             'employee:id,full_name,employee_number',
@@ -140,7 +169,10 @@ class ServiceFeedbackController extends Controller
             'organizationUnit:id,name_en,name_am',
             'position:id,title_en,title_am',
             'positionService:id,service_no,name_en,name_am',
+            'organizationTarget:id,code,name_en,name_am,logo_path',
+            'category:id,name_en,name_am',
             'reviewer:id,name',
+            'statusHistory.actor:id,name',
         ]);
 
         return Inertia::render('ServiceFeedback/Show', [
@@ -148,12 +180,36 @@ class ServiceFeedbackController extends Controller
                 'review_note' => $serviceFeedback->review_note,
                 'reviewed_at' => $serviceFeedback->reviewed_at?->toIso8601String(),
                 'reviewed_by' => $serviceFeedback->reviewer?->name,
+                'target_logo_url' => $serviceFeedback->organizationTarget?->logo_url,
             ]),
+            // Every recorded change of state, oldest first: submitted, reviewed, resolved, closed, hidden, restored.
+            'history' => $serviceFeedback->statusHistory->map(fn (PublicFeedbackStatusHistory $row): array => [
+                'id' => $row->id,
+                'from_status' => $row->from_status,
+                'to_status' => $row->to_status,
+                'actor' => $row->actor?->name,
+                'reason' => $row->reason,
+                'transitioned_at' => $row->transitioned_at?->toIso8601String(),
+            ])->values()->all(),
+            // Only the moves the workflow allows from here, and only for a reviewer.
+            'allowedTransitions' => Auth::user()->can('review', $serviceFeedback)
+                ? array_values(array_map(fn (ServiceFeedbackStatus $to): string => $to->value, array_filter(
+                    $this->workflow->allowedFrom(ServiceFeedbackType::Feedback, $serviceFeedback->status),
+                    fn (ServiceFeedbackStatus $to): bool => $to !== ServiceFeedbackStatus::Closed || Auth::user()->can('transition', [$serviceFeedback, $to]),
+                )))
+                : [],
+            // Organization form: the service received and the questionnaire answers (null otherwise).
+            'organizationForm' => app(PublicFeedbackQuestionnaire::class)->presentForStaff($serviceFeedback, app()->getLocale()),
             'can' => $this->abilities($serviceFeedback),
         ]);
     }
 
-    /** Mark an entry reviewed or resolved. */
+    /**
+     * Move a Feedback along its workflow: pending → reviewed | resolved,
+     * reviewed → resolved | closed, resolved → closed. The workflow refuses
+     * any other move, stamps the timestamps the reports read and appends a
+     * history row; the review note is kept on the record and in that row.
+     */
     public function review(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
         abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
@@ -162,29 +218,41 @@ class ServiceFeedbackController extends Controller
         $this->authorize('review', $serviceFeedback);
 
         $data = $request->validate([
-            'status' => ['required', 'string', 'in:reviewed,resolved'],
+            'status' => ['required', 'string', 'in:reviewed,resolved,closed'],
             'review_note' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $status = ServiceFeedbackStatus::from($data['status']);
+        // Reviewing and resolving are the Feedback review grant; closing is the workflow's own close grant.
+        if ($status === ServiceFeedbackStatus::Closed) {
+            $this->authorize('transition', [$serviceFeedback, $status]);
+        }
+        $note = isset($data['review_note']) && trim((string) $data['review_note']) !== '' ? trim((string) $data['review_note']) : null;
 
-        $serviceFeedback->forceFill([
-            'status' => $status,
-            'review_note' => $data['review_note'] ?? null,
-            'reviewed_by' => Auth::id(),
-            'reviewed_at' => now(),
-        ])->save();
+        if (! $this->workflow->canTransition($serviceFeedback, $status)) {
+            throw ValidationException::withMessages(['status' => __('service-feedback.transition_not_allowed')]);
+        }
 
-        $this->writeAuditLogAction->execute(
-            eventType: $status === ServiceFeedbackStatus::Resolved
-                ? AuditEventType::ServiceFeedbackResolved
-                : AuditEventType::ServiceFeedbackReviewed,
-            actor: Auth::user(),
-            auditable: $serviceFeedback,
-            organizationId: $serviceFeedback->organization_id,
-            reason: 'Client feedback marked '.$status->value,
-            request: $request,
-        );
+        DB::transaction(function () use ($serviceFeedback, $status, $note, $request): void {
+            if ($note !== null) {
+                $serviceFeedback->forceFill(['review_note' => $note])->save();
+            }
+
+            $this->workflow->transition($serviceFeedback, $status, Auth::user(), $note, $request);
+
+            if ($status !== ServiceFeedbackStatus::Closed) {
+                $this->writeAuditLogAction->execute(
+                    eventType: $status === ServiceFeedbackStatus::Resolved
+                        ? AuditEventType::ServiceFeedbackResolved
+                        : AuditEventType::ServiceFeedbackReviewed,
+                    actor: Auth::user(),
+                    auditable: $serviceFeedback,
+                    organizationId: $serviceFeedback->organization_id,
+                    reason: 'Client feedback marked '.$status->value,
+                    request: $request,
+                );
+            }
+        });
 
         return back()->with('flash', ['message' => __('Feedback updated.'), 'type' => 'success']);
     }
@@ -203,12 +271,19 @@ class ServiceFeedbackController extends Controller
         $this->authorize('hide', $serviceFeedback);
 
         $hiding = $serviceFeedback->status !== ServiceFeedbackStatus::Hidden;
+        $from = $serviceFeedback->status;
+        // Restoring returns the entry to where it stood before it was hidden, never silently to "pending".
+        $to = $hiding ? ServiceFeedbackStatus::Hidden : $this->statusBeforeHidden($serviceFeedback);
 
-        $serviceFeedback->forceFill([
-            'status' => $hiding ? ServiceFeedbackStatus::Hidden : ServiceFeedbackStatus::Pending,
-            'reviewed_by' => Auth::id(),
-            'reviewed_at' => now(),
-        ])->save();
+        DB::transaction(function () use ($serviceFeedback, $from, $to): void {
+            $serviceFeedback->forceFill([
+                'status' => $to,
+                'reviewed_by' => Auth::id(),
+                'reviewed_at' => now(),
+            ])->save();
+            // Moderation sits outside the workflow, but every change of state is still in the history.
+            $this->workflow->record($serviceFeedback, $from, $to, Auth::user());
+        });
 
         $this->writeAuditLogAction->execute(
             eventType: $hiding ? AuditEventType::ServiceFeedbackHidden : AuditEventType::ServiceFeedbackUnhidden,
@@ -220,6 +295,21 @@ class ServiceFeedbackController extends Controller
         );
 
         return back()->with('flash', ['message' => __('Feedback updated.'), 'type' => 'success']);
+    }
+
+    /** The status recorded just before the latest hide; pending for an entry hidden before history existed. */
+    private function statusBeforeHidden(EmployeeServiceFeedback $feedback): ServiceFeedbackStatus
+    {
+        $previous = PublicFeedbackStatusHistory::query()
+            ->where('submission_id', $feedback->getKey())
+            ->where('to_status', ServiceFeedbackStatus::Hidden->value)
+            ->latest('transitioned_at')
+            ->latest('id')
+            ->value('from_status');
+
+        $status = is_string($previous) ? ServiceFeedbackStatus::tryFrom($previous) : null;
+
+        return $status === null || $status === ServiceFeedbackStatus::Hidden ? ServiceFeedbackStatus::Pending : $status;
     }
 
     public function destroy(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
@@ -261,6 +351,7 @@ class ServiceFeedbackController extends Controller
         $base = $this->feedbackQuery->applyFilters(
             $this->feedbackQuery->scopedQuery($user),
             $filters,
+            $user,
         );
 
         $lowRated = (clone $base)
@@ -282,7 +373,7 @@ class ServiceFeedbackController extends Controller
             'byServiceType' => $this->feedbackQuery->byServiceType($base, 50),
             'lowRated' => $lowRated,
             'filters' => $filters,
-            'filterOptions' => $this->filterOptions($user),
+            'filterOptions' => $this->filterOptions($user, $filters),
             'statuses' => array_column(ServiceFeedbackStatus::cases(), 'value'),
             'can' => ['export' => Auth::user()->can('export', EmployeeServiceFeedback::class)],
         ]);
@@ -302,12 +393,14 @@ class ServiceFeedbackController extends Controller
         $filters = $request->only(self::FILTER_KEYS);
 
         $query = $this->feedbackQuery
-            ->applyFilters($this->feedbackQuery->scopedQuery($user), $filters)
+            ->applyFilters($this->feedbackQuery->scopedQuery($user), $filters, $user)
             ->with([
                 'employee:id,full_name,employee_number',
                 'organization:id,name_en,name_am',
                 'organizationUnit:id,name_en,name_am',
                 'positionService:id,service_no,name_en,name_am',
+                'organizationTarget:id,name_en,name_am',
+                'category:id,name_en,name_am',
             ])
             ->latest('created_at');
 
@@ -321,30 +414,36 @@ class ServiceFeedbackController extends Controller
         $filename = 'service-feedback-'.now()->format('Ymd-His').'.csv';
 
         $showIdentity = $this->visibility->canSeeIdentity($user);
+        // English: English headers and values, Gregorian dates. Amharic: Amharic, Ethiopian dates.
+        $locale = app()->getLocale();
+        $dates = app(LocalizedDateService::class);
+        $name = fn (?object $model): ?string => $model === null ? null
+            : ($locale === 'am' && filled($model->name_am ?? null) ? $model->name_am : $model->name_en);
+        $columns = ['submitted_at', 'target_type', 'target', 'employee', 'employee_number', 'organization', 'unit', 'service', 'category', 'rating', 'status', 'comment', 'client_name', 'client_contact'];
 
-        return response()->streamDownload(function () use ($query, $showIdentity): void {
+        return response()->streamDownload(function () use ($query, $showIdentity, $locale, $dates, $name, $columns): void {
             $handle = fopen('php://output', 'wb');
 
             // BOM so Excel opens the Amharic columns as UTF-8.
             fwrite($handle, "\xEF\xBB\xBF");
 
-            fputcsv($handle, csv_safe_row([
-                'Submitted At', 'Employee', 'Employee No.', 'Organization',
-                'Unit', 'Service Type', 'Rating', 'Status', 'Comment',
-                'Client Name', 'Client Contact',
-            ]));
+            fputcsv($handle, csv_safe_row(array_map(fn (string $column): string => (string) __('service-feedback.feedback_export_columns.'.$column), $columns)));
 
-            $query->chunk(500, function ($rows) use ($handle, $showIdentity): void {
+            $query->chunk(500, function ($rows) use ($handle, $showIdentity, $locale, $dates, $name): void {
                 foreach ($rows as $item) {
+                    $organizationTarget = $item->target_type === PublicFeedbackTargetType::Organization;
                     fputcsv($handle, csv_safe_row([
-                        $item->created_at?->toDateTimeString(),
+                        $dates->displayDateTime($item->submitted_at ?? $item->created_at, $locale),
+                        (string) __('service-feedback.export_values.target_types.'.($organizationTarget ? 'organization' : 'employee')),
+                        $organizationTarget ? ($name($item->organizationTarget) ?? $item->target_name_snapshot) : $item->employee?->full_name,
                         $item->employee?->full_name,
                         $item->employee?->employee_number,
-                        $item->organization?->name_en,
-                        $item->organizationUnit?->name_en,
-                        $item->service_name_snapshot ?? $item->positionService?->name_en,
+                        $name($item->organization),
+                        $name($item->organizationUnit),
+                        $item->service_name_snapshot ?? $name($item->positionService) ?? $item->service_text,
+                        $name($item->category),
                         $item->rating,
-                        $item->status->value,
+                        (string) __('service-feedback.export_values.statuses.'.$item->status->value),
                         $item->comment,
                         $showIdentity ? $item->client_name : null,
                         $showIdentity ? $item->client_contact : null,
@@ -383,10 +482,26 @@ class ServiceFeedbackController extends Controller
                 'employee_number' => $item->employee->employee_number,
             ],
             'organization' => $this->namePair($item->organization, 'name'),
-            'organization_unit' => $this->namePair($item->organizationUnit, 'name'),
+            // The relevant work unit as recorded at submission (organization form); the live unit for employee QRs and older rows.
+            'organization_unit' => $item->organization_unit_name_snapshot !== null
+                ? ['en' => $item->organization_unit_name_snapshot, 'am' => $item->organization_unit_name_am_snapshot]
+                : $this->namePair($item->organizationUnit, 'name'),
+            'unit_selection_mode' => $item->unit_selection_mode,
             'position' => $this->namePair($item->position, 'title'),
             'service_no' => $item->service_no_snapshot,
             'service_type' => $this->namePair($item->positionService, 'name'),
+            // The service as recorded at submission: the employee's position service, or the institution's
+            // catalog service (or the visitor's own words) on the organization form.
+            'service_name' => $item->service_name_snapshot ?? $item->service_text,
+            'target_type' => $item->target_type?->value ?? 'employee',
+            // An institution target: its name (and code, an internal identifier staff use), never its database id.
+            'target_organization' => $item->organizationTarget === null ? null : [
+                'en' => $item->organizationTarget->name_en,
+                'am' => $item->organizationTarget->name_am,
+                'code' => $item->organizationTarget->code,
+            ],
+            'category' => $this->namePair($item->category, 'name'),
+            'identity_mode' => $item->submitter_identity_mode?->value,
         ];
     }
 
@@ -411,7 +526,7 @@ class ServiceFeedbackController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function filterOptions(mixed $user): array
+    private function filterOptions(mixed $user, array $filters = []): array
     {
         $scope = app(OrganizationScopeService::class);
 
@@ -424,8 +539,17 @@ class ServiceFeedbackController extends Controller
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_am']);
 
+        // The work units of the one institution chosen in the filter bar, and only when it is one the user may see.
+        $organizationId = is_string($filters['organization_id'] ?? null) ? $filters['organization_id'] : null;
+        $units = $organizationId === null || ! $organizations->contains('id', $organizationId) ? collect() : OrganizationUnit::query()->withTrashed()
+            ->where('organization_id', $organizationId)
+            ->orderBy('name_en')
+            ->limit(500)
+            ->get(['id', 'name_en', 'name_am']);
+
         return [
             'organizations' => $organizations,
+            'units' => $units,
             'serviceTypes' => PositionService::query()
                 ->where('is_active', true)
                 ->when(
@@ -434,6 +558,15 @@ class ServiceFeedbackController extends Controller
                 )
                 ->orderBy('service_no')
                 ->get(['id', 'service_no', 'name_en', 'name_am']),
+            // City-wide categories and those of the user's own institutions — never another institution's.
+            'categories' => PublicFeedbackCategory::query()
+                ->when(
+                    ! $scope->isUnrestricted($user),
+                    fn ($query) => $query->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $scope->accessibleOrganizationIds($user)->all())),
+                )
+                ->orderBy('sort_order')
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_am']),
         ];
     }
 

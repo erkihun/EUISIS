@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 
 type Provider = { id: string; code: string; name_en: string; name_am?: string | null };
 
-const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400/20';
+const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-hidden focus:ring-1 focus:ring-orange-400/20';
 
 function KpiCard({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) {
     return (
@@ -77,7 +77,7 @@ export default function ReportsIndex({ providers, selected_provider_id, filters,
                             {t('providerPortal.subsidyApplied')}: <strong className="text-emerald-600">{summary.subsidy_total.toFixed(2)}</strong>
                         </span>
                         <span className="text-gray-700 dark:text-slate-300">
-                            {t('providerPortal.employeePayable')}: <strong className="text-[color:var(--color-primary)]">{summary.employee_payable_total.toFixed(2)}</strong>
+                            {t('providerPortal.employeePayable')}: <strong className="text-primary">{summary.employee_payable_total.toFixed(2)}</strong>
                         </span>
                         <span className="text-gray-700 dark:text-slate-300">
                             {t('providerPortal.scanCount')}: <strong className="text-orange-600">{summary.scan_count}</strong>

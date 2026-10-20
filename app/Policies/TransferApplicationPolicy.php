@@ -46,12 +46,10 @@ readonly class TransferApplicationPolicy
 
     public function screen(User $user, TransferApplication $application): bool
     {
+        // Only a submitted application moves to review (ScreenTransferApplicationAction).
         return ($user->can('transfers.applications.screen') || $user->can('transfers.update'))
             && $this->view($user, $application)
-            && in_array($application->status, [
-                TransferApplicationStatus::Submitted,
-                TransferApplicationStatus::UnderReview,
-            ], true);
+            && $application->status === TransferApplicationStatus::Submitted;
     }
 
     public function select(User $user, TransferApplication $application): bool

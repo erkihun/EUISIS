@@ -116,6 +116,7 @@ export default function OrganizationShow({
         has_logo: boolean;
         branding_primary_color: string | null;
         branding_secondary_color: string | null;
+        public_contact_phone?: string | null;
     };
     parentOrganizationId: string | null;
     parentOrganization?: ParentOrganization;
@@ -252,23 +253,23 @@ export default function OrganizationShow({
         >
             <Head title={organization.name_en} />
 
-            <section className="mb-6 overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 sm:p-6">
+            <section className="mb-6 overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) p-5 sm:p-6">
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="flex min-w-0 items-center gap-4">
                         {organization.has_logo && organization.logo_url ? (
-                            <img src={organization.logo_url} alt="" className="h-14 w-14 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] object-contain p-1.5" />
+                            <img src={organization.logo_url} alt="" className="h-14 w-14 rounded-card border border-(--app-border) bg-(--app-surface) object-contain p-1.5" />
                         ) : (
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] text-xl font-semibold text-[color:var(--app-muted-foreground)]">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card border border-(--app-border) bg-(--app-surface-muted) text-xl font-semibold text-(--app-muted-foreground)">
                                 {organizationName.charAt(0).toUpperCase()}
                             </div>
                         )}
                         <div className="min-w-0">
                             <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                                <span className="rounded-control bg-[color:var(--app-surface-muted)] px-2 py-0.5 font-mono text-xs text-[color:var(--app-foreground)]">{organization.code}</span>
+                                <span className="rounded-control bg-(--app-surface-muted) px-2 py-0.5 font-mono text-xs text-(--app-foreground)">{organization.code}</span>
                                 <StatusBadge status={organization.status} label={t(`common.${organization.status}`)} />
                             </div>
-                            <h1 className="truncate text-xl font-semibold text-[color:var(--app-foreground)]">{organizationName}</h1>
-                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                            <h1 className="truncate text-xl font-semibold text-(--app-foreground)">{organizationName}</h1>
+                            <p className="mt-1 text-sm text-(--app-muted-foreground)">
                                 {organization.type ? localizedName(organization.type.name_en, organization.type.name_am, locale) : t('organizations.organization')}
                             </p>
                         </div>
@@ -278,7 +279,7 @@ export default function OrganizationShow({
                      * tree. One bordered strip rather than five separate cards:
                      * they are facets of the same figure and belong together.
                      */}
-                    <dl className="grid grid-cols-2 overflow-hidden rounded-card border border-[color:var(--app-border)] sm:grid-cols-5 xl:min-w-[560px]">
+                    <dl className="grid grid-cols-2 overflow-hidden rounded-card border border-(--app-border) sm:grid-cols-5 xl:min-w-[560px]">
                         {[
                             { label: t('organizations.organizationUnits'), value: structureTree.counters.units },
                             { label: t('organizations.positions'), value: structureTree.counters.positions },
@@ -286,9 +287,9 @@ export default function OrganizationShow({
                             { label: t('organizations.vacant'), value: structureTree.counters.vacant_positions },
                             { label: t('organizations.assignedEmployees'), value: structureTree.counters.employees },
                         ].map(({ label, value }) => (
-                            <div key={label} className="border-b border-r border-[color:var(--app-border)] px-3 py-2.5 text-center last:border-r-0 sm:border-b-0">
-                                <dd className="text-lg font-semibold tabular-nums text-[color:var(--app-foreground)]">{value}</dd>
-                                <dt className="mt-0.5 text-xs leading-tight text-[color:var(--app-muted-foreground)]">{label}</dt>
+                            <div key={label} className="border-b border-r border-(--app-border) px-3 py-2.5 text-center last:border-r-0 sm:border-b-0">
+                                <dd className="text-lg font-semibold tabular-nums text-(--app-foreground)">{value}</dd>
+                                <dt className="mt-0.5 text-xs leading-tight text-(--app-muted-foreground)">{label}</dt>
                             </div>
                         ))}
                     </dl>
@@ -296,21 +297,21 @@ export default function OrganizationShow({
             </section>
 
             {showDeletionBlockers && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-                    <div className="w-full max-w-lg rounded-panel border border-amber-200 bg-[color:var(--app-surface)] p-6 shadow-2xl dark:border-amber-800">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true">
+                    <div className="w-full max-w-lg rounded-panel border border-amber-200 bg-(--app-surface) p-6 shadow-2xl dark:border-amber-800">
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <h2 className="text-lg font-semibold text-[color:var(--app-foreground)]">
+                                <h2 className="text-lg font-semibold text-(--app-foreground)">
                                     {t('organizations.cannotBeDeleted')}
                                 </h2>
-                                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-1 text-sm text-(--app-muted-foreground)">
                                     {t('organizations.cannotDeleteUsedMessage')}
                                 </p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setShowDeletionBlockers(false)}
-                                className="rounded-lg p-1.5 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                                className="rounded-lg p-1.5 text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                                 aria-label={t('common.close')}
                             >
                                 ×
@@ -328,7 +329,7 @@ export default function OrganizationShow({
                             <button
                                 type="button"
                                 onClick={() => setShowDeletionBlockers(false)}
-                                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 dark:bg-[color:var(--app-surface-muted)] dark:text-[color:var(--app-foreground)] dark:hover:bg-[color:var(--app-surface)]"
+                                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 dark:bg-(--app-surface-muted) dark:text-(--app-foreground) dark:hover:bg-(--app-surface)"
                             >
                                 {t('common.close')}
                             </button>
@@ -339,39 +340,40 @@ export default function OrganizationShow({
 
             <div className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
                 {/* Basic Information */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <p className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <p className="text-xs font-semibold text-(--app-muted-foreground)">
                         {t('organizations.basicInformation')}
                     </p>
                     <dl className="mt-3 grid gap-4 sm:grid-cols-2">
                         {[
                             { label: t('organizations.type'), value: organization.type ? localizedName(organization.type.name_en, organization.type.name_am, locale) : '—' },
                             { label: t('organizations.legalBasis'), value: organization.legal_basis_ref ?? '—' },
+                            { label: t('organizations.publicContactPhone'), value: organization.public_contact_phone || '—' },
                             { label: t('organizations.mergedInto'), value: organization.merged_into ? localizedName(organization.merged_into.name_en, organization.merged_into.name_am, locale) : '—' },
                         ].map(({ label, value }) => (
                             <div key={label}>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-                                <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">{value}</dd>
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+                                <dd className="mt-1 text-sm text-(--app-foreground)">{value}</dd>
                             </div>
                         ))}
 
                         <div>
-                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <dt className="text-xs font-medium text-(--app-muted-foreground)">
                                 {t('common.effectiveFrom')}
                             </dt>
-                            <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">
+                            <dd className="mt-1 text-sm text-(--app-foreground)">
                                 <LocalizedDateDisplay value={organization.effective_from} />
                             </dd>
                         </div>
 
                         <div>
-                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <dt className="text-xs font-medium text-(--app-muted-foreground)">
                                 {t('common.effectiveTo')}
                             </dt>
-                            <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">
+                            <dd className="mt-1 text-sm text-(--app-foreground)">
                                 {organization.effective_to
                                     ? <LocalizedDateDisplay value={organization.effective_to} />
-                                    : <span className="text-[color:var(--app-muted-foreground)]">{t('common.current')}</span>
+                                    : <span className="text-(--app-muted-foreground)">{t('common.current')}</span>
                                 }
                             </dd>
                         </div>
@@ -381,33 +383,33 @@ export default function OrganizationShow({
                 {/* Right column: hierarchy + structure */}
                 <div>
                     {/* Hierarchy & Placement */}
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="font-semibold text-(--app-foreground)">
                             {t('organizations.hierarchyAndPlacement')}
                         </h3>
                         <dl className="mt-4 space-y-4">
                             <div>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">
                                     {t('organizations.parentOrganization')}
                                 </dt>
                                 <dd className="mt-1 text-sm">
                                     {parentOrganization ? (
                                         <Link
                                             href={route('organizations.show', parentOrganization.id)}
-                                            className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                            className="font-medium text-primary hover:text-primary-hover dark:text-primary dark:hover:text-primary-hover"
                                         >
                                             {parentOrganization.code} — {localizedName(parentOrganization.name_en, parentOrganization.name_am, locale)}
                                         </Link>
                                     ) : (
-                                        <span className="text-[color:var(--app-muted-foreground)]">{t('organizations.noParentRoot')}</span>
+                                        <span className="text-(--app-muted-foreground)">{t('organizations.noParentRoot')}</span>
                                     )}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">
                                     {t('organizations.subtreeReach')}
                                 </dt>
-                                <dd className="mt-1 text-sm text-[color:var(--app-foreground)] tabular-nums">
+                                <dd className="mt-1 text-sm text-(--app-foreground) tabular-nums">
                                     {structureSummary.descendants}
                                 </dd>
                             </div>
@@ -421,23 +423,23 @@ export default function OrganizationShow({
 
             {/* Subtree descendants — readable names, not raw UUIDs */}
             {descendants.length > 0 && (
-                <section className="mt-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h3 className="font-semibold text-(--app-foreground)">
                         {t('organizations.subtreeReach')}
                     </h3>
-                    <ul className="mt-4 divide-y divide-[color:var(--app-border)]">
+                    <ul className="mt-4 divide-y divide-(--app-border)">
                         {descendants.map((d) => (
                             <li key={d.descendant_organization_id} className="flex items-center justify-between py-2 text-sm">
                                 <span className="flex items-center gap-2">
-                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{d.code ?? '—'}</span>
+                                    <span className="font-mono text-xs text-(--app-muted-foreground)">{d.code ?? '—'}</span>
                                     <Link
                                         href={route('organizations.show', d.descendant_organization_id)}
-                                        className="text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] dark:hover:text-blue-400"
+                                        className="text-(--app-foreground) hover:text-primary dark:hover:text-blue-400"
                                     >
                                         {localizedName(d.name_en, d.name_am, locale) || d.descendant_organization_id}
                                     </Link>
                                 </span>
-                                <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                <span className="text-xs text-(--app-muted-foreground)">
                                     {t('common.depth')} {d.depth}
                                 </span>
                             </li>
@@ -447,36 +449,36 @@ export default function OrganizationShow({
             )}
 
             {(organization.has_logo || organization.branding_primary_color || organization.branding_secondary_color) && (
-                <section className="mt-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h3 className="font-semibold text-(--app-foreground)">
                         {t('organizations.branding')}
                     </h3>
                     <div className="mt-4 flex flex-wrap items-start gap-6">
                         {organization.has_logo && organization.logo_url && (
                             <div>
-                                <p className="mb-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <p className="mb-1.5 text-xs font-medium text-(--app-muted-foreground)">
                                     {t('organizations.logo')}
                                 </p>
                                 <img
                                     src={organization.logo_url}
                                     alt={`${organization.name_en} logo`}
-                                    className="h-16 w-16 rounded-card border border-[color:var(--app-border)] object-contain p-1.5"
+                                    className="h-16 w-16 rounded-card border border-(--app-border) object-contain p-1.5"
                                 />
                             </div>
                         )}
                         {(organization.branding_primary_color || organization.branding_secondary_color) && (
                             <div>
-                                <p className="mb-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <p className="mb-1.5 text-xs font-medium text-(--app-muted-foreground)">
                                     {t('organizations.colorPreview')}
                                 </p>
                                 <div className="flex items-center gap-3">
                                     {organization.branding_primary_color && (
                                         <div className="flex items-center gap-1.5">
                                             <span
-                                                className="h-6 w-6 rounded-full border border-white shadow"
+                                                className="h-6 w-6 rounded-full border border-white shadow-sm"
                                                 style={{ backgroundColor: organization.branding_primary_color }}
                                             />
-                                            <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="font-mono text-xs text-(--app-muted-foreground)">
                                                 {organization.branding_primary_color}
                                             </span>
                                         </div>
@@ -484,10 +486,10 @@ export default function OrganizationShow({
                                     {organization.branding_secondary_color && (
                                         <div className="flex items-center gap-1.5">
                                             <span
-                                                className="h-6 w-6 rounded-full border border-white shadow"
+                                                className="h-6 w-6 rounded-full border border-white shadow-sm"
                                                 style={{ backgroundColor: organization.branding_secondary_color }}
                                             />
-                                            <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="font-mono text-xs text-(--app-muted-foreground)">
                                                 {organization.branding_secondary_color}
                                             </span>
                                         </div>
@@ -495,7 +497,7 @@ export default function OrganizationShow({
                                 </div>
                                 {organization.branding_primary_color && (
                                     <div
-                                        className="mt-3 rounded-lg border border-l-4 border-[color:var(--app-border)] px-3 py-2 text-xs text-[color:var(--app-muted-foreground)]"
+                                        className="mt-3 rounded-lg border border-l-4 border-(--app-border) px-3 py-2 text-xs text-(--app-muted-foreground)"
                                         style={{ borderLeftColor: organization.branding_primary_color }}
                                     >
                                         {t('organizations.brandingPreview')}
@@ -508,9 +510,9 @@ export default function OrganizationShow({
             )}
 
             {institutionOffices.length > 0 && (
-                <section className="mt-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                     <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                        <h3 className="font-semibold text-(--app-foreground)">
                             {t('institutionOffices.title')} ({institutionOffices.length})
                         </h3>
                         <Link
@@ -520,7 +522,7 @@ export default function OrganizationShow({
                             + {t('institutionOffices.addOffice')}
                         </Link>
                     </div>
-                    <div className="mt-4 overflow-hidden rounded-card border border-[color:var(--app-border)]">
+                    <div className="mt-4 overflow-hidden rounded-card border border-(--app-border)">
                         <table className={cx(tableClassName, 'min-w-full text-left')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
@@ -546,10 +548,10 @@ export default function OrganizationShow({
                                         key={office.id}
                                         className={tableRowClassName}
                                     >
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>
                                             {office.office_code}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
                                             {office.name_en ?? '—'}
                                         </td>
                                         <td className={tableCellClassName}>
@@ -558,7 +560,7 @@ export default function OrganizationShow({
                                             </span>
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="text-xs text-(--app-muted-foreground)">
                                                 {office.status}
                                             </span>
                                         </td>
@@ -580,8 +582,8 @@ export default function OrganizationShow({
             )}
 
             {statistics && (
-                <section className="mt-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('organizations.statistics')}</h3>
+                <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h3 className="font-semibold text-(--app-foreground)">{t('organizations.statistics')}</h3>
 
                     <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
                         {[
@@ -599,9 +601,9 @@ export default function OrganizationShow({
                             { label: t('organizations.childOrganizations'), value: statistics.child_organizations },
                             { label: t('organizations.scopedUsers'), value: statistics.scoped_users },
                         ].map(({ label, value }) => (
-                            <div key={label} className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-3 text-center">
-                                <dd className="text-lg font-bold tabular-nums text-[color:var(--app-foreground)]">{value}</dd>
-                                <dt className="mt-0.5 text-[11px] leading-tight text-[color:var(--app-muted-foreground)]">{label}</dt>
+                            <div key={label} className="rounded-card border border-(--app-border) bg-(--app-surface-muted) px-3 py-3 text-center">
+                                <dd className="text-lg font-bold tabular-nums text-(--app-foreground)">{value}</dd>
+                                <dt className="mt-0.5 text-[11px] leading-tight text-(--app-muted-foreground)">{label}</dt>
                             </div>
                         ))}
                     </dl>
@@ -617,11 +619,11 @@ export default function OrganizationShow({
                                 .map(([key, value]) => ({ key, value }));
 
                             return (
-                                <div key={title} className="min-w-0 rounded-card border border-[color:var(--app-border)] p-4">
-                                    <h4 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h4>
+                                <div key={title} className="min-w-0 rounded-card border border-(--app-border) p-4">
+                                    <h4 className="text-sm font-semibold text-(--app-foreground)">{title}</h4>
                                     <div className="mt-3">
                                         {series.length === 0 ? (
-                                            <p className="py-8 text-center text-xs text-[color:var(--app-muted-foreground)]">
+                                            <p className="py-8 text-center text-xs text-(--app-muted-foreground)">
                                                 {t('organizations.noStatistics')}
                                             </p>
                                         ) : (
@@ -638,8 +640,8 @@ export default function OrganizationShow({
 
                     {statistics.employees_by_unit.length > 0 && (
                         <div className="mt-6">
-                            <h4 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('organizations.employeesByUnit')}</h4>
-                            <div className="mt-3 overflow-x-auto rounded-card border border-[color:var(--app-border)]">
+                            <h4 className="text-sm font-semibold text-(--app-foreground)">{t('organizations.employeesByUnit')}</h4>
+                            <div className="mt-3 overflow-x-auto rounded-card border border-(--app-border)">
                                 <table className={cx(tableClassName, 'min-w-full text-left')}>
                                     <thead className={tableHeadClassName}>
                                         <tr>
@@ -650,11 +652,11 @@ export default function OrganizationShow({
                                     <tbody className={tableBodyClassName}>
                                         {statistics.employees_by_unit.map((row) => (
                                             <tr key={row.id}>
-                                                <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
-                                                    <span className="font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{row.code}</span>{' '}
+                                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
+                                                    <span className="font-mono text-[11px] text-(--app-muted-foreground)">{row.code}</span>{' '}
                                                     {localizedName(row.name_en, row.name_am, locale)}
                                                 </td>
-                                                <td className={cx(tableCellClassName, 'text-right tabular-nums text-[color:var(--app-foreground)]')}>{row.employees_count}</td>
+                                                <td className={cx(tableCellClassName, 'text-right tabular-nums text-(--app-foreground)')}>{row.employees_count}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -669,9 +671,9 @@ export default function OrganizationShow({
                 <ReportingLinesPanel rows={[...reportingOffices, ...reportingUnits]} />
             </section>
 
-            <section className="mt-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('organizations.nameHistory')}</h3>
-                <div className="mt-4 overflow-hidden rounded-card border border-[color:var(--app-border)]">
+            <section className="mt-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                <h3 className="font-semibold text-(--app-foreground)">{t('organizations.nameHistory')}</h3>
+                <div className="mt-4 overflow-hidden rounded-card border border-(--app-border)">
                     <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -699,7 +701,7 @@ export default function OrganizationShow({
                                         {history.effective_to
                                             ? <LocalizedDateDisplay value={history.effective_to} />
                                             : (
-                                            <span className="text-[color:var(--app-muted-foreground)]">
+                                            <span className="text-(--app-muted-foreground)">
                                                 {t('common.current')}
                                             </span>
                                         )}

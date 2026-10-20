@@ -112,7 +112,7 @@ export default function CafeteriaDashboard({
                 </DashboardSection>
 
                 <DashboardSection title={t('cafeteria.todayTransactions')}>
-                    <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)]/80 bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]">
+                    <div className="overflow-hidden rounded-panel border border-(--app-border)/80 bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]">
                         <div className="overflow-x-auto">
                             <table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
@@ -126,15 +126,15 @@ export default function CafeteriaDashboard({
                                 <tbody className={tableBodyClassName}>
                                     {today_by_provider.map((row) => (
                                         <tr key={row.provider_id} className={tableRowClassName}>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{row.provider_name}</td>
-                                            <td className={cx(tableCellClassName, 'text-right text-[color:var(--app-foreground)]')}>{row.transaction_count}</td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{row.provider_name}</td>
+                                            <td className={cx(tableCellClassName, 'text-right text-(--app-foreground)')}>{row.transaction_count}</td>
                                             <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{money.format(row.total_subsidy)}</td>
                                             <td className={cx(tableCellClassName, 'text-right font-medium text-orange-600')}>{money.format(row.total_deductions)}</td>
                                         </tr>
                                     ))}
                                     {today_by_provider.length === 0 && (
                                         <tr>
-                                            <td colSpan={4} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
+                                            <td colSpan={4} className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>
                                                 {t('common.noRecords')}
                                             </td>
                                         </tr>

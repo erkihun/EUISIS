@@ -40,6 +40,7 @@ use App\Models\GrievanceTask;
 use App\Models\User;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -57,7 +58,12 @@ use Illuminate\Validation\ValidationException;
 final class GrievanceCaseService
 {
     /** Fields a complainant may set; everything else is derived. */
-    public const COMPLAINANT_FIELDS = ['subject', 'description', 'category_id', 'incident_date', 'respondent_description'];
+    public const COMPLAINANT_FIELDS = [
+        'subject', 'description', 'category_id', 'incident_date', 'respondent_description',
+        // Regulation 201/2018 Art. 32(2) and Art. 33 (see docs/regulation-201-2018-traceability.md).
+        'written_issue_raised_at', 'immediate_supervisor_name', 'requested_remedy', 'applicant_address',
+        'late_submission_reason', 'cause_ended_at',
+    ];
 
     public function __construct(
         private readonly GrievanceCaseAccessService $access,
@@ -105,6 +111,15 @@ final class GrievanceCaseService
                 'description' => $data['description'],
                 'incident_date' => $data['incident_date'] ?? null,
                 'respondent_description' => $data['respondent_description'] ?? null,
+                // Art. 32(2)(b): the applicant's job title, as held when the grievance was written.
+                'position_id' => $placement['position_id'] ?? null,
+                'written_issue_raised_at' => $data['written_issue_raised_at'] ?? null,
+                'immediate_supervisor_name' => $data['immediate_supervisor_name'] ?? null,
+                'requested_remedy' => $data['requested_remedy'] ?? null,
+                'applicant_address' => $data['applicant_address'] ?? null,
+                'applicant_declared_at' => $data['applicant_declared_at'] ?? null,
+                'late_submission_reason' => $data['late_submission_reason'] ?? null,
+                'cause_ended_at' => $data['cause_ended_at'] ?? null,
                 'priority' => GrievancePriority::tryFrom((string) $category->default_priority) ?? GrievancePriority::Normal,
                 'confidentiality_level' => GrievanceConfidentiality::tryFrom((string) $category->default_confidentiality) ?? GrievanceConfidentiality::NormalConfidential,
                 'status' => GrievanceStatus::Draft,
@@ -390,6 +405,8 @@ final class GrievanceCaseService
             }
             $resubmission = $grievance->submitted_at !== null;
 
+            $this->applyFilingWindow($grievance);
+
             if (str_starts_with((string) $grievance->reference_number, 'DRAFT-')) {
                 $grievance->reference_number = $this->codes->execute(CodeRuleEntityType::GrievanceCase, ['organization_id' => $grievance->organization_id], $actor, null, 'reference_number', $grievance->getKey());
             }
@@ -402,7 +419,8 @@ final class GrievanceCaseService
             $this->timeline->record($grievance, $resubmission ? 'resubmitted' : 'submitted', $actor);
             $this->notifier->toComplainant($grievance, 'submitted');
 
-            if (! $this->settings->intakeReviewEnabled()) {
+            // A late filing on a force-majeure ground always goes to a person first (Art. 33(2)).
+            if (! $this->settings->intakeReviewEnabled() && ! $grievance->is_late_submission) {
                 $this->acceptAndRoute($grievance, null, null);
             } else {
                 $this->notifyIntakeOfficers($grievance);
@@ -418,6 +436,10 @@ final class GrievanceCaseService
 
         return DB::transaction(function () use ($grievance, $actor, $notes): Grievance {
             $grievance = $this->lock($grievance);
+            if ($grievance->late_review_status === 'pending') {
+                // Accepting a late filing accepts its force-majeure ground (Art. 33(2)); the reason is on record.
+                $grievance->forceFill(['late_review_status' => 'accepted', 'late_reviewed_by' => $actor->getKey(), 'late_reviewed_at' => now(), 'late_decision_reason' => $notes])->save();
+            }
             if (! in_array($grievance->status, GrievanceCaseAccessService::INTAKE_STATUSES, true)) {
                 throw ValidationException::withMessages(['grievance' => __('grievances.errors.stale')]);
             }
@@ -498,12 +520,53 @@ final class GrievanceCaseService
         $grievance->forceFill(['accepted_at' => now()])->save();
 
         // Regulation 201/2018 Art. 34(3): the committee has 15 working days
-        // from receipt to report to the institution head. Snapshotted once so
-        // later holiday/work-week changes never move an open deadline.
-        app(StatutoryDeadlineService::class)->snapshot($grievance, Regulation201::GRIEVANCE_COMMITTEE_REPORT, now());
+        // "from the day the application was submitted to it" — counted from
+        // filing, not from when intake accepted it, so a slow intake cannot
+        // extend the statutory period. Snapshotted once so later holiday or
+        // work-week changes never move an open deadline.
+        app(StatutoryDeadlineService::class)->snapshot($grievance, Regulation201::GRIEVANCE_COMMITTEE_REPORT, Carbon::parse($grievance->submitted_at ?? now()));
 
         $this->routing->createStage($grievance, $initial['type'], $initial['id'], GrievanceMovementType::InitialAssignment, $initial['route'], null, $notes, $actor);
         $this->notifier->toComplainant($grievance, 'accepted');
+    }
+
+    /**
+     * Regulation 201/2018 Art. 33: the grievance reaches the committee within
+     * 10 consecutive working days of the date the matter was presented in
+     * writing to the immediate supervisor or manager and not resolved. Past
+     * that window it is accepted only on a force-majeure ground, within 10
+     * working days after the cause ended (Art. 33(2)), and then always goes
+     * to a person for review. Nothing to check when no written presentation
+     * date was given (filings before this rule, or staff-entered cases).
+     */
+    private function applyFilingWindow(Grievance $grievance): void
+    {
+        if ($grievance->written_issue_raised_at === null || $grievance->filing_deadline_at !== null) {
+            return;
+        }
+
+        $deadlines = app(StatutoryDeadlineService::class);
+        $raisedAt = Carbon::parse($grievance->written_issue_raised_at);
+        $due = $deadlines->dueAt(Regulation201::GRIEVANCE_COMMITTEE_FILING, $raisedAt);
+        $late = now()->greaterThan($due);
+
+        if ($late) {
+            $causeEnded = $grievance->cause_ended_at !== null ? Carbon::parse($grievance->cause_ended_at) : null;
+            if ($causeEnded === null || trim((string) $grievance->late_submission_reason) === ''
+                || $causeEnded->lt($raisedAt) || $causeEnded->isFuture()
+                || now()->greaterThan($deadlines->dueAt(Regulation201::GRIEVANCE_FORCE_MAJEURE_FILING, $causeEnded))) {
+                throw ValidationException::withMessages(['written_issue_raised_at' => __('grievances.errors.filing_window_passed', ['date' => $due->toDateString()])]);
+            }
+        }
+
+        $grievance->forceFill([
+            'filing_clock_started_at' => $raisedAt,
+            'filing_deadline_at' => $due,
+            'is_late_submission' => $late,
+            'late_review_status' => $late ? 'pending' : null,
+        ])->save();
+        $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_COMMITTEE_FILING, $raisedAt);
+        $deadlines->complete($grievance, Regulation201::GRIEVANCE_COMMITTEE_FILING, now());
     }
 
     private function notifyIntakeOfficers(Grievance $grievance): void

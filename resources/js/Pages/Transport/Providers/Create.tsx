@@ -1,9 +1,17 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { TransportProviderForm } from '@/Components/transport/TransportAdminForms';
+import PageHeader from '@/Components/PageHeader';
+import { Head } from '@inertiajs/react';
+import { ProviderForm } from '@/Components/transport/TransportForms';
 import { useLocale } from '@/hooks/useLocale';
 
-export default function Create({ organizations = [] }: { organizations: any[] }) {
+export default function Create() {
     const { t } = useLocale();
+    const title = t('transport.registerProvider');
 
-    return <AuthenticatedLayout><h1 className="mb-4 text-lg font-semibold">{t('transport.registerProvider')}</h1><TransportProviderForm organizations={organizations} /></AuthenticatedLayout>;
+    return (
+        <AuthenticatedLayout header={<PageHeader title={title} backHref={route('transport.providers.index')} />}>
+            <Head title={title} />
+            <ProviderForm />
+        </AuthenticatedLayout>
+    );
 }

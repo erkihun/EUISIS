@@ -28,6 +28,8 @@ class StatutoryDeadline extends Model
         'due_at',
         'completed_at',
         'superseded_at',
+        'due_soon_notified_at',
+        'overdue_notified_at',
     ];
 
     protected function casts(): array
@@ -38,6 +40,8 @@ class StatutoryDeadline extends Model
             'due_at' => 'datetime',
             'completed_at' => 'datetime',
             'superseded_at' => 'datetime',
+            'due_soon_notified_at' => 'datetime',
+            'overdue_notified_at' => 'datetime',
         ];
     }
 

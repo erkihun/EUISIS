@@ -2,11 +2,13 @@ import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import AppSidebar from '@/Components/AppSidebar';
+import CommunicationNav from '@/Components/Communication/CommunicationNav';
 import AppHeader from '@/Components/AppHeader';
 import Breadcrumbs from '@/Components/Breadcrumbs';
 import AppToaster from '@/Components/ui/AppToaster';
 import TemporaryPasswordNotice from '@/Components/TemporaryPasswordNotice';
 import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
+import GlobalAIAssistant from '@/Components/ai/GlobalAIAssistant';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
@@ -16,9 +18,10 @@ const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 // Page chrome and content share one measure, so titles line up with the content below them
 // and very wide screens keep a readable line length.
 const CONTENT_WIDTH = 'mx-auto w-full max-w-[1600px]';
-// Create and edit forms share one measure too (docs/admin-ui-consistency.md "Page width"):
-// left-aligned under the title, never centred, so every form starts at the same edge.
-const FORM_WIDTH = 'w-full max-w-4xl';
+// Create and edit forms share one measure too (docs/admin-ui-consistency.md "Page width").
+// By decision of the product owner (2026-10-13) that measure is the full content column, the
+// same as lists and detail pages; the prop stays so the measure can be changed in one place.
+const FORM_WIDTH = 'w-full';
 
 export type ContentWidth = 'full' | 'form';
 
@@ -27,7 +30,21 @@ export default function Authenticated({
     children,
     variant = 'default',
     contentWidth = 'full',
-}: PropsWithChildren<{ header?: ReactNode; variant?: 'default' | 'portal'; contentWidth?: ContentWidth }>) {
+    mode = 'default',
+}: PropsWithChildren<{
+    header?: ReactNode;
+    variant?: 'default' | 'portal';
+    contentWidth?: ContentWidth;
+    /**
+     * 'communication' is the Communication area: the desktop sidebar drops to
+     * its icon rail (without touching the person's saved preference) and the
+     * workspace's own navigation sits under the top bar. A page without a
+     * header (the chat workspace) gets the whole content area; pages with a
+     * header keep the usual heading band and measure. Same shell, auth, theme,
+     * locale and menus.
+     */
+    mode?: 'default' | 'communication';
+}>) {
     const { locale, t } = useLocale();
     const { getBoolean, getString } = useSystemSettings();
     const { url: pageUrl } = usePage();
@@ -62,7 +79,15 @@ export default function Authenticated({
         return sidebarCompactDefault;
     });
 
+    const focus = mode === 'communication';
+    const [focusExpanded, setFocusExpanded] = useState(false);
+    const collapsed = focus ? !focusExpanded : sidebarCollapsed;
+
     const toggleSidebarCollapse = () => {
+        if (focus) {
+            setFocusExpanded((open) => !open);
+            return;
+        }
         setSidebarCollapsed((prev) => {
             const next = !prev;
             try { localStorage.setItem(SIDEBAR_STORAGE_KEY, String(next)); } catch {}
@@ -123,14 +148,15 @@ export default function Authenticated({
 
     return (
         <LocalizedUiProvider>
-        <div className={`${variant === 'portal' ? 'portal-shell' : 'admin-shell'} min-h-screen bg-[color:var(--app-background)]`}>
+        <div className={`${variant === 'portal' ? 'portal-shell' : 'admin-shell'} min-h-screen bg-(--app-background)`}>
             <a
                 href="#main-content"
-                className={buttonClassName({ variant: 'primary', className: 'sr-only fixed left-4 top-4 z-[60]' })}
+                className={buttonClassName({ variant: 'primary', className: 'sr-only fixed left-4 top-4 z-60' })}
             >
                 {t('publicSite.skipToContent')}
             </a>
             <AppToaster />
+            <GlobalAIAssistant />
 
             {/* Desktop sidebar — fixed, does not scroll with page content */}
             <div className="hidden lg:block">
@@ -138,11 +164,11 @@ export default function Authenticated({
                     className={[
                         'fixed inset-y-0 left-0 z-30 flex h-screen flex-col',
                         'transition-[width] duration-200 ease-in-out overflow-hidden',
-                        sidebarCollapsed ? 'w-16' : 'w-[17.5rem]',
+                        collapsed ? 'w-16' : 'w-70',
                     ].join(' ')}
                 >
                     <AppSidebar
-                        collapsed={sidebarCollapsed}
+                        collapsed={collapsed}
                         onToggleCollapse={toggleSidebarCollapse}
                     />
                 </div>
@@ -153,12 +179,12 @@ export default function Authenticated({
             <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
                 <DialogBackdrop
                     transition
-                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] transition-opacity duration-200 data-[closed]:opacity-0"
+                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] transition-opacity duration-200 data-closed:opacity-0"
                 />
                 <div className="fixed inset-0 flex">
                     <DialogPanel
                         transition
-                        className="h-full w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-e-2xl shadow-2xl transition duration-200 ease-out data-[closed]:-translate-x-full"
+                        className="h-full w-[min(20rem,calc(100vw-3rem))] overflow-hidden rounded-e-2xl shadow-2xl transition duration-200 ease-out data-closed:-translate-x-full"
                     >
                         <DialogTitle className="sr-only">{t('publicSite.mainNavigation')}</DialogTitle>
                         <AppSidebar onClose={() => setSidebarOpen(false)} />
@@ -171,10 +197,11 @@ export default function Authenticated({
                 className={[
                     'flex min-h-screen flex-col',
                     'transition-[margin-left] duration-200 ease-in-out',
-                    sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-[17.5rem]',
+                    collapsed ? 'lg:ml-16' : 'lg:ml-70',
                 ].join(' ')}
             >
-                <AppHeader onMenuClick={() => setSidebarOpen(true)} onToggleSidebar={toggleSidebarCollapse} sidebarCollapsed={sidebarCollapsed} />
+                <AppHeader onMenuClick={() => setSidebarOpen(true)} onToggleSidebar={toggleSidebarCollapse} sidebarCollapsed={collapsed} />
+                {focus && <CommunicationNav />}
 
                 {maintenanceEnabled && maintenanceMessage && (
                     <div
@@ -187,7 +214,7 @@ export default function Authenticated({
 
                 {/* Breadcrumbs sit above the title they lead to, in the same band. */}
                 {header && (
-                    <div className="app-page-heading app-dot-grid shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <div className="app-page-heading app-dot-grid shrink-0 border-b border-(--app-border) bg-(--app-surface)">
                         <div className={CONTENT_WIDTH + ' px-4 py-5 sm:px-6 lg:px-8'}>
                             {showBreadcrumbs && <Breadcrumbs className="mb-2.5" />}
                             {header}
@@ -195,13 +222,20 @@ export default function Authenticated({
                     </div>
                 )}
 
-                <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-none sm:px-6 lg:px-8">
-                    <div className={CONTENT_WIDTH}>
-                        {!header && showBreadcrumbs && <Breadcrumbs className="mb-4" />}
+                {focus && !header ? (
+                    <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-hidden sm:p-3 lg:p-4">
                         <TemporaryPasswordNotice />
-                        {contentWidth === 'form' ? <div className={FORM_WIDTH}>{children}</div> : children}
-                    </div>
-                </main>
+                        {children}
+                    </main>
+                ) : (
+                    <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-6 outline-hidden sm:px-6 lg:px-8">
+                        <div className={CONTENT_WIDTH}>
+                            {!header && showBreadcrumbs && <Breadcrumbs className="mb-4" />}
+                            <TemporaryPasswordNotice />
+                            {contentWidth === 'form' ? <div className={FORM_WIDTH}>{children}</div> : children}
+                        </div>
+                    </main>
+                )}
             </div>
         </div>
         </LocalizedUiProvider>

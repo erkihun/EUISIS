@@ -31,7 +31,7 @@ type OrgOption = {
 };
 
 const inputCls = cx(inputClassName, 'w-full');
-const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
 function Field({
     label,
@@ -191,7 +191,7 @@ export default function EditUser({
                 <form
                     id="user-edit-form"
                     onSubmit={submit}
-                    className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
+                    className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6"
                 >
                     <div className="space-y-6">
                         {/* ── Profile ───────────────────────────────────── */}
@@ -203,7 +203,7 @@ export default function EditUser({
                             <div className="flex items-center gap-4">
                                 <UserAvatar src={currentPhoto} name={form.data.name || user.name} size={56} />
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="cursor-pointer rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
+                                    <label className="cursor-pointer rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-xs font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)">
                                         {user.profile_photo_url ? t('users.changePhoto') : t('users.uploadPhoto')}
                                         <input
                                             type="file"
@@ -262,8 +262,8 @@ export default function EditUser({
                             </Field>
 
                             {/* Password is optional on edit — leaving it blank keeps the current one. */}
-                            <div className="rounded-lg border border-[color:var(--app-border)] p-3 md:col-span-2">
-                                <p className="mb-2 text-[10px] font-semibold text-[color:var(--app-muted-foreground)]">
+                            <div className="rounded-lg border border-(--app-border) p-3 md:col-span-2">
+                                <p className="mb-2 text-[10px] font-semibold text-(--app-muted-foreground)">
                                     {t('users.changePasswordNote')}
                                 </p>
                                 <div className="grid gap-4 md:grid-cols-2">
@@ -293,7 +293,7 @@ export default function EditUser({
                                         />
                                     </Field>
                                 </div>
-                                <label className="mt-3 flex items-center gap-2 text-xs text-[color:var(--app-foreground)]">
+                                <label className="mt-3 flex items-center gap-2 text-xs text-(--app-foreground)">
                                     <input
                                         type="checkbox"
                                         checked={form.data.generate_temporary_password}
@@ -333,7 +333,7 @@ export default function EditUser({
 
                             <Field label={t('users.phoneNumber')} error={form.errors.phone_number}>
                                 <div className="flex">
-                                    <span className="inline-flex items-center rounded-l-lg border border-r-0 border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] px-3 text-sm text-[color:var(--app-muted-foreground)]">
+                                    <span className="inline-flex items-center rounded-l-lg border border-r-0 border-(--app-border-strong) bg-(--app-surface-muted) px-3 text-sm text-(--app-muted-foreground)">
                                         +251
                                     </span>
                                     <input
@@ -371,7 +371,7 @@ export default function EditUser({
                             grid={false}
                         >
                             {roles.length === 0 ? (
-                                <p className="rounded-lg border border-dashed border-[color:var(--app-border)] px-3 py-4 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="rounded-lg border border-dashed border-(--app-border) px-3 py-4 text-center text-sm text-(--app-muted-foreground)">
                                     {t('users.noRoles')}
                                 </p>
                             ) : (
@@ -379,15 +379,15 @@ export default function EditUser({
                                     {roles.map((role) => (
                                         <label
                                             key={role.id}
-                                            className="flex cursor-pointer items-center gap-2 rounded-lg border border-[color:var(--app-border)] px-3 py-2 transition-colors hover:bg-[color:var(--app-surface-muted)]"
+                                            className="flex cursor-pointer items-center gap-2 rounded-lg border border-(--app-border) px-3 py-2 transition-colors hover:bg-(--app-surface-muted)"
                                         >
                                             <input
                                                 type="checkbox"
-                                                className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                                                className="h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary"
                                                 checked={form.data.roles.includes(role.name)}
                                                 onChange={() => toggleRole(role.name)}
                                             />
-                                              <span className="min-w-0 flex-1 text-sm text-[color:var(--app-foreground)]">
+                                              <span className="min-w-0 flex-1 text-sm text-(--app-foreground)">
                                                  {role.name}
                                               </span>
                                               <span className={badgeClassName('info')}>
@@ -404,7 +404,7 @@ export default function EditUser({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-6 py-4 backdrop-blur">
+                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-6 py-4 backdrop-blur-sm">
                         {/* Self-edit guard: hide deactivate for own account */}
                         {isSelf && (
                             <p className="mr-auto text-xs text-amber-600 dark:text-amber-400">
@@ -413,7 +413,7 @@ export default function EditUser({
                         )}
                         <Link
                             href={route('users.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </Link>

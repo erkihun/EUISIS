@@ -1,106 +1,114 @@
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router } from '@inertiajs/react';
-import { useLocale } from '@/hooks/useLocale';
-import { useState } from 'react';
 import EmptyState from '@/Components/EmptyState';
-
-import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
-type Application = {
-    id: string;
-    status: string;
-    submitted_at: string | null;
-    employee: { employee_number: string; full_name: string } | null;
-    announcement: { position: { title_en: string; title_am: string | null } | null } | null;
-    releasingOrganization: { name_en: string; name_am: string | null } | null;
-    receivingOrganization: { name_en: string; name_am: string | null } | null;
-};
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { useDisplayFormat } from '@/hooks/useDisplayFormat';
+import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+import { FilterField, FilterPanel, Input, ListPagination, Select, Table, TableCard, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
+import { Alert, Button } from '@euisis/ui';
+import type { TransferApplicationRecord } from '@/Components/transfers/types';
 
 type Props = {
-    applications: LaravelPageMeta & { data: Application[] };
-    filters: { status?: string };
+    applications: LaravelPageMeta & { data: TransferApplicationRecord[] };
+    filters: { status?: string; search?: string; announcement_id?: string };
+    announcement: { id: string; title_en: string | null; title_am: string | null } | null;
 };
 
 const STATUSES = [
-    'submitted', 'under_review', 'verified', 'selected',
+    'submitted', 'under_review', 'selected',
     'release_pending', 'receiving_pending', 'final_approval_pending',
-    'approved', 'transferred', 'rejected', 'withdrawn', 'cancelled',
+    'approved', 'implementation_failed', 'transferred', 'rejected', 'withdrawn', 'cancelled',
 ] as const;
 
-export default function TransferApplicationsIndex({ applications, filters }: Props) {
+export default function TransferApplicationsIndex({ applications, filters, announcement }: Props) {
     const { locale, t } = useLocale();
-    const useAmharic = locale === 'am';
+    const { organizationName } = useDisplayFormat();
+    const [draft, setDraft] = useState({ search: filters.search ?? '', status: filters.status ?? '' });
 
-    const [status, setStatus] = useState(filters.status ?? '');
+    // The announcement filter comes from a link, so it is kept until cleared here.
+    const query = (next: Record<string, string | undefined>) =>
+        Object.fromEntries(Object.entries({ announcement_id: filters.announcement_id, ...next }).filter(([, value]) => value));
+
+    const org = (value: TransferApplicationRecord['releasing_organization']) => (value ? organizationName(value.name_en, value.name_am) : '—');
 
     return (
-        <AuthenticatedLayout
-            header={
-                <PageHeader
-                    backHref={route('transfers.dashboard')}
-                    title={t('transfers.applications')}
-                />
-            }
-        >
+        <AuthenticatedLayout header={<PageHeader backHref={route('transfers.dashboard')} title={t('transfers.applications')} />}>
             <Head title={t('transfers.applications')} />
 
             <div className="space-y-4">
+                {announcement && (
+                    <Alert tone="info">
+                        <span className="flex flex-wrap items-center justify-between gap-2">
+                            <span>{t('transfers.filteredByAnnouncement').replace(':title', localizedName(announcement.title_en, announcement.title_am, locale))}</span>
+                            <Button variant="link" size="sm" onClick={() => router.get(route('transfer-applications.index'), query({ announcement_id: undefined, ...draft }))}>
+                                {t('transfers.showAllApplications')}
+                            </Button>
+                        </span>
+                    </Alert>
+                )}
+
                 <FilterPanel
-                    onSubmit={() => router.get(route('transfer-applications.index'), status ? { status } : {}, { preserveState: true })}
-                    onReset={() => router.get(route('transfer-applications.index'))}
-                    hasActiveFilters={Boolean(filters.status)}
+                    onSubmit={() => router.get(route('transfer-applications.index'), query(draft), { preserveState: true, replace: true })}
+                    onReset={() => router.get(route('transfer-applications.index'), query({}))}
+                    hasActiveFilters={Boolean(filters.status || filters.search)}
                 >
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={draft.search} placeholder={t('transfers.searchApplicationsHint')} onChange={(e) => setDraft({ ...draft, search: e.target.value })} />
+                    </FilterField>
                     <FilterField label={t('common.status')}>
-                        <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                        <Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
                             <option value="">{t('common.allStatuses')}</option>
-                            {STATUSES.map((s) => {
-                                const key = `transfers.status${s.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}` as never;
-                                return <option key={s} value={s}>{t(key)}</option>;
-                            })}
+                            {STATUSES.map((status) => <option key={status} value={status}>{t(`status.${status}`)}</option>)}
                         </Select>
                     </FilterField>
                 </FilterPanel>
 
-                <div className={tableContainerClassName}>
-                    <div className="overflow-x-auto">
-                    <table className={cx(tableClassName, 'min-w-full text-left')}>
-                        <thead className={tableHeadClassName}>
-                            <tr>
-                                {[t('transfers.position'), t('common.employee'), t('transfers.releasingOrganization'), t('transfers.receivingOrganization'), t('common.submittedAt'), t('common.status')].map((h) => (
-                                    <th key={h} className={cx(tableHeaderCellClassName, 'text-left whitespace-nowrap')}>{h}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className={tableBodyClassName}>
-                            {applications.data.map((app) => (
-                                <tr key={app.id} className={tableRowClassName}>
-                                    <td className={tableCellClassName}>
-                                        <Link href={route('transfer-applications.show', app.id)} className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
-                                            {(useAmharic ? app.announcement?.position?.title_am : null) ?? app.announcement?.position?.title_en ?? '-'}
+                <TableCard>
+                    <Table>
+                        <THead>
+                            <Tr>
+                                <Th>{t('common.employee')}</Th>
+                                <Th>{t('transfers.destinationPosition')}</Th>
+                                <Th>{t('transfers.releasingOrganization')}</Th>
+                                <Th>{t('transfers.receivingOrganization')}</Th>
+                                <Th>{t('common.submittedAt')}</Th>
+                                <Th>{t('common.status')}</Th>
+                            </Tr>
+                        </THead>
+                        <TBody>
+                            {applications.data.map((application) => (
+                                <Tr key={application.id}>
+                                    <Td>
+                                        <Link href={route('transfer-applications.show', application.id)} className="font-medium text-primary hover:underline">
+                                            {application.employee?.full_name ?? '—'}
                                         </Link>
-                                    </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
-                                        {app.employee?.full_name}
-                                        <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]">{app.employee?.employee_number}</span>
-                                    </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
-                                        {(useAmharic ? app.releasingOrganization?.name_am : null) ?? app.releasingOrganization?.name_en ?? '-'}
-                                    </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
-                                        {(useAmharic ? app.receivingOrganization?.name_am : null) ?? app.receivingOrganization?.name_en ?? '-'}
-                                    </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={app.submitted_at} fallback="-" /></td>
-                                    <td className={tableCellClassName}><StatusBadge status={app.status} /></td>
-                                </tr>
+                                        <span className="block text-xs text-(--app-muted-foreground)">
+                                            {[application.employee?.employee_number, application.application_number].filter(Boolean).join(' · ')}
+                                        </span>
+                                    </Td>
+                                    <Td className="text-(--app-foreground)">
+                                        {application.position ? localizedName(application.position.title_en, application.position.title_am, locale) : '—'}
+                                    </Td>
+                                    <Td className="text-(--app-muted-foreground)">{org(application.releasing_organization)}</Td>
+                                    <Td className="text-(--app-muted-foreground)">{org(application.receiving_organization)}</Td>
+                                    <Td className="whitespace-nowrap text-(--app-muted-foreground)"><LocalizedDateDisplay value={application.submitted_at} fallback="—" /></Td>
+                                    <Td><StatusBadge status={application.status} /></Td>
+                                </Tr>
                             ))}
-                        </tbody>
-                    </table>
-                    </div>
-                    {applications.data.length === 0 && <EmptyState title={t('transfers.noApplications')} description={filters.status ? t('common.noMatchingRecords') : undefined} />}
+                        </TBody>
+                    </Table>
+                    {applications.data.length === 0 && (
+                        <EmptyState
+                            title={t('transfers.noApplications')}
+                            description={filters.status || filters.search ? t('common.noMatchingRecords') : t('transfers.noApplicationsHint')}
+                        />
+                    )}
                     <ListPagination meta={applications} />
-                </div>
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

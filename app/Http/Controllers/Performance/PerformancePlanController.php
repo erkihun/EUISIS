@@ -147,7 +147,8 @@ class PerformancePlanController extends PerformanceController
             'validation' => $plan->status === PlanStatus::Draft || $plan->status === PlanStatus::Approved ? $this->plans->validate($plan) : [],
             'score' => $score ? ['as_of' => $score->as_of->toDateString(), 'score' => $score->score, 'trace' => $score->trace_json] : null,
             'pendingAmendments' => PerformanceTargetAmendment::query()->where('subject_type', 'TARGET')->where('status', 'PENDING')
-                ->whereIn('subject_id', KpiTarget::query()->where('performance_plan_id', $plan->getKey())->select('id'))->get()->toArray(),
+                ->whereIn('subject_id', KpiTarget::query()->where('performance_plan_id', $plan->getKey())->select('id'))
+                ->get()->map(fn ($a) => [...$a->only(['id', 'subject_id', 'original_values', 'proposed_values', 'reason', 'requested_by']), 'effective_date' => $a->effective_date?->toDateString()])->all(),
             'kpis' => PerformancePlanService::isEditable($plan) ? Kpi::query()->where('is_active', true)
                 ->where(fn ($q) => $q->whereNull('organization_id')->orWhere('organization_id', $plan->organization_id))
                 ->orderBy('code')->limit(500)->get(['id', 'code', 'name_en', 'name_am', 'direction', 'unit_of_measure'])->toArray() : [],

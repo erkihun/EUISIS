@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +35,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('processes', function (Blueprint $table): void {
+        SchemaResume::create('processes', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('service_id')->constrained('services')->restrictOnDelete();
@@ -63,7 +64,7 @@ return new class extends Migration
             $table->index(['service_id', 'status'], 'processes_service_status_idx');
         });
 
-        Schema::create('process_activities', function (Blueprint $table): void {
+        SchemaResume::create('process_activities', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('process_id')->constrained('processes')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -91,11 +92,11 @@ return new class extends Migration
                 in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) ? DB::raw('`path`(700)') : 'path',
             ], 'process_activities_path_idx');
         });
-        Schema::table('process_activities', function (Blueprint $table): void {
+        SchemaResume::table('process_activities', function (Blueprint $table): void {
             $table->foreign('parent_activity_id')->references('id')->on('process_activities')->restrictOnDelete();
         });
 
-        Schema::create('process_tasks', function (Blueprint $table): void {
+        SchemaResume::create('process_tasks', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('activity_id')->constrained('process_activities')->cascadeOnDelete();
             $table->foreignUuid('process_id')->constrained('processes')->cascadeOnDelete();
@@ -117,7 +118,7 @@ return new class extends Migration
             $table->index(['process_id'], 'process_tasks_process_idx');
         });
 
-        Schema::create('work_item_ios', function (Blueprint $table): void {
+        SchemaResume::create('work_item_ios', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('subject_type', 80);
             $table->uuid('subject_id');
@@ -135,7 +136,7 @@ return new class extends Migration
             $table->index(['organization_id', 'kind'], 'work_item_ios_org_kind_idx');
         });
 
-        Schema::table('position_service_task_standards', function (Blueprint $table): void {
+        SchemaResume::table('position_service_task_standards', function (Blueprint $table): void {
             $table->uuid('task_id')->nullable()->change();
             $table->foreignUuid('master_task_id')->nullable()->after('task_id')->constrained('process_tasks')->restrictOnDelete();
             $table->foreignUuid('activity_id')->nullable()->after('master_task_id')->constrained('process_activities')->restrictOnDelete();
@@ -146,17 +147,16 @@ return new class extends Migration
             $table->index(['activity_id', 'status', 'effective_from', 'effective_to'], 'psts_activity_resolve_idx');
         });
 
-        Schema::table('position_service_tasks', function (Blueprint $table): void {
+        SchemaResume::table('position_service_tasks', function (Blueprint $table): void {
             $table->foreignUuid('master_task_id')->nullable()->after('organization_id')->constrained('process_tasks')->nullOnDelete();
             $table->index('master_task_id', 'pst_master_task_idx');
         });
 
-        if (DB::getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE processes ADD CONSTRAINT processes_dates_chk CHECK (effective_to IS NULL OR effective_to >= effective_from)');
-            DB::statement('ALTER TABLE process_activities ADD CONSTRAINT process_activities_parent_chk CHECK (parent_activity_id IS NULL OR parent_activity_id <> id)');
-            DB::statement("ALTER TABLE work_item_ios ADD CONSTRAINT work_item_ios_kind_chk CHECK (kind IN ('input', 'output', 'beneficiary', 'dependency'))");
-            DB::statement('ALTER TABLE position_service_task_standards ADD CONSTRAINT psts_one_subject_chk CHECK ((task_id IS NOT NULL)::int + (master_task_id IS NOT NULL)::int + (activity_id IS NOT NULL)::int = 1)');
-        }
+        // PostgreSQL only, each once (SchemaResume::check).
+        SchemaResume::check('processes', 'processes_dates_chk', 'effective_to IS NULL OR effective_to >= effective_from');
+        SchemaResume::check('process_activities', 'process_activities_parent_chk', 'parent_activity_id IS NULL OR parent_activity_id <> id');
+        SchemaResume::check('work_item_ios', 'work_item_ios_kind_chk', "kind IN ('input', 'output', 'beneficiary', 'dependency')");
+        SchemaResume::check('position_service_task_standards', 'psts_one_subject_chk', '(task_id IS NOT NULL)::int + (master_task_id IS NOT NULL)::int + (activity_id IS NOT NULL)::int = 1');
     }
 
     public function down(): void

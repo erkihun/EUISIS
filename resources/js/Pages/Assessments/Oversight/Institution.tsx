@@ -1,5 +1,5 @@
 import { CoverageBar, ExportButtons, GenderTable, Kpi, KpiGroup, OUTCOMES, OversightLayout, SeverityBadge, StatusBadge, named, oversightHref, pct, type Distribution, type Metrics, type ShellProps } from '@/Components/assessmentOversight/shell';
-import { Section, Table, dangerBtn, inputCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls } from '@/Components/performance/ui';
+import { Section, Table, dangerBtn, inputCls, textareaCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls } from '@/Components/performance/ui';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { Link, router, useForm } from '@inertiajs/react';
@@ -52,7 +52,7 @@ export default function OversightInstitution(props: Props) {
             actions={cycle && can.export ? <ExportButtons report="consolidated" cycle={cycle} filters={filters} /> : undefined}>
             {cycle && (
                 <>
-                    {props.participation.status === 'excluded' && <p role="note" className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-2 text-sm">{t('assessmentOversight.participationStatuses.excluded')}: {props.participation.exclusion_reason}</p>}
+                    {props.participation.status === 'excluded' && <p role="note" className="rounded-panel border border-(--app-border) bg-(--app-surface-muted) px-4 py-2 text-sm">{t('assessmentOversight.participationStatuses.excluded')}: {props.participation.exclusion_reason}</p>}
                     {props.changedAfterFinalization && <p role="alert" className="rounded-panel border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('assessmentOversight.changedAfterFinalization')}</p>}
 
                     <KpiGroup title={t('assessmentOversight.sections.overview')}>
@@ -66,7 +66,7 @@ export default function OversightInstitution(props: Props) {
 
                     <div className="grid gap-4 xl:grid-cols-2">
                         <Section title={t('assessmentOversight.sections.statuses')}>
-                            <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+                            <ul className="divide-y divide-(--app-border) text-sm">
                                 {OUTCOMES.map((o) => (
                                     <li key={o} className="flex items-center justify-between py-2">
                                         <StatusBadge group="outcomes" value={o} />
@@ -114,7 +114,7 @@ export default function OversightInstitution(props: Props) {
                         </>}>
                             {props.forms.map((f) => (
                                 <tr key={f.version_id}>
-                                    <td className={tdCls}>{(locale === 'am' && f.form_am) || f.form_en} <span className="text-xs text-[color:var(--app-muted-foreground)]">v{f.version_no} · {f.version_status}</span></td>
+                                    <td className={tdCls}>{(locale === 'am' && f.form_am) || f.form_en} <span className="text-xs text-(--app-muted-foreground)">v{f.version_no} · {f.version_status}</span></td>
                                     <td className={`${tdCls} text-xs`}>{f.targets.map((x) => t(`assessmentOversight.targets.${x.split(':')[1]}`) + (x.startsWith('exclude') ? ` (${t('assessmentOversight.targets.exclude')})` : '')).join(', ') || '—'}</td>
                                     <td className={`${tdCls} tabular-nums`}>{f.expected}</td>
                                     <td className={`${tdCls} tabular-nums`}>{f.assigned}</td>
@@ -153,7 +153,7 @@ export default function OversightInstitution(props: Props) {
                     <div className="grid gap-4 xl:grid-cols-2">
                         {props.distribution && (
                             <Section title={t('assessmentOversight.sections.distribution')} description={props.distribution.policy ? `${named(props.distribution.policy, locale)} v${props.distribution.policy.version_no}` : t('assessmentOversight.noBandPolicy')}>
-                                <ul className="divide-y divide-[color:var(--app-border)] text-sm">
+                                <ul className="divide-y divide-(--app-border) text-sm">
                                     {props.distribution.bands.map((b) => (
                                         <li key={b.code} className="flex justify-between py-2"><span>{(locale === 'am' && b.label_am) || b.label_en}</span><span className="tabular-nums">{b.count} · {pct(b.percent)}</span></li>
                                     ))}
@@ -164,13 +164,13 @@ export default function OversightInstitution(props: Props) {
                         <Section title={t('assessmentOversight.sections.reasons')}>
                             {(['exceptions', 'reported', 'excluded'] as const).map((group) => props.reasons[group].length > 0 && (
                                 <div key={group} className="mb-3">
-                                    <h4 className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.reasonGroups.${group}`)}</h4>
+                                    <h4 className="text-xs font-semibold uppercase text-(--app-muted-foreground)">{t(`assessmentOversight.reasonGroups.${group}`)}</h4>
                                     <ul className="mt-1 text-sm">
                                         {props.reasons[group].map((r) => <li key={`${group}-${r.code}-${r.source ?? ''}`} className="flex justify-between py-1"><span>{(locale === 'am' && r.name_am) || r.name_en || r.code || t('assessmentOversight.noReason')}</span><span className="tabular-nums">{r.n}</span></li>)}
                                     </ul>
                                 </div>
                             ))}
-                            {props.reasons.exceptions.length + props.reasons.reported.length + props.reasons.excluded.length === 0 && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.noData')}</p>}
+                            {props.reasons.exceptions.length + props.reasons.reported.length + props.reasons.excluded.length === 0 && <p className="text-sm text-(--app-muted-foreground)">{t('assessmentOversight.noData')}</p>}
                         </Section>
                     </div>
 
@@ -178,7 +178,7 @@ export default function OversightInstitution(props: Props) {
                         <Section title={t('assessmentOversight.sections.dataQuality')} actions={<Link className={smallBtn} href={oversightHref('assessment-oversight.data-quality', cycle, filters)}>{t('assessmentOversight.openList')}</Link>}>
                             <div className="flex flex-wrap gap-2">
                                 {[...props.issues.cycle.map((i) => ({ code: i.code, severity: i.severity, count: 1 })), ...Object.entries(props.issues.rules).filter(([, r]) => r.count > 0).map(([code, r]) => ({ code, ...r }))].map((i) => (
-                                    <span key={i.code} className="inline-flex items-center gap-2 rounded-lg border border-[color:var(--app-border)] px-2 py-1 text-xs"><SeverityBadge severity={i.severity} />{t(`assessmentOversight.rules.${i.code}`)} <b className="tabular-nums">{i.count}</b></span>
+                                    <span key={i.code} className="inline-flex items-center gap-2 rounded-lg border border-(--app-border) px-2 py-1 text-xs"><SeverityBadge severity={i.severity} />{t(`assessmentOversight.rules.${i.code}`)} <b className="tabular-nums">{i.count}</b></span>
                                 ))}
                                 {props.issues.blocking + props.issues.warning + props.issues.info === 0 && props.issues.cycle.length === 0 && <p className="text-sm text-emerald-700">{t('assessmentOversight.noIssues')}</p>}
                             </div>
@@ -188,7 +188,7 @@ export default function OversightInstitution(props: Props) {
                     <Section title={t('assessmentOversight.sections.submission')} description={t('assessmentOversight.submissionHelp')}>
                         {props.readiness && (
                             <div className="mb-4">
-                                <h4 className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.readiness.title')}</h4>
+                                <h4 className="text-xs font-semibold uppercase text-(--app-muted-foreground)">{t('assessmentOversight.readiness.title')}</h4>
                                 <ul className="mt-2 grid gap-1 text-sm sm:grid-cols-2">
                                     {props.readiness.checks.map((c) => <li key={c.code} className={c.ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}>{c.ok ? '✓' : '✗'} {t(`assessmentOversight.readiness.${c.code}`)}</li>)}
                                 </ul>
@@ -197,16 +197,16 @@ export default function OversightInstitution(props: Props) {
                         {actions.submit && (
                             <form className="mb-4 grid gap-2 sm:max-w-xl" onSubmit={(e) => { e.preventDefault(); submitForm.post(route('assessment-oversight.submissions.store', cycle.id), { preserveScroll: true }); }}>
                                 <label htmlFor="ao-note" className="text-sm font-medium">{t('assessmentOversight.signOffNote')}</label>
-                                <textarea id="ao-note" rows={2} className={inputCls} value={submitForm.data.note} onChange={(e) => submitForm.setData('note', e.target.value)} />
+                                <textarea id="ao-note" rows={2} className={textareaCls} value={submitForm.data.note} onChange={(e) => submitForm.setData('note', e.target.value)} />
                                 {submitForm.errors && Object.values(submitForm.errors).map((e) => <p key={e} className="text-sm text-red-600">{e}</p>)}
                                 <div><button className={primaryBtn} disabled={submitForm.processing}>{t('assessmentOversight.submitSummary')}</button></div>
-                                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.submitHelp')}</p>
+                                <p className="text-xs text-(--app-muted-foreground)">{t('assessmentOversight.submitHelp')}</p>
                             </form>
                         )}
                         {(actions.startReview || actions.return || actions.reject || actions.verify || actions.finalize) && latest && (
                             <div className="mb-4 grid gap-2 sm:max-w-xl">
                                 <label htmlFor="ao-comment" className="text-sm font-medium">{t('assessmentOversight.reviewComment')}</label>
-                                <textarea id="ao-comment" rows={2} className={inputCls} value={comment} onChange={(e) => setComment(e.target.value)} />
+                                <textarea id="ao-comment" rows={2} className={textareaCls} value={comment} onChange={(e) => setComment(e.target.value)} />
                                 <div className="flex flex-wrap gap-2">
                                     {actions.startReview && <button type="button" className={primaryBtn} onClick={() => move('start-review')}>{t('assessmentOversight.actions.startReview')}</button>}
                                     {actions.verify && <button type="button" className={primaryBtn} onClick={() => move('verify')}>{t('assessmentOversight.actions.verify')}</button>}
@@ -216,17 +216,17 @@ export default function OversightInstitution(props: Props) {
                                 </div>
                             </div>
                         )}
-                        <h4 className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.sections.history')}</h4>
-                        {props.history.length === 0 ? <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.noSubmissions')}</p> : (
+                        <h4 className="text-xs font-semibold uppercase text-(--app-muted-foreground)">{t('assessmentOversight.sections.history')}</h4>
+                        {props.history.length === 0 ? <p className="mt-1 text-sm text-(--app-muted-foreground)">{t('assessmentOversight.noSubmissions')}</p> : (
                             <ol className="mt-2 space-y-3">
                                 {props.history.map((h) => (
-                                    <li key={h.id} className="rounded-lg border border-[color:var(--app-border)] p-3 text-sm">
+                                    <li key={h.id} className="rounded-lg border border-(--app-border) p-3 text-sm">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <b>{t('assessmentOversight.revision')} {h.revision_no}</b><StatusBadge group="submissionStatuses" value={h.status} />
-                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">{h.eligible_count} / {h.assessed_count} / {h.unassessed_count} · {pct(h.coverage_percent)}</span>
+                                            <span className="text-xs text-(--app-muted-foreground)">{h.eligible_count} / {h.assessed_count} / {h.unassessed_count} · {pct(h.coverage_percent)}</span>
                                         </div>
                                         {h.return_reason && <p className="mt-1 text-amber-800 dark:text-amber-300">{h.return_reason}</p>}
-                                        <ul className="mt-2 space-y-0.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                        <ul className="mt-2 space-y-0.5 text-xs text-(--app-muted-foreground)">
                                             {h.events.map((e, i) => <li key={i}>{e.at ? <LocalizedDateDisplay value={e.at} withTime /> : null} · {t(`assessmentOversight.events.${e.action}`)} · {e.actor ?? t('assessmentOversight.system')}{e.comment ? ` — ${e.comment}` : ''}</li>)}
                                         </ul>
                                     </li>
@@ -258,9 +258,9 @@ function Exclusions({ rows }: { rows: Exclusion[] }) {
                 {rows.map((x) => (
                     <tr key={x.id}>
                         <td className={tdCls}>{x.employee?.employee_number} · {(locale === 'am' ? x.employee?.full_name : x.employee?.name_en) || x.employee?.full_name}</td>
-                        <td className={tdCls}>{x.reason ? ((locale === 'am' && x.reason.name_am) || x.reason.name_en) : '—'}<div className="text-xs text-[color:var(--app-muted-foreground)]">{x.note}</div></td>
-                        <td className={tdCls}>{t(`assessmentOversight.exclusionStatuses.${x.status}`)}{x.decision_note && <div className="text-xs text-[color:var(--app-muted-foreground)]">{x.decision_note}</div>}</td>
-                        <td className={tdCls}>{x.requester}{x.requested_at && <div className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={x.requested_at} /></div>}</td>
+                        <td className={tdCls}>{x.reason ? ((locale === 'am' && x.reason.name_am) || x.reason.name_en) : '—'}<div className="text-xs text-(--app-muted-foreground)">{x.note}</div></td>
+                        <td className={tdCls}>{t(`assessmentOversight.exclusionStatuses.${x.status}`)}{x.decision_note && <div className="text-xs text-(--app-muted-foreground)">{x.decision_note}</div>}</td>
+                        <td className={tdCls}>{x.requester}{x.requested_at && <div className="text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={x.requested_at} /></div>}</td>
                         <td className={tdCls}>
                             {x.can.decide && (
                                 <div className="flex flex-wrap items-center gap-2">

@@ -58,18 +58,18 @@ function PreviewNode({
             )}
 
             <div
-                className="relative z-20 flex min-h-[2.25rem] items-center gap-2 rounded-lg px-2.5 py-1.5"
+                className="relative z-20 flex min-h-9 items-center gap-2 rounded-lg px-2.5 py-1.5"
                 style={{ marginLeft: `${rowMarginLeft}px` }}
             >
                 <span className="flex h-4 w-4 shrink-0 items-center justify-center">
                     {hasChildren
-                        ? <span className="block h-1.5 w-1.5 rounded-sm bg-blue-400 dark:bg-blue-500" />
+                        ? <span className="block h-1.5 w-1.5 rounded-xs bg-blue-400 dark:bg-blue-500" />
                         : <span className="block h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-slate-600" />}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm text-[color:var(--app-foreground)]">
+                <span className="min-w-0 flex-1 truncate text-sm text-(--app-foreground)">
                     {name}
                 </span>
-                <span className="shrink-0 rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-muted-foreground)]">
+                <span className="shrink-0 rounded-sm bg-(--app-surface-muted) px-1.5 py-0.5 font-mono text-[11px] text-(--app-muted-foreground)">
                     {node.code}
                 </span>
             </div>
@@ -101,7 +101,7 @@ export default function HierarchyTreePreview({
     const { locale } = useLocale();
 
     if (!Array.isArray(nodes) || nodes.length === 0) {
-        return <p className="text-sm text-[color:var(--app-muted-foreground)]">{emptyMessage}</p>;
+        return <p className="text-sm text-(--app-muted-foreground)">{emptyMessage}</p>;
     }
 
     return (

@@ -41,6 +41,7 @@ const performance = {
         addResults: 'Add to session', open: 'Open', appeal: 'Appeal this result', upload: 'Upload evidence', search: 'Search',
     },
     fields: {
+        verified: 'Verified',
         positionService: 'Position service',
         upstreamObjective: 'Upstream objective',
 

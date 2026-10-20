@@ -45,6 +45,7 @@ export default function OrganizationUnitsEdit({
         description_en: unit.description_en ?? '',
         description_am: unit.description_am ?? '',
         status: unit.status,
+        is_public_feedback_selectable: unit.is_public_feedback_selectable ?? false,
         effective_from: unit.effective_from ?? '',
         effective_to: unit.effective_to ?? '',
         sort_order: unit.sort_order,
@@ -70,16 +71,16 @@ export default function OrganizationUnitsEdit({
                         e.preventDefault();
                         patch(route('organization-units.update', unit.id));
                     }}
-                    className="w-full space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
+                    className="w-full space-y-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-4 sm:p-6 lg:p-8"
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Organization — locked */}
                         <div>
                             <FormLabel>{`${t('organizationUnits.organization')} *`}</FormLabel>
-                            <div className={`${inputCls} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
+                            <div className={`${inputCls} bg-(--app-surface-muted) text-(--app-muted-foreground)`}>
                                 {unit.organization?.name_en ?? unit.organization_id}
                                 {unit.organization?.code && (
-                                    <span className="ml-1 font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                    <span className="ml-1 font-mono text-xs text-(--app-muted-foreground)">
                                         ({unit.organization.code})
                                     </span>
                                 )}
@@ -226,6 +227,14 @@ export default function OrganizationUnitsEdit({
                         </div>
                     </div>
 
+                    <label className="flex min-h-12 items-center gap-3 rounded-control border border-(--app-border) px-3 text-sm text-(--app-foreground)">
+                        <input type="checkbox" checked={data.is_public_feedback_selectable} onChange={(event) => setData('is_public_feedback_selectable', event.target.checked)} className="h-4 w-4" />
+                        <span>
+                            <span className="block font-medium">{t('organizationUnits.publicFeedbackSelectable')}</span>
+                            <span className="block text-xs text-(--app-muted-foreground)">{t('organizationUnits.publicFeedbackSelectableHint')}</span>
+                        </span>
+                    </label>
+
                     {/* Descriptions */}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div>
@@ -251,7 +260,7 @@ export default function OrganizationUnitsEdit({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
+                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-(--app-border) pt-5">
                         <Button type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('common.saveChanges')}
                         </Button>

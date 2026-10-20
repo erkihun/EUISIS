@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\OrganizationStatus;
 use App\Models\OrganizationType;
+use App\Rules\PublicContactPhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -30,6 +31,11 @@ class OrganizationUpdateRequest extends FormRequest
             'branding_primary_color' => $this->input('branding_primary_color') ?: null,
             'branding_secondary_color' => $this->input('branding_secondary_color') ?: null,
         ]);
+
+        // Only a form that carries the field may change it; leaving it out keeps the number.
+        if ($this->has('public_contact_phone')) {
+            $this->merge(['public_contact_phone' => $this->input('public_contact_phone') ?: null]);
+        }
     }
 
     public function rules(): array
@@ -49,6 +55,7 @@ class OrganizationUpdateRequest extends FormRequest
             'remove_logo' => ['nullable', 'boolean'],
             'branding_primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'branding_secondary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'public_contact_phone' => ['sometimes', 'nullable', 'string', 'max:32', new PublicContactPhoneNumber],
         ];
     }
 

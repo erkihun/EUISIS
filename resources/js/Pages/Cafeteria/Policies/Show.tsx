@@ -25,8 +25,8 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
     const show = (value: unknown) => typeof value === 'boolean' ? (value ? tt('yes') : tt('no')) : (value === null || value === '' ? '—' : String(value));
 
     const Row = ({ name, value }: { name: string; value: React.ReactNode }) => (
-        <div className="flex justify-between gap-4 border-b border-[color:var(--app-border)] py-2 text-sm last:border-0">
-            <dt className="text-[color:var(--app-muted-foreground)]">{name}</dt>
+        <div className="flex justify-between gap-4 border-b border-(--app-border) py-2 text-sm last:border-0">
+            <dt className="text-(--app-muted-foreground)">{name}</dt>
             <dd className="text-end font-medium">{value}</dd>
         </div>
     );
@@ -71,12 +71,12 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
                             {policy.supersedes && <Row name={tt('version')} value={<Link className="hover:underline" href={route('cafeteria.policies.show', policy.supersedes.id)}>← v{policy.supersedes.version_no}</Link>} />}
                             {policy.cancellation_reason && <Row name={tt('reason')} value={policy.cancellation_reason} />}
                         </dl>
-                        {policy.notes && <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{policy.notes}</p>}
+                        {policy.notes && <p className="mt-3 text-sm text-(--app-muted-foreground)">{policy.notes}</p>}
                     </Card>
 
                     <Card className="p-5">
                         <h2 className="mb-2 text-base font-semibold">{tt('preview')}</h2>
-                        {!preview.current ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{tt('noCurrentPolicy')}</p> : (
+                        {!preview.current ? <p className="text-sm text-(--app-muted-foreground)">{tt('noCurrentPolicy')}</p> : (
                             <table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
@@ -86,7 +86,7 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
                                     </tr>
                                 </thead>
                                 <tbody className={tableBodyClassName}>
-                                    {Object.entries(preview.changes).length === 0 && <tr><td colSpan={3} className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>—</td></tr>}
+                                    {Object.entries(preview.changes).length === 0 && <tr><td colSpan={3} className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>—</td></tr>}
                                     {Object.entries(preview.changes).map(([key, change]) => (
                                         <tr key={key} className={tableRowClassName}>
                                             <td className={tableCellClassName}>{key.replace(/_/g, ' ')}</td>
@@ -110,7 +110,7 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
                         <tbody className={tableBodyClassName}>
                             {versions.map((v) => (
                                 <tr key={v.id} className={tableRowClassName}>
-                                    <td className={tableCellClassName}><Link className="text-[color:var(--color-primary)] hover:underline" href={route('cafeteria.policies.show', v.id)}>v{v.version_no}</Link></td>
+                                    <td className={tableCellClassName}><Link className="text-primary hover:underline" href={route('cafeteria.policies.show', v.id)}>v{v.version_no}</Link></td>
                                     <td className={tableCellClassName}><Money value={v.daily_subsidy_amount} currency={policy.currency_code} /></td>
                                     <td className={tableCellClassName}><LocalizedDateDisplay value={v.effective_from} /></td>
                                     <td className={tableCellClassName}>{v.effective_to ? <LocalizedDateDisplay value={v.effective_to} /> : tt('openEnded')}</td>

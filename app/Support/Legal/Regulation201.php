@@ -19,6 +19,12 @@ final class Regulation201
 {
     public const EFFECTIVE_FROM = '2026-01-16';
 
+    /** The value of governing_regulation on a grievance or disciplinary case it governs. */
+    public const CODE = '201/2018';
+
+    /** Art. 56: proceedings begun before EFFECTIVE_FROM continue under the repealed regulation. */
+    public const PREDECESSOR = '26/2002';
+
     public const WORKING_DAYS = 'working_days';
 
     public const CALENDAR_DAYS = 'calendar_days';

@@ -7,6 +7,7 @@ import EndpointAssignment, { AssignableEndpoint } from '@/Components/apiManageme
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
+import OrganizationAccessFields, { type Option, type OrganizationGrant } from '@/Components/apiManagement/OrganizationAccessFields';
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
@@ -34,7 +35,13 @@ interface Props {
         rate_limit_per_minute: number;
         allowed_ips: string[];
         last_used_at: string | null;
+        organization_access: string;
+        service_provider_id: string | null;
+        organization_scopes: OrganizationGrant[];
+        access_findings: string[];
     };
+    organizationOptions: Option[];
+    providerOptions: Option[];
     tokens: TokenRow[];
     scopes: { value: string; label: string }[];
     assignableEndpoints: AssignableEndpoint[];
@@ -59,6 +66,8 @@ export default function ApiManagementShow({
     scopes,
     assignableEndpoints,
     assignedEndpoints,
+    organizationOptions,
+    providerOptions,
     can,
 }: Props) {
     const { t } = useLocale();
@@ -81,6 +90,9 @@ export default function ApiManagementShow({
         // Preloaded so opening the edit form does not clear existing
         // assignments — sync() would otherwise detach every one of them.
         endpoint_ids: assignedEndpoints.map((endpoint) => endpoint.id),
+        organization_access: application.organization_access,
+        service_provider_id: application.service_provider_id ?? '',
+        organization_scopes: application.organization_scopes,
     });
 
 
@@ -142,7 +154,7 @@ export default function ApiManagementShow({
                 </Link>
             </div>
 
-            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+            <section className="mb-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                 <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
                     {can.update && (
                         <button
@@ -169,11 +181,14 @@ export default function ApiManagementShow({
                     <form onSubmit={submit} className="space-y-4">
                         <ApplicationFields values={form.data} onChange={values => form.setData({ ...form.data, ...values })} errors={form.errors} disabled={form.processing} />
 
+                        <OrganizationAccessFields values={form.data} onChange={(values) => form.setData({ ...form.data, ...values })}
+                            organizations={organizationOptions} providers={providerOptions} errors={form.errors} disabled={form.processing} />
+
                         <fieldset>
-                            <legend className="mb-2 text-xs font-semibold text-[color:var(--app-muted-foreground)]">{t('apiManagement.apiScopes')}</legend>
+                            <legend className="mb-2 text-xs font-semibold text-(--app-muted-foreground)">{t('apiManagement.apiScopes')}</legend>
                             <div className="flex flex-wrap gap-3">
                                 {scopes.map((scope) => (
-                                    <label key={scope.value} className="flex items-center gap-1.5 text-xs text-[color:var(--app-foreground)]">
+                                    <label key={scope.value} className="flex items-center gap-1.5 text-xs text-(--app-foreground)">
                                         <input type="checkbox" checked={form.data.allowed_scopes.includes(scope.value)} onChange={() => toggleScope(scope.value)} />
                                         {scope.label}
                                     </label>
@@ -182,10 +197,10 @@ export default function ApiManagementShow({
                         </fieldset>
 
                         <fieldset>
-                            <legend className="mb-1 text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                            <legend className="mb-1 text-xs font-semibold text-(--app-muted-foreground)">
                                 {t('apiManagement.endpointAssignment')}
                             </legend>
-                            <p className="mb-2 text-[11px] text-[color:var(--app-muted-foreground)]">
+                            <p className="mb-2 text-[11px] text-(--app-muted-foreground)">
                                 {t('apiManagement.endpointAssignmentHint')}
                             </p>
 
@@ -200,7 +215,7 @@ export default function ApiManagementShow({
                             <p className="text-xs text-red-600">{Object.values(form.errors).join(' ')}</p>
                         )}
 
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.scopeChangeHint')}</p>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.scopeChangeHint')}</p>
 
                         <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>
                             {t('common.save')}
@@ -210,30 +225,68 @@ export default function ApiManagementShow({
                 <>
                 <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div>
-                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.status')}</dt>
+                        <dt className="text-xs text-(--app-muted-foreground)">{t('common.status')}</dt>
                         <dd className="mt-1"><StatusBadge status={application.status} label={t(`common.${application.status}`)} /></dd>
                     </div>
                     <div>
-                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.rateLimit')}</dt>
-                        <dd className="mt-1 text-sm tabular-nums text-[color:var(--app-foreground)]">{application.rate_limit_per_minute}/min</dd>
+                        <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.rateLimit')}</dt>
+                        <dd className="mt-1 text-sm tabular-nums text-(--app-foreground)">{application.rate_limit_per_minute}/min</dd>
                     </div>
                     <div>
-                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.ipAllowlist')}</dt>
-                        <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">
+                        <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.ipAllowlist')}</dt>
+                        <dd className="mt-1 text-sm text-(--app-foreground)">
                             {application.allowed_ips.length > 0 ? application.allowed_ips.join(', ') : t('apiManagement.anyIp')}
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.ownerInstitution')}</dt>
-                        <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">{application.owner_institution ?? '—'}</dd>
+                        <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.ownerInstitution')}</dt>
+                        <dd className="mt-1 text-sm text-(--app-foreground)">{application.owner_institution ?? '—'}</dd>
                     </div>
                 </dl>
 
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.organizationAccess')}</p>
+                        <p className="mt-1 text-sm text-(--app-foreground)">{t(`apiManagement.organizationAccess_${application.organization_access}`)}</p>
+                        {application.organization_access === 'scoped' && (
+                            application.organization_scopes.length === 0 ? (
+                                <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t('apiManagement.noOrganizationGrants')}</p>
+                            ) : (
+                                <ul className="mt-1 space-y-0.5 text-xs text-(--app-muted-foreground)">
+                                    {application.organization_scopes.map((grant) => (
+                                        <li key={grant.organization_id}>
+                                            {organizationOptions.find((option) => option.value === grant.organization_id)?.label ?? grant.organization_id}
+                                            {' · '}{t(`apiManagement.grantType_${grant.scope_type}`)}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )
+                        )}
+                    </div>
+                    <div>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.serviceProviderBinding')}</p>
+                        <p className="mt-1 text-sm text-(--app-foreground)">
+                            {providerOptions.find((option) => option.value === application.service_provider_id)?.label ?? t('apiManagement.noProviderBinding')}
+                        </p>
+                    </div>
+                </div>
+
+                {application.access_findings.length > 0 && (
+                    <div className="mt-4" aria-label={t('apiManagement.accessReview')}>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.accessReview')}</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                            {application.access_findings.map((finding) => (
+                                <span key={finding} className="rounded-sm bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">{t(`apiManagement.accessFinding_${finding}`)}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="mt-4">
-                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.apiScopes')}</p>
+                    <p className="text-xs text-(--app-muted-foreground)">{t('apiManagement.apiScopes')}</p>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                         {application.allowed_scopes.length === 0 ? (
-                            <span className="text-sm text-[color:var(--app-muted-foreground)]">—</span>
+                            <span className="text-sm text-(--app-muted-foreground)">—</span>
                         ) : application.allowed_scopes.map((scope) => (
                             <span key={scope} className={badgeClassName('info', 'font-mono')}>
                                 {scope}
@@ -245,8 +298,8 @@ export default function ApiManagementShow({
                 )}
             </section>
 
-            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                <h3 className="mb-1 font-semibold text-[color:var(--app-foreground)]">
+            <section className="mb-6 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                <h3 className="mb-1 font-semibold text-(--app-foreground)">
                     {t('apiManagement.assignedEndpoints')}
                 </h3>
 
@@ -270,20 +323,20 @@ export default function ApiManagementShow({
                                 {assignedEndpoints.map((endpoint) => (
                                     <tr key={endpoint.id}>
                                         <td className={tableCellClassName}>
-                                            <code className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] font-semibold text-[color:var(--app-foreground)]">
+                                            <code className="rounded-sm bg-(--app-surface-muted) px-1.5 py-0.5 font-mono text-[11px] font-semibold text-(--app-foreground)">
                                                 {endpoint.method}
                                             </code>
                                         </td>
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-foreground)')}>
                                             {endpoint.uri}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'font-mono text-(--app-muted-foreground)')}>
                                             {endpoint.required_scope ?? '—'}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                             {endpoint.is_enabled ? t(`apiManagement.status_${endpoint.status}`) : t('apiManagement.assignmentDisabled')}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                             <LocalizedDateDisplay value={endpoint.last_used_at} withTime />
                                         </td>
                                     </tr>
@@ -294,9 +347,9 @@ export default function ApiManagementShow({
                 )}
             </section>
 
-            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+            <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.apiTokens')}</h3>
+                    <h3 className="font-semibold text-(--app-foreground)">{t('apiManagement.apiTokens')}</h3>
                     {can.createTokens && (
                         <button
                             type="button"
@@ -309,7 +362,7 @@ export default function ApiManagementShow({
                     )}
                 </div>
 
-                <div className="overflow-x-auto rounded-card border border-[color:var(--app-border)]">
+                <div className="overflow-x-auto rounded-card border border-(--app-border)">
                     <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -321,12 +374,12 @@ export default function ApiManagementShow({
                         </thead>
                         <tbody className={tableBodyClassName}>
                             {tokens.length === 0 ? (
-                                <tr><td colSpan={4} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>{t('apiManagement.noTokens')}</td></tr>
+                                <tr><td colSpan={4} className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>{t('apiManagement.noTokens')}</td></tr>
                             ) : tokens.map((token) => (
                                 <tr key={token.id}>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{token.name}</td>
-                                    <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>{(token.abilities ?? []).join(', ')}</td>
-                                    <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={token.last_used_at} withTime /></td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{token.name}</td>
+                                    <td className={cx(tableCellClassName, 'font-mono text-(--app-muted-foreground)')}>{(token.abilities ?? []).join(', ')}</td>
+                                    <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}><LocalizedDateDisplay value={token.last_used_at} withTime /></td>
                                     <td className={cx(tableCellClassName, 'text-right')}>
                                         <div className="flex justify-end">
                                             <AppActionMenu

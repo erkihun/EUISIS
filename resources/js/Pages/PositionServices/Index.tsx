@@ -117,7 +117,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                         <tbody className={tableBodyClassName}>
                             {records.data.length === 0 && (
                                 <tr>
-                                    <td colSpan={can.viewPlanUsage ? 9 : 8} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
+                                    <td colSpan={can.viewPlanUsage ? 9 : 8} className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}>
                                         {t('serviceFeedback.noPositionServices')}
                                     </td>
                                 </tr>
@@ -125,23 +125,23 @@ export default function PositionServicesIndex({ records, filters, organizations,
 
                             {records.data.map((row) => (
                                 <tr key={row.id} className={tableRowClassName}>
-                                    <td className={cx(tableCellClassName, 'whitespace-nowrap font-mono text-[color:var(--app-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'whitespace-nowrap font-mono text-(--app-foreground)')}>
                                         {row.service_no ?? '—'}
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
                                         {am ? (row.name_am ?? row.name_en) : row.name_en}
                                     </td>
-                                    <td className={cx(tableCellClassName, 'max-w-xs text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'max-w-xs text-(--app-muted-foreground)')}>
                                         <span className="line-clamp-2" title={row.description ?? undefined}>{row.description || '—'}</span>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>
                                         {row.position
                                             ? am
                                                 ? (row.position.title_am ?? row.position.title_en)
                                                 : row.position.title_en
                                             : '—'}
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                         {row.organization
                                             ? am
                                                 ? (row.organization.name_am ?? row.organization.name_en)
@@ -153,11 +153,11 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                             {row.is_active ? t('common.active') : t('common.inactive')}
                                         </span>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-muted-foreground)')}>
                                         {row.is_performance_evaluation_enabled ? t('common.yes') : t('common.no')}
                                     </td>
                                     {can.viewPlanUsage && (
-                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-muted-foreground)')}>
                                             {row.current_plan_items_count
                                                 ? t('serviceFeedback.currentPlanItems').replace('{count}', String(row.current_plan_items_count))
                                                 : t('serviceFeedback.notInCurrentPlan')}

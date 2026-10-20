@@ -56,20 +56,20 @@ export default function FunctionsIndex({ organizations, organizationId, mandates
                     </Card>
                     <Card>
                         <CardHeader><CardTitle>{tt('mandates.title')}</CardTitle></CardHeader>
-                        {mandates.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('mandates.noMandates')}</p> : (
-                            <ul className="divide-y divide-[color:var(--app-border)]">
+                        {mandates.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mandates.noMandates')}</p> : (
+                            <ul className="divide-y divide-(--app-border)">
                                 {mandates.map((m) => (
                                     <li key={m.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
                                         <div className="min-w-0">
                                             <Link href={route('organization-design.mandates.show', m.id)} className={actionLinkClassName({ size: 'sm' })}>{m.code} v{m.version_no}</Link>
-                                            <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{titleOf(m, locale)}</p>
+                                            <p className="truncate text-xs text-(--app-muted-foreground)">{titleOf(m, locale)}</p>
                                         </div>
                                         <StatusPill status={m.status} />
                                     </li>
                                 ))}
                             </ul>
                         )}
-                        <p className="border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)]">{t('common.edit')}: {tt('mandates.title')} → {tt('functions.tree')}</p>
+                        <p className="border-t border-(--app-border) px-5 py-3 text-xs text-(--app-muted-foreground)">{t('common.edit')}: {tt('mandates.title')} → {tt('functions.tree')}</p>
                     </Card>
                 </div>
             </div>

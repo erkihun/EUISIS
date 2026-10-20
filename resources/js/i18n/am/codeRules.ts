@@ -89,6 +89,7 @@ const codeRules = {
         grievance_decision: 'የቅሬታ ውሳኔ ቁጥር',
         grievance_letter: 'የቅሬታ ደብዳቤ የወጪ ቁጥር',
         public_service_complaint: 'የተገልጋይ ቅሬታ መለያ ቁጥር',
+        public_tip_off: 'የሕዝብ ጥቆማ መለያ ቁጥር',
         disciplinary_case: 'የዲሲፕሊን ጉዳይ ቁጥር',
         organization_unit: 'የሥራ ክፍል ኮድ',
     },

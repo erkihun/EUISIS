@@ -119,6 +119,13 @@ export type PortalFormProps = {
         category_id: string;
         incident_date: string | null;
         respondent_description: string | null;
+        /** Regulation 201/2018 Art. 32(2) and Art. 33 (Y-m-d dates). */
+        written_issue_raised_at: string | null;
+        immediate_supervisor_name: string | null;
+        applicant_address: string | null;
+        requested_remedy: string | null;
+        late_submission_reason: string | null;
+        cause_ended_at: string | null;
         /** Set when intake returned the grievance for correction. */
         intake_reason_code: string | null;
         intake_notes: string | null;
@@ -375,6 +382,8 @@ export type SettingField = {
 };
 export type SettingsIndexProps = {
     tab: string;
+    /** Regulation 201/2018 readiness, counted server-side for every viewer. */
+    statutory: { head_decision_rules: number; approved_seals: number; holidays: number; holidays_url: string | null; work_week_days: number[] };
     /** From SystemSettingsService::getGroupForAdmin — inspect the shape at runtime; see Performance/Settings.tsx for rendering. */
     fields: unknown;
     categories: { id: string; code: string; name_en: string; name_am: string | null; description_en: string | null; description_am: string | null; is_active: boolean; default_confidentiality: string | null; default_priority: string | null; requires_executive_approval: boolean; sort_order: number; grievances_count: number }[];
@@ -388,6 +397,7 @@ export type SettingsIndexProps = {
     options: {
         organizations: Bilingual[]; reason_code_types: string[]; confidentiality: string[]; priorities: string[]; decision_types: string[];
         handler_types: string[]; letter_types: string[]; letter_languages: string[]; tokens: string[]; approval_sla_profiles: Bilingual[];
+        committees: (Bilingual & { organization_id: string; status: string })[];
     };
     can: { update: boolean; delegations: boolean; seals: boolean };
 };

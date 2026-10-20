@@ -109,7 +109,7 @@ export default function ServiceFeedbackReports({
 
                 <section aria-label={t('serviceFeedback.reports')} className="grid gap-4 sm:grid-cols-3">
                     <Stat label={t('serviceFeedback.totalFeedback')} value={summary.total.toLocaleString()}>
-                        <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.inSelectedScope')}</span>
+                        <span className="text-xs text-(--app-muted-foreground)">{t('serviceFeedback.inSelectedScope')}</span>
                     </Stat>
                     <Stat
                         label={t('serviceFeedback.averageRating')}
@@ -118,7 +118,7 @@ export default function ServiceFeedbackReports({
                                 <span className={summary.total > 0 ? toneClasses[ratingTone(summary.average)].text : undefined}>
                                     {summary.total > 0 ? summary.average.toFixed(2) : '—'}
                                 </span>
-                                <span className="text-sm font-normal text-[color:var(--app-muted-foreground)]">/ 5</span>
+                                <span className="text-sm font-normal text-(--app-muted-foreground)">/ 5</span>
                             </span>
                         )}
                     >
@@ -133,20 +133,20 @@ export default function ServiceFeedbackReports({
                             </span>
                         )}
                     >
-                        <span aria-hidden="true" className="block h-1.5 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]">
+                        <span aria-hidden="true" className="block h-1.5 overflow-hidden rounded-full bg-(--app-surface-muted)">
                             <span className={cx('block h-full rounded-full', toneClasses.low.bar)} style={{ width: `${lowShare}%` }} />
                         </span>
                     </Stat>
                 </section>
 
                 {/* Performance breakdowns share one panel, switched by the segmented control. */}
-                <section aria-labelledby="performance-heading" className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <div className="flex flex-col gap-3 border-b border-[color:var(--app-border)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <section aria-labelledby="performance-heading" className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+                    <div className="flex flex-col gap-3 border-b border-(--app-border) px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h2 id="performance-heading" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{active.title}</h2>
-                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.lowestFirstHint')}</p>
+                            <h2 id="performance-heading" className="text-[15px] font-semibold text-(--app-foreground)">{active.title}</h2>
+                            <p className="mt-0.5 text-xs text-(--app-muted-foreground)">{t('serviceFeedback.lowestFirstHint')}</p>
                         </div>
-                        <div role="group" aria-label={t('serviceFeedback.groupBy')} className="flex gap-0.5 self-start rounded-lg bg-[color:var(--app-surface-muted)] p-[3px] sm:self-auto">
+                        <div role="group" aria-label={t('serviceFeedback.groupBy')} className="flex gap-0.5 self-start rounded-lg bg-(--app-surface-muted) p-[3px] sm:self-auto">
                             {(Object.keys(groups) as GroupKey[]).map((key) => {
                                 const selected = key === group;
                                 return (
@@ -156,10 +156,10 @@ export default function ServiceFeedbackReports({
                                         aria-pressed={selected}
                                         onClick={() => setGroup(key)}
                                         className={cx(
-                                            'h-[30px] whitespace-nowrap rounded-md px-3.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
+                                            'h-[30px] whitespace-nowrap rounded-md px-3.5 text-[13px] transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary',
                                             selected
-                                                ? 'bg-[color:var(--app-surface)] font-semibold text-[color:var(--app-foreground)] shadow-sm ring-1 ring-[color:var(--app-border)]'
-                                                : 'font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+                                                ? 'bg-(--app-surface) font-semibold text-(--app-foreground) shadow-xs ring-1 ring-(--app-border)'
+                                                : 'font-medium text-(--app-muted-foreground) hover:text-(--app-foreground)',
                                         )}
                                     >
                                         {groups[key].tab}
@@ -170,11 +170,11 @@ export default function ServiceFeedbackReports({
                     </div>
 
                     {active.rows.length === 0 ? (
-                        <p className="px-5 py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noFeedbackYet')}</p>
+                        <p className="px-5 py-12 text-center text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noFeedbackYet')}</p>
                     ) : (
-                        <div className="max-h-[36rem] overflow-auto">
-                            <table className={cx(tableClassName, 'min-w-[40rem]')}>
-                                <thead className={cx(tableHeadClassName, 'sticky top-0 z-[1]')}>
+                        <div className="max-h-144 overflow-auto">
+                            <table className={cx(tableClassName, 'min-w-160')}>
+                                <thead className={cx(tableHeadClassName, 'sticky top-0 z-1')}>
                                     <tr>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-12')}>#</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{active.tab}</th>
@@ -186,23 +186,23 @@ export default function ServiceFeedbackReports({
                                 <tbody className={tableBodyClassName}>
                                     {active.rows.map((row, index) => (
                                         <tr key={row.id ?? row.name ?? index} className={tableRowClassName}>
-                                            <td className={cx(tableCellClassName, 'text-xs tabular-nums text-[color:var(--app-muted-foreground)]')}>{index + 1}</td>
+                                            <td className={cx(tableCellClassName, 'text-xs tabular-nums text-(--app-muted-foreground)')}>{index + 1}</td>
                                             <td className={tableCellClassName}>
                                                 {row.id ? (
-                                                    <Link href={inboxHref(row)} className="font-medium text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] hover:underline">
+                                                    <Link href={inboxHref(row)} className="font-medium text-(--app-foreground) hover:text-primary hover:underline">
                                                         {row.name ?? '—'}
                                                     </Link>
                                                 ) : (
-                                                    <span className="font-medium text-[color:var(--app-foreground)]">{row.name ?? '—'}</span>
+                                                    <span className="font-medium text-(--app-foreground)">{row.name ?? '—'}</span>
                                                 )}
-                                                {row.employee_number && <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee_number}</div>}
+                                                {row.employee_number && <div className="text-xs text-(--app-muted-foreground)">{row.employee_number}</div>}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-right tabular-nums text-[color:var(--app-foreground)]')}>{row.total.toLocaleString()}</td>
+                                            <td className={cx(tableCellClassName, 'text-right tabular-nums text-(--app-foreground)')}>{row.total.toLocaleString()}</td>
                                             {active.showLow && (
                                                 <td className={cx(tableCellClassName, 'text-right')}>
                                                     <span className={cx(
-                                                        'inline-flex h-[22px] min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-semibold tabular-nums',
-                                                        (row.low_rated ?? 0) > 0 ? toneClasses.low.pill : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
+                                                        'inline-flex h-[22px] min-w-7 items-center justify-center rounded-full px-2 text-xs font-semibold tabular-nums',
+                                                        (row.low_rated ?? 0) > 0 ? toneClasses.low.pill : 'bg-(--app-surface-muted) text-(--app-muted-foreground)',
                                                     )}>
                                                         {row.low_rated ?? 0}
                                                     </span>
@@ -224,9 +224,9 @@ export default function ServiceFeedbackReports({
                 </section>
 
                 {/* Low rating watchlist */}
-                <section aria-labelledby="watchlist-heading" className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <div className="flex items-center gap-2.5 border-b border-[color:var(--app-border)] px-5 py-4">
-                        <h2 id="watchlist-heading" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.lowRatingWatchlist')}</h2>
+                <section aria-labelledby="watchlist-heading" className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+                    <div className="flex items-center gap-2.5 border-b border-(--app-border) px-5 py-4">
+                        <h2 id="watchlist-heading" className="text-[15px] font-semibold text-(--app-foreground)">{t('serviceFeedback.lowRatingWatchlist')}</h2>
                         {summary.low_rated > 0 && (
                             <span className={cx('inline-flex h-5 items-center rounded-full px-2 text-xs font-bold tabular-nums', toneClasses.low.pill)}>
                                 {summary.low_rated.toLocaleString()}
@@ -235,23 +235,23 @@ export default function ServiceFeedbackReports({
                     </div>
 
                     {lowRated.length === 0 ? (
-                        <p className="px-5 py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noLowRatings')}</p>
+                        <p className="px-5 py-12 text-center text-sm text-(--app-muted-foreground)">{t('serviceFeedback.noLowRatings')}</p>
                     ) : (
                         // Capped so a long watchlist scrolls inside the card instead of pushing the page away.
-                        <ul className="max-h-[32rem] divide-y divide-[color:var(--app-border)] overflow-y-auto">
+                        <ul className="max-h-128 divide-y divide-(--app-border) overflow-y-auto">
                             {lowRated.map((row) => (
                                 <li key={row.id}>
-                                    <Link href={route('service-feedback.admin.show', row.id)} className="flex items-start gap-3.5 px-5 py-3.5 transition-colors hover:bg-[color:var(--app-surface-muted)]">
+                                    <Link href={route('service-feedback.admin.show', row.id)} className="flex items-start gap-3.5 px-5 py-3.5 transition-colors hover:bg-(--app-surface-muted)">
                                         <RatingPill rating={row.rating} />
                                         <span className="min-w-0 flex-1">
-                                            <span className={cx('block text-sm leading-relaxed', row.comment ? 'text-[color:var(--app-foreground)]' : 'italic text-[color:var(--app-muted-foreground)]')}>
+                                            <span className={cx('block text-sm leading-relaxed', row.comment ? 'text-(--app-foreground)' : 'italic text-(--app-muted-foreground)')}>
                                                 {row.comment || t('serviceFeedback.noCommentRatingOnly')}
                                             </span>
-                                            <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="mt-1 block text-xs text-(--app-muted-foreground)">
                                                 {row.employee?.name ?? '—'} · {label(row.service_type)} · {label(row.organization)}
                                             </span>
                                         </span>
-                                        <span className="hidden shrink-0 whitespace-nowrap text-xs text-[color:var(--app-muted-foreground)] sm:block">
+                                        <span className="hidden shrink-0 whitespace-nowrap text-xs text-(--app-muted-foreground) sm:block">
                                             <LocalizedDateDisplay value={row.created_at} />
                                         </span>
                                     </Link>
@@ -267,9 +267,9 @@ export default function ServiceFeedbackReports({
 
 function Stat({ label, value, children }: { label: string; value: ReactNode; children: ReactNode }): JSX.Element {
     return (
-        <div className="flex flex-col gap-2 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-            <span className="text-[13px] font-medium text-[color:var(--app-muted-foreground)]">{label}</span>
-            <span className="text-3xl font-bold leading-none tabular-nums text-[color:var(--app-foreground)]">{value}</span>
+        <div className="flex flex-col gap-2 rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+            <span className="text-[13px] font-medium text-(--app-muted-foreground)">{label}</span>
+            <span className="text-3xl font-bold leading-none tabular-nums text-(--app-foreground)">{value}</span>
             {children}
         </div>
     );

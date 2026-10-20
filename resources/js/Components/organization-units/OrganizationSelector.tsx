@@ -26,7 +26,7 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
     return (
         <div className="space-y-4">
             <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
+                <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" />
                 <input
                     type="text"
                     className={cx(inputClassName, 'w-full pl-9 pr-3')}
@@ -37,14 +37,14 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
             </div>
 
             {filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-panel border border-dashed border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-12 text-center">
-                    <Building2 className="h-10 w-10 text-[color:var(--app-muted-foreground)]" />
-                    <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">
+                <div className="flex flex-col items-center justify-center rounded-panel border border-dashed border-(--app-border) bg-(--app-surface) px-6 py-12 text-center">
+                    <Building2 className="h-10 w-10 text-(--app-muted-foreground)" />
+                    <p className="mt-3 text-sm text-(--app-muted-foreground)">
                         {t('organizationUnits.noOrganizationUnitsFound')}
                     </p>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
                     <table className={tableClassName}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -54,7 +54,7 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
                                 <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                     {t('common.name')}
                                 </th>
-                                <th className={cx(tableHeaderCellClassName, 'text-left hidden')}>
+                                <th className={cx(tableHeaderCellClassName, 'text-left hidden md:table-cell')}>
                                     {t('organizations.organizationType') || 'Type'}
                                 </th>
                                 <th className={cx(tableHeaderCellClassName, 'text-left')}>
@@ -73,7 +73,7 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
                                     className={cx(tableRowClassName, 'cursor-pointer')}
                                     onClick={() => onSelect(org)}
                                 >
-                                    <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>
                                         {org.code}
                                     </td>
                                     <td className={tableCellClassName}>
@@ -96,18 +96,18 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
                                             <div>
                                                 <p className="font-medium">{org.name_en}</p>
                                                 {org.name_am && (
-                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{org.name_am}</p>
+                                                    <p className="text-xs text-(--app-muted-foreground)">{org.name_am}</p>
                                                 )}
                                             </div>
                                         </div>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'hidden text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'hidden text-(--app-muted-foreground) md:table-cell')}>
                                         {org.type?.name_en ?? '—'}
                                     </td>
                                     <td className={tableCellClassName}>
                                         <StatusBadge status={org.status} />
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-right font-medium text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'text-right font-medium text-(--app-muted-foreground)')}>
                                         {org.organization_units_count ?? 0}
                                     </td>
                                     <td className={tableCellClassName}>

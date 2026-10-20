@@ -12,6 +12,7 @@ use App\Models\Entitlement;
 use App\Models\IdCard;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
+use App\Services\Integration\IntegrationAccessService;
 use App\Services\Verification\VerifyCardForServiceAction;
 use DomainException;
 
@@ -22,18 +23,19 @@ class ServiceTransactionController extends Controller
         string $serviceType,
         VerifyCardForServiceAction $verifyCardForServiceAction,
         RecordServiceTransactionAction $recordServiceTransactionAction,
+        IntegrationAccessService $access,
     ): VerificationResultResource {
         $serviceTypeModel = ServiceType::query()->where('code', $serviceType)->firstOrFail();
         $provider = ServiceProvider::query()->where('code', $request->string('provider_code'))->firstOrFail();
-        $result = $verifyCardForServiceAction->execute($request->string('token')->toString(), $serviceTypeModel, $provider, $request->user(), $request);
+        $actor = $access->humanActor($request);
+        $result = $verifyCardForServiceAction->execute($request->string('token')->toString(), $serviceTypeModel, $provider, $actor, $request);
 
         if ($result['allowed'] === true) {
             [$cardId] = explode('|', $request->string('token')->toString());
             $card = IdCard::query()->with('employee')->findOrFail($cardId);
-            $entitlement = Entitlement::query()
-                ->where('employee_id', $card->employee_id)
-                ->where('service_type_id', $serviceTypeModel->id)
-                ->first();
+
+            // F19: the entitlement in force today for this service and provider.
+            $entitlement = Entitlement::inForceFor((string) $card->employee_id, (string) $serviceTypeModel->id, (string) $provider->getKey());
 
             try {
                 $recordServiceTransactionAction->execute(
@@ -43,10 +45,11 @@ class ServiceTransactionController extends Controller
                     $provider,
                     $entitlement,
                     'authorized',
-                    $request->user(),
+                    $actor,
                     [
                         'reference' => $request->input('reference'),
                         'amount' => $request->input('amount'),
+                        'recorded_by' => $access->callerLabel($request),
                     ],
                 );
             } catch (DomainException $exception) {

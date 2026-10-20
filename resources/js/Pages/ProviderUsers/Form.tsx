@@ -118,7 +118,7 @@ export default function ProviderUserForm({ account, providers, services, roles, 
         <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={editing ? account.name : t('providerUsers.subtitle')} backHref={backHref} />}>
             <Head title={title} />
 
-            <form onSubmit={submit} className="space-y-6 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6" noValidate>
+            <form onSubmit={submit} className="space-y-6 rounded-card border border-(--app-border) bg-(--app-surface) p-4 sm:p-6" noValidate>
                 <FormSection title={t('providerUsers.sectionProvider')} description={t(editing ? 'providerUsers.providerFixed' : 'providerUsers.sectionProviderHelp')}>
                     <FormField label={t('providerUsers.provider')} required error={errors.provider_id}>
                         {({ id, describedBy, invalid }) => (
@@ -132,12 +132,12 @@ export default function ProviderUserForm({ account, providers, services, roles, 
                         )}
                     </FormField>
                     <div className="space-y-1.5">
-                        <p className="text-sm font-medium text-[color:var(--app-foreground)]">{t('providerUsers.providerServices')}</p>
-                        <div className="flex min-h-[var(--control-h-md)] flex-wrap items-center gap-1">
+                        <p className="text-sm font-medium text-(--app-foreground)">{t('providerUsers.providerServices')}</p>
+                        <div className="flex min-h-(--control-h-md) flex-wrap items-center gap-1">
                             {provider === null
-                                ? <span className="text-sm text-[color:var(--app-muted-foreground)]">—</span>
+                                ? <span className="text-sm text-(--app-muted-foreground)">—</span>
                                 : provider.services.length === 0
-                                    ? <span className="text-sm text-[color:var(--app-muted-foreground)]">{t('providerUsers.noServices')}</span>
+                                    ? <span className="text-sm text-(--app-muted-foreground)">{t('providerUsers.noServices')}</span>
                                     : provider.services.map((code) => <StatusBadge key={code} tone="info">{serviceName(code)}</StatusBadge>)}
                         </div>
                     </div>
@@ -195,32 +195,32 @@ export default function ProviderUserForm({ account, providers, services, roles, 
                     )}
                     <div className="md:col-span-2">
                         <label className="flex items-start gap-3 text-sm">
-                            <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-[color:var(--app-border)]" checked={data.portal_enabled}
+                            <input type="checkbox" className="mt-0.5 h-4 w-4 rounded-sm border-(--app-border)" checked={data.portal_enabled}
                                 onChange={(e) => setData('portal_enabled', e.target.checked)} />
                             <span>
-                                <span className="font-medium text-[color:var(--app-foreground)]">{t('providerUsers.portalEnabled')}</span>
-                                <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t('providerUsers.portalEnabledHelp')}</span>
+                                <span className="font-medium text-(--app-foreground)">{t('providerUsers.portalEnabled')}</span>
+                                <span className="block text-xs text-(--app-muted-foreground)">{t('providerUsers.portalEnabledHelp')}</span>
                             </span>
                         </label>
                     </div>
 
                     <fieldset className="space-y-3 md:col-span-2">
-                        <legend className="text-sm font-medium text-[color:var(--app-foreground)]">{t('providerUsers.permissionsTitle')}</legend>
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('providerUsers.permissionsHelp')}</p>
+                        <legend className="text-sm font-medium text-(--app-foreground)">{t('providerUsers.permissionsTitle')}</legend>
+                        <p className="text-xs text-(--app-muted-foreground)">{t('providerUsers.permissionsHelp')}</p>
                         {provider === null ? (
-                            <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('providerUsers.selectProviderFirst')}</p>
+                            <p className="text-sm text-(--app-muted-foreground)">{t('providerUsers.selectProviderFirst')}</p>
                         ) : data.provider_role !== 'operator' ? (
                             <Alert tone="info">{t('providerUsers.permissionsImplied')}</Alert>
                         ) : permissionGroups.length === 0 ? (
-                            <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('providerUsers.noPermissionsOffered')}</p>
+                            <p className="text-sm text-(--app-muted-foreground)">{t('providerUsers.noPermissionsOffered')}</p>
                         ) : (
                             permissionGroups.map(([service, keys]) => (
-                                <div key={service} className="rounded-[var(--radius-control)] border border-[color:var(--app-border)] p-3">
-                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{serviceName(service)}</p>
+                                <div key={service} className="rounded-control border border-(--app-border) p-3">
+                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{serviceName(service)}</p>
                                     <div className="grid gap-2 sm:grid-cols-2">
                                         {keys.map((key) => (
                                             <label key={key} className="flex items-center gap-2 text-sm">
-                                                <input type="checkbox" className="h-4 w-4 rounded border-[color:var(--app-border)]"
+                                                <input type="checkbox" className="h-4 w-4 rounded-sm border-(--app-border)"
                                                     checked={data.service_permissions.includes(key)} onChange={(e) => togglePermission(key, e.target.checked)} />
                                                 {t(permissionLabelKey(key))}
                                             </label>
@@ -239,13 +239,13 @@ export default function ProviderUserForm({ account, providers, services, roles, 
                             <label className="flex items-start gap-3 text-sm">
                                 <input type="radio" name="password_mode" className="mt-0.5 h-4 w-4" checked={passwordMode === 'generate'} onChange={() => setPasswordMode('generate')} />
                                 <span>
-                                    <span className="font-medium text-[color:var(--app-foreground)]">{t('providerUsers.passwordGenerate')}</span>
-                                    <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t('providerUsers.passwordGenerateHelp')}</span>
+                                    <span className="font-medium text-(--app-foreground)">{t('providerUsers.passwordGenerate')}</span>
+                                    <span className="block text-xs text-(--app-muted-foreground)">{t('providerUsers.passwordGenerateHelp')}</span>
                                 </span>
                             </label>
                             <label className="flex items-center gap-3 text-sm">
                                 <input type="radio" name="password_mode" className="h-4 w-4" checked={passwordMode === 'manual'} onChange={() => setPasswordMode('manual')} />
-                                <span className="font-medium text-[color:var(--app-foreground)]">{t('providerUsers.passwordManual')}</span>
+                                <span className="font-medium text-(--app-foreground)">{t('providerUsers.passwordManual')}</span>
                             </label>
                             {passwordMode === 'manual' && (
                                 <div className="max-w-md space-y-3 pl-7">
@@ -262,7 +262,7 @@ export default function ProviderUserForm({ account, providers, services, roles, 
                     </FormSection>
                 )}
 
-                <div className="flex flex-col-reverse gap-3 border-t border-[color:var(--app-border)] pt-4 sm:flex-row sm:justify-end">
+                <div className="flex flex-col-reverse gap-3 border-t border-(--app-border) pt-4 sm:flex-row sm:justify-end">
                     <Button as={Link} href={backHref} variant="outline">{t('providerUsers.cancel')}</Button>
                     <Button type="submit" variant="primary" disabled={processing}>{processing ? t('providerUsers.saving') : editing ? t('providerUsers.save') : t('providerUsers.create')}</Button>
                 </div>

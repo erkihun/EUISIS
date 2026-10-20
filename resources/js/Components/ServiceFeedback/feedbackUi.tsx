@@ -14,15 +14,37 @@ export type FeedbackSummary = {
     status: string;
     client_name?: string | null;
     client_contact?: string | null;
+    client_email?: string | null;
+    submitter_organization?: string | null;
     identity_hidden?: boolean;
     created_at: string | null;
     employee: { id: string; name: string | null; employee_number: string | null } | null;
     organization: NamePair;
+    /** The relevant work unit as recorded at submission (organization form) or the employee's unit (employee QR). */
     organization_unit?: NamePair;
+    /** GENERAL: the visitor explicitly answered "General / Not sure" instead of naming a unit. */
+    unit_selection_mode?: 'SELECTED' | 'GENERAL' | null;
     position?: NamePair;
     service_no?: string | null;
     service_type: NamePair;
+    /** The service as recorded at submission (position service, catalog service, or the visitor's words). */
+    service_name?: string | null;
+    target_type?: 'employee' | 'organization';
+    /** An institution target's name and code; null for an employee target. */
+    target_organization?: { en: string | null; am: string | null; code: string | null } | null;
+    category?: NamePair;
+    identity_mode?: 'anonymous' | 'identified' | 'optional' | null;
 };
+
+/**
+ * What to print for the submitter on a staff screen. "Identity hidden" when
+ * the viewer lacks the identity grant, so a named submitter is never shown as
+ * anonymous; "Anonymous" only when nothing was given.
+ */
+export function submitterKey(row: Pick<FeedbackSummary, 'identity_hidden' | 'client_name'>): string | null {
+    if (row.identity_hidden) return 'serviceFeedback.identityHidden';
+    return row.client_name ? null : 'serviceFeedback.anonymousClient';
+}
 
 export const MAX_RATING = 5;
 
@@ -64,7 +86,7 @@ export const toneClasses: Record<RatingTone, { pill: string; text: string; bar: 
 export function RatingPill({ rating, className }: { rating: number; className?: string }): JSX.Element {
     return (
         <span
-            className={cx('inline-flex h-6 shrink-0 items-center gap-1 rounded-[var(--radius-control)] px-2 text-[13px] font-bold tabular-nums', toneClasses[ratingTone(rating)].pill, className)}
+            className={cx('inline-flex h-6 shrink-0 items-center gap-1 rounded-control px-2 text-[13px] font-bold tabular-nums', toneClasses[ratingTone(rating)].pill, className)}
             title={`${rating} / ${MAX_RATING}`}
         >
             <StarIcon aria-hidden="true" className="h-3 w-3 fill-current stroke-none" />
@@ -77,7 +99,7 @@ export function RatingPill({ rating, className }: { rating: number; className?: 
 /** Thin horizontal meter for an average on the five-point scale. */
 export function RatingBar({ value, className }: { value: number; className?: string }): JSX.Element {
     return (
-        <span aria-hidden="true" className={cx('block h-1.5 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]', className)}>
+        <span aria-hidden="true" className={cx('block h-1.5 overflow-hidden rounded-full bg-(--app-surface-muted)', className)}>
             <span
                 className={cx('block h-full rounded-full', toneClasses[ratingTone(value)].bar)}
                 style={{ width: `${Math.min(100, (value / MAX_RATING) * 100)}%` }}
@@ -175,17 +197,17 @@ export function FeedbackPageHeader({
         <header className="space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">
+                    <p className="text-xs font-semibold uppercase tracking-[0.06em] text-(--app-muted-foreground)">
                         {t('serviceFeedback.clientFeedback')}
                     </p>
-                    <h1 className="mt-1 break-words text-page-title text-[color:var(--app-foreground)]">{title}</h1>
-                    {description && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{description}</p>}
+                    <h1 className="mt-1 wrap-break-word text-page-title text-(--app-foreground)">{title}</h1>
+                    {description && <p className="mt-1 text-sm text-(--app-muted-foreground)">{description}</p>}
                 </div>
                 {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
             </div>
 
-            <nav aria-label={t('serviceFeedback.sectionsNav')} className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
-                <ul className="flex min-w-max gap-1 border-b border-[color:var(--app-border)]">
+            <nav aria-label={t('serviceFeedback.sectionsNav')} className="-mx-4 overflow-x-auto px-4 scrollbar-none sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+                <ul className="flex min-w-max gap-1 border-b border-(--app-border)">
                     {tabs.map((tab) => {
                         const active = tab.id === current;
                         return (
@@ -194,10 +216,10 @@ export function FeedbackPageHeader({
                                     href={tab.href}
                                     aria-current={active ? 'page' : undefined}
                                     className={cx(
-                                        '-mb-px inline-flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
+                                        '-mb-px inline-flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary',
                                         active
-                                            ? 'border-[color:var(--color-primary)] font-semibold text-[color:var(--color-primary)]'
-                                            : 'border-transparent font-medium text-[color:var(--app-muted-foreground)] hover:border-[color:var(--app-border-strong)] hover:text-[color:var(--app-foreground)]',
+                                            ? 'border-primary font-semibold text-primary'
+                                            : 'border-transparent font-medium text-(--app-muted-foreground) hover:border-(--app-border-strong) hover:text-(--app-foreground)',
                                     )}
                                 >
                                     <tab.icon className="h-4 w-4" />

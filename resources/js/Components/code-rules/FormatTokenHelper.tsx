@@ -99,9 +99,9 @@ export default function FormatTokenHelper({
         ] as const;
 
         return (
-            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('codeRules.formatTokens')}</h3>
-                <ul className="mt-3 space-y-2 text-sm text-[color:var(--app-muted-foreground)]">
+            <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                <h3 className="text-sm font-semibold text-(--app-foreground)">{t('codeRules.formatTokens')}</h3>
+                <ul className="mt-3 space-y-2 text-sm text-(--app-muted-foreground)">
                     {staticTokenKeys.map((tokenKey) => (
                         <li key={tokenKey}>{t(`codeRules.tokens.${tokenKey}`)}</li>
                     ))}
@@ -111,8 +111,8 @@ export default function FormatTokenHelper({
     }
 
     return (
-        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-            <h3 className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">
+        <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+            <h3 className="mb-3 text-sm font-semibold text-(--app-foreground)">
                 {t('codeRules.formatTokens')}
             </h3>
 
@@ -128,7 +128,7 @@ export default function FormatTokenHelper({
             {/* Used tokens */}
             {usedTokens.length > 0 && (
                 <div className="mb-3">
-                    <p className="mb-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                    <p className="mb-1.5 text-xs font-medium text-(--app-muted-foreground)">
                         {t('codeRules.usedTokens')}
                     </p>
                     <div className="flex flex-wrap gap-1">
@@ -142,7 +142,7 @@ export default function FormatTokenHelper({
             {/* Format examples */}
             {onInsert && search === '' && (
                 <div className="mb-3">
-                    <p className="mb-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                    <p className="mb-1.5 text-xs font-medium text-(--app-muted-foreground)">
                         {t('codeRules.formatExamples')}
                     </p>
                     <div className="space-y-1">
@@ -150,7 +150,7 @@ export default function FormatTokenHelper({
                             <button
                                 key={example}
                                 type="button"
-                                className="block w-full rounded-md bg-[color:var(--app-surface-muted)] px-2.5 py-1 text-left font-mono text-xs text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                className="block w-full rounded-md bg-(--app-surface-muted) px-2.5 py-1 text-left font-mono text-xs text-(--app-foreground) hover:bg-(--app-surface-muted)"
                                 onClick={() => onInsert(example)}
                                 title={t('codeRules.formatExamples')}
                             >
@@ -176,13 +176,13 @@ export default function FormatTokenHelper({
             </div>
 
             {filteredTokens.length === 0 && (
-                <p className="mt-2 text-center text-xs text-[color:var(--app-muted-foreground)]">
+                <p className="mt-2 text-center text-xs text-(--app-muted-foreground)">
                     {t('codeRules.unknownToken')}
                 </p>
             )}
 
             {onInsert && (
-                <p className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">
+                <p className="mt-3 text-xs text-(--app-muted-foreground)">
                     {t('codeRules.clickTokenToInsert')}
                 </p>
             )}

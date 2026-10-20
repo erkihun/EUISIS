@@ -4,9 +4,9 @@ import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 export type StatTone = 'neutral' | 'success' | 'warning' | 'critical';
 
 const toneText: Record<StatTone, string> = {
-    neutral: 'text-[color:var(--app-foreground)]',
+    neutral: 'text-(--app-foreground)',
     success: 'text-emerald-700 dark:text-emerald-400',
-    warning: 'text-[color:var(--color-accent)]',
+    warning: 'text-accent',
     critical: 'text-red-700 dark:text-red-400',
 };
 
@@ -45,7 +45,7 @@ export default function StatTileGroup({ stats, columns = 4 }: { stats: Stat[]; c
      * `overflow-hidden` clips the trailing edges.
      */
     return (
-        <div className={`${gridCls} overflow-hidden rounded-card border border-[color:var(--app-border)]`}>
+        <div className={`${gridCls} overflow-hidden rounded-card border border-(--app-border)`}>
             {stats.map((stat) => {
                 const unavailable = stat.value === null;
                 const display = unavailable
@@ -66,12 +66,12 @@ export default function StatTileGroup({ stats, columns = 4 }: { stats: Stat[]; c
 
                 const content = (
                     <>
-                        <dt className="min-h-8 whitespace-normal break-words text-xs leading-snug text-[color:var(--app-muted-foreground)]">
+                        <dt className="min-h-8 whitespace-normal wrap-break-word text-xs leading-snug text-(--app-muted-foreground)">
                             {stat.label}
                         </dt>
                         <dd
                             className={`mt-1 text-lg font-semibold tabular-nums ${
-                                unavailable ? 'text-[color:var(--app-muted-foreground)]' : toneText[tone]
+                                unavailable ? 'text-(--app-muted-foreground)' : toneText[tone]
                             }`}
                         >
                             {display}
@@ -80,13 +80,13 @@ export default function StatTileGroup({ stats, columns = 4 }: { stats: Stat[]; c
                 );
 
                 const cellCls =
-                    'border-b border-r border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-2.5';
+                    'border-b border-r border-(--app-border) bg-(--app-surface) px-3 py-2.5';
 
                 return stat.href && !unavailable ? (
                     <Link
                         key={stat.key}
                         href={stat.href}
-                        className={`${cellCls} block transition-colors hover:bg-[color:var(--app-surface-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)]`}
+                        className={`${cellCls} block transition-colors hover:bg-(--app-surface-muted) focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary`}
                     >
                         {content}
                     </Link>

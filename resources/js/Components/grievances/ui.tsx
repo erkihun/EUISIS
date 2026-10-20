@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle, ClockIcon, InfoIcon, MinusIcon, XCircle } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
-import { StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
+import { StatusBadge as UiStatusBadge, cx, textareaClassName, type Tone } from '@euisis/ui';
 import type { ReactNode } from 'react';
 import type { Bilingual, EmployeeRef, HandlerRef, SlaSummary } from '@/types/grievances';
 
@@ -19,6 +19,9 @@ export {
     linkBtn, dangerLinkBtn, panelCls, pageCls, tableCls, thCls, tdCls, AppFilterBar, filterInputCls,
 } from '@/Components/performance/ui';
 export type { Paginator } from '@/Components/performance/ui';
+
+/** Multi-line control: `inputCls` has a fixed control height, so textareas use this instead. */
+export const textareaCls = cx(textareaClassName, 'w-full');
 
 /** `:name` placeholder interpolation (the app's t() does none). */
 export function fmt(template: string, params: Record<string, string | number | null | undefined>): string {
@@ -82,9 +85,9 @@ const SLA_STYLE: Record<SlaSummary["state"], { tone: string; Icon: typeof CheckC
     due_soon: { tone: 'text-amber-800 bg-amber-50 ring-amber-200 dark:text-amber-300 dark:bg-amber-950/30 dark:ring-amber-900', Icon: ClockIcon },
     due_today: { tone: 'text-orange-800 bg-orange-50 ring-orange-200 dark:text-orange-300 dark:bg-orange-950/30 dark:ring-orange-900', Icon: AlertTriangle },
     overdue: { tone: 'text-red-700 bg-red-50 ring-red-200 dark:text-red-300 dark:bg-red-950/30 dark:ring-red-900', Icon: XCircle },
-    paused: { tone: 'text-[color:var(--app-foreground)] bg-[color:var(--app-surface-muted)] ring-[color:var(--app-border-strong)]', Icon: MinusIcon },
-    stopped: { tone: 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)] ring-[color:var(--app-border-strong)]', Icon: MinusIcon },
-    no_deadline: { tone: 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)] ring-[color:var(--app-border-strong)]', Icon: InfoIcon },
+    paused: { tone: 'text-(--app-foreground) bg-(--app-surface-muted) ring-(--app-border-strong)', Icon: MinusIcon },
+    stopped: { tone: 'text-(--app-muted-foreground) bg-(--app-surface-muted) ring-(--app-border-strong)', Icon: MinusIcon },
+    no_deadline: { tone: 'text-(--app-muted-foreground) bg-(--app-surface-muted) ring-(--app-border-strong)', Icon: InfoIcon },
 };
 
 /**
@@ -94,7 +97,7 @@ const SLA_STYLE: Record<SlaSummary["state"], { tone: string; Icon: typeof CheckC
 export function SlaBadge({ sla, compact = false }: { sla: Pick<SlaSummary, 'state'> & Partial<SlaSummary> | null | undefined; compact?: boolean }) {
     const { t } = useLocale();
     const label = useEnumLabel();
-    if (!sla) return <span className="text-xs text-[color:var(--app-muted-foreground)]">—</span>;
+    if (!sla) return <span className="text-xs text-(--app-muted-foreground)">—</span>;
     const { tone, Icon } = SLA_STYLE[sla.state] ?? SLA_STYLE.no_deadline;
     const days = sla.remaining_days;
     const unit = sla.day_type === 'calendar_days' ? t('grievances.common.calendar_days_short') : t('grievances.common.working_days_short');
@@ -119,9 +122,9 @@ export function HandlerName({ handler, showType = false }: { handler: HandlerRef
     const org = (locale === 'am' && handler.organization_name_am) || handler.organization_name_en;
     return (
         <span className="min-w-0">
-            <span className="font-medium text-[color:var(--app-foreground)]">{(locale === 'am' && handler.name_am) || handler.name_en || '—'}</span>
+            <span className="font-medium text-(--app-foreground)">{(locale === 'am' && handler.name_am) || handler.name_en || '—'}</span>
             {(org || showType) && (
-                <span className="block text-xs text-[color:var(--app-muted-foreground)]">
+                <span className="block text-xs text-(--app-muted-foreground)">
                     {showType ? label('handler_type', handler.type) : null}{showType && org ? ' · ' : ''}{org}
                 </span>
             )}
@@ -131,7 +134,7 @@ export function HandlerName({ handler, showType = false }: { handler: HandlerRef
 
 /** Case number in the monospace style used for official references. */
 export function CaseNumber({ value }: { value: string | null | undefined }) {
-    return <span className="font-mono text-[13px] font-semibold tracking-tight text-[color:var(--color-primary)]">{value ?? '—'}</span>;
+    return <span className="font-mono text-[13px] font-semibold tracking-tight text-primary">{value ?? '—'}</span>;
 }
 
 /** Confidentiality notice shown on every case page (text + icon). */
@@ -139,7 +142,7 @@ export function ConfidentialNotice({ level }: { level: string | null | undefined
     const { t } = useLocale();
     const label = useEnumLabel();
     return (
-        <div className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-2 text-xs text-[color:var(--app-muted-foreground)]">
+        <div className="flex items-center gap-2 rounded-lg border border-(--app-border) bg-(--app-surface-muted) px-3 py-2 text-xs text-(--app-muted-foreground)">
             <InfoIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{t('grievances.common.confidential_notice')} <strong className="font-medium">{label('confidentiality', level)}</strong></span>
         </div>
@@ -157,9 +160,9 @@ export function fileSize(bytes: number): string {
 export function FormRow({ label, error, children, help }: { label: string; error?: string; children: ReactNode; help?: string }) {
     return (
         <label className="block">
-            <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
+            <span className="mb-1 block text-sm font-medium text-(--app-foreground)">{label}</span>
             {children}
-            {help && <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">{help}</span>}
+            {help && <span className="mt-1 block text-xs text-(--app-muted-foreground)">{help}</span>}
             {error && <span className="mt-1 block text-xs text-red-600 dark:text-red-400">{error}</span>}
         </label>
     );

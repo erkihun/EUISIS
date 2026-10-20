@@ -153,7 +153,7 @@ export default function InstitutionOfficesIndex({
                                 <tr>
                                     <td
                                         colSpan={7}
-                                        className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}
+                                        className={cx(tableCellClassName, 'text-center text-(--app-muted-foreground)')}
                                     >
                                         {t('institutionOffices.noOffices')}
                                     </td>
@@ -168,27 +168,27 @@ export default function InstitutionOfficesIndex({
                                         <td className={tableCellClassName}>
                                             <div className="font-medium">{office.name_en ?? t('institutionOffices.notSelected')}</div>
                                             {office.name_am && (
-                                                <div className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                <div className="text-xs text-(--app-muted-foreground)">
                                                     {office.name_am}
                                                 </div>
                                             )}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {office.organization?.name_en ?? t('institutionOffices.notSelected')}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {office.parent ? (
                                                 <Link
                                                     href={route('organization-units.show', office.parent.id)}
-                                                    className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                    className="text-primary hover:underline dark:text-primary"
                                                 >
                                                     {office.parent.name_en}
                                                 </Link>
                                             ) : (
-                                                <span className="text-[color:var(--app-muted-foreground)]">{t('institutionOffices.notSelected')}</span>
+                                                <span className="text-(--app-muted-foreground)">{t('institutionOffices.notSelected')}</span>
                                             )}
                                         </td>
-                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                        <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                             {office.functional_reporting?.name_en ?? t('institutionOffices.notSelected')}
                                         </td>
                                         <td className={tableCellClassName}>

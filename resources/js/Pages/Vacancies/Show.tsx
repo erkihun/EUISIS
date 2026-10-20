@@ -96,25 +96,25 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                 {/* Left: announcement details + positions */}
                 <div className="space-y-6">
-                    <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">{announcement.title_en}</h3>
-                                {announcement.title_am && <p className="text-sm text-[color:var(--app-muted-foreground)]">{announcement.title_am}</p>}
+                                <h3 className="text-lg font-semibold text-(--app-foreground)">{announcement.title_en}</h3>
+                                {announcement.title_am && <p className="text-sm text-(--app-muted-foreground)">{announcement.title_am}</p>}
                             </div>
                             <StatusBadge status={announcement.status} />
                         </div>
 
                         {announcement.description_en && (
-                            <p className="mt-4 whitespace-pre-line text-sm text-[color:var(--app-foreground)]">{announcement.description_en}</p>
+                            <p className="mt-4 whitespace-pre-line text-sm text-(--app-foreground)">{announcement.description_en}</p>
                         )}
 
                         {announcement.eligibility_rules && announcement.eligibility_rules.length > 0 && (
                             <div className="mt-4">
-                                <p className="mb-2 text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t('vacancies.eligibilityRules')}</p>
+                                <p className="mb-2 text-xs font-semibold uppercase text-(--app-muted-foreground)">{t('vacancies.eligibilityRules')}</p>
                                 <ul className="space-y-1">
                                     {announcement.eligibility_rules.map((rule, index) => (
-                                        <li key={index} className="flex items-start gap-2 text-sm text-[color:var(--app-foreground)]">
+                                        <li key={index} className="flex items-start gap-2 text-sm text-(--app-foreground)">
                                             <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
                                             {rule}
                                         </li>
@@ -125,28 +125,28 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
 
                         <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                             <div>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('vacancies.vacancySlots')}</dt>
-                                <dd className="mt-1 text-[color:var(--app-foreground)]">{totalAvailable} / {totalSlots}</dd>
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('vacancies.vacancySlots')}</dt>
+                                <dd className="mt-1 text-(--app-foreground)">{totalAvailable} / {totalSlots}</dd>
                             </div>
                             <div>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('vacancies.applicationOpensAt')}</dt>
-                                <dd className="mt-1 text-[color:var(--app-foreground)]">
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('vacancies.applicationOpensAt')}</dt>
+                                <dd className="mt-1 text-(--app-foreground)">
                                     {announcement.application_opens_at
                                         ? <LocalizedDateDisplay value={announcement.application_opens_at} withTime />
                                         : '-'}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('vacancies.applicationClosesAt')}</dt>
-                                <dd className="mt-1 text-[color:var(--app-foreground)]">
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('vacancies.applicationClosesAt')}</dt>
+                                <dd className="mt-1 text-(--app-foreground)">
                                     {announcement.application_closes_at
                                         ? <LocalizedDateDisplay value={announcement.application_closes_at} withTime />
                                         : '-'}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('vacancies.publishedAt')}</dt>
-                                <dd className="mt-1 text-[color:var(--app-foreground)]">
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('vacancies.publishedAt')}</dt>
+                                <dd className="mt-1 text-(--app-foreground)">
                                     {announcement.published_at
                                         ? <LocalizedDateDisplay value={announcement.published_at} withTime />
                                         : '-'}
@@ -156,9 +156,9 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                     </section>
 
                     {/* Positions table with apply buttons */}
-                    <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h4 className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">{t('vacancies.includedPositions')}</h4>
-                        <div className="overflow-hidden rounded-lg border border-[color:var(--app-border)]">
+                    <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+                        <h4 className="mb-3 text-sm font-semibold text-(--app-foreground)">{t('vacancies.includedPositions')}</h4>
+                        <div className="overflow-hidden rounded-lg border border-(--app-border)">
                             <table className={cx(tableClassName, 'min-w-full text-left')}>
                                 <thead className={tableHeadClassName}>
                                     <tr>
@@ -178,19 +178,19 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
 
                                         return (
                                             <tr key={position.id}>
-                                                <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{position.organization?.name_en ?? '-'}</td>
-                                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{position.organization_unit?.name_en ?? '-'}</td>
-                                                <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{position.position?.title_en ?? '-'}</td>
+                                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{position.organization?.name_en ?? '-'}</td>
+                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{position.organization_unit?.name_en ?? '-'}</td>
+                                                <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{position.position?.title_en ?? '-'}</td>
                                                 <td className={tableCellClassName}>
-                                                    <span className={`text-sm font-semibold ${availableSlots > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                                                    <span className={`text-sm font-semibold ${availableSlots > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-(--app-muted-foreground)'}`}>
                                                         {availableSlots}
-                                                        <span className="ml-1 text-xs font-normal text-[color:var(--app-muted-foreground)]">/ {position.vacancy_slots}</span>
+                                                        <span className="ml-1 text-xs font-normal text-(--app-muted-foreground)">/ {position.vacancy_slots}</span>
                                                     </span>
                                                 </td>
                                                 {can.apply && (
                                                     <td className={cx(tableCellClassName, 'text-right')}>
                                                         {alreadyApplied ? (
-                                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-[color:var(--color-primary)] dark:bg-blue-950/30 dark:text-[color:var(--color-primary)]">
+                                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-primary dark:bg-blue-950/30 dark:text-primary">
                                                                 {t('vacancies.applied')}
                                                             </span>
                                                         ) : availableSlots > 0 ? (
@@ -202,7 +202,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                                                                 {t('vacancies.applyForPosition')}
                                                             </button>
                                                         ) : (
-                                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('vacancies.noSlotsRemaining')}</span>
+                                                            <span className="text-xs text-(--app-muted-foreground)">{t('vacancies.noSlotsRemaining')}</span>
                                                         )}
                                                     </td>
                                                 )}
@@ -216,12 +216,12 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                 </div>
 
                 {/* Right: applications list */}
-                <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
                     <div className="mb-3 flex items-center justify-between">
-                        <h3 className="font-semibold text-[color:var(--app-foreground)]">
+                        <h3 className="font-semibold text-(--app-foreground)">
                             {t('vacancies.applications')}
                         </h3>
-                        <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                        <span className="rounded-full bg-(--app-surface-muted) px-2.5 py-0.5 text-xs font-medium text-(--app-muted-foreground)">
                             {announcement.applications.length}
                         </span>
                     </div>
@@ -233,9 +233,9 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                                 const count = announcement.applications.filter(a => a.status === status).length;
                                 if (count === 0) return null;
                                 return (
-                                    <div key={status} className="flex items-center justify-between rounded-lg border border-[color:var(--app-border)] px-2 py-1">
+                                    <div key={status} className="flex items-center justify-between rounded-lg border border-(--app-border) px-2 py-1">
                                         <StatusBadge status={status} />
-                                        <span className="font-semibold text-[color:var(--app-foreground)]">{count}</span>
+                                        <span className="font-semibold text-(--app-foreground)">{count}</span>
                                     </div>
                                 );
                             })}
@@ -243,12 +243,12 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                     )}
 
                     {announcement.applications.length === 0 ? (
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('common.noResults')}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{t('common.noResults')}</p>
                     ) : (
                         <ul className="space-y-2 text-sm">
                             {announcement.applications.map(application => (
                                 <li key={application.id} className="flex items-center justify-between gap-3">
-                                    <Link href={route('vacancy-applications.show', application.id)} className="truncate text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                    <Link href={route('vacancy-applications.show', application.id)} className="truncate text-primary hover:underline dark:text-primary">
                                         {application.employee?.name_en ?? application.application_number}
                                     </Link>
                                     <StatusBadge status={application.status} />

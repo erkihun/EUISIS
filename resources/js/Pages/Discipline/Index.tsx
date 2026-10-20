@@ -38,7 +38,7 @@ export default function DisciplineIndex({ cases, filters, statuses, canCreate }:
             <Head title={t('discipline.title')} />
             <div className="space-y-3">
                 <form onSubmit={submit} className={`${panelCls} flex flex-wrap items-end gap-2 p-3`}>
-                    <input aria-label={t('discipline.search')} placeholder={t('discipline.search')} className={`${compactInputCls} min-w-[14rem] flex-1`} value={search} onChange={(e) => setSearch(e.target.value)} />
+                    <input aria-label={t('discipline.search')} placeholder={t('discipline.search')} className={`${compactInputCls} min-w-56 flex-1`} value={search} onChange={(e) => setSearch(e.target.value)} />
                     <select aria-label={t('discipline.allStatuses')} className={compactInputCls} value={filters.status ?? ''} onChange={(e) => apply({ status: e.target.value || undefined })}>
                         <option value="">{t('discipline.allStatuses')}</option>
                         {statuses.map((s) => <option key={s} value={s}>{t(`discipline.statuses.${s}`)}</option>)}

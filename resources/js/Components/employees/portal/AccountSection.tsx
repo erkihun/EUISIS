@@ -50,7 +50,7 @@ export default function AccountSection({ account, l }: { account: AccountInfo; l
                                 value: (
                                     <>
                                         <span className="break-all">{account.email}</span>
-                                        <span className="block text-xs font-normal text-[color:var(--app-muted-foreground)]">{l('account.sign_in_email_note')}</span>
+                                        <span className="block text-xs font-normal text-(--app-muted-foreground)">{l('account.sign_in_email_note')}</span>
                                     </>
                                 ),
                             },
@@ -79,8 +79,8 @@ export default function AccountSection({ account, l }: { account: AccountInfo; l
                         ]}
                     />
 
-                    <form onSubmit={updatePassword} className="border-t border-[color:var(--app-border)] pt-4">
-                        <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{l('account.password')}</h3>
+                    <form onSubmit={updatePassword} className="border-t border-(--app-border) pt-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{l('account.password')}</h3>
                         <div className="mt-2 grid gap-3 sm:grid-cols-3">
                             <div>
                                 <label htmlFor="pw-current" className={labelCls}>{l('account.current_password')}</label>

@@ -60,10 +60,9 @@ class DashboardMetricService
         $kpis = [];
 
         if ($can['employees']) {
-            $registeredEmployees = $this->employeeQuery($scope)->count();
-            $activeEmployees = $this->employeeQuery($scope)
-                ->where('employees.status', EmployeeStatus::Active->value)
-                ->count();
+            // One grouped scan serves both numbers; see employeeStatusCounts().
+            $registeredEmployees = $this->employeeTotalCount($scope);
+            $activeEmployees = $this->employeeStatusCount($scope, EmployeeStatus::Active->value);
 
             $kpis[] = $this->kpi('activeEmployees', $activeEmployees, 'users', 'primary', $this->employeeTrend($scope, EmployeeStatus::Active->value), '', 'employees.index');
             $kpis[] = $this->kpi('registeredEmployees', $registeredEmployees, 'users', 'neutral', $this->employeeTrend($scope), '', 'employees.index', 'employees');
@@ -375,6 +374,26 @@ class DashboardMetricService
                     ->where('employee_service_feedback.status', ServiceFeedbackStatus::Pending->value)
                     ->count(),
             ];
+
+            /*
+             * Public Tip-offs: aggregate counts only, safe for a wall display —
+             * no narrative, no tipster, no employee. One grouped query; the
+             * three type buckets add up to the total (legacy rows unclassified).
+             */
+            $tipBuckets = $this->tipOffQuery($scope)
+                ->toBase()
+                ->selectRaw("COALESCE(employee_service_feedback.tip_type, 'UNCLASSIFIED_LEGACY') AS bucket, COUNT(*) AS aggregate")
+                ->groupBy('bucket')
+                ->pluck('aggregate', 'bucket');
+            $cards['tipOffs'] = [
+                'total' => (int) $tipBuckets->sum(),
+                'corruption' => (int) ($tipBuckets['CORRUPTION'] ?? 0),
+                'improperPractice' => (int) ($tipBuckets['IMPROPER_PRACTICE'] ?? 0),
+                'unclassified' => (int) ($tipBuckets['UNCLASSIFIED_LEGACY'] ?? 0),
+                'awaitingRouting' => $this->tipOffQuery($scope)
+                    ->where('employee_service_feedback.status', ServiceFeedbackStatus::Unrouted->value)
+                    ->count(),
+            ];
         }
 
         if ($can['nfc'] ?? false) {
@@ -615,7 +634,7 @@ class DashboardMetricService
             'href' => $routeName !== null && Route::has($routeName) ? route($routeName) : null,
             'trend' => $trend['delta'] ?? null,
             'trendDirection' => $trend['direction'] ?? null,
-            'comparisonLabelKey' => $trend !== null ? 'dashboard.previousPeriod' : null,
+            'comparisonLabelKey' => $trend['labelKey'] ?? null,
             'icon' => $icon,
             'tone' => $tone,
             'group' => $group,
@@ -645,29 +664,50 @@ class DashboardMetricService
         ];
     }
 
+    /**
+     * Newly registered employees this period against the period before it.
+     *
+     * This counts arrivals (`created_at` inside the range), so it is a flow,
+     * while the KPI it decorates ("Active Employees") is a running total. The
+     * two are not the same measure, and the label says so: a reader seeing
+     * "+42 newly registered" under "3,000,000" is told what the 42 counts
+     * rather than being left to assume the total moved by it. There is no
+     * historical headcount snapshot to compare totals against, so the flow is
+     * the only honest comparison available here.
+     */
     private function employeeTrend(array $scope, ?string $status = null): array
     {
         $current = $this->employeeTrendCount($scope, $scope['date_from'], $scope['date_to'], $status);
         $previous = $this->employeeTrendCount($scope, $scope['previous_from'], $scope['previous_to'], $status);
 
-        return $this->trend($current, $previous);
+        return $this->trend($current, $previous, 'dashboard.newlyRegisteredVsPrevious');
     }
 
+    /** Cards issued this period against the period before it. A flow, as above. */
     private function cardTrend(array $scope, ?string $status = null): array
     {
         $current = $this->cardTrendCount($scope, $scope['date_from'], $scope['date_to'], $status);
         $previous = $this->cardTrendCount($scope, $scope['previous_from'], $scope['previous_to'], $status);
 
-        return $this->trend($current, $previous);
+        return $this->trend($current, $previous, 'dashboard.newlyIssuedVsPrevious');
     }
 
-    private function trend(int $current, int $previous): array
+    /**
+     * Compare two counts of the same kind over adjacent periods.
+     *
+     * `$labelKey` names what the delta actually measures. It is not optional
+     * by accident: a delta shown under a running total needs to say that it
+     * counts arrivals in the period, not growth of the total. See
+     * `employeeTrend()`.
+     */
+    private function trend(int $current, int $previous, string $labelKey): array
     {
         $delta = $current - $previous;
 
         return [
             'delta' => $delta,
             'direction' => $delta === 0 ? 'flat' : ($delta > 0 ? 'up' : 'down'),
+            'labelKey' => $labelKey,
         ];
     }
 
@@ -729,7 +769,9 @@ class DashboardMetricService
 
     private function occupiedPositionsCount(array $scope): int
     {
-        return $this->positionQuery($scope)
+        // KPIs, section cards and the occupancy chart all ask; at 3M positions
+        // each count is seconds, so it is computed once per request and scope.
+        return $this->statusCounts['occupied-positions:'.$this->scopeKey($scope)]['n'] ??= $this->positionQuery($scope)
             ->whereHas('assignments', fn (Builder $query): Builder => $query
                 ->where('is_current', true)
                 ->where('assignment_status', AssignmentStatus::Active->value))
@@ -822,12 +864,17 @@ class DashboardMetricService
 
     public function cardQuery(array $scope): Builder
     {
+        // The employee and assignment joins exist only to apply an
+        // organization scope. Joining 3.75M cards to 3M employees and their
+        // assignments for a city-wide view, where nothing filters on them, cost
+        // 9–18 s per card figure at 3M employees (production-readiness/database-capacity.md).
         return IdCard::query()
-            ->join('employees as card_employee', 'card_employee.id', '=', 'id_cards.employee_id')
-            ->leftJoin('employee_assignments as card_scope_assignment', 'card_scope_assignment.id', '=', 'card_employee.current_assignment_id')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
-                fn (Builder $query) => $query->whereIn('card_scope_assignment.organization_id', $scope['organization_ids'])
+                fn (Builder $query) => $query
+                    ->join('employees as card_employee', 'card_employee.id', '=', 'id_cards.employee_id')
+                    ->join('employee_assignments as card_scope_assignment', 'card_scope_assignment.id', '=', 'card_employee.current_assignment_id')
+                    ->whereIn('card_scope_assignment.organization_id', $scope['organization_ids'])
             )
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] === [],
@@ -851,6 +898,44 @@ class DashboardMetricService
      * @var array<string, array<string, int>>
      */
     private array $statusCounts = [];
+
+    /**
+     * Employee status buckets in one grouped pass.
+     *
+     * The KPI strip wants the registered total and the active subtotal. Asking
+     * for them separately costs two scans of the largest table in the schema:
+     * measured on 3,000,027 rows, `COUNT(*)` ran 390 ms and the status-filtered
+     * `COUNT(*)` another 424 ms, while one grouped query answering both came
+     * back in 415 ms — the scan dominates and the grouping is close to free.
+     * `employees_status_index` cannot help either shape, because `active`
+     * matches ~88% of the table and the planner correctly picks a parallel seq
+     * scan over it. So the saving has to come from scanning once, not from
+     * another index. See docs/dashboard-performance.md.
+     *
+     * @return array<string, int> status => count
+     */
+    public function employeeStatusCounts(array $scope): array
+    {
+        return $this->statusCounts['employees:'.$this->scopeKey($scope)] ??= $this->employeeQuery($scope)
+            ->toBase()
+            ->selectRaw('employees.status as status_key, COUNT(*) as aggregate')
+            ->groupBy('employees.status')
+            ->pluck('aggregate', 'status_key')
+            ->map(fn ($value): int => (int) $value)
+            ->all();
+    }
+
+    /** A status with no employees is a real zero, not missing data. */
+    public function employeeStatusCount(array $scope, string $status): int
+    {
+        return $this->employeeStatusCounts($scope)[$status] ?? 0;
+    }
+
+    /** Registered employees in scope, summed from the memoised buckets. */
+    public function employeeTotalCount(array $scope): int
+    {
+        return array_sum($this->employeeStatusCounts($scope));
+    }
 
     /** @return array<string, int> status => count */
     public function cardStatusCounts(array $scope): array
@@ -906,11 +991,20 @@ class DashboardMetricService
         return [now()->startOfDay(), now()->endOfDay()];
     }
 
+    /**
+     * Identity of a scope for memoising its counts.
+     *
+     * `provider_only` defaults to false when absent: it narrows a scope, so
+     * treating a missing flag as "not provider-only" keeps the key in step with
+     * the query builders, which only ever consult it to add a restriction. The
+     * three parts together are what changes which rows a scoped query can see,
+     * so two scopes sharing a key must see the same rows.
+     */
     private function scopeKey(array $scope): string
     {
         return md5(json_encode([
             $scope['global_access'],
-            $scope['provider_only'],
+            $scope['provider_only'] ?? false,
             $scope['organization_ids'],
         ], JSON_THROW_ON_ERROR));
     }
@@ -962,12 +1056,14 @@ class DashboardMetricService
 
     public function entitlementQuery(array $scope): Builder
     {
+        // Joins only when an organization scope needs them (see cardQuery).
         return Entitlement::query()
-            ->join('employees as entitlement_employee', 'entitlement_employee.id', '=', 'entitlements.employee_id')
-            ->leftJoin('employee_assignments as entitlement_scope_assignment', 'entitlement_scope_assignment.id', '=', 'entitlement_employee.current_assignment_id')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
-                fn (Builder $query) => $query->whereIn('entitlement_scope_assignment.organization_id', $scope['organization_ids'])
+                fn (Builder $query) => $query
+                    ->join('employees as entitlement_employee', 'entitlement_employee.id', '=', 'entitlements.employee_id')
+                    ->join('employee_assignments as entitlement_scope_assignment', 'entitlement_scope_assignment.id', '=', 'entitlement_employee.current_assignment_id')
+                    ->whereIn('entitlement_scope_assignment.organization_id', $scope['organization_ids'])
             )
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] === [],
@@ -1050,8 +1146,14 @@ class DashboardMetricService
 
     public function feedbackQuery(array $scope): Builder
     {
+        return $this->publicSubmissionQuery($scope)
+            ->where('employee_service_feedback.type', 'feedback');
+    }
+
+    /** Public submissions of every type, confined to the viewer's organization scope. */
+    private function publicSubmissionQuery(array $scope): Builder
+    {
         return EmployeeServiceFeedback::query()
-            ->where('employee_service_feedback.type', 'feedback')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('employee_service_feedback.organization_id', $scope['organization_ids'])
@@ -1064,6 +1166,13 @@ class DashboardMetricService
                 $scope['provider_only'],
                 fn (Builder $query) => $query->whereRaw('1 = 0')
             );
+    }
+
+    /** Public Tip-offs (internal type `suggestion`) in the viewer's organization scope. */
+    public function tipOffQuery(array $scope): Builder
+    {
+        return $this->publicSubmissionQuery($scope)
+            ->where('employee_service_feedback.type', 'suggestion');
     }
 
     public function transferQuery(array $scope): Builder

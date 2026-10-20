@@ -8,7 +8,9 @@ use App\Enums\ApiScope;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\Access\Authorizable;
@@ -83,6 +85,8 @@ class ExternalApplication extends Model implements AuthenticatableContract
         'allowed_ips',
         'created_by',
         'last_used_at',
+        'organization_access',
+        'service_provider_id',
     ];
 
     protected function casts(): array
@@ -127,6 +131,26 @@ class ExternalApplication extends Model implements AuthenticatableContract
         }
 
         return in_array($ip, $allowed, true);
+    }
+
+    public const ACCESS_CITY = 'city';
+
+    public const ACCESS_SCOPED = 'scoped';
+
+    public const ACCESS_UNREVIEWED = 'unreviewed';
+
+    public const ORGANIZATION_ACCESS = [self::ACCESS_CITY, self::ACCESS_SCOPED, self::ACCESS_UNREVIEWED];
+
+    /** The organizations this application may read data of (F2); see organization_access. */
+    public function organizationScopes(): HasMany
+    {
+        return $this->hasMany(ExternalApplicationOrganizationScope::class);
+    }
+
+    /** The one service provider this application acts for on provider-service routes (F16). */
+    public function serviceProvider(): BelongsTo
+    {
+        return $this->belongsTo(ServiceProvider::class);
     }
 
     /** @return MorphMany<PersonalAccessToken, $this> */

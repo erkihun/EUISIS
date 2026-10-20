@@ -21,7 +21,7 @@ class ManpowerPlanLine extends Model
     protected $fillable = [
         'plan_id', 'organization_id', 'organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id',
         'methodology_id', 'methodology_version_no', 'standard_id', 'inputs', 'calculated_fte', 'recommended_headcount', 'approved_headcount',
-        'adjustment_reason', 'adjusted_by', 'calculation_trace', 'calculated_at', 'position_requirement_id', 'notes', 'sequence',
+        'adjustment_reason', 'adjustment_reference', 'adjusted_by', 'adjusted_at', 'calculation_trace', 'calculated_at', 'position_requirement_id', 'notes', 'sequence',
         'workload_source_type', 'workload_source_reference',
     ];
 
@@ -29,7 +29,7 @@ class ManpowerPlanLine extends Model
     {
         return [
             'inputs' => 'array', 'calculation_trace' => 'array', 'calculated_fte' => 'decimal:4', 'recommended_headcount' => 'integer', 'approved_headcount' => 'integer',
-            'methodology_version_no' => 'integer', 'sequence' => 'integer', 'calculated_at' => 'datetime',
+            'methodology_version_no' => 'integer', 'sequence' => 'integer', 'calculated_at' => 'datetime', 'adjusted_at' => 'datetime',
         ];
     }
 

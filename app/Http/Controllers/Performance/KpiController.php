@@ -66,7 +66,7 @@ class KpiController extends PerformanceController
                 'measurement_type' => $k->measurement_type->value, 'direction' => $k->direction->value, 'aggregation_method' => $k->aggregation_method->value,
                 'data_source_type' => $k->data_source_type->value, 'frequency' => $k->frequency->value,
                 'in_use' => in_array($k->getKey(), $inUse, true)]),
-            'filters' => ['search' => $search],
+            'filters' => ['search' => $search, 'active' => $request->query('active')],
             'options' => [
                 'measurement_types' => KpiMeasurementType::values(), 'directions' => KpiDirection::values(), 'aggregations' => KpiAggregation::values(),
                 'sources' => KpiDataSource::values(), 'frequencies' => KpiFrequency::values(), 'system_sources' => SystemKpiSourceRegistry::sources(),

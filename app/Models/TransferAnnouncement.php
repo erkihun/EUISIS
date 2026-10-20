@@ -39,8 +39,8 @@ class TransferAnnouncement extends Model
         return [
             'eligibility_rules' => 'array',
             'required_documents' => 'array',
-            'opening_date' => 'date',
-            'closing_date' => 'date',
+            'opening_date' => 'date:Y-m-d',
+            'closing_date' => 'date:Y-m-d',
             'published_at' => 'datetime',
             'salary_min' => 'decimal:2',
             'salary_max' => 'decimal:2',
@@ -89,13 +89,19 @@ class TransferAnnouncement extends Model
         return $this->number_of_vacancies ?? 0;
     }
 
+    /**
+     * Open from the first moment of the opening day to the last moment of the
+     * closing day, the same window the listings use (`whereDate(... >= today())`).
+     * Comparing the closing date's midnight with now() shut applications on the
+     * morning of the closing day while the announcement was still listed.
+     */
     public function isAcceptingApplications(): bool
     {
         return $this->status === TransferAnnouncementStatus::Published
             && $this->opening_date !== null
             && $this->closing_date !== null
-            && $this->opening_date->lte(now())
-            && $this->closing_date->gte(now());
+            && $this->opening_date->lte(today())
+            && $this->closing_date->gte(today());
     }
 
     public function scopePublished(Builder $query): void

@@ -63,6 +63,7 @@ final class PerformanceCalibrationService
 
         $session = new PerformanceCalibrationSession([...$data, 'cycle_id' => $cycle->getKey(), 'created_by' => $actor->getKey()]);
         $session->forceFill(['status' => CalibrationStatus::Draft])->save();
+        $this->audit->record(AuditEventType::PerformanceCalibrated, $actor, $session, ['session_created' => true, 'committee_id' => $session->committee_id]);
 
         return $session;
     }
@@ -85,6 +86,7 @@ final class PerformanceCalibrationService
             $added++;
         }
         $session->forceFill(['status' => CalibrationStatus::InProgress])->save();
+        $this->audit->record(AuditEventType::PerformanceCalibrated, $actor, $session, ['added_results' => $added]);
 
         return $added;
     }
@@ -93,7 +95,9 @@ final class PerformanceCalibrationService
     {
         $session = $item->session;
         $member = $this->access->isCommitteeMember($actor, $session->committee);
-        $this->access->authorize($actor->can('performance_calibration.manage') && ($member || $session->committee_id === null && $this->access->inScope($actor, 'performance_calibration.manage', $session->organization_id)));
+        // Nobody calibrates their own result, committee member or not.
+        $own = $this->access->employeeOf($actor)?->getKey() === $item->employee_id;
+        $this->access->authorize(! $own && $actor->can('performance_calibration.manage') && ($member || $session->committee_id === null && $this->access->inScope($actor, 'performance_calibration.manage', $session->organization_id)));
         if ($session->status === CalibrationStatus::Finalized) {
             throw ValidationException::withMessages(['session' => __('performance.errors.session_final')]);
         }
@@ -121,6 +125,8 @@ final class PerformanceCalibrationService
         if ($items->isEmpty()) {
             throw ValidationException::withMessages(['session' => __('performance.errors.session_empty')]);
         }
+        $actorEmployeeId = $this->access->employeeOf($actor)?->getKey();
+        $this->access->authorize($actorEmployeeId === null || $items->doesntContain(fn (PerformanceCalibrationItem $i) => $i->employee_id === $actorEmployeeId));
 
         return DB::transaction(function () use ($session, $items, $actor): PerformanceCalibrationSession {
             foreach ($items as $item) {
@@ -129,13 +135,19 @@ final class PerformanceCalibrationService
                 if (PerformanceResultService::isFinal($result)) {
                     continue;
                 }
-                // Undecided = confirmed as it stood.
-                $calibrated = $item->calibrated_score ?? $item->manager_score;
-                $item->forceFill(['calibrated_score' => $calibrated, 'decided_by' => $item->decided_by ?? $actor->getKey(), 'decided_at' => $item->decided_at ?? now()])->save();
+                // A result may have been recalculated since it was added: the score in
+                // force now is the "before" value, and an undecided item confirms it.
+                $before = $result->final_score;
+                $calibrated = $item->calibrated_score ?? $before;
+                $item->forceFill(['manager_score' => $before, 'calibrated_score' => $calibrated, 'decided_by' => $item->decided_by ?? $actor->getKey(), 'decided_at' => $item->decided_at ?? now()])->save();
+
+                // Calibration finalizes the result, so it must meet the same conditions
+                // as a direct finalization (completed reviews, rated competencies, no pending adjustment).
+                $this->results->assertReadyForFinalization($result);
 
                 $result->adjustments()->create([
                     'adjustment_type' => 'CALIBRATION',
-                    'original_score' => $item->manager_score,
+                    'original_score' => $before,
                     'adjusted_score' => $calibrated,
                     'reason' => $item->reason ?? 'confirmed at calibration',
                     'requested_by' => $item->decided_by,
@@ -152,7 +164,7 @@ final class PerformanceCalibrationService
                 ])->save();
 
                 $this->results->freeze($result, $actor, [
-                    'session_id' => $session->getKey(), 'manager_score' => (string) $item->manager_score, 'calibrated_score' => (string) $calibrated, 'reason' => $item->reason,
+                    'session_id' => $session->getKey(), 'manager_score' => (string) $before, 'calibrated_score' => (string) $calibrated, 'reason' => $item->reason,
                 ]);
             }
 

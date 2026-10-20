@@ -39,7 +39,7 @@ const fieldCls = `${filterInputCls} w-full`;
 function Row({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
     return (
         <label className="block">
-            <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
+            <span className="mb-1 block text-sm font-medium text-(--app-foreground)">{label}</span>
             {children}
             <FieldError className="mt-1">{error}</FieldError>
         </label>
@@ -103,7 +103,7 @@ export default function NfcTerminalForm({
 
             <form
                 onSubmit={submit}
-                className="max-w-3xl rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5"
+                className="max-w-3xl rounded-panel border border-(--app-border) bg-(--app-surface) p-5"
             >
                 <div className="grid gap-4 sm:grid-cols-2">
                     <Row label={t('nfc.terminalCode')} error={form.errors.terminal_code}>
@@ -237,7 +237,7 @@ export default function NfcTerminalForm({
                             className={fieldCls}
                             placeholder={terminal?.certificate_fingerprint ?? ''}
                         />
-                        <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="mt-1 block text-xs text-(--app-muted-foreground)">
                             {t('nfc.certificateHint')}
                         </span>
                     </Row>

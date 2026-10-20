@@ -831,7 +831,7 @@ class PositionController extends Controller
 
         $action->execute($position, $request->user(), $request->string('reason')->toString() ?: null, $request);
 
-        return to_route('positions.index')->with('flash', ['message' => __('recycle-bin.deleted_successfully'), 'type' => 'success']);
+        return to_route('positions.index')->with('flash', ['message' => __('recycle-bin.archived_successfully'), 'type' => 'success']);
     }
 
     public function approveEstablishment(
@@ -851,7 +851,10 @@ class PositionController extends Controller
 
         if ($establishment === null) {
             $establishment = PositionEstablishment::create([
-                'establishment_number' => 'EST-'.now()->format('Ym').'-'.strtoupper(substr(str_replace('-', '', $position->id), 0, 6)),
+                // The id's random tail: its head is a timestamp (UUIDv7), so positions
+                // created close together shared it and the second approval of the month
+                // hit the unique index.
+                'establishment_number' => 'EST-'.now()->format('Ym').'-'.strtoupper(substr(str_replace('-', '', $position->id), -10)),
                 'organization_id' => $position->organization_id,
                 'organization_unit_id' => $position->organization_unit_id,
                 'position_id' => $position->id,

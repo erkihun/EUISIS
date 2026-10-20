@@ -20,7 +20,7 @@ export default function AppealsIndex({ appeals }: { appeals: Paginator<AppealRow
                 <Section title={t('performance.appeals.title')}>
                     {appeals.data.length === 0 ? <Empty>{t('performance.appeals.empty')}</Empty> : (
                         <Table head={<>
-                            <th className={thCls}>#</th>
+                            <th className={thCls}>{t('performance.reports.columns.appeal_no')}</th>
                             <th className={thCls}>{t('performance.fields.employee')}</th>
                             <th className={thCls}>{t('performance.fields.score')}</th>
                             <th className={thCls}>{t('performance.fields.status')}</th>
@@ -28,9 +28,9 @@ export default function AppealsIndex({ appeals }: { appeals: Paginator<AppealRow
                         </>}>
                             {appeals.data.map((a) => (
                                 <tr key={a.id}>
-                                    <td className={tdCls}><Link href={route('performance.appeals.show', a.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{a.appeal_no}</Link></td>
-                                    <td className={tdCls}>{employeeName(a.employee, locale)}<p className="text-xs text-[color:var(--app-muted-foreground)]">{a.employee.number}</p></td>
-                                    <td className={`${tdCls} tabular-nums`}>{formatScore(a.result?.final_score)} <span className="text-xs text-[color:var(--app-muted-foreground)]">{(locale === 'am' && a.result?.rating_am) || a.result?.rating_en}</span></td>
+                                    <td className={tdCls}><Link href={route('performance.appeals.show', a.id)} className="font-medium text-primary hover:underline">{a.appeal_no}</Link></td>
+                                    <td className={tdCls}>{employeeName(a.employee, locale)}<p className="text-xs text-(--app-muted-foreground)">{a.employee.number}</p></td>
+                                    <td className={`${tdCls} tabular-nums`}>{formatScore(a.result?.final_score)} <span className="text-xs text-(--app-muted-foreground)">{(locale === 'am' && a.result?.rating_am) || a.result?.rating_en}</span></td>
                                     <td className={tdCls}><Pill group="appeal" value={a.status} />{a.decision && <> <Pill group="decision" value={a.decision} /></>}</td>
                                     <td className={`${tdCls} text-xs`}><LocalizedDateDisplay value={a.submitted_at} withTime /></td>
                                 </tr>

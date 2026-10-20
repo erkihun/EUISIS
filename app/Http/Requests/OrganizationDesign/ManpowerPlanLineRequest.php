@@ -39,6 +39,7 @@ class ManpowerPlanLineRequest extends FormRequest
             'inputs.*' => ['nullable', 'string', 'max:40', 'regex:/^-?\d+(\.\d+)?$/'],
             'approved_headcount' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'adjustment_reason' => ['nullable', 'string', 'max:2000'],
+            'adjustment_reference' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'workload_source_type' => ['nullable', Rule::in(WorkloadSourceType::values())],
             'workload_source_reference' => ['nullable', 'string', 'max:255'],

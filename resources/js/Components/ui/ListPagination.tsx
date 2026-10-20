@@ -43,7 +43,7 @@ export default function ListPagination({ meta, onPageChange, disabled = false, l
             onPageChange={goTo}
             disabled={disabled}
             label={label}
-            className={cx(!bare && 'border-t border-[color:var(--app-border)] px-4 py-3', className)}
+            className={cx(!bare && 'border-t border-(--app-border) px-4 py-3', className)}
         />
     );
 }

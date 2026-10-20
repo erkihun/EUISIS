@@ -24,4 +24,13 @@ export type PageProps<
         mode: CalendarMode;
     };
     locale?: string;
+    richText?: { licenseKey: string } | null;
+    /** Shared by HandleInertiaRequests: whether the Addis One Assistant trigger renders. */
+    assistant?: {
+        enabled: boolean;
+    };
+    /** Shared on public pages: whether the Addis One Help trigger renders. */
+    publicAssistant?: {
+        enabled: boolean;
+    };
 };

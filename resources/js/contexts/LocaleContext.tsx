@@ -46,13 +46,30 @@ export const LocaleContext = createContext<LocaleContextValue>({
 type LocaleProviderProps = {
     children: ReactNode;
     defaultLocale?: Locale;
+    /** The language the server wrote the first page in; absent on error pages rendered without shared props. */
+    serverLocale?: Locale;
 };
 
-export function LocaleProvider({ children, defaultLocale = 'am' }: LocaleProviderProps) {
+export function LocaleProvider({ children, defaultLocale = 'am', serverLocale }: LocaleProviderProps) {
     const [locale, setLocaleState] = useState<Locale>(() => resolveInitialLocale() ?? defaultLocale);
 
     const current = useRef(locale);
     useEffect(() => { current.current = locale; }, [locale]);
+
+    /*
+     * A first visit (a scanned QR, say) reaches the server before this browser's
+     * choice is in the cookie, so the server writes its own text — questions,
+     * categories, names, messages — in its default language while the screen
+     * shows another. Once the cookie is set, fetch that text again, once.
+     */
+    useEffect(() => {
+        if (serverLocale !== undefined && serverLocale !== current.current) {
+            shareWithServer(current.current);
+            router.reload();
+        }
+        // Only the first page can disagree; later visits carry the cookie.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const setLocale = useCallback((next: Locale) => {
         // The other language's dictionary is fetched on first use; the switch

@@ -3,9 +3,9 @@ import { Inbox } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
 import ListPagination from '@/Components/ui/ListPagination';
-import type { ReactNode } from 'react';
+import { cloneElement, isValidElement, useId, type ReactNode } from 'react';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, textareaClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 export { fill } from '@/Components/dailyActivity/helpers';
 export { AppFilterBar, FilterField, filterInputCls } from '@/Components/ui';
 
@@ -19,8 +19,10 @@ export { AppFilterBar, FilterField, filterInputCls } from '@/Components/ui';
 // ── Controls ──────────────────────────────────────────────────────────────────
 
 export const inputCls = cx(inputClassName, 'w-full');
+/** Multi-line control: `inputCls` has a fixed control height, which would cut a textarea down to one line. */
+export const textareaCls = cx(textareaClassName, 'w-full');
 export const compactInputCls = inputClassName;
-export const labelCls = 'mb-1 block text-sm font-medium text-[color:var(--app-foreground)]';
+export const labelCls = 'mb-1 block text-sm font-medium text-(--app-foreground)';
 
 export const primaryBtn = buttonClassName({ variant: 'primary' });
 export const secondaryBtn = buttonClassName({ variant: 'outline' });
@@ -30,10 +32,10 @@ export const smallBtn = buttonClassName({ variant: 'outline', size: 'sm' });
 /** Save button of an inline (in-table or in-card) form. */
 export const smallPrimaryBtn = buttonClassName({ variant: 'primary', size: 'sm' });
 /** Row actions, as on the admin tables: plain text links. */
-export const linkBtn = 'text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] disabled:opacity-50';
+export const linkBtn = 'text-xs font-medium text-primary hover:text-primary-hover disabled:opacity-50';
 export const dangerLinkBtn = 'text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300';
 
-export const panelCls = 'rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
+export const panelCls = 'rounded-panel border border-(--app-border) bg-(--app-surface)';
 /** The one content wrapper for EPMS pages (full width, like every admin page). */
 export const pageCls = 'min-w-0 space-y-4';
 
@@ -121,8 +123,8 @@ export function Section({ title, description, actions, children, className = '',
         <section className={`${panelCls} ${flush ? 'overflow-hidden' : ''} ${className}`}>
             <div className={`flex flex-wrap items-start justify-between gap-3 px-5 pt-5 ${flush ? 'pb-4' : ''}`}>
                 <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>
-                    {description && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>}
+                    <h3 className="text-sm font-semibold text-(--app-foreground)">{title}</h3>
+                    {description && <p className="mt-1 text-xs text-(--app-muted-foreground)">{description}</p>}
                 </div>
                 {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
             </div>
@@ -138,8 +140,8 @@ export function Details({ items, columns = 4 }: { items: [label: string, value: 
         <dl className={`grid gap-4 ${grid}`}>
             {items.map(([label, value]) => (
                 <div key={label} className="min-w-0">
-                    <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-                    <dd className="mt-0.5 break-words text-sm text-[color:var(--app-foreground)]">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+                    <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+                    <dd className="mt-0.5 wrap-break-word text-sm text-(--app-foreground)">{value === null || value === undefined || value === '' ? '—' : value}</dd>
                 </div>
             ))}
         </dl>
@@ -150,12 +152,22 @@ export function FieldError({ message }: { message?: string }) {
     return message ? <p className="mt-1 text-xs text-red-600 dark:text-red-400">{message}</p> : null;
 }
 
+const LABELLABLE = new Set(['input', 'select', 'textarea']);
+
+/**
+ * Label + control. With one native input/select/textarea as the child and no
+ * `htmlFor`, the control gets a generated id so the label is announced by
+ * screen readers and clicking it focuses the control.
+ */
 export function Field({ label, htmlFor, error, help, children, className = '' }: { label: string; htmlFor?: string; error?: string; help?: string; children: ReactNode; className?: string }) {
+    const autoId = useId();
+    const single = !htmlFor && isValidElement<{ id?: string }>(children) && typeof children.type === 'string' && LABELLABLE.has(children.type) ? children : null;
+    const controlId = htmlFor ?? (single ? (single.props.id ?? autoId) : undefined);
     return (
         <div className={className}>
-            <label htmlFor={htmlFor} className={labelCls}>{label}</label>
-            {children}
-            {help && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{help}</p>}
+            <label htmlFor={controlId} className={labelCls}>{label}</label>
+            {single && !single.props.id ? cloneElement(single, { id: controlId }) : children}
+            {help && <p className="mt-1 text-xs text-(--app-muted-foreground)">{help}</p>}
             <FieldError message={error} />
         </div>
     );
@@ -190,7 +202,7 @@ export const tdCls = cx(tableCellClassName, 'align-top');
  */
 export function Table({ head, children, framed = false }: { head: ReactNode; children: ReactNode; framed?: boolean }) {
     return (
-        <div className={`overflow-x-auto ${framed ? 'rounded-lg border border-[color:var(--app-border)]' : ''}`}>
+        <div className={`overflow-x-auto ${framed ? 'rounded-lg border border-(--app-border)' : ''}`}>
             <table className={tableCls}>
                 <thead className={tableHeadClassName}><tr>{head}</tr></thead>
                 <tbody className={tableBodyClassName}>{children}</tbody>
@@ -222,12 +234,12 @@ export function Stat({ label, value, suffix = '', hint }: { label: string; value
     const { t } = useLocale();
     const missing = value === null || value === undefined || value === '';
     return (
-        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-            <p className="truncate text-sm font-medium text-[color:var(--app-muted-foreground)]">{label}</p>
-            <p className={`mt-2 ${missing ? 'text-sm text-[color:var(--app-muted-foreground)]' : 'text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]'}`}>
+        <div className="rounded-card border border-(--app-border) bg-(--app-surface) p-5">
+            <p className="truncate text-sm font-medium text-(--app-muted-foreground)">{label}</p>
+            <p className={`mt-2 ${missing ? 'text-sm text-(--app-muted-foreground)' : 'text-2xl font-semibold tabular-nums text-(--app-foreground)'}`}>
                 {missing ? t('performance.notCalculated') : `${formatScore(value)}${suffix}`}
             </p>
-            {hint && <div className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{hint}</div>}
+            {hint && <div className="mt-1 text-xs text-(--app-muted-foreground)">{hint}</div>}
         </div>
     );
 }
@@ -238,7 +250,7 @@ export function Bar({ value }: { value: string | number | null | undefined }) {
     const width = n === null ? 0 : Math.max(0, Math.min(100, n));
     const tone = n === null ? 'bg-gray-300 dark:bg-slate-700' : n >= 80 ? 'bg-emerald-500' : n >= 60 ? 'bg-amber-500' : 'bg-red-500';
     return (
-        <div className="h-1.5 w-full rounded-full bg-[color:var(--app-surface-muted)]" role="presentation">
+        <div className="h-1.5 w-full rounded-full bg-(--app-surface-muted)" role="presentation">
             <div className={`h-1.5 rounded-full ${tone}`} style={{ width: `${width}%` }} />
         </div>
     );
@@ -307,14 +319,14 @@ export function ScoreTraceView({ trace }: { trace: ScoreTrace | null | undefined
                     <tr key={row.item_id}>
                         <td className={tdCls}>
                             <p className="font-medium">{row.kpi_code} — {(locale === 'am' && row.kpi_name_am) || row.kpi_name_en}</p>
-                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('direction', row.direction)} · {label('source', row.data_source)}{row.aggregation?.method ? ` · ${label('aggregation', row.aggregation.method)}` : ''}</p>
-                            {row.achievement_formula && <p className="mt-0.5 font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{row.achievement_formula}</p>}
+                            <p className="text-xs text-(--app-muted-foreground)">{label('direction', row.direction)} · {label('source', row.data_source)}{row.aggregation?.method ? ` · ${label('aggregation', row.aggregation.method)}` : ''}</p>
+                            {row.achievement_formula && <p className="mt-0.5 font-mono text-[11px] text-(--app-muted-foreground)">{row.achievement_formula}</p>}
                         </td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(row.target)}</td>
-                        <td className={`${tdCls} tabular-nums`}>{row.actual === null ? <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.notReported')}</span> : formatScore(row.actual)}</td>
+                        <td className={`${tdCls} tabular-nums`}>{row.actual === null ? <span className="text-xs text-(--app-muted-foreground)">{t('performance.notReported')}</span> : formatScore(row.actual)}</td>
                         <td className={`${tdCls} tabular-nums`}>
                             {row.achievement === null ? '—' : `${formatScore(row.achievement)}%`}
-                            {row.capped && <span className="block text-[11px] text-[color:var(--app-muted-foreground)]">({formatScore(row.raw_achievement)}% → {formatScore(row.cap)}%)</span>}
+                            {row.capped && <span className="block text-[11px] text-(--app-muted-foreground)">({formatScore(row.raw_achievement)}% → {formatScore(row.cap)}%)</span>}
                         </td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(row.weight)}%</td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(row.weighted)}</td>
@@ -341,22 +353,22 @@ export function ScoreTraceView({ trace }: { trace: ScoreTrace | null | undefined
             )}
 
             <dl className="grid gap-2 text-sm sm:grid-cols-3">
-                <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-3">
-                    <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.result.results')} × {formatScore(trace.results_weight)}%</dt>
+                <div className="rounded-lg bg-(--app-surface-muted) p-3">
+                    <dt className="text-xs text-(--app-muted-foreground)">{t('performance.result.results')} × {formatScore(trace.results_weight)}%</dt>
                     <dd className="tabular-nums">{formatScore(trace.results_score)} → {formatScore(trace.results_contribution)}</dd>
                 </div>
-                <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-3">
-                    <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.result.competency')} × {formatScore(trace.competency_weight)}%</dt>
+                <div className="rounded-lg bg-(--app-surface-muted) p-3">
+                    <dt className="text-xs text-(--app-muted-foreground)">{t('performance.result.competency')} × {formatScore(trace.competency_weight)}%</dt>
                     <dd className="tabular-nums">{formatScore(trace.competency_score)} → {formatScore(trace.competency_contribution)}</dd>
                 </div>
-                <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-3">
-                    <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.result.final')}</dt>
+                <div className="rounded-lg bg-(--app-surface-muted) p-3">
+                    <dt className="text-xs text-(--app-muted-foreground)">{t('performance.result.final')}</dt>
                     <dd className="font-semibold tabular-nums">{formatScore(trace.final_score)} {trace.rating && <span className="font-normal">· {(locale === 'am' && trace.rating.label_am) || trace.rating.label_en}</span>}</dd>
                 </div>
             </dl>
 
             {trace.formula && (
-                <details className="text-xs text-[color:var(--app-muted-foreground)]">
+                <details className="text-xs text-(--app-muted-foreground)">
                     <summary className="cursor-pointer font-medium">{t('performance.result.formula')}</summary>
                     <ul className="mt-1 space-y-0.5 font-mono">{Object.entries(trace.formula).map(([k, v]) => <li key={k}>{k}: {v}</li>)}</ul>
                 </details>

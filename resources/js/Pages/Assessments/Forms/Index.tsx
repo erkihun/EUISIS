@@ -66,11 +66,11 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                             ['configureTitle', 'configureHelp'],
                             ['publishTitle', 'publishHelp'],
                         ] as const).map(([title, help], index) => (
-                            <li key={title} className="flex gap-3 rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-3">
-                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-xs font-semibold text-white">{index + 1}</span>
+                            <li key={title} className="flex gap-3 rounded-lg border border-(--app-border) bg-(--app-surface-muted) p-3">
+                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">{index + 1}</span>
                                 <div>
-                                    <p className="text-sm font-medium text-[color:var(--app-foreground)]">{t(`assessments.workflow.${title}`)}</p>
-                                    <p className="mt-0.5 text-xs leading-5 text-[color:var(--app-muted-foreground)]">{t(`assessments.workflow.${help}`)}</p>
+                                    <p className="text-sm font-medium text-(--app-foreground)">{t(`assessments.workflow.${title}`)}</p>
+                                    <p className="mt-0.5 text-xs leading-5 text-(--app-muted-foreground)">{t(`assessments.workflow.${help}`)}</p>
                                 </div>
                             </li>
                         ))}
@@ -131,8 +131,8 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                 </AppFilterBar>
 
                 <div>
-                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('assessments.formsListTitle')}</h2>
-                    <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.formsListHelp')}</p>
+                    <h2 className="text-sm font-semibold text-(--app-foreground)">{t('assessments.formsListTitle')}</h2>
+                    <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('assessments.formsListHelp')}</p>
                 </div>
 
                 <TablePanel page={forms} empty={t('assessments.empty')}>
@@ -151,15 +151,15 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                             <tr key={row.id} className={tableRowClassName}>
                                 <td className={`${tdCls} font-mono text-xs`}>{row.code}</td>
                                 <td className={tdCls}>
-                                    <p className="font-medium text-[color:var(--app-foreground)]">{nameOf(row, locale)}</p>
-                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{row.organization ? nameOf(row.organization, locale) : t('assessments.cityWide')}</p>
+                                    <p className="font-medium text-(--app-foreground)">{nameOf(row, locale)}</p>
+                                    <p className="text-xs text-(--app-muted-foreground)">{row.organization ? nameOf(row.organization, locale) : t('assessments.cityWide')}</p>
                                 </td>
                                 <td className={tdCls}>{row.type ? nameOf(row.type, locale) : '—'}</td>
                                 <td className={tdCls}>
-                                    <p className="font-medium text-[color:var(--app-foreground)]">
+                                    <p className="font-medium text-(--app-foreground)">
                                         {row.current_version ? `${t('assessments.versionStatuses.published')} v${row.current_version}` : t('assessments.notPublished')}
                                     </p>
-                                    <p className={row.has_draft ? 'mt-0.5 text-xs font-medium text-amber-700 dark:text-amber-300' : 'mt-0.5 text-xs text-[color:var(--app-muted-foreground)]'}>
+                                    <p className={row.has_draft ? 'mt-0.5 text-xs font-medium text-amber-700 dark:text-amber-300' : 'mt-0.5 text-xs text-(--app-muted-foreground)'}>
                                         {row.has_draft ? t('assessments.draftReady') : row.current_version ? t('assessments.publishedReady') : '—'}
                                     </p>
                                 </td>

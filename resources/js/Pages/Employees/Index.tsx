@@ -58,6 +58,8 @@ type EmployeesPagination = {
     last_page: number;
     per_page: number;
     total: number;
+    /** More matches than the deepest page shows: ask for a search or filter. */
+    page_limit_reached?: boolean;
 };
 
 type SortColumn = 'full_name' | 'employee_number' | 'employment_type' | 'status' | 'created_at';
@@ -245,7 +247,7 @@ export default function EmployeesIndex({
                                     onClick={() => toast.error(t('employees.positionOccupiedCannotCreate'))}
                                     title={t('employees.positionOccupiedCannotCreate')}
                                     aria-disabled="true"
-                                    className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-300 px-3 py-2 text-sm font-medium text-[color:var(--app-muted-foreground)] dark:bg-slate-700"
+                                    className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg bg-gray-300 px-3 py-2 text-sm font-medium text-(--app-muted-foreground) dark:bg-slate-700"
                                 >
                                     <Plus className="h-4 w-4" />
                                     {t('employees.addNewEmployee')}
@@ -336,8 +338,8 @@ export default function EmployeesIndex({
                 </FilterPanel>
 
                 <section aria-busy={loading} className={cx(tableContainerClassName, 'min-w-0')}>
-                    <div className="border-b border-[color:var(--app-border)] px-4 py-3">
-                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('employees.registryTitle')}</h2>
+                    <div className="border-b border-(--app-border) px-4 py-3">
+                        <h2 className="text-sm font-semibold text-(--app-foreground)">{t('employees.registryTitle')}</h2>
                     </div>
                     {employees.length === 0 ? (
                         <EmptyState title={t('employees.noEmployeesFound')} description={t('employees.searchFiltersHint')} />
@@ -356,14 +358,14 @@ export default function EmployeesIndex({
                                                     key={`${column.label}-${index}`}
                                                     scope="col"
                                                     aria-sort={isSorted ? (sort.direction === 'asc' ? 'ascending' : 'descending') : undefined}
-                                                    className={`px-4 py-2.5 text-xs font-semibold text-[color:var(--app-muted-foreground)] ${column.align ?? ''}`}
+                                                    className={`px-4 py-2.5 text-xs font-semibold text-(--app-muted-foreground) ${column.align ?? ''}`}
                                                 >
                                                     {column.sort ? (
                                                         <button
                                                             type="button"
                                                             onClick={() => toggleSort(column.sort as SortColumn)}
                                                             title={t('employees.sortByColumn').replace(':column', column.label)}
-                                                            className="inline-flex items-center gap-1 rounded-control font-semibold hover:text-[color:var(--app-foreground)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
+                                                            className="inline-flex items-center gap-1 rounded-control font-semibold hover:text-(--app-foreground) focus:outline-hidden focus:ring-2 focus:ring-primary"
                                                         >
                                                             {column.label}
                                                             {isSorted ? (
@@ -371,7 +373,7 @@ export default function EmployeesIndex({
                                                                     ? <ChevronUp className="h-3 w-3" aria-hidden="true" />
                                                                     : <ChevronDown className="h-3 w-3" aria-hidden="true" />
                                                             ) : (
-                                                                <ChevronUpDown className="h-3 w-3 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                                                                <ChevronUpDown className="h-3 w-3 text-(--app-muted-foreground)" aria-hidden="true" />
                                                             )}
                                                             <span className="sr-only">
                                                                 {isSorted
@@ -397,34 +399,34 @@ export default function EmployeesIndex({
                                                 <td className={cx(tableCellClassName, 'whitespace-nowrap')}>
                                                     <Link
                                                         href={route('employees.show', employee.id)}
-                                                        className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                                                        className="font-medium text-primary hover:text-primary-hover dark:text-primary"
                                                     >
                                                         {employee.employee_number}
                                                     </Link>
                                                 </td>
                                                 <td className={tableCellClassName}>
-                                                    <div className="flex min-w-[14rem] items-center gap-3">
+                                                    <div className="flex min-w-56 items-center gap-3">
                                                         {employee.photo_url ? (
                                                             <img src={employee.photo_url} alt="" loading="lazy" className="h-9 w-8 rounded-control object-cover" />
                                                         ) : (
-                                                            <span className="flex h-9 w-8 items-center justify-center rounded-control bg-[color:var(--app-surface-muted)] text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                                                            <span className="flex h-9 w-8 items-center justify-center rounded-control bg-(--app-surface-muted) text-xs font-semibold text-(--app-muted-foreground)">
                                                                 {employeeName(employee).charAt(0).toUpperCase()}
                                                             </span>
                                                         )}
                                                         <div className="min-w-0">
-                                                            <p className="truncate font-medium text-[color:var(--app-foreground)]">{employeeName(employee)}</p>
-                                                            <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{contact}</p>
+                                                            <p className="truncate font-medium text-(--app-foreground)">{employeeName(employee)}</p>
+                                                            <p className="truncate text-xs text-(--app-muted-foreground)">{contact}</p>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 {showOrganizationColumn && (
-                                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                                         {assignment?.organization
                                                             ? organizationName(assignment.organization.name_en, assignment.organization.name_am)
                                                             : t('common.unassigned')}
                                                     </td>
                                                 )}
-                                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                                     {assignment?.organization_unit ? (
                                                         <>
                                                             {assignment.organization_unit.code ? `${assignment.organization_unit.code} - ` : ''}
@@ -434,7 +436,7 @@ export default function EmployeesIndex({
                                                         t('common.unassigned')
                                                     )}
                                                 </td>
-                                                <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
+                                                <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>
                                                     {assignment?.position ? (
                                                         <>
                                                             {assignment.position.job_position_code ? `${assignment.position.job_position_code} - ` : ''}
@@ -446,12 +448,12 @@ export default function EmployeesIndex({
                                                 </td>
                                                 <td className={tableCellClassName}>
                                                     <div className="space-y-1">
-                                                        <p className="text-[color:var(--app-foreground)]">
+                                                        <p className="text-(--app-foreground)">
                                                             {employee.employment_type
                                                                 ? t(`employees.employmentType_${employee.employment_type}`)
                                                                 : t('employees.notAvailable')}
                                                         </p>
-                                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                        <p className="text-xs text-(--app-muted-foreground)">
                                                             {assignment?.assignment_status ? statusLabel(assignment.assignment_status) ?? assignment.assignment_status : t('common.unassigned')}
                                                         </p>
                                                     </div>
@@ -476,7 +478,7 @@ export default function EmployeesIndex({
                                                             <span className="sr-only">{t('employees.duplicateFlagsTooltip')}</span>
                                                         </span>
                                                     ) : (
-                                                        <span className="text-[color:var(--app-muted-foreground)]">{t('common.none')}</span>
+                                                        <span className="text-(--app-muted-foreground)">{t('common.none')}</span>
                                                     )}
                                                 </td>
                                                 <td className={cx(tableCellClassName, 'whitespace-nowrap text-right')}>
@@ -502,7 +504,7 @@ export default function EmployeesIndex({
                           * empty panel on every phone. Each card carries the same
                           * identity, placement and status the row does.
                           */}
-                        <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
+                        <ul className="divide-y divide-(--app-border) md:hidden">
                             {employees.map((employee) => {
                                 const assignment = employee.current_assignment;
                                 const contact = employee.phone ?? employee.email ?? t('employees.notAvailable');
@@ -517,29 +519,29 @@ export default function EmployeesIndex({
                                     <li key={employee.id}>
                                         <Link
                                             href={route('employees.show', employee.id)}
-                                            className="block p-4 hover:bg-[color:var(--app-surface-muted)]"
+                                            className="block p-4 hover:bg-(--app-surface-muted)"
                                         >
                                             <div className="flex items-start gap-3">
                                                 {employee.photo_url ? (
                                                     <img src={employee.photo_url} alt="" loading="lazy" className="h-11 w-10 shrink-0 rounded-control object-cover" />
                                                 ) : (
-                                                    <span className="flex h-11 w-10 shrink-0 items-center justify-center rounded-control bg-[color:var(--app-surface-muted)] text-sm font-semibold text-[color:var(--app-muted-foreground)]">
+                                                    <span className="flex h-11 w-10 shrink-0 items-center justify-center rounded-control bg-(--app-surface-muted) text-sm font-semibold text-(--app-muted-foreground)">
                                                         {employeeName(employee).charAt(0).toUpperCase()}
                                                     </span>
                                                 )}
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-start justify-between gap-2">
-                                                        <p className="truncate font-medium text-[color:var(--app-foreground)]">{employeeName(employee)}</p>
+                                                        <p className="truncate font-medium text-(--app-foreground)">{employeeName(employee)}</p>
                                                         <StatusBadge status={employee.status} label={statusLabel(employee.status)} />
                                                     </div>
-                                                    <p className="truncate font-mono text-xs text-[color:var(--app-muted-foreground)]">{employee.employee_number}</p>
-                                                    <p className="mt-1 truncate text-xs text-[color:var(--app-muted-foreground)]">{position}</p>
-                                                    <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <p className="truncate font-mono text-xs text-(--app-muted-foreground)">{employee.employee_number}</p>
+                                                    <p className="mt-1 truncate text-xs text-(--app-muted-foreground)">{position}</p>
+                                                    <p className="truncate text-xs text-(--app-muted-foreground)">
                                                         {showOrganizationColumn && assignment?.organization
                                                             ? `${organizationName(assignment.organization.name_en, assignment.organization.name_am)} · ${unit}`
                                                             : unit}
                                                     </p>
-                                                    <p className="mt-1 truncate text-xs text-[color:var(--app-muted-foreground)]">{contact}</p>
+                                                    <p className="mt-1 truncate text-xs text-(--app-muted-foreground)">{contact}</p>
                                                     {(employee.duplicate_flags_count ?? 0) > 0 && (
                                                         <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                                                             <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
@@ -557,6 +559,9 @@ export default function EmployeesIndex({
                         </>
                     )}
                     <ListPagination meta={employees_pagination} label={t('employees.registryPagination')} disabled={loading || filtersChanged} onPageChange={goToPage} />
+                    {employees_pagination?.page_limit_reached && (
+                        <p className="px-4 pb-4 text-sm text-muted-foreground">{t('employees.registryPageLimit')}</p>
+                    )}
                 </section>
             </div>
         </AuthenticatedLayout>

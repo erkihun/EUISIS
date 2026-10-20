@@ -2,15 +2,15 @@
 
 return (static function (): array {
     $actions = [
-        'view_status' => ['View backup health', 'የምትኬ ሁኔታ ይመልከቱ'],
-        'view_history' => ['View backup history', 'የምትኬ ታሪክ ይመልከቱ'],
+        'view_status' => ['View backup health', 'የባካፕ ሁኔታ ይመልከቱ'],
+        'view_history' => ['View backup history', 'የባካፕ ታሪክ ይመልከቱ'],
         'run' => ['Record operator recovery execution', 'የመልሶ ማግኛ አፈጻጸም ይመዝግቡ'],
-        'verify' => ['Backup verification oversight', 'የምትኬ ማረጋገጫ ክትትል'],
+        'verify' => ['Backup verification oversight', 'የባካፕ ማረጋገጫ ክትትል'],
         'restore_request' => ['Request database recovery', 'የውሂብ መልሶ ማግኛ ይጠይቁ'],
         'restore_review' => ['Review recovery evidence', 'የመልሶ ማግኛ ማስረጃ ይገምግሙ'],
         'restore_approve' => ['Approve recovery requests', 'የመልሶ ማግኛ ጥያቄዎችን ያጽድቁ'],
-        'manage_policy' => ['Backup policy oversight', 'የምትኬ ፖሊሲ ክትትል'],
-        'view_logs' => ['Receive backup operational alerts', 'የምትኬ ማስጠንቀቂያዎችን ይቀበሉ'],
+        'manage_policy' => ['Backup policy oversight', 'የባካፕ ፖሊሲ ክትትል'],
+        'view_logs' => ['Receive backup operational alerts', 'የባካፕ ማስጠንቀቂያዎችን ይቀበሉ'],
     ];
     $entries = [];
     foreach ($actions as $action => [$en, $am]) {

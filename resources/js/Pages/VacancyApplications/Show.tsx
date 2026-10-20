@@ -81,7 +81,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
     };
 
     const inputCls = cx(inputClassName, 'mt-1 block w-full');
-    const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+    const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 
     const isFinal = ['withdrawn', 'rejected', 'transferred'].includes(application.status);
     const pipelineIndex = PIPELINE.indexOf(application.status as PipelineStep);
@@ -135,22 +135,22 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
             <div className="space-y-6">
                 {/* Pipeline stepper */}
                 {!isFinal ? (
-                    <div className="flex items-center overflow-x-auto rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4">
+                    <div className="flex items-center overflow-x-auto rounded-card border border-(--app-border) bg-(--app-surface) px-4 py-4">
                         {PIPELINE.map((step, index) => {
                             const done = pipelineIndex > index;
                             const active = pipelineIndex === index;
                             return (
                                 <div key={step} className="flex flex-1 items-center">
                                     <div className="flex shrink-0 flex-col items-center gap-1.5">
-                                        <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : active ? 'bg-[color:var(--color-primary)] text-white' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
+                                        <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : active ? 'bg-primary text-white' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>
                                             {done ? '✓' : index + 1}
                                         </div>
-                                        <span className={`whitespace-nowrap text-xs ${active ? 'font-semibold text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]' : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-[color:var(--app-muted-foreground)]'}`}>
+                                        <span className={`whitespace-nowrap text-xs ${active ? 'font-semibold text-primary dark:text-primary' : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-(--app-muted-foreground)'}`}>
                                             {t(`vacancies.appStatus${step.charAt(0).toUpperCase()}${step.slice(1)}` as never)}
                                         </span>
                                     </div>
                                     {index < PIPELINE.length - 1 && (
-                                        <div className={`mx-2 h-0.5 flex-1 ${done ? 'bg-emerald-500' : 'bg-[color:var(--app-surface-muted)]'}`} />
+                                        <div className={`mx-2 h-0.5 flex-1 ${done ? 'bg-emerald-500' : 'bg-(--app-surface-muted)'}`} />
                                     )}
                                 </div>
                             );
@@ -163,7 +163,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 )}
 
                 {/* Details */}
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                     <dl className="grid grid-cols-2 gap-4 text-sm">
                         {[
                             { label: t('employees.employee'), value: application.employee?.name_en ?? '—' },
@@ -174,30 +174,30 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                             ...(application.rejection_reason ? [{ label: t('vacancies.rejectionReason'), value: application.rejection_reason }] : []),
                         ].map(({ label, value }) => (
                             <div key={label}>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-                                <dd className="mt-1 text-[color:var(--app-foreground)]">{value}</dd>
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+                                <dd className="mt-1 text-(--app-foreground)">{value}</dd>
                             </div>
                         ))}
                         <div>
-                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('vacancies.appliedAt')}</dt>
-                            <dd className="mt-1 text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={application.applied_at} /></dd>
+                            <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('vacancies.appliedAt')}</dt>
+                            <dd className="mt-1 text-(--app-foreground)"><LocalizedDateDisplay value={application.applied_at} /></dd>
                         </div>
                         <div>
-                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('vacancies.selectedAt')}</dt>
-                            <dd className="mt-1 text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={application.selected_at} /></dd>
+                            <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('vacancies.selectedAt')}</dt>
+                            <dd className="mt-1 text-(--app-foreground)"><LocalizedDateDisplay value={application.selected_at} /></dd>
                         </div>
                         {application.screening_notes && (
                             <div className="col-span-2">
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('vacancies.screeningNotes')}</dt>
-                                <dd className="mt-1 whitespace-pre-line text-[color:var(--app-foreground)]">{application.screening_notes}</dd>
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('vacancies.screeningNotes')}</dt>
+                                <dd className="mt-1 whitespace-pre-line text-(--app-foreground)">{application.screening_notes}</dd>
                             </div>
                         )}
                     </dl>
                 </section>
 
                 {showScreenForm && (
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">{t('vacancies.screenApplication')}</h3>
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="mb-4 font-semibold text-(--app-foreground)">{t('vacancies.screenApplication')}</h3>
                         <form onSubmit={submitScreen} className="space-y-4">
                             <div>
                                 <label className={labelCls}>{t('vacancies.screeningScore')} (0–100)</label>
@@ -221,8 +221,8 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 )}
 
                 {showRejectForm && (
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">{t('vacancies.rejectApplication')}</h3>
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="mb-4 font-semibold text-(--app-foreground)">{t('vacancies.rejectApplication')}</h3>
                         <form onSubmit={submitReject} className="space-y-4">
                             <div>
                                 <label className={labelCls}>{t('vacancies.rejectionReason')}</label>
@@ -242,8 +242,8 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 )}
 
                 {showTransferForm && (
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="mb-4 font-semibold text-[color:var(--app-foreground)]">{t('vacancies.initiateTransfer')}</h3>
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="mb-4 font-semibold text-(--app-foreground)">{t('vacancies.initiateTransfer')}</h3>
                         <form onSubmit={submitTransfer} className="space-y-4">
                             <div>
                                 <label className={labelCls}>{t('vacancies.effectiveDate')}</label>

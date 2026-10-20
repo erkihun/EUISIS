@@ -17,7 +17,7 @@ type Props = {
 };
 
 const inputCls = cx(inputClassName, 'w-full min-w-0');
-const labelCls = 'block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block space-y-1.5 text-xs font-medium text-(--app-muted-foreground)';
 
 /**
  * Create or edit a change request.
@@ -97,7 +97,7 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
                     </p>
                 </section>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         <div>
                             <label className={labelCls}>
@@ -175,8 +175,8 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
                 </section>
 
                 {form.data.request_type && (
-                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                        <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
+                    <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
+                        <h2 className="mb-4 text-sm font-semibold text-(--app-foreground)">
                             {t('organizationalChangeRequests.compare.heading')}
                         </h2>
                         <RequestTypeFields
@@ -190,7 +190,7 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
                     </section>
                 )}
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-4">
                     <label className={labelCls}>
                         <span>{t('organizationalChangeRequests.fields.reason')}</span>
                         <textarea
@@ -206,7 +206,7 @@ export default function RequestForm({ request, options, allowedTypes }: Props): 
                 <div className="flex flex-wrap items-center justify-end gap-2">
                     <Link
                         href={route('organizational-change-requests.index')}
-                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                        className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                     >
                         {t('common.cancel')}
                     </Link>

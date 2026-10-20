@@ -23,10 +23,16 @@ final class ProviderUserPermissionCatalog
     public const KEYS_BY_SERVICE = [
         'transport' => [
             'provider.transport.scan',
+            'provider.transport.manual_exception',
+            'provider.transport.dispatch',
             'provider.transport.routes.manage',
             'provider.transport.vehicles.manage',
             'provider.transport.drivers.manage',
             'provider.transport.trips.manage',
+            'provider.transport.manifests.view',
+            'provider.transport.exceptions.view',
+            'provider.transport.devices.view',
+            'provider.transport.invoices.manage',
             'provider.transport.reports.view',
         ],
     ];

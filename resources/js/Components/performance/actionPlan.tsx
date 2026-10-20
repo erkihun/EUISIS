@@ -65,14 +65,14 @@ export function ActionPlanTable({ objectives, goals, cycleStart }: { objectives:
     ].filter((g) => g.objectives.length > 0);
     const withGoals = groups.some((g) => g.goal !== null);
 
-    const th = 'border border-[color:var(--app-border)] px-2 py-2 text-center align-middle font-semibold';
-    const td = 'border border-[color:var(--app-border)] px-2 py-2 align-top';
+    const th = 'border border-(--app-border) px-2 py-2 text-center align-middle font-semibold';
+    const td = 'border border-(--app-border) px-2 py-2 align-top';
     const cell = `${td} text-center tabular-nums whitespace-nowrap`;
     const isPercent = (target: PlanTarget) => target.kpi.measurement === 'PERCENTAGE';
     const value = (target: PlanTarget, v: string | null, numerator?: string | null, denominator?: string | null) =>
         numerator !== null && numerator !== undefined && numerator !== '' ? `${num(numerator)} / ${num(denominator)}` : v === null || v === '' ? '' : `${num(v)}${isPercent(target) ? '%' : ''}`;
     const unit = (target: PlanTarget) => target.kpi.unit || (target.kpi.measurement ? t(`performance.enums.measurement.${target.kpi.measurement}`) : '');
-    const dash = <span className="text-[color:var(--app-muted-foreground)]">—</span>;
+    const dash = <span className="text-(--app-muted-foreground)">—</span>;
 
     function schedule(target: PlanTarget | null): ReactNode {
         const rows = target?.period_targets ?? [];
@@ -123,9 +123,9 @@ export function ActionPlanTable({ objectives, goals, cycleStart }: { objectives:
                     {groups.map(({ goal, objectives: list }) => (
                         <Fragment key={goal?.id ?? 'other'}>
                             {withGoals && (
-                                <tr className={cx(tableRowClassName, 'bg-[color:var(--color-primary)]/10')}>
+                                <tr className={cx(tableRowClassName, 'bg-primary/10')}>
                                     <td className={`${td} whitespace-nowrap font-mono text-xs font-semibold`}>{goal?.code ?? ''}</td>
-                                    <td colSpan={17} className={`${td} font-semibold text-[color:var(--app-foreground)]`}>
+                                    <td colSpan={17} className={`${td} font-semibold text-(--app-foreground)`}>
                                         {goal ? `${nameOf(goal, locale)} (${num(goal.weight_percent)}%)` : t('performance.plans.actionPlanOther')}
                                     </td>
                                 </tr>

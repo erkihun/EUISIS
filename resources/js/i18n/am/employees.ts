@@ -152,6 +152,7 @@ const employees = {
     registryApplyHint: 'ለውጦችዎን ለማስፈጸም "አጣራ" የሚለውን ይጫኑ።',
     registryDependentHint: 'የክፍል እና የሥራ መደብ አማራጮች በተመረጠው ተቋም መሠረት ይቀየራሉ።',
     registryPagination: 'የሠራተኛ መዝገብ ገጽ አሰሳ',
+    registryPageLimit: 'በገጽ ማሰስ የሚቻለው የመጀመሪያዎቹን 10,000 ውጤቶች ብቻ ነው። ከዚያ በኋላ ያለን ሠራተኛ ለማግኘት በስም ወይም በሠራተኛ መለያ ቁጥር ይፈልጉ፣ ወይም በተቋም ያጣሩ።',
     registryLoadError: 'የሠራተኛ መዝገቡን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
     sortByColumn: 'በ:column ደርድር',
     sortedAscending: 'ከታች ወደ ላይ ተደርድሯል',

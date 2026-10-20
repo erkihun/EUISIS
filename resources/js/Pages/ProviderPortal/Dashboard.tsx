@@ -10,7 +10,7 @@ type Order = { id: string; order_number: string; status: string; employee?: { na
 const STATUS_COLORS: Record<string, string> = {
     accepted: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     pending:  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    served:   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]',
+    served:   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-primary',
     reversed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
@@ -64,7 +64,7 @@ export default function Dashboard({ providers, selected_provider_id, stats, rece
                 <div className="flex flex-wrap gap-3">
                     <Link
                         href={route('provider.portal.scan')}
-                        className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+                        className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-orange-600"
                     >
                         <span>📷</span> {t('providerPortal.scan')}
                     </Link>

@@ -25,6 +25,7 @@ class DisciplinaryResponse extends Model
             'objection_ground' => DisciplinaryObjectionGround::class,
             'objection_decided_at' => 'datetime',
             'received_at' => 'datetime',
+            'pleas' => 'array',
         ];
     }
 

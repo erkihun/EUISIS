@@ -76,9 +76,9 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                                 </thead>
                                 <tbody className={tableBodyClassName}>
                                     {days.map(d => (
-                                        <tr key={d.id} className={`hover:bg-[color:var(--app-surface-muted)] ${d.deleted_at ? 'opacity-60' : ''}`}>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}><LocalizedDateDisplay value={d.special_date} /></td>
-                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{d.name_en}</td>
+                                        <tr key={d.id} className={`hover:bg-(--app-surface-muted) ${d.deleted_at ? 'opacity-60' : ''}`}>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}><LocalizedDateDisplay value={d.special_date} /></td>
+                                            <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{d.name_en}</td>
                                             <td className={tableCellClassName}>
                                                 <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
                                                     {d.day_type_label}
@@ -90,7 +90,7 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                                                 </span>
                                             </td>
                                             <td className={tableCellClassName}>
-                                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${d.is_subsidy_day ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
+                                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${d.is_subsidy_day ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-primary' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>
                                                     {d.is_subsidy_day ? t('cafeteria.isSubsidyDay') : t('common.no')}
                                                 </span>
                                             </td>
@@ -113,7 +113,7 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                     )}
                     <ListPagination meta={meta} />
                 </div>
-                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.totalTransactions').replace('Total', 'Total')}: {meta.total}</p>
+                <p className="text-xs text-(--app-muted-foreground)">{t('cafeteria.totalTransactions').replace('Total', 'Total')}: {meta.total}</p>
             </div>
         </AuthenticatedLayout>
     );

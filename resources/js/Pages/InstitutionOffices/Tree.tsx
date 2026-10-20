@@ -38,14 +38,14 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
     return (
         <li>
             <div
-                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-[color:var(--app-surface-muted)]"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-(--app-surface-muted)"
                 style={{ paddingLeft: `${(depth * 20) + 12}px` }}
             >
                 {hasChildren ? (
                     <button
                         type="button"
                         onClick={() => setExpanded(!expanded)}
-                        className="flex h-5 w-5 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-muted-foreground)]"
+                        className="flex h-5 w-5 items-center justify-center rounded-sm text-(--app-muted-foreground) hover:text-(--app-muted-foreground)"
                     >
                         {expanded ? '▾' : '▸'}
                     </button>
@@ -54,7 +54,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                 )}
 
                 <div className="flex flex-1 flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                    <span className="font-mono text-xs text-(--app-muted-foreground)">
                         {node.office_code}
                     </span>
                     <Link
@@ -125,9 +125,9 @@ export default function InstitutionOfficesTree({ institution, tree, can }: Props
         >
             <Head title={`${t('institutionOffices.treeView')} — ${institution.name_en}`} />
 
-            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+            <section className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                 {tree.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">
+                    <p className="py-8 text-center text-sm text-(--app-muted-foreground)">
                         {t('institutionOffices.noOffices')}
                     </p>
                 ) : (

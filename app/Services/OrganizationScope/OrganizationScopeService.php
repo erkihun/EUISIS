@@ -668,6 +668,40 @@ class OrganizationScopeService
         return $result;
     }
 
+    /**
+     * Expands organization grants that are not a user's — an external
+     * application's partner bounds (F2) — with the same self / subtree rules
+     * and the same published-hierarchy closure as human scopes, so a partner
+     * and a person granted "Bureau A and below" see exactly the same set.
+     *
+     * @param  iterable<array{organization_id: string, scope_type: string}|object>  $grants
+     * @return Collection<int, string>
+     */
+    public function expandGrants(iterable $grants): Collection
+    {
+        $publishedVersionId = $this->resolvePublishedVersionId();
+        $ids = collect();
+
+        foreach ($grants as $grant) {
+            $organizationId = (string) data_get($grant, 'organization_id');
+            $type = (string) data_get($grant, 'scope_type');
+            if ($organizationId === '') {
+                continue;
+            }
+            $ids->push($organizationId);
+            if ($type === OrganizationScopeType::Subtree->value && $publishedVersionId !== null) {
+                $ids = $ids->merge(
+                    OrganizationClosurePath::query()
+                        ->where('hierarchy_version_id', $publishedVersionId)
+                        ->where('ancestor_organization_id', $organizationId)
+                        ->pluck('descendant_organization_id')
+                );
+            }
+        }
+
+        return $ids->map(fn ($id): string => (string) $id)->unique()->values();
+    }
+
     private function resolvePublishedVersionId(): ?string
     {
         return HierarchyVersion::query()

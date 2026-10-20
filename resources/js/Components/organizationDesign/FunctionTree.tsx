@@ -72,15 +72,15 @@ export default function FunctionTree({ tree, mandateId, powers = [], canManage, 
         const isCollapsed = collapsed.has(node.id);
         return (
             <li key={node.id}>
-                <div className={cx('flex flex-wrap items-center gap-2 rounded-[var(--radius-control)] px-2 py-1.5 hover:bg-[color:var(--app-surface-muted)]')} style={{ paddingLeft: `${node.depth * 1.25 + 0.5}rem` }}>
+                <div className={cx('flex flex-wrap items-center gap-2 rounded-control px-2 py-1.5 hover:bg-(--app-surface-muted)')} style={{ paddingLeft: `${node.depth * 1.25 + 0.5}rem` }}>
                     <button type="button" onClick={() => toggle(node.id)} aria-expanded={!isCollapsed} aria-label={node.children.length ? (isCollapsed ? tt('functions.expandAll') : tt('functions.collapseAll')) : undefined}
-                        className={cx('inline-flex h-5 w-5 items-center justify-center rounded text-xs text-[color:var(--app-muted-foreground)]', node.children.length === 0 && 'invisible')}>
+                        className={cx('inline-flex h-5 w-5 items-center justify-center rounded-sm text-xs text-(--app-muted-foreground)', node.children.length === 0 && 'invisible')}>
                         {isCollapsed ? '▸' : '▾'}
                     </button>
-                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{node.code}</span>
-                    <span className="text-sm font-medium text-[color:var(--app-foreground)]">{titleOf(node, locale)}</span>
-                    {node.power && <span className="text-xs text-[color:var(--app-muted-foreground)]">· {node.power.code}</span>}
-                    {node.legal_reference && <span className="text-xs text-[color:var(--app-muted-foreground)]">· {node.legal_reference}</span>}
+                    <span className="font-mono text-xs text-(--app-muted-foreground)">{node.code}</span>
+                    <span className="text-sm font-medium text-(--app-foreground)">{titleOf(node, locale)}</span>
+                    {node.power && <span className="text-xs text-(--app-muted-foreground)">· {node.power.code}</span>}
+                    {node.legal_reference && <span className="text-xs text-(--app-muted-foreground)">· {node.legal_reference}</span>}
                     <StatusPill status={node.status} />
                     {writable && (
                         <span className="ml-auto flex items-center gap-3">
@@ -104,7 +104,7 @@ export default function FunctionTree({ tree, mandateId, powers = [], canManage, 
                 </div>
             )}
             {tree.length === 0
-                ? <p className="px-2 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{emptyText}</p>
+                ? <p className="px-2 py-6 text-center text-sm text-(--app-muted-foreground)">{emptyText}</p>
                 : <ul className="space-y-0.5">{tree.map(renderNode)}</ul>}
 
             {editing && mandateId && (
@@ -143,8 +143,8 @@ function FunctionForm({ mandateId, node, parent, powers, onClose }: { mandateId:
     return (
         <Modal show onClose={onClose} maxWidth="2xl">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{node ? tt('functions.edit') : parent ? tt('functions.addChild') : tt('functions.add')}</h2>
-                {parent && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{tt('fields.parent')}: {parent.code} · {titleOf(parent, locale)}</p>}
+                <h2 className="text-base font-semibold text-(--app-foreground)">{node ? tt('functions.edit') : parent ? tt('functions.addChild') : tt('functions.add')}</h2>
+                {parent && <p className="mt-1 text-sm text-(--app-muted-foreground)">{tt('fields.parent')}: {parent.code} · {titleOf(parent, locale)}</p>}
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <FormField id="fn-code" label={tt('fields.code')} required error={form.errors.code}>
                         {({ id }) => <Input id={id} value={form.data.code} maxLength={40} onChange={(e) => form.setData('code', e.target.value.toUpperCase())} />}
@@ -207,7 +207,7 @@ function MoveForm({ node, candidates, onClose }: { node: FunctionNode; candidate
     return (
         <Modal show onClose={onClose} maxWidth="md">
             <form onSubmit={submit} className="p-6">
-                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{tt('functions.move')}: {node.code} · {titleOf(node, locale)}</h2>
+                <h2 className="text-base font-semibold text-(--app-foreground)">{tt('functions.move')}: {node.code} · {titleOf(node, locale)}</h2>
                 <div className="mt-5">
                     <FormField id="move-parent" label={tt('functions.moveTo')} error={form.errors.parent_function_id}>
                         {({ id }) => (

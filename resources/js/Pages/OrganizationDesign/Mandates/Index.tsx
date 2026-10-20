@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import MandateForm, { emptyMandate, type InstrumentType } from '@/Components/organizationDesign/MandateForm';
+import MandateForm, { emptyMandate, type InstrumentType, type LegalSourceOption } from '@/Components/organizationDesign/MandateForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
@@ -14,6 +14,8 @@ type Organization = { id: string; code: string; name_en: string; name_am: string
 export type MandateSummary = {
     id: string; code: string; version_no: number; lineage_key: string; title_en: string; title_am: string | null; status: string;
     legal_instrument_number: string; legal_instrument_type_id: string;
+    legal_source_id: string | null;
+    legal_source: LegalSourceOption | null;
     instrument_type: { code: string; name_en: string; name_am: string | null } | null;
     organization: Organization | null; organization_id: string;
     effective_from: string | null; effective_to: string | null;
@@ -24,11 +26,12 @@ type Props = {
     filters: { organization_id?: string; status?: string; search?: string };
     organizations: Organization[];
     instrumentTypes: InstrumentType[];
+    legalSources: LegalSourceOption[];
     statuses: string[];
     can: { create: boolean };
 };
 
-export default function MandatesIndex({ mandates, filters, organizations, instrumentTypes, statuses, can }: Props) {
+export default function MandatesIndex({ mandates, filters, organizations, instrumentTypes, legalSources, statuses, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const [draft, setDraft] = useState({ organization_id: filters.organization_id ?? '', status: filters.status ?? '', search: filters.search ?? '' });
     const [creating, setCreating] = useState(false);
@@ -81,10 +84,10 @@ export default function MandatesIndex({ mandates, filters, organizations, instru
                             <TBody>
                                 {mandates.data.map((m) => (
                                     <Tr key={m.id}>
-                                        <Td className="font-mono text-xs">{m.code} <span className="text-[color:var(--app-muted-foreground)]">v{m.version_no}</span></Td>
+                                        <Td className="font-mono text-xs">{m.code} <span className="text-(--app-muted-foreground)">v{m.version_no}</span></Td>
                                         <Td>
-                                            <Link href={route('organization-design.mandates.show', m.id)} className="font-medium text-[color:var(--app-foreground)] hover:underline">{titleOf(m, locale)}</Link>
-                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{m.legal_instrument_number}</p>
+                                            <Link href={route('organization-design.mandates.show', m.id)} className="font-medium text-(--app-foreground) hover:underline">{titleOf(m, locale)}</Link>
+                                            <p className="text-xs text-(--app-muted-foreground)">{m.legal_instrument_number}</p>
                                         </Td>
                                         <Td muted>{nameOf(m.organization, locale)}</Td>
                                         <Td muted>{nameOf(m.instrument_type, locale)}</Td>
@@ -118,6 +121,7 @@ export default function MandatesIndex({ mandates, filters, organizations, instru
                     method="post"
                     organizations={organizations}
                     instrumentTypes={instrumentTypes}
+                    legalSources={legalSources}
                 />
             )}
         </AuthenticatedLayout>

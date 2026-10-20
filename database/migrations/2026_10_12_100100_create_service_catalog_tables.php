@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -29,7 +29,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('service_classifications', function (Blueprint $table): void {
+        SchemaResume::create('service_classifications', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('scheme', 20);
             $table->string('revision', 20);
@@ -48,16 +48,16 @@ return new class extends Migration
             $table->index(['scheme', 'revision', 'parent_id'], 'service_classifications_parent_idx');
             $table->index(['scheme', 'is_active'], 'service_classifications_scheme_active_idx');
         });
-        Schema::table('service_classifications', function (Blueprint $table): void {
+        SchemaResume::table('service_classifications', function (Blueprint $table): void {
             $table->foreign('parent_id')->references('id')->on('service_classifications')->nullOnDelete();
         });
 
-        Schema::table('isic_activities', function (Blueprint $table): void {
+        SchemaResume::table('isic_activities', function (Blueprint $table): void {
             $table->string('revision', 20)->default('Rev.4')->after('level');
             $table->index(['revision', 'is_active'], 'isic_activities_revision_active_idx');
         });
 
-        Schema::create('services', function (Blueprint $table): void {
+        SchemaResume::create('services', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->uuid('lineage_key');
@@ -91,7 +91,7 @@ return new class extends Migration
             $table->index(['service_classification_id'], 'services_classification_idx');
         });
 
-        Schema::create('function_service', function (Blueprint $table): void {
+        SchemaResume::create('function_service', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->foreignUuid('function_id')->constrained('organization_functions')->cascadeOnDelete();
@@ -102,7 +102,7 @@ return new class extends Migration
             $table->index(['service_id'], 'function_service_service_idx');
         });
 
-        Schema::create('service_isic_activity', function (Blueprint $table): void {
+        SchemaResume::create('service_isic_activity', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('service_id')->constrained('services')->cascadeOnDelete();
             $table->foreignUuid('isic_activity_id')->constrained('isic_activities')->restrictOnDelete();
@@ -111,7 +111,7 @@ return new class extends Migration
             $table->unique(['service_id', 'isic_activity_id'], 'service_isic_activity_unique');
         });
 
-        Schema::create('classification_import_batches', function (Blueprint $table): void {
+        SchemaResume::create('classification_import_batches', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('dataset', 40);
             $table->string('revision', 20);
@@ -131,10 +131,9 @@ return new class extends Migration
             $table->index(['dataset', 'revision', 'created_at'], 'classification_import_batches_idx');
         });
 
-        if (DB::getDriverName() === 'pgsql') {
-            DB::statement('ALTER TABLE services ADD CONSTRAINT services_dates_chk CHECK (effective_to IS NULL OR effective_to >= effective_from)');
-            DB::statement("ALTER TABLE service_classifications ADD CONSTRAINT service_classifications_scheme_chk CHECK (scheme IN ('LOCAL', 'CPC'))");
-        }
+        // PostgreSQL only, each once (SchemaResume::check).
+        SchemaResume::check('services', 'services_dates_chk', 'effective_to IS NULL OR effective_to >= effective_from');
+        SchemaResume::check('service_classifications', 'service_classifications_scheme_chk', "scheme IN ('LOCAL', 'CPC')");
     }
 
     public function down(): void

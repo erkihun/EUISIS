@@ -6,8 +6,10 @@ namespace App\Models;
 
 use App\Enums\OrganizationStatus;
 use App\Enums\RelationshipTargetType;
+use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Services\Organizations\OrganizationDeletionGuard;
+use App\Support\Phone\PublicContactPhone;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
 {
+    use HasIntegrationEvents;
     use HasUuidPrimaryKey;
     use SoftDeletes;
 
@@ -33,6 +36,7 @@ class Organization extends Model
         'logo_path',
         'branding_primary_color',
         'branding_secondary_color',
+        'public_contact_phone',
         'deleted_by',
         'deletion_reason',
     ];
@@ -58,6 +62,20 @@ class Organization extends Model
     public function getHasLogoAttribute(): bool
     {
         return $this->logo_path !== null;
+    }
+
+    /**
+     * Stored in dialable form (+251XXXXXXXXX or a short code) whenever the
+     * value is a valid public number; anything else is kept as given so it can
+     * be reported, and never becomes a Call action (PublicContactPhone).
+     */
+    public function setPublicContactPhoneAttribute(?string $value): void
+    {
+        $value = $value === null ? null : trim($value);
+
+        $this->attributes['public_contact_phone'] = $value === null || $value === ''
+            ? null
+            : (PublicContactPhone::parse($value)?->dial ?? $value);
     }
 
     public function type(): BelongsTo

@@ -21,7 +21,7 @@ export default function UnitFocusedOrganogram({ tree }: { tree: OrganogramTree }
             <OrganizationBox tree={tree} />
 
             {units.length === 0 ? (
-                <p className="text-sm text-[color:var(--app-muted-foreground)]">
+                <p className="text-sm text-(--app-muted-foreground)">
                     {t('organizationUnits.noOrganizationUnitsFound')}
                 </p>
             ) : (
@@ -39,26 +39,26 @@ export default function UnitFocusedOrganogram({ tree }: { tree: OrganogramTree }
                                 <UnitBox unit={unit} emphasized />
 
                                 <dl className="flex flex-wrap items-center gap-2 text-[11px]">
-                                    <div className="rounded-lg border border-[color:var(--app-border)] px-2 py-1 text-center">
-                                        <dd className="font-semibold tabular-nums text-[color:var(--app-foreground)]">
+                                    <div className="rounded-lg border border-(--app-border) px-2 py-1 text-center">
+                                        <dd className="font-semibold tabular-nums text-(--app-foreground)">
                                             {unit.positions.length}
                                         </dd>
-                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('organizations.positions')}</dt>
+                                        <dt className="text-(--app-muted-foreground)">{t('organizations.positions')}</dt>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <OccupancyBadge occupancy="occupied" />
-                                        <span className="font-semibold tabular-nums text-[color:var(--app-foreground)]">
+                                        <span className="font-semibold tabular-nums text-(--app-foreground)">
                                             {occupied}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <OccupancyBadge occupancy="vacant" />
-                                        <span className="font-semibold tabular-nums text-[color:var(--app-foreground)]">
+                                        <span className="font-semibold tabular-nums text-(--app-foreground)">
                                             {vacant}
                                         </span>
                                     </div>
                                     {unit.children.length > 0 && (
-                                        <span className="text-[color:var(--app-muted-foreground)]">
+                                        <span className="text-(--app-muted-foreground)">
                                             {t('organizations.organizationUnits')}: {unit.children.length}
                                         </span>
                                     )}

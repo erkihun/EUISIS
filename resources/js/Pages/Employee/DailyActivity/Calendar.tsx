@@ -40,7 +40,7 @@ const MARK: Record<string, { symbol: string; cls: string }> = {
     missing: { symbol: '!', cls: 'bg-red-50 text-red-800 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-900' },
     returned: { symbol: '↩', cls: 'bg-amber-50 text-amber-900 ring-amber-300 dark:bg-amber-950/40 dark:text-amber-200 dark:ring-amber-900' },
     draft: { symbol: '…', cls: 'bg-gray-50 text-gray-700 ring-gray-300 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-600' },
-    required: { symbol: '•', cls: 'bg-[color:var(--color-primary-50)] text-[color:var(--color-primary-800)] ring-[color:var(--color-primary-300)] dark:bg-[color:var(--color-primary-950)] dark:text-[color:var(--color-primary-200)] dark:ring-[color:var(--color-primary-800)]' },
+    required: { symbol: '•', cls: 'bg-primary-50 text-primary-800 ring-primary-300 dark:bg-primary-950 dark:text-primary-200 dark:ring-primary-800' },
     leave: { symbol: 'L', cls: 'bg-sky-50 text-sky-800 ring-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:ring-sky-900' },
     public_holiday: { symbol: 'H', cls: 'bg-violet-50 text-violet-800 ring-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:ring-violet-900' },
     weekend: { symbol: '–', cls: 'bg-transparent text-gray-400 ring-gray-100 dark:text-slate-600 dark:ring-slate-800' },
@@ -164,7 +164,7 @@ export default function DailyActivityCalendar({ has_employee, today, anchor, fro
                                 // Fixed height, not square: at full width square cells would be huge.
                                 'flex h-12 flex-col items-center justify-between rounded-control p-1 ring-1 ring-inset sm:h-16',
                                 mark.cls,
-                                day.date === today ? 'outline outline-2 outline-offset-1 outline-[color:var(--color-primary)]' : '',
+                                day.date === today ? 'outline-solid outline-2 outline-offset-1 outline-primary' : '',
                             ].join(' ');
                             const title = [label, holiday, day.is_late ? t('dailyActivities.summary.late') : '', day.items_count ? `${day.items_count} ${t('dailyActivities.summary.items')}` : '']
                                 .filter(Boolean).join(' · ');

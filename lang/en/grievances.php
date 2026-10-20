@@ -65,6 +65,9 @@ return [
     ],
 
     'errors' => [
+        'filing_window_passed' => 'The 10 working days to file after presenting the matter in writing ended on :date. A late grievance is accepted only on a force-majeure ground, stated with the date the cause ended, and filed within 10 working days of that date.',
+        'application_incomplete' => 'This is required in a grievance application.',
+        'written_issue_required' => 'Give the date you presented the matter in writing to your immediate supervisor or manager.',
         'forbidden' => 'You are not allowed to do this on this grievance.',
         'stale' => 'This record changed in the meantime. Reload the page and try again.',
         'module_disabled' => 'Grievance submission is currently disabled.',
@@ -115,6 +118,12 @@ return [
         'approval_not_required' => 'No executive approval is required for this decision; finalize it directly.',
         'approval_required' => 'This decision requires executive approval first.',
         'approval_rule_missing' => 'This category requires executive approval but no approval rule names the approving position.',
+        'statutory_quorum_not_met' => 'The committee has no quorum: the chairperson and at least two other members must vote on the recommendation.',
+        'recommendation_not_carried' => 'The recommendation did not carry the vote. It passes by majority; on a tie, the chairperson\'s side prevails.',
+        'dissent_reason_required' => 'A dissenting member must state the reason for the dissent.',
+        'decision_letter_seal_required' => 'Apply the institution seal before issuing the decision letter: the decision is given in writing with the signature and the seal.',
+        'member_disciplined' => 'This employee was disciplined in the last two years and cannot sit on the grievance committee.',
+        'head_decision_rule_missing' => 'The committee only recommends; the head of the institution decides. Configure an approval rule for committee decisions that names the head of the institution as the approving position.',
         'approval_rule_no_position' => 'The approval rule does not name an approving position.',
         'no_approver_available' => 'Nobody currently holds the approving position with approval permission (and no delegation is active).',
         'quorum_not_met' => 'Quorum not met (:present of :required).',
@@ -144,6 +153,7 @@ return [
         'unknown_tokens' => 'Unknown template tokens: :tokens',
         'self_delegation' => 'You cannot record a delegation to or from yourself.',
         'delegate_lacks_permission' => 'The delegate must hold the decision approval permission.',
+        'template_overlap' => 'Another active template of this type and language already covers part of this period for the same organization. End or deactivate it first.',
     ],
 
     // Regulation 201/2018 Art. 30 grievance committee composition problems.
@@ -166,7 +176,7 @@ return [
     ],
 
     'letters' => [
-        'appeal_notice' => 'If you are not satisfied with this decision, you may appeal within the period set by the grievance procedure through My Portal.',
+        'appeal_notice' => 'If you are not satisfied with this decision, you may appeal to the Administrative Court within 30 days of receiving it in writing. You may ask the institution for a copy of the committee record; it must give you a sealed, certified copy within 5 consecutive working days.',
     ],
 
     'enums' => [

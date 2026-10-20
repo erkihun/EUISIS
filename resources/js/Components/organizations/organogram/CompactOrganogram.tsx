@@ -22,9 +22,9 @@ function CompactPositionRow({ position }: { position: OrganogramTree['direct_pos
     const employee = position.assignment?.employee;
 
     return (
-        <li className="flex items-center gap-1.5 border-t border-[color:var(--app-border)] px-2 py-1 text-left">
-            <span className="min-w-0 flex-1 truncate text-[10px] text-[color:var(--app-foreground)]">
-                {position.code && <span className="font-mono text-[color:var(--app-muted-foreground)]">{position.code} </span>}
+        <li className="flex items-center gap-1.5 border-t border-(--app-border) px-2 py-1 text-left">
+            <span className="min-w-0 flex-1 truncate text-[10px] text-(--app-foreground)">
+                {position.code && <span className="font-mono text-(--app-muted-foreground)">{position.code} </span>}
                 {localizedName(position.name_en, position.name_am, locale)}
             </span>
             {employee ? (
@@ -55,7 +55,7 @@ function CompactUnitBranch({
 
     return (
         <div className="flex flex-col items-center">
-            <div className="w-44 overflow-hidden rounded-lg border border-violet-300 bg-[color:var(--app-surface)] dark:border-violet-800">
+            <div className="w-44 overflow-hidden rounded-lg border border-violet-300 bg-(--app-surface) dark:border-violet-800">
                 <UnitBox
                     unit={unit}
                     compact

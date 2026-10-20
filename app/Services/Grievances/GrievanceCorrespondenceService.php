@@ -98,6 +98,7 @@ final class GrievanceCorrespondenceService
             ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $day))
             ->where(fn ($q) => $q->whereNull('organization_id')->orWhere('organization_id', $organizationId))
             ->orderByRaw('organization_id is null')
+            ->orderByDesc('effective_from')
             ->first();
     }
 
@@ -411,6 +412,11 @@ final class GrievanceCorrespondenceService
             $letter = GrievanceLetter::query()->whereKey($letter->getKey())->lockForUpdate()->firstOrFail();
             if ($letter->status !== GrievanceLetterStatus::Signed) {
                 throw ValidationException::withMessages(['letter' => __('grievances.errors.letter_not_signed')]);
+            }
+            // Regulation 201/2018 Art. 35(2): the decision is given in writing over the
+            // official's signature and the institution's seal.
+            if ($letter->letter_type === GrievanceLetterType::DecisionLetter && $letter->seal_id === null) {
+                throw ValidationException::withMessages(['letter' => __('grievances.errors.decision_letter_seal_required')]);
             }
 
             if ($letter->letter_type === GrievanceLetterType::DecisionLetter && $letter->decision_id !== null) {

@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\CardVerificationController;
+use App\Http\Controllers\Api\V1\ChangeFeedController;
 use App\Http\Controllers\Api\V1\EmployeeDirectoryApiController;
 use App\Http\Controllers\Api\V1\EmployeeEntitlementController;
+use App\Http\Controllers\Api\V1\EmployeePhotoApiController;
 use App\Http\Controllers\Api\V1\IdCardVerificationApiController;
 use App\Http\Controllers\Api\V1\NfcController;
 use App\Http\Controllers\Api\V1\OfflineSyncController;
@@ -15,8 +17,31 @@ use App\Http\Controllers\Api\V1\PositionApiController;
 use App\Http\Controllers\Api\V1\ProviderSettlementController;
 use App\Http\Controllers\Api\V1\ServiceAuthorizationController;
 use App\Http\Controllers\Api\V1\ServiceTransactionController;
+use App\Http\Controllers\Api\V1\Transport\BoardingController as TransportBoardingController;
+use App\Http\Controllers\Api\V1\Transport\DeviceController as TransportDeviceController;
+use App\Http\Controllers\Api\V1\Transport\PositionController as TransportPositionController;
+use App\Http\Controllers\Api\V1\Transport\TripController as TransportTripController;
+use App\Http\Controllers\Api\V1\WebhookSubscriptionApiController;
 use App\Http\Middleware\NfcApplicationGate;
 use Illuminate\Support\Facades\Route;
+
+/*
+ * Transport scanner devices (docs/transport/device-security.md). Each device
+ * authenticates with its own revocable credential; it never names a provider,
+ * route or vehicle of its own — the server resolves all authority.
+ */
+Route::middleware(['transport.device', 'throttle:transport-device'])->prefix('v1/transport')->name('api.transport.')->group(function (): void {
+    Route::get('/device', [TransportDeviceController::class, 'show'])->name('device.show');
+    Route::post('/device/heartbeat', [TransportDeviceController::class, 'heartbeat'])->name('device.heartbeat');
+    Route::get('/trips/today', [TransportTripController::class, 'today'])->name('trips.today');
+    Route::get('/trips/{trip}', [TransportTripController::class, 'show'])->name('trips.show');
+    Route::post('/trips/{trip}/start', [TransportTripController::class, 'start'])->name('trips.start');
+    Route::post('/trips/{trip}/depart', [TransportTripController::class, 'depart'])->name('trips.depart');
+    Route::post('/trips/{trip}/complete', [TransportTripController::class, 'complete'])->name('trips.complete');
+    Route::post('/boardings/verify', [TransportBoardingController::class, 'verify'])->name('boardings.verify');
+    Route::post('/boardings/sync', [TransportBoardingController::class, 'sync'])->name('boardings.sync');
+    Route::post('/trips/{trip}/positions', [TransportPositionController::class, 'store'])->name('positions.store');
+});
 
 Route::middleware(['auth:sanctum', 'throttle:api', NfcApplicationGate::class, 'api.external'])->prefix('v1/nfc')->name('api.v1.nfc.')->group(function (): void {
     Route::post('/challenges', [NfcController::class, 'challenge'])->middleware('api.scope:nfc.verify')->name('challenges');
@@ -25,31 +50,51 @@ Route::middleware(['auth:sanctum', 'throttle:api', NfcApplicationGate::class, 'a
     Route::post('/service-transactions/verify-and-record', [NfcController::class, 'record'])->middleware('api.scope:nfc.service_transactions.create')->name('record');
 });
 
-Route::middleware(['auth:sanctum', 'throttle:api', 'provider.scope'])->prefix('v1')->group(function (): void {
+/*
+ * Provider service routes. Both principals are accepted — a provider-portal
+ * person with a personal token, or a registered application bound to one
+ * service provider — and each is held to its own rules:
+ *   - `api.external`  application status, IP, endpoint assignment, rate limit, log;
+ *   - `provider.scope` provider binding (application) or provider organization
+ *                      scope (person), item by item for offline batches;
+ *   - `api.scope:…,provider` the exact scope; `provider:access` on a personal
+ *                      token counts only here, never on the directory routes.
+ */
+Route::middleware(['auth:sanctum', 'throttle:api', 'api.external', 'provider.scope'])->prefix('v1')->group(function (): void {
     Route::post('/cards/verify', CardVerificationController::class)
-        ->middleware('api.scope:id_cards.verify')
+        ->middleware('api.scope:id_cards.verify,provider')
         ->name('api.v1.cards.verify');
     Route::post('/services/{serviceType}/authorize', ServiceAuthorizationController::class)
-        ->middleware('api.scope:service_eligibility.check')
+        ->middleware('api.scope:service_eligibility.check,provider')
         ->name('api.v1.services.authorize');
     Route::post('/services/{serviceType}/transactions', ServiceTransactionController::class)
-        ->middleware(['api.scope:service_transactions.create', 'api.idempotency'])
+        ->middleware(['api.scope:service_transactions.create,provider', 'api.idempotency'])
         ->name('api.v1.services.transactions');
     Route::get('/employees/{employee}/entitlements', EmployeeEntitlementController::class)
-        ->middleware('api.scope:service_eligibility.check')
+        ->middleware('api.scope:service_eligibility.check,provider')
         ->name('api.v1.employees.entitlements');
     Route::get('/providers/{provider}/settlements/{period}', ProviderSettlementController::class)
-        ->middleware('api.scope:reports.read_limited')
+        ->middleware('api.scope:reports.read_limited,provider')
         ->name('api.v1.providers.settlements');
     Route::post('/offline-sync/transactions', OfflineSyncController::class)
-        ->middleware(['api.scope:service_transactions.create', 'api.idempotency'])
+        ->middleware(['api.scope:service_transactions.create,provider', 'api.idempotency'])
         ->name('api.v1.offline-sync.transactions');
 });
 
 /*
- * Integration endpoints for approved external applications. Separate from the
- * provider-portal group above because these callers are not service providers
- * and must not pass through `provider.scope`.
+ * Short-lived, signed photo link handed out by the card verification endpoint.
+ * The signature carries the principal that asked for it; the controller
+ * re-checks that principal's standing and organization bound at serve time,
+ * so the link is never a bearer credential for the photo.
+ */
+Route::get('/v1/employees/{employee}/photo', EmployeePhotoApiController::class)
+    ->middleware(['signed', 'throttle:api'])
+    ->name('api.v1.employees.photo');
+
+/*
+ * Integration endpoints for approved external applications and for people
+ * calling with their own permissions. Organization bounds are applied in each
+ * controller through IntegrationAccessService (F2).
  */
 Route::middleware(['auth:sanctum', 'throttle:api', 'api.external'])->prefix('v1')->group(function (): void {
     Route::get('/id-cards/verify/{token}', [IdCardVerificationApiController::class, 'show'])
@@ -131,4 +176,29 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'api.external'])->prefix('v1'
     Route::get('/employees/{employee}/assignment', [EmployeeDirectoryApiController::class, 'assignment'])
         ->middleware('api.scope:employee_assignments.read')
         ->name('api.v1.employees.assignment');
+
+    /*
+     * Event integration layer (docs/integration/change-feed.md). Registered
+     * applications only; each event type also needs its domain scope and the
+     * application's organization bound, applied in SQL.
+     */
+    Route::get('/changes', [ChangeFeedController::class, 'index'])
+        ->middleware('api.scope:changes.read')
+        ->name('api.v1.changes.index');
+    Route::get('/changes/watermark', [ChangeFeedController::class, 'watermark'])
+        ->middleware('api.scope:changes.read')
+        ->name('api.v1.changes.watermark');
+    Route::post('/changes/reconcile', [ChangeFeedController::class, 'reconcile'])
+        ->middleware('api.scope:changes.read')
+        ->name('api.v1.changes.reconcile');
+
+    Route::get('/webhook-subscriptions', [WebhookSubscriptionApiController::class, 'index'])
+        ->middleware('api.scope:webhooks.manage')
+        ->name('api.v1.webhook-subscriptions.index');
+    Route::get('/webhook-subscriptions/{subscription}/deliveries', [WebhookSubscriptionApiController::class, 'deliveries'])
+        ->middleware('api.scope:webhooks.manage')
+        ->name('api.v1.webhook-subscriptions.deliveries');
+    Route::post('/webhook-subscriptions/{subscription}/replay', [WebhookSubscriptionApiController::class, 'replay'])
+        ->middleware(['api.scope:webhooks.replay', 'throttle:10,1'])
+        ->name('api.v1.webhook-subscriptions.replay');
 });

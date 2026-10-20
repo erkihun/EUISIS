@@ -2,6 +2,7 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 /*
  * Keep the development server private by default.  When testing on a phone,
@@ -35,6 +36,8 @@ export default defineConfig({
         },
     },
     plugins: [
+        // Tailwind 4's own Vite plugin (faster than the PostCSS route; no postcss.config.js).
+        tailwindcss(),
         laravel({
             input: 'resources/js/app.tsx',
             refresh: true,
@@ -52,6 +55,13 @@ export default defineConfig({
                     // chunk keeps it cached across application releases.
                     if (file.endsWith('/resources/js/ziggy.js')) {
                         return 'ziggy';
+                    }
+
+                    // The rich-text editor library, fetched only where an editor is
+                    // shown (RichTextEditor lazy-loads it). The toolbar skins stay
+                    // out: each theme's skin is its own small chunk.
+                    if ((file.includes('/node_modules/tinymce/') || file.includes('/node_modules/@tinymce/')) && !file.includes('/skins/')) {
+                        return 'rich-text-editor';
                     }
 
                     // Force all React context providers into one shared chunk.

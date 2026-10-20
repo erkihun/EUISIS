@@ -45,7 +45,7 @@ function ValuesDetail({
             <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                className="text-xs text-primary hover:underline dark:text-primary"
                 aria-expanded={open}
             >
                 {open ? '▲' : '▼'} {open ? t('auditLogs.hide') : t('auditLogs.show')}
@@ -54,20 +54,20 @@ function ValuesDetail({
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                     {old_values && (
                         <div>
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">
                                 {t('auditLogs.before')}
                             </p>
-                            <pre className="mt-1 overflow-x-auto rounded-lg bg-[color:var(--app-surface-muted)] p-2 text-xs text-[color:var(--app-foreground)]">
+                            <pre className="mt-1 overflow-x-auto rounded-lg bg-(--app-surface-muted) p-2 text-xs text-(--app-foreground)">
                                 {JSON.stringify(old_values, null, 2)}
                             </pre>
                         </div>
                     )}
                     {new_values && (
                         <div>
-                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                            <p className="text-xs font-medium text-(--app-muted-foreground)">
                                 {t('auditLogs.after')}
                             </p>
-                            <pre className="mt-1 overflow-x-auto rounded-lg bg-[color:var(--app-surface-muted)] p-2 text-xs text-[color:var(--app-foreground)]">
+                            <pre className="mt-1 overflow-x-auto rounded-lg bg-(--app-surface-muted) p-2 text-xs text-(--app-foreground)">
                                 {JSON.stringify(new_values, null, 2)}
                             </pre>
                         </div>
@@ -178,10 +178,10 @@ export default function AuditLogsIndex({
                                                     label={eventLabel(log.event_type)}
                                                 />
                                             </td>
-                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-(--app-muted-foreground)')}>
                                                 {log.actor_name ?? log.actor_user_id ?? t('auditLogs.system')}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'text-xs text-(--app-muted-foreground)')}>
                                                 {log.auditable_type && (
                                                     <span>
                                                         {log.auditable_type}
@@ -191,7 +191,7 @@ export default function AuditLogsIndex({
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'whitespace-nowrap text-xs text-[color:var(--app-muted-foreground)]')}>
+                                            <td className={cx(tableCellClassName, 'whitespace-nowrap text-xs text-(--app-muted-foreground)')}>
                                                 <LocalizedDateDisplay value={log.created_at} withTime />
                                             </td>
                                             <td className={tableCellClassName}>

@@ -76,8 +76,8 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                     <div className="grid gap-4 lg:grid-cols-3">
                         <div className="space-y-4 lg:col-span-2">
                             <Card>
-                                <CardHeader><div><CardTitle>{tt('mapping.positionTasks')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.positionTasksHelp')}</p></div></CardHeader>
-                                {unmapped.position_tasks.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('mapping.noPositionTasks')}</p> : (
+                                <CardHeader><div><CardTitle>{tt('mapping.positionTasks')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('mapping.positionTasksHelp')}</p></div></CardHeader>
+                                {unmapped.position_tasks.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mapping.noPositionTasks')}</p> : (
                                     <Table>
                                         <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('mapping.position')}</Th><Th>{tt('mapping.suggestions')}</Th><Th>{tt('mapping.masterTask')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                         <TBody>
@@ -118,7 +118,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
 
                             <Card>
                                 <CardHeader><CardTitle>{tt('mapping.positionServices')}</CardTitle></CardHeader>
-                                {unmapped.position_services.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('mapping.noPositionServices')}</p> : (
+                                {unmapped.position_services.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mapping.noPositionServices')}</p> : (
                                     <Table>
                                         <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('mapping.position')}</Th><Th>{tt('mapping.masterService')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                         <TBody>
@@ -127,7 +127,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                     <Td>
                                                         <p className="font-mono text-xs">{s.service_no}</p>
                                                         <p className="text-sm">{nameOf(s, locale)}</p>
-                                                        <p className="mt-1 flex flex-wrap items-center gap-2">{flag(s.flag)}<span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.tasksMapped').replace(':mapped', String(s.tasks_mapped)).replace(':total', String(s.tasks))}</span></p>
+                                                        <p className="mt-1 flex flex-wrap items-center gap-2">{flag(s.flag)}<span className="text-xs text-(--app-muted-foreground)">{tt('mapping.tasksMapped').replace(':mapped', String(s.tasks_mapped)).replace(':total', String(s.tasks))}</span></p>
                                                     </Td>
                                                     <Td muted>{s.position ? `${s.position.code} · ${titleOf(s.position, locale)}` : '—'}</Td>
                                                     <Td>
@@ -154,7 +154,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
 
                             <Card>
                                 <CardHeader><CardTitle>{tt('mapping.positions')}</CardTitle></CardHeader>
-                                {unmapped.positions.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('mapping.noPositions')}</p> : (
+                                {unmapped.positions.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mapping.noPositions')}</p> : (
                                     <Table>
                                         <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('mapping.position')}</Th><Th>{tt('mapping.unit')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                         <TBody>
@@ -184,8 +184,8 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                     <CardTitle>{tt('mapping.units')}</CardTitle>
                                     <Link href={route('organization-design.responsibilities.index', { organization_id: organizationId })} className={actionLinkClassName()}>{tt('mapping.openResponsibilities')}</Link>
                                 </CardHeader>
-                                {unmapped.units.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('mapping.noUnits')}</p> : (
-                                    <ul className="divide-y divide-[color:var(--app-border)]">
+                                {unmapped.units.length === 0 ? <p className="px-5 py-6 text-center text-sm text-(--app-muted-foreground)">{tt('mapping.noUnits')}</p> : (
+                                    <ul className="divide-y divide-(--app-border)">
                                         {unmapped.units.map((u) => <li key={u.id} className="flex items-center justify-between gap-3 px-5 py-2 text-sm"><span><span className="font-mono text-xs">{u.code}</span> · {nameOf(u, locale)}</span>{flag(u.flag)}</li>)}
                                     </ul>
                                 )}
@@ -193,11 +193,11 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
 
                             {can.catalog && catalog && (
                                 <Card>
-                                    <CardHeader><div><CardTitle>{tt('mapping.catalog')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.catalogHelp')}</p></div></CardHeader>
-                                    <div className="divide-y divide-[color:var(--app-border)]">
+                                    <CardHeader><div><CardTitle>{tt('mapping.catalog')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('mapping.catalogHelp')}</p></div></CardHeader>
+                                    <div className="divide-y divide-(--app-border)">
                                         <div>
-                                            <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{tt('mapping.occupations')}</p>
-                                            {catalog.occupations.length === 0 ? <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">{tt('mapping.noOccupations')}</p> : (
+                                            <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt('mapping.occupations')}</p>
+                                            {catalog.occupations.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('mapping.noOccupations')}</p> : (
                                                 <Table>
                                                     <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('fields.occupation')}</Th><Th>{tt('mapping.iscoGroup')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                                     <TBody>
@@ -229,8 +229,8 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                             )}
                                         </div>
                                         <div>
-                                            <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{tt('mapping.competencies')}</p>
-                                            {catalog.competencies.length === 0 ? <p className="px-5 py-4 text-sm text-[color:var(--app-muted-foreground)]">{tt('mapping.noCompetencies')}</p> : (
+                                            <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt('mapping.competencies')}</p>
+                                            {catalog.competencies.length === 0 ? <p className="px-5 py-4 text-sm text-(--app-muted-foreground)">{tt('mapping.noCompetencies')}</p> : (
                                                 <Table>
                                                     <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('fields.competency')}</Th><Th>{tt('mapping.competencyType')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
                                                     <TBody>
@@ -269,11 +269,11 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                         <div className="space-y-4">
                             {legacy && (
                                 <Card>
-                                    <CardHeader><div><CardTitle>{tt('mapping.legacy')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.legacyHelp')}</p></div></CardHeader>
-                                    <div className="divide-y divide-[color:var(--app-border)]">
+                                    <CardHeader><div><CardTitle>{tt('mapping.legacy')}</CardTitle><p className="mt-0.5 text-xs text-(--app-muted-foreground)">{tt('mapping.legacyHelp')}</p></div></CardHeader>
+                                    <div className="divide-y divide-(--app-border)">
                                         {(['units', 'positions', 'position_services'] as const).map((kind) => (
                                             <div key={kind} className="px-5 py-3">
-                                                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{tt(`mapping.legacyKinds.${kind}`)}</p>
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-(--app-muted-foreground)">{tt(`mapping.legacyKinds.${kind}`)}</p>
                                                 <div className="mt-1 flex flex-wrap gap-2">
                                                     {(['FULLY_MAPPED', 'PARTIALLY_MAPPED', 'UNMAPPED_LEGACY', 'INVALID_REFERENCE'] as const).map((status) => (
                                                         <span key={status} className={badgeClassName(LEGACY_TONES[status])}>{tt(`mapping.legacyStatuses.${status}`)} {legacy.summary[kind][status]}</span>

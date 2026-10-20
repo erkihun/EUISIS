@@ -31,7 +31,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
             {/* ── Left branding panel ───────────────────────────────────── */}
             <div className="relative hidden w-[52%] shrink-0 overflow-hidden lg:flex lg:flex-col">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]" />
+                <div className="absolute inset-0 bg-linear-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460]" />
                 <div
                     className="pointer-events-none absolute inset-0 opacity-[0.035]"
                     style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
@@ -57,31 +57,31 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                         <div className="space-y-3">
                             <h1 className="text-[2rem] font-bold leading-[1.2] text-white">{t('providerPortal.loginHeadline')}</h1>
-                            <p className="text-sm leading-relaxed text-[color:var(--app-muted-foreground)]">{t('providerPortal.loginDescription')}</p>
+                            <p className="text-sm leading-relaxed text-(--app-muted-foreground)">{t('providerPortal.loginDescription')}</p>
                         </div>
 
                         <div className="grid w-full grid-cols-2 gap-2">
                             {FEATURES.map(({ key, icon }, i) => (
-                                <div key={key} className="flex items-center gap-2 rounded-lg border border-white/[0.07] bg-white/[0.04] px-3 py-2 text-left">
+                                <div key={key} className="flex items-center gap-2 rounded-lg border border-white/[0.07] bg-white/4 px-3 py-2 text-left">
                                     <svg className={`h-4 w-4 shrink-0 ${i % 2 === 0 ? 'text-orange-400' : 'text-sky-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
                                         <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
                                     </svg>
-                                    <span className="text-[12px] text-[color:var(--app-muted-foreground)]">{t(key)}</span>
+                                    <span className="text-[12px] text-(--app-muted-foreground)">{t(key)}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     <div className="flex w-full items-center gap-3">
-                        <div className="h-px flex-1 bg-white/[0.06]" />
-                        <p className="text-[11px] text-[color:var(--app-muted-foreground)]">{t('auth.footerGov')} · {orgName}</p>
-                        <div className="h-px flex-1 bg-white/[0.06]" />
+                        <div className="h-px flex-1 bg-white/6" />
+                        <p className="text-[11px] text-(--app-muted-foreground)">{t('auth.footerGov')} · {orgName}</p>
+                        <div className="h-px flex-1 bg-white/6" />
                     </div>
                 </div>
             </div>
 
             {/* ── Right form panel ──────────────────────────────────────── */}
-            <div className="flex flex-1 flex-col bg-[color:var(--app-surface-muted)] dark:bg-[#0d0f14]">
+            <div className="flex flex-1 flex-col bg-(--app-surface-muted) dark:bg-[#0d0f14]">
                 <div className="flex items-center justify-between gap-3 px-6 py-5">
                     <div className="flex items-center gap-2.5 lg:invisible">
                         {systemLogoUrl ? (
@@ -89,7 +89,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
                         ) : (
                             <ApplicationLogo className="h-8 w-auto max-w-[80px] fill-slate-800 dark:fill-white" />
                         )}
-                        <span className="text-sm font-bold text-[color:var(--app-foreground)]">{systemName}</span>
+                        <span className="text-sm font-bold text-(--app-foreground)">{systemName}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <LanguageSwitcher />
@@ -99,11 +99,11 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                 <div className="flex flex-1 items-center justify-center px-6 pb-10">
                     <div className="w-full max-w-[400px]">
-                        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-8 py-8">
+                        <div className="rounded-panel border border-(--app-border) bg-(--app-surface) px-8 py-8">
                             {children}
                         </div>
 
-                        <p className="mt-5 text-center text-[11px] text-[color:var(--app-muted-foreground)]">
+                        <p className="mt-5 text-center text-[11px] text-(--app-muted-foreground)">
                             {t('providerPortal.portalName')} · {t('providerPortal.authorizedOnly')}
                         </p>
                     </div>

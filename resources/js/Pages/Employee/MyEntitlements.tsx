@@ -52,10 +52,14 @@ type TransportActivity = {
         route: string | null; route_am: string | null; route_code: string | null;
         origin: string | null; origin_am: string | null; destination: string | null; destination_am: string | null;
         provider: string | null; provider_am: string | null;
+        boarding_stop: string | null; boarding_stop_am: string | null; evening_stop: string | null; evening_stop_am: string | null;
         valid_from: string | null; valid_until: string | null;
     }[];
+    today_trips: { id: string; trip_number: string; direction: string | null; departure_time: string | null; status: string | null; boarded_count: number; capacity: number | null }[];
     rides_this_month: number;
-    transactions: { date: string | null; time: string | null; route: string | null; route_am: string | null; provider: string | null; provider_am: string | null; status: string; rejection_reason: string | null }[];
+    morning_rides_this_month: number;
+    evening_rides_this_month: number;
+    transactions: { date: string | null; time: string | null; route: string | null; route_am: string | null; provider: string | null; provider_am: string | null; direction: string | null; stop: string | null; stop_am: string | null; status: string; rejection_reason: string | null }[];
 };
 type Entitlement = {
     id: string; status: string;
@@ -267,8 +271,8 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
     }
 
     function dayCls(m: ReturnType<typeof meta>): string {
-        if (m.isConsumed)  return 'bg-emerald-500 text-white rounded-card font-bold shadow-sm';
-        if (m.isToday)     return 'ring-2 ring-[var(--color-primary)] ring-offset-1 dark:ring-offset-slate-900 font-bold text-[var(--color-primary)] rounded-card';
+        if (m.isConsumed)  return 'bg-emerald-500 text-white rounded-card font-bold shadow-xs';
+        if (m.isToday)     return 'ring-2 ring-primary ring-offset-1 dark:ring-offset-slate-900 font-bold text-primary rounded-card';
         if (m.isHoliday)   return 'bg-amber-50 text-amber-500 dark:bg-amber-950/30 dark:text-amber-400 rounded-card';
         if (m.isWeekend)   return 'text-gray-300 dark:text-slate-700';
         if (m.isAvailable) return 'portal-service-accent rounded-card hover:brightness-95';
@@ -319,7 +323,7 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
             {/* In-view month stats */}
             <div className="mb-4 flex flex-wrap justify-center gap-2 text-xs">
                 <span className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1.5 font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-                    <span className="h-2 w-2 rounded-sm bg-emerald-500" />{consumedCount} {t('cafeteria.consumedLabel')}
+                    <span className="h-2 w-2 rounded-xs bg-emerald-500" />{consumedCount} {t('cafeteria.consumedLabel')}
                 </span>
                 <span className="flex items-center gap-1.5 rounded-lg bg-gray-50 px-2.5 py-1.5 text-gray-600 dark:bg-slate-800 dark:text-slate-400">
                     {workingDays} {t('cafeteria.workingDaysLabel')}
@@ -339,7 +343,7 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
             {/* Week rows */}
             <div className="overflow-hidden rounded-b-card border border-gray-100 dark:border-slate-800">
                 {weeks.map((week, wi) => (
-                    <div key={wi} className="grid grid-cols-7 divide-x divide-gray-50 dark:divide-slate-800/50 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-gray-50 dark:[&:not(:first-child)]:border-slate-800/50">
+                    <div key={wi} className="grid grid-cols-7 divide-x divide-gray-50 dark:divide-slate-800/50 not-first:border-t not-first:border-gray-50 dark:not-first:border-slate-800/50">
                         {Array.from({ length: 7 }).map((_, di) => {
                             const c = week[di] ?? null;
                             if (!c) return <div key={di} className="h-11 bg-gray-50/60 dark:bg-slate-900/50" />;
@@ -352,7 +356,7 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
                                         {m.isConsumed ? <Ic.Check className="h-3.5 w-3.5"/> : c.day}
                                     </span>
                                     {m.isConsumed && m.subsidy && (
-                                        <span className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded bg-gray-900 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 dark:bg-slate-700">
+                                        <span className="pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-sm bg-gray-900 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 dark:bg-slate-700">
                                             {fmt(m.subsidy)} {t('employeePortal.currency')}
                                         </span>
                                     )}
@@ -365,10 +369,10 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
 
             {/* Legend */}
             <div className="mt-3 flex flex-wrap gap-3 text-[10px] text-gray-400 dark:text-slate-500">
-                <span className="flex items-center gap-1.5"><span className="flex h-4 w-4 items-center justify-center rounded-sm bg-emerald-500"><Ic.Check className="h-2.5 w-2.5 text-white"/></span>{t('cafeteria.legendUsed')}</span>
-                <span className="flex items-center gap-1.5"><span className="portal-service-accent h-4 w-4 rounded-sm border"/>{t('cafeteria.legendAvailable')}</span>
-                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-sm bg-amber-50 dark:bg-amber-950/30"/>{t('cafeteria.legendHoliday')}</span>
-                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-sm ring-2 ring-[var(--color-primary)]"/>{t('cafeteria.legendToday')}</span>
+                <span className="flex items-center gap-1.5"><span className="flex h-4 w-4 items-center justify-center rounded-xs bg-emerald-500"><Ic.Check className="h-2.5 w-2.5 text-white"/></span>{t('cafeteria.legendUsed')}</span>
+                <span className="flex items-center gap-1.5"><span className="portal-service-accent h-4 w-4 rounded-xs border"/>{t('cafeteria.legendAvailable')}</span>
+                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-xs bg-amber-50 dark:bg-amber-950/30"/>{t('cafeteria.legendHoliday')}</span>
+                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-xs ring-2 ring-primary"/>{t('cafeteria.legendToday')}</span>
             </div>
         </div>
     );
@@ -387,7 +391,7 @@ function StatCard({ icon: I, period, primary, secondary, badge, colorKey }: {
     return (
         <div className="portal-panel rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <div className="mb-2 flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-[color:var(--color-primary)]">
+                <span className="flex items-center gap-1.5 text-[10px] font-semibold text-primary">
                     <I className="h-3.5 w-3.5"/>{period}
                 </span>
                 <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${badgeTone}`}>{badge}</span>
@@ -538,20 +542,27 @@ function TransportDetail({ a }: { a: TransportActivity }) {
     const { t, locale } = useLocale();
     const pick = (en: string | null, am: string | null) => (locale === 'am' && am ? am : en ?? am ?? '—');
     const panel = 'rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900';
+    const current = a.passes.find((p) => p.status === 'active') ?? a.passes[0];
+    const direction = (d: string | null) => (d ? t(`transport.directions.${d}`) : '');
 
     return (
         <div className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
                 <div className={`${panel} p-4`}>
                     <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.ridesThisMonth')}</p>
                     <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">{a.rides_this_month}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.morningRides')} {a.morning_rides_this_month} · {t('employeePortal.eveningRides')} {a.evening_rides_this_month}</p>
                 </div>
-                <div className={`${panel} p-4`}>
-                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.transportPass')}</p>
-                    {a.passes[0] ? (
-                        <div className="mt-1 flex items-center gap-2">
-                            <p className="text-base font-semibold text-gray-900 dark:text-slate-100">{a.passes[0].route_code ?? pick(a.passes[0].route, a.passes[0].route_am)}</p>
-                            <StatusChip status={a.passes[0].status} />
+                <div className={`${panel} p-4 sm:col-span-2`}>
+                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.myRoute')}</p>
+                    {current ? (
+                        <div className="mt-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                                <p className="text-base font-semibold text-gray-900 dark:text-slate-100">{current.route_code ? `${current.route_code} — ` : ''}{pick(current.route, current.route_am)}</p>
+                                <StatusChip status={current.status} />
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-slate-400">{pick(current.origin, current.origin_am)} → {pick(current.destination, current.destination_am)}{(current.provider || current.provider_am) && <> · {pick(current.provider, current.provider_am)}</>}</p>
+                            <p className="text-xs text-gray-600 dark:text-slate-300">{t('employeePortal.boardingStop')}: {pick(current.boarding_stop, current.boarding_stop_am)} · {t('employeePortal.eveningStop')}: {pick(current.evening_stop, current.evening_stop_am)}</p>
                         </div>
                     ) : (
                         <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t('employeePortal.noTransportPass')}</p>
@@ -559,7 +570,28 @@ function TransportDetail({ a }: { a: TransportActivity }) {
                 </div>
             </div>
 
-            {a.passes.length > 0 && (
+            {current && (
+                <section className={panel}>
+                    <h3 className="border-b border-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:border-slate-800 dark:text-slate-100">{t('employeePortal.todayTrips')}</h3>
+                    {a.today_trips.length === 0 ? (
+                        <p className="px-4 py-6 text-center text-sm text-gray-500 dark:text-slate-400">{t('employeePortal.noTripsToday')}</p>
+                    ) : (
+                        <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                            {a.today_trips.map((trip) => (
+                                <li key={trip.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                                    <div>
+                                        <p className="font-medium tabular-nums text-gray-800 dark:text-slate-200">{trip.departure_time ?? '—'} · {direction(trip.direction)}</p>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">{trip.trip_number}{trip.capacity ? ` · ${trip.boarded_count}/${trip.capacity}` : ''}</p>
+                                    </div>
+                                    <StatusChip status={trip.status ?? ''} />
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </section>
+            )}
+
+            {a.passes.length > 1 && (
                 <section className={panel}>
                     <h3 className="border-b border-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:border-slate-800 dark:text-slate-100">{t('employeePortal.transportPasses')}</h3>
                     <ul className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -568,10 +600,6 @@ function TransportDetail({ a }: { a: TransportActivity }) {
                                 <div className="min-w-0">
                                     <p className="font-medium text-gray-900 dark:text-slate-100">
                                         {pick(pass.route, pass.route_am)}{pass.route_code && <span className="ms-1 text-xs text-gray-500">({pass.route_code})</span>}
-                                    </p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">
-                                        {pick(pass.origin, pass.origin_am)} → {pick(pass.destination, pass.destination_am)}
-                                        {(pass.provider || pass.provider_am) && <> · {pick(pass.provider, pass.provider_am)}</>}
                                     </p>
                                     <p className="text-xs text-gray-500 dark:text-slate-400">
                                         <LocalizedDateDisplay value={pass.valid_from} /> – <LocalizedDateDisplay value={pass.valid_until} />
@@ -593,8 +621,8 @@ function TransportDetail({ a }: { a: TransportActivity }) {
                         {a.transactions.map((tx, i) => (
                             <li key={i} className="flex items-start justify-between gap-3 px-4 py-2.5 text-sm">
                                 <div className="min-w-0">
-                                    <p className="truncate font-medium text-gray-800 dark:text-slate-200">{pick(tx.route, tx.route_am)}</p>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={tx.date} />{tx.time && ` · ${tx.time}`}{(tx.provider || tx.provider_am) && <> · {pick(tx.provider, tx.provider_am)}</>}</p>
+                                    <p className="truncate font-medium text-gray-800 dark:text-slate-200">{pick(tx.route, tx.route_am)}{tx.direction && <span className="ms-1 text-xs font-normal text-gray-500">· {direction(tx.direction)}</span>}</p>
+                                    <p className="text-xs text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={tx.date} />{tx.time && ` · ${tx.time}`}{(tx.stop || tx.stop_am) && <> · {pick(tx.stop, tx.stop_am)}</>}{(tx.provider || tx.provider_am) && <> · {pick(tx.provider, tx.provider_am)}</>}</p>
                                     {tx.rejection_reason && <p className="text-xs text-red-700 dark:text-red-400">{tx.rejection_reason}</p>}
                                 </div>
                                 <StatusChip status={tx.status} />
@@ -603,6 +631,7 @@ function TransportDetail({ a }: { a: TransportActivity }) {
                     </ul>
                 )}
             </section>
+            <p className="text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.transportPrivacyNote')}</p>
         </div>
     );
 }
@@ -624,7 +653,7 @@ function SideItem({ e, selected, onClick, useAmharic }: { e: Entitlement; select
                 {isCafe ? <Ic.Utensils className="h-4 w-4"/> : isBus ? <Ic.Bus className="h-4 w-4"/> : <Ic.Layers className="h-4 w-4"/>}
             </div>
             <div className="min-w-0 flex-1">
-                <p className={`truncate text-sm font-medium ${selected ? 'text-[var(--color-primary)]' : 'text-gray-900 dark:text-slate-100'}`}>{name}</p>
+                <p className={`truncate text-sm font-medium ${selected ? 'text-primary' : 'text-gray-900 dark:text-slate-100'}`}>{name}</p>
                 {e.provider && <p className="truncate text-xs text-gray-400">{e.provider}</p>}
             </div>
             <StatusChip status={e.status} />
@@ -684,8 +713,8 @@ export default function MyEntitlements({ entitlements, has_employee }: Props) {
                                         {selected.service_code === 'cafeteria'
                                             ? <Ic.Utensils className="h-5 w-5"/>
                                             : selected.service_code === 'transport'
-                                                ? <Ic.Bus className="h-5 w-5 text-[color:var(--color-primary)]"/>
-                                                : <Ic.Layers className="h-5 w-5 text-[color:var(--color-primary)]"/>
+                                                ? <Ic.Bus className="h-5 w-5 text-primary"/>
+                                                : <Ic.Layers className="h-5 w-5 text-primary"/>
                                         }
                                     </div>
                                     <div>

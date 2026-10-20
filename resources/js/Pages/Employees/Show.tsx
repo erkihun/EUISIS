@@ -72,11 +72,11 @@ type EmployeeDetail = {
 function Field({ label, value }: { label: string; value?: string | number | null }) {
     return (
         <div>
-            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
+            <dt className="text-xs font-medium text-(--app-muted-foreground)">
                 {label}
             </dt>
-            <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">
-                {value ?? <span className="text-[color:var(--app-muted-foreground)]">—</span>}
+            <dd className="mt-1 text-sm text-(--app-foreground)">
+                {value ?? <span className="text-(--app-muted-foreground)">—</span>}
             </dd>
         </div>
     );
@@ -132,7 +132,7 @@ export default function EmployeesShow({
                             {can('service_feedback.settings.manage') && (
                                 <Link
                                     href={route('employees.feedback-qr.show', employee.id)}
-                                    className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                    className="rounded-lg border border-(--app-border-strong) px-3 py-1.5 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                                 >
                                     {t('serviceFeedback.employeeFeedbackQr')}
                                 </Link>
@@ -153,20 +153,20 @@ export default function EmployeesShow({
             <div className="space-y-5">
 
                 {/* ── Profile card ─────────────────────────────────────── */}
-                <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
                     <div className="px-5 py-5 sm:px-6">
                         {/* Identity row */}
                         <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-center">
-                            <div className="flex-shrink-0">
+                            <div className="shrink-0">
                                 {employee.photo_url ? (
                                     <img
                                         src={employee.photo_url}
                                         alt={employee.full_name}
-                                        className="h-24 w-20 rounded-card border border-[color:var(--app-border)] object-cover"
+                                        className="h-24 w-20 rounded-card border border-(--app-border) object-cover"
                                     />
                                 ) : (
-                                    <div className="flex h-24 w-20 items-center justify-center rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)]">
-                                        <svg className="h-9 w-9 text-[color:var(--app-muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <div className="flex h-24 w-20 items-center justify-center rounded-card border border-(--app-border) bg-(--app-surface-muted)">
+                                        <svg className="h-9 w-9 text-(--app-muted-foreground)" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
                                     </div>
@@ -174,12 +174,12 @@ export default function EmployeesShow({
                             </div>
                             <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <h2 className="truncate text-xl font-semibold text-[color:var(--app-foreground)]">
+                                    <h2 className="truncate text-xl font-semibold text-(--app-foreground)">
                                         {employeeName(employee)}
                                     </h2>
                                     <StatusBadge status={employee.status} label={statusLabel(employee.status)} />
                                 </div>
-                                <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
+                                <p className="mt-1 text-sm text-(--app-muted-foreground)">
                                     {positionName(employee.current_assignment?.position) ?? t('employees.noPosition')}
                                     {organizationName(employee.current_assignment?.organization) && (
                                         <> · {organizationName(employee.current_assignment?.organization)}</>
@@ -191,24 +191,24 @@ export default function EmployeesShow({
                              * clerk opening a file wants to know at a glance
                              * whether there is history behind it.
                              */}
-                            <dl className="grid w-full grid-cols-3 overflow-hidden rounded-card border border-[color:var(--app-border)] lg:w-auto">
+                            <dl className="grid w-full grid-cols-3 overflow-hidden rounded-card border border-(--app-border) lg:w-auto">
                                 <div className="px-4 py-2.5 text-center">
-                                    <dd className="text-base font-semibold tabular-nums text-[color:var(--app-foreground)]">{employee.assignments?.length ?? 0}</dd>
-                                    <dt className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{t('employees.assignmentHistory')}</dt>
+                                    <dd className="text-base font-semibold tabular-nums text-(--app-foreground)">{employee.assignments?.length ?? 0}</dd>
+                                    <dt className="mt-0.5 text-xs text-(--app-muted-foreground)">{t('employees.assignmentHistory')}</dt>
                                 </div>
-                                <div className="border-x border-[color:var(--app-border)] px-4 py-2.5 text-center">
-                                    <dd className="text-base font-semibold tabular-nums text-[color:var(--app-foreground)]">{employee.transfers?.length ?? 0}</dd>
-                                    <dt className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{t('employees.transferHistory')}</dt>
+                                <div className="border-x border-(--app-border) px-4 py-2.5 text-center">
+                                    <dd className="text-base font-semibold tabular-nums text-(--app-foreground)">{employee.transfers?.length ?? 0}</dd>
+                                    <dt className="mt-0.5 text-xs text-(--app-muted-foreground)">{t('employees.transferHistory')}</dt>
                                 </div>
                                 <div className="px-4 py-2.5 text-center">
-                                    <dd className="text-base font-semibold tabular-nums text-[color:var(--app-foreground)]">{employee.data_quality_score ?? 0}%</dd>
-                                    <dt className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{t('employees.dataQualityScore')}</dt>
+                                    <dd className="text-base font-semibold tabular-nums text-(--app-foreground)">{employee.data_quality_score ?? 0}%</dd>
+                                    <dt className="mt-0.5 text-xs text-(--app-muted-foreground)">{t('employees.dataQualityScore')}</dt>
                                 </div>
                             </dl>
                         </div>
 
                         {/* Identity details grid */}
-                        <dl className="grid gap-x-8 gap-y-5 border-t border-[color:var(--app-border)] pt-6 sm:grid-cols-2 lg:grid-cols-4">
+                        <dl className="grid gap-x-8 gap-y-5 border-t border-(--app-border) pt-6 sm:grid-cols-2 lg:grid-cols-4">
                             <Field label={t('employees.employeeNumber')} value={employee.employee_number} />
                             <Field label={t('employees.nationalId')} value={formatNationalId(employee.national_id)} />
                             <Field label={t('employees.employmentStatus')} value={statusLabel(employee.status)} />
@@ -222,8 +222,8 @@ export default function EmployeesShow({
                                 value={employee.gender ? t(`employees.${employee.gender}`) : null}
                             />
                             <div>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('employees.dateOfBirth')}</dt>
-                                <dd className="mt-1 text-sm text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={employee.date_of_birth} /></dd>
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('employees.dateOfBirth')}</dt>
+                                <dd className="mt-1 text-sm text-(--app-foreground)"><LocalizedDateDisplay value={employee.date_of_birth} /></dd>
                             </div>
                             <Field label={t('employees.dataQualityScore')} value={employee.data_quality_score ?? 0} />
                         </dl>
@@ -234,8 +234,8 @@ export default function EmployeesShow({
                           * public ID Checker builds its own field list and never
                           * includes address or emergency contact.
                           */}
-                        <div className="mt-6 border-t border-[color:var(--app-border)] pt-6">
-                            <h3 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
+                        <div className="mt-6 border-t border-(--app-border) pt-6">
+                            <h3 className="mb-4 text-sm font-semibold text-(--app-foreground)">
                                 {t('employees.sectionAdditional')}
                             </h3>
                             <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -250,8 +250,8 @@ export default function EmployeesShow({
                 </div>
 
                 {/* ── Current assignment ───────────────────────────────── */}
-                <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h3 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
+                <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    <h3 className="mb-4 text-sm font-semibold text-(--app-foreground)">
                         {t('employees.currentOrganization')}
                     </h3>
                     {employee.current_assignment ? (
@@ -265,12 +265,12 @@ export default function EmployeesShow({
                                 value={positionName(employee.current_assignment.position)}
                             />
                             <div>
-                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.effectiveFrom')}</dt>
-                                <dd className="mt-1 text-sm text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={employee.current_assignment.effective_from} /></dd>
+                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('common.effectiveFrom')}</dt>
+                                <dd className="mt-1 text-sm text-(--app-foreground)"><LocalizedDateDisplay value={employee.current_assignment.effective_from} /></dd>
                             </div>
                         </dl>
                     ) : (
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('common.unassigned')}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{t('common.unassigned')}</p>
                     )}
                 </div>
 
@@ -279,34 +279,34 @@ export default function EmployeesShow({
 
                 <div className="grid items-start gap-5 lg:grid-cols-2">
                     {/* ── Assignment history ───────────────────────────── */}
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="text-sm font-semibold text-[color:var(--app-foreground)] mb-4">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="text-sm font-semibold text-(--app-foreground) mb-4">
                             {t('employees.assignmentHistory')}
                         </h3>
                         <div className="space-y-3 text-sm">
                             {(employee.assignments ?? []).length === 0 ? (
-                                <p className="text-[color:var(--app-muted-foreground)]">—</p>
+                                <p className="text-(--app-muted-foreground)">—</p>
                             ) : (employee.assignments ?? []).map((a) => (
                                 <div
                                     key={a.id}
-                                    className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4"
+                                    className="rounded-card border border-(--app-border) bg-(--app-surface-muted) p-4"
                                 >
                                     <div className="flex items-start justify-between gap-2">
-                                        <div className="font-medium text-[color:var(--app-foreground)]">
+                                        <div className="font-medium text-(--app-foreground)">
                                             {organizationName(a.organization) ?? t('employees.unknownOrganization')}
                                         </div>
                                         <StatusBadge status={a.assignment_status} label={statusLabel(a.assignment_status)} />
                                     </div>
-                                    <div className="mt-1 text-[color:var(--app-muted-foreground)]">
+                                    <div className="mt-1 text-(--app-muted-foreground)">
                                         {positionName(a.position) ?? t('employees.noPosition')}
                                     </div>
-                                    <div className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                    <div className="mt-1 text-xs text-(--app-muted-foreground)">
                                         <LocalizedDateDisplay value={a.effective_from} fallback="?" />
                                         {' → '}
                                         {a.effective_to ? <LocalizedDateDisplay value={a.effective_to} /> : t('common.present')}
                                     </div>
                                     {a.reason && (
-                                        <div className="mt-2 text-xs text-[color:var(--app-muted-foreground)] italic">
+                                        <div className="mt-2 text-xs text-(--app-muted-foreground) italic">
                                             {a.reason}
                                         </div>
                                     )}
@@ -316,9 +316,9 @@ export default function EmployeesShow({
                     </div>
 
                     {/* ── Transfers ────────────────────────────────────── */}
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                         <div className="flex items-center justify-between gap-3 mb-4">
-                            <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">
+                            <h3 className="text-sm font-semibold text-(--app-foreground)">
                                 {t('employees.transferHistory')}
                             </h3>
                             <Link
@@ -330,20 +330,20 @@ export default function EmployeesShow({
                         </div>
                         <div className="space-y-3 text-sm">
                             {(employee.transfers ?? []).length === 0 ? (
-                                <p className="text-[color:var(--app-muted-foreground)]">{t('employees.noTransfersFound')}</p>
+                                <p className="text-(--app-muted-foreground)">{t('employees.noTransfersFound')}</p>
                             ) : (employee.transfers ?? []).map((tr) => (
                                 <Link
                                     key={tr.id}
                                     href={route('transfers.dashboard')}
-                                    className="flex items-center justify-between gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4 transition hover:border-blue-200 hover:bg-blue-50/50 dark:hover:border-[color:var(--color-primary)]/30"
+                                    className="flex items-center justify-between gap-3 rounded-card border border-(--app-border) bg-(--app-surface-muted) p-4 transition hover:border-blue-200 hover:bg-blue-50/50 dark:hover:border-primary/30"
                                 >
                                     <div className="min-w-0">
-                                        <div className="font-medium text-[color:var(--app-foreground)] truncate">
+                                        <div className="font-medium text-(--app-foreground) truncate">
                                             {organizationName(tr.from_organization) ?? t('employees.unknownOrganization')}
                                             {' → '}
                                             {organizationName(tr.to_organization) ?? t('employees.unknownOrganization')}
                                         </div>
-                                        <div className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
+                                        <div className="mt-0.5 text-xs text-(--app-muted-foreground)">
                                             {tr.effective_date
                                                 ? <LocalizedDateDisplay value={tr.effective_date} />
                                                 : '—'}
@@ -367,7 +367,7 @@ export default function EmployeesShow({
                                 {(employee.duplicate_flags ?? []).map((flag) => (
                                     <div
                                         key={flag.id}
-                                        className="rounded-card border border-amber-200 bg-[color:var(--app-surface)] p-4 dark:border-amber-500/20"
+                                        className="rounded-card border border-amber-200 bg-(--app-surface) p-4 dark:border-amber-500/20"
                                     >
                                         <div className="flex items-center justify-between gap-2">
                                             <span className="font-medium text-amber-700 dark:text-amber-300">
@@ -377,7 +377,7 @@ export default function EmployeesShow({
                                                 {t('employees.riskScore')} {flag.risk_score}
                                             </span>
                                         </div>
-                                        <div className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
+                                        <div className="mt-1 text-xs text-(--app-muted-foreground)">
                                             #{flag.matched_employee?.employee_number} · {t('employees.matchedFields')}: {flag.matched_fields.join(', ') || '—'}
                                         </div>
                                     </div>
@@ -387,22 +387,22 @@ export default function EmployeesShow({
                     )}
 
                     {/* ── Documents ────────────────────────────────────── */}
-                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                        <h3 className="text-sm font-semibold text-[color:var(--app-foreground)] mb-4">
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                        <h3 className="text-sm font-semibold text-(--app-foreground) mb-4">
                             {t('employees.documentMetadata')}
                         </h3>
                         <div className="space-y-2 text-sm">
                             {(employee.documents ?? []).length === 0 ? (
-                                <p className="text-[color:var(--app-muted-foreground)]">{t('employees.noDocuments')}</p>
+                                <p className="text-(--app-muted-foreground)">{t('employees.noDocuments')}</p>
                             ) : (employee.documents ?? []).map((doc) => (
                                 <div
                                     key={doc.id}
-                                    className="flex items-center justify-between gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-3"
+                                    className="flex items-center justify-between gap-3 rounded-card border border-(--app-border) bg-(--app-surface-muted) px-4 py-3"
                                 >
                                     <div className="min-w-0">
-                                        <span className="font-medium text-[color:var(--app-foreground)]">{doc.document_type}</span>
-                                        <span className="mx-2 text-[color:var(--app-muted-foreground)]">·</span>
-                                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{doc.storage_disk}</span>
+                                        <span className="font-medium text-(--app-foreground)">{doc.document_type}</span>
+                                        <span className="mx-2 text-(--app-muted-foreground)">·</span>
+                                        <span className="font-mono text-xs text-(--app-muted-foreground)">{doc.storage_disk}</span>
                                     </div>
                                     <span className={`text-xs font-medium ${doc.is_private ? 'text-red-500' : 'text-green-600'}`}>
                                         {doc.is_private ? t('common.private') : t('common.public')}

@@ -58,14 +58,14 @@ const iconWrapperCls: Record<ConfirmVariant, string> = {
     danger:  'rounded-full bg-red-100 p-2 text-red-600 dark:bg-red-900/30 dark:text-red-400',
     warning: 'rounded-full bg-amber-100 p-2 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
     success: 'rounded-full bg-green-100 p-2 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-    default: 'rounded-full bg-blue-100 p-2 text-[color:var(--color-primary)] dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]',
+    default: 'rounded-full bg-blue-100 p-2 text-primary dark:bg-blue-900/30 dark:text-primary',
 };
 
 const confirmBtnCls: Record<ConfirmVariant, string> = {
     danger:  'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:opacity-60',
-    warning: 'bg-amber-500 text-[color:var(--app-foreground)] hover:bg-amber-600 focus:ring-amber-400 disabled:opacity-60',
+    warning: 'bg-amber-500 text-(--app-foreground) hover:bg-amber-600 focus:ring-amber-400 disabled:opacity-60',
     success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:opacity-60',
-    default: 'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] focus:ring-[color:var(--color-primary)] disabled:opacity-60',
+    default: 'bg-primary text-white hover:bg-primary-hover focus:ring-primary disabled:opacity-60',
 };
 
 export default function ConfirmationDialog({
@@ -144,7 +144,7 @@ export default function ConfirmationDialog({
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" aria-hidden="true" />
                 </TransitionChild>
 
                 {/* Panel */}
@@ -156,7 +156,7 @@ export default function ConfirmationDialog({
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                 >
-                    <DialogPanel className="relative w-full max-w-md rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-[color:var(--app-border-strong)]">
+                    <DialogPanel className="relative w-full max-w-md rounded-panel bg-(--app-surface) shadow-2xl ring-1 ring-(--app-border-strong)">
                         {/* Header */}
                         <div className="flex items-start gap-4 p-6">
                             <div className={iconWrapperCls[variant]} aria-hidden="true">
@@ -165,14 +165,14 @@ export default function ConfirmationDialog({
                             <div className="min-w-0 flex-1">
                                 <h3
                                     id={titleId}
-                                    className="text-base font-semibold text-[color:var(--app-foreground)]"
+                                    className="text-base font-semibold text-(--app-foreground)"
                                 >
                                     {title}
                                 </h3>
                                 {description && (
                                     <p
                                         id={descId}
-                                        className="mt-1 text-sm text-[color:var(--app-muted-foreground)]"
+                                        className="mt-1 text-sm text-(--app-muted-foreground)"
                                     >
                                         {description}
                                     </p>
@@ -182,7 +182,7 @@ export default function ConfirmationDialog({
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="ml-2 shrink-0 rounded-lg p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-muted-foreground)]"
+                                    className="ml-2 shrink-0 rounded-lg p-1 text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-muted-foreground)"
                                     aria-label={cancelLabel}
                                 >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -195,7 +195,7 @@ export default function ConfirmationDialog({
                         {/* Body: typed confirmation */}
                         {requireTyped && (
                             <div className="px-6 pb-2">
-                                <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                                     {`Type "${requireTyped}" to confirm`}
                                 </label>
                                 <input
@@ -213,7 +213,7 @@ export default function ConfirmationDialog({
                         {/* Body: reason textarea */}
                         {requireReason && (
                             <div className="px-6 pb-2">
-                                <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
+                                <label className="mb-1 block text-xs font-medium text-(--app-muted-foreground)">
                                     {reasonLabel}
                                 </label>
                                 <textarea
@@ -227,7 +227,7 @@ export default function ConfirmationDialog({
                         )}
 
                         {/* Footer */}
-                        <div className="flex justify-end gap-2 rounded-b-panel border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-6 py-4">
+                        <div className="flex justify-end gap-2 rounded-b-panel border-t border-(--app-border) bg-(--app-surface-muted) px-6 py-4">
                             <button
                                 ref={cancelRef}
                                 type="button"
@@ -242,7 +242,7 @@ export default function ConfirmationDialog({
                                 type="button"
                                 onClick={handleConfirm}
                                 disabled={!canConfirm}
-                                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${confirmBtnCls[variant]}`}
+                                className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-offset-2 ${confirmBtnCls[variant]}`}
                             >
                                 {loading && (
                                     <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">

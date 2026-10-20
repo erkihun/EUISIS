@@ -140,7 +140,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                         {t('providers.acrossServiceTypes').replace(':count', String(stats.service_types_in_use))}
                     </Stat>
                     <Stat label={<><StatusDot status="active" /> {t('providers.statusActive')}</>} value={(totals.active ?? 0).toLocaleString()}>
-                        <span aria-hidden="true" className="block h-1.5 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]">
+                        <span aria-hidden="true" className="block h-1.5 overflow-hidden rounded-full bg-(--app-surface-muted)">
                             <span className="block h-full rounded-full bg-emerald-600" style={{ width: `${totals.all ? ((totals.active ?? 0) / totals.all) * 100 : 0}%` }} />
                         </span>
                     </Stat>
@@ -162,8 +162,8 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
 
                 <div className="grid items-start gap-5 lg:grid-cols-12">
                     {/* Providers */}
-                    <section aria-label={t('providers.title')} className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] lg:col-span-8">
-                        <nav aria-label={t('providers.status')} className="overflow-x-auto border-b border-[color:var(--app-border)] px-2 pt-1 [scrollbar-width:none] sm:px-3 [&::-webkit-scrollbar]:hidden">
+                    <section aria-label={t('providers.title')} className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) lg:col-span-8">
+                        <nav aria-label={t('providers.status')} className="overflow-x-auto border-b border-(--app-border) px-2 pt-1 scrollbar-none sm:px-3 [&::-webkit-scrollbar]:hidden">
                             <ul className="flex min-w-max gap-1">
                                 {tabs.map((tab) => {
                                     const active = tab.id === filters.status;
@@ -174,18 +174,18 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                                 preserveScroll
                                                 aria-current={active ? 'page' : undefined}
                                                 className={cx(
-                                                    '-mb-px inline-flex h-11 items-center gap-2 border-b-2 px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
+                                                    '-mb-px inline-flex h-11 items-center gap-2 border-b-2 px-3 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary',
                                                     active
-                                                        ? 'border-[color:var(--color-primary)] font-semibold text-[color:var(--color-primary)]'
-                                                        : 'border-transparent font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+                                                        ? 'border-primary font-semibold text-primary'
+                                                        : 'border-transparent font-medium text-(--app-muted-foreground) hover:text-(--app-foreground)',
                                                 )}
                                             >
                                                 {tab.label}
                                                 <span className={cx(
-                                                    'inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-xs font-semibold tabular-nums',
+                                                    'inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-semibold tabular-nums',
                                                     active
-                                                        ? 'bg-[color:var(--color-primary-100)] text-[color:var(--color-primary)] dark:bg-[color:var(--color-primary-900)] dark:text-[color:var(--color-primary-200)]'
-                                                        : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
+                                                        ? 'bg-primary-100 text-primary dark:bg-primary-900 dark:text-primary-200'
+                                                        : 'bg-(--app-surface-muted) text-(--app-muted-foreground)',
                                                 )}>
                                                     {(statusCounts[tab.id ?? 'all'] ?? 0).toLocaleString()}
                                                 </span>
@@ -196,9 +196,9 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             </ul>
                         </nav>
 
-                        <div className="flex flex-col gap-2 border-b border-[color:var(--app-border)] px-4 py-3 sm:flex-row">
+                        <div className="flex flex-col gap-2 border-b border-(--app-border) px-4 py-3 sm:flex-row">
                             <div className="relative min-w-0 flex-1">
-                                <SearchIcon aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
+                                <SearchIcon aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" />
                                 <Input
                                     type="search"
                                     value={search}
@@ -206,14 +206,14 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                     placeholder={t('providers.searchPlaceholder')}
                                     aria-label={t('providers.searchProviders')}
                                     maxLength={100}
-                                    className="h-[var(--control-h-sm)] pl-9"
+                                    className="h-(--control-h-sm) pl-9"
                                 />
                             </div>
                             <Select
                                 value={filters.service_type_id ?? ''}
                                 onChange={(event) => visit({ service_type_id: event.target.value || null })}
                                 aria-label={t('providers.filterByType')}
-                                className="h-[var(--control-h-sm)] sm:w-56"
+                                className="h-(--control-h-sm) sm:w-56"
                             >
                                 <option value="">{t('providers.allServiceTypes')}</option>
                                 {serviceTypes.map((type) => (
@@ -224,7 +224,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
 
                         {providers.data.length === 0 ? (
                             <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
-                                <p className="text-sm text-[color:var(--app-muted-foreground)]">{hasFilters ? t('providers.noMatches') : t('providers.noProviders')}</p>
+                                <p className="text-sm text-(--app-muted-foreground)">{hasFilters ? t('providers.noMatches') : t('providers.noProviders')}</p>
                                 {hasFilters ? (
                                     <Link href={route('service-providers.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('providers.clearFilters')}</Link>
                                 ) : can.create && (
@@ -233,7 +233,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             </div>
                         ) : (
                             <>
-                                <table className={cx(tableClassName, 'hidden')}>
+                                <table className={cx(tableClassName, 'hidden md:table')}>
                                     <thead className={tableHeadClassName}>
                                         <tr className="text-left">
                                             <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('providers.columnProvider')}</th>
@@ -256,29 +256,29 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                                     className={cx(tableRowClassName, 'cursor-pointer')}
                                                 >
                                                     <td className={tableCellClassName}>
-                                                        <Link href={href} className="group flex items-center gap-3 focus-visible:outline-none">
+                                                        <Link href={href} className="group flex items-center gap-3 focus-visible:outline-hidden">
                                                             <ProviderAvatar name={provider.name} typeCode={provider.service_type?.code} />
                                                             <span className="min-w-0">
                                                                 <span className="flex items-center gap-2">
-                                                                    <span className="truncate font-semibold text-[color:var(--app-foreground)] group-hover:underline group-focus-visible:underline">{provider.name}</span>
+                                                                    <span className="truncate font-semibold text-(--app-foreground) group-hover:underline group-focus-visible:underline">{provider.name}</span>
                                                                     {provider.is_demo && <DemoTag />}
                                                                 </span>
-                                                                <span className="block truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                                                <span className="block truncate text-xs text-(--app-muted-foreground)">
                                                                     <span className="font-mono">{provider.code}</span> · {provider.organization ? localName(provider.organization) : t('providers.allOrganizations')}
                                                                 </span>
                                                             </span>
                                                         </Link>
                                                     </td>
-                                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{localName(provider.service_type, t('providers.unknownService'))}</td>
+                                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{localName(provider.service_type, t('providers.unknownService'))}</td>
                                                     <td className={cx(tableCellClassName, 'text-right')}>
-                                                        <div className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{provider.transactions_recent.toLocaleString()}</div>
-                                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                        <div className="font-semibold tabular-nums text-(--app-foreground)">{provider.transactions_recent.toLocaleString()}</div>
+                                                        <div className="text-xs text-(--app-muted-foreground)">
                                                             {provider.last_transaction_at ? <LocalizedDateDisplay value={provider.last_transaction_at} /> : t('providers.noActivity')}
                                                         </div>
                                                     </td>
                                                     <td className={tableCellClassName}><ProviderStatusBadge status={provider.status} /></td>
                                                     <td className={cx(tableCellClassName, 'text-right')}>
-                                                        <ChevronRight aria-hidden="true" className="ml-auto h-4 w-4 text-[color:var(--app-muted-foreground)]" />
+                                                        <ChevronRight aria-hidden="true" className="ml-auto h-4 w-4 text-(--app-muted-foreground)" />
                                                     </td>
                                                 </tr>
                                             );
@@ -286,17 +286,17 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                     </tbody>
                                 </table>
 
-                                <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
+                                <ul className="divide-y divide-(--app-border) md:hidden">
                                     {providers.data.map((provider) => (
                                         <li key={provider.id}>
-                                            <Link href={route('service-providers.show', provider.id)} className="flex items-center gap-3 px-4 py-3.5 active:bg-[color:var(--app-surface-muted)]">
+                                            <Link href={route('service-providers.show', provider.id)} className="flex items-center gap-3 px-4 py-3.5 active:bg-(--app-surface-muted)">
                                                 <ProviderAvatar name={provider.name} typeCode={provider.service_type?.code} />
                                                 <span className="min-w-0 flex-1">
                                                     <span className="flex items-center gap-2">
-                                                        <span className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{provider.name}</span>
+                                                        <span className="truncate text-sm font-semibold text-(--app-foreground)">{provider.name}</span>
                                                         {provider.is_demo && <DemoTag />}
                                                     </span>
-                                                    <span className="block truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <span className="block truncate text-xs text-(--app-muted-foreground)">
                                                         <span className="font-mono">{provider.code}</span> · {localName(provider.service_type, t('providers.unknownService'))}
                                                     </span>
                                                 </span>
@@ -313,13 +313,13 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
 
                     <aside className="space-y-5 lg:col-span-4">
                         {/* By service type: doubles as a one-click filter. */}
-                        <section aria-labelledby="by-type" className="rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <section aria-labelledby="by-type" className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                             <div className="flex items-baseline justify-between gap-2">
-                                <h2 id="by-type" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{t('providers.byServiceType')}</h2>
-                                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('providers.selectToFilter')}</span>
+                                <h2 id="by-type" className="text-[15px] font-semibold text-(--app-foreground)">{t('providers.byServiceType')}</h2>
+                                <span className="text-xs text-(--app-muted-foreground)">{t('providers.selectToFilter')}</span>
                             </div>
                             {serviceTypes.length === 0 ? (
-                                <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('providers.noServiceTypes')}</p>
+                                <p className="mt-3 text-sm text-(--app-muted-foreground)">{t('providers.noServiceTypes')}</p>
                             ) : (
                                 <ul className="-mx-2 mt-3 space-y-0.5">
                                     {serviceTypes.map((type) => {
@@ -331,15 +331,15 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                                     aria-pressed={selected}
                                                     onClick={() => visit({ service_type_id: selected ? null : type.id })}
                                                     className={cx(
-                                                        'flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
-                                                        selected ? 'bg-[color:var(--color-primary-50)] dark:bg-[color:var(--color-primary-950)]' : 'hover:bg-[color:var(--app-surface-muted)]',
+                                                        'flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary',
+                                                        selected ? 'bg-primary-50 dark:bg-primary-950' : 'hover:bg-(--app-surface-muted)',
                                                     )}
                                                 >
-                                                    <span className={cx('min-w-0 flex-1 truncate text-[13px] text-[color:var(--app-foreground)]', selected ? 'font-semibold' : 'font-medium')}>{localName(type)}</span>
-                                                    <span aria-hidden="true" className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]">
-                                                        <span className="block h-full rounded-full bg-[color:var(--color-primary-500)]" style={{ width: `${(type.providers_count / maxTypeCount) * 100}%` }} />
+                                                    <span className={cx('min-w-0 flex-1 truncate text-[13px] text-(--app-foreground)', selected ? 'font-semibold' : 'font-medium')}>{localName(type)}</span>
+                                                    <span aria-hidden="true" className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-(--app-surface-muted)">
+                                                        <span className="block h-full rounded-full bg-primary-500" style={{ width: `${(type.providers_count / maxTypeCount) * 100}%` }} />
                                                     </span>
-                                                    <span className="w-6 shrink-0 text-right text-[13px] font-semibold tabular-nums text-[color:var(--app-foreground)]">{type.providers_count}</span>
+                                                    <span className="w-6 shrink-0 text-right text-[13px] font-semibold tabular-nums text-(--app-foreground)">{type.providers_count}</span>
                                                 </button>
                                             </li>
                                         );
@@ -348,30 +348,30 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             )}
                         </section>
 
-                        <section aria-labelledby="recent-tx" className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                            <div className="flex items-baseline justify-between gap-2 border-b border-[color:var(--app-border)] px-5 py-4">
-                                <h2 id="recent-tx" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{t('providers.recentTransactions')}</h2>
-                                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('providers.allProviders')}</span>
+                        <section aria-labelledby="recent-tx" className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">
+                            <div className="flex items-baseline justify-between gap-2 border-b border-(--app-border) px-5 py-4">
+                                <h2 id="recent-tx" className="text-[15px] font-semibold text-(--app-foreground)">{t('providers.recentTransactions')}</h2>
+                                <span className="text-xs text-(--app-muted-foreground)">{t('providers.allProviders')}</span>
                             </div>
                             {transactions.length === 0 ? (
-                                <p className="px-5 py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('providers.noRecentTransactions')}</p>
+                                <p className="px-5 py-8 text-center text-sm text-(--app-muted-foreground)">{t('providers.noRecentTransactions')}</p>
                             ) : (
-                                <ul className="divide-y divide-[color:var(--app-border)]">
+                                <ul className="divide-y divide-(--app-border)">
                                     {transactions.map((tx) => (
                                         <li key={tx.id} className="flex gap-3 px-5 py-3">
                                             <span aria-hidden="true" className={cx('mt-1.5 h-2 w-2 shrink-0 rounded-full', TRANSACTION_DOTS[tx.status] ?? 'bg-slate-400')} />
                                             <span className="min-w-0 flex-1">
                                                 <span className="flex justify-between gap-2">
                                                     {tx.service_provider ? (
-                                                        <Link href={route('service-providers.show', tx.service_provider.id)} className="truncate text-[13px] font-semibold text-[color:var(--app-foreground)] hover:underline">
+                                                        <Link href={route('service-providers.show', tx.service_provider.id)} className="truncate text-[13px] font-semibold text-(--app-foreground) hover:underline">
                                                             {tx.service_provider.name}
                                                         </Link>
                                                     ) : (
-                                                        <span className="truncate text-[13px] font-semibold text-[color:var(--app-foreground)]">{t('providers.unknownProvider')}</span>
+                                                        <span className="truncate text-[13px] font-semibold text-(--app-foreground)">{t('providers.unknownProvider')}</span>
                                                     )}
-                                                    <span className="whitespace-nowrap text-[13px] font-semibold tabular-nums text-[color:var(--app-foreground)]">{formatEtb(tx.amount)}</span>
+                                                    <span className="whitespace-nowrap text-[13px] font-semibold tabular-nums text-(--app-foreground)">{formatEtb(tx.amount)}</span>
                                                 </span>
-                                                <span className="flex justify-between gap-2 text-xs text-[color:var(--app-muted-foreground)]">
+                                                <span className="flex justify-between gap-2 text-xs text-(--app-muted-foreground)">
                                                     <span className="truncate">
                                                         {localName(tx.service_type, t('providers.unknownService'))}
                                                         {tx.occurred_at && <> · <LocalizedDateDisplay value={tx.occurred_at} withTime /></>}
@@ -394,12 +394,12 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
 function Stat({ label, value, children, highlight = false }: { label: ReactNode; value: ReactNode; children: ReactNode; highlight?: boolean }): JSX.Element {
     return (
         <div className={cx(
-            'flex flex-col gap-2.5 rounded-[var(--radius-panel)] border p-5',
-            highlight ? 'border-amber-300 bg-amber-50 dark:border-amber-900/70 dark:bg-amber-950/30' : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)]',
+            'flex flex-col gap-2.5 rounded-panel border p-5',
+            highlight ? 'border-amber-300 bg-amber-50 dark:border-amber-900/70 dark:bg-amber-950/30' : 'border-(--app-border) bg-(--app-surface)',
         )}>
-            <span className={cx('flex items-center gap-2 text-[13px] font-medium', highlight ? 'text-amber-900 dark:text-amber-200' : 'text-[color:var(--app-muted-foreground)]')}>{label}</span>
-            <span className={cx('text-3xl font-bold leading-none tabular-nums', highlight ? 'text-amber-800 dark:text-amber-300' : 'text-[color:var(--app-foreground)]')}>{value}</span>
-            <span className={cx('text-xs', highlight ? 'text-amber-900/80 dark:text-amber-200/80' : 'text-[color:var(--app-muted-foreground)]')}>{children}</span>
+            <span className={cx('flex items-center gap-2 text-[13px] font-medium', highlight ? 'text-amber-900 dark:text-amber-200' : 'text-(--app-muted-foreground)')}>{label}</span>
+            <span className={cx('text-3xl font-bold leading-none tabular-nums', highlight ? 'text-amber-800 dark:text-amber-300' : 'text-(--app-foreground)')}>{value}</span>
+            <span className={cx('text-xs', highlight ? 'text-amber-900/80 dark:text-amber-200/80' : 'text-(--app-muted-foreground)')}>{children}</span>
         </div>
     );
 }

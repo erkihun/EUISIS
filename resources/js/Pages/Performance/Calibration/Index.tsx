@@ -63,12 +63,12 @@ export default function CalibrationIndex({ sessions, cycles, organizations, comm
                             <th className={thCls}>{t('performance.fields.title')}</th>
                             <th className={thCls}>{t('performance.fields.organization')}</th>
                             <th className={thCls}>{t('performance.fields.sessionDate')}</th>
-                            <th className={thCls}>#</th>
+                            <th className={thCls}>{t('performance.reports.columns.count')}</th>
                             <th className={thCls}>{t('performance.fields.status')}</th>
                         </>}>
                             {sessions.data.map((s) => (
                                 <tr key={s.id}>
-                                    <td className={tdCls}><Link href={route('performance.calibration.show', s.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{s.title}</Link><p className="text-xs text-[color:var(--app-muted-foreground)]">{nameOf(s.cycle, locale)}</p></td>
+                                    <td className={tdCls}><Link href={route('performance.calibration.show', s.id)} className="font-medium text-primary hover:underline">{s.title}</Link><p className="text-xs text-(--app-muted-foreground)">{nameOf(s.cycle, locale)}</p></td>
                                     <td className={tdCls}>{nameOf(s.organization, locale)}</td>
                                     <td className={tdCls}><LocalizedDateDisplay value={s.session_date} /></td>
                                     <td className={`${tdCls} tabular-nums`}>{s.items_count}</td>

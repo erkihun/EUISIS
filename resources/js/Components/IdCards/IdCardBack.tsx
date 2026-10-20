@@ -223,7 +223,7 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
                         <p className="leading-tight" style={{ ...labelStyle, opacity: 0.7 }}>
                             {biLabel('cardNoLabel')}
                         </p>
-                        <p className="break-words font-mono tracking-wider" style={contentStyle}>
+                        <p className="wrap-break-word font-mono tracking-wider" style={contentStyle}>
                             {cardNumber}
                         </p>
                     </div>

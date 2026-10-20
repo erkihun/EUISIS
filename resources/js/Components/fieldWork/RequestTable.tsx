@@ -20,11 +20,11 @@ export default function RequestTable({ rows, emptyText, href, showEmployee = tru
     const { t, locale } = useLocale();
 
     if (rows.length === 0) {
-        return <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{emptyText}</p>;
+        return <p className={`${panelCls} p-4 text-sm text-(--app-muted-foreground)`}>{emptyText}</p>;
     }
 
-    const th = 'px-3 py-2 text-left text-xs font-medium text-[color:var(--app-muted-foreground)]';
-    const td = 'px-3 py-2 align-top text-sm text-[color:var(--app-foreground)]';
+    const th = 'px-3 py-2 text-left text-xs font-medium text-(--app-muted-foreground)';
+    const td = 'px-3 py-2 align-top text-sm text-(--app-foreground)';
     const flags = (row: FieldWorkSummary) => (
         <>
             {row.monitoring_flag && <FlagBadge flag={row.monitoring_flag} />}
@@ -34,7 +34,7 @@ export default function RequestTable({ rows, emptyText, href, showEmployee = tru
 
     return (
         <div className={panelCls}>
-            <table className={cx(tableClassName, 'hidden')}>
+            <table className={cx(tableClassName, 'hidden md:table')}>
                 <thead className={tableHeadClassName}>
                     <tr>
                         <th className={th}>{t('fieldWork.columns.reference')}</th>
@@ -50,19 +50,19 @@ export default function RequestTable({ rows, emptyText, href, showEmployee = tru
                     {rows.map((row) => (
                         <tr key={row.id} className={tableRowClassName}>
                             <td className={td}>
-                                <Link href={href(row)} className="font-medium text-[color:var(--color-primary)] hover:underline">{row.reference_number}</Link>
-                                {row.is_team && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t('fieldWork.columns.participants')}: {row.participants_count ?? '—'}</span>}
+                                <Link href={href(row)} className="font-medium text-primary hover:underline">{row.reference_number}</Link>
+                                {row.is_team && <span className="block text-xs text-(--app-muted-foreground)">{t('fieldWork.columns.participants')}: {row.participants_count ?? '—'}</span>}
                             </td>
                             {showEmployee && (
                                 <td className={td}>
                                     <span className="font-medium">{employeeName(row.requester, locale)}</span>
-                                    <span className="block text-xs text-[color:var(--app-muted-foreground)]">{[row.requester?.employee_number, named(row.organization_unit ?? undefined, locale)].filter(Boolean).join(' · ')}</span>
+                                    <span className="block text-xs text-(--app-muted-foreground)">{[row.requester?.employee_number, named(row.organization_unit ?? undefined, locale)].filter(Boolean).join(' · ')}</span>
                                 </td>
                             )}
                             <td className={td}>{named(row.type ?? undefined, locale) || '—'}</td>
                             <td className={td}>
                                 {destinationName(row, locale)}
-                                <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t(`fieldWork.destinationTypes.${row.destination_type}`)}</span>
+                                <span className="block text-xs text-(--app-muted-foreground)">{t(`fieldWork.destinationTypes.${row.destination_type}`)}</span>
                             </td>
                             <td className={`${td} whitespace-nowrap`}><LocalizedDateDisplay value={row.starts_at} withTime /></td>
                             <td className={`${td} whitespace-nowrap`}><LocalizedDateDisplay value={row.expected_return_at} withTime /></td>
@@ -74,20 +74,20 @@ export default function RequestTable({ rows, emptyText, href, showEmployee = tru
                 </tbody>
             </table>
 
-            <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
+            <ul className="divide-y divide-(--app-border) md:hidden">
                 {rows.map((row) => (
                     <li key={row.id}>
-                        <Link href={href(row)} className="block px-3 py-2.5 active:bg-[color:var(--app-surface-muted)] dark:active:bg-slate-800/40">
+                        <Link href={href(row)} className="block px-3 py-2.5 active:bg-(--app-surface-muted) dark:active:bg-slate-800/40">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-medium text-[color:var(--app-foreground)]">{row.reference_number}</p>
-                                    <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">
+                                    <p className="truncate text-sm font-medium text-(--app-foreground)">{row.reference_number}</p>
+                                    <p className="truncate text-xs text-(--app-muted-foreground)">
                                         {[showEmployee ? employeeName(row.requester, locale) : null, named(row.type ?? undefined, locale), destinationName(row, locale)].filter(Boolean).join(' · ')}
                                     </p>
                                 </div>
                                 <FieldWorkStatusBadge status={row.status} />
                             </div>
-                            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[color:var(--app-muted-foreground)]">
+                            <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-(--app-muted-foreground)">
                                 <LocalizedDateDisplay value={row.starts_at} withTime />
                                 <span>→</span>
                                 <LocalizedDateDisplay value={row.expected_return_at} withTime />

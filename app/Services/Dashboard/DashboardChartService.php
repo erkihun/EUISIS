@@ -59,14 +59,22 @@ class DashboardChartService
         ];
     }
 
+    /**
+     * The same buckets the KPI strip reports, from the same memoised query.
+     *
+     * This chart used to run its own `GROUP BY employees.status` — a third full
+     * scan of the employees table per dashboard load, returning numbers that
+     * had to agree with the KPI strip's but were computed independently. One
+     * canonical source now answers both, so they cannot drift apart.
+     */
     private function employeesByStatus(array $scope): array
     {
-        return $this->metrics->employeeQuery($scope)
-            ->selectRaw('employees.status as "key", COUNT(*) as "value"')
-            ->groupBy('employees.status')
-            ->orderBy('employees.status')
-            ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+        $counts = $this->metrics->employeeStatusCounts($scope);
+        ksort($counts);
+
+        return collect($counts)
+            ->map(fn (int $value, string $key): array => ['key' => $key, 'value' => $value])
+            ->values()
             ->all();
     }
 

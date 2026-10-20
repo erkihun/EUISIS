@@ -22,7 +22,7 @@ class RecordKpiActualRequest extends FormRequest
             'period_end' => ['required', 'date_format:Y-m-d', 'after_or_equal:period_start'],
             'actual_value' => ['nullable', 'numeric', 'required_without_all:actual_numerator,milestone_key'],
             'actual_numerator' => ['nullable', 'numeric', 'required_with:actual_denominator'],
-            'actual_denominator' => ['nullable', 'numeric', 'min:0', 'required_with:actual_numerator'],
+            'actual_denominator' => ['nullable', 'numeric', 'gt:0', 'required_with:actual_numerator'],
             'milestone_key' => ['nullable', 'string', 'max:64'],
             'comment' => ['nullable', 'string', 'max:2000'],
         ];

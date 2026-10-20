@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { BackupHealthCard } from '@/Components/backup/BackupHealthOverview';
 import type { BackupHealth } from '@/Components/backup/backupUi';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import DashboardHeader, { type DashboardHeaderData } from '@/Components/dashboard/DashboardHeader';
@@ -19,6 +19,8 @@ import ProviderRanking from '@/Components/dashboard/ProviderRanking';
 import CardLifecycleFunnel from '@/Components/dashboard/CardLifecycleFunnel';
 import { SimpleBarChart, SimpleLineChart } from '@/Components/dashboard/charts/SimpleCharts';
 import DashboardOverview from '@/Components/dashboard/DashboardOverview';
+import DashboardBriefing from '@/Components/dashboard/DashboardBriefing';
+import type { PageProps } from '@/types';
 
 export interface KpiItem {
     key: string;
@@ -105,6 +107,7 @@ export default function Dashboard({
 }: DashboardProps) {
     const { t } = useLocale();
     const { getString, getNumber } = useSystemSettings();
+    const permissions = usePage<PageProps>().props.auth?.permissions ?? [];
     const [refreshing, setRefreshing] = useState(false);
     const refreshingRef = useRef(false);
 
@@ -194,6 +197,9 @@ export default function Dashboard({
     const structureKpis = kpis.filter((kpi) => kpi.group === 'organizations' || kpi.group === 'positions');
     const kpisForGroup = (group: string) => kpis.filter((kpi) => kpi.group === group);
 
+    const registrations = (charts.employeeRegistrationsTrend as LabelValueDatum[] | undefined)?.map((row) => row.value) ?? null;
+    const sparkFor = (key: string): number[] | null => (['activeEmployees', 'registeredEmployees'].includes(key) ? registrations : null);
+
     const renderKpi = (kpi: KpiItem, featured = false) => (
         <KpiCard
             key={kpi.key}
@@ -206,6 +212,7 @@ export default function Dashboard({
             comparisonLabel={kpi.comparisonLabelKey ? t(kpi.comparisonLabelKey) : null}
             href={kpi.href ?? null}
             featured={featured}
+            spark={sparkFor(kpi.key)}
         />
     );
 
@@ -255,6 +262,7 @@ export default function Dashboard({
             <div className="min-w-0 space-y-5">
                 {/* A production backup incident outranks the headline figures; otherwise backups follow them. */}
                 {backupUrgent && <BackupHealthCard status={backupHealth} />}
+                {kpis.length > 0 && <DashboardBriefing alerts={alerts} queues={workflowQueues} kpis={kpis} />}
                 <section aria-labelledby="dashboard-overview-title" className="space-y-3">
                     <h2
                         id="dashboard-overview-title"
@@ -278,17 +286,16 @@ export default function Dashboard({
                     </div>
                 </section>
 
-                {backupHealth && !backupUrgent && <BackupHealthCard status={backupHealth} />}
-
-                <DashboardTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} label={t('dashboard.title')} />
+                <DashboardTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} label={t('dashboard.title')} variant="pill" />
 
                 {activeTab === 'overview' && (
                     <div {...panelProps('overview')}>
                         <DashboardOverview
                             can={can} cards={cards} charts={charts} kpis={kpis}
                             alerts={alerts} workflowQueues={workflowQueues}
-                            recentActivity={recentActivity} header={header}
+                            recentActivity={recentActivity} header={header} filters={filters}
                             showCharts={showCharts} onNavigate={setActiveTab}
+                            backupHealth={backupUrgent ? null : backupHealth} permissions={permissions}
                         />
                     </div>
                 )}
@@ -314,6 +321,7 @@ export default function Dashboard({
                                     </ChartCard>
                                     <ChartCard title={t('dashboard.employeesBySex')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.employeesBySex as KeyValueDatum[]) ?? []}
                                             labelFor={keyLabel(t, 'dashboard.sexGroups')}
                                         />
@@ -322,6 +330,7 @@ export default function Dashboard({
                                 <ChartRow full>
                                     <ChartCard title={t('dashboard.employeesByEmploymentType')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.employeesByEmploymentType as KeyValueDatum[]) ?? []}
                                             labelFor={(key) => key === 'unknown' ? t('dashboard.unknown') : t(`employees.employmentType_${key}`)}
                                         />
@@ -330,6 +339,7 @@ export default function Dashboard({
                                 <ChartRow>
                                     <ChartCard title={t('dashboard.employeesByStatus')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.employeesByStatus as KeyValueDatum[]) ?? []}
                                             labelFor={employeeStatusLabel}
                                         />
@@ -408,6 +418,7 @@ export default function Dashboard({
                                 </ChartCard>
                                 <ChartCard title={t('dashboard.organizationsByStatus')}>
                                     <StatusDistribution
+                                        emptyTitle={t('dashboard.noData')}
                                         data={(charts.organizationsByStatus as KeyValueDatum[]) ?? []}
                                         labelFor={employeeStatusLabel}
                                     />
@@ -427,6 +438,7 @@ export default function Dashboard({
                                     </ChartCard>
                                     <ChartCard title={t('dashboard.positionOccupancy')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.positionsByOccupancy as KeyValueDatum[]) ?? []}
                                             labelFor={occupancyLabel}
                                         />
@@ -468,6 +480,7 @@ export default function Dashboard({
                                 <ChartRow>
                                     <ChartCard title={t('dashboard.cardsByStatus')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.cardsByStatus as KeyValueDatum[]) ?? []}
                                             labelFor={employeeStatusLabel}
                                         />
@@ -484,6 +497,7 @@ export default function Dashboard({
                                 <ChartRow>
                                     <ChartCard title={t('dashboard.verificationResultsTitle')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.verificationAllowedDenied as KeyValueDatum[]) ?? []}
                                             labelFor={verificationLabel}
                                         />
@@ -544,6 +558,18 @@ export default function Dashboard({
                             />
                         )}
 
+                        {/* Tip-offs are reports received, not findings: counts only, safe on a wall display. */}
+                        {can.serviceFeedback && cards.tipOffs && (
+                            <StatTileGroup
+                                stats={[
+                                    { key: 'tipOffTotal', label: t('dashboard.tipOffs.total'), value: numberOrNull(cards.tipOffs.total), tone: 'neutral', href: route('service-submissions.suggestions') },
+                                    { key: 'tipOffCorruption', label: t('dashboard.tipOffs.corruption'), value: numberOrNull(cards.tipOffs.corruption), tone: 'neutral', href: route('service-submissions.suggestions', { tip_type: 'CORRUPTION' }) },
+                                    { key: 'tipOffImproper', label: t('dashboard.tipOffs.improperPractice'), value: numberOrNull(cards.tipOffs.improperPractice), tone: 'neutral', href: route('service-submissions.suggestions', { tip_type: 'IMPROPER_PRACTICE' }) },
+                                    { key: 'tipOffUnrouted', label: t('dashboard.tipOffs.awaitingRouting'), value: numberOrNull(cards.tipOffs.awaitingRouting), tone: Number(cards.tipOffs.awaitingRouting ?? 0) > 0 ? 'warning' : 'neutral', href: route('service-submissions.suggestions', { status: 'unrouted' }) },
+                                ] satisfies Stat[]}
+                            />
+                        )}
+
                         <ChartRow>
                             {can.entitlements && (
                                 <ChartCard title={t('dashboard.sections.serviceEntitlements')}>
@@ -567,12 +593,13 @@ export default function Dashboard({
                         <ChartRow>
                             {(can.providers || can.transactions) && (
                                 <ChartCard title={t('dashboard.sections.providerOverview')}>
-                                    <ProviderRanking data={(charts.providersTopUsage as KeyValueDatum[]) ?? []} />
+                                    <ProviderRanking data={(charts.providersTopUsage as KeyValueDatum[]) ?? []} emptyTitle={t('dashboard.noData')} />
                                 </ChartCard>
                             )}
                             {can.transactions && (
                                 <ChartCard title={t('dashboard.transactionsByStatus')}>
                                     <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                         data={(charts.transactionsByStatus as KeyValueDatum[]) ?? []}
                                         labelFor={employeeStatusLabel}
                                     />
@@ -602,7 +629,7 @@ export default function Dashboard({
                 )}
 
                 {meta.scope.providerOnly && (
-                    <p className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm text-[color:var(--app-muted-foreground)]">
+                    <p className="rounded-panel border border-(--app-border) bg-(--app-surface) px-4 py-3 text-sm text-(--app-muted-foreground)">
                         {t('dashboard.providerScopeNotice')}
                     </p>
                 )}

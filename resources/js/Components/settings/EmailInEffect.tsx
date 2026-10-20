@@ -45,9 +45,9 @@ export default function EmailInEffect({ data }: { data: EmailInEffectData }) {
             <dl className="grid gap-x-6 gap-y-3 px-5 py-4 sm:grid-cols-2">
                 {rows.map(({ key, display }) => (
                     <div key={key} className="flex min-w-0 items-start justify-between gap-3">
-                        <dt className="shrink-0 text-sm text-[color:var(--app-muted-foreground)]">{t(`settings.emailInEffect.fields.${key}`)}</dt>
+                        <dt className="shrink-0 text-sm text-(--app-muted-foreground)">{t(`settings.emailInEffect.fields.${key}`)}</dt>
                         <dd className="flex min-w-0 flex-wrap items-center justify-end gap-2 text-end text-sm">
-                            <span className="min-w-0 break-all font-medium text-[color:var(--app-foreground)]">{display}</span>
+                            <span className="min-w-0 break-all font-medium text-(--app-foreground)">{display}</span>
                             {key !== 'timeout' && (
                                 <StatusBadge tone={data[key].source === 'settings' ? 'info' : 'neutral'}>
                                     {t(`settings.emailInEffect.sources.${data[key].source}`)}

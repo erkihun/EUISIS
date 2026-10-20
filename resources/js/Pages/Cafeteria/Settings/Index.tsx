@@ -105,32 +105,32 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
         });
     }
 
-    const timeCls = 'rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm text-[color:var(--app-foreground)] disabled:opacity-50';
+    const timeCls = 'rounded-sm border border-(--app-border-strong) bg-(--app-surface) px-2 py-1 text-sm text-(--app-foreground) disabled:opacity-50';
 
     return (
-        <div className={`flex flex-wrap items-center gap-4 rounded-card border border-[color:var(--app-border)] p-4 ${DAY_COLORS[rule.day_of_week]}`}>
+        <div className={`flex flex-wrap items-center gap-4 rounded-card border border-(--app-border) p-4 ${DAY_COLORS[rule.day_of_week]}`}>
             {Object.keys(errors).length > 0 && <div role="alert" className="w-full text-sm text-red-700 dark:text-red-300">{Object.values(errors).join(' ')}</div>}
-            <div className="w-28 font-semibold text-[color:var(--app-foreground)]">{localizedDayName(rule.day_of_week, locale)}</div>
-            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                <input type="checkbox" disabled={!canUpdate} checked={isOpen} onChange={e => { setIsOpen(e.target.checked); if (!e.target.checked) setIsSubsidy(false); }} className="h-4 w-4 rounded" />
+            <div className="w-28 font-semibold text-(--app-foreground)">{localizedDayName(rule.day_of_week, locale)}</div>
+            <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
+                <input type="checkbox" disabled={!canUpdate} checked={isOpen} onChange={e => { setIsOpen(e.target.checked); if (!e.target.checked) setIsSubsidy(false); }} className="h-4 w-4 rounded-sm" />
                 {t('cafeteria.isOpen')}
             </label>
-            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                <input type="checkbox" disabled={!canUpdate || !isOpen} checked={isSubsidy} onChange={e => setIsSubsidy(e.target.checked)} className="h-4 w-4 rounded" />
+            <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
+                <input type="checkbox" disabled={!canUpdate || !isOpen} checked={isSubsidy} onChange={e => setIsSubsidy(e.target.checked)} className="h-4 w-4 rounded-sm" />
                 {t('cafeteria.isSubsidyDay')}
             </label>
             <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.openTime')}</span>
+                <span className="text-xs text-(--app-muted-foreground)">{t('cafeteria.openTime')}</span>
                 <LocalizedTimePicker value={openTime} onChange={setOpenTime} disabled={!canUpdate || !isOpen} className={timeCls} />
-                <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.closeTime')}</span>
+                <span className="text-xs text-(--app-muted-foreground)">{t('cafeteria.closeTime')}</span>
                 <LocalizedTimePicker value={closeTime} onChange={setCloseTime} disabled={!canUpdate || !isOpen} className={timeCls} />
             </div>
             <div className="ml-auto flex items-center gap-2">
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOpen ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isOpen ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>
                     {isOpen ? t('cafeteria.openDay') : t('cafeteria.closedDay')}
                 </span>
                 {isOpen && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-primary' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>
                         {isSubsidy ? t('cafeteria.isSubsidyDay') : t('common.no')}
                     </span>
                 )}
@@ -227,15 +227,15 @@ export default function CafeteriaSettingsIndex({
     const [saving, setSaving] = useState(false);
 
     const inputCls = cx(inputClassName, 'w-full');
-    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)] mb-1';
-    const sectionCls = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 space-y-5';
-    const tableCls = 'overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
-    const thCls = 'px-4 py-3 text-left text-sm font-medium text-[color:var(--app-muted-foreground)]';
-    const tdCls = 'px-4 py-3 text-sm text-[color:var(--app-foreground)]';
+    const labelCls = 'block text-sm font-medium text-(--app-foreground) mb-1';
+    const sectionCls = 'rounded-card border border-(--app-border) bg-(--app-surface) p-6 space-y-5';
+    const tableCls = 'overflow-hidden rounded-card border border-(--app-border) bg-(--app-surface)';
+    const thCls = 'px-4 py-3 text-left text-sm font-medium text-(--app-muted-foreground)';
+    const tdCls = 'px-4 py-3 text-sm text-(--app-foreground)';
 
     const canEdit = (key: string) => can.update && editableSettingKeys.includes(key);
     const settingHint = (key: string) => (
-        <p id={`setting-hint-${key}`} className="mt-1 text-xs leading-5 text-[color:var(--app-muted-foreground)]">
+        <p id={`setting-hint-${key}`} className="mt-1 text-xs leading-5 text-(--app-muted-foreground)">
             {t(readOnlySettingReasons[key] ? `cafeteria.settingHelp.${readOnlySettingReasons[key]}` : `cafeteria.settingHelp.${key}`)}
         </p>
     );
@@ -365,8 +365,8 @@ export default function CafeteriaSettingsIndex({
     const tabBarCls = (active: boolean) =>
         `whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             active
-                ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'
-                : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'
+                ? 'border-primary text-primary dark:text-primary'
+                : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)'
         }`;
 
     const isSettingsTab = (k: InPageTab) => ['general', 'subsidy', 'days', 'scan', 'reports'].includes(k);
@@ -377,7 +377,7 @@ export default function CafeteriaSettingsIndex({
             <div className="space-y-6">
                 {/* Tab bar */}
                 <div className="overflow-x-auto">
-                    <div className="flex min-w-max border-b border-[color:var(--app-border)]">
+                    <div className="flex min-w-max border-b border-(--app-border)">
                         {tabDefs.filter(tb => tb.key !== 'provider-users' || can.manageProviderUsers).map(tb => (
                             <button
                                 key={tb.key}
@@ -405,7 +405,7 @@ export default function CafeteriaSettingsIndex({
                         {/* General */}
                         {tab === 'general' && (
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.generalSettings')}</h3>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('cafeteria.generalSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-currency" className={labelCls}>{t('cafeteria.currency')}</label>
@@ -443,7 +443,7 @@ export default function CafeteriaSettingsIndex({
                         {/* Subsidy */}
                         {tab === 'subsidy' && (
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.subsidySettings')}</h3>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('cafeteria.subsidySettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-default_daily_subsidy_amount" className={labelCls}>{t('cafeteria.defaultDailySubsidyAmount')}</label>
@@ -497,7 +497,7 @@ export default function CafeteriaSettingsIndex({
                         {/* Working Days */}
                         {tab === 'days' && (
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.daySettings')}</h3>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('cafeteria.daySettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-week_start_day" className={labelCls}>{t('cafeteria.weekStartDay')}</label>
@@ -553,7 +553,7 @@ export default function CafeteriaSettingsIndex({
                         {tab === 'scan' && (
                             <>
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.scanSettings')}</h3>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('cafeteria.scanSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-weekend_scan_mode" className={labelCls}>{t('cafeteria.weekendScanMode')}</label>
@@ -588,7 +588,7 @@ export default function CafeteriaSettingsIndex({
 
                             {/* Leave Access Control */}
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.leaveAccessControl')}</h3>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('cafeteria.leaveAccessControl')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-block_cafeteria_during_employee_leave" className={labelCls}>{t('cafeteria.blockCafeteriaDuringLeave')}</label>
@@ -638,7 +638,7 @@ export default function CafeteriaSettingsIndex({
                         {/* Report Settings */}
                         {tab === 'reports' && (
                             <div className={sectionCls}>
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.reportSettings')}</h3>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('cafeteria.reportSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
                                         <label htmlFor="setting-report_default_format" className={labelCls}>{t('cafeteria.reportType')}</label>
@@ -676,7 +676,7 @@ export default function CafeteriaSettingsIndex({
                 {/* ── Working Day Rules tab ── */}
                 {tab === 'day-rules' && (
                     <div className="space-y-3">
-                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.specialDayOverrideNote')}</p>
+                        <p className="text-sm text-(--app-muted-foreground)">{t('cafeteria.specialDayOverrideNote')}</p>
                         {dayRules.length === 0
                             ? <EmptyState title={t('cafeteria.noDayRulesConfigured')} description={t('cafeteria.noDayRulesConfiguredHint')} />
                             : dayRules.map(r => <DayRuleRow key={r.id} rule={r} canUpdate={can.updateDayRules} />)
@@ -689,7 +689,7 @@ export default function CafeteriaSettingsIndex({
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <label htmlFor="holidays-year" className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.year')}</label>
+                                <label htmlFor="holidays-year" className="text-sm text-(--app-muted-foreground)">{t('cafeteria.year')}</label>
                                 <select
                                     id="holidays-year"
                                     className={selectClassName}
@@ -723,7 +723,7 @@ export default function CafeteriaSettingsIndex({
                                         <tbody className={tableBodyClassName}>
                                             {holidays.map(h => (
                                                 <tr key={h.id} className={tableRowClassName}>
-                                                    <td className={`${tdCls} font-medium text-[color:var(--app-foreground)]`}><LocalizedDateDisplay value={h.holiday_date} /></td>
+                                                    <td className={`${tdCls} font-medium text-(--app-foreground)`}><LocalizedDateDisplay value={h.holiday_date} /></td>
                                                     <td className={tdCls}>{h.name_en}</td>
                                                     <td className={tdCls}>{h.name_am ?? '—'}</td>
                                                     <td className={cx(tableCellClassName, 'text-center')}>{h.is_recurring ? '✓' : '—'}</td>
@@ -775,8 +775,8 @@ export default function CafeteriaSettingsIndex({
                                             {subsidyRules.map(rule => (
                                                 <tr key={rule.id} className={tableRowClassName}>
                                                     <td className={tableCellClassName}>
-                                                        <div className="font-medium text-[color:var(--app-foreground)]">{rule.name_en}</div>
-                                                        <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{rule.code}</div>
+                                                        <div className="font-medium text-(--app-foreground)">{rule.name_en}</div>
+                                                        <div className="font-mono text-xs text-(--app-muted-foreground)">{rule.code}</div>
                                                     </td>
                                                     <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{rule.subsidy_amount.toFixed(2)} {rule.currency}</td>
                                                     <td className={tdCls}><LocalizedDateDisplay value={rule.effective_from} /></td>
@@ -807,7 +807,7 @@ export default function CafeteriaSettingsIndex({
                         {can.manageProviderUsers && (
                             <form onSubmit={saveProviderUser} className={sectionCls}>
                                 {Object.keys(providerErrors).length > 0 && <div role="alert" className="text-sm text-red-700 dark:text-red-300">{Object.values(providerErrors).join(' ')}</div>}
-                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.addProviderUser')}</h3>
+                                <h3 className="text-base font-semibold text-(--app-foreground)">{t('cafeteria.addProviderUser')}</h3>
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                     <div>
                                         <label className={labelCls}>{t('cafeteria.providerUser')}</label>
@@ -886,7 +886,7 @@ export default function CafeteriaSettingsIndex({
                         <Modal show={viewingAssignment !== null} maxWidth="lg" onClose={() => setViewingAssignment(null)}>
                             {viewingAssignment && (
                                 <div className="p-6 space-y-5">
-                                    <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.providerUser')}</h3>
+                                    <h3 className="text-lg font-semibold text-(--app-foreground)">{t('cafeteria.providerUser')}</h3>
                                     <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         {[
                                             { label: t('cafeteria.providerUser'), value: viewingAssignment.user.name },
@@ -899,21 +899,21 @@ export default function CafeteriaSettingsIndex({
                                             { label: t('common.active'), value: viewingAssignment.is_active ? t('common.yes') : t('common.no') },
                                         ].map(({ label, value }) => (
                                             <div key={label}>
-                                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
-                                                <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">{value}</dd>
+                                                <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+                                                <dd className="mt-0.5 text-sm text-(--app-foreground)">{value}</dd>
                                             </div>
                                         ))}
                                         <div>
-                                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.effectiveFrom')}</dt>
-                                            <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">
+                                            <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('common.effectiveFrom')}</dt>
+                                            <dd className="mt-0.5 text-sm text-(--app-foreground)">
                                                 {viewingAssignment.effective_from
                                                     ? <LocalizedDateDisplay value={viewingAssignment.effective_from} />
                                                     : '—'}
                                             </dd>
                                         </div>
                                         <div>
-                                            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.effectiveTo')}</dt>
-                                            <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">
+                                            <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('common.effectiveTo')}</dt>
+                                            <dd className="mt-0.5 text-sm text-(--app-foreground)">
                                                 {viewingAssignment.effective_to
                                                     ? <LocalizedDateDisplay value={viewingAssignment.effective_to} />
                                                     : '—'}
@@ -934,8 +934,8 @@ export default function CafeteriaSettingsIndex({
                             {editingAssignment && (
                                 <form onSubmit={submitEdit} className="p-6 space-y-5">
                                     {Object.keys(providerErrors).length > 0 && <div role="alert" className="text-sm text-red-700 dark:text-red-300">{Object.values(providerErrors).join(' ')}</div>}
-                                    <div className="border-b border-[color:var(--app-border)] pb-3">
-                                        <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">{t('common.edit')} — {t('cafeteria.providerUser')}</h3>
+                                    <div className="border-b border-(--app-border) pb-3">
+                                        <h3 className="text-lg font-semibold text-(--app-foreground)">{t('common.edit')} — {t('cafeteria.providerUser')}</h3>
                                     </div>
                                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         {/* Provider User */}
@@ -1004,10 +1004,10 @@ export default function CafeteriaSettingsIndex({
                                         </div>
                                         {/* Active */}
                                         <div className="flex items-end pb-1">
-                                            <label className="flex cursor-pointer items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                                            <label className="flex cursor-pointer items-center gap-2 text-sm text-(--app-foreground)">
                                                 <input
                                                     type="checkbox"
-                                                    className="h-4 w-4 rounded"
+                                                    className="h-4 w-4 rounded-sm"
                                                     checked={editForm.is_active}
                                                     onChange={e => setEditForm(f => ({ ...f, is_active: e.target.checked }))}
                                                 />
@@ -1035,7 +1035,7 @@ export default function CafeteriaSettingsIndex({
                                             />
                                         </div>
                                     </div>
-                                    <div className="flex justify-end gap-3 border-t border-[color:var(--app-border)] pt-4">
+                                    <div className="flex justify-end gap-3 border-t border-(--app-border) pt-4">
                                         <button type="button" onClick={() => setEditingAssignment(null)} className={buttonClassName({ variant: 'outline' })}>
                                             {t('common.cancel')}
                                         </button>
@@ -1068,38 +1068,38 @@ export default function CafeteriaSettingsIndex({
                                             {providerUsers.map(assignment => (
                                                 <tr key={assignment.id} className={tableRowClassName}>
                                                     <td className={tableCellClassName}>
-                                                        <div className="font-medium text-[color:var(--app-foreground)]">{assignment.user.name}</div>
-                                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{assignment.user.email}</div>
+                                                        <div className="font-medium text-(--app-foreground)">{assignment.user.name}</div>
+                                                        <div className="text-xs text-(--app-muted-foreground)">{assignment.user.email}</div>
                                                     </td>
                                                     <td className={tableCellClassName}>
-                                                        <div className="font-medium text-[color:var(--app-foreground)]">{assignment.provider.name_en}</div>
-                                                        <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.provider.code}</div>
+                                                        <div className="font-medium text-(--app-foreground)">{assignment.provider.name_en}</div>
+                                                        <div className="font-mono text-xs text-(--app-muted-foreground)">{assignment.provider.code}</div>
                                                     </td>
                                                     <td className={tableCellClassName}>
                                                         {assignment.branch ? (
                                                             <>
-                                                                <div className="font-medium text-[color:var(--app-foreground)]">{assignment.branch.name_en}</div>
-                                                                <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.branch.code}</div>
+                                                                <div className="font-medium text-(--app-foreground)">{assignment.branch.name_en}</div>
+                                                                <div className="font-mono text-xs text-(--app-muted-foreground)">{assignment.branch.code}</div>
                                                             </>
                                                         ) : (
-                                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">—</span>
+                                                            <span className="text-xs text-(--app-muted-foreground)">—</span>
                                                         )}
                                                     </td>
                                                     <td className={tableCellClassName}>
                                                         {assignment.organization ? (
                                                             <>
-                                                                <div className="font-medium text-[color:var(--app-foreground)]">{assignment.organization.name_en}</div>
-                                                                <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.organization.code}</div>
+                                                                <div className="font-medium text-(--app-foreground)">{assignment.organization.name_en}</div>
+                                                                <div className="font-mono text-xs text-(--app-muted-foreground)">{assignment.organization.code}</div>
                                                             </>
                                                         ) : (
-                                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.allOrganizations')}</span>
+                                                            <span className="text-xs text-(--app-muted-foreground)">{t('common.allOrganizations')}</span>
                                                         )}
                                                     </td>
                                                     <td className={tdCls}>{assignment.provider_role ?? 'operator'}</td>
                                                     <td className={tdCls}>{assignment.effective_from ? <LocalizedDateDisplay value={assignment.effective_from} /> : '—'}</td>
                                                     <td className={tdCls}>{assignment.effective_to ? <LocalizedDateDisplay value={assignment.effective_to} /> : '—'}</td>
                                                     <td className={cx(tableCellClassName, 'text-center')}>
-                                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${assignment.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
+                                                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${assignment.is_active ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-(--app-surface-muted) text-(--app-muted-foreground)'}`}>
                                                             {assignment.is_active ? t('common.yes') : t('common.no')}
                                                         </span>
                                                     </td>
@@ -1108,7 +1108,7 @@ export default function CafeteriaSettingsIndex({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setViewingAssignment(assignment)}
-                                                                className="rounded px-2 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                                                                className="rounded-sm px-2 py-1 text-xs font-medium text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
                                                             >
                                                                 {t('common.view')}
                                                             </button>
@@ -1117,21 +1117,21 @@ export default function CafeteriaSettingsIndex({
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => openEdit(assignment)}
-                                                                        className="rounded px-2 py-1 text-xs font-medium text-[color:var(--color-primary)] hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:bg-blue-900/30 dark:hover:text-[color:var(--color-primary-hover)]"
+                                                                        className="rounded-sm px-2 py-1 text-xs font-medium text-primary hover:bg-blue-50 hover:text-primary-hover dark:text-primary dark:hover:bg-blue-900/30 dark:hover:text-primary-hover"
                                                                     >
                                                                         {t('common.edit')}
                                                                     </button>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => updateProviderUser(assignment, !assignment.is_active)}
-                                                                        className={`rounded px-2 py-1 text-xs font-medium ${assignment.is_active ? 'text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/30' : 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30'}`}
+                                                                        className={`rounded-sm px-2 py-1 text-xs font-medium ${assignment.is_active ? 'text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/30' : 'text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-900/30'}`}
                                                                     >
                                                                         {assignment.is_active ? t('common.disabled') : t('common.enabled')}
                                                                     </button>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => deleteProviderUser(assignment)}
-                                                                        className="rounded px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-800 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                                                                        className="rounded-sm px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 hover:text-red-800 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                                                                     >
                                                                         {t('common.delete')}
                                                                     </button>

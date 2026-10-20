@@ -26,12 +26,13 @@ type Organization = {
     has_logo: boolean;
     branding_primary_color: string | null;
     branding_secondary_color: string | null;
+    public_contact_phone: string | null;
 };
 
 const inputCls = cx(inputClassName, 'w-full');
 
-const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
-const helpCls = 'mt-1 text-xs text-[color:var(--app-muted-foreground)]';
+const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
+const helpCls = 'mt-1 text-xs text-(--app-muted-foreground)';
 
 function Field({
     label,
@@ -76,6 +77,7 @@ export default function EditOrganization({
         remove_logo: boolean;
         branding_primary_color: string;
         branding_secondary_color: string;
+        public_contact_phone: string;
     }>({
         organization_type_id: organization.organization_type_id ?? '',
         code: organization.code ?? '',
@@ -89,6 +91,7 @@ export default function EditOrganization({
         remove_logo: false,
         branding_primary_color: organization.branding_primary_color ?? '',
         branding_secondary_color: organization.branding_secondary_color ?? '',
+        public_contact_phone: organization.public_contact_phone ?? '',
     });
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
@@ -124,6 +127,7 @@ export default function EditOrganization({
             effective_to: data.effective_to || null,
             branding_primary_color: data.branding_primary_color || null,
             branding_secondary_color: data.branding_secondary_color || null,
+            public_contact_phone: data.public_contact_phone.trim() || null,
         }));
         form.post(route('organizations.update', organization.id), { preserveState: true });
     }
@@ -147,7 +151,7 @@ export default function EditOrganization({
             <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="w-full rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
+                    className="w-full rounded-panel border border-(--app-border) bg-(--app-surface) p-4 sm:p-6 lg:p-8"
                 >
                     {errorMessages.length > 0 && (
                         <div className="mb-6 rounded-card border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
@@ -181,6 +185,22 @@ export default function EditOrganization({
                                     placeholder={t('organizations.legalBasisPlaceholder')}
                                     value={form.data.legal_basis_ref}
                                     onChange={(e) => form.setData('legal_basis_ref', e.target.value)}
+                                />
+                            </Field>
+                        </FormSection>
+
+                        {/* Public contact: the Call action on this institution's and its employees' feedback QR pages. */}
+                        <FormSection title={t('organizations.sectionPublicContact')} description={t('organizations.sectionPublicContactHelp')}>
+                            <Field label={t('organizations.publicContactPhone')} error={form.errors.public_contact_phone} help={t('organizations.publicContactPhoneHelp')}>
+                                <input
+                                    className={inputCls}
+                                    type="tel"
+                                    inputMode="tel"
+                                    autoComplete="off"
+                                    maxLength={32}
+                                    placeholder="011 123 4567"
+                                    value={form.data.public_contact_phone}
+                                    onChange={(e) => form.setData('public_contact_phone', e.target.value)}
                                 />
                             </Field>
                         </FormSection>
@@ -257,10 +277,10 @@ export default function EditOrganization({
                                                 <img
                                                     src={organization.logo_url}
                                                     alt={t('organizations.currentLogo')}
-                                                    className="h-14 w-14 rounded-lg border border-[color:var(--app-border)] object-contain p-1"
+                                                    className="h-14 w-14 rounded-lg border border-(--app-border) object-contain p-1"
                                                 />
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                    <span className="text-xs text-(--app-muted-foreground)">
                                                         {t('organizations.currentLogo')}
                                                     </span>
                                                     <button
@@ -297,7 +317,7 @@ export default function EditOrganization({
                                                     className="h-14 w-14 rounded-lg border border-blue-200 object-contain p-1 dark:border-blue-700"
                                                 />
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">
+                                                    <span className="text-xs text-primary dark:text-primary">
                                                         {t('organizations.newLogoSelected')}
                                                     </span>
                                                     <button
@@ -317,11 +337,11 @@ export default function EditOrganization({
                                                 type="file"
                                                 accept="image/jpeg,image/png,image/webp"
                                                 onChange={handleLogoChange}
-                                                className="w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm text-[color:var(--app-foreground)] file:mr-3 file:rounded file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
+                                                className="w-full rounded-lg border border-(--app-border-strong) bg-(--app-surface) px-3 py-1.5 text-sm text-(--app-foreground) file:mr-3 file:rounded-sm file:border-0 file:bg-blue-50 file:px-2 file:py-1 file:text-xs file:font-medium file:text-blue-700"
                                             />
                                         )}
 
-                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                        <p className="text-xs text-(--app-muted-foreground)">
                                             {t('organizations.logoHint')}
                                         </p>
                                         {form.errors.logo && (
@@ -338,7 +358,7 @@ export default function EditOrganization({
                                                 type="color"
                                                 value={primary || '#1D4ED8'}
                                                 onChange={(e) => form.setData('branding_primary_color', e.target.value)}
-                                                className="h-9 w-10 cursor-pointer rounded border border-[color:var(--app-border-strong)] p-0.5"
+                                                className="h-9 w-10 cursor-pointer rounded-sm border border-(--app-border-strong) p-0.5"
                                             />
                                             <input
                                                 className={inputCls}
@@ -356,7 +376,7 @@ export default function EditOrganization({
                                                 type="color"
                                                 value={secondary || '#F97316'}
                                                 onChange={(e) => form.setData('branding_secondary_color', e.target.value)}
-                                                className="h-9 w-10 cursor-pointer rounded border border-[color:var(--app-border-strong)] p-0.5"
+                                                className="h-9 w-10 cursor-pointer rounded-sm border border-(--app-border-strong) p-0.5"
                                             />
                                             <input
                                                 className={inputCls}
@@ -370,7 +390,7 @@ export default function EditOrganization({
 
                                     {(primary || secondary) && (
                                         <div
-                                            className="flex items-center gap-2 rounded-lg border border-l-4 border-[color:var(--app-border)] px-3 py-2"
+                                            className="flex items-center gap-2 rounded-lg border border-l-4 border-(--app-border) px-3 py-2"
                                             style={{ borderLeftColor: primary || '#1D4ED8' }}
                                         >
                                             <div className="flex gap-1.5">
@@ -381,7 +401,7 @@ export default function EditOrganization({
                                                     <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: secondary }} />
                                                 )}
                                             </div>
-                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                            <span className="text-xs text-(--app-muted-foreground)">
                                                 {t('organizations.colorPreview')}
                                             </span>
                                         </div>
@@ -392,10 +412,10 @@ export default function EditOrganization({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
+                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
                         <Link
                             href={route('organizations.show', organization.id)}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"
                         >
                             {t('common.cancel')}
                         </Link>

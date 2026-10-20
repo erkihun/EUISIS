@@ -68,7 +68,7 @@ export default function GradeLevelsShow({ gradeLevel }: { gradeLevel: any }) {
                             )}
                             <Link
                                 href={route('grade-levels.index')}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
+                                className="rounded-lg border border-(--app-border-strong) px-4 py-2 text-sm font-medium text-(--app-foreground)"
                             >
                                 {t('common.back')}
                             </Link>
@@ -79,16 +79,16 @@ export default function GradeLevelsShow({ gradeLevel }: { gradeLevel: any }) {
         >
             <Head title={gradeLevel.name} />
 
-            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+            <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-6">
                 <dl className="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <dt className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                        <dt className="text-xs font-semibold text-(--app-muted-foreground)">
                             {t('gradeLevels.name')}
                         </dt>
-                        <dd className="mt-1 text-sm font-medium text-[color:var(--app-foreground)]">{gradeLevel.name}</dd>
+                        <dd className="mt-1 text-sm font-medium text-(--app-foreground)">{gradeLevel.name}</dd>
                     </div>
                     <div>
-                        <dt className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                        <dt className="text-xs font-semibold text-(--app-muted-foreground)">
                             {t('common.status')}
                         </dt>
                         <dd className="mt-1">

@@ -42,6 +42,14 @@ class EmployeeController extends Controller
     /** Most position options sent to one form/filter (one organization at a time). */
     private const OPTION_LIMIT = 1000;
 
+    /**
+     * Deepest registry page (50 per page = the first 10,000 matches). Paging
+     * further is an OFFSET over the whole sorted register — 3.5 s at page
+     * 30,000 of 3M employees — and nobody finds a person that way; the page
+     * asks them to search or filter instead (production-readiness/database-capacity.md).
+     */
+    private const MAX_PAGE = 200;
+
     public function index(Request $request, OrganizationScopeService $organizationScopeService): Response
     {
         $this->authorize('viewAny', Employee::class);
@@ -173,20 +181,12 @@ class EmployeeController extends Controller
                 $selectedPosition !== null,
                 fn ($query) => $query->whereHas('currentAssignment', fn ($assignmentQuery) => $assignmentQuery->where('position_id', $selectedPosition->id))
             )
-            ->when($search !== '', function ($query) use ($search): void {
-                $query->where(function ($nested) use ($search): void {
-                    $nested->where('employee_number', ci_like_operator(), "%{$search}%")
-                        ->orWhere('full_name', ci_like_operator(), "%{$search}%")
-                        ->orWhere('name_en', ci_like_operator(), "%{$search}%")
-                        ->orWhere('email', ci_like_operator(), "%{$search}%")
-                        ->orWhere('phone', ci_like_operator(), "%{$search}%");
-                });
-            })
+            ->when($search !== '', fn ($query) => $query->where(fn ($nested) => $this->applyRegistrySearch($nested, $search)))
             ->when(in_array($employmentType, EmploymentType::values(), true), fn ($query) => $query->where('employment_type', $employmentType))
             ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->orderBy($sort, $direction)
             ->orderBy('id')
-            ->paginate(50)
+            ->paginate(50, ['*'], 'page', min(self::MAX_PAGE, max(1, $request->integer('page', 1))))
             ->withQueryString();
 
         return Inertia::render('Employees/Index', [
@@ -234,9 +234,10 @@ class EmployeeController extends Controller
             'employees' => EmployeeResource::collection($employeesPaginated->getCollection())->resolve(),
             'employees_pagination' => [
                 'current_page' => $employeesPaginated->currentPage(),
-                'last_page' => $employeesPaginated->lastPage(),
+                'last_page' => min(self::MAX_PAGE, $employeesPaginated->lastPage()),
                 'per_page' => $employeesPaginated->perPage(),
                 'total' => $employeesPaginated->total(),
+                'page_limit_reached' => $employeesPaginated->lastPage() > self::MAX_PAGE,
             ],
             'filters' => [
                 'search' => $search,
@@ -369,6 +370,52 @@ class EmployeeController extends Controller
                 $selectedPosition,
             ),
         ]);
+    }
+
+    /**
+     * Registry search, matched to what was typed so every branch is served by
+     * an index at 3M employees (docs/production-readiness/database-capacity.md):
+     *
+     *  - an e-mail address (contains "@"): e-mail, substring (trigram index);
+     *  - a number or code (a digit and no space) or a phone number: employee
+     *    number by prefix (lower(employee_number) pattern index), and for a
+     *    phone number the phone, substring (trigram);
+     *  - anything else, a name: Amharic full_name and English name_en,
+     *    substring (trigram indexes), plus the employee-number prefix for a
+     *    single word.
+     *
+     * Before, every search OR-ed all five columns with '%term%'; e-mail and
+     * phone had no trigram index, so each search read all 3M rows (2.7 s).
+     * LIKE wildcards typed by the user are literal ('!' escapes them on every engine).
+     */
+    private function applyRegistrySearch($query, string $search): void
+    {
+        $like = ci_like_operator();
+        $term = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search);
+        $contains = fn ($q, string $column) => $q->orWhereRaw("{$column} {$like} ? ESCAPE '!'", ["%{$term}%"]);
+
+        if (str_contains($search, '@')) {
+            $contains($query, 'email');
+
+            return;
+        }
+
+        $phoneLike = preg_match('/^[+\d][\d\s().\-]{2,}$/', $search) === 1;
+        if ($phoneLike || (preg_match('/\d/', $search) === 1 && ! str_contains($search, ' '))) {
+            $query->orWhereRaw("lower(employee_number) like lower(?) ESCAPE '!'", ["{$term}%"]);
+            if ($phoneLike) {
+                $contains($query, 'phone');
+            }
+
+            return;
+        }
+
+        $contains($query, 'full_name');
+        $contains($query, 'name_en');
+        // One word may also be the start of a code ("REG-"): cheap via the prefix index.
+        if (! str_contains($search, ' ')) {
+            $query->orWhereRaw("lower(employee_number) like lower(?) ESCAPE '!'", ["{$term}%"]);
+        }
     }
 
     /**

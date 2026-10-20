@@ -59,4 +59,10 @@ return [
     'terminated' => 'የተቋረጠ',
     'transferred' => 'የተዛወረ',
     'deceased' => 'በሞት የተለየ',
+
+    'statutory_deadline' => [
+        'title' => 'ሕጋዊ የጊዜ ገደብ',
+        'due_soon' => ':rule ለ:case የመጨረሻው ቀን :date ነው።',
+        'overdue' => ':rule ለ:case የመጨረሻው ቀን :date ነበር፤ ጊዜው አልፏል።',
+    ],
 ];

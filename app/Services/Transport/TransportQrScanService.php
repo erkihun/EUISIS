@@ -4,157 +4,93 @@ declare(strict_types=1);
 
 namespace App\Services\Transport;
 
+use App\Enums\Transport\TransportVerificationMethod;
 use App\Models\IdCard;
 use App\Models\Provider;
 use App\Models\ProviderUser;
-use App\Models\TransportRoute;
 use App\Models\TransportTransaction;
-use App\Models\TransportTrip;
-use App\Services\EmployeeServiceEligibilityService;
-use App\Services\IdCards\CardQrPayloadService;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Services\Transport\Boarding\BoardingRequest;
+use App\Services\Transport\Boarding\CardCredentialResolver;
+use App\Services\Transport\Boarding\TransportBoardingService;
 
+/**
+ * The attended terminals' entry point (provider portal and admin scan
+ * screen). It only shapes the request; every rule lives in
+ * TransportBoardingService, shared with the device API and offline sync.
+ */
 class TransportQrScanService
 {
-    public function __construct(
-        private readonly CardQrPayloadService $qrPayloadService,
-        private readonly TransportEligibilityService $eligibility,
-        private readonly EmployeeServiceEligibilityService $serviceEligibility,
-    ) {}
+    public function __construct(private readonly TransportBoardingService $engine, private readonly CardCredentialResolver $cards) {}
 
     /**
-     * @param  array{qr_token: string, scan_nonce: string, transport_route_id?: string|null, transport_trip_id?: string|null, scanned_at?: string|null}  $payload
-     * @return array{accepted: bool, result_code: string, transaction: TransportTransaction|null, message_key: string}
+     * The card a raw scan value names, through the same parser every terminal
+     * uses (tests/Feature/IdCards/QrPayloadParserTest). QR or NFC is told
+     * apart by the value's shape.
+     */
+    public function resolveCard(string $scanValue): ?IdCard
+    {
+        return $this->cards->resolve(CardCredentialResolver::methodFor($scanValue), $scanValue)['card'];
+    }
+
+    /**
+     * @param  array{qr_token?: string|null, verification_method?: string|null, scan_nonce?: string|null, transport_route_id?: string|null, transport_trip_id?: string|null, transport_route_stop_id?: string|null, scanned_at?: string|null, manual_employee_id?: string|null, manual_reason?: string|null}  $payload
+     * @return array{accepted: bool, result_code: string, transaction: TransportTransaction|null, message_key: string, warnings: array}
      */
     public function process(ProviderUser $providerUser, array $payload): array
     {
         $provider = $providerUser->provider;
         abort_if($provider === null || ! $providerUser->hasService('transport'), 403, __('transport.provider_service_disabled'));
 
-        return $this->processForProvider($provider, $payload, 'provider_portal', $providerUser->id);
+        return $this->engine->board($this->request($provider, $payload, BoardingRequest::SOURCE_PROVIDER_PORTAL, providerUser: $providerUser))->toArray();
     }
 
     /**
-     * @param  array{qr_token: string, scan_nonce: string, transport_route_id?: string|null, transport_trip_id?: string|null, scanned_at?: string|null}  $payload
-     * @return array{accepted: bool, result_code: string, transaction: TransportTransaction|null, message_key: string}
+     * @param  array{qr_token?: string|null, verification_method?: string|null, scan_nonce?: string|null, transport_route_id?: string|null, transport_trip_id?: string|null, transport_route_stop_id?: string|null, scanned_at?: string|null, manual_employee_id?: string|null, manual_reason?: string|null}  $payload
+     * @return array{accepted: bool, result_code: string, transaction: TransportTransaction|null, message_key: string, warnings: array}
      */
-    public function processForAdmin(Provider $provider, array $payload): array
+    public function processForAdmin(Provider $provider, array $payload, ?User $user = null): array
     {
         abort_unless($provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
 
-        return $this->processForProvider($provider, $payload, 'admin_transport_scan');
+        return $this->engine->board($this->request($provider, $payload, BoardingRequest::SOURCE_ADMIN_TERMINAL, user: $user))->toArray();
     }
 
-    /**
-     * @param  array{qr_token: string, scan_nonce: string, transport_route_id?: string|null, transport_trip_id?: string|null, scanned_at?: string|null}  $payload
-     * @return array{accepted: bool, result_code: string, transaction: TransportTransaction|null, message_key: string}
-     */
-    private function processForProvider(Provider $provider, array $payload, string $source, ?string $providerUserId = null): array
+    /** @param  array{result_code: string, message_key: string}  $result */
+    public function message(array $result): string
     {
-        $existing = TransportTransaction::query()
-            ->with(['employee.currentAssignment.organization', 'route', 'trip', 'pass'])
-            ->where('scan_nonce', $payload['scan_nonce'])
-            ->first();
+        $key = 'transport.reasons.'.$result['result_code'];
 
-        if ($existing !== null) {
-            return [
-                'accepted' => $existing->status === 'accepted',
-                'result_code' => 'duplicate_scan_nonce',
-                'transaction' => $existing,
-                'message_key' => 'transport.duplicate_scan',
-            ];
-        }
+        return trans()->has($key) ? __($key) : __($result['message_key']);
+    }
 
-        $scannedAt = isset($payload['scanned_at']) && $payload['scanned_at'] !== null
-            ? Carbon::parse($payload['scanned_at'])
-            : now();
+    /** @param  array<string, mixed>  $payload */
+    private function request(Provider $provider, array $payload, string $source, ?ProviderUser $providerUser = null, ?User $user = null): BoardingRequest
+    {
+        $credential = isset($payload['qr_token']) && $payload['qr_token'] !== '' ? (string) $payload['qr_token'] : null;
+        $manual = ($payload['manual_employee_id'] ?? null) !== null && $credential === null;
 
-        $card = $this->resolveCard($payload['qr_token']);
-        $route = $this->providerRoute($provider->id, $payload['transport_route_id'] ?? null);
-        $trip = $this->providerTrip($provider->id, $payload['transport_trip_id'] ?? null);
+        $method = match (true) {
+            $manual => TransportVerificationMethod::ManualException,
+            ($payload['verification_method'] ?? null) === 'nfc' => TransportVerificationMethod::Nfc,
+            ($payload['verification_method'] ?? null) === 'qr' => TransportVerificationMethod::Qr,
+            default => CardCredentialResolver::methodFor((string) $credential),
+        };
 
-        if ($card === null || $card->employee === null) {
-            return ['accepted' => false, 'result_code' => 'card_not_found', 'transaction' => null, 'message_key' => 'transport.scan_rejected'];
-        }
-
-        $employee = $card->employee;
-        $serviceEligibility = $this->serviceEligibility->check(
-            $employee,
-            $card,
-            'transport',
-            providerId: $provider->id,
-            attemptedBy: $providerUserId,
+        return new BoardingRequest(
+            provider: $provider,
+            source: $source,
+            method: $method,
+            credential: $credential,
+            tripId: $payload['transport_trip_id'] ?? null,
+            routeId: $payload['transport_route_id'] ?? null,
+            stopId: $payload['transport_route_stop_id'] ?? null,
+            idempotencyKey: $payload['scan_nonce'] ?? null,
+            clientRecordedAt: $payload['scanned_at'] ?? null,
+            providerUser: $providerUser,
+            user: $user,
+            manualEmployeeId: $manual ? (string) $payload['manual_employee_id'] : null,
+            manualReason: $manual ? ($payload['manual_reason'] ?? null) : null,
         );
-
-        if (! $serviceEligibility['eligible']) {
-            return [
-                'accepted' => false,
-                'result_code' => $serviceEligibility['reason_code'],
-                'transaction' => null,
-                'message_key' => $serviceEligibility['message_key'],
-            ];
-        }
-
-        $eligibility = $this->eligibility->check($employee, $card, $provider, $route, $scannedAt);
-        $status = $eligibility['eligible'] ? 'accepted' : 'rejected';
-        $resultCode = $eligibility['reason'] ?? 'transport_scan_accepted';
-
-        $transaction = DB::transaction(fn (): TransportTransaction => TransportTransaction::query()->create([
-            'provider_id' => $provider->id,
-            'employee_id' => $employee->id,
-            'id_card_id' => $card->id,
-            'transport_pass_id' => $eligibility['pass']?->id,
-            'transport_route_id' => $route?->id,
-            'transport_trip_id' => $trip?->id,
-            'scanned_at' => $scannedAt,
-            'transaction_date' => $scannedAt->toDateString(),
-            'status' => $status,
-            'result_code' => $resultCode,
-            'rejection_reason' => $eligibility['eligible'] ? null : $resultCode,
-            'scan_nonce' => $payload['scan_nonce'],
-            'qr_reference_hash' => hash('sha256', $payload['qr_token']),
-            'scanned_by_provider_user_id' => $providerUserId,
-            'metadata' => ['source' => $source],
-        ]));
-
-        $transaction->load(['employee.currentAssignment.organization', 'route', 'trip', 'pass']);
-
-        return [
-            'accepted' => $eligibility['eligible'],
-            'result_code' => $resultCode,
-            'transaction' => $transaction,
-            'message_key' => $eligibility['eligible'] ? 'transport.scan_accepted' : 'transport.scan_rejected',
-        ];
-    }
-
-    private function resolveCard(string $scanValue): ?IdCard
-    {
-        $publicUuid = $this->qrPayloadService->resolvePublicUuidFromScanValue($scanValue);
-
-        if ($publicUuid === null) {
-            return null;
-        }
-
-        return IdCard::query()
-            ->with(['employee.currentAssignment.organization'])
-            ->where('public_card_uuid', $publicUuid)
-            ->first();
-    }
-
-    private function providerRoute(string $providerId, ?string $routeId): ?TransportRoute
-    {
-        return $routeId === null ? null : TransportRoute::query()
-            ->where('provider_id', $providerId)
-            ->whereKey($routeId)
-            ->firstOrFail();
-    }
-
-    private function providerTrip(string $providerId, ?string $tripId): ?TransportTrip
-    {
-        return $tripId === null ? null : TransportTrip::query()
-            ->where('provider_id', $providerId)
-            ->whereKey($tripId)
-            ->firstOrFail();
     }
 }

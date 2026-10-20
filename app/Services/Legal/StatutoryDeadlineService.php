@@ -71,8 +71,12 @@ final class StatutoryDeadlineService
      * Record an immutable deadline for $subject. Re-snapshotting the same open
      * rule supersedes the earlier row instead of editing it.
      */
-    public function snapshot(Model $subject, string $ruleKey, Carbon $start): StatutoryDeadline
+    public function snapshot(Model $subject, string $ruleKey, Carbon $start): ?StatutoryDeadline
     {
+        // Art. 56: a proceeding begun under Regulation 26/2002 stays under it; no Regulation 201/2018 clock applies.
+        if (($subject->getAttribute('governing_regulation') ?? Regulation201::CODE) !== Regulation201::CODE) {
+            return null;
+        }
         $rule = Regulation201::rule($ruleKey);
 
         StatutoryDeadline::query()

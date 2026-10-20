@@ -34,7 +34,7 @@ function EthiopianTimePicker({
 }) {
     const { ethHour, minute, period } = gregToEth(value);
 
-    const selCls = `rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm dark:text-slate-100 disabled:opacity-50 ${className ?? ''}`;
+    const selCls = `rounded-sm border border-(--app-border-strong) bg-(--app-surface) px-2 py-1 text-sm dark:text-slate-100 disabled:opacity-50 ${className ?? ''}`;
 
     function patch(update: Partial<{ ethHour: number; minute: number; period: Period }>) {
         const next = { ethHour, minute, period, ...update };
@@ -55,7 +55,7 @@ function EthiopianTimePicker({
                 ))}
             </select>
 
-            <span className="font-medium text-[color:var(--app-muted-foreground)]">:</span>
+            <span className="font-medium text-(--app-muted-foreground)">:</span>
 
             {/* Minute 0–59 */}
             <select
@@ -114,7 +114,7 @@ export default function LocalizedTimePicker({
             value={value}
             onChange={e => onChange(e.target.value)}
             disabled={disabled}
-            className={className ?? 'rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm text-[color:var(--app-foreground)] disabled:opacity-50'}
+            className={className ?? 'rounded-sm border border-(--app-border-strong) bg-(--app-surface) px-2 py-1 text-sm text-(--app-foreground) disabled:opacity-50'}
         />
     );
 }

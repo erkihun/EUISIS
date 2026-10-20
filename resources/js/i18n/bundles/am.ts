@@ -9,6 +9,8 @@ import amCommon from '@/i18n/am/common';
 import amDailyActivities from '@/i18n/am/dailyActivities';
 import amFieldWork from '@/i18n/am/fieldWork';
 import amPerformance from '@/i18n/am/performance';
+import amCommunication from '@/i18n/am/communication';
+import amRichText from '@/i18n/am/richText';
 import amAuth from '@/i18n/am/auth';
 import amConfirmations from '@/i18n/am/confirmations';
 import amEntitlements from '@/i18n/am/entitlements';
@@ -33,6 +35,7 @@ import amHome from '@/i18n/am/home';
 import amHierarchyVersions from '@/i18n/am/hierarchyVersions';
 import amNavigation from '@/i18n/am/navigation';
 import amApiManagement from '@/i18n/am/apiManagement';
+import amIntegrations from '@/i18n/am/integrations';
 import amIdChecker from '@/i18n/am/idChecker';
 import amPublicSite from '@/i18n/am/publicSite';
 import amOrganizations from '@/i18n/am/organizations';
@@ -44,6 +47,12 @@ import amProviderUsers from '@/i18n/am/providerUsers';
 import amRecycleBin from '@/i18n/am/recycleBin';
 import amServiceTypes from '@/i18n/am/serviceTypes';
 import amServiceFeedback from '@/i18n/am/serviceFeedback';
+import amSituationRoom from '@/i18n/am/situationRoom';
+import amIntelligence from '@/i18n/am/intelligence';
+import amIntelligenceKnowledge from '@/i18n/am/intelligenceKnowledge';
+import amAssistant from '@/i18n/am/assistant';
+import amSupport from '@/i18n/am/support';
+import amPublicAssistant from '@/i18n/am/publicAssistant';
 import amSettings from '@/i18n/am/settings';
 import amOrganizationUnits from '@/i18n/am/organizationUnits';
 import amOrganizationUnitTypes from '@/i18n/am/organizationUnitTypes';
@@ -80,6 +89,8 @@ const tree: TranslationTree = {
     fieldWork: amFieldWork,
     dailyActivities: amDailyActivities,
     performance: amPerformance,
+    communication: amCommunication,
+    richText: amRichText,
     entitlements: amEntitlements,
     gradeLevels: amGradeLevels,
     idCards: { ...(((am as { idCards?: TranslationTree }).idCards) ?? {}), ...amIdCards },
@@ -88,6 +99,7 @@ const tree: TranslationTree = {
     occupations: amOccupations,
     organizationDesign: amOrganizationDesign,
     apiManagement: amApiManagement,
+    integrations: amIntegrations,
     idChecker: amIdChecker,
     publicSite: amPublicSite,
     organizations: { ...(((am as { organizations?: TranslationTree }).organizations) ?? {}), ...amOrganizations },
@@ -112,6 +124,12 @@ const tree: TranslationTree = {
     backup: amBackup,
     serviceTypes: amServiceTypes,
     serviceFeedback: amServiceFeedback,
+    situationRoom: amSituationRoom,
+    intelligence: amIntelligence,
+    intelligenceKnowledge: amIntelligenceKnowledge,
+    assistant: amAssistant,
+    support: amSupport,
+    publicAssistant: amPublicAssistant,
     entitlementRules: amEntitlementRules,
     cafeteria: { ...(((am as { cafeteria?: TranslationTree }).cafeteria) ?? {}), ...amCafeteria },
     codeRules: amCodeRules,

@@ -20,9 +20,9 @@ export default function TreeToolbar({
     const { t } = useLocale();
 
     return (
-        <div className="flex flex-col gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3 rounded-panel border border-(--app-border) bg-(--app-surface) p-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="relative flex-1">
-                <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
+                <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" />
                 <input
                     value={query}
                     onChange={(event) => onQueryChange(event.target.value)}

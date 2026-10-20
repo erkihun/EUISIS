@@ -4,9 +4,14 @@ declare(strict_types=1);
 
 use App\Http\Controllers\OrganizationDesign\ClassificationController;
 use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
+use App\Http\Controllers\OrganizationDesign\DesignImportController;
+use App\Http\Controllers\OrganizationDesign\DesignOverviewController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
+use App\Http\Controllers\OrganizationDesign\DesignSuggestionController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
+use App\Http\Controllers\OrganizationDesign\LegacyBaselineController;
+use App\Http\Controllers\OrganizationDesign\LegalSourceController;
 use App\Http\Controllers\OrganizationDesign\LookupController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
 use App\Http\Controllers\OrganizationDesign\ManpowerPlanController;
@@ -14,9 +19,9 @@ use App\Http\Controllers\OrganizationDesign\MappingController;
 use App\Http\Controllers\OrganizationDesign\MethodologyController;
 use App\Http\Controllers\OrganizationDesign\PositionDesignController;
 use App\Http\Controllers\OrganizationDesign\ProcessController;
-use App\Http\Controllers\OrganizationDesign\ReportController;
 use App\Http\Controllers\OrganizationDesign\ProcessDesignController;
 use App\Http\Controllers\OrganizationDesign\ProfessionController;
+use App\Http\Controllers\OrganizationDesign\ReportController;
 use App\Http\Controllers\OrganizationDesign\RequirementController;
 use App\Http\Controllers\OrganizationDesign\ResponsibilityController;
 use App\Http\Controllers\OrganizationDesign\ServiceController;
@@ -198,4 +203,52 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
         Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
         Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');
+
+        // Legal sources (docs/organization-design-legacy-baseline-plan.md, ADR-LB-001).
+        Route::get('/legal-sources', [LegalSourceController::class, 'index'])->name('legal-sources.index');
+        Route::post('/legal-sources', [LegalSourceController::class, 'store'])->middleware('throttle:60,1')->name('legal-sources.store');
+        Route::get('/legal-sources/{source}', [LegalSourceController::class, 'show'])->whereUuid('source')->name('legal-sources.show');
+        Route::put('/legal-sources/{source}', [LegalSourceController::class, 'update'])->whereUuid('source')->name('legal-sources.update');
+        Route::post('/legal-sources/{source}/status', [LegalSourceController::class, 'changeStatus'])->whereUuid('source')->name('legal-sources.status');
+        Route::delete('/legal-sources/{source}', [LegalSourceController::class, 'destroy'])->whereUuid('source')->name('legal-sources.destroy');
+        Route::post('/legal-sources/{source}/attachments', [LegalSourceController::class, 'storeAttachment'])->whereUuid('source')->middleware('throttle:30,1')->name('legal-sources.attachments.store');
+        Route::get('/legal-sources/{source}/attachments/{attachment}/download', [LegalSourceController::class, 'download'])->whereUuid(['source', 'attachment'])->name('legal-sources.attachments.download');
+        Route::delete('/legal-sources/{source}/attachments/{attachment}', [LegalSourceController::class, 'destroyAttachment'])->whereUuid(['source', 'attachment'])->name('legal-sources.attachments.destroy');
+        Route::post('/legal-sources/{source}/citations', [LegalSourceController::class, 'storeCitation'])->whereUuid('source')->name('legal-sources.citations.store');
+        Route::delete('/legal-sources/{source}/citations/{citation}', [LegalSourceController::class, 'destroyCitation'])->whereUuid(['source', 'citation'])->name('legal-sources.citations.destroy');
+
+        // Legacy organization baselines (ADR-LB-002/003).
+        Route::get('/legacy-baselines', [LegacyBaselineController::class, 'index'])->name('legacy-baselines.index');
+        Route::post('/legacy-baselines', [LegacyBaselineController::class, 'store'])->middleware('throttle:30,1')->name('legacy-baselines.store');
+        Route::get('/legacy-baselines/{baseline}', [LegacyBaselineController::class, 'show'])->whereUuid('baseline')->name('legacy-baselines.show');
+        Route::put('/legacy-baselines/{baseline}', [LegacyBaselineController::class, 'update'])->whereUuid('baseline')->name('legacy-baselines.update');
+        Route::put('/legacy-baselines/{baseline}/steps/{step}', [LegacyBaselineController::class, 'saveStep'])->whereUuid('baseline')->where('step', '[a-z_]+')->name('legacy-baselines.steps.save');
+        Route::post('/legacy-baselines/{baseline}/validate', [LegacyBaselineController::class, 'validateBaseline'])->whereUuid('baseline')->middleware('throttle:30,1')->name('legacy-baselines.validate');
+        Route::post('/legacy-baselines/{baseline}/submit', [LegacyBaselineController::class, 'submit'])->whereUuid('baseline')->name('legacy-baselines.submit');
+        Route::post('/legacy-baselines/{baseline}/return', [LegacyBaselineController::class, 'return'])->whereUuid('baseline')->name('legacy-baselines.return');
+        Route::post('/legacy-baselines/{baseline}/approve', [LegacyBaselineController::class, 'approve'])->whereUuid('baseline')->name('legacy-baselines.approve');
+        Route::post('/legacy-baselines/{baseline}/publish', [LegacyBaselineController::class, 'publish'])->whereUuid('baseline')->name('legacy-baselines.publish');
+        Route::post('/legacy-baselines/{baseline}/revisions', [LegacyBaselineController::class, 'revise'])->whereUuid('baseline')->name('legacy-baselines.revisions.store');
+        Route::post('/legacy-baselines/{baseline}/cancel', [LegacyBaselineController::class, 'cancel'])->whereUuid('baseline')->name('legacy-baselines.cancel');
+        Route::get('/legacy-baselines/{baseline}/snapshot', [LegacyBaselineController::class, 'snapshot'])->whereUuid('baseline')->name('legacy-baselines.snapshot');
+        Route::get('/legacy-baselines/{baseline}/compare/{other}', [LegacyBaselineController::class, 'compare'])->whereUuid(['baseline', 'other'])->name('legacy-baselines.compare');
+
+        // Document-assisted capture: suggestions only (ADR-LB-006).
+        Route::post('/mandates/{mandate}/suggestions', [DesignSuggestionController::class, 'store'])->whereUuid('mandate')->middleware('throttle:30,1')->name('mandates.suggestions.store');
+        Route::post('/suggestions/{suggestion}/items/{index}/apply', [DesignSuggestionController::class, 'apply'])->whereUuid('suggestion')->whereNumber('index')->name('suggestions.apply');
+        Route::post('/suggestions/{suggestion}/items/{index}/reject', [DesignSuggestionController::class, 'reject'])->whereUuid('suggestion')->whereNumber('index')->name('suggestions.reject');
+
+        // Module landing page (brief §100–102).
+        Route::get('/', DesignOverviewController::class)->name('overview');
+
+        // Staged design imports (ADR-LB-004).
+        Route::get('/imports', [DesignImportController::class, 'index'])->name('imports.index');
+        // An upload action (a dialog on the list, as imports are), not a record created on its own page.
+        Route::post('/imports', [DesignImportController::class, 'store'])->middleware('throttle:20,1')->name('imports.upload');
+        Route::get('/imports/template/{entityType}', [DesignImportController::class, 'template'])->where('entityType', '[a-z_]+')->name('imports.template');
+        Route::get('/imports/{batch}', [DesignImportController::class, 'show'])->whereUuid('batch')->name('imports.show');
+        Route::put('/imports/{batch}/rows/{row}/map', [DesignImportController::class, 'map'])->whereUuid(['batch', 'row'])->name('imports.rows.map');
+        Route::post('/imports/{batch}/revalidate', [DesignImportController::class, 'revalidate'])->whereUuid('batch')->middleware('throttle:20,1')->name('imports.revalidate');
+        Route::post('/imports/{batch}/commit', [DesignImportController::class, 'commit'])->whereUuid('batch')->middleware('throttle:20,1')->name('imports.commit');
+        Route::post('/imports/{batch}/cancel', [DesignImportController::class, 'cancel'])->whereUuid('batch')->name('imports.cancel');
     });

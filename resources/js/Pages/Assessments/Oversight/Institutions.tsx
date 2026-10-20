@@ -79,8 +79,8 @@ export default function OversightInstitutions(props: Props) {
                         {rows.data.map((row) => (
                             <tr key={row.organization.id}>
                                 <td className={tdCls}>
-                                    <Link className="font-medium text-[color:var(--color-primary)] hover:underline" href={oversightHref('assessment-oversight.institution', cycle, { organization: row.organization.id })}>{named(row.organization, locale)}</Link>
-                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.organization.code}{row.participation === 'excluded' ? ` · ${t('assessmentOversight.participationStatuses.excluded')}` : ''}</div>
+                                    <Link className="font-medium text-primary hover:underline" href={oversightHref('assessment-oversight.institution', cycle, { organization: row.organization.id })}>{named(row.organization, locale)}</Link>
+                                    <div className="text-xs text-(--app-muted-foreground)">{row.organization.code}{row.participation === 'excluded' ? ` · ${t('assessmentOversight.participationStatuses.excluded')}` : ''}</div>
                                 </td>
                                 <td className={`${tdCls} tabular-nums`}>{row.eligible}</td>
                                 <td className={`${tdCls} tabular-nums`}>{row.assigned}</td>

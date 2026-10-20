@@ -143,6 +143,10 @@ final class GrievanceCommitteeService
             if ($employee === null || ($employee->status?->value ?? $employee->status) !== 'active') {
                 throw ValidationException::withMessages(['employee_id' => __('grievances.errors.employee_not_active')]);
             }
+            // Regulation 201/2018 Art. 6(2): no one disciplined in the last two years sits on the committee.
+            if (app(StatutoryCommitteeRules::class)->employeeEligibility((string) $employee->getKey(), $from)['problems'] !== []) {
+                throw ValidationException::withMessages(['employee_id' => __('grievances.errors.member_disciplined')]);
+            }
             if ($committee->members()->servingOn($from)->where('employee_id', $employee->getKey())->exists()) {
                 throw ValidationException::withMessages(['employee_id' => __('grievances.errors.already_member')]);
             }
@@ -306,8 +310,12 @@ final class GrievanceCommitteeService
     {
         $stage = GrievanceCaseStage::query()->with('grievance')->findOrFail($recusal->case_stage_id);
         $employee = Employee::query()->find($employeeId);
-        if ($employee === null || $employee->getKey() === $stage->grievance->employee_id || $employee->getKey() === $stage->grievance->respondent_employee_id) {
+        if ($employee === null || ($employee->status?->value ?? $employee->status) !== 'active'
+            || in_array($employee->getKey(), [$stage->grievance->employee_id, $stage->grievance->respondent_employee_id, $stage->grievance->immediate_supervisor_employee_id], true)) {
             throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.replacement_not_eligible')]);
+        }
+        if (app(StatutoryCommitteeRules::class)->employeeEligibility((string) $employee->getKey())['problems'] !== []) {
+            throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.member_disciplined')]);
         }
         if ($stage->members()->where('employee_id', $employeeId)->where('is_active', true)->exists()) {
             throw ValidationException::withMessages(['replacement_employee_id' => __('grievances.errors.already_member')]);

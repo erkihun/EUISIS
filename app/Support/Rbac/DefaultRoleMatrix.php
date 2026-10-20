@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Support\Rbac;
 
+use App\Support\Communication\CommunicationRoles;
 use App\Support\DailyActivity\DailyActivityRoles;
 use App\Support\Discipline\DisciplineRoles;
 use App\Support\FieldWork\FieldWorkRoles;
 use App\Support\Grievances\GrievanceRoles;
+use App\Support\Intelligence\IntelligenceRoles;
 use App\Support\Performance\PerformanceRoles;
 use InvalidArgumentException;
 
@@ -42,7 +44,7 @@ final class DefaultRoleMatrix
         'recycle-bin.forceDelete', 'users.viewSensitive',
     ];
 
-    private const CITY_ADMIN_WITHHELD_MODULES = ['backups', 'api_management', 'cafeteria-portal', 'provider-cafeteria-transactions', 'provider-cafeteria-payment-claims'];
+    private const CITY_ADMIN_WITHHELD_MODULES = ['backups', 'api_management', 'integrations', 'cafeteria-portal', 'provider-cafeteria-transactions', 'provider-cafeteria-payment-claims'];
 
     private const STRUCTURE_READ = [
         'organizations.viewAny', 'organizations.view',
@@ -121,7 +123,7 @@ final class DefaultRoleMatrix
     private static function build(bool $validate = true): array
     {
         $all = PermissionCatalog::names();
-        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
+        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, DisciplineRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, CommunicationRoles::CITY_ADMIN_WITHHELD, IntelligenceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
 
         $roles = [
             // ── Administration ────────────────────────────────────────────────
@@ -162,6 +164,7 @@ final class DefaultRoleMatrix
                 ...PerformanceRoles::ASSESSMENT_INSTITUTION_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS,
+                ...CommunicationRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
             ], 'Manages authorized HR operations within the assigned organization scope and submits controlled structure/position change requests. Does not have global administration or unrestricted master-structure modification rights.',
                 'በተመደበው የተቋም ወሰን ውስጥ የተፈቀዱ የሰው ሀብት ሥራዎችን ያስተዳድራል፣ የመዋቅር/የሥራ መደብ ለውጥ ጥያቄዎችን ያቀርባል። ሁሉን አቀፍ አስተዳደር ወይም ያልተገደበ የዋና መዋቅር ማሻሻያ መብት የለውም።'),
             'HR Officer' => self::role(self::SCOPE_SCOPED, [
@@ -183,6 +186,7 @@ final class DefaultRoleMatrix
                 ...PerformanceRoles::ASSESSMENT_HR_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_HR_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS,
+                ...CommunicationRoles::HR_PERMISSIONS,
             ], 'Keeps employee records, imports, card requests and transfer paperwork within scope. The only default role that sees employee personal identifiers (employees.viewPii).',
                 'በወሰኑ ውስጥ የሠራተኛ መዝገቦችን፣ ማስገባቶችን፣ የመታወቂያ ጥያቄዎችን እና የዝውውር ሰነዶችን ይይዛል። የሠራተኞችን የግል መለያ የሚያይ ብቸኛው ነባሪ ሚና።'),
 
@@ -199,6 +203,9 @@ final class DefaultRoleMatrix
                 'workforce-planning.viewAny', 'workforce-planning.view', 'workforce-planning.create', 'workforce-planning.update', 'methodologies.viewAny',
                 'position-profiles.viewAny', 'position-profiles.manage', 'job-descriptions.viewAny', 'job-descriptions.manage',
                 'organization-design-reports.view', 'data-mapping.view',
+                'legal-sources.viewAny', 'legal-sources.view', 'legal-sources.create', 'legal-sources.update',
+                'legacy-baselines.viewAny', 'legacy-baselines.view', 'legacy-baselines.create', 'legacy-baselines.update',
+                'design-imports.viewAny', 'design-imports.create', 'design-suggestions.view', 'design-suggestions.apply',
             ], 'Drafts the design of organizations in scope: mandates, functions, services, processes and standards, design studies, manpower plans, position profiles and job descriptions. Never approves or publishes.',
                 'በወሰኑ ውስጥ ያሉ ተቋማትን ንድፍ ያረቅቃል፡ ሥልጣኖች፣ ተግባራት፣ አገልግሎቶች፣ ሂደቶችና ስታንዳርዶች፣ የንድፍ ጥናቶች፣ የሰው ኃይል ዕቅዶች፣ የሥራ መደብ መገለጫዎችና የሥራ መግለጫዎች። በጭራሽ አያጸድቅም ወይም አያትምም።'),
             'Organization Design Approver' => self::role(self::SCOPE_SCOPED, [
@@ -210,12 +217,16 @@ final class DefaultRoleMatrix
                 'workforce-planning.viewAny', 'workforce-planning.view', 'workforce-planning.review', 'workforce-planning.approve', 'workforce-planning.implement', 'methodologies.viewAny',
                 'position-profiles.viewAny', 'position-profiles.approve', 'job-descriptions.viewAny', 'job-descriptions.approve', 'job-descriptions.publish',
                 'organization-design-reports.view', 'organization-design-reports.export', 'data-mapping.view',
+                'legal-sources.viewAny', 'legal-sources.view',
+                'legacy-baselines.viewAny', 'legacy-baselines.view', 'legacy-baselines.review', 'legacy-baselines.approve', 'legacy-baselines.publish',
+                'design-imports.viewAny', 'design-imports.commit', 'design-suggestions.view',
             ], 'Reviews, approves and publishes the design drafted by others in scope, implements approved manpower plans, and exports the design reports. Cannot draft.',
                 'በወሰኑ ውስጥ በሌሎች የተረቀቀውን ንድፍ ይገመግማል፣ ያጸድቃል እና ያትማል፣ የጸደቁ የሰው ኃይል ዕቅዶችን ይተገብራል፣ የንድፍ ሪፖርቶችን ወደ ውጭ ይልካል። ማርቀቅ አይችልም።'),
             'Design Catalog Manager' => self::role(self::SCOPE_GLOBAL, [
                 'dashboard.view', 'occupations.viewAny', 'occupations.view',
                 'classifications.viewAny', 'classifications.manage', 'professions.manage', 'competency-catalog.viewAny', 'competency-catalog.manage',
                 'responsibility-types.manage', 'methodologies.viewAny', 'methodologies.manage', 'methodologies.approve', 'data-mapping.view',
+                'legal-sources.viewAny', 'legal-sources.view', 'legal-sources.manageCatalog',
             ], 'City-level master data of the design: service and ISIC/CPC/ISCO classifications, professions, the competency catalog, responsibility types and planning methodologies. Official datasets only; nothing organization-specific.',
                 'የንድፉ የከተማ ደረጃ ዋና መረጃ፡ የአገልግሎትና የISIC/CPC/ISCO ምደባዎች፣ ሙያዎች፣ የብቃት ካታሎግ፣ የኃላፊነት ዓይነቶችና የዕቅድ ዘዴዎች። ይፋዊ መረጃዎች ብቻ፤ የተቋም-ተኮር ነገር የለም።'),
 
@@ -290,6 +301,7 @@ final class DefaultRoleMatrix
                 'api_management.delete', 'api_management.tokens.create', 'api_management.tokens.revoke',
                 'api_management.logs.view', 'api_management.docs.view', 'api_management.endpoints.view',
                 'api_management.endpoints.sync', 'api_management.endpoints.update',
+                'integrations.view', 'integrations.manage', 'integrations.deliveries.view',
             ], 'Manages external API applications, tokens, endpoints and logs. A token is shown once at issue and never again.',
                 'የውጭ API መተግበሪያዎችን፣ ቶከኖችን፣ መዳረሻዎችን እና ምዝግቦችን ያስተዳድራል። ቶከን አንድ ጊዜ ብቻ ይታያል።'),
             'Auditor' => self::role(self::SCOPE_SCOPED, [
@@ -313,9 +325,19 @@ final class DefaultRoleMatrix
                 'የሕዝብ ድረ-ገጽ ይዘትን ያስተካክላል። የመታወቂያ ማረጋገጫን፣ OTPን፣ የፍጥነት ገደቦችን፣ የሠራተኛ መረጃን ወይም የማረጋገጫ ፖሊሲን መቀየር አይችልም።'),
 
             // ── Employee self-service, teams and performance ─────────────────
-            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
+            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...DisciplineRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS, ...CommunicationRoles::EMPLOYEE_PERMISSIONS],
                 'Self-service for the signed-in employee only: own daily activity, own field work requests and GPS check-in/out, own performance agreement, reviews and appeals. My Portal pages are tied to the linked employee record, not to extra permissions.',
                 'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የመስክ ሥራ ጥያቄ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች።'),
+            // ── Communication oversight: who asks for investigation access never approves it ─
+            CommunicationRoles::MODERATOR_ROLE => self::role(self::SCOPE_SCOPED, CommunicationRoles::MODERATOR_PERMISSIONS,
+                'Reviews reported messages and conversations: sees only the reported content and its immediate context, and can remove it. Never browses private conversations.',
+                'ሪፖርት የተደረጉ መልዕክቶችንና ውይይቶችን ይገመግማል፦ ሪፖርት የተደረገውን ይዘትና የቅርብ አውዱን ብቻ ያያል፣ ሊያስወግደውም ይችላል። የግል ውይይቶችን አያስስም።'),
+            CommunicationRoles::INVESTIGATOR_ROLE => self::role(self::SCOPE_GLOBAL, CommunicationRoles::INVESTIGATOR_PERMISSIONS,
+                'Requests time-limited, audited access to a named conversation or employee for a legal or disciplinary investigation. Cannot approve requests.',
+                'ለሕጋዊ ወይም ለዲሲፕሊን ምርመራ ለተወሰነ ውይይት ወይም ሠራተኛ በጊዜ የተገደበና የሚመዘገብ ፈቃድ ይጠይቃል። ጥያቄዎችን ማጽደቅ አይችልም።'),
+            CommunicationRoles::PRIVACY_OFFICER_ROLE => self::role(self::SCOPE_GLOBAL, CommunicationRoles::PRIVACY_OFFICER_PERMISSIONS,
+                'Approves, rejects and revokes investigation access requests made by others, and reads the communication audit trail. Reads no messages itself.',
+                'በሌሎች የቀረቡ የምርመራ ፈቃድ ጥያቄዎችን ያጸድቃል፣ ውድቅ ያደርጋል፣ ይሽራል፤ የኮሙኒኬሽን የኦዲት መዝገብን ያነባል። ራሱ መልዕክት አያነብም።'),
             DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::REVIEWER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS],
                 'Reviews the daily activity, and decides the field work requests, of the team named in the user\'s reviewer assignment.',
                 'በተመደበበት ቡድን ውስጥ ያሉ ሠራተኞችን ዕለታዊ እንቅስቃሴ ይገመግማል፤ የመስክ ሥራ ጥያቄዎቻቸውን ይወስናል።'),
@@ -422,13 +444,37 @@ final class DefaultRoleMatrix
             'Transport Admin' => self::role(self::SCOPE_SCOPED, PermissionCatalog::matching(
                 'transport-providers', 'transport-routes', 'transport-vehicles', 'transport-drivers', 'transport-passes',
                 'transport-transactions', 'transport-scan', 'transport-reports', 'transport-settings',
-            ), 'Runs the transport service: providers, routes, vehicles, drivers, passes, transactions, reports and settings.',
-                'የትራንስፖርት አገልግሎትን ያካሂዳል፡ አቅራቢዎች፣ መስመሮች፣ ተሽከርካሪዎች፣ አሽከርካሪዎች፣ ፓሶች፣ ግብይቶች፣ ሪፖርቶች እና ቅንብሮች።'),
+                'transport-contracts', 'transport-schedules', 'transport-trips', 'transport-eligibility', 'transport-devices',
+                'transport-manifests', 'transport-exceptions', 'transport-invoices', 'transport-settlements',
+            ), 'Runs the transport service: providers, contracts, routes, stops, schedules, trips, vehicles, drivers, eligibility, devices, boardings, invoices, settlements, reports and settings.',
+                'የትራንስፖርት አገልግሎትን ያካሂዳል፡ አቅራቢዎች፣ ውሎች፣ መስመሮች፣ ፌርማታዎች፣ የጊዜ ሰሌዳዎች፣ ጉዞዎች፣ ተሽከርካሪዎች፣ አሽከርካሪዎች፣ ብቁነት፣ መሣሪያዎች፣ መሳፈሮች፣ ደረሰኞች፣ ሂሳብ ማወራረጃዎች፣ ሪፖርቶች እና ቅንብሮች።'),
             'Transport Operator' => self::role(self::SCOPE_SCOPED, [
                 'transport-scan.create', 'transport-transactions.viewAny', 'transport-transactions.view',
-                'transport-passes.viewAny', 'transport-passes.view',
-            ], 'Scans cards at boarding and views passes and trips. No management rights.',
-                'በሚሳፈሩበት ጊዜ መታወቂያ ይቃኛል፣ ፓሶችን እና ጉዞዎችን ይመለከታል። የአስተዳደር መብት የለውም።'),
+                'transport-passes.viewAny', 'transport-passes.view', 'transport-trips.viewAny', 'transport-trips.view',
+            ], 'Scans cards at boarding and views route assignments and trips. No management rights.',
+                'በሚሳፈሩበት ጊዜ መታወቂያ ይቃኛል፣ የመስመር ምደባዎችን እና ጉዞዎችን ይመለከታል። የአስተዳደር መብት የለውም።'),
+            'Transport Dispatcher' => self::role(self::SCOPE_SCOPED, [
+                'transport-trips.viewAny', 'transport-trips.view', 'transport-trips.create', 'transport-trips.update', 'transport-trips.dispatch',
+                'transport-trips.approveExtra', 'transport-schedules.viewAny', 'transport-schedules.view', 'transport-routes.viewAny', 'transport-routes.view',
+                'transport-vehicles.viewAny', 'transport-vehicles.view', 'transport-drivers.viewAny', 'transport-drivers.view',
+                'transport-manifests.view', 'transport-exceptions.viewAny', 'transport-exceptions.review', 'transport-devices.viewAny', 'transport-devices.view',
+                'transport-transactions.viewAny', 'transport-transactions.view', 'transport-reports.view',
+            ], 'Plans and monitors trips: assigns vehicles and drivers, starts, completes and cancels trips, replaces vehicles and reviews exceptions.',
+                'ጉዞዎችን ያቅዳል እና ይከታተላል፡ ተሽከርካሪዎችን እና አሽከርካሪዎችን ይመድባል፣ ጉዞዎችን ይጀምራል፣ ያጠናቅቃል፣ ይሰርዛል፣ ተሽከርካሪ ይቀይራል እና ልዩ ሁኔታዎችን ይገመግማል።'),
+            'Transport Finance Reviewer' => self::role(self::SCOPE_SCOPED, [
+                'transport-contracts.viewAny', 'transport-contracts.view', 'transport-invoices.viewAny', 'transport-invoices.view', 'transport-invoices.review',
+                'transport-settlements.viewAny', 'transport-settlements.view', 'transport-settlements.manage', 'transport-settlements.approve',
+                'transport-transactions.viewAny', 'transport-transactions.view', 'transport-reports.view', 'transport-reports.export',
+                'transport-exceptions.viewAny',
+            ], 'Reconciles provider invoices against verified usage and the contract, records adjustments and approves statements. A statement is never approved by the person who computed it.',
+                'የአቅራቢ ደረሰኞችን ከተረጋገጠ አጠቃቀም እና ከውሉ ጋር ያስታርቃል፣ ማስተካከያዎችን ይመዘግባል እና መግለጫዎችን ያጸድቃል። መግለጫ በሰላው ሰው በፍጹም አይጸድቅም።'),
+            'Organization Transport Officer' => self::role(self::SCOPE_SCOPED, [
+                'transport-eligibility.viewAny', 'transport-eligibility.view', 'transport-eligibility.create', 'transport-eligibility.update',
+                'transport-passes.viewAny', 'transport-passes.view', 'transport-passes.create', 'transport-passes.update', 'transport-passes.cancel',
+                'transport-routes.viewAny', 'transport-routes.view', 'transport-schedules.viewAny', 'transport-schedules.view',
+                'transport-transactions.viewAny', 'transport-transactions.view', 'transport-reports.view', 'transport-manifests.view',
+            ], 'Keeps the organization\'s employees eligible and assigned to routes and stops, and reads its own usage reports. Sees only employees in scope.',
+                'የተቋሙን ሠራተኞች ብቁ እና በመስመሮች እና ፌርማታዎች ላይ የተመደቡ ያደርጋል፣ የራሱን የአጠቃቀም ሪፖርቶች ያነባል። በወሰኑ ውስጥ ያሉ ሠራተኞችን ብቻ ያያል።'),
             'Service Provider Manager' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'service-providers.viewAny', 'service-providers.view', 'service-providers.create',
                 'service-providers.update', 'service-providers.delete',

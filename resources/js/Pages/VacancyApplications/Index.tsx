@@ -90,15 +90,15 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                             {applications.data.map(a => (
                                 <tr key={a.id} className={tableRowClassName}>
                                     <td className={tableCellClassName}>
-                                        <Link href={route('vacancy-applications.show', a.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                        <Link href={route('vacancy-applications.show', a.id)} className="font-mono text-primary hover:underline dark:text-primary">
                                             {a.application_number}
                                         </Link>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{a.employee?.name_en ?? '—'}</td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{a.announcement?.title_en ?? '—'}</td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{a.position_entry?.position?.title_en ?? '—'}</td>
-                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{a.position_entry?.organization?.name_en ?? '—'}</td>
-                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.applied_at} /></td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{a.employee?.name_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{a.announcement?.title_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-foreground)')}>{a.position_entry?.position?.title_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-(--app-muted-foreground)')}>{a.position_entry?.organization?.name_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-muted-foreground)')}><LocalizedDateDisplay value={a.applied_at} /></td>
                                     <td className={tableCellClassName}><StatusBadge status={a.status} /></td>
                                 </tr>
                             ))}

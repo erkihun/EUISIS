@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Support\Database\SchemaResume;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -34,7 +35,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('position_profiles', function (Blueprint $table): void {
+        SchemaResume::create('position_profiles', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('position_id')->constrained('positions')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -63,7 +64,7 @@ return new class extends Migration
             $table->index(['position_id', 'status'], 'position_profiles_position_status_idx');
         });
 
-        Schema::create('position_work_links', function (Blueprint $table): void {
+        SchemaResume::create('position_work_links', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('position_id')->constrained('positions')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -78,7 +79,7 @@ return new class extends Migration
             $table->index(['object_type', 'object_id'], 'position_work_links_object_idx');
         });
 
-        Schema::create('position_competency_requirements', function (Blueprint $table): void {
+        SchemaResume::create('position_competency_requirements', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('position_id')->constrained('positions')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -92,7 +93,7 @@ return new class extends Migration
             $table->unique(['position_id', 'competency_id'], 'pcr_position_competency_unique');
         });
 
-        Schema::create('position_qualification_requirements', function (Blueprint $table): void {
+        SchemaResume::create('position_qualification_requirements', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('position_id')->constrained('positions')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -109,7 +110,7 @@ return new class extends Migration
             $table->index(['position_id'], 'pqr_position_idx');
         });
 
-        Schema::create('job_descriptions', function (Blueprint $table): void {
+        SchemaResume::create('job_descriptions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('position_id')->constrained('positions')->cascadeOnDelete();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
@@ -140,7 +141,7 @@ return new class extends Migration
             $table->index(['organization_id', 'status'], 'job_descriptions_org_status_idx');
         });
 
-        Schema::create('job_description_sections', function (Blueprint $table): void {
+        SchemaResume::create('job_description_sections', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('job_description_id')->constrained('job_descriptions')->cascadeOnDelete();
             $table->string('section_key', 40);
@@ -160,19 +161,18 @@ return new class extends Migration
         // a native ALTER. On SQLite a foreign key on an existing table makes
         // Laravel rebuild the table, and the rebuild drops the WHERE clause of
         // the partial unique index employee_assignments_one_current_per_employee.
-        Schema::table('employee_assignments', function (Blueprint $table): void {
+        SchemaResume::table('employee_assignments', function (Blueprint $table): void {
             $table->uuid('job_description_id')->nullable()->index('employee_assignments_job_description_idx');
             if (DB::getDriverName() !== 'sqlite') {
                 $table->foreign('job_description_id')->references('id')->on('job_descriptions')->nullOnDelete();
             }
         });
 
-        if (DB::getDriverName() === 'pgsql') {
-            DB::statement("ALTER TABLE position_work_links ADD CONSTRAINT position_work_links_type_chk CHECK (object_type IN ('service', 'process', 'activity', 'task'))");
-            DB::statement("ALTER TABLE job_description_sections ADD CONSTRAINT jd_sections_source_chk CHECK (source IN ('derived', 'custom'))");
-            DB::statement('ALTER TABLE position_profiles ADD CONSTRAINT position_profiles_dates_chk CHECK (effective_to IS NULL OR effective_to >= effective_from)');
-            DB::statement('ALTER TABLE job_descriptions ADD CONSTRAINT job_descriptions_dates_chk CHECK (effective_to IS NULL OR effective_to >= effective_from)');
-        }
+        // PostgreSQL only, each once (SchemaResume::check).
+        SchemaResume::check('position_work_links', 'position_work_links_type_chk', "object_type IN ('service', 'process', 'activity', 'task')");
+        SchemaResume::check('job_description_sections', 'jd_sections_source_chk', "source IN ('derived', 'custom')");
+        SchemaResume::check('position_profiles', 'position_profiles_dates_chk', 'effective_to IS NULL OR effective_to >= effective_from');
+        SchemaResume::check('job_descriptions', 'job_descriptions_dates_chk', 'effective_to IS NULL OR effective_to >= effective_from');
     }
 
     public function down(): void
