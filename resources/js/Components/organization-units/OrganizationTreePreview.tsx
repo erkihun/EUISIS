@@ -4,7 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 import OrganizationTreePreviewNode from '@/Components/organization-units/OrganizationTreePreviewNode';
 import type { OrganizationTreeNode } from '@/types/organizationUnit';
 
-import { cx, inputClassName, selectClassName } from '@/Components/ui';
+import { Alert, FormField, Select, buttonClassName, cx, inputClassName } from '@/Components/ui';
 interface SelectedVersion {
     id: string;
     name: string;
@@ -75,21 +75,15 @@ function filterTree(nodes: OrganizationTreeNode[], q: string): OrganizationTreeN
         .filter((n): n is OrganizationTreeNode => n !== null);
 }
 
-function collectMatchIds(nodes: OrganizationTreeNode[]): string[] {
-    const ids: string[] = [];
-    for (const node of nodes) {
-        ids.push(node.id);
-        if (node.children.length > 0) {
-            ids.push(...collectMatchIds(node.children));
-        }
-    }
-    return ids;
-}
-
+/**
+ * The organization structure panel of the units page, laid out like the one
+ * on the positions page: a search box, then the hierarchy as rows to pick an
+ * organization from. The version selector and the draft/flat notices sit
+ * above the search.
+ */
 export default function OrganizationTreePreview({
     tree,
     selectedId,
-    hasPublishedHierarchy,
     usingDraftFallback = false,
     usingFlatFallback = false,
     selectedVersion = null,
@@ -122,132 +116,78 @@ export default function OrganizationTreePreview({
 
     const allIds = useMemo(() => collectAllIds(tree), [tree]);
 
-    const filteredTree = useMemo(() => {
-        const q = search.trim().toLowerCase();
-        return filterTree(tree, q);
-    }, [tree, search]);
+    const filteredTree = useMemo(() => filterTree(tree, search.trim().toLowerCase()), [tree, search]);
 
-    // Auto-expand ancestors when searching
-    const effectiveExpandedIds = useMemo(() => {
-        if (!search.trim()) return expandedIds;
-        // When searching, expand all nodes that contain matches
-        return new Set(collectMatchIds(filteredTree));
-    }, [search, filteredTree, expandedIds]);
+    // While searching, every node that contains a match is open.
+    const effectiveExpandedIds = useMemo(
+        () => (search.trim() ? new Set(collectAllIds(filteredTree)) : expandedIds),
+        [search, filteredTree, expandedIds],
+    );
 
     function toggleNode(id: string) {
         setExpandedIds((prev) => {
             const next = new Set(prev);
-            if (next.has(id)) {
-                next.delete(id);
-            } else {
-                next.add(id);
-            }
+            if (next.has(id)) next.delete(id); else next.add(id);
             return next;
         });
     }
 
-    function expandAll() {
-        setExpandedIds(new Set(allIds));
-    }
-
-    function collapseAll() {
-        setExpandedIds(new Set());
-    }
-
     return (
         <div className="flex h-full flex-col rounded-panel border border-(--app-border) bg-(--app-surface)">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-(--app-border) px-4 py-3">
-                <h2 className="text-sm font-semibold text-(--app-foreground)">
-                    {t('organizationUnits.organizationTreePreview')}
-                </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-(--app-border) px-4 py-3">
+                <h2 className="text-sm font-semibold text-(--app-foreground)">{t('organizationUnits.organizationStructure')}</h2>
                 <div className="flex items-center gap-1">
-                    <button
-                        type="button"
-                        onClick={expandAll}
-                        className="rounded-sm px-2 py-1 text-xs font-medium text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
-                    >
+                    <button type="button" onClick={() => setExpandedIds(new Set(allIds))} className={buttonClassName({ variant: 'ghost', size: 'sm' })}>
                         {t('organizationUnits.expandAll')}
                     </button>
-                    <button
-                        type="button"
-                        onClick={collapseAll}
-                        className="rounded-sm px-2 py-1 text-xs font-medium text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
-                    >
+                    <button type="button" onClick={() => setExpandedIds(new Set())} className={buttonClassName({ variant: 'ghost', size: 'sm' })}>
                         {t('organizationUnits.collapseAll')}
                     </button>
                 </div>
             </div>
 
-            {/* Draft hierarchy warning */}
-            {usingDraftFallback && selectedVersion && (
-                <div className="mx-3 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                    <span className="font-medium">{selectedVersion.name}</span>
-                    {' — '}
-                    {t('organizationUnits.showingDraftHierarchy')}
-                </div>
-            )}
+            <div className="space-y-3 px-3 pt-3">
+                {usingDraftFallback && selectedVersion && (
+                    <Alert tone="warning"><span className="font-medium">{selectedVersion.name}</span> — {t('organizationUnits.showingDraftHierarchy')}</Alert>
+                )}
+                {usingFlatFallback && <Alert tone="warning">{t('organizationUnits.noHierarchyVersionFoundFlatList')}</Alert>}
 
-            {/* Flat fallback warning — only when no version exists at all */}
-            {usingFlatFallback && (
-                <div className="mx-3 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                    {t('organizationUnits.noHierarchyVersionFoundFlatList')}
-                </div>
-            )}
+                {availableVersions.length > 1 && onVersionChange && (
+                    <FormField id="organization-units-version" label={t('hierarchyVersions.selectedHierarchyVersion')}>
+                        {({ id }) => (
+                            <Select id={id} value={selectedVersion?.id ?? ''} onChange={(e) => onVersionChange(e.target.value)}>
+                                {availableVersions.map((v) => (
+                                    <option key={v.id} value={v.id}>
+                                        {v.name} ({v.is_draft ? t('hierarchyVersions.draft') : t('hierarchyVersions.published')})
+                                    </option>
+                                ))}
+                            </Select>
+                        )}
+                    </FormField>
+                )}
 
-            {/* Version selector */}
-            {availableVersions.length > 1 && onVersionChange && (
-                <div className="px-3 pt-2">
-                    <select
-                        className={cx(selectClassName, 'w-full')}
-                        value={selectedVersion?.id ?? ''}
-                        onChange={(e) => onVersionChange(e.target.value)}
-                        aria-label={t('hierarchyVersions.selectedHierarchyVersion')}
-                    >
-                        {availableVersions.map((v) => (
-                            <option key={v.id} value={v.id}>
-                                {v.name}
-                                {v.is_draft ? ` (${t('hierarchyVersions.draft')})` : ` (${t('hierarchyVersions.published')})`}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            )}
-
-            {/* Search */}
-            <div className="px-3 py-2">
                 <div className="relative">
-                    <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-(--app-muted-foreground)" />
+                    <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--app-muted-foreground)" aria-hidden="true" />
                     <input
-                        type="text"
-                        className={cx(inputClassName, 'w-full pl-8 pr-3')}
+                        type="search"
+                        className={cx(inputClassName, 'w-full pl-9 pr-3')}
                         placeholder={t('organizationUnits.searchOrganizations')}
+                        aria-label={t('organizationUnits.searchOrganizations')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
             </div>
 
-            {/* Tree */}
-            <div className="flex-1 overflow-y-auto px-2 pb-3" role="tree">
+            <div className="flex-1 overflow-y-auto px-2 py-3" role="tree" aria-label={t('organizationUnits.organizationStructure')}>
                 {filteredTree.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <Building2 className="h-8 w-8 text-(--app-muted-foreground)" />
-                        <p className="mt-2 text-xs text-(--app-muted-foreground)">
-                            {t('organizationUnits.noOrganizationsFound')}
-                        </p>
+                        <Building2 className="h-8 w-8 text-(--app-muted-foreground)" aria-hidden="true" />
+                        <p className="mt-2 text-xs text-(--app-muted-foreground)">{t('organizationUnits.noOrganizationsFound')}</p>
                     </div>
                 ) : (
-                    filteredTree.map((node, index) => (
-                        <OrganizationTreePreviewNode
-                            key={node.id}
-                            node={node}
-                            hierarchyNumber={`${index + 1}`}
-                            expandedIds={effectiveExpandedIds}
-                            selectedId={selectedId}
-                            onToggle={toggleNode}
-                            onSelect={onSelect}
-                        />
+                    filteredTree.map((node) => (
+                        <OrganizationTreePreviewNode key={node.id} node={node} expandedIds={effectiveExpandedIds} selectedId={selectedId} onToggle={toggleNode} onSelect={onSelect} />
                     ))
                 )}
             </div>

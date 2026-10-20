@@ -77,7 +77,32 @@ test('test_index_lists_accessible_organizations', function (): void {
         ->assertInertia(fn ($page) => $page
             ->component('OrganizationUnits/Index')
             ->has('organizationTree')
+            ->has('stats')
             ->has('can'),
+        );
+});
+
+test('the KPI row counts live, inactive and archived units and the organizations holding them', function (): void {
+    $user = ouIndexViewerUser();
+    $org = makeOrgForIndexTest();
+    $other = makeOrgForIndexTest();
+    $unit = fn (string $orgId, OrganizationUnitStatus $status) => OrganizationUnit::query()->create([
+        'organization_id' => $orgId, 'unit_type' => 'department', 'code' => 'KPI-'.uniqid(), 'name_en' => 'KPI unit', 'status' => $status,
+    ]);
+    $unit($org->id, OrganizationUnitStatus::Active);
+    $unit($org->id, OrganizationUnitStatus::Inactive);
+    $unit($other->id, OrganizationUnitStatus::Active);
+    $unit($other->id, OrganizationUnitStatus::Active)->delete();
+
+    $this->actingAs($user)
+        ->get(route('organization-units.index'))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->where('stats.total', 3)
+            ->where('stats.active', 2)
+            ->where('stats.inactive', 1)
+            ->where('stats.archived', 1)
+            ->where('stats.organizations', 2),
         );
 });
 
