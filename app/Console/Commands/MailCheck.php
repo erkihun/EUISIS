@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\User;
+use App\Notifications\EmployeeRegistrationOtpNotification;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Throwable;
 
@@ -21,7 +25,10 @@ use Throwable;
  */
 class MailCheck extends Command
 {
-    protected $signature = 'mail:check {--to= : Also send a test message to this address}';
+    protected $signature = 'mail:check
+        {--to= : Also send a test message to this address}
+        {--template=plain : plain, otp (the registration code email) or reset (the password reset email)}
+        {--locale= : Language of the template, en or am (default: the application default)}';
 
     protected $description = 'Connect to the configured mail server and report its answer (sends nothing without --to)';
 
@@ -68,11 +75,25 @@ class MailCheck extends Command
         $to = $this->option('to');
 
         if (is_string($to) && $to !== '') {
+            $template = (string) $this->option('template');
+            $locale = $this->option('locale');
+            if (is_string($locale) && in_array($locale, ['en', 'am'], true)) {
+                app()->setLocale($locale);
+            }
+
             try {
-                Mail::raw('This is a test message from '.config('app.name').'. If you received it, email delivery works.', function ($message) use ($to): void {
-                    $message->to($to)->subject(config('app.name').' test email');
-                });
-                $this->info("Test message accepted by the mail server for {$to}. Check that it arrives (and the spam folder).");
+                // The real templates matter: a plain message can arrive while the
+                // formatted ones (HTML, links) are filtered, and only sending the
+                // same message tells the two apart.
+                match ($template) {
+                    'otp' => Notification::route('mail', $to)->notify(new EmployeeRegistrationOtpNotification('123456')),
+                    // An unsaved account: the template needs the address, nothing is stored.
+                    'reset' => (new User)->forceFill(['email' => $to])->notify(new ResetPassword('mail-check-not-a-real-token')),
+                    default => Mail::raw('This is a test message from '.config('app.name').'. If you received it, email delivery works.', function ($message) use ($to): void {
+                        $message->to($to)->subject(config('app.name').' test email');
+                    }),
+                };
+                $this->info("Test message ({$template}) accepted by the mail server for {$to}. Check that it arrives (and the spam folder).");
             } catch (Throwable $exception) {
                 $this->error('The test message was refused: '.$exception->getMessage());
 
