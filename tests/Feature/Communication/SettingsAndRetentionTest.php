@@ -16,6 +16,7 @@ use App\Models\Communication\MessageAttachment;
 use App\Notifications\Communication\CommunicationNotification;
 use App\Services\Communication\CommunicationSettings;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -80,6 +81,22 @@ it('emails urgent announcements only to people who did not opt out', function ()
 
     Notification::assertSentTo($this->s->alice, CommunicationNotification::class, fn ($n) => in_array('mail', $n->channels, true));
     Notification::assertSentTo($this->s->bob, CommunicationNotification::class, fn ($n) => $n->channels === ['database']);
+});
+
+it('resumes an interrupted announcement delivery after the last chunk sent, without notifying those people again', function (): void {
+    Notification::fake();
+    $announcement = (new Announcement)->forceFill(['title' => 'Water outage', 'body' => 'Offices close at noon.', 'priority' => 'URGENT', 'status' => 'PUBLISHED', 'published_at' => now()]);
+    $announcement->save();
+    (new AnnouncementTarget)->forceFill(['announcement_id' => $announcement->id, 'target_type' => 'ORGANIZATION', 'target_id' => $this->s->orgA->id, 'created_at' => now()])->save();
+    [$first, $second] = collect([$this->s->alice, $this->s->bob])->sortBy('id')->values()->all();
+    // An earlier attempt delivered up to and including the first recipient, then died.
+    Cache::put('communication:announcement-delivery:'.$announcement->id, $first->id, 3600);
+
+    app()->call([new DeliverAnnouncement($announcement->id), 'handle']);
+
+    Notification::assertNotSentTo($first, CommunicationNotification::class);
+    Notification::assertSentTo($second, CommunicationNotification::class);
+    expect(Cache::get('communication:announcement-delivery:'.$announcement->id))->toBeNull();
 });
 
 it('does nothing without a retention policy', function (): void {

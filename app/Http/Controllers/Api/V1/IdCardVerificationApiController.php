@@ -16,6 +16,7 @@ use App\Services\Integration\IntegrationAccessService;
 use App\Support\Api\ApiError;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * Integration endpoints for approved external applications and for people
@@ -51,7 +52,8 @@ class IdCardVerificationApiController extends Controller
      */
     public function show(Request $request, string $token): JsonResponse
     {
-        $card = IdCard::query()
+        // A malformed token is "not found", never a PostgreSQL uuid cast error (500).
+        $card = ! Str::isUuid($token) ? null : IdCard::query()
             ->where('public_card_uuid', $token)
             ->with([
                 // current_assignment_id is the foreign key currentAssignment()

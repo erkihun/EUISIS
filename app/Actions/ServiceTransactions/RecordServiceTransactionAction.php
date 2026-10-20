@@ -7,6 +7,7 @@ namespace App\Actions\ServiceTransactions;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Entitlements\RecalculateEntitlementsAction;
 use App\Enums\AuditEventType;
+use App\Enums\CardStatus;
 use App\Models\Employee;
 use App\Models\Entitlement;
 use App\Models\IdCard;
@@ -50,6 +51,20 @@ readonly class RecordServiceTransactionAction
         }
 
         $transaction = DB::transaction(function () use ($employee, $card, $serviceType, $provider, $entitlement, $status, $metadata): ServiceTransaction {
+            // The eligibility check above ran without a lock, so a revocation
+            // committed since then would otherwise still be accepted. Locking
+            // the card row (RevokeCardAction takes the same lock) and
+            // re-reading it makes the two strictly ordered: a card revoked
+            // first is refused here; a revoke arriving now waits for us.
+            // Lock order is card, then entitlement, everywhere.
+            if ($status === 'authorized') {
+                $lockedCard = IdCard::query()->whereKey($card->getKey())->lockForUpdate()->first();
+                $reason = $lockedCard === null ? 'no_active_id_card' : self::unusableCardReason($lockedCard);
+                if ($reason !== null) {
+                    throw new DomainException($reason);
+                }
+            }
+
             // The entitlement row lock serializes concurrent authorizations for
             // the same quota, so the limit check below cannot be raced.
             if ($entitlement !== null) {
@@ -107,5 +122,28 @@ readonly class RecordServiceTransactionAction
         );
 
         return $transaction;
+    }
+
+    /** The reason codes EmployeeServiceEligibilityService uses, for the re-check under the card lock. */
+    private static function unusableCardReason(IdCard $card): ?string
+    {
+        if ($card->revoked_at !== null || $card->status === CardStatus::Revoked) {
+            return 'id_card_revoked';
+        }
+        if ($card->status !== CardStatus::Active) {
+            return match ($card->status) {
+                CardStatus::Lost => 'id_card_lost',
+                CardStatus::Replaced => 'id_card_replaced',
+                CardStatus::Expired => 'id_card_expired',
+                CardStatus::Suspended => 'id_card_suspended',
+                CardStatus::PendingPrint, CardStatus::Printed, CardStatus::Issued => 'id_card_pending',
+                default => 'id_card_not_active',
+            };
+        }
+        if ($card->expires_at !== null && $card->expires_at->isPast()) {
+            return 'id_card_expired';
+        }
+
+        return null;
     }
 }

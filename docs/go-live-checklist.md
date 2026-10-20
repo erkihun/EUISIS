@@ -64,7 +64,7 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 - [ ] TLS certificate valid; HTTP redirects to HTTPS; HSTS present (smoke test)
 - [ ] Load balancer liveness on `GET /health/live`, readiness on `GET /health/ready` (database, cache, storage); `/up` still answers
 - [ ] Cron runs `schedule:run` every minute on every app node (tasks run once via `onOneServer`)
-- [ ] Queue workers supervised for the `default`, `notifications` and `long` queues, e.g. `queue:work --queue=default,notifications` and a separate `queue:work --queue=long --timeout=600`
+- [ ] Queue workers supervised for the `default`, `notifications`, `long` and `integrations` queues, e.g. `queue:work --queue=default,notifications`, a separate `queue:work --queue=long --timeout=600` and `queue:work --queue=integrations --timeout=330 --tries=1` (webhooks are never delivered without it; docs/production-readiness/queue-readiness.md)
 - [ ] PgBouncer (transaction pooling) or a sized `max_connections` in front of PostgreSQL; see docs/load-balancing.md
 - [ ] Backup and recovery gates at the top of this checklist signed (pgBackRest, WAL/PITR, isolated restore test)
 - [ ] `storage/app` on persistent, backed-up storage (employee photos and card templates are private files; see runbooks/object-storage-recovery.md)

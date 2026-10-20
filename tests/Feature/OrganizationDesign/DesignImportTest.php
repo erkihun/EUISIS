@@ -166,6 +166,24 @@ test('an Excel workbook is read in chunks, Excel dates are understood, and blank
     @unlink($path);
 });
 
+test('the reader works on a disk without local paths (object storage in a multi-node setup) and leaves no temporary copy', function (): void {
+    // A custom driver stands in for S3: it is not the "local" driver, so the reader must stream the file.
+    $root = storage_path('framework/testing/import-remote-'.uniqid());
+    Storage::extend('remote-test', fn ($app, array $config) => Storage::createLocalDriver($config));
+    config(['filesystems.disks.import-base' => ['driver' => 'local', 'root' => $root],
+        'filesystems.disks.import-remote' => ['driver' => 'remote-test', 'root' => $root]]);
+    Storage::disk('import-remote')->put('batch.csv', "code,title_en\nM-1,First\nM-2,Second\n");
+    $before = glob(sys_get_temp_dir().DIRECTORY_SEPARATOR.'import-copy-*') ?: [];
+
+    $reader = new DesignImportReader;
+    $rows = iterator_to_array($reader->rows('import-remote', 'batch.csv', 'csv', ['code', 'title_en']), false);
+
+    expect($reader->headers('import-remote', 'batch.csv', 'csv'))->toBe(['code', 'title_en'])
+        ->and(array_column(array_column($rows, 'data'), 'code'))->toBe(['M-1', 'M-2'])
+        ->and(glob(sys_get_temp_dir().DIRECTORY_SEPARATOR.'import-copy-*') ?: [])->toBe($before);
+    Storage::disk('import-base')->deleteDirectory('');
+});
+
 test('a file missing a required column fails cleanly; an executable is refused; another organization sees nothing; templates download bilingual', function (): void {
     $organization = diOrganization('D');
     $uploader = diUser($organization, 'DI Uploader');

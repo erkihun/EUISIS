@@ -75,6 +75,11 @@ Run separate supervised pools so a long job never blocks operational work:
 php artisan queue:work --queue=default --timeout=120 --tries=3
 php artisan queue:work --queue=notifications --timeout=120 --tries=3
 php artisan queue:work --queue=long --timeout=600 --tries=3
+php artisan queue:work --queue=integrations --timeout=330 --tries=1
 ```
+
+The `integrations` pool delivers webhooks (`DeliverSubscriptionWebhooks`, job
+timeout 300 s); without it webhook deliveries are never sent. Sizing and
+isolation: [production-readiness/queue-readiness.md](production-readiness/queue-readiness.md).
 
 Every worker's `--timeout` must stay below the connection `retry_after` (960s).

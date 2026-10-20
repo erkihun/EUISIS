@@ -366,12 +366,22 @@ it('refuses a duplicate that arrives while the original is still running (F6)', 
     // The claim a concurrent first request would hold.
     ApiIdempotencyKey::query()->create([
         'principal_type' => 'application', 'principal_id' => (string) $application->id, 'route' => 'api/v1/offline-sync/transactions',
-        'idempotency_key' => 'mbr-key-2', 'request_hash' => hash('sha256', 'POST|'.json_encode($body, JSON_UNESCAPED_UNICODE)),
+        'idempotency_key' => 'mbr-key-2', 'request_hash' => hash('sha256', 'POST|api/v1/offline-sync/transactions|'.json_encode($body, JSON_UNESCAPED_UNICODE)),
         'status' => ApiIdempotencyKey::STATUS_IN_PROGRESS, 'created_at' => now(), 'expires_at' => now()->addDay(),
     ]);
 
     $this->withToken($token)->withHeader('Idempotency-Key', 'mbr-key-2')->postJson('/api/v1/offline-sync/transactions', $body)
         ->assertStatus(409)->assertJsonPath('error_code', 'idempotency_in_progress');
+});
+
+it('treats one key sent to two different service paths as reused, not a replay of the first', function (): void {
+    [$application, $token] = mbrApplication(['service_transactions.create'], ['service_provider_id' => $this->provider->id]);
+    $body = ['token' => 'x|y', 'provider_code' => 'MBR-CAFE'];
+
+    $this->withToken($token)->withHeader('Idempotency-Key', 'mbr-key-paths')->postJson('/api/v1/services/cafeteria/transactions', $body);
+
+    $this->withToken($token)->withHeader('Idempotency-Key', 'mbr-key-paths')->postJson('/api/v1/services/transport/transactions', $body)
+        ->assertStatus(409)->assertJsonPath('error_code', 'idempotency_key_reused');
 });
 
 it('enforces one claim per principal, route and key in the database (F6)', function (): void {

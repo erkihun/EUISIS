@@ -45,15 +45,13 @@ class PositionApiController extends Controller
         $organizationCode = $request->string('organization_code')->trim()->toString();
 
         if ($organizationCode !== '') {
-            $query->whereHas('organization', fn ($organization) => $organization
-                ->where('code', ci_like_operator(), $organizationCode));
+            $query->whereHas('organization', fn ($organization) => $this->whereCodeEquals($organization, 'code', $organizationCode));
         }
 
         $unitCode = $request->string('organization_unit_code')->trim()->toString();
 
         if ($unitCode !== '') {
-            $query->whereHas('organizationUnit', fn ($unit) => $unit
-                ->where('code', ci_like_operator(), $unitCode));
+            $query->whereHas('organizationUnit', fn ($unit) => $this->whereCodeEquals($unit, 'code', $unitCode));
         }
 
         $status = $request->string('status')->trim()->lower()->toString();

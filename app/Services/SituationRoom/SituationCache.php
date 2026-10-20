@@ -42,18 +42,56 @@ final class SituationCache
             $context->user->employee_id === null ? 'x' : 'e:'.$context->user->employee_id,
         ]);
 
-        if ($ttl > 0 && is_array($cached = Cache::get($key))) {
+        if ($ttl <= 0) {
+            return $this->fresh($ttl, $compute);
+        }
+
+        // Stale-while-revalidate: city-wide workforce aggregates take several
+        // seconds of database time at 3M employees
+        // (docs/production-readiness/database-capacity.md). An entry past its
+        // TTL is still served — it carries its own generated_at — while one
+        // refresh runs after the response, so expiry never makes every open
+        // wall screen recompute at once.
+        $cached = Cache::get($key);
+        if (is_array($cached)) {
+            $age = CarbonImmutable::now()->getTimestamp() - CarbonImmutable::parse($cached['generated_at'])->getTimestamp();
+            if ($age >= $ttl) {
+                defer(fn () => Cache::lock($key.':refresh', 300)->get(fn () => $this->store($key, $ttl, $this->fresh($ttl, $compute), $keep)), $key);
+            }
+
             return $cached;
         }
 
-        $entry = [
-            'generated_at' => CarbonImmutable::now()->toIso8601String(),
-            'cached_for' => $ttl,
-            'payload' => $compute(),
-        ];
+        // Cold: one viewer computes while the others with the same key wait
+        // briefly for the result instead of running the same queries.
+        $entry = Cache::lock($key.':refresh', 300)->get(fn () => $this->store($key, $ttl, $this->fresh($ttl, $compute), $keep));
+        if ($entry === false) {
+            for ($waited = 0; $waited < 20 && ! is_array($entry = Cache::get($key)); $waited++) {
+                usleep(250_000);
+            }
+            $entry = is_array($entry) ? $entry : $this->fresh($ttl, $compute);
+        }
 
-        if ($ttl > 0 && ($keep === null || $keep($entry['payload']))) {
-            Cache::put($key, $entry, $ttl);
+        return $entry;
+    }
+
+    /** @return array{generated_at: string, cached_for: int, payload: array<string, mixed>} */
+    private function fresh(int $ttl, callable $compute): array
+    {
+        return ['generated_at' => CarbonImmutable::now()->toIso8601String(), 'cached_for' => $ttl, 'payload' => $compute()];
+    }
+
+    /**
+     * Keeps the entry for its TTL plus a stale window (5× the TTL, at least 10
+     * minutes) in which it may still be served while refreshed.
+     *
+     * @param  array{generated_at: string, cached_for: int, payload: array<string, mixed>}  $entry
+     * @return array{generated_at: string, cached_for: int, payload: array<string, mixed>}
+     */
+    private function store(string $key, int $ttl, array $entry, ?callable $keep): array
+    {
+        if ($keep === null || $keep($entry['payload'])) {
+            Cache::put($key, $entry, $ttl + max(600, $ttl * 5));
         }
 
         return $entry;

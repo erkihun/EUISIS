@@ -61,6 +61,8 @@ Schedule::command('assistant:prune')->dailyAt('03:50')->withoutOverlapping()->on
 // Event integration layer (docs/integration/transactional-outbox.md): outbox →
 // change feed every ten seconds without the queue; webhook deliveries fan out
 // one queued job per subscription; retention only when a policy is configured.
-Schedule::command('integrations:publish')->everyTenSeconds()->withoutOverlapping()->onOneServer();
-Schedule::command('integrations:deliver --queue')->everyTenSeconds()->withoutOverlapping()->onOneServer();
+// The overlap mutex expires after 5 minutes (not the 24-hour default) so a
+// crashed run cannot stall the outbox for a day (production-readiness/queue-readiness.md).
+Schedule::command('integrations:publish')->everyTenSeconds()->withoutOverlapping(5)->onOneServer();
+Schedule::command('integrations:deliver --queue')->everyTenSeconds()->withoutOverlapping(5)->onOneServer();
 Schedule::command('integrations:purge')->dailyAt('03:25')->withoutOverlapping()->onOneServer();

@@ -46,8 +46,7 @@ class OrganizationUnitApiController extends Controller
         $organizationCode = $request->string('organization_code')->trim()->toString();
 
         if ($organizationCode !== '') {
-            $query->whereHas('organization', fn ($organization) => $organization
-                ->where('code', ci_like_operator(), $organizationCode));
+            $query->whereHas('organization', fn ($organization) => $this->whereCodeEquals($organization, 'code', $organizationCode));
         }
 
         $units = $query->orderBy('sort_order')->orderBy('name_en')->paginate($this->perPage($request));

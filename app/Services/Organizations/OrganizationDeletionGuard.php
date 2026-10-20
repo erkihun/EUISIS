@@ -16,6 +16,8 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\Provider;
 use App\Models\ServiceProvider;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -76,13 +78,34 @@ class OrganizationDeletionGuard
                 ->pluck('parent_organization_id'),
             'hasChildOrganizations',
         );
-        $add(OrganizationUnit::query()->whereIn('organization_id', $ids)->pluck('organization_id'), 'hasOrganizationUnits');
-        $add(Position::query()->whereIn('organization_id', $ids)->pluck('organization_id'), 'hasPositions');
-        $add(EmployeeAssignment::query()->whereIn('organization_id', $ids)->pluck('organization_id'), 'hasEmployeeAssignments');
+        // One EXISTS probe per listed organization: plucking every unit,
+        // position and assignment row (history included) of a 25-organization
+        // page read hundreds of thousands of rows at city scale.
+        $add($this->organizationIdsHaving($ids, new OrganizationUnit), 'hasOrganizationUnits');
+        $add($this->organizationIdsHaving($ids, new Position), 'hasPositions');
+        $add($this->organizationIdsHaving($ids, new EmployeeAssignment), 'hasEmployeeAssignments');
 
         $add($this->otherReferencedOrganizationIds($ids), 'hasOtherReferences');
 
         return $result;
+    }
+
+    /**
+     * @param  list<string>  $ids
+     * @return Collection<int, string>
+     */
+    private function organizationIdsHaving(array $ids, Model $related): Collection
+    {
+        $table = $related->getTable();
+        // Same rows the model query saw: soft-deleted units/positions do not block.
+        $softDeletes = in_array(SoftDeletes::class, class_uses_recursive($related), true);
+
+        return Organization::withTrashed()
+            ->whereIn('id', $ids)
+            ->whereExists(fn ($query) => $query->selectRaw('1')->from($table)
+                ->whereColumn("{$table}.organization_id", 'organizations.id')
+                ->when($softDeletes, fn ($q) => $q->whereNull("{$table}.deleted_at")))
+            ->pluck('id');
     }
 
     /**

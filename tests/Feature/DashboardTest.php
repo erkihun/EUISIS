@@ -280,6 +280,18 @@ it('keeps employee self-service mode for a user with no administrative access', 
     expect($resolve->invoke($middleware, $employeeUser))->toBeTrue();
 });
 
+test('an expired dashboard entry is served at once and refreshed once afterwards, not recomputed by every viewer', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $generatedAt = fn () => $this->actingAs($user)->get(route('dashboard'))->assertOk()->viewData('page')['props']['header']['generatedAt'];
+
+    $first = $generatedAt();
+    $this->travel(10)->minutes(); // past the 5-minute fresh window, inside the stale window
+
+    // The stale figures come back immediately; the refresh runs after the response.
+    expect($generatedAt())->toBe($first);
+    expect($generatedAt())->not->toBe($first);
+});
+
 // ── Header, NFC and integration sections ─────────────────────────────────
 
 test('dashboard header reports scope, refresh time and only permitted actions', function (): void {

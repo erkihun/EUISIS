@@ -78,12 +78,7 @@ trait FiltersOrganizationData
         return preg_replace('/(\d{2}:\d{2}:\d{2}(?:\.\d+)?) (\d{2}:\d{2})$/', '$1+$2', $value) ?? $value;
     }
 
-    /**
-     * Case-insensitive exact match on a code column.
-     *
-     * Uses ci_like_operator() because the app runs on PostgreSQL while the test
-     * suite runs on SQLite, and `like` is case-sensitive on only one of them.
-     */
+    /** Case-insensitive exact match of a request parameter on a code column. */
     protected function applyCodeFilter(Builder $query, Request $request, string $parameter, string $column): Builder
     {
         $value = $request->string($parameter)->trim()->toString();
@@ -92,7 +87,29 @@ trait FiltersOrganizationData
             return $query;
         }
 
-        return $query->where($column, ci_like_operator(), $value);
+        return $this->whereCodeEquals($query, $column, $value);
+    }
+
+    /**
+     * Case-insensitive exact match on a code column, on every engine the app
+     * runs on (PostgreSQL in production, SQLite in tests, MySQL on the old host).
+     */
+    protected function whereCodeEquals(Builder $query, string $column, string $value): Builder
+    {
+        // A case-insensitive *equality*, not a pattern: `employee_number=%`
+        // matches nothing instead of every row. On PostgreSQL lower(col) = lower(?)
+        // is served by the lower(...) indexes on employees.employee_number and
+        // positions.job_position_code; the earlier ILIKE could only use the
+        // trigram index and took ~0.7 s at 3M employees
+        // (docs/production-readiness/database-capacity.md). MySQL/MariaDB
+        // collations are already case-insensitive, so a plain = uses the index.
+        if (in_array($query->getConnection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            return $query->where($column, $value);
+        }
+
+        $wrapped = $query->getQuery()->getGrammar()->wrap($column);
+
+        return $query->whereRaw("lower({$wrapped}) = lower(?)", [$value]);
     }
 
     protected function applyStatusFilter(Builder $query, Request $request, string $column = 'status'): Builder

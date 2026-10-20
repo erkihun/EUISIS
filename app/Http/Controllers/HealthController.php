@@ -35,8 +35,8 @@ class HealthController extends Controller
         $checks = [
             'database' => fn () => DB::connection()->select('select 1'),
             'cache' => fn () => Cache::store()->get('health:probe'),
-            'queue' => fn () => Queue::connection()->size('default'),
-            'storage' => fn () => Storage::disk('local')->exists('health/.probe'),
+            'queue' => fn () => $this->probeQueue(),
+            'storage' => fn () => $this->probeStorage(),
         ];
 
         $results = [];
@@ -53,6 +53,45 @@ class HealthController extends Controller
         $ready = ! in_array('fail', $results, true);
 
         return $this->respond(['status' => $ready ? 'ok' : 'fail', 'checks' => $results], $ready ? 200 : 503);
+    }
+
+    /**
+     * The database queue answers with one indexed row probe instead of
+     * Queue::size(), which is COUNT(*) over the whole jobs table — a probe
+     * that gets slower exactly when a backlog builds up (docs/production-readiness/queue-readiness.md).
+     */
+    private function probeQueue(): void
+    {
+        $connection = (string) config('queue.default');
+        $settings = (array) config("queue.connections.{$connection}", []);
+
+        if (($settings['driver'] ?? null) === 'database') {
+            DB::connection($settings['connection'] ?? null)->table($settings['table'] ?? 'jobs')->limit(1)->exists();
+
+            return;
+        }
+
+        Queue::connection()->size('default');
+    }
+
+    /**
+     * A remote disk throws when it is unreachable; a local (or mounted shared)
+     * disk rarely does, so its root must also be a writable directory — a
+     * read-only or broken mount must not report ok. (An unmounted path that
+     * falls back to the node's own directory still passes: the deployment
+     * must check the mount itself, docs/production-readiness/load-balancer-readiness.md.)
+     */
+    private function probeStorage(): void
+    {
+        $disk = Storage::disk('local');
+        $disk->exists('health/.probe');
+
+        if (config('filesystems.disks.local.driver') === 'local') {
+            $root = $disk->path('');
+            if (! is_dir($root) || ! is_writable($root)) {
+                throw new \RuntimeException('Private storage root is not a writable directory.');
+            }
+        }
     }
 
     /** @param array<string, mixed> $body */

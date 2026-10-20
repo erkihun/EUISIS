@@ -44,7 +44,11 @@ readonly class EnforceIdempotencyKey
 
         [$principalType, $principalId] = $this->principal($request);
         $route = $request->route()?->uri() ?? $request->path();
-        $hash = hash('sha256', $request->method().'|'.json_encode($request->except(['_token']), JSON_UNESCAPED_UNICODE));
+        // The stored route is the URI pattern, so the concrete path is part of
+        // the request hash: one key sent to /services/cafeteria/… and then to
+        // /services/transport/… is a reused key (409), not a replay of the
+        // first service's response.
+        $hash = hash('sha256', $request->method().'|'.$request->path().'|'.json_encode($request->except(['_token']), JSON_UNESCAPED_UNICODE));
 
         $claim = null;
         try {

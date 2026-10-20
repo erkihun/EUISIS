@@ -16,6 +16,7 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
@@ -65,8 +66,16 @@ class DeliverAnnouncement implements ShouldBeUnique, ShouldQueue
         $url = '/communication/announcements/'.$announcement->getKey();
         $texting = $priority === AnnouncementPriority::Emergency && $settings->smsEmergencyAnnouncements();
 
-        $recipients->select('users.id', 'users.name', 'users.email', 'users.employee_id')->orderBy('users.id')
-            ->chunkById(500, function (Collection $users) use ($kind, $channels, $text, $url, $texting, $sms, $inbox, $announcement): void {
+        // Checkpoint after every chunk in the shared cache, so a retry after a
+        // timeout or crash resumes after the last chunk sent instead of
+        // notifying, emailing and texting those people a second time.
+        $checkpoint = 'communication:announcement-delivery:'.$announcement->getKey();
+        $resumeAfter = Cache::get($checkpoint);
+
+        $recipients->select('users.id', 'users.name', 'users.email', 'users.employee_id')
+            ->when($resumeAfter !== null, fn ($query) => $query->where('users.id', '>', (int) $resumeAfter))
+            ->orderBy('users.id')
+            ->chunkById(500, function (Collection $users) use ($kind, $channels, $text, $url, $texting, $sms, $inbox, $announcement, $checkpoint): void {
                 $inbox->forgetTotals(...$users->modelKeys());
                 // Personal preferences: someone who turned off email or SMS for announcements gets the in-app notice only.
                 $prefs = \App\Models\Communication\CommunicationUserSetting::query()->whereIn('user_id', $users->modelKeys())->get()->keyBy('user_id');
@@ -87,6 +96,8 @@ class DeliverAnnouncement implements ShouldBeUnique, ShouldQueue
                         $sms->send((string) $phone, $message);
                     }
                 }
+                Cache::put($checkpoint, $users->max('id'), now()->addSeconds($this->uniqueFor));
             }, 'users.id', 'id');
+        Cache::forget($checkpoint);
     }
 }

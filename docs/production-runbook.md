@@ -14,6 +14,7 @@ in [deployment and rollback](runbook/deployment-and-rollback.md); backups in
 | Worker — operational | `php artisan queue:work --queue=default --timeout=120 --tries=3` | ≥ 2 |
 | Worker — notifications | `php artisan queue:work --queue=notifications --timeout=120 --tries=3` | ≥ 2 |
 | Worker — long jobs | `php artisan queue:work --queue=long --timeout=600 --tries=3` | ≥ 1 |
+| Worker — integrations (webhooks) | `php artisan queue:work --queue=integrations --timeout=330 --tries=1` | ≥ 1 (webhooks are never delivered without it) |
 
 Run workers under a supervisor (systemd/supervisord) with automatic restart and
 `stopwaitsecs` ≥ the worker timeout. `php artisan queue:restart` after each deploy.
@@ -30,8 +31,22 @@ Run workers under a supervisor (systemd/supervisord) with automatic restart and
 | `grievances:process-sla` | every 15 min | SLA reminders/escalation (idempotent) |
 | `assessments:oversight-monitor` | daily 06:30 | |
 | `assessments:evaluator-reminders` | daily 07:00 | |
+| `data:prune-retention` | daily 03:15 | |
+| `legal:statutory-deadline-alerts` | daily 06:45 | |
+| `communication:sync-memberships --queue` | daily 03:40 | queues membership sync jobs |
+| `communication:publish-scheduled` | every minute | |
+| `communication:expire-announcements`, `communication:expire-investigations` | every 5 min | |
+| `communication:prune`, `intelligence:prune`, `assistant:prune` | daily 03:35–03:55 | retention |
+| `intelligence:collect --detect` | every 5 min | System Health telemetry |
+| `intelligence:alerts` | hourly | |
+| `intelligence:forecast --evaluate` | daily 04:10 | |
+| `integrations:publish` | every 10 s | outbox → change feed; overlap lock expires after 5 min |
+| `integrations:deliver --queue` | every 10 s | one `integrations`-queue job per webhook subscription |
+| `integrations:purge` | daily 03:25 | only with a retention policy |
 
-All run `withoutOverlapping()->onOneServer()` (lock in the shared cache store).
+All 23 run `withoutOverlapping()->onOneServer()` (lock in the shared cache store);
+`php artisan schedule:list` is the authoritative list. Sub-minute tasks need the
+scheduler host's `schedule:run` (cron) or `schedule:work` to run every minute.
 
 ## Configuration check
 

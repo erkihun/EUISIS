@@ -29,15 +29,62 @@ final class DesignImportReader
      */
     public function rows(string $disk, string $path, string $extension, array $columns): Generator
     {
-        $absolute = Storage::disk($disk)->path($path);
+        [$absolute, $temporary] = $this->localFile($disk, $path, $extension);
 
-        yield from strtolower($extension) === 'csv' ? $this->csvRows($absolute, $columns) : $this->xlsxRows($absolute, $columns);
+        try {
+            yield from strtolower($extension) === 'csv' ? $this->csvRows($absolute, $columns) : $this->xlsxRows($absolute, $columns);
+        } finally {
+            if ($temporary) {
+                @unlink($absolute);
+            }
+        }
     }
 
     /** @return list<string> the header names as found, lower-cased and trimmed */
     public function headers(string $disk, string $path, string $extension): array
     {
-        $absolute = Storage::disk($disk)->path($path);
+        [$absolute, $temporary] = $this->localFile($disk, $path, $extension);
+
+        try {
+            return $this->readHeaders($absolute, $extension);
+        } finally {
+            if ($temporary) {
+                @unlink($absolute);
+            }
+        }
+    }
+
+    /**
+     * A path the CSV/XLSX readers can open. On a local disk that is the file
+     * itself; on object storage (S3, the multi-node setup) the file is copied
+     * to a node-local temporary file first, because path() has no meaning
+     * there (docs/production-readiness/load-balancer-readiness.md).
+     *
+     * @return array{0: string, 1: bool} path, whether it is a temporary copy
+     */
+    private function localFile(string $disk, string $path, string $extension): array
+    {
+        if (config("filesystems.disks.{$disk}.driver") === 'local') {
+            return [Storage::disk($disk)->path($path), false];
+        }
+
+        // The extension matters: PhpSpreadsheet picks its reader by it.
+        $temporary = sys_get_temp_dir().DIRECTORY_SEPARATOR.'import-copy-'.bin2hex(random_bytes(8)).'.'.strtolower($extension);
+        $in = Storage::disk($disk)->readStream($path);
+        $out = fopen($temporary, 'wb');
+        if ($in === null || $in === false || $out === false) {
+            throw new \RuntimeException('The staged import file could not be read from storage.');
+        }
+        stream_copy_to_stream($in, $out);
+        fclose($in);
+        fclose($out);
+
+        return [$temporary, true];
+    }
+
+    /** @return list<string> */
+    private function readHeaders(string $absolute, string $extension): array
+    {
         if (strtolower($extension) === 'csv') {
             $handle = fopen($absolute, 'rb');
             if ($handle === false) {

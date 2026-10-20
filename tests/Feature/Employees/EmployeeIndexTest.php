@@ -51,6 +51,18 @@ test('registry searches trimmed email and English employee names', function (str
         ->assertInertia(fn (Assert $page) => $page->where('filters.search', trim($search))->has('employees', $count)->where('employees_pagination.total', $count));
 })->with([[' reg-001@example.test ', 1], [' Registry Example ', 2], [' REG-001 ', 1], ['ሙከራ', 2]]);
 
+test('registry search matches the column the term looks like, and LIKE wildcards are literal', function (string $search, int $count): void {
+    $this->employee->update(['phone' => '+251 911 223344']);
+    $this->actingAs(registryUser())->get(route('employees.index', ['search' => $search]))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('employees_pagination.total', $count));
+})->with([
+    'phone number' => ['911 2233', 1],
+    'employee number prefix' => ['reg-00', 2],
+    'a number inside a name does not match' => ['Example 1', 0],
+    'percent is not a wildcard' => ['%', 0],
+    'underscore is not a wildcard' => ['REG_001', 0],
+]);
+
 test('registry counts rows and filter options stay within organization scope', function (): void {
     foreach ([$this->own, $this->outside] as $organization) {
         $unit = OrganizationUnit::query()->create(['organization_id' => $organization->id, 'code' => $organization->code.'-U', 'name_en' => 'Registry unit', 'unit_type' => 'department', 'status' => 'active']);
@@ -73,6 +85,12 @@ test('registry pagination stays bounded and preserves search', function (): void
     $this->actingAs(registryUser())->get(route('employees.index', ['search' => 'REG-', 'page' => 2]))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->has('employees', 3)->where('employees_pagination.per_page', 50)
             ->where('employees_pagination.current_page', 2)->where('employees_pagination.total', 53)->where('filters.search', 'REG-'));
+});
+
+test('registry paging stops at page 200 so no request is a deep OFFSET over the whole register', function (): void {
+    $this->actingAs(registryUser())->get(route('employees.index', ['page' => 99999]))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('employees_pagination.current_page', 200)
+            ->where('employees_pagination.last_page', 1)->where('employees_pagination.page_limit_reached', false));
 });
 
 test('registry sorts on a requested whitelisted column', function (): void {

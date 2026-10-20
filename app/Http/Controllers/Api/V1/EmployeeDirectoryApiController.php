@@ -59,18 +59,15 @@ class EmployeeDirectoryApiController extends Controller
         if ($organizationCode !== '' || $unitCode !== '' || $positionCode !== '') {
             $query->whereHas('currentAssignment', function ($assignment) use ($organizationCode, $unitCode, $positionCode): void {
                 if ($organizationCode !== '') {
-                    $assignment->whereHas('organization', fn ($organization) => $organization
-                        ->where('code', ci_like_operator(), $organizationCode));
+                    $assignment->whereHas('organization', fn ($organization) => $this->whereCodeEquals($organization, 'code', $organizationCode));
                 }
 
                 if ($unitCode !== '') {
-                    $assignment->whereHas('organizationUnit', fn ($unit) => $unit
-                        ->where('code', ci_like_operator(), $unitCode));
+                    $assignment->whereHas('organizationUnit', fn ($unit) => $this->whereCodeEquals($unit, 'code', $unitCode));
                 }
 
                 if ($positionCode !== '') {
-                    $assignment->whereHas('position', fn ($position) => $position
-                        ->where('job_position_code', ci_like_operator(), $positionCode));
+                    $assignment->whereHas('position', fn ($position) => $this->whereCodeEquals($position, 'job_position_code', $positionCode));
                 }
             });
         }

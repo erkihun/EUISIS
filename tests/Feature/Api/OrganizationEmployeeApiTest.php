@@ -507,6 +507,16 @@ it('filters employees by employee_number', function (): void {
         ->and($response->json('data.0.employee_number'))->toBe('ODATA-EMP-1');
 });
 
+it('treats LIKE wildcards in a code filter as literal characters', function (): void {
+    [, $token] = orgDataApplication();
+
+    foreach (['%', 'ODATA-EMP-_', 'odata-emp-1'] as $value) {
+        $response = $this->withToken($token)->getJson('/api/v1/employees?employee_number='.urlencode($value))->assertOk();
+        $expected = $value === 'odata-emp-1' ? 1 : 0; // case-insensitive exact match still works
+        expect($response->json('data'))->toHaveCount($expected);
+    }
+});
+
 it('filters employees by organization_code through the current assignment', function (): void {
     Employee::query()->create([
         'employee_number' => 'ODATA-EMP-3',

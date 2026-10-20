@@ -34,21 +34,31 @@ class GenerateScaleData extends Command
         {--audit-per-day=1 : Audit rows per active employee per day}
         {--login-users=200 : Employee accounts load tests can sign in as}
         {--chunk=5000 : Rows per insert batch}
-        {--password=Scale-Load-Test-2026! : Password for the generated load-test accounts}';
+        {--password=Scale-Load-Test-2026! : Password for the generated load-test accounts}
+        {--allow-existing-data : Also run when the database already holds employees that are not synthetic (SC-…)}';
 
     protected $description = 'Generate synthetic, PII-free scale-test data (never in production).';
+
+    /** Environments a benchmark database may live in; anything else (production, an unset APP_ENV …) is refused. */
+    private const ALLOWED_ENVIRONMENTS = ['local', 'testing', 'benchmark', 'staging'];
 
     private string $now;
 
     public function handle(): int
     {
-        if (app()->environment('production')) {
-            $this->error('scale:generate never runs in production.');
+        if (app()->environment('production') || ! app()->environment(self::ALLOWED_ENVIRONMENTS)) {
+            $this->error('scale:generate runs only in '.implode(', ', self::ALLOWED_ENVIRONMENTS).' environments, never in production.');
 
             return self::FAILURE;
         }
         if (DB::getDriverName() !== 'pgsql') {
             $this->error('scale:generate targets PostgreSQL (the production engine).');
+
+            return self::FAILURE;
+        }
+        $realEmployees = DB::table('employees')->where('employee_number', 'not like', 'SC-%')->limit(1)->exists();
+        if ($realEmployees && ! $this->option('allow-existing-data')) {
+            $this->error('Database '.DB::getDatabaseName().' already holds employees that are not synthetic. Point DB_DATABASE at a separate benchmark database (or pass --allow-existing-data for a disposable copy).');
 
             return self::FAILURE;
         }
@@ -61,7 +71,7 @@ class GenerateScaleData extends Command
         $this->info("Generating {$employees} employees…");
         $orgs = $this->organizations((int) $this->option('organizations'), (int) $this->option('units-per-org'));
         [$cafeteria, $provider, $serviceType, $serviceProvider] = $this->cafeteria($orgs[0]['id']);
-        $employeeIds = $this->employees($employees, $orgs, $chunk);
+        $employeeIds = $this->employees($employees, $orgs, $chunk, $serviceType);
         $this->loginUsers((int) $this->option('login-users'), $orgs);
         $this->history($employeeIds, $chunk, $cafeteria, $provider, $serviceType, $serviceProvider);
 
@@ -108,15 +118,14 @@ class GenerateScaleData extends Command
      * @param  list<array{id: string, units: list<string>}>  $orgs
      * @return list<string>
      */
-    private function employees(int $count, array $orgs, int $chunk): array
+    private function employees(int $count, array $orgs, int $chunk, string $cafeteriaServiceType): array
     {
-        $first = ['Abebe', 'Almaz', 'Bekele', 'Chaltu', 'Dawit', 'Eden', 'Fikru', 'Genet', 'Hana', 'Kebede', 'Lemlem', 'Meron', 'Nahom', 'Rahel', 'Selam', 'Tesfaye'];
         $base = (int) (DB::table('employees')->where('employee_number', 'like', 'SC-%')->count());
         $employeeIds = [];
         $bar = $this->output->createProgressBar($count);
 
         for ($offset = 0; $offset < $count; $offset += $chunk) {
-            $employees = $positions = $assignments = $cards = [];
+            $employees = $positions = $assignments = $cards = $entitlements = [];
             for ($i = $offset; $i < min($count, $offset + $chunk); $i++) {
                 $n = $base + $i;
                 $org = $orgs[$i % count($orgs)];
@@ -124,29 +133,56 @@ class GenerateScaleData extends Command
                 $employeeId = (string) Str::uuid7();
                 $positionId = (string) Str::uuid7();
                 $assignmentId = (string) Str::uuid7();
-                $name = $first[$i % 16].' '.$first[($i * 7) % 16].' '.$first[($i * 13) % 16];
+                [$given, $father, $nameEn, $nameAm] = self::syntheticName($n);
                 $employeeIds[] = $employeeId;
 
+                // Realistic mix so status/current predicates are selective, as on a live register:
+                // 1 in 40 suspended (card suspended too), 1 in 3 with a closed earlier assignment,
+                // 1 in 4 with a replaced earlier card, 1 in 20 positions left vacant.
+                $suspended = $i % 40 === 39;
                 $positions[] = ['id' => $positionId, 'organization_id' => $org['id'], 'organization_unit_id' => $unit,
                     'job_position_code' => "SC-P-{$n}", 'title_en' => 'Scale Officer', 'is_active' => true,
                     'created_at' => $this->now, 'updated_at' => $this->now];
-                $employees[] = ['id' => $employeeId, 'employee_number' => "SC-{$n}", 'first_name' => $first[$i % 16],
-                    'last_name' => $first[($i * 13) % 16], 'full_name' => $name, 'name_en' => $name, 'status' => 'active',
+                if ($i % 20 === 0) {
+                    $positions[] = ['id' => (string) Str::uuid7(), 'organization_id' => $org['id'], 'organization_unit_id' => $unit,
+                        'job_position_code' => "SC-PV-{$n}", 'title_en' => 'Scale Vacant Post', 'is_active' => true,
+                        'created_at' => $this->now, 'updated_at' => $this->now];
+                }
+                $employees[] = ['id' => $employeeId, 'employee_number' => "SC-{$n}", 'first_name' => $given,
+                    'last_name' => $father, 'full_name' => $nameAm, 'name_en' => $nameEn, 'status' => $suspended ? 'suspended' : 'active',
                     'email' => "sc{$n}@scale.invalid", 'current_assignment_id' => $assignmentId, 'is_demo' => true,
                     'created_at' => $this->now, 'updated_at' => $this->now];
+                if ($i % 3 === 0) {
+                    $previousUnit = $org['units'][($i + 1) % count($org['units'])];
+                    $assignments[] = ['id' => (string) Str::uuid7(), 'employee_id' => $employeeId, 'organization_id' => $org['id'],
+                        'organization_unit_id' => $previousUnit, 'position_id' => $positionId, 'assignment_status' => 'closed',
+                        'effective_from' => '2019-07-08', 'effective_to' => '2023-12-31', 'is_current' => false,
+                        'created_at' => $this->now, 'updated_at' => $this->now];
+                }
                 $assignments[] = ['id' => $assignmentId, 'employee_id' => $employeeId, 'organization_id' => $org['id'],
                     'organization_unit_id' => $unit, 'position_id' => $positionId, 'assignment_status' => 'active',
-                    'effective_from' => '2024-01-01', 'is_current' => true, 'created_at' => $this->now, 'updated_at' => $this->now];
+                    'effective_from' => '2024-01-01', 'effective_to' => null, 'is_current' => true, 'created_at' => $this->now, 'updated_at' => $this->now];
+                if ($i % 4 === 0) {
+                    $cards[] = ['id' => (string) Str::uuid7(), 'employee_id' => $employeeId, 'card_number' => "SC-CR-{$n}",
+                        'status' => 'replaced', 'is_current' => false, 'public_card_uuid' => (string) Str::uuid(),
+                        'token_hash' => hash('sha256', "scale-replaced-{$n}"), 'expires_at' => '2026-06-30 00:00:00',
+                        'activated_at' => '2022-01-10 09:00:00', 'created_at' => $this->now, 'updated_at' => $this->now];
+                }
+                // Card scans need an entitlement in force (VerifyCardForServiceAction).
+                $entitlements[] = ['id' => (string) Str::uuid7(), 'employee_id' => $employeeId, 'service_type_id' => $cafeteriaServiceType,
+                    'status' => 'active', 'quota_used' => 0, 'effective_from' => '2024-01-01', 'created_at' => $this->now, 'updated_at' => $this->now];
                 $cards[] = ['id' => (string) Str::uuid7(), 'employee_id' => $employeeId, 'card_number' => "SC-C-{$n}",
-                    'status' => 'active', 'is_current' => true, 'public_card_uuid' => (string) Str::uuid(),
+                    'status' => $suspended ? 'suspended' : 'active', 'is_current' => true, 'public_card_uuid' => (string) Str::uuid(),
                     'token_hash' => hash('sha256', "scale-{$n}"), 'expires_at' => '2028-12-31 00:00:00',
                     'activated_at' => $this->now, 'created_at' => $this->now, 'updated_at' => $this->now];
             }
-            DB::transaction(function () use ($positions, $employees, $assignments, $cards): void {
-                DB::table('positions')->insert($positions);
-                DB::table('employees')->insert($employees);
-                DB::table('employee_assignments')->insert($assignments);
-                DB::table('id_cards')->insert($cards);
+            // PostgreSQL caps one statement at 65,535 bound parameters, so split each table's batch.
+            DB::transaction(function () use ($positions, $employees, $assignments, $cards, $entitlements): void {
+                foreach (['positions' => $positions, 'employees' => $employees, 'employee_assignments' => $assignments, 'id_cards' => $cards, 'entitlements' => $entitlements] as $table => $rows) {
+                    foreach (array_chunk($rows, 2000) as $part) {
+                        DB::table($table)->insert($part);
+                    }
+                }
             });
             $bar->advance(count($employees));
         }
@@ -154,6 +190,36 @@ class GenerateScaleData extends Command
         $this->newLine();
 
         return $employeeIds;
+    }
+
+    /** Latin and Ge'ez spellings of the same syllables, so name_en and full_name (Amharic) agree. */
+    private const SYLLABLES = [
+        ['a', 'አ'], ['be', 'በ'], ['ke', 'ከ'], ['de', 'ደ'], ['ma', 'ማ'], ['ra', 'ራ'], ['ta', 'ታ'], ['se', 'ሰ'], ['la', 'ላ'], ['mi', 'ሚ'],
+        ['na', 'ና'], ['ha', 'ሃ'], ['ge', 'ገ'], ['te', 'ተ'], ['fi', 'ፊ'], ['wo', 'ዎ'], ['zu', 'ዙ'], ['yo', 'ዮ'], ['bi', 'ቢ'], ['sa', 'ሳ'],
+    ];
+
+    /**
+     * A deterministic three-part name for synthetic employee n with about as
+     * many distinct names as people (a scrambled base-20 syllable code), so
+     * name searches are as selective as on a real register. The same formula
+     * is in loadtest/db/realistic-names.sql.
+     *
+     * @return array{0: string, 1: string, 2: string, 3: string} given name, father's name, name_en, full_name (Amharic)
+     */
+    public static function syntheticName(int $n): array
+    {
+        $h = ($n * 2654435761) % 4294967296;
+        $d = [];
+        for ($k = 0; $k < 7; $k++) {
+            $d[] = intdiv($h, 20 ** $k) % 20;
+        }
+        $part = fn (array $digits, int $script): string => implode('', array_map(fn (int $x): string => self::SYLLABLES[$x][$script], $digits));
+        $given = ucfirst($part([$d[0], $d[1]], 0));
+        $father = ucfirst($part([$d[2], $d[3]], 0));
+        $grand = ucfirst($part([$d[4], $d[5], $d[6]], 0));
+
+        return [$given, $father, "{$given} {$father} {$grand}",
+            $part([$d[0], $d[1]], 1).' '.$part([$d[2], $d[3]], 1).' '.$part([$d[4], $d[5], $d[6]], 1)];
     }
 
     /** @param list<array{id: string, units: list<string>}> $orgs */

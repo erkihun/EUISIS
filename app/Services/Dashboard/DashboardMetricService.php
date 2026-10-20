@@ -769,7 +769,9 @@ class DashboardMetricService
 
     private function occupiedPositionsCount(array $scope): int
     {
-        return $this->positionQuery($scope)
+        // KPIs, section cards and the occupancy chart all ask; at 3M positions
+        // each count is seconds, so it is computed once per request and scope.
+        return $this->statusCounts['occupied-positions:'.$this->scopeKey($scope)]['n'] ??= $this->positionQuery($scope)
             ->whereHas('assignments', fn (Builder $query): Builder => $query
                 ->where('is_current', true)
                 ->where('assignment_status', AssignmentStatus::Active->value))
@@ -862,12 +864,17 @@ class DashboardMetricService
 
     public function cardQuery(array $scope): Builder
     {
+        // The employee and assignment joins exist only to apply an
+        // organization scope. Joining 3.75M cards to 3M employees and their
+        // assignments for a city-wide view, where nothing filters on them, cost
+        // 9–18 s per card figure at 3M employees (production-readiness/database-capacity.md).
         return IdCard::query()
-            ->join('employees as card_employee', 'card_employee.id', '=', 'id_cards.employee_id')
-            ->leftJoin('employee_assignments as card_scope_assignment', 'card_scope_assignment.id', '=', 'card_employee.current_assignment_id')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
-                fn (Builder $query) => $query->whereIn('card_scope_assignment.organization_id', $scope['organization_ids'])
+                fn (Builder $query) => $query
+                    ->join('employees as card_employee', 'card_employee.id', '=', 'id_cards.employee_id')
+                    ->join('employee_assignments as card_scope_assignment', 'card_scope_assignment.id', '=', 'card_employee.current_assignment_id')
+                    ->whereIn('card_scope_assignment.organization_id', $scope['organization_ids'])
             )
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] === [],
@@ -1049,12 +1056,14 @@ class DashboardMetricService
 
     public function entitlementQuery(array $scope): Builder
     {
+        // Joins only when an organization scope needs them (see cardQuery).
         return Entitlement::query()
-            ->join('employees as entitlement_employee', 'entitlement_employee.id', '=', 'entitlements.employee_id')
-            ->leftJoin('employee_assignments as entitlement_scope_assignment', 'entitlement_scope_assignment.id', '=', 'entitlement_employee.current_assignment_id')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
-                fn (Builder $query) => $query->whereIn('entitlement_scope_assignment.organization_id', $scope['organization_ids'])
+                fn (Builder $query) => $query
+                    ->join('employees as entitlement_employee', 'entitlement_employee.id', '=', 'entitlements.employee_id')
+                    ->join('employee_assignments as entitlement_scope_assignment', 'entitlement_scope_assignment.id', '=', 'entitlement_employee.current_assignment_id')
+                    ->whereIn('entitlement_scope_assignment.organization_id', $scope['organization_ids'])
             )
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] === [],

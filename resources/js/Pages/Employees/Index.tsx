@@ -58,6 +58,8 @@ type EmployeesPagination = {
     last_page: number;
     per_page: number;
     total: number;
+    /** More matches than the deepest page shows: ask for a search or filter. */
+    page_limit_reached?: boolean;
 };
 
 type SortColumn = 'full_name' | 'employee_number' | 'employment_type' | 'status' | 'created_at';
@@ -557,6 +559,9 @@ export default function EmployeesIndex({
                         </>
                     )}
                     <ListPagination meta={employees_pagination} label={t('employees.registryPagination')} disabled={loading || filtersChanged} onPageChange={goToPage} />
+                    {employees_pagination?.page_limit_reached && (
+                        <p className="px-4 pb-4 text-sm text-muted-foreground">{t('employees.registryPageLimit')}</p>
+                    )}
                 </section>
             </div>
         </AuthenticatedLayout>
