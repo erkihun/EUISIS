@@ -347,7 +347,7 @@ function TipOffForm({ target, serviceTypes, categories, links, formToken, requir
                 </details>
             </div>
 
-            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
+            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} kind="suggestion" />
 
             {requirements.evidence_allowed && (
                 <EvidenceSection files={data.attachments} onChange={(files) => { setData('attachments', files); clearErrors(); }} limits={evidence} error={evidenceError(fieldErrors)} />
@@ -411,7 +411,7 @@ function ComplaintForm({ target, serviceTypes, categories, links, formToken, req
                 {errors.message && <p role="alert" className={errorClass}>{errors.message}</p>}
             </div>
 
-            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
+            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} kind="complaint" />
 
             {target.target_type === 'employee' && (
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional />
@@ -520,7 +520,7 @@ function RatingForm({ target, serviceTypes, categories, links, formToken, requir
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={!requirements.service_required} />
             )}
 
-            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
+            <CategoryChips categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} kind="feedback" />
 
             <div className={cardClass} data-field>
                 <label htmlFor="comment" className={labelClass}>

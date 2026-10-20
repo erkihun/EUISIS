@@ -32,7 +32,7 @@ export default {
     previousRange: 'Compared with {from} – {to}',
     typeLabel: 'Submission type',
     targetLabel: 'About',
-    categoryLabel: 'Category',
+    categoryLabel: 'Issue category',
     statusLabel: 'Status',
     all: 'All',
     apply: 'Apply',
@@ -116,7 +116,7 @@ export default {
     summary_unrouted: '{count} submissions are waiting to be routed.',
     summary_average_rating: 'Feedback ratings average {average} out of 5.',
 
-    categoriesTitle: 'By category',
+    categoriesTitle: 'By issue category',
     servicesTitle: 'Services named most often',
     servicesEmpty: 'No submission in this period named a service.',
     unitsTitle: 'Relevant work units named',

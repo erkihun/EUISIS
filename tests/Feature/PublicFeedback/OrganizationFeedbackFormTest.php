@@ -12,6 +12,7 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\PublicFeedbackAnswer;
+use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackQuestionSet;
 use App\Models\Service;
 use App\Models\User;
@@ -308,6 +309,51 @@ it('asks nothing and blocks nothing at an institution with no public-selectable 
 
     $entry = EmployeeServiceFeedback::query()->sole();
     expect($entry->organization_unit_id)->toBeNull()->and($entry->unit_selection_mode)->toBe('GENERAL');
+});
+
+/** A city-wide issue category offered on complaints and feedback about an institution. */
+function offCategory(array $overrides = []): PublicFeedbackCategory
+{
+    return PublicFeedbackCategory::query()->create(array_merge([
+        'code' => 'WAIT-'.Str::random(4), 'name_en' => 'Waiting time', 'name_am' => 'የመጠበቂያ ጊዜ',
+        'submission_types' => ['feedback', 'complaint'], 'target_types' => ['organization'],
+        'organization_id' => null, 'is_active' => true, 'is_public_selectable' => true, 'sort_order' => 1,
+    ], $overrides));
+}
+
+it('stores the relevant work unit (where) and the issue category (what kind) independently of each other', function (): void {
+    $waiting = offCategory();
+
+    // A unit with a category, a unit without one, and General / Not sure with a category.
+    $this->post(offUrl('complaint'), offComplaint(['category_id' => $waiting->id]))->assertSessionHasNoErrors();
+    $this->post(offUrl('complaint'), offComplaint(['organization_unit_id' => $this->headOffice->id, 'message' => 'Second visit, same problem.']))->assertSessionHasNoErrors();
+    $this->post(offUrl('complaint'), offComplaint(['organization_unit_id' => null, 'unit_selection_mode' => 'GENERAL', 'category_id' => $waiting->id, 'message' => 'Not sure which desk.']))->assertSessionHasNoErrors();
+
+    $rows = EmployeeServiceFeedback::query()->orderBy('created_at')->get();
+    expect($rows)->toHaveCount(3)
+        ->and($rows->map(fn (EmployeeServiceFeedback $row): array => [$row->organization_unit_id, $row->unit_selection_mode, $row->category_id])->all())->toBe([
+            [$this->branch->id, 'SELECTED', $waiting->id],
+            [$this->headOffice->id, 'SELECTED', null],
+            [null, 'GENERAL', $waiting->id],
+        ])
+        // The category never becomes the unit, and the unit never becomes the category.
+        ->and($rows->pluck('organization_unit_id')->filter()->all())->not->toContain($waiting->id)
+        ->and($rows->pluck('category_id')->filter()->all())->not->toContain($this->branch->id);
+});
+
+it('offers an issue category only for the submission types it is configured for, and refuses it elsewhere', function (): void {
+    $complaintOnly = offCategory(['code' => 'CONDUCT', 'name_en' => 'Staff conduct', 'submission_types' => ['complaint']]);
+    $archived = offCategory(['code' => 'ARCHIVED', 'name_en' => 'Archived category', 'is_active' => false]);
+    $internal = offCategory(['code' => 'INTERNAL', 'name_en' => 'Internal flag', 'is_public_selectable' => false]);
+
+    $this->get(offUrl('complaint'))->assertInertia(fn (Assert $page) => $page->where('categories', fn ($rows) => collect($rows)->pluck('name')->all() === ['Staff conduct']));
+    $this->get(offUrl('feedback'))->assertInertia(fn (Assert $page) => $page->where('categories', []));
+
+    // Category configured for complaints only, posted on a Tip-off by hand.
+    $this->post(offUrl('suggestion'), pfComplete('suggestion', ['message' => 'Something is wrong.', 'unit_selection_mode' => 'GENERAL', 'category_id' => $complaintOnly->id]))->assertSessionHasErrors('category_id');
+    $this->post(offUrl('complaint'), offComplaint(['category_id' => $archived->id]))->assertSessionHasErrors('category_id');
+    $this->post(offUrl('complaint'), offComplaint(['category_id' => $internal->id]))->assertSessionHasErrors('category_id');
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
 
 it('explains an invalid work unit in Amharic', function (): void {

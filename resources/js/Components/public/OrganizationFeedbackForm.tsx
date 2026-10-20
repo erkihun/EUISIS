@@ -116,7 +116,8 @@ interface OrganizationFormData {
 
 const TIME_BANDS = ['morning', 'afternoon', 'evening'] as const;
 const OTHER_SERVICE = '__other';
-const SERVICE_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band'];
+// The first step asks WHERE (unit) and WHAT KIND (issue category), then when; an error on any of them reopens it.
+const SERVICE_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'category_id', 'service_date', 'service_time_band'];
 const SUBMITTER_FIELDS = ['client_name', 'client_contact', 'client_email', 'submitter_organization', 'submitter_address', 'form_token', 'questionnaire_version'];
 /** What a draft keeps for this tab: never the visitor's identity, never files, never a Tip-off. */
 const DRAFT_FIELDS = ['category_id', 'service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band', 'answers', 'rating', 'comment', 'message', 'incident_location'] as const;
@@ -753,6 +754,9 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                                 error={fieldErrors.organization_unit_id}
                             />
                         )}
+                        {/* WHERE (the unit above) before WHAT KIND (the category): two questions, two fieldsets. */}
+                        <CategoryChips categories={categories} value={data.category_id} onChange={(value) => set('category_id', value)} error={fieldErrors.category_id} kind={kind} embedded />
+                        {kind !== 'suggestion' && (context.offices.length > 0 || categories.length > 0) && <hr className="border-(--app-border)" />}
                         {kind !== 'suggestion' && (
                             <>
                                 <div data-field>
@@ -853,7 +857,6 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                             )}
                             {detailQuestions.map(renderQuestion)}
                         </div>
-                        <CategoryChips categories={categories} value={data.category_id} onChange={(value) => set('category_id', value)} error={fieldErrors.category_id} />
                         {kind !== 'feedback' && requirements.evidence_allowed && (
                             <EvidenceSection files={data.attachments} onChange={(files) => { setData('attachments', files); clearErrors(); }} limits={evidence} error={evidenceError(fieldErrors)} />
                         )}
@@ -910,7 +913,7 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                                     <ReviewRow label={t('serviceFeedback.overallSatisfaction')} value={data.rating !== '' ? t(`serviceFeedback.rating${data.rating}`) : '—'} onEdit={() => goTo(stepIndexOf('experience'))} />
                                 )}
                                 <ReviewRow label={stepTitle('details')} value={narrative !== '' ? (narrative.length > 140 ? `${narrative.slice(0, 140)}…` : narrative) : '—'} onEdit={() => goTo(stepIndexOf('details'))} />
-                                {category && <ReviewRow label={t('serviceFeedback.category')} value={category.name} onEdit={() => goTo(stepIndexOf('details'))} />}
+                                {category && <ReviewRow label={t('serviceFeedback.issueCategory')} value={category.name} onEdit={() => goTo(stepIndexOf('service'))} />}
                                 {data.attachments.length > 0 && (
                                     <ReviewRow label={t('serviceFeedback.evidenceTitle')} value={t('serviceFeedback.filesAttached').replace('{count}', String(data.attachments.length))} onEdit={() => goTo(stepIndexOf('details'))} />
                                 )}

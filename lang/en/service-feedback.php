@@ -71,8 +71,8 @@ return [
         'target_type' => 'Target Type',
         'target_name' => 'Target',
         'organization' => 'Organization',
-        'organization_unit' => 'Unit',
-        'category' => 'Category',
+        'organization_unit' => 'Relevant work unit',
+        'category' => 'Issue category',
         'status' => 'Status',
         'handler' => 'Handler',
         'client_name' => 'Submitter Name',
@@ -91,7 +91,7 @@ return [
     'feedback_export_columns' => [
         'submitted_at' => 'Submitted At', 'target_type' => 'Target Type', 'target' => 'Target',
         'employee' => 'Employee', 'employee_number' => 'Employee No.', 'organization' => 'Organization',
-        'unit' => 'Unit', 'service' => 'Service', 'category' => 'Category', 'rating' => 'Rating',
+        'unit' => 'Unit', 'service' => 'Service', 'category' => 'Issue category', 'rating' => 'Rating',
         'status' => 'Status', 'comment' => 'Comment', 'client_name' => 'Client Name', 'client_contact' => 'Client Contact',
     ],
 

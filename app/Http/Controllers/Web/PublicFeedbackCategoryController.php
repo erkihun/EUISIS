@@ -130,6 +130,7 @@ class PublicFeedbackCategoryController extends Controller
             'organization_name_en' => $category->organization?->name_en,
             'organization_name_am' => $category->organization?->name_am,
             'is_active' => $category->is_active,
+            'is_public_selectable' => $category->is_public_selectable,
             'sort_order' => $category->sort_order,
             'is_referenced' => $category->isReferenced(),
             'can_manage' => $this->categories->canManage($user, $category->organization_id),

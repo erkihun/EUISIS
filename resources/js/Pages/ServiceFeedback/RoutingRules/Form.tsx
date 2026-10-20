@@ -114,7 +114,7 @@ export default function RuleForm({ record, organizations, categories, canManageC
                             </Select>
                         )}
                     </FormField>
-                    <FormField id="rule-category" label={t('serviceFeedback.category')} error={errors.category_id}>
+                    <FormField id="rule-category" label={t('serviceFeedback.issueCategory')} error={errors.category_id}>
                         {({ id, describedBy, invalid }) => (
                             <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.category_id} onChange={(e) => form.setData('category_id', e.target.value)}>
                                 <option value="">{t('serviceFeedback.anyCategory')}</option>

@@ -101,7 +101,7 @@ export default function CategoriesIndex({ categories, filters, organizations, ca
                             <THead>
                                 <Tr>
                                     <Th>{t('serviceFeedback.categoryCode')}</Th>
-                                    <Th>{t('serviceFeedback.category')}</Th>
+                                    <Th>{t('serviceFeedback.issueCategory')}</Th>
                                     <Th>{t('serviceFeedback.categoryScope')}</Th>
                                     <Th>{t('serviceFeedback.appliesToTypes')}</Th>
                                     <Th>{t('serviceFeedback.appliesToTargets')}</Th>
@@ -122,7 +122,10 @@ export default function CategoriesIndex({ categories, filters, organizations, ca
                                         <Td>{scopeLabel(row)}</Td>
                                         <Td>{row.submission_types.map((type) => t(`serviceFeedback.${SUBMISSION_TYPES.find((s) => s.value === type)?.key ?? 'adminTypeFeedback'}`)).join(', ')}</Td>
                                         <Td>{row.target_types.map((target) => t(`serviceFeedback.${TARGET_TYPES.find((s) => s.value === target)?.key ?? 'targetEmployee'}`)).join(', ')}</Td>
-                                        <Td><StatusBadge status={row.is_active ? 'active' : 'inactive'} label={t(row.is_active ? 'serviceFeedback.qrActive' : 'serviceFeedback.qrStatusDisabled')} /></Td>
+                                        <Td>
+                                            <StatusBadge status={row.is_active ? 'active' : 'inactive'} label={t(row.is_active ? 'serviceFeedback.qrActive' : 'serviceFeedback.qrStatusDisabled')} />
+                                            {row.is_active && !row.is_public_selectable && <div className="mt-1 text-xs text-(--app-muted-foreground)">{t('serviceFeedback.categoryInternal')}</div>}
+                                        </Td>
                                         <Td align="right">
                                             {row.can_manage && (
                                                 <div className="flex justify-end">

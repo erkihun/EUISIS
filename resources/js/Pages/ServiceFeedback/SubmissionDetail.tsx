@@ -96,7 +96,7 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                                 // What the visitor said the submission concerns: contextual attribution, not the handler and not a finding.
                                 <Field label={t('serviceFeedback.relevantWorkUnit')}>{entry.organization_unit ?? (entry.unit_selection_mode === 'GENERAL' ? t('serviceFeedback.generalNotSure') : '—')}</Field>
                             )}
-                            <Field label={t('serviceFeedback.category')}>{entry.category ?? '—'}</Field>
+                            <Field label={t('serviceFeedback.issueCategory')}>{entry.category ?? '—'}</Field>
                             <Field label={t('serviceFeedback.client')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_name ?? t('serviceFeedback.anonymousClient')}</Field>
                             <Field label={t('serviceFeedback.contact')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_contact ?? t('serviceFeedback.notProvided')}</Field>
                             {!entry.identity_hidden && entry.client_email && <Field label={t('serviceFeedback.clientEmail')}>{entry.client_email}</Field>}

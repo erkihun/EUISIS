@@ -116,7 +116,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                             {filterOptions.targets.map((target) => <option key={target} value={target}>{t(target === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee')}</option>)}
                         </Select>
                     </FilterField>
-                    <FilterField label={t('serviceFeedback.category')} htmlFor="rf-category">
+                    <FilterField label={t('serviceFeedback.issueCategory')} htmlFor="rf-category">
                         <Select id="rf-category" value={draft.category_id ?? ''} onChange={(e) => set('category_id')(e.target.value)}>
                             <option value="">{t('common.all')}</option>
                             {filterOptions.categories.map((c) => <option key={c.id} value={c.id}>{locale === 'am' && c.name_am ? c.name_am : c.name_en}</option>)}

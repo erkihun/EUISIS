@@ -289,7 +289,7 @@ export default function ServiceFeedbackShow({ feedback, organizationForm = null,
                                     {feedback.organization_unit ? label(feedback.organization_unit) : feedback.unit_selection_mode === 'GENERAL' ? t('serviceFeedback.generalNotSure') : label(null)}
                                 </Detail>
                                 {!isOrganization && <Detail label={t('serviceFeedback.servicePosition')}>{label(feedback.position)}</Detail>}
-                                <Detail label={t('serviceFeedback.category')}>{label(feedback.category ?? null)}</Detail>
+                                <Detail label={t('serviceFeedback.issueCategory')}>{label(feedback.category ?? null)}</Detail>
                             </dl>
                         </section>
 

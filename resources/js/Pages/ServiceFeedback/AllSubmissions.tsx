@@ -181,7 +181,7 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                             </Select>
                         )}
                         {filterOptions.categories.length > 0 && (
-                            <Select className={selectCls} value={filters.category_id ?? ''} onChange={(event) => apply({ category_id: event.target.value })} aria-label={t('serviceFeedback.category')}>
+                            <Select className={selectCls} value={filters.category_id ?? ''} onChange={(event) => apply({ category_id: event.target.value })} aria-label={t('serviceFeedback.issueCategory')}>
                                 <option value="">{t('serviceFeedback.allCategories')}</option>
                                 {filterOptions.categories.map((category) => <option key={category.id} value={category.id}>{nameOf(category)}</option>)}
                             </Select>
@@ -238,7 +238,7 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.columnReference')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.columnTarget')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'hidden text-left lg:table-cell')}>{t('serviceFeedback.filterOrganization')}</th>
-                                        <th scope="col" className={cx(tableHeaderCellClassName, 'hidden text-left xl:table-cell')}>{t('serviceFeedback.category')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'hidden text-left xl:table-cell')}>{t('serviceFeedback.issueCategory')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.filterStatus')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.submittedDate')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'hidden text-left lg:table-cell')}>{t('serviceFeedback.currentHandler')}</th>

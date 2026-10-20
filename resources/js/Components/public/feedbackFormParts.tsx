@@ -51,9 +51,12 @@ export interface Receipt {
     submitted_at: string | null;
 }
 
+/** An issue category offered for this submission type, in the visitor's language: what kind of issue it is, never where it belongs. */
 export interface CategoryOption {
     id: string;
     name: string;
+    /** Short helper under the name, e.g. "Service took longer than expected."; null when none is configured. */
+    description: string | null;
 }
 
 // ── Look ────────────────────────────────────────────────────────────────────
@@ -98,40 +101,70 @@ export const KINDS: Record<SubmissionKind, { label: string; hint: string; submit
     },
 };
 
-/** Categories as tap-to-pick chips; tapping the chosen one again clears it (the choice is optional). */
-export function CategoryChips({ categories, value, onChange, error }: { categories: CategoryOption[]; value: string; onChange: (value: string) => void; error?: string }) {
+/**
+ * The issue category — WHAT KIND of issue this is (waiting time, staff
+ * conduct…), never WHERE it belongs (that is the relevant work unit). One
+ * optional choice as tap-to-pick chips; tapping the chosen one again clears
+ * it. The chosen chip carries a check mark, not only a colour. `embedded`
+ * draws it inside another card (the organization form's first step), as a
+ * fieldset of its own so it never reads as part of the unit selector.
+ */
+export function CategoryChips({ categories, value, onChange, error, kind = 'feedback', embedded = false }: {
+    categories: CategoryOption[];
+    value: string;
+    onChange: (value: string) => void;
+    error?: string;
+    kind?: SubmissionKind;
+    embedded?: boolean;
+}) {
     const { t } = useLocale();
 
     if (categories.length === 0) return null;
 
+    const chosen = categories.find((category) => category.id === value);
+    const describedBy = ['issue-category-hint', chosen?.description ? 'issue-category-description' : null, error ? 'issue-category-error' : null].filter(Boolean).join(' ');
+
     return (
-        <div className={cardClass} data-field>
-            <span id="category-label" className={labelClass}>
-                {t('serviceFeedback.category')}
+        <fieldset className={embedded ? 'min-w-0 border-t border-(--app-border) pt-5' : cardClass} data-field aria-describedby={describedBy}>
+            <legend className={`${labelClass} ${embedded ? 'float-left w-full' : ''}`}>
+                {t('serviceFeedback.issueCategory')}
                 <span className={optionalClass}>({t('serviceFeedback.clientNameHint')})</span>
-            </span>
-            <div role="radiogroup" aria-labelledby="category-label" className="mt-3 flex flex-wrap gap-2">
+            </legend>
+            <p id="issue-category-hint" className={`${embedded ? 'clear-both' : ''} mt-1 text-xs ${mutedClass}`}>{t(`serviceFeedback.issueCategoryHint_${kind}`)}</p>
+            <div role="radiogroup" aria-labelledby="issue-category-hint" aria-label={t('serviceFeedback.issueCategory')} className="mt-3 flex flex-wrap gap-2">
                 {categories.map((category) => {
-                    const chosen = value === category.id;
+                    const selected = value === category.id;
 
                     return (
                         <button
                             key={category.id}
                             type="button"
                             role="radio"
-                            aria-checked={chosen}
-                            onClick={() => onChange(chosen ? '' : category.id)}
-                            className={`min-h-11 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${chosen
-                                ? 'border-primary bg-primary text-white'
+                            aria-checked={selected}
+                            title={category.description ?? undefined}
+                            onClick={() => onChange(selected ? '' : category.id)}
+                            className={`inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50 ${selected
+                                ? 'border-primary bg-primary font-semibold text-white'
                                 : 'border-(--app-border-strong) bg-(--app-surface) text-(--app-foreground) hover:bg-(--app-surface-muted)'}`}
                         >
-                            {category.name}
+                            {selected && <CheckMark />}
+                            <span className="min-w-0 wrap-anywhere">{category.name}</span>
                         </button>
                     );
                 })}
             </div>
-            {error && <p role="alert" className={errorClass}>{error}</p>}
-        </div>
+            {chosen?.description && <p id="issue-category-description" className={`mt-2 text-xs ${mutedClass}`} aria-live="polite">{chosen.description}</p>}
+            {error && <p id="issue-category-error" role="alert" className={errorClass}>{error}</p>}
+        </fieldset>
+    );
+}
+
+/** The mark inside a chosen chip, so the selection does not rely on colour alone. */
+function CheckMark() {
+    return (
+        <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 10.5l4 4 8-9" />
+        </svg>
     );
 }
 

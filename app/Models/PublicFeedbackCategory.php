@@ -34,6 +34,7 @@ class PublicFeedbackCategory extends Model
         'target_types',
         'organization_id',
         'is_active',
+        'is_public_selectable',
         'sort_order',
         'created_by',
         'updated_by',
@@ -45,6 +46,7 @@ class PublicFeedbackCategory extends Model
             'submission_types' => 'array',
             'target_types' => 'array',
             'is_active' => 'boolean',
+            'is_public_selectable' => 'boolean',
             'sort_order' => 'integer',
         ];
     }
@@ -62,6 +64,12 @@ class PublicFeedbackCategory extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /** Offered on the public form: active and not kept for internal classification only. */
+    public function scopePublicSelectable(Builder $query): Builder
+    {
+        return $query->where('is_active', true)->where('is_public_selectable', true);
     }
 
     /** City-wide categories plus the ones belonging to this organization. */
@@ -97,5 +105,15 @@ class PublicFeedbackCategory extends Model
         $amharic = trim((string) $this->name_am);
 
         return $locale === 'am' && $amharic !== '' ? $amharic : (string) $this->name_en;
+    }
+
+    /** The short helper text under the name ("Service took longer than expected."), if any. */
+    public function localizedDescription(string $locale): ?string
+    {
+        $amharic = trim((string) $this->description_am);
+        $english = trim((string) $this->description_en);
+        $text = $locale === 'am' && $amharic !== '' ? $amharic : $english;
+
+        return $text === '' ? null : $text;
     }
 }

@@ -65,6 +65,11 @@ beforeEach(function (): void {
         'code' => 'OLD', 'name_en' => 'Old category', 'submission_types' => ['complaint'],
         'target_types' => ['employee', 'organization'], 'organization_id' => null, 'is_active' => false, 'sort_order' => 4,
     ]);
+    // Active, but kept for internal classification: never offered or accepted on the public form.
+    $this->internal = PublicFeedbackCategory::query()->create([
+        'code' => 'INTERNAL', 'name_en' => 'Internal review flag', 'submission_types' => ['feedback', 'suggestion', 'complaint'],
+        'target_types' => ['employee', 'organization'], 'organization_id' => null, 'is_active' => true, 'is_public_selectable' => false, 'sort_order' => 0,
+    ]);
 });
 
 function pfcNames(array $categories): array
@@ -112,6 +117,34 @@ it('refuses a category that does not apply to the submission', function (): void
     expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });
 
+it('neither offers nor accepts an internal-only category on the public form, while the admin list still shows it', function (): void {
+    $this->get('/feedback/'.$this->orgToken.'/complaint')
+        ->assertInertia(fn (Assert $page) => $page->where('categories', fn ($categories) => ! in_array('Internal review flag', pfcNames($categories->toArray()), true)));
+
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'v', 'category_id' => $this->internal->id]))
+        ->assertSessionHasErrors('category_id');
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+
+    $this->actingAs($this->superAdmin)->get(route('service-feedback.categories.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('categories', fn ($rows) => collect($rows->toArray())->firstWhere('code', 'INTERNAL')['is_public_selectable'] === false));
+});
+
+it('sends each category with its localized helper text, and lets an admin keep a category off the public form', function (): void {
+    $this->cityWide->update(['description_en' => 'Service took longer than expected.', 'description_am' => 'አገልግሎቱ ከተጠበቀው በላይ ጊዜ ወስዷል።']);
+
+    $this->withHeader('X-Locale', 'am')->get('/feedback/'.$this->orgToken.'/complaint')
+        ->assertInertia(fn (Assert $page) => $page->where('categories.0', ['id' => $this->cityWide->id, 'name' => 'የመጠበቂያ ጊዜ', 'description' => 'አገልግሎቱ ከተጠበቀው በላይ ጊዜ ወስዷል።']));
+
+    $this->actingAs($this->superAdmin)->put(route('service-feedback.categories.update', $this->cityWide->id), [
+        'code' => 'WAITING', 'name_en' => 'Waiting time', 'name_am' => 'የመጠበቂያ ጊዜ', 'submission_types' => ['feedback', 'complaint'],
+        'target_types' => ['employee', 'organization'], 'is_active' => true, 'is_public_selectable' => false, 'sort_order' => 1,
+    ])->assertRedirect();
+
+    expect($this->cityWide->fresh()->is_public_selectable)->toBeFalse();
+    $this->withHeader('X-Locale', 'en')->get('/feedback/'.$this->orgToken.'/complaint')
+        ->assertInertia(fn (Assert $page) => $page->where('categories', fn ($categories) => pfcNames($categories->toArray()) === ['Licensing counter']));
+});
+
 it('lets a city-level user manage city-wide categories and a scoped admin only their institution\'s', function (): void {
     $payload = ['code' => 'NEW', 'name_en' => 'New category', 'name_am' => 'አዲስ ምድብ', 'submission_types' => ['feedback'], 'target_types' => ['employee'], 'is_active' => true, 'sort_order' => 9];
 
@@ -146,11 +179,11 @@ it('lists categories within the user scope on the management page', function ():
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/Categories/Index')
-            ->where('categories', fn ($rows) => collect($rows->toArray())->pluck('code')->sort()->values()->all() === ['COUNTER-A', 'OLD', 'WAITING']));
+            ->where('categories', fn ($rows) => collect($rows->toArray())->pluck('code')->sort()->values()->all() === ['COUNTER-A', 'INTERNAL', 'OLD', 'WAITING']));
 
     $this->actingAs($this->superAdmin)
         ->get(route('service-feedback.categories.index'))
-        ->assertInertia(fn (Assert $page) => $page->where('categories', fn ($rows) => count($rows->toArray()) === 4));
+        ->assertInertia(fn (Assert $page) => $page->where('categories', fn ($rows) => count($rows->toArray()) === 5));
 
     $plain = User::factory()->create();
     $this->actingAs($plain)->get(route('service-feedback.categories.index'))->assertForbidden();

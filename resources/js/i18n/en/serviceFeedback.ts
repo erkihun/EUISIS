@@ -92,6 +92,14 @@ export default {
 
     // Categories (public select + management)
     category: 'Category',
+    // WHAT KIND of issue — the relevant work unit says WHERE it belongs.
+    issueCategory: 'Issue Category',
+    issueCategoryHint_feedback: 'Select the type of issue your feedback is about.',
+    issueCategoryHint_suggestion: 'Select the type of issue or improvement your suggestion relates to.',
+    issueCategoryHint_complaint: 'Select the type of issue your complaint relates to.',
+    categoryPublicSelectable: 'Offered on the public form',
+    categoryPublicSelectableHint: 'Unticked, the category is kept for internal classification and reporting only.',
+    categoryInternal: 'Internal',
     categoryPlaceholder: 'Choose a category (optional)',
     categoriesTitle: 'Feedback categories',
     categoriesIntro: 'Categories classify public feedback, Tip-offs and complaints. City-wide categories apply everywhere; an institution may add its own.',
@@ -634,7 +642,7 @@ export default {
     servicePoint: 'Relevant Work Unit',
     servicePointPlaceholder: 'Choose the relevant work unit',
     relevantWorkUnit: 'Relevant Work Unit',
-    relevantWorkUnitHint: 'Choose the work unit your feedback concerns. If you are not sure, choose “General / Not sure”.',
+    relevantWorkUnitHint: 'Select the work unit that your feedback, suggestion or complaint is about. If you are not sure, choose “General / Not sure”.',
     generalNotSure: 'General / Not sure',
     unitFilter: 'Filter the work units',
     unitNoMatch: 'No work unit matches. Try other words, or choose “General / Not sure”.',

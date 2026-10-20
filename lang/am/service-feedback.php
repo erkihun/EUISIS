@@ -71,8 +71,8 @@ return [
         'target_type' => 'የሚመለከተው አካል ዓይነት',
         'target_name' => 'ዒላማ',
         'organization' => 'ተቋም',
-        'organization_unit' => 'ክፍል',
-        'category' => 'ምድብ',
+        'organization_unit' => 'የሚመለከተው የሥራ ክፍል',
+        'category' => 'የጉዳዩ ዓይነት',
         'status' => 'ሁኔታ',
         'handler' => 'የሚያስተናግደው አካል',
         'client_name' => 'የአቅራቢ ስም',
@@ -91,7 +91,7 @@ return [
     'feedback_export_columns' => [
         'submitted_at' => 'የቀረበበት ጊዜ', 'target_type' => 'የሚመለከተው ዓይነት', 'target' => 'የሚመለከተው',
         'employee' => 'ሠራተኛ', 'employee_number' => 'የሠራተኛ ቁጥር', 'organization' => 'ተቋም',
-        'unit' => 'የሥራ ክፍል', 'service' => 'አገልግሎት', 'category' => 'ምድብ', 'rating' => 'ደረጃ',
+        'unit' => 'የሥራ ክፍል', 'service' => 'አገልግሎት', 'category' => 'የጉዳዩ ዓይነት', 'rating' => 'ደረጃ',
         'status' => 'ሁኔታ', 'comment' => 'አስተያየት', 'client_name' => 'የተገልጋዩ ስም', 'client_contact' => 'የተገልጋዩ መገናኛ',
     ],
 

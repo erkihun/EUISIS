@@ -32,7 +32,7 @@ export default {
     previousRange: 'ከ{from} – {to} ጋር ሲነጻጸር',
     typeLabel: 'የቀረበው ጉዳይ ዓይነት',
     targetLabel: 'የሚመለከተው',
-    categoryLabel: 'ምድብ',
+    categoryLabel: 'የጉዳዩ ዓይነት',
     statusLabel: 'ሁኔታ',
     all: 'ሁሉም',
     apply: 'ይተግብሩ',
@@ -116,7 +116,7 @@ export default {
     summary_unrouted: '{count} የቀረቡ ጉዳዮች እስኪተላለፉ በመጠባበቅ ላይ ናቸው።',
     summary_average_rating: 'የአስተያየት ደረጃዎች አማካይ ከ5 {average} ነው።',
 
-    categoriesTitle: 'በምድብ',
+    categoriesTitle: 'በጉዳዩ ዓይነት',
     servicesTitle: 'በብዛት የተጠቀሱ አገልግሎቶች',
     servicesEmpty: 'በዚህ ጊዜ አገልግሎት የጠቀሰ የቀረበ ጉዳይ የለም።',
     unitsTitle: 'የተጠቀሱ የሚመለከታቸው የሥራ ክፍሎች',

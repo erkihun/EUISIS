@@ -87,6 +87,14 @@ export default {
 
     // ምድቦች (የሕዝብ ምርጫ + አስተዳደር)
     category: 'ምድብ',
+    // የጉዳዩ ዓይነት — የሚመለከተው የሥራ ክፍል ጉዳዩ የት እንደሚገባ ይናገራል።
+    issueCategory: 'የጉዳዩ ዓይነት',
+    issueCategoryHint_feedback: 'አስተያየትዎ የሚመለከተውን የጉዳይ ዓይነት ይምረጡ።',
+    issueCategoryHint_suggestion: 'ጥቆማዎ የሚመለከተውን የጉዳይ ወይም የማሻሻያ ዓይነት ይምረጡ።',
+    issueCategoryHint_complaint: 'ቅሬታዎ የሚመለከተውን የጉዳይ ዓይነት ይምረጡ።',
+    categoryPublicSelectable: 'በሕዝብ ቅጽ ላይ ይቀርባል',
+    categoryPublicSelectableHint: 'ካልተመረጠ ምድቡ ለውስጣዊ ምደባ እና ሪፖርት ብቻ ይቀመጣል።',
+    categoryInternal: 'ውስጣዊ',
     categoryPlaceholder: 'ምድብ ይምረጡ (አማራጭ)',
     categoriesTitle: 'የአስተያየት ምድቦች',
     categoriesIntro: 'ምድቦች የሕዝብ አስተያየትን፣ ጥቆማንና ቅሬታን ይከፋፍላሉ። ከተማ አቀፍ ምድቦች በሁሉም ቦታ ይተገበራሉ፤ ተቋም የራሱን መጨመር ይችላል።',
@@ -627,7 +635,7 @@ export default {
     servicePoint: 'የሚመለከተው የሥራ ክፍል',
     servicePointPlaceholder: 'የሚመለከተውን የሥራ ክፍል ይምረጡ',
     relevantWorkUnit: 'የሚመለከተው የሥራ ክፍል',
-    relevantWorkUnitHint: 'ጥቆማው ወይም ቅሬታው የሚመለከተውን የሥራ ክፍል ይምረጡ። ካላወቁ «አጠቃላይ / አላውቅም» ይምረጡ።',
+    relevantWorkUnitHint: 'ጥቆማዎ፣ አስተያየትዎ ወይም ቅሬታዎ የሚመለከተውን የሥራ ክፍል ይምረጡ። ካላወቁ «አጠቃላይ / አላውቅም» ይምረጡ።',
     generalNotSure: 'አጠቃላይ / አላውቅም',
     unitFilter: 'የሥራ ክፍሎችን ያጣሩ',
     unitNoMatch: 'የሚዛመድ የሥራ ክፍል አልተገኘም። ሌላ ቃል ይሞክሩ ወይም «አጠቃላይ / አላውቅም» ይምረጡ።',

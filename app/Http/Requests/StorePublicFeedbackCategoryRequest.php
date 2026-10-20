@@ -33,6 +33,7 @@ class StorePublicFeedbackCategoryRequest extends FormRequest
             'target_types.*' => [Rule::in(PublicFeedbackTargetType::values())],
             'organization_id' => ['nullable', 'uuid', Rule::exists('organizations', 'id')],
             'is_active' => ['nullable', 'boolean'],
+            'is_public_selectable' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ];
     }

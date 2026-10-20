@@ -276,7 +276,7 @@ export default function FeedbackFilterBar({
                             className={selectCls}
                             value={filters.category_id ?? ''}
                             onChange={(event) => apply({ category_id: event.target.value })}
-                            aria-label={t('serviceFeedback.category')}
+                            aria-label={t('serviceFeedback.issueCategory')}
                         >
                             <option value="">{t('serviceFeedback.allCategories')}</option>
                             {filterOptions.categories.map((category) => (
