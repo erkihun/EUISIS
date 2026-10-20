@@ -9,7 +9,7 @@ import {
     gregorianIsoToEthiopian,
 } from '@/lib/calendar/ethiopianCalendar';
 import type { PageProps } from '@/types';
-import { SVGProps, useEffect, useMemo, useState } from 'react';
+import { type JSX, SVGProps, useEffect, useMemo, useState } from 'react';
 
 /* ── icons ──────────────────────────────────────────────────────────────── */
 type IP = SVGProps<SVGSVGElement>;

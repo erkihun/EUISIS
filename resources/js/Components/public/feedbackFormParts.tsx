@@ -209,7 +209,7 @@ export function revealFirstError(form: HTMLFormElement | null): void {
  *   too large, a 429, a 5xx from the web server): an error popup instead of
  *   silence or Inertia's raw error window.
  */
-export function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormElement>) {
+export function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormElement | null>) {
     const { t } = useLocale();
     const listeners = useRef<Array<() => void>>([]);
     const stopListening = () => {

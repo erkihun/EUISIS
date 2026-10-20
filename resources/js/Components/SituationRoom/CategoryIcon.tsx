@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react';
+import type { JSX, SVGProps } from 'react';
 import * as NavIcons from '@/Components/NavIcons';
 
 type IconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element;

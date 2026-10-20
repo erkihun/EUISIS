@@ -143,7 +143,7 @@ import {
     WifiRouterIcon,
     X,
 } from '@/Components/NavIcons';
-import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
+import { type JSX, type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';

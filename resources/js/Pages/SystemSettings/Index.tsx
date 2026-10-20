@@ -13,7 +13,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { SettingsField, SettingsGroupPayload } from '@/lib/settings';
 import { Alert, Button, EmptyState, FieldError, SearchInput, StatusBadge, cx } from '@euisis/ui';
 import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState, type ComponentType, type FormEvent, type SVGProps } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentType, type JSX, type FormEvent, type SVGProps } from 'react';
 
 type SettingsCan = {
     view: boolean;

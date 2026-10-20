@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type SVGProps } from 'react';
+import { useState, type FormEvent, type JSX, type SVGProps } from 'react';
 import { Link, router } from '@inertiajs/react';
 import { Button, Select, SearchInput } from '@euisis/ui';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';

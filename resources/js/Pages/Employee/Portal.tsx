@@ -7,7 +7,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import type { PageProps } from '@/types';
-import type { ReactNode, SVGProps } from 'react';
+import type { JSX, ReactNode, SVGProps } from 'react';
 
 type IconProps = SVGProps<SVGSVGElement>;
 

@@ -32,7 +32,7 @@ const urlFor = (id: string | null) => (id ? route('communication.messages.show',
  * measure, so the page never scrolls: only the conversation list and the
  * messages do. The bottom gap matches the focus-mode padding of the layout.
  */
-function useFillHeight(): [React.RefObject<HTMLDivElement>, number | null] {
+function useFillHeight(): [React.RefObject<HTMLDivElement | null>, number | null] {
     const ref = useRef<HTMLDivElement>(null);
     const [height, setHeight] = useState<number | null>(null);
     useLayoutEffect(() => {

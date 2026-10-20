@@ -4,7 +4,7 @@
  * Solar icons are by 480 Design (CC BY 4.0), shipped through @solar-icons/react (MIT).
  * Add an icon here, never from the package directly, so the shell stays on one weight.
  */
-import type { SVGProps } from 'react';
+import type { JSX, SVGProps } from 'react';
 import { ChatRoundDotsIcon as SolarChatRoundDotsIcon } from '@solar-icons/react/linear/chat-round-dots';
 import { PaperclipIcon as SolarPaperclipIcon } from '@solar-icons/react/linear/paperclip';
 import { SmileCircleIcon as SolarSmileCircleIcon } from '@solar-icons/react/linear/smile-circle';
