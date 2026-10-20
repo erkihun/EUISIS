@@ -7,6 +7,8 @@ namespace App\Services\Intelligence\System\Telemetry;
 use App\Enums\AuditEventType;
 use App\Services\Backup\BackupStatusService;
 use App\Services\Communication\CommunicationBroadcaster;
+use App\Services\Transport\TransportSettings;
+use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -54,6 +56,7 @@ final class TelemetryCollector
             'integrations' => fn (): array => $this->integrations($now, $bucket),
             'security' => fn (): array => $this->security($now, $bucket),
             'sessions' => fn (): array => $this->sessions($now, $bucket),
+            'transport' => fn (): array => Features::enabled('transport') ? $this->transport($now, $bucket) : [],
         ];
 
         foreach ($probes as $name => $probe) {
@@ -363,5 +366,34 @@ final class TelemetryCollector
     private function sample(string $metric, string $component, int|float $value, CarbonImmutable $bucket, ?string $dimension = null, ?string $unit = null, int $sampleCount = 1): array
     {
         return ['metric' => $metric, 'component' => $component, 'dimension' => $dimension, 'value' => $value, 'unit' => $unit, 'sample_count' => $sampleCount, 'bucket_start' => $bucket];
+    }
+
+    /**
+     * The scanner fleet and the boarding backlog: devices that fell silent
+     * past the configured timeout, offline boardings waiting to sync and
+     * how old the oldest is, trips left open past their day, and the last
+     * quarter hour of accepted and refused scans. Counts only.
+     */
+    private function transport(CarbonImmutable $now, CarbonImmutable $bucket): array
+    {
+        if (! Schema::hasTable('transport_devices')) {
+            return [];
+        }
+        $timeout = app(TransportSettings::class)->deviceInactivityTimeoutMinutes();
+        $active = DB::table('transport_devices')->where('status', 'active')->whereNull('deleted_at');
+        $silent = (clone $active)->where(fn ($q) => $q->whereNull('last_seen_at')->orWhere('last_seen_at', '<', $now->subMinutes($timeout)->toDateTimeString()))->count();
+        $pending = DB::table('transport_transactions')->where('sync_state', 'offline_pending');
+        $oldest = (clone $pending)->min('scanned_at');
+        $since = $now->subMinutes(15)->toDateTimeString();
+
+        return [
+            $this->sample(Metrics::TRANSPORT_DEVICES_ACTIVE, Metrics::COMPONENT_TRANSPORT, (clone $active)->count(), $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_DEVICES_SILENT, Metrics::COMPONENT_TRANSPORT, $silent, $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_OFFLINE_PENDING, Metrics::COMPONENT_TRANSPORT, (clone $pending)->count(), $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_OFFLINE_OLDEST_MINUTES, Metrics::COMPONENT_TRANSPORT, $oldest ? max(0, (int) round(($now->getTimestamp() - CarbonImmutable::parse((string) $oldest)->getTimestamp()) / 60)) : 0, $bucket, null, 'minutes'),
+            $this->sample(Metrics::TRANSPORT_STALE_OPEN_TRIPS, Metrics::COMPONENT_TRANSPORT, DB::table('transport_trips')->whereDate('trip_date', '<', $now->toDateString())->whereIn('status', ['boarding', 'in_progress'])->count(), $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_BOARDINGS_15M, Metrics::COMPONENT_TRANSPORT, DB::table('transport_transactions')->where('status', 'accepted')->where('created_at', '>=', $since)->count(), $bucket, null, 'count'),
+            $this->sample(Metrics::TRANSPORT_REFUSALS_15M, Metrics::COMPONENT_TRANSPORT, DB::table('transport_transactions')->where('status', 'rejected')->where('created_at', '>=', $since)->count(), $bucket, null, 'count'),
+        ];
     }
 }

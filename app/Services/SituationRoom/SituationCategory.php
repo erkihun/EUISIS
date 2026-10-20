@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\SituationRoom;
 
 use App\Models\User;
+use App\Support\Features;
 
 /**
  * The Situation Room category registry: one place that says which categories
@@ -13,7 +14,8 @@ use App\Models\User;
  * launcher, the routes, the controller and the tests all read this list, so
  * adding a category is one case here plus its analytics class.
  *
- * Transport is deliberately absent: it is outside the production scope.
+ * Transport follows its module flag (config/features.php): off, the
+ * category is not listed and its route answers 404 like the module.
  */
 enum SituationCategory: string
 {
@@ -29,6 +31,7 @@ enum SituationCategory: string
     case Movement = 'movement';
     case FieldWork = 'field_work';
     case Cafeteria = 'cafeteria';
+    case Transport = 'transport';
     case Cases = 'cases';
     case CriticalAttention = 'critical_attention';
     case Trends = 'trends';
@@ -44,6 +47,7 @@ enum SituationCategory: string
             self::DailyOperations, self::FieldWork => SituationPermissions::OPERATIONS,
             self::Performance => SituationPermissions::PERFORMANCE,
             self::Cafeteria => SituationPermissions::CAFETERIA,
+            self::Transport => SituationPermissions::TRANSPORT,
             self::Cases => SituationPermissions::CASES,
         };
     }
@@ -55,7 +59,7 @@ enum SituationCategory: string
             self::Overview, self::CriticalAttention, self::Trends => 'command',
             self::Workforce, self::Structure, self::Movement => 'people',
             self::ServiceDelivery, self::Complaints, self::Feedback, self::TipOffs => 'public_voice',
-            self::DailyOperations, self::Performance, self::FieldWork, self::Cafeteria => 'operations',
+            self::DailyOperations, self::Performance, self::FieldWork, self::Cafeteria, self::Transport => 'operations',
             self::Cases, self::DataQuality => 'governance',
         };
     }
@@ -76,6 +80,7 @@ enum SituationCategory: string
             self::Movement => 'ArrowLeftRightIcon',
             self::FieldWork => 'MapPinned',
             self::Cafeteria => 'ReceiptTextIcon',
+            self::Transport => 'BusIcon',
             self::Cases => 'ScaleIcon',
             self::CriticalAttention => 'AlertTriangle',
             self::Trends => 'ActivityIcon',
@@ -91,6 +96,10 @@ enum SituationCategory: string
 
     public function visibleTo(User $user): bool
     {
+        if ($this === self::Transport && ! Features::enabled('transport')) {
+            return false;
+        }
+
         return $user->can(SituationPermissions::VIEW) && $user->can($this->permission());
     }
 

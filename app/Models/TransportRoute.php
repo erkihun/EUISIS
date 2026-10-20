@@ -62,4 +62,19 @@ class TransportRoute extends Model
     {
         return $this->hasMany(TransportTrip::class);
     }
+
+    public function stops(): HasMany
+    {
+        return $this->hasMany(TransportRouteStop::class)->orderBy('sequence');
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(TransportSchedule::class);
+    }
+
+    public function passes(): HasMany
+    {
+        return $this->hasMany(TransportPass::class);
+    }
 }

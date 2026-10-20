@@ -175,6 +175,19 @@ final class ComponentHealth
                 }
 
                 return ['healthy', null, ['denied_or_throttled_15m' => $denied, 'mfa_failures_5m' => $mfa['value']], $mfa['bucket_start']->toIso8601String()];
+            case Metrics::COMPONENT_TRANSPORT:
+                $active = $latest(Metrics::TRANSPORT_DEVICES_ACTIVE);
+                if ($active === null) {
+                    return ['unknown', 'UNKNOWN', [], null];
+                }
+                $silent = (int) ($latest(Metrics::TRANSPORT_DEVICES_SILENT)['value'] ?? 0);
+                $pending = (int) ($latest(Metrics::TRANSPORT_OFFLINE_PENDING)['value'] ?? 0);
+                $oldest = (int) ($latest(Metrics::TRANSPORT_OFFLINE_OLDEST_MINUTES)['value'] ?? 0);
+                $stale = (int) ($latest(Metrics::TRANSPORT_STALE_OPEN_TRIPS)['value'] ?? 0);
+                // Every registered device silent, or an offline backlog older than a day, means boardings are not reaching the city.
+                $state = ($active['value'] > 0 && $silent >= $active['value']) || $oldest > 1440 ? 'unhealthy' : ($silent > 0 || $pending > 0 || $stale > 0 ? 'degraded' : 'healthy');
+
+                return [$state, null, ['devices_active' => (int) $active['value'], 'devices_silent' => $silent, 'offline_pending' => $pending, 'offline_oldest_minutes' => $oldest, 'stale_open_trips' => $stale, 'boardings_15m' => $latest(Metrics::TRANSPORT_BOARDINGS_15M)['value'] ?? null, 'refusals_15m' => $latest(Metrics::TRANSPORT_REFUSALS_15M)['value'] ?? null], $active['bucket_start']->toIso8601String()];
         }
 
         return ['unknown', 'UNKNOWN', [], null];

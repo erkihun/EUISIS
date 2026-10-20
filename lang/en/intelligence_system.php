@@ -12,7 +12,7 @@ declare(strict_types=1);
 return [
     'components' => [
         'application' => 'Application', 'database' => 'Database', 'cache' => 'Cache', 'redis' => 'Redis', 'queue' => 'Queues',
-        'scheduler' => 'Scheduler', 'storage' => 'Storage', 'backups' => 'Backups', 'integrations' => 'Integrations', 'security' => 'Security signals',
+        'scheduler' => 'Scheduler', 'storage' => 'Storage', 'backups' => 'Backups', 'integrations' => 'Integrations', 'security' => 'Security signals', 'transport' => 'Transport scanners',
     ],
 
     'status' => [

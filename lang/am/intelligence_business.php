@@ -75,6 +75,7 @@ return [
         'quality_checks' => ['title' => 'ፍተሻዎች', 'description' => 'እያንዳንዱ ፍተሻ በወሰኑ ውስጥ የጎደሉ፣ የሚቃረኑ ወይም የተንጠለጠሉ መዝገቦችን ይቆጥራል፣ ምን እንደሚነካ እና የት እንደሚስተካከል ያሳያል። FAIL፦ በእሱ ላይ የተገነባ ቁጥር ስህተት ነው፤ WARN፦ ቁጥሩ ያልተሟላ ነው።'],
         'quality_hierarchy' => ['title' => 'የመዋቅር ማጣቀሻ ፍተሻ', 'description' => 'የጸደቀ የመዋቅር ስሪት የለም፤ ስለዚህ ምደባዎች ከእሱ ጋር ሊፈተሹ አይችሉም።'],
         'quality_public_feedback' => ['title' => 'የሕዝብ አስተያየት ታማኝነት', 'description' => 'በሕዝብ አስተያየት ሰንጠረዦች ላይ የተከላ-አቀፍ ፍተሻዎች (ብዛት ብቻ)።'],
+        'quality_transport' => ['title' => 'የትራንስፖርት ዋና መረጃ', 'description' => 'በመስመሮች፣ ጉዞዎች፣ ተሽከርካሪዎች፣ መሣሪያዎች እና ውሎች ላይ የተከላ-አቀፍ ፍተሻዎች (ብዛት ብቻ)።'],
     ],
 
     'kpi' => [
@@ -372,6 +373,18 @@ return [
     ],
 
     'quality' => [
+        'transport_eligible_employee_without_route' => ['label' => 'የመስመር ምደባ የሌላቸው ብቁ ሠራተኞች', 'impact' => 'የተቋም ፈቃዶች በሚፈቅዱበት ብቻ መሳፈር ይችላሉ፤ በመስመር ያለው አጠቃቀም ያነሰ ይታያል።', 'remediation' => 'ትራንስፖርት › ፓሶች'],
+        'transport_route_without_schedule' => ['label' => 'መርሃ ግብር የሌላቸው ንቁ መስመሮች', 'impact' => 'ለእነሱ ምንም ጉዞ አይታቀድም፤ እዚያ ያሉ መሳፈሮች በእጅ የሚታቀዱ ጉዞዎች ያስፈልጋቸዋል።', 'remediation' => 'ትራንስፖርት › መርሃ ግብሮች'],
+        'transport_route_without_stops' => ['label' => 'ፌርማታ የሌላቸው ንቁ መስመሮች', 'impact' => 'የመሳፈሪያ ፌርማታዎች ሊመደቡ ወይም ሊመዘገቡ አይችሉም።', 'remediation' => 'ትራንስፖርት › መስመሮች'],
+        'transport_trip_without_vehicle' => ['label' => 'ተሽከርካሪ የሌላቸው መጪ ጉዞዎች', 'impact' => 'መሳፈር መጀመር አይችሉም፤ አቅም አይታወቅም።', 'remediation' => 'ትራንስፖርት › ጉዞዎች'],
+        'transport_vehicle_without_capacity' => ['label' => 'የጸደቀ አቅም የሌላቸው ንቁ ተሽከርካሪዎች', 'impact' => 'የአቅም ቁጥጥር እና አጠቃቀም ሊሰሉ አይችሉም።', 'remediation' => 'ትራንስፖርት › ተሽከርካሪዎች'],
+        'transport_stale_open_trips' => ['label' => 'ከቀናቸው አልፈው ክፍት የቀሩ ጉዞዎች', 'impact' => 'መሳፈሮቻቸው ባልተጠናቀቀ ጉዞ ላይ ይቆያሉ፤ የማጠናቀቅ መጠኖች የተሳሳቱ ናቸው።', 'remediation' => 'ትራንስፖርት › ጉዞዎች'],
+        'transport_boardings_on_uncompleted_trips' => ['label' => 'ባልተጠናቀቁ ጉዞዎች ላይ የተረጋገጡ መሳፈሮች', 'impact' => 'ክፍያ ማቻቻል ከመረጃ ጥራት ምልክት ጋር ይቆጥራቸዋል።', 'remediation' => 'ትራንስፖርት › ጉዞዎች'],
+        'transport_offline_pending_boardings' => ['label' => 'ገና ያልታረቁ ከመስመር ውጭ መሳፈሮች', 'impact' => 'መሣሪያው እስኪያመሳስል ድረስ የተረጋገጠ አጠቃቀም አይደሉም።', 'remediation' => 'ትራንስፖርት › መሣሪያዎች'],
+        'transport_provider_without_contract' => ['label' => 'አስገዳጅ ውል የሌላቸው ንቁ የትራንስፖርት አቅራቢዎች', 'impact' => 'ለእነሱ ምንም መግለጫ ሊሰላ አይችልም።', 'remediation' => 'ትራንስፖርት › ውሎች'],
+        'transport_contract_missing_tariff' => ['label' => 'የጸደቀ ተመን የጎደላቸው ውሎች', 'impact' => 'በእነሱ ሥር ያሉ መግለጫዎች መጠን አይኖራቸውም፤ የፖሊሲ ውሳኔ ያስፈልጋል (NEEDS_POLICY_DECISION)።', 'remediation' => 'ትራንስፖርት › ውሎች'],
+        'transport_invoice_without_statement' => ['label' => 'መግለጫ የሌላቸው የቀረቡ ደረሰኞች', 'impact' => 'ለማስታረቅ የሚጠባበቁ ጥያቄዎች።', 'remediation' => 'ትራንስፖርት › ደረሰኞች'],
+        'transport_expired_vehicle_documents' => ['label' => 'ሰነዶቻቸው ጊዜ ያለፈባቸው ንቁ ተሽከርካሪዎች', 'impact' => 'ተሽከርካሪዎች ያለ ተቀባይነት ያላቸው ወረቀቶች ሊሰማሩ ይችላሉ።', 'remediation' => 'ትራንስፖርት › ተሽከርካሪዎች'],
         'duplicate_current_assignments' => ['label' => 'ከአንድ በላይ የአሁን ንቁ ምደባ ያላቸው ሠራተኞች', 'impact' => 'የሠራተኛ ብዛት እና መያዝ ከትክክለኛው በላይ ይታያሉ።', 'remediation' => 'ሠራተኞች › ምደባ'],
         'active_without_assignment' => ['label' => 'የአሁን ምደባ የሌላቸው ንቁ ሠራተኞች', 'impact' => 'ሰዎች ከእያንዳንዱ የተቋም ቁጥር ይጎድላሉ።', 'remediation' => 'ሠራተኞች › ምደባ'],
         'positions_over_capacity' => ['label' => 'ከጸደቀው አቅም በላይ የሆኑ የሥራ መደቦች', 'impact' => 'የክፍት ቦታ ቁጥሮች ትርፍ ተያዦችን ይደብቃሉ።', 'remediation' => 'የሥራ መደቦች › መዋቅር ምደባ'],

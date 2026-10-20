@@ -76,6 +76,7 @@ return [
         'quality_checks' => ['title' => 'Checks', 'description' => 'Each check counts records in scope that are missing, contradictory or dangling, with what it affects and where it is fixed. FAIL: a figure built on it is wrong; WARN: a figure is incomplete.'],
         'quality_hierarchy' => ['title' => 'Hierarchy reference check', 'description' => 'No hierarchy version is published, so assignments cannot be checked against one.'],
         'quality_public_feedback' => ['title' => 'Public feedback integrity', 'description' => 'Installation-wide checks over the public feedback tables (counts only).'],
+        'quality_transport' => ['title' => 'Transport master data', 'description' => 'Installation-wide checks over routes, trips, vehicles, devices and contracts (counts only).'],
     ],
 
     'kpi' => [
@@ -373,6 +374,18 @@ return [
     ],
 
     'quality' => [
+        'transport_eligible_employee_without_route' => ['label' => 'Eligible employees without a route assignment', 'impact' => 'They can board only where organization grants allow; utilization per route is understated.', 'remediation' => 'Transport › Passes'],
+        'transport_route_without_schedule' => ['label' => 'Active routes without a schedule', 'impact' => 'No trips are planned for them; boardings there need manual trips.', 'remediation' => 'Transport › Schedules'],
+        'transport_route_without_stops' => ['label' => 'Active routes without stops', 'impact' => 'Boarding stops cannot be assigned or recorded.', 'remediation' => 'Transport › Routes'],
+        'transport_trip_without_vehicle' => ['label' => 'Upcoming trips without a vehicle', 'impact' => 'They cannot start boarding; capacity is unknown.', 'remediation' => 'Transport › Trips'],
+        'transport_vehicle_without_capacity' => ['label' => 'Active vehicles without an approved capacity', 'impact' => 'Capacity control and utilization cannot be computed.', 'remediation' => 'Transport › Vehicles'],
+        'transport_stale_open_trips' => ['label' => 'Trips left open past their day', 'impact' => 'Their boardings stay on an uncompleted trip; completion rates are wrong.', 'remediation' => 'Transport › Trips'],
+        'transport_boardings_on_uncompleted_trips' => ['label' => 'Verified boardings on trips never completed', 'impact' => 'Settlement counts them with a data-quality flag.', 'remediation' => 'Transport › Trips'],
+        'transport_offline_pending_boardings' => ['label' => 'Offline boardings not yet reconciled', 'impact' => 'They are not verified usage until the device syncs.', 'remediation' => 'Transport › Devices'],
+        'transport_provider_without_contract' => ['label' => 'Active transport providers without a binding contract', 'impact' => 'No statement can be computed for them.', 'remediation' => 'Transport › Contracts'],
+        'transport_contract_missing_tariff' => ['label' => 'Contracts missing an approved rate', 'impact' => 'Statements under them carry no amount (NEEDS_POLICY_DECISION).', 'remediation' => 'Transport › Contracts'],
+        'transport_invoice_without_statement' => ['label' => 'Submitted invoices without a statement', 'impact' => 'Claims waiting to be reconciled.', 'remediation' => 'Transport › Invoices'],
+        'transport_expired_vehicle_documents' => ['label' => 'Active vehicles with expired documents', 'impact' => 'Vehicles may be dispatched without valid papers.', 'remediation' => 'Transport › Vehicles'],
         'duplicate_current_assignments' => ['label' => 'Employees with more than one current active assignment', 'impact' => 'Headcount and occupancy are overstated.', 'remediation' => 'Employees › Assignment'],
         'active_without_assignment' => ['label' => 'Active employees without a current assignment', 'impact' => 'People are missing from every organization figure.', 'remediation' => 'Employees › Assignment'],
         'positions_over_capacity' => ['label' => 'Positions above approved capacity', 'impact' => 'Vacancy figures hide the excess occupants.', 'remediation' => 'Positions › Establishment'],

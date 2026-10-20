@@ -6,9 +6,9 @@ import SearchPicker from '@/Components/fieldWork/SearchPicker';
 import OrganizationPicker from './OrganizationPicker';
 import { useTransportLabels } from './labels';
 import {
-    DRIVER_STATUSES, PASS_STATUSES, PROVIDER_STATUSES, TRIP_STATUSES, VEHICLE_STATUSES, VEHICLE_TYPES,
+    DIRECTIONS, DRIVER_STATUSES, PASS_STATUSES, PROVIDER_STATUSES, VEHICLE_STATUSES, VEHICLE_TYPES,
     type ProviderOption, type ScopeType, type TransportDriver, type TransportPass, type TransportProvider,
-    type TransportRoute, type TransportTrip, type TransportVehicle,
+    type TransportRoute, type TransportRouteStop, type TransportTrip, type TransportVehicle,
 } from '@/types/transport';
 
 /**
@@ -20,7 +20,7 @@ import {
 
 type Mode = 'admin' | 'portal';
 
-function FormShell({ onSubmit, processing, cancelHref, submitLabel, children }: {
+export function FormShell({ onSubmit, processing, cancelHref, submitLabel, children }: {
     onSubmit: (event: FormEvent) => void;
     processing: boolean;
     cancelHref: string;
@@ -41,7 +41,7 @@ function FormShell({ onSubmit, processing, cancelHref, submitLabel, children }: 
     );
 }
 
-function Section({ title, description, children }: { title?: string; description?: string; children: ReactNode }) {
+export function Section({ title, description, children }: { title?: string; description?: string; children: ReactNode }) {
     return (
         <fieldset className="space-y-4">
             {title && <legend className="text-sm font-semibold text-(--app-foreground)">{title}</legend>}
@@ -51,7 +51,7 @@ function Section({ title, description, children }: { title?: string; description
     );
 }
 
-function TextField({ label, value, onChange, error, required, type = 'text', wide, description, inputMode }: {
+export function TextField({ label, value, onChange, error, required, type = 'text', wide, description, inputMode }: {
     label: string;
     value: string;
     onChange: (value: string) => void;
@@ -71,7 +71,7 @@ function TextField({ label, value, onChange, error, required, type = 'text', wid
     );
 }
 
-function SelectField({ label, value, onChange, error, required, options, wide }: {
+export function SelectField({ label, value, onChange, error, required, options, wide }: {
     label: string;
     value: string;
     onChange: (value: string) => void;
@@ -91,7 +91,7 @@ function SelectField({ label, value, onChange, error, required, options, wide }:
     );
 }
 
-function NotesField({ value, onChange, error }: { value: string; onChange: (value: string) => void; error?: string }) {
+export function NotesField({ value, onChange, error }: { value: string; onChange: (value: string) => void; error?: string }) {
     const { t } = useTransportLabels();
     return (
         <FormField label={t('transport.notes')} error={error} className="sm:col-span-2">
@@ -100,12 +100,12 @@ function NotesField({ value, onChange, error }: { value: string; onChange: (valu
     );
 }
 
-function useProviderOptions(providers: ProviderOption[]) {
+export function useProviderOptions(providers: ProviderOption[]) {
     const { t, name } = useTransportLabels();
     return [{ value: '', label: t('transport.selectProvider') }, ...providers.map((p) => ({ value: p.id, label: `${p.provider_code} — ${name(p)}` }))];
 }
 
-const s = (value: string | number | null | undefined): string => (value === null || value === undefined ? '' : String(value));
+export const s = (value: string | number | null | undefined): string => (value === null || value === undefined ? '' : String(value));
 
 // ── Route ───────────────────────────────────────────────────────────────
 
@@ -288,8 +288,10 @@ export function TripForm({ trip, today, routes = [], vehicles = [], drivers = []
         trip_date: trip?.trip_date ?? today,
         departure_time: s(trip?.departure_time),
         arrival_time: s(trip?.arrival_time),
-        status: trip?.status ?? 'scheduled',
+        status: trip?.status === 'assigned' ? 'assigned' : 'planned',
+        direction: trip?.direction ?? 'inbound',
         capacity: s(trip?.capacity),
+        expected_riders: s(trip?.expected_riders),
         notes: s(trip?.notes),
     });
 
@@ -303,6 +305,9 @@ export function TripForm({ trip, today, routes = [], vehicles = [], drivers = []
             departure_time: data.departure_time || null,
             arrival_time: data.arrival_time || null,
             capacity: data.capacity || null,
+            expected_riders: data.expected_riders || null,
+            // A vehicle makes the trip assigned; starting, completing and cancelling are dispatch actions.
+            status: data.transport_vehicle_id ? 'assigned' : 'planned',
         }));
         trip ? form.patch(route('provider.portal.transport.trips.update', trip.id)) : form.post(route('provider.portal.transport.trips.store'));
     }
@@ -312,6 +317,8 @@ export function TripForm({ trip, today, routes = [], vehicles = [], drivers = []
             <Section>
                 <SelectField label={t('transport.route')} required value={form.data.transport_route_id} onChange={(v) => form.setData('transport_route_id', v)} error={form.errors.transport_route_id} wide
                     options={[{ value: '', label: t('transport.selectRoute') }, ...routes.filter((r) => r.is_active || r.id === trip?.transport_route_id).map((r) => ({ value: r.id, label: `${r.route_code} — ${name(r)}` }))]} />
+                <SelectField label={t('transport.direction')} required value={form.data.direction} onChange={(v) => form.setData('direction', v as typeof form.data.direction)} error={form.errors.direction}
+                    options={DIRECTIONS.map((d) => ({ value: d, label: label('directions', d) }))} />
                 <TextField label={t('transport.tripDate')} type="date" required value={form.data.trip_date} onChange={(v) => form.setData('trip_date', v)} error={form.errors.trip_date} />
                 <TextField label={t('transport.tripNumber')} value={form.data.trip_number} onChange={(v) => form.setData('trip_number', v)} error={form.errors.trip_number} description={trip ? undefined : t('transport.tripNumberHelp')} />
                 <TextField label={t('transport.departure')} type="time" value={form.data.departure_time} onChange={(v) => form.setData('departure_time', v)} error={form.errors.departure_time} />
@@ -320,8 +327,6 @@ export function TripForm({ trip, today, routes = [], vehicles = [], drivers = []
                     options={[{ value: '', label: t('transport.selectVehicle') }, ...vehicles.map((v) => ({ value: v.id, label: `${v.vehicle_code} — ${v.plate_number}` }))]} />
                 <SelectField label={t('transport.driver')} value={form.data.transport_driver_id} onChange={(v) => form.setData('transport_driver_id', v)} error={form.errors.transport_driver_id}
                     options={[{ value: '', label: t('transport.selectDriver') }, ...drivers.map((d) => ({ value: d.id, label: d.full_name }))]} />
-                <SelectField label={t('transport.status')} required value={form.data.status} onChange={(v) => form.setData('status', v as typeof form.data.status)} error={form.errors.status}
-                    options={TRIP_STATUSES.map((v) => ({ value: v, label: label('statuses', v) }))} />
                 <TextField label={t('transport.capacity')} type="number" inputMode="numeric" value={form.data.capacity} onChange={(v) => form.setData('capacity', v)} error={form.errors.capacity} />
                 <NotesField value={form.data.notes} onChange={(v) => form.setData('notes', v)} error={form.errors.notes} />
             </Section>
@@ -416,9 +421,9 @@ export function ProviderForm({ provider }: { provider?: TransportProvider }) {
 
 // ── Pass (admin) ────────────────────────────────────────────────────────
 
-type EmployeeHit = { id: string; employee_number: string; full_name: string; organization?: { name_en: string | null; name_am: string | null } | null };
+export type EmployeeHit = { id: string; employee_number: string; full_name: string; organization?: { name_en: string | null; name_am: string | null } | null };
 
-export function PassForm({ pass, today, providers = [], routes = [] }: { pass?: TransportPass; today: string; providers?: ProviderOption[]; routes?: TransportRoute[] }) {
+export function PassForm({ pass, today, providers = [], routes = [], stops = [] }: { pass?: TransportPass; today: string; providers?: ProviderOption[]; routes?: TransportRoute[]; stops?: TransportRouteStop[] }) {
     const { t, label, name } = useTransportLabels();
     const providerOptions = useProviderOptions(providers);
     const [employee, setEmployee] = useState<EmployeeHit | null>(pass?.employee ?? null);
@@ -426,16 +431,20 @@ export function PassForm({ pass, today, providers = [], routes = [] }: { pass?: 
         employee_id: pass?.employee_id ?? '',
         provider_id: pass?.provider_id ?? '',
         transport_route_id: pass?.transport_route_id ?? '',
+        boarding_stop_id: pass?.boarding_stop_id ?? '',
+        evening_stop_id: pass?.evening_stop_id ?? '',
         valid_from: pass?.valid_from ?? today,
         valid_until: s(pass?.valid_until),
         status: pass?.status ?? 'active',
         notes: s(pass?.notes),
     });
     const providerRoutes = routes.filter((r) => r.provider_id === form.data.provider_id);
+    const routeStops = stops.filter((stop) => stop.transport_route_id === form.data.transport_route_id);
+    const stopOptions = (allowed: 'pickup_allowed' | 'dropoff_allowed') => [{ value: '', label: t('transport.noStop') }, ...routeStops.filter((stop) => stop[allowed]).map((stop) => ({ value: stop.id, label: `${stop.sequence}. ${name(stop)}` }))];
 
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.transform((data) => ({ ...data, transport_route_id: data.transport_route_id || null, valid_until: data.valid_until || null }));
+        form.transform((data) => ({ ...data, transport_route_id: data.transport_route_id || null, boarding_stop_id: data.boarding_stop_id || null, evening_stop_id: data.evening_stop_id || null, valid_until: data.valid_until || null }));
         pass ? form.patch(route('transport.passes.update', pass.id)) : form.post(route('transport.passes.store'));
     }
 
@@ -463,8 +472,14 @@ export function PassForm({ pass, today, providers = [], routes = [] }: { pass?: 
                     {form.errors.employee_id && <p className="text-sm text-red-600" role="alert">{form.errors.employee_id}</p>}
                 </div>
                 <SelectField label={t('transport.provider')} required value={form.data.provider_id} onChange={(v) => form.setData((d) => ({ ...d, provider_id: v, transport_route_id: '' }))} error={form.errors.provider_id} options={providerOptions} />
-                <SelectField label={t('transport.route')} value={form.data.transport_route_id} onChange={(v) => form.setData('transport_route_id', v)} error={form.errors.transport_route_id}
+                <SelectField label={t('transport.route')} value={form.data.transport_route_id} onChange={(v) => form.setData((d) => ({ ...d, transport_route_id: v, boarding_stop_id: '', evening_stop_id: '' }))} error={form.errors.transport_route_id}
                     options={[{ value: '', label: t('transport.selectRoute') }, ...providerRoutes.map((r) => ({ value: r.id, label: `${r.route_code} — ${name(r)}` }))]} />
+                {form.data.transport_route_id && (
+                    <>
+                        <SelectField label={t('transport.boardingStop')} value={form.data.boarding_stop_id} onChange={(v) => form.setData('boarding_stop_id', v)} error={form.errors.boarding_stop_id} options={stopOptions('pickup_allowed')} />
+                        <SelectField label={t('transport.eveningStop')} value={form.data.evening_stop_id} onChange={(v) => form.setData('evening_stop_id', v)} error={form.errors.evening_stop_id} options={stopOptions('dropoff_allowed')} />
+                    </>
+                )}
                 <TextField label={t('transport.validFrom')} type="date" required value={form.data.valid_from} onChange={(v) => form.setData('valid_from', v)} error={form.errors.valid_from} />
                 <TextField label={t('transport.validUntil')} type="date" value={form.data.valid_until} onChange={(v) => form.setData('valid_until', v)} error={form.errors.valid_until} />
                 <SelectField label={t('transport.status')} required value={form.data.status} onChange={(v) => form.setData('status', v as typeof form.data.status)} error={form.errors.status}

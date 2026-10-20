@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
+use App\Http\Middleware\AuthenticateTransportDevice;
 use App\Jobs\Communication\SyncEmployeeCommunicationMemberships;
 use App\Models\AssessmentForm;
 use App\Models\AuditLog;
@@ -83,6 +84,7 @@ use App\Models\VacancyApplication;
 use App\Models\WorkforcePlanningMethodology;
 use App\Observers\EmployeeAssignmentCardImpactObserver;
 use App\Observers\EmployeeAssignmentCommunicationObserver;
+use App\Observers\TransportEligibilityObserver;
 use App\Policies\AssessmentFormPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CafeteriaDayRulePolicy;
@@ -253,6 +255,9 @@ class AppServiceProvider extends ServiceProvider
         // Automatic Communication channel membership follows assignments and account status.
         EmployeeAssignment::observe(EmployeeAssignmentCommunicationObserver::class);
         Employee::saved(fn (Employee $employee) => app(EmployeeAssignmentCommunicationObserver::class)->employeeSaved($employee));
+        // Transport route assignments follow placement and status (docs/transport/eligibility.md).
+        EmployeeAssignment::observe(TransportEligibilityObserver::class);
+        Employee::saved(fn (Employee $employee) => app(TransportEligibilityObserver::class)->employeeSaved($employee));
         User::saved(function (User $user): void {
             if ($user->employee_id !== null && $user->wasChanged('status')) {
                 SyncEmployeeCommunicationMemberships::dispatch((string) $user->employee_id)->afterCommit();
@@ -483,6 +488,24 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(30)->by('sf-photo:'.$request->route('token').'|'.$request->ip()),
             Limit::perMinute(120)->by('sf-photo-ip:'.$request->ip()),
         ]);
+
+        /*
+         * Transport scanner devices (docs/transport/device-security.md): a bus
+         * door boards at most a few people a second, so 300 scans a minute per
+         * device never throttles a legitimate queue, while a provider's whole
+         * fleet shares a wider ceiling and unknown credentials are capped by IP.
+         */
+        RateLimiter::for('transport-device', function (Request $request): array {
+            $device = $request->attributes->get(AuthenticateTransportDevice::ATTRIBUTE);
+            if ($device === null) {
+                return [Limit::perMinute(60)->by('transport-device-ip:'.$request->ip())];
+            }
+
+            return [
+                Limit::perMinute(300)->by('transport-device:'.$device->id),
+                Limit::perMinute(3000)->by('transport-provider:'.$device->provider_id),
+            ];
+        });
 
         RateLimiter::for('api', function (Request $request): array {
             $perMinute = 120;

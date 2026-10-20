@@ -3,14 +3,15 @@ import { Card, EmptyState, StatusBadge, TableCard, buttonClassName } from '@euis
 import TransportProviderLayout from '@/Layouts/TransportProviderLayout';
 import { useTransportLabels } from '@/Components/transport/labels';
 import type { PageProps } from '@/types';
-import type { TransportPortalCan, TransportTransaction } from '@/types/transport';
+import { Pill } from '@/Components/transport/TransportShared';
+import type { TransportPortalCan, TransportTransaction, TransportTrip } from '@/types/transport';
 
 type Stats = {
     today_scans: number; accepted_scans: number; rejected_scans: number; active_routes: number; active_vehicles: number;
     active_drivers: number; scheduled_trips: number; completed_trips: number; active_passes: number;
 };
 
-export default function Dashboard({ stats, recentTransactions }: { stats: Stats; recentTransactions: TransportTransaction[] }) {
+export default function Dashboard({ stats, recentTransactions, todayTrips, openExceptions }: { stats: Stats; recentTransactions: TransportTransaction[]; todayTrips: TransportTrip[]; openExceptions: number }) {
     const { t, label, tone, name } = useTransportLabels();
     const can = usePage<PageProps<{ providerPortal?: { can?: Partial<TransportPortalCan> } | null }>>().props.providerPortal?.can ?? {};
     const tiles: [string, number][] = [
@@ -22,6 +23,7 @@ export default function Dashboard({ stats, recentTransactions }: { stats: Stats;
         [t('transport.statActiveVehicles'), stats.active_vehicles],
         [t('transport.statActiveDrivers'), stats.active_drivers],
         [t('transport.statActivePasses'), stats.active_passes],
+        [t('transport.openExceptions'), openExceptions],
     ];
 
     return (
@@ -41,6 +43,23 @@ export default function Dashboard({ stats, recentTransactions }: { stats: Stats;
                         </Card>
                     ))}
                 </div>
+                {can.transportTripsManage && (
+                    <TableCard title={t('transport.todayTrips')} actions={<Link href={route('provider.portal.transport.trips.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('transport.trips')}</Link>}>
+                        {todayTrips.length === 0 ? <EmptyState title={t('transport.noTrips')} /> : (
+                            <ul className="divide-y divide-(--app-border)">
+                                {todayTrips.map((trip) => (
+                                    <li key={trip.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
+                                        <Link href={route('provider.portal.transport.trips.show', trip.id)} className="min-w-0 underline-offset-2 hover:underline">
+                                            <p className="font-medium tabular-nums">{trip.departure_time ?? '—'} · {trip.route?.route_code} — {name(trip.route)}</p>
+                                            <p className="text-xs text-(--app-muted-foreground)">{label('directions', trip.direction)}{trip.vehicle ? ` · ${trip.vehicle.plate_number}` : ''} · {t('transport.boarded')} {trip.boarded_count}{trip.effective_capacity ? `/${trip.effective_capacity}` : ''}</p>
+                                        </Link>
+                                        <Pill value={trip.status} />
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </TableCard>
+                )}
                 <TableCard title={t('transport.recentBoardings')} actions={can.transportTransactionsView ? <Link href={route('provider.portal.transport.transactions.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('transport.seeAllBoardings')}</Link> : undefined}>
                     {recentTransactions.length === 0 ? <EmptyState title={t('transport.noBoardings')} /> : (
                         <ul className="divide-y divide-(--app-border)">

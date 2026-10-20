@@ -14,6 +14,7 @@ use App\Notifications\PerformanceNotification;
 use App\Notifications\PublicFeedbackNotification;
 use App\Notifications\StatutoryDeadlineNotification;
 use App\Notifications\TransferAnnouncementNotification;
+use App\Notifications\TransportNotification;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -37,6 +38,7 @@ final class NotificationPresenter
         'public_feedback' => PublicFeedbackNotification::class,
         'statutory_deadline' => StatutoryDeadlineNotification::class,
         'transfer' => TransferAnnouncementNotification::class,
+        'transport' => TransportNotification::class,
     ];
 
     /** The UI language is chosen in the browser, so it arrives with the request. */

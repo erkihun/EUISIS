@@ -6,6 +6,9 @@ namespace App\Http\Controllers\ProviderPortal\Transport;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TransportTransactionResource;
+use App\Http\Resources\TransportTripResource;
+use App\Models\TransportException;
+use App\Models\TransportTrip;
 use App\Services\ProviderPortal\ProviderPortalContext;
 use App\Services\Transport\TransportDashboardService;
 use Illuminate\Http\Request;
@@ -24,6 +27,8 @@ class TransportDashboardController extends Controller
         return Inertia::render('ProviderPortal/Transport/Dashboard', [
             'stats' => collect($summary)->except('recent_scans')->all(),
             'recentTransactions' => TransportTransactionResource::collection($summary['recent_scans'])->resolve(),
+            'todayTrips' => TransportTripResource::collection(TransportTrip::query()->with(['route', 'vehicle', 'driver'])->where('provider_id', $provider->id)->whereDate('trip_date', today())->orderBy('departure_time')->limit(50)->get())->resolve(),
+            'openExceptions' => TransportException::query()->where('provider_id', $provider->id)->where('status', 'open')->count(),
         ]);
     }
 }

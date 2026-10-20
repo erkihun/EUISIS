@@ -58,6 +58,8 @@ class StoreTransportPassRequest extends FormRequest
                 'uuid',
                 Rule::exists('transport_routes', 'id')->where('provider_id', (string) $this->input('provider_id'))->whereNull('deleted_at'),
             ],
+            'boarding_stop_id' => ['nullable', 'uuid', Rule::exists('transport_route_stops', 'id')->where('transport_route_id', (string) $this->input('transport_route_id'))->whereNull('deleted_at')],
+            'evening_stop_id' => ['nullable', 'uuid', Rule::exists('transport_route_stops', 'id')->where('transport_route_id', (string) $this->input('transport_route_id'))->whereNull('deleted_at')],
             'valid_from' => ['required', 'date'],
             'valid_until' => ['nullable', 'date', 'after_or_equal:valid_from'],
             'status' => ['required', Rule::in(['active', 'suspended', 'expired', 'cancelled'])],

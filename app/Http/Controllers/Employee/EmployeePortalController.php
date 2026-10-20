@@ -40,6 +40,7 @@ use App\Models\TransferApproval;
 use App\Models\TransferSetting;
 use App\Models\TransportPass;
 use App\Models\TransportTransaction;
+use App\Models\TransportTrip;
 use App\Models\User;
 use App\Services\Cafeteria\CafeteriaAvailableSubsidyService;
 use App\Services\Cafeteria\CafeteriaLedgerService;
@@ -697,16 +698,39 @@ class EmployeePortalController extends Controller
      *
      * @return array<string, mixed>
      */
+    /**
+     * The employee's own transport: the route and stops assigned, today's
+     * trips on that route, and the boardings recorded against the card.
+     * Nothing financial: a boarding is evidence of service, not a charge.
+     */
     private function buildTransportActivity(string $employeeId, Carbon $today): array
     {
         $passes = TransportPass::query()
             ->where('employee_id', $employeeId)
-            ->with(['route:id,route_code,name_en,name_am,origin_en,origin_am,destination_en,destination_am', 'provider:id,name_en,name_am'])
+            ->with(['route:id,route_code,name_en,name_am,origin_en,origin_am,destination_en,destination_am', 'provider:id,name_en,name_am', 'boardingStop:id,name_en,name_am', 'eveningStop:id,name_en,name_am'])
             ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
             ->orderByDesc('valid_until')
             ->limit(5)
-            ->get()
-            ->map(fn (TransportPass $pass) => [
+            ->get();
+        $current = $passes->first(fn (TransportPass $pass): bool => $pass->status === 'active' && $pass->transport_route_id !== null);
+
+        $todayTrips = $current === null ? collect() : TransportTrip::query()
+            ->where('transport_route_id', $current->transport_route_id)
+            ->whereDate('trip_date', $today->toDateString())
+            ->whereNotIn('status', ['cancelled', 'failed'])
+            ->orderBy('departure_time')
+            ->get(['id', 'trip_number', 'direction', 'departure_time', 'status', 'boarded_count', 'capacity']);
+
+        $monthStart = $today->copy()->startOfMonth()->toDateString();
+        $verifiedThisMonth = TransportTransaction::query()
+            ->where('employee_id', $employeeId)
+            ->where('status', 'accepted')
+            ->whereNull('voided_at')
+            ->where('transaction_date', '>=', $monthStart);
+
+        return [
+            'type' => 'transport',
+            'passes' => $passes->map(fn (TransportPass $pass) => [
                 'id' => $pass->id,
                 'status' => (string) $pass->status,
                 'route' => $pass->route?->name_en,
@@ -718,24 +742,28 @@ class EmployeePortalController extends Controller
                 'destination_am' => $pass->route?->destination_am,
                 'provider' => $pass->provider?->name_en,
                 'provider_am' => $pass->provider?->name_am,
+                'boarding_stop' => $pass->boardingStop?->name_en,
+                'boarding_stop_am' => $pass->boardingStop?->name_am,
+                'evening_stop' => $pass->eveningStop?->name_en,
+                'evening_stop_am' => $pass->eveningStop?->name_am,
                 'valid_from' => $pass->valid_from?->toDateString(),
                 'valid_until' => $pass->valid_until?->toDateString(),
-            ])
-            ->all();
-
-        $monthStart = $today->copy()->startOfMonth()->toDateString();
-
-        return [
-            'type' => 'transport',
-            'passes' => $passes,
-            'rides_this_month' => TransportTransaction::query()
-                ->where('employee_id', $employeeId)
-                ->where('status', 'accepted')
-                ->where('transaction_date', '>=', $monthStart)
-                ->count(),
+            ])->all(),
+            'today_trips' => $todayTrips->map(fn (TransportTrip $trip) => [
+                'id' => $trip->id,
+                'trip_number' => $trip->trip_number,
+                'direction' => $trip->direction?->value,
+                'departure_time' => $trip->departure_time !== null ? substr((string) $trip->departure_time, 0, 5) : null,
+                'status' => $trip->status?->value,
+                'boarded_count' => $trip->boarded_count,
+                'capacity' => $trip->effectiveCapacity(),
+            ])->all(),
+            'rides_this_month' => (clone $verifiedThisMonth)->count(),
+            'morning_rides_this_month' => (clone $verifiedThisMonth)->where('direction', 'inbound')->count(),
+            'evening_rides_this_month' => (clone $verifiedThisMonth)->where('direction', 'outbound')->count(),
             'transactions' => TransportTransaction::query()
                 ->where('employee_id', $employeeId)
-                ->with(['route:id,route_code,name_en,name_am', 'provider:id,name_en,name_am'])
+                ->with(['route:id,route_code,name_en,name_am', 'provider:id,name_en,name_am', 'stop:id,name_en,name_am'])
                 ->orderByDesc('scanned_at')
                 ->limit(15)
                 ->get()
@@ -746,7 +774,10 @@ class EmployeePortalController extends Controller
                     'route_am' => $tx->route?->name_am,
                     'provider' => $tx->provider?->name_en,
                     'provider_am' => $tx->provider?->name_am,
-                    'status' => (string) $tx->status,
+                    'direction' => $tx->direction?->value,
+                    'stop' => $tx->stop?->name_en,
+                    'stop_am' => $tx->stop?->name_am,
+                    'status' => $tx->voided_at !== null ? 'voided' : (string) $tx->status,
                     'rejection_reason' => $tx->status === 'accepted' ? null : $tx->rejection_reason,
                 ])
                 ->all(),

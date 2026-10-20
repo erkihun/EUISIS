@@ -57,6 +57,8 @@ final class PermissionCatalog
             'cafeteria-networks', 'cafeteria-access', 'cafeteria-assignments', 'cafeteria-policies', 'cafeteria-settlements',
             'transport-providers', 'transport-routes', 'transport-vehicles', 'transport-drivers', 'transport-passes',
             'transport-transactions', 'transport-scan', 'transport-reports', 'transport-settings',
+            'transport-contracts', 'transport-schedules', 'transport-trips', 'transport-eligibility', 'transport-devices',
+            'transport-manifests', 'transport-exceptions', 'transport-invoices', 'transport-settlements',
         ],
         'Providers & External Applications' => ['service-providers', 'cafeteria-provider-users', 'cafeteria-portal', 'api_management', 'integrations'],
         'Security & Access Control' => ['users', 'user-organization-scopes', 'roles', 'permissions'],

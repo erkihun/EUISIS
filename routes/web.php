@@ -19,10 +19,14 @@ use App\Http\Controllers\ProviderPortal\ProviderReportController;
 use App\Http\Controllers\ProviderPortal\ProviderScanController;
 use App\Http\Controllers\ProviderPortal\ProviderTransactionController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportDashboardController as ProviderTransportDashboardController;
+use App\Http\Controllers\ProviderPortal\Transport\TransportDeviceController as ProviderTransportDeviceController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportDriverController as ProviderTransportDriverController;
+use App\Http\Controllers\ProviderPortal\Transport\TransportExceptionController as ProviderTransportExceptionController;
+use App\Http\Controllers\ProviderPortal\Transport\TransportInvoiceController as ProviderTransportInvoiceController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportReportController as ProviderTransportReportController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportRouteController as ProviderTransportRouteController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportScanController as ProviderTransportScanController;
+use App\Http\Controllers\ProviderPortal\Transport\TransportSettlementController as ProviderTransportSettlementController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportTransactionController as ProviderTransportTransactionController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportTripController as ProviderTransportTripController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportVehicleController as ProviderTransportVehicleController;
@@ -36,15 +40,26 @@ use App\Http\Controllers\Transfers\TransferAnnouncementController;
 use App\Http\Controllers\Transfers\TransferApplicationController;
 use App\Http\Controllers\Transfers\TransferDashboardController;
 use App\Http\Controllers\Transfers\TransferSettingController;
+use App\Http\Controllers\Transport\TransportContractController;
+use App\Http\Controllers\Transport\TransportDeviceController;
 use App\Http\Controllers\Transport\TransportDriverController;
+use App\Http\Controllers\Transport\TransportEligibilityController;
+use App\Http\Controllers\Transport\TransportExceptionController;
+use App\Http\Controllers\Transport\TransportInvoiceController;
+use App\Http\Controllers\Transport\TransportManualLookupController;
 use App\Http\Controllers\Transport\TransportOrganizationLookupController;
+use App\Http\Controllers\Transport\TransportOverviewController;
 use App\Http\Controllers\Transport\TransportPassController;
 use App\Http\Controllers\Transport\TransportProviderController;
 use App\Http\Controllers\Transport\TransportReportController;
 use App\Http\Controllers\Transport\TransportRouteController;
+use App\Http\Controllers\Transport\TransportRouteStopController;
 use App\Http\Controllers\Transport\TransportScanController;
+use App\Http\Controllers\Transport\TransportScheduleController;
 use App\Http\Controllers\Transport\TransportSettingsController;
+use App\Http\Controllers\Transport\TransportSettlementController;
 use App\Http\Controllers\Transport\TransportTransactionController;
+use App\Http\Controllers\Transport\TransportTripController;
 use App\Http\Controllers\Transport\TransportVehicleController;
 use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
@@ -270,6 +285,7 @@ Route::middleware(['auth:provider', 'provider.portal', 'provider.portal.context'
             Route::get('/dashboard', ProviderTransportDashboardController::class)->name('dashboard');
             Route::get('/scan', [ProviderTransportScanController::class, 'index'])->middleware('provider.permission:provider.transport.scan')->name('scan');
             Route::post('/scan', [ProviderTransportScanController::class, 'store'])->middleware(['provider.permission:provider.transport.scan', 'throttle:60,1'])->name('scan.store');
+            Route::post('/scan/lookup', TransportManualLookupController::class)->middleware(['provider.permission:provider.transport.manual_exception', 'throttle:30,1'])->name('scan.lookup');
             Route::get('/transactions', [ProviderTransportTransactionController::class, 'index'])->middleware('provider.permission:provider.transport.reports.view')->name('transactions.index');
             Route::get('/transactions/export/csv', [ProviderTransportTransactionController::class, 'exportCsv'])->middleware(['provider.permission:provider.transport.reports.view', 'throttle:10,1'])->name('transactions.export.csv');
             Route::get('/transactions/{transaction}', [ProviderTransportTransactionController::class, 'show'])->middleware('provider.permission:provider.transport.reports.view')->name('transactions.show');
@@ -293,6 +309,28 @@ Route::middleware(['auth:provider', 'provider.portal', 'provider.portal.context'
             Route::post('/trips', [ProviderTransportTripController::class, 'store'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.store');
             Route::get('/trips/{trip}/edit', [ProviderTransportTripController::class, 'edit'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.edit');
             Route::patch('/trips/{trip}', [ProviderTransportTripController::class, 'update'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.update');
+            // Trip board, dispatch and manifests (provider tier: no organization column).
+            Route::get('/trips/{trip}', [ProviderTransportTripController::class, 'show'])->middleware('provider.permission:provider.transport.trips.manage')->name('trips.show');
+            Route::post('/trips/{trip}/dispatch', [ProviderTransportTripController::class, 'dispatch'])->middleware(['provider.permission:provider.transport.dispatch', 'throttle:60,1'])->name('trips.dispatch');
+            Route::get('/trips/{trip}/manifest.pdf', [ProviderTransportTripController::class, 'manifestPdf'])->middleware(['provider.permission:provider.transport.manifests.view', 'throttle:20,1'])->name('trips.manifest.pdf');
+            Route::get('/exceptions', [ProviderTransportExceptionController::class, 'index'])->middleware('provider.permission:provider.transport.exceptions.view')->name('exceptions.index');
+            Route::get('/devices', [ProviderTransportDeviceController::class, 'index'])->middleware('provider.permission:provider.transport.devices.view')->name('devices.index');
+            Route::post('/devices/{device}/revoke', [ProviderTransportDeviceController::class, 'revoke'])->middleware(['provider.permission:provider.transport.devices.view', 'throttle:10,1'])->name('devices.revoke');
+            // Invoices and statements (feature transport_settlement).
+            Route::middleware('provider.permission:provider.transport.invoices.manage')->group(function (): void {
+                Route::get('/invoices', [ProviderTransportInvoiceController::class, 'index'])->name('invoices.index');
+                Route::get('/invoices/create', [ProviderTransportInvoiceController::class, 'create'])->name('invoices.create');
+                Route::post('/invoices', [ProviderTransportInvoiceController::class, 'store'])->name('invoices.store');
+                Route::get('/invoices/{invoice}', [ProviderTransportInvoiceController::class, 'show'])->name('invoices.show');
+                Route::get('/invoices/{invoice}/edit', [ProviderTransportInvoiceController::class, 'edit'])->name('invoices.edit');
+                Route::match(['put', 'patch'], '/invoices/{invoice}', [ProviderTransportInvoiceController::class, 'update'])->name('invoices.update');
+                Route::post('/invoices/{invoice}/submit', [ProviderTransportInvoiceController::class, 'submit'])->name('invoices.submit');
+                Route::post('/invoices/{invoice}/withdraw', [ProviderTransportInvoiceController::class, 'withdraw'])->name('invoices.withdraw');
+                Route::get('/settlements', [ProviderTransportSettlementController::class, 'index'])->name('settlements.index');
+                Route::get('/settlements/{settlement}', [ProviderTransportSettlementController::class, 'show'])->name('settlements.show');
+                Route::get('/settlements/{settlement}/statement.pdf', [ProviderTransportSettlementController::class, 'pdf'])->middleware('throttle:20,1')->name('settlements.pdf');
+                Route::post('/settlements/{settlement}/disputes', [ProviderTransportSettlementController::class, 'dispute'])->middleware('throttle:20,1')->name('settlements.disputes.store');
+            });
             Route::get('/reports', [ProviderTransportReportController::class, 'index'])->middleware('provider.permission:provider.transport.reports.view')->name('reports.index');
         });
         Route::get('/profile', [ProviderProfileController::class, 'show'])->name('profile.show');
@@ -1089,6 +1127,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         // The scan screen lists every provider, route and today's trips: operators only.
         Route::get('/scan', [TransportScanController::class, 'index'])->middleware('can:transport-scan.create')->name('scan');
         Route::post('/scan', [TransportScanController::class, 'store'])->middleware(['can:transport-scan.create', 'throttle:60,1'])->name('scan.store');
+        Route::post('/scan/lookup', TransportManualLookupController::class)->middleware(['can:transport-scan.manual', 'throttle:30,1'])->name('scan.lookup');
         Route::get('/settings', [TransportSettingsController::class, 'index'])->middleware('can:transport-settings.view')->name('settings.index');
         Route::patch('/settings', [TransportSettingsController::class, 'update'])->middleware('can:transport-settings.update')->name('settings.update');
         Route::get('/routes', [TransportRouteController::class, 'index'])->middleware('can:transport-routes.viewAny')->name('routes.index');
@@ -1114,8 +1153,70 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::get('/reports', [TransportReportController::class, 'index'])->middleware('can:transport-reports.view')->name('reports.index');
         Route::get('/transactions', [TransportTransactionController::class, 'index'])->middleware('can:transport-transactions.viewAny')->name('transactions.index');
         Route::get('/transactions/export', [TransportTransactionController::class, 'export'])->middleware(['can:transport-transactions.export', 'throttle:10,1'])->name('transactions.export');
+        Route::get('/transactions/{transaction}', [TransportTransactionController::class, 'show'])->middleware('can:transport-transactions.view')->name('transactions.show');
+        Route::post('/transactions/{transaction}/void', [TransportTransactionController::class, 'void'])->middleware('can:transport-transactions.void')->name('transactions.void');
+        Route::get('/reports/{type}/export/{format}', [TransportReportController::class, 'export'])->middleware(['can:transport-reports.export', 'throttle:10,1'])->name('reports.export');
         // Scoped organization search for the provider and route forms.
         Route::get('/organizations/lookup', TransportOrganizationLookupController::class)->middleware('throttle:120,1')->name('organizations.lookup');
+
+        // ── Verified usage: the desk, trips and dispatch, stops, schedules ──
+        Route::get('/overview', TransportOverviewController::class)->name('overview');
+        Route::post('/routes/{route}/stops', [TransportRouteStopController::class, 'store'])->middleware('can:transport-routes.update')->name('routes.stops.store');
+        Route::patch('/routes/{route}/stops/{stop}', [TransportRouteStopController::class, 'update'])->middleware('can:transport-routes.update')->name('routes.stops.update');
+        Route::delete('/routes/{route}/stops/{stop}', [TransportRouteStopController::class, 'destroy'])->middleware('can:transport-routes.update')->name('routes.stops.destroy');
+        Route::get('/schedules', [TransportScheduleController::class, 'index'])->middleware('can:transport-schedules.viewAny')->name('schedules.index');
+        Route::get('/schedules/create', [TransportScheduleController::class, 'create'])->middleware('can:transport-schedules.create')->name('schedules.create');
+        Route::post('/schedules', [TransportScheduleController::class, 'store'])->middleware('can:transport-schedules.create')->name('schedules.store');
+        Route::post('/schedules/plan', [TransportScheduleController::class, 'plan'])->middleware('can:transport-trips.create')->name('schedules.plan');
+        Route::post('/schedules/calendar-days', [TransportScheduleController::class, 'storeCalendarDay'])->middleware('can:transport-schedules.update')->name('schedules.calendar-days.store');
+        Route::delete('/schedules/calendar-days/{calendarDay}', [TransportScheduleController::class, 'destroyCalendarDay'])->middleware('can:transport-schedules.update')->name('schedules.calendar-days.destroy');
+        Route::get('/schedules/{schedule}/edit', [TransportScheduleController::class, 'edit'])->middleware('can:transport-schedules.update')->name('schedules.edit');
+        Route::patch('/schedules/{schedule}', [TransportScheduleController::class, 'update'])->middleware('can:transport-schedules.update')->name('schedules.update');
+        Route::get('/trips', [TransportTripController::class, 'index'])->middleware('can:transport-trips.viewAny')->name('trips.index');
+        Route::get('/trips/create', [TransportTripController::class, 'create'])->middleware('can:transport-trips.create')->name('trips.create');
+        Route::post('/trips', [TransportTripController::class, 'store'])->middleware('can:transport-trips.create')->name('trips.store');
+        Route::get('/trips/{trip}', [TransportTripController::class, 'show'])->middleware('can:transport-trips.view')->name('trips.show');
+        Route::post('/trips/{trip}/dispatch', [TransportTripController::class, 'dispatch'])->middleware('can:transport-trips.dispatch')->name('trips.dispatch');
+        Route::get('/trips/{trip}/manifest.pdf', [TransportTripController::class, 'manifestPdf'])->middleware(['can:transport-manifests.view', 'throttle:20,1'])->name('trips.manifest.pdf');
+        // ── Eligibility, devices, exceptions ──
+        Route::get('/eligibility', [TransportEligibilityController::class, 'index'])->middleware('can:transport-eligibility.viewAny')->name('eligibility.index');
+        Route::get('/eligibility/create', [TransportEligibilityController::class, 'create'])->middleware('can:transport-eligibility.create')->name('eligibility.create');
+        Route::post('/eligibility', [TransportEligibilityController::class, 'store'])->middleware('can:transport-eligibility.create')->name('eligibility.store');
+        Route::get('/eligibility/{eligibility}/edit', [TransportEligibilityController::class, 'edit'])->middleware('can:transport-eligibility.update')->name('eligibility.edit');
+        Route::patch('/eligibility/{eligibility}', [TransportEligibilityController::class, 'update'])->middleware('can:transport-eligibility.update')->name('eligibility.update');
+        Route::get('/devices', [TransportDeviceController::class, 'index'])->middleware('can:transport-devices.viewAny')->name('devices.index');
+        Route::get('/devices/create', [TransportDeviceController::class, 'create'])->middleware('can:transport-devices.create')->name('devices.create');
+        Route::post('/devices', [TransportDeviceController::class, 'store'])->middleware('can:transport-devices.create')->name('devices.store');
+        Route::post('/devices/{device}/revoke', [TransportDeviceController::class, 'revoke'])->middleware('can:transport-devices.revoke')->name('devices.revoke');
+        Route::post('/devices/{device}/rotate', [TransportDeviceController::class, 'rotate'])->middleware('can:transport-devices.update')->name('devices.rotate');
+        Route::post('/devices/{device}/status', [TransportDeviceController::class, 'setStatus'])->middleware('can:transport-devices.update')->name('devices.status');
+        Route::get('/exceptions', [TransportExceptionController::class, 'index'])->middleware('can:transport-exceptions.viewAny')->name('exceptions.index');
+        Route::post('/exceptions/{exception}/review', [TransportExceptionController::class, 'review'])->middleware('can:transport-exceptions.review')->name('exceptions.review');
+        // ── Contracts, invoices, settlements (feature transport_settlement) ──
+        Route::get('/contracts', [TransportContractController::class, 'index'])->middleware('can:transport-contracts.viewAny')->name('contracts.index');
+        Route::get('/contracts/create', [TransportContractController::class, 'create'])->middleware('can:transport-contracts.create')->name('contracts.create');
+        Route::post('/contracts', [TransportContractController::class, 'store'])->middleware('can:transport-contracts.create')->name('contracts.store');
+        Route::get('/contracts/{contract}', [TransportContractController::class, 'show'])->middleware('can:transport-contracts.view')->name('contracts.show');
+        Route::get('/contracts/{contract}/edit', [TransportContractController::class, 'edit'])->middleware('can:transport-contracts.update')->name('contracts.edit');
+        Route::match(['put', 'patch'], '/contracts/{contract}', [TransportContractController::class, 'update'])->middleware('can:transport-contracts.update')->name('contracts.update');
+        Route::post('/contracts/{contract}/approve', [TransportContractController::class, 'approve'])->middleware('can:transport-contracts.update')->name('contracts.approve');
+        Route::post('/contracts/{contract}/versions', [TransportContractController::class, 'newVersion'])->middleware('can:transport-contracts.create')->name('contracts.versions.store');
+        Route::post('/contracts/{contract}/end', [TransportContractController::class, 'end'])->middleware('can:transport-contracts.update')->name('contracts.end');
+        Route::post('/contracts/{contract}/cancel', [TransportContractController::class, 'cancel'])->middleware('can:transport-contracts.update')->name('contracts.cancel');
+        Route::get('/contracts/{contract}/agreement', [TransportContractController::class, 'agreement'])->middleware('can:transport-contracts.view')->name('contracts.agreement');
+        Route::get('/invoices', [TransportInvoiceController::class, 'index'])->middleware('can:transport-invoices.viewAny')->name('invoices.index');
+        Route::get('/invoices/{invoice}', [TransportInvoiceController::class, 'show'])->middleware('can:transport-invoices.view')->name('invoices.show');
+        Route::post('/invoices/{invoice}/review', [TransportInvoiceController::class, 'takeUnderReview'])->middleware('can:transport-invoices.review')->name('invoices.review');
+        Route::post('/invoices/{invoice}/return', [TransportInvoiceController::class, 'returnToProvider'])->middleware('can:transport-invoices.review')->name('invoices.return');
+        Route::get('/settlements', [TransportSettlementController::class, 'index'])->middleware('can:transport-settlements.viewAny')->name('settlements.index');
+        Route::get('/settlements/create', [TransportSettlementController::class, 'create'])->middleware('can:transport-settlements.manage')->name('settlements.create');
+        Route::post('/settlements', [TransportSettlementController::class, 'store'])->middleware('can:transport-settlements.manage')->name('settlements.store');
+        Route::get('/settlements/{settlement}', [TransportSettlementController::class, 'show'])->middleware('can:transport-settlements.view')->name('settlements.show');
+        Route::get('/settlements/{settlement}/statement.pdf', [TransportSettlementController::class, 'pdf'])->middleware(['can:transport-settlements.view', 'throttle:20,1'])->name('settlements.pdf');
+        Route::post('/settlements/{settlement}/recompute', [TransportSettlementController::class, 'recompute'])->middleware('can:transport-settlements.manage')->name('settlements.recompute');
+        Route::post('/settlements/{settlement}/transition', [TransportSettlementController::class, 'transition'])->middleware('can:transport-settlements.view')->name('settlements.transition');
+        Route::post('/settlements/{settlement}/adjustments', [TransportSettlementController::class, 'storeAdjustment'])->middleware('can:transport-settlements.manage')->name('settlements.adjustments.store');
+        Route::post('/settlements/{settlement}/adjustments/{adjustment}/decide', [TransportSettlementController::class, 'decideAdjustment'])->middleware('can:transport-settlements.view')->name('settlements.adjustments.decide');
     });
 
     // Institution Offices — deprecated; GET routes redirect to Organization Units.

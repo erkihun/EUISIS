@@ -5,6 +5,14 @@ route and trip, against a pass the city issued. It is live by default
 (`config/features.php`, `FEATURE_TRANSPORT=false` switches it off without
 touching data).
 
+## Verified usage (October 2026)
+
+The module now records verified usage end to end — trips with morning/evening
+direction, stops, schedules, scanner devices, a single QR/NFC boarding engine,
+manifests, contracts, invoices, statements and reconciliation. The detailed
+documentation lives in `docs/transport/` (start with `architecture.md`,
+`business-rules.md` and `production-readiness.md`).
+
 ## Who does what
 
 | Who | Where | What |

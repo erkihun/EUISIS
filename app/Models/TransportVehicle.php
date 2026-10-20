@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 class TransportVehicle extends Model
 {
@@ -21,6 +22,11 @@ class TransportVehicle extends Model
         'plate_number',
         'vehicle_type',
         'capacity',
+        'standing_capacity',
+        'inspection_expires_at',
+        'insurance_expires_at',
+        'permit_expires_at',
+        'maintenance_until',
         'status',
         'assigned_route_id',
         'model',
@@ -35,7 +41,12 @@ class TransportVehicle extends Model
     {
         return [
             'capacity' => 'integer',
+            'standing_capacity' => 'integer',
             'year' => 'integer',
+            'inspection_expires_at' => 'date',
+            'insurance_expires_at' => 'date',
+            'permit_expires_at' => 'date',
+            'maintenance_until' => 'date',
         ];
     }
 
@@ -52,5 +63,35 @@ class TransportVehicle extends Model
     public function drivers(): HasMany
     {
         return $this->hasMany(TransportDriver::class, 'assigned_vehicle_id');
+    }
+
+    public function devices(): HasMany
+    {
+        return $this->hasMany(TransportDevice::class, 'transport_vehicle_id');
+    }
+
+    public function trips(): HasMany
+    {
+        return $this->hasMany(TransportTrip::class, 'transport_vehicle_id');
+    }
+
+    /** Seats plus approved standing places; null when no capacity is recorded. */
+    public function approvedCapacity(): ?int
+    {
+        if ($this->capacity === null) {
+            return null;
+        }
+
+        return $this->capacity + ($this->standing_capacity ?? 0);
+    }
+
+    /** Blocked by maintenance or by a lapsed compliance date the city tracks. */
+    public function isAvailableOn(Carbon $date): bool
+    {
+        if ($this->status !== 'active') {
+            return false;
+        }
+
+        return $this->maintenance_until === null || $this->maintenance_until->lt($date);
     }
 }

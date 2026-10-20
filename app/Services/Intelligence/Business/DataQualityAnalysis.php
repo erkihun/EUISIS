@@ -16,6 +16,8 @@ use App\Services\SituationRoom\SituationMemo;
 use App\Services\SituationRoom\SituationPanel;
 use App\Services\SituationRoom\SituationScopeResolver;
 use App\Services\SituationRoom\SituationSettings;
+use App\Services\Transport\TransportDataQualityService;
+use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +60,9 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
         }
         if ($context->scope->organizationIds === null) {
             $panels['quality_public_feedback'] = fn (): SituationPanel => $this->publicFeedback();
+        }
+        if ($context->scope->organizationIds === null && Features::enabled('transport')) {
+            $panels['quality_transport'] = fn (): SituationPanel => $this->transport();
         }
 
         return $panels;
@@ -208,6 +213,28 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
         ], $this->checks($context));
 
         return SituationPanel::table('quality_checks', $this->title('quality_checks'), $this->hint('quality_checks'), $this->source('data_quality'), [
+            $this->column('check', 'label'),
+            $this->column('severity', 'label'),
+            $this->column('count'),
+            $this->column('state', 'label'),
+            $this->column('impact', 'label'),
+            $this->column('remediation', 'label'),
+        ], $rows, span: 3);
+    }
+
+    /** Installation-wide transport master-data checks (TransportDataQualityService): counts and where each is fixed. */
+    private function transport(): SituationPanel
+    {
+        $rows = array_map(fn (array $c): array => [
+            'check' => SituationLabel::key(self::PREFIX."quality.transport_{$c['code']}.label"),
+            'severity' => $this->value('severity_code', $c['severity'] === 'critical' ? self::FAIL : self::WARN),
+            'count' => max(0, $c['count']),
+            'state' => $c['count'] === 0 ? SituationLabel::key('situationRoom.quality.state_ok') : SituationLabel::key('situationRoom.quality.state_review'),
+            'impact' => SituationLabel::key(self::PREFIX."quality.transport_{$c['code']}.impact"),
+            'remediation' => SituationLabel::key(self::PREFIX."quality.transport_{$c['code']}.remediation"),
+        ], app(TransportDataQualityService::class)->summary());
+
+        return SituationPanel::table('quality_transport', $this->title('quality_transport'), $this->hint('quality_transport'), $this->source('data_quality'), [
             $this->column('check', 'label'),
             $this->column('severity', 'label'),
             $this->column('count'),

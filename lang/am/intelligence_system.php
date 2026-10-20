@@ -8,7 +8,7 @@ declare(strict_types=1);
 return [
     'components' => [
         'application' => 'መተግበሪያ', 'database' => 'የመረጃ ቋት', 'cache' => 'መሸጎጫ', 'redis' => 'Redis', 'queue' => 'ወረፋዎች',
-        'scheduler' => 'መርሐግብር', 'storage' => 'ማከማቻ', 'backups' => 'መጠባበቂያዎች', 'integrations' => 'ውህደቶች', 'security' => 'የደህንነት ምልክቶች',
+        'scheduler' => 'መርሐግብር', 'storage' => 'ማከማቻ', 'backups' => 'መጠባበቂያዎች', 'integrations' => 'ውህደቶች', 'security' => 'የደህንነት ምልክቶች', 'transport' => 'የትራንስፖርት ስካነሮች',
     ],
 
     'status' => [

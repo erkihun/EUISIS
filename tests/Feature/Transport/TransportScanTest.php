@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\SystemSetting;
 use App\Models\TransportTransaction;
+use App\Services\Transport\TransportSettings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Tests\Support\TransportScenario;
@@ -19,13 +20,15 @@ beforeEach(function (): void {
     $this->provider = $this->s->provider();
     $this->operator = $this->s->portalUser($this->provider, 'operator', ['provider.transport.scan']);
     $this->route = $this->s->route($this->provider);
+    // Every boarding sits inside an activated trip on a vehicle: the default scan names today's boarding trip.
+    $this->trip = $this->s->trip($this->route);
     [$this->employee, $this->card] = $this->s->employee('woreda_a1');
 
     $this->scan = function (array $extra = [], ?string $nonce = null) {
         return $this->actingAs($this->operator, 'provider')->postJson(route('provider.portal.transport.scan.store'), $extra + [
             'qr_token' => $this->s->qr($this->card),
             'scan_nonce' => $nonce ?? (string) Str::uuid(),
-            'transport_route_id' => $this->route->id,
+            'transport_trip_id' => $this->trip->id,
         ]);
     };
     $this->setting = function (string $key, bool $value): void {
@@ -33,6 +36,7 @@ beforeEach(function (): void {
             'value' => $value ? '1' : '0', 'type' => 'boolean', 'label_en' => $key, 'label_am' => $key,
             'default_value' => '0', 'is_public' => false, 'is_encrypted' => false, 'is_system' => false, 'is_required' => true,
         ]);
+        app(TransportSettings::class)->forget();
     };
 });
 
@@ -59,12 +63,27 @@ it('refuses a boarding without a pass, with a reason the operator can read', fun
     expect(TransportTransaction::query()->sole()->status)->toBe('rejected');
 });
 
-it('ignores passes that expired, are suspended or belong to another route', function (): void {
+it('ignores passes that expired or are suspended', function (): void {
     $this->s->pass($this->employee, $this->provider, $this->route, ['valid_until' => today()->subDay()->toDateString()]);
     $this->s->pass($this->employee, $this->provider, $this->route, ['status' => 'suspended']);
-    $this->s->pass($this->employee, $this->provider, $this->s->route($this->provider));
 
     ($this->scan)()->assertStatus(422)->assertJsonPath('result_code', 'active_transport_pass_missing');
+});
+
+it('applies the alternative-route policy to a pass that names another route', function (): void {
+    $this->s->pass($this->employee, $this->provider, $this->s->route($this->provider));
+
+    // Default: refused, and the refusal is evidence with the assigned route in its snapshot.
+    ($this->scan)()->assertStatus(422)->assertJsonPath('result_code', 'route_not_assigned');
+    expect(TransportTransaction::query()->sole()->eligibility_snapshot['assigned_route_id'])->not->toBe($this->route->id);
+
+    SystemSetting::query()->updateOrCreate(['group' => 'transport', 'key' => 'alternative_route_policy'], [
+        'value' => 'allow_same_provider', 'type' => 'string', 'label_en' => 'x', 'label_am' => 'x', 'default_value' => 'deny',
+        'is_public' => false, 'is_encrypted' => false, 'is_system' => false, 'is_required' => true,
+    ]);
+    app(TransportSettings::class)->forget();
+    ($this->scan)()->assertCreated();
+    expect(TransportTransaction::query()->where('status', 'accepted')->sole()->metadata['alternative_route'])->toBeTrue();
 });
 
 it('dates the scan by the server clock, whatever the device claims', function (): void {
@@ -96,23 +115,36 @@ it("never reveals another provider's transaction through a reused nonce", functi
     $rival = $this->s->provider('Rival');
     $rivalOperator = $this->s->portalUser($rival, 'operator', ['provider.transport.scan']);
 
+    $rivalTrip = $this->s->trip($this->s->route($rival));
     $this->actingAs($rivalOperator, 'provider')->postJson(route('provider.portal.transport.scan.store'), [
-        'qr_token' => $this->s->qr($this->card), 'scan_nonce' => $nonce,
+        'qr_token' => $this->s->qr($this->card), 'scan_nonce' => $nonce, 'transport_trip_id' => $rivalTrip->id,
     ])->assertStatus(422)->assertJsonPath('result_code', 'scan_nonce_conflict')->assertJsonPath('transaction', null);
 });
 
-it("refuses another provider's route", function (): void {
+it("refuses another provider's route and trip", function (): void {
     $foreignRoute = $this->s->route($this->s->provider('Rival'));
+    $foreignTrip = $this->s->trip($foreignRoute);
 
-    ($this->scan)(['transport_route_id' => $foreignRoute->id])->assertStatus(422)->assertJsonPath('result_code', 'route_not_found');
+    ($this->scan)(['transport_trip_id' => null, 'transport_route_id' => $foreignRoute->id])->assertStatus(422)->assertJsonPath('result_code', 'route_not_found');
+    ($this->scan)(['transport_trip_id' => $foreignTrip->id])->assertStatus(422)->assertJsonPath('result_code', 'trip_not_found');
     expect(TransportTransaction::query()->count())->toBe(0);
+});
+
+it('requires an activated trip unless the settings say otherwise', function (): void {
+    $this->s->pass($this->employee, $this->provider, $this->route);
+
+    ($this->scan)(['transport_trip_id' => null, 'transport_route_id' => $this->route->id])->assertStatus(422)->assertJsonPath('result_code', 'trip_required');
+    expect(TransportTransaction::query()->count())->toBe(0);
+
+    ($this->setting)('require_trip_for_boarding', false);
+    ($this->scan)(['transport_trip_id' => null, 'transport_route_id' => $this->route->id])->assertCreated();
 });
 
 it('lets a route serve its own office, its subtree or the whole city', function (string $scope, string $routeOrg, bool $boards): void {
     $route = $this->s->route($this->provider, ['assigned_organization_id' => $this->s->org[$routeOrg]->id, 'assigned_scope_type' => $scope]);
     $this->s->pass($this->employee, $this->provider, $route);
 
-    $response = ($this->scan)(['transport_route_id' => $route->id]);
+    $response = ($this->scan)(['transport_trip_id' => $this->s->trip($route)->id]);
 
     $boards
         ? $response->assertCreated()
@@ -137,8 +169,8 @@ it('counts a boarding against its trip and refuses a second boarding of the same
     $this->s->pass($this->employee, $this->provider, $this->route);
 
     // The trip names its route; the scan need not repeat it.
-    ($this->scan)(['transport_route_id' => null, 'transport_trip_id' => $trip->id])->assertCreated();
-    ($this->scan)(['transport_route_id' => null, 'transport_trip_id' => $trip->id])->assertStatus(422)->assertJsonPath('result_code', 'already_boarded');
+    ($this->scan)(['transport_trip_id' => $trip->id])->assertCreated();
+    ($this->scan)(['transport_trip_id' => $trip->id])->assertStatus(422)->assertJsonPath('result_code', 'already_boarded');
 
     expect($trip->fresh()->boarded_count)->toBe(1)
         ->and(TransportTransaction::query()->where('status', 'accepted')->value('transport_route_id'))->toBe($this->route->id);
@@ -165,11 +197,19 @@ it('refuses trips that are not boarding today or run on another route', function
     ($this->scan)(['transport_trip_id' => $trip->id, 'transport_route_id' => ($scan['route'] ?? null) === 'other' ? $other->id : $this->route->id])
         ->assertStatus(422)->assertJsonPath('result_code', $code);
 })->with([
-    'departed' => [['status' => 'departed'], [], 'trip_not_boardable'],
+    'not started' => [['status' => 'planned'], [], 'trip_not_boardable'],
+    'completed' => [['status' => 'completed'], [], 'trip_not_boardable'],
     'cancelled' => [['status' => 'cancelled'], [], 'trip_not_boardable'],
     'tomorrow' => [['trip_date' => '2026-10-15'], [], 'trip_not_today'],
     'another route' => [[], ['route' => 'other'], 'trip_route_mismatch'],
 ]);
+
+it('boards while the trip is in progress, since employees join at later stops', function (): void {
+    $this->trip->update(['status' => 'in_progress']);
+    $this->s->pass($this->employee, $this->provider, $this->route);
+
+    ($this->scan)()->assertCreated();
+});
 
 it('accepts a boarding without a pass as pay-as-you-go when the settings allow it', function (): void {
     ($this->setting)('allow_pay_as_you_go', true);
@@ -186,7 +226,7 @@ it('accepts a boarding without a pass when passes are not required', function ()
 
 it('makes the nonce optional only when the settings say so', function (): void {
     $this->s->pass($this->employee, $this->provider, $this->route);
-    $payload = ['qr_token' => $this->s->qr($this->card), 'transport_route_id' => $this->route->id];
+    $payload = ['qr_token' => $this->s->qr($this->card), 'transport_trip_id' => $this->trip->id];
 
     $this->actingAs($this->operator, 'provider')->postJson(route('provider.portal.transport.scan.store'), $payload)->assertJsonValidationErrors('scan_nonce');
 
@@ -197,7 +237,7 @@ it('makes the nonce optional only when the settings say so', function (): void {
 
 it('refuses an unknown card without recording a boarding', function (): void {
     $this->actingAs($this->operator, 'provider')->postJson(route('provider.portal.transport.scan.store'), [
-        'qr_token' => 'https://example.test/not-a-card-at-all', 'scan_nonce' => (string) Str::uuid(),
+        'qr_token' => 'https://example.test/not-a-card-at-all', 'scan_nonce' => (string) Str::uuid(), 'transport_trip_id' => $this->trip->id,
     ])->assertStatus(422)->assertJsonPath('result_code', 'card_not_found');
 
     expect(TransportTransaction::query()->count())->toBe(0);
@@ -218,7 +258,7 @@ it('lets staff scan for a provider from the admin terminal', function (): void {
 
     $this->actingAs($staff)->postJson(route('transport.scan.store'), [
         'provider_id' => $this->provider->id, 'qr_token' => $this->s->qr($this->card),
-        'scan_nonce' => (string) Str::uuid(), 'transport_route_id' => $this->route->id,
+        'scan_nonce' => (string) Str::uuid(), 'transport_trip_id' => $this->trip->id,
     ])->assertCreated();
 
     expect(TransportTransaction::query()->sole()->metadata['source'])->toBe('admin_transport_scan');

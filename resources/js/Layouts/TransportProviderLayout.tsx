@@ -6,7 +6,8 @@ import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import AppToaster from '@/Components/ui/AppToaster';
 import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import Dropdown from '@/Components/Dropdown';
-import { ActivityIcon, ChevronDown, LayoutDashboard, LogOut, MenuIcon, QrCodeIcon, ReceiptTextIcon, ScrollText, UserIcon, X } from '@/Components/Icons';
+import { ActivityIcon, AlertTriangle, ChevronDown, LayoutDashboard, LogOut, MenuIcon, QrCodeIcon, ReceiptTextIcon, ScrollText, UserIcon, X } from '@/Components/Icons';
+import { FileSpreadsheetIcon, HandMoneyIcon, MonitorIcon } from '@/Components/NavIcons';
 import type { PageProps } from '@/types';
 import type { TransportPortalCan } from '@/types/transport';
 
@@ -26,6 +27,10 @@ const NAV = [
     ['provider.portal.transport.routes.index', 'transport.routes', ScrollText, 'transportRoutesManage'],
     ['provider.portal.transport.vehicles.index', 'transport.vehicles', ActivityIcon, 'transportVehiclesManage'],
     ['provider.portal.transport.drivers.index', 'transport.drivers', UserIcon, 'transportDriversManage'],
+    ['provider.portal.transport.exceptions.index', 'transport.exceptions', AlertTriangle, 'transportExceptionsView'],
+    ['provider.portal.transport.devices.index', 'transport.devices', MonitorIcon, 'transportDevicesView'],
+    ['provider.portal.transport.invoices.index', 'transport.invoices', FileSpreadsheetIcon, 'transportInvoicesManage'],
+    ['provider.portal.transport.settlements.index', 'transport.settlements', HandMoneyIcon, 'transportInvoicesManage'],
     ['provider.portal.transport.reports.index', 'transport.reports', ScrollText, 'transportReportsView'],
 ] as const satisfies readonly (readonly [string, string, unknown, keyof TransportPortalCan])[];
 

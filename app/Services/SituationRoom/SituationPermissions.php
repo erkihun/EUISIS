@@ -43,6 +43,8 @@ final class SituationPermissions
 
     public const CASES = 'situation_room.cases.view';
 
+    public const TRANSPORT = 'situation_room.transport.view';
+
     /** Needed alongside EMPLOYEE_BREAKDOWN to name employees (the public-feedback rule for employee targets). */
     public const EMPLOYEE_TARGET = 'service_feedback.view_employee_target';
 
@@ -50,7 +52,7 @@ final class SituationPermissions
     public const DETAIL_GRANTS = [self::EMPLOYEE_BREAKDOWN, self::EMPLOYEE_TARGET, self::CAFETERIA];
 
     /** The per-domain grants this module adds (database/seeders/data/situation-room-permissions.php). */
-    public const DOMAIN = [self::WORKFORCE, self::PUBLIC_VOICE, self::OPERATIONS, self::PERFORMANCE, self::CAFETERIA, self::CASES];
+    public const DOMAIN = [self::WORKFORCE, self::PUBLIC_VOICE, self::OPERATIONS, self::PERFORMANCE, self::CAFETERIA, self::CASES, self::TRANSPORT];
 
     /** @return list<string> */
     public static function all(): array

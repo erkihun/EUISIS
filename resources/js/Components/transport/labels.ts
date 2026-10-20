@@ -4,8 +4,11 @@ import { useLocale } from '@/hooks/useLocale';
 import type { Named, PaginationMeta } from '@/types/transport';
 
 const TONES: Record<string, Tone> = {
-    active: 'success', accepted: 'success', boarding: 'info', scheduled: 'info', completed: 'neutral', departed: 'neutral',
-    maintenance: 'warning', suspended: 'warning', inactive: 'neutral', expired: 'neutral', cancelled: 'danger', rejected: 'danger',
+    active: 'success', accepted: 'success', approved: 'success', paid: 'success', reviewed: 'success', online: 'success', offline_reconciled: 'success',
+    boarding: 'info', in_progress: 'info', planned: 'info', assigned: 'info', scheduled: 'info', submitted: 'info', under_review: 'info', draft: 'neutral',
+    completed: 'neutral', departed: 'neutral', superseded: 'neutral', ended: 'neutral', dismissed: 'neutral', withdrawn: 'neutral', returned: 'warning',
+    maintenance: 'warning', suspended: 'warning', pending: 'warning', disputed: 'warning', open: 'warning', offline_pending: 'warning', warning: 'warning',
+    inactive: 'neutral', expired: 'neutral', info: 'neutral', cancelled: 'danger', failed: 'danger', rejected: 'danger', revoked: 'danger', voided: 'danger', critical: 'danger', offline_rejected: 'danger',
 };
 
 /** Locale-aware names and the shared transport vocabularies (statuses, reasons, scopes). */
@@ -20,7 +23,7 @@ export function useTransportLabels() {
 
     /** A label for a vocabulary value; an unknown value shows as itself rather than as a key. */
     const label = useCallback(
-        (group: 'statuses' | 'reasons' | 'scopeLabels' | 'vehicleTypes' | 'settingLabels' | 'settingHelp', value: string | null | undefined): string => {
+        (group: 'statuses' | 'reasons' | 'scopeLabels' | 'vehicleTypes' | 'settingLabels' | 'settingHelp' | 'directions' | 'methods' | 'settlementModels' | 'settlementPeriods' | 'exceptionTypes' | 'adjustmentOrigins' | 'disputeTypes' | 'occupancy' | 'dataQuality' | 'subjectTypes' | 'severities' | 'syncStates', value: string | null | undefined): string => {
             if (!value) return '—';
             const key = `transport.${group}.${value}`;
             const text = t(key);

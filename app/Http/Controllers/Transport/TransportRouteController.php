@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTransportRouteRequest;
 use App\Http\Requests\UpdateTransportRouteRequest;
 use App\Http\Resources\TransportRouteResource;
+use App\Http\Resources\TransportRouteStopResource;
 use App\Models\Provider;
 use App\Models\TransportRoute;
 use Illuminate\Http\RedirectResponse;
@@ -67,6 +68,7 @@ class TransportRouteController extends Controller
 
         return Inertia::render('Transport/Routes/Edit', [
             'route' => (new TransportRouteResource($route->load('assignedOrganization')))->resolve(),
+            'stops' => TransportRouteStopResource::collection($route->stops()->orderBy('sequence')->get())->resolve(),
             ...$this->formPayload(),
         ]);
     }

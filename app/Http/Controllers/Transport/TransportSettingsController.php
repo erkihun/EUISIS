@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Transport;
 
+use App\Actions\Audit\WriteAuditLogAction;
+use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Models\SystemSetting;
 use App\Services\Transport\TransportSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,37 +28,59 @@ class TransportSettingsController extends Controller
          */
         return Inertia::render('Transport/Settings/Index', [
             'transportSettings' => $settings->all(),
+            'choices' => TransportSettings::CHOICES,
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, TransportSettings $settings, WriteAuditLogAction $audit): RedirectResponse
     {
-        $validated = $request->validate([
-            'require_pass_for_scan' => ['required', 'boolean'],
-            'allow_pay_as_you_go' => ['required', 'boolean'],
-            'scan_nonce_required' => ['required', 'boolean'],
-        ]);
-
-        foreach ($validated as $key => $value) {
-            SystemSetting::query()->updateOrCreate(
-                ['group' => 'transport', 'key' => $key],
-                [
-                    'value' => $value ? '1' : '0',
-                    'type' => 'boolean',
-                    'label_en' => trans("transport.settings.{$key}", [], 'en'),
-                    'label_am' => trans("transport.settings.{$key}", [], 'am'),
-                    'default_value' => TransportSettings::DEFAULTS[$key] ? '1' : '0',
-                    'is_public' => false,
-                    'is_encrypted' => false,
-                    'is_system' => false,
-                    'is_required' => true,
-                    'updated_by' => $request->user()?->id,
-                ],
-            );
+        $rules = [];
+        foreach (TransportSettings::DEFAULTS as $key => $default) {
+            // The page posts every key; a partial update (a script, a test) may post a subset.
+            $rules[$key] = match (TransportSettings::typeOf($key)) {
+                'boolean' => ['sometimes', 'required', 'boolean'],
+                'integer' => ['sometimes', 'required', 'integer', 'min:0', 'max:43200'],
+                'select' => ['sometimes', 'required', Rule::in(TransportSettings::CHOICES[$key])],
+                default => ['sometimes', 'required', 'string', 'max:80'],
+            };
         }
+        $validated = $request->validate($rules);
+        $before = $settings->all();
+
+        DB::transaction(function () use ($validated, $request): void {
+            foreach ($validated as $key => $value) {
+                $type = TransportSettings::typeOf($key);
+                $stored = TransportSettings::normalise($key, $value, TransportSettings::DEFAULTS[$key]);
+
+                SystemSetting::query()->updateOrCreate(
+                    ['group' => 'transport', 'key' => $key],
+                    [
+                        'value' => is_bool($stored) ? ($stored ? '1' : '0') : (string) $stored,
+                        'type' => $type === 'select' ? 'string' : $type,
+                        'label_en' => trans("transport.settings.{$key}", [], 'en'),
+                        'label_am' => trans("transport.settings.{$key}", [], 'am'),
+                        'default_value' => is_bool(TransportSettings::DEFAULTS[$key]) ? (TransportSettings::DEFAULTS[$key] ? '1' : '0') : (string) TransportSettings::DEFAULTS[$key],
+                        'options' => TransportSettings::CHOICES[$key] ?? null,
+                        'is_public' => false,
+                        'is_encrypted' => false,
+                        'is_system' => false,
+                        'is_required' => true,
+                        'updated_by' => $request->user()?->id,
+                    ],
+                );
+            }
+        });
 
         Cache::forget('system_settings_all');
         Cache::forget('system_settings_public');
+        $settings->forget();
+
+        $after = $settings->all();
+        $changed = array_filter($after, fn ($value, string $key): bool => ($before[$key] ?? null) !== $value, ARRAY_FILTER_USE_BOTH);
+        if ($changed !== []) {
+            $audit->execute(AuditEventType::TransportSettingsUpdated, $request->user(), null, null,
+                oldValues: array_intersect_key($before, $changed), newValues: $changed, request: $request);
+        }
 
         return back()->with('flash', ['type' => 'success', 'message' => __('transport.settings_updated')]);
     }

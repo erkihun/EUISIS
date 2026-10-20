@@ -311,6 +311,32 @@ enum AuditEventType: string
     case CafeteriaSettlementFinalized = 'cafeteria_settlement.finalized';
     case CafeteriaSettlementCancelled = 'cafeteria_settlement.cancelled';
 
+    // ── Transport (verified usage) ────────────────────────────────────────
+    case TransportEligibilityChanged = 'transport_eligibility.changed';
+    case TransportRouteAssignmentChanged = 'transport_route_assignment.changed';
+    case TransportTripCreated = 'transport_trip.created';
+    case TransportTripDispatched = 'transport_trip.dispatched';
+    case TransportTripStarted = 'transport_trip.started';
+    case TransportTripCompleted = 'transport_trip.completed';
+    case TransportTripCancelled = 'transport_trip.cancelled';
+    case TransportTripVehicleReplaced = 'transport_trip.vehicle_replaced';
+    case TransportManualBoarding = 'transport_boarding.manual';
+    case TransportBoardingVoided = 'transport_boarding.voided';
+    case TransportDeviceRegistered = 'transport_device.registered';
+    case TransportDeviceRevoked = 'transport_device.revoked';
+    case TransportContractChanged = 'transport_contract.changed';
+    case TransportInvoiceSubmitted = 'transport_invoice.submitted';
+    case TransportInvoiceReviewed = 'transport_invoice.reviewed';
+    case TransportSettlementComputed = 'transport_settlement.computed';
+    case TransportSettlementReviewed = 'transport_settlement.reviewed';
+    case TransportSettlementApproved = 'transport_settlement.approved';
+    case TransportSettlementRejected = 'transport_settlement.rejected';
+    case TransportSettlementPaymentRecorded = 'transport_settlement.payment_recorded';
+    case TransportAdjustmentRequested = 'transport_adjustment.requested';
+    case TransportAdjustmentDecided = 'transport_adjustment.decided';
+    case TransportExceptionReviewed = 'transport_exception.reviewed';
+    case TransportSettingsUpdated = 'transport_settings.updated';
+
     // ── Provider portal accounts (/provider-users) ─────────────────────────
     case ProviderUserCreated = 'provider_user.created';
     case ProviderUserUpdated = 'provider_user.updated';

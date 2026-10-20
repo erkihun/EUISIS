@@ -107,6 +107,21 @@ final class Metrics
     public const INTEGRATION_WEBHOOK_FAILURES = 'integration.webhook_failures';
 
     // security
+    // Transport (config/features.php: transport): scanner fleet and boarding backlog.
+    public const TRANSPORT_DEVICES_ACTIVE = 'transport.devices_active';
+
+    public const TRANSPORT_DEVICES_SILENT = 'transport.devices_silent';
+
+    public const TRANSPORT_OFFLINE_PENDING = 'transport.offline_pending';
+
+    public const TRANSPORT_OFFLINE_OLDEST_MINUTES = 'transport.offline_oldest_minutes';
+
+    public const TRANSPORT_STALE_OPEN_TRIPS = 'transport.stale_open_trips';
+
+    public const TRANSPORT_BOARDINGS_15M = 'transport.boardings_15m';
+
+    public const TRANSPORT_REFUSALS_15M = 'transport.refusals_15m';
+
     public const AUTH_MFA_FAILURES = 'auth.mfa_failures';
 
     public const AUTH_LOGIN_FAILURES = 'auth.login_failures';
@@ -134,12 +149,14 @@ final class Metrics
 
     public const COMPONENT_SECURITY = 'security';
 
+    public const COMPONENT_TRANSPORT = 'transport';
+
     /** @return list<string> */
     public static function components(): array
     {
         return [
             self::COMPONENT_APPLICATION, self::COMPONENT_DATABASE, self::COMPONENT_CACHE, self::COMPONENT_REDIS, self::COMPONENT_QUEUE,
-            self::COMPONENT_SCHEDULER, self::COMPONENT_STORAGE, self::COMPONENT_BACKUPS, self::COMPONENT_INTEGRATIONS, self::COMPONENT_SECURITY,
+            self::COMPONENT_SCHEDULER, self::COMPONENT_STORAGE, self::COMPONENT_BACKUPS, self::COMPONENT_INTEGRATIONS, self::COMPONENT_SECURITY, self::COMPONENT_TRANSPORT,
         ];
     }
 }
