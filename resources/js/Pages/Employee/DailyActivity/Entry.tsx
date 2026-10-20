@@ -12,7 +12,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import { Plus, TrashIcon } from '@/Components/Icons';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useRef, useState, type JSX } from 'react';
+import { useEffect, useRef, useState, type JSX, type TextareaHTMLAttributes } from 'react';
 
 type Props = {
     employee: EmployeeRef;
@@ -78,6 +78,22 @@ const toEditable = (item: ActivityItem): EditableItem => ({
     // Keep optional details open when the employee already filled some.
     open: Boolean(item.started_at || item.ended_at || item.quantity || item.challenge_issue || item.next_action),
 });
+
+/**
+ * Textarea that grows with its content, so longer narrative answers ("work
+ * performed", outputs, challenges) never scroll inside a two-row box.
+ * minRows sets the starting height; the height then follows the text.
+ */
+function AutoTextarea({ minRows = 2, value, className, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement> & { minRows?: number }) {
+    const ref = useRef<HTMLTextAreaElement>(null);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight + 2}px`;
+    }, [value]);
+    return <textarea ref={ref} rows={minRows} value={value} className={`${className ?? ''} resize-none overflow-hidden`} {...rest} />;
+}
 
 /**
  * My Work > Daily Activity.
@@ -290,13 +306,13 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
         : '';
 
     return (
-        <div className="mx-auto max-w-5xl space-y-6 pb-28 sm:pb-6">
+        <div className="w-full space-y-6 pb-28 sm:pb-6">
             {/* Heading: the date is the subject of the page. */}
             <header className={`${panelCls} space-y-5 p-5 shadow-xs sm:p-6`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                        <p className="flex flex-wrap items-center gap-2 text-base text-gray-900 dark:text-slate-100">
-                            <LocalizedDateDisplay value={date} className="font-medium" />
+                        <p className="flex flex-wrap items-center gap-2 text-lg text-gray-900 dark:text-slate-100">
+                            <LocalizedDateDisplay value={date} className="font-semibold" />
                             {log ? <LogStatusBadge status={log.status} /> : day_status && <DayStatusBadge status={day_status} />}
                             {log?.is_late && <LateMark />}
                         </p>
@@ -332,15 +348,6 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
                 )}
             </header>
 
-            <ol aria-label={t('dailyActivities.entry.workflow')} className="grid gap-3 sm:grid-cols-3">
-                {['draftStep', 'submitStep', 'reviewStep'].map((name, index) => (
-                    <li key={name} aria-current={step === index + 1 ? 'step' : undefined} className={`${panelCls} flex gap-3 p-4 ${step === index + 1 ? 'ring-2 ring-primary' : ''}`}>
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700 dark:bg-slate-800 dark:text-slate-200">{index + 1}</span>
-                        <div><p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t(`dailyActivities.entry.${name}`)}</p><p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{t(`dailyActivities.entry.${name}Hint`)}</p></div>
-                    </li>
-                ))}
-            </ol>
-
             {/* Reviewer feedback comes first when the day was sent back. */}
             {isReturned && log?.review_comment && (
                 <section className="rounded-panel border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950/30" role="status">
@@ -366,6 +373,9 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
             {errors.date && <p className="rounded-panel border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{errors.date}</p>}
             {errors.status && <p className="rounded-panel border border-red-200 bg-red-50 p-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">{errors.status}</p>}
 
+            {/* Full width: the form fills the page; workflow, evidence and history sit in a side rail on wide screens. */}
+            <div className="items-start gap-6 space-y-6 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] xl:space-y-0">
+            <div className="min-w-0 space-y-6">
             {/* Read-only view once submitted or approved. */}
             {log && !can.edit && (
                 <section className={`${panelCls} px-4`}>
@@ -424,9 +434,9 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
                             <label htmlFor="late_reason" className={labelCls}>
                                 {t('dailyActivities.fields.lateReason')}{rules.require_late_reason && <span className="text-red-600"> *</span>}
                             </label>
-                            <textarea
+                            <AutoTextarea
                                 id="late_reason"
-                                rows={2}
+                                minRows={2}
                                 className={inputCls}
                                 value={form.data.late_reason}
                                 onChange={(e) => form.setData('late_reason', e.target.value)}
@@ -450,6 +460,17 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
                     </div>
                 </form>
             )}
+            </div>
+
+            <aside className="min-w-0 space-y-6">
+            <ol aria-label={t('dailyActivities.entry.workflow')} className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                {['draftStep', 'submitStep', 'reviewStep'].map((name, index) => (
+                    <li key={name} aria-current={step === index + 1 ? 'step' : undefined} className={`${panelCls} flex gap-3 p-4 ${step === index + 1 ? 'ring-2 ring-primary' : ''}`}>
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-sm font-semibold text-gray-700 dark:bg-slate-800 dark:text-slate-200">{index + 1}</span>
+                        <div><p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t(`dailyActivities.entry.${name}`)}</p><p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{t(`dailyActivities.entry.${name}Hint`)}</p></div>
+                    </li>
+                ))}
+            </ol>
 
             {/* Evidence */}
             {rules.evidence_attachments_enabled && (log || can.edit) && (
@@ -534,6 +555,8 @@ function EntryBody({ date, today, day_status, placement, log, tasks, structure, 
             )}
 
             <p className="text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.notAttendance')}</p>
+            </aside>
+            </div>
         </div>
     );
 }
@@ -711,7 +734,7 @@ function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRu
                 </div>
                 <div>
                     <label htmlFor={id('description')} className={labelCls}>{t('dailyActivities.fields.description')} {!structured && <span className="text-red-600">*</span>}</label>
-                    <textarea id={id('description')} rows={2} className={inputCls} value={text(item.description)} placeholder={t('dailyActivities.fields.descriptionPlaceholder')} onChange={(e) => onChange({ description: e.target.value })} />
+                    <AutoTextarea id={id('description')} minRows={3} className={inputCls} value={text(item.description)} placeholder={t('dailyActivities.fields.descriptionPlaceholder')} onChange={(e) => onChange({ description: e.target.value })} />
                     {error('description') && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error('description')}</p>}
                 </div>
                 <div className="grid gap-3 sm:grid-cols-[1fr_11rem]">
@@ -719,7 +742,7 @@ function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRu
                         <label htmlFor={id('output')} className={labelCls}>
                             {t('dailyActivities.fields.outputResult')}{requireOutput && <span className="text-red-600"> *</span>}
                         </label>
-                        <textarea id={id('output')} rows={2} className={inputCls} value={text(item.output_result)} placeholder={t('dailyActivities.fields.outputPlaceholder')} onChange={(e) => onChange({ output_result: e.target.value })} />
+                        <AutoTextarea id={id('output')} minRows={2} className={inputCls} value={text(item.output_result)} placeholder={t('dailyActivities.fields.outputPlaceholder')} onChange={(e) => onChange({ output_result: e.target.value })} />
                         {error('output_result') && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error('output_result')}</p>}
                     </div>
                     <div>
@@ -762,11 +785,11 @@ function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRu
                     </>}
                     <div className="col-span-2">
                         <label htmlFor={id('challenge')} className={labelCls}>{t('dailyActivities.fields.challengeIssue')}</label>
-                        <textarea id={id('challenge')} rows={2} className={inputCls} value={text(item.challenge_issue)} onChange={(e) => onChange({ challenge_issue: e.target.value || null })} />
+                        <AutoTextarea id={id('challenge')} minRows={2} className={inputCls} value={text(item.challenge_issue)} onChange={(e) => onChange({ challenge_issue: e.target.value || null })} />
                     </div>
                     <div className="col-span-2">
                         <label htmlFor={id('next')} className={labelCls}>{t('dailyActivities.fields.nextAction')}</label>
-                        <textarea id={id('next')} rows={2} className={inputCls} value={text(item.next_action)} onChange={(e) => onChange({ next_action: e.target.value || null })} />
+                        <AutoTextarea id={id('next')} minRows={2} className={inputCls} value={text(item.next_action)} onChange={(e) => onChange({ next_action: e.target.value || null })} />
                     </div>
                 </div>
             )}
