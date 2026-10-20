@@ -53,7 +53,7 @@ it('shares the branding with every page and puts the brand in the document title
         ->where('branding.officialNameAm', BRAND_OFFICIAL_AM)
         ->has('branding.logoUrl')
         ->has('branding.faviconUrl'));
-    $response->assertSee('<title inertia>Addis One</title>', false)
+    $response->assertSee('<title data-inertia>Addis One</title>', false)
         ->assertSee('<meta name="application-name" content="Addis One">', false)
         ->assertDontSee('EUISIS');
 });

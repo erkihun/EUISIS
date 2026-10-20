@@ -28,7 +28,9 @@ it('lets only the adapter import the editor library', function (): void {
         }
     }
 
-    expect($importers)->toBe(['resources/js/richtext/TinyMceAdapter.tsx']);
+    sort($importers);
+    // tinymceGlobal.ts holds only the core, so it runs before the adapter's plugins.
+    expect($importers)->toBe(['resources/js/richtext/TinyMceAdapter.tsx', 'resources/js/richtext/tinymceGlobal.ts']);
 });
 
 it('lets only RichTextEditor load the adapter', function (): void {

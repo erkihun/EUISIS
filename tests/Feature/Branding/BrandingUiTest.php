@@ -64,7 +64,7 @@ it('has no former product name left in components, translations or language file
 it('renders the sign-in, password and MFA pages with the new brand and nothing of the old one', function (): void {
     foreach (['/login', '/forgot-password'] as $path) {
         $this->get($path)->assertOk()
-            ->assertSee('<title inertia>Addis One</title>', false)
+            ->assertSee('<title data-inertia>Addis One</title>', false)
             ->assertDontSee('EUISIS')
             ->assertInertia(fn (Assert $page) => $page->where('branding.brandName', 'Addis One')->where('branding.shortName', 'AA-IEMSS'));
     }

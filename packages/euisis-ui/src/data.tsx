@@ -10,15 +10,31 @@ import {
     MenuItem,
     MenuItems,
 } from '@headlessui/react';
-import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
+import {
+    createColumnHelper as createFeatureColumnHelper,
+    flexRender,
+    tableFeatures,
+    useTable,
+    type CellData,
+    type ColumnDef as FeatureColumnDef,
+    type RowData,
+} from '@tanstack/react-table';
 import { useUiMessages } from './context';
 import { EmptyState } from './feedback';
 import { Button, Skeleton, cx } from './primitives';
 import { tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from './table';
 import { controlClassName, selectClassName } from './forms';
 
-export type { ColumnDef } from '@tanstack/react-table';
-export { createColumnHelper } from '@tanstack/react-table';
+/**
+ * TanStack Table 9 types every column by the table's feature set. DataTable uses
+ * none, so one empty set is bound here and callers keep ColumnDef<Row> and
+ * createColumnHelper<Row>().
+ */
+const features = tableFeatures({});
+type Features = typeof features;
+
+export type ColumnDef<TData extends RowData, TValue extends CellData = CellData> = FeatureColumnDef<Features, TData, TValue>;
+export const createColumnHelper = <TData extends RowData>() => createFeatureColumnHelper<Features, TData>();
 
 export interface PaginationMeta {
     currentPage: number;
@@ -105,9 +121,9 @@ export function Pagination({ meta, onPageChange, onPerPageChange, pageSizes = [1
     );
 }
 
-export function DataTable<T>({ data, columns, loading = false, emptyTitle, emptyDescription, emptyAction, pagination, onPageChange, onPerPageChange, className }: {
+export function DataTable<T extends RowData>({ data, columns, loading = false, emptyTitle, emptyDescription, emptyAction, pagination, onPageChange, onPerPageChange, className }: {
     data: T[];
-    columns: ColumnDef<T, unknown>[];
+    columns: ColumnDef<T, any>[];
     loading?: boolean;
     emptyTitle?: ReactNode;
     emptyDescription?: ReactNode;
@@ -117,7 +133,7 @@ export function DataTable<T>({ data, columns, loading = false, emptyTitle, empty
     onPerPageChange?: (size: number) => void;
     className?: string;
 }) {
-    const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
+    const table = useTable({ features, data, columns });
     return <div className={cx(tableContainerClassName, className)}>
             {!loading && data.length === 0 ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} /> : <div className="overflow-x-auto">
                 <table className={tableClassName}>
@@ -125,7 +141,7 @@ export function DataTable<T>({ data, columns, loading = false, emptyTitle, empty
                         {table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>)}</tr>)}
                     </thead>
                     <tbody className={tableBodyClassName}>
-                        {loading ? Array.from({ length: pagination?.perPage ?? 6 }, (_, row) => <tr key={row}>{columns.map((_, col) => <td key={col} className={tableCellClassName}><Skeleton className="h-4 w-full" /></td>)}</tr>) : table.getRowModel().rows.map((row) => <tr key={row.id} className={tableRowClassName}>{row.getVisibleCells().map((cell) => <td key={cell.id} className={tableCellClassName}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}
+                        {loading ? Array.from({ length: pagination?.perPage ?? 6 }, (_, row) => <tr key={row}>{columns.map((_, col) => <td key={col} className={tableCellClassName}><Skeleton className="h-4 w-full" /></td>)}</tr>) : table.getRowModel().rows.map((row) => <tr key={row.id} className={tableRowClassName}>{row.getAllCells().map((cell) => <td key={cell.id} className={tableCellClassName}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}
                     </tbody>
                 </table>
             </div>}

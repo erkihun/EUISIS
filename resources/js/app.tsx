@@ -1,7 +1,8 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { axiosAdapter } from '@inertiajs/core';
+import { createInertiaApp, type ResolvedComponent } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { Suspense, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -29,7 +30,7 @@ globalThis.route = ziggyRoute;
 // Set from the shared `branding` prop before the first render (System Settings over config);
 // the build-time env value is only the pre-render fallback.
 let brandName: string = import.meta.env.VITE_APP_NAME || 'Addis One';
-const pages = import.meta.glob('./Pages/**/*.tsx');
+const pages = import.meta.glob<{ default: ResolvedComponent }>('./Pages/**/*.tsx');
 
 /** Removes the static HTML loader once React has mounted. */
 function InitialLoaderRemover() {
@@ -45,15 +46,20 @@ function InitialLoaderRemover() {
 
 function mount() {
     return createInertiaApp({
+        // Inertia 3 has its own HTTP client; page visits stay on the app's axios
+        // instance so its idle-timeout redirect (bootstrap.ts) and XSRF-cookie
+        // handling keep covering navigation, forms and partial reloads.
+        http: axiosAdapter(window.axios),
         // "{Page} | Addis One"; a page titled with the brand itself is not doubled.
         title: (title) => (title && title !== brandName ? `${title} | ${brandName}` : brandName),
-        resolve: async (name) => {
+        // Inertia 3: an async resolver returns the component itself, not its module.
+        resolve: async (name): Promise<ResolvedComponent> => {
             try {
-                return await resolvePageComponent(`./Pages/${name}.tsx`, pages);
+                return (await resolvePageComponent(`./Pages/${name}.tsx`, pages)).default;
             } catch (error) {
                 if (import.meta.env.DEV) throw error;
                 console.error(`Unable to resolve Inertia page: ${name}`, error);
-                return { default: () => null };
+                return () => null;
             }
         },
         setup({ el, App, props }) {

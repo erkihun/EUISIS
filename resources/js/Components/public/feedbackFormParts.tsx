@@ -229,11 +229,11 @@ export function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HT
         onStart: () => {
             stopListening();
             listeners.current = [
-                router.on('exception', () => {
+                router.on('networkError', () => {
                     toast.error(t('serviceFeedback.sendFailedOffline'), { duration: ERROR_TOAST_MS });
                     return false;
                 }),
-                router.on('invalid', (event) => {
+                router.on('httpException', (event) => {
                     const status = event.detail.response.status;
                     // Each refusal says what it is: a 419 is an expired page, not a server fault; a 403 is not "try again".
                     const key = status === 413 ? 'sendFailedTooLarge'

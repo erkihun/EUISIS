@@ -60,7 +60,10 @@ export default defineConfig({
                     // The rich-text editor library, fetched only where an editor is
                     // shown (RichTextEditor lazy-loads it). The toolbar skins stay
                     // out: each theme's skin is its own small chunk.
-                    if ((file.includes('/node_modules/tinymce/') || file.includes('/node_modules/@tinymce/')) && !file.includes('/skins/')) {
+                    // tinymceGlobal.ts starts the CommonJS core; it must share the chunk so
+                    // the core runs before the theme and plugins in it (Vite 8 / Rolldown).
+                    if (((file.includes('/node_modules/tinymce/') || file.includes('/node_modules/@tinymce/')) && !file.includes('/skins/'))
+                        || file.endsWith('/resources/js/richtext/tinymceGlobal.ts')) {
                         return 'rich-text-editor';
                     }
 

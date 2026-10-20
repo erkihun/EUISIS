@@ -1,9 +1,12 @@
 import { ReactNode } from 'react';
 import {
-    useReactTable,
-    getCoreRowModel,
+    createColumnHelper as createFeatureColumnHelper,
     flexRender,
-    type ColumnDef,
+    tableFeatures,
+    useTable,
+    type CellData,
+    type ColumnDef as FeatureColumnDef,
+    type RowData,
 } from '@tanstack/react-table';
 import { router } from '@inertiajs/react';
 import EmptyState from '@/Components/EmptyState';
@@ -12,12 +15,20 @@ import ListPagination, { type LaravelPageMeta } from '@/Components/ui/ListPagina
 import { useLocale } from '@/hooks/useLocale';
 import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@euisis/ui';
 
-export type { ColumnDef };
-export { createColumnHelper } from '@tanstack/react-table';
+/**
+ * TanStack Table 9 types every column by the table's feature set. These tables
+ * use none (rows are drawn as given; pagination is Laravel's), so one empty set
+ * is bound here and pages keep writing ColumnDef<Row> / createColumnHelper<Row>().
+ */
+const features = tableFeatures({});
+type Features = typeof features;
+
+export type ColumnDef<TData extends RowData, TValue extends CellData = CellData> = FeatureColumnDef<Features, TData, TValue>;
+export const createColumnHelper = <TData extends RowData>() => createFeatureColumnHelper<Features, TData>();
 
 export type AppDataTableMeta = LaravelPageMeta;
 
-interface AppDataTableProps<TData> {
+interface AppDataTableProps<TData extends RowData> {
     /** Row data. */
     data: TData[];
     /** TanStack column definitions. */
@@ -41,7 +52,7 @@ interface AppDataTableProps<TData> {
 }
 
 /**
- * Server-side data table built on TanStack Table v8, drawn with the shared
+ * Server-side data table built on TanStack Table v9, drawn with the shared
  * table classes: header, rows, loading skeleton, empty state and the
  * pagination bar as the card's footer.
  *
@@ -50,7 +61,7 @@ interface AppDataTableProps<TData> {
  * <AppDataTable data={employees} columns={columns} meta={meta} filters={filters} routeName="employees.index" />
  * ```
  */
-export default function AppDataTable<TData>({
+export default function AppDataTable<TData extends RowData>({
     data,
     columns,
     meta,
@@ -65,13 +76,7 @@ export default function AppDataTable<TData>({
 }: AppDataTableProps<TData>) {
     const { t } = useLocale();
 
-    const table = useReactTable({
-        data,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-        manualPagination: true,
-        pageCount: meta?.last_page ?? 1,
-    });
+    const table = useTable({ features, data, columns });
 
     function goToPage(page: number) {
         if (!routeName) return;
@@ -112,7 +117,7 @@ export default function AppDataTable<TData>({
                             ) : (
                                 table.getRowModel().rows.map((row) => (
                                     <tr key={row.id} className={tableRowClassName}>
-                                        {row.getVisibleCells().map((cell) => (
+                                        {row.getAllCells().map((cell) => (
                                             <td
                                                 key={cell.id}
                                                 className={tableCellClassName}
