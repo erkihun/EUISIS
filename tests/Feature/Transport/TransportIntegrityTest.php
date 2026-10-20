@@ -33,6 +33,8 @@ it('refuses a second accepted boarding row for the same employee and trip at the
         credential: $this->s->qr($this->card), tripId: $this->trip->id, idempotencyKey: (string) Str::uuid(), providerUser: $this->s->portalUser($this->provider, 'manager')));
     $row = (array) DB::table('transport_transactions')->where('id', $decision->transaction->id)->first();
     $row['id'] = (string) Str::uuid();
+    // MySQL/MariaDB derive the boarding key themselves (a VIRTUAL generated column); it cannot be written.
+    unset($row['ttx_boarding_key']);
     foreach ($row as $column => $value) {
         if (str_contains($column, 'nonce') || str_contains($column, 'idempotency') || str_contains($column, 'offline_uuid')) {
             $row[$column] = $value === null ? null : (string) Str::uuid();

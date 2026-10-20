@@ -16,9 +16,13 @@ use Illuminate\Support\Facades\Schema;
  * makes two scanners racing on the same card produce one boarding. Existing
  * data is never modified: a violation stops the migration and names itself
  * (NEEDS_DATA_REVIEW). PostgreSQL builds CONCURRENTLY, outside a transaction.
- * MySQL/MariaDB have no partial indexes: a STORED generated column holds the
- * key only for rows the condition covers (NULL otherwise, and NULLs never
- * collide), and a plain unique index goes on that column.
+ * MySQL/MariaDB have no partial indexes: a generated column holds the key
+ * only for rows the condition covers (NULL otherwise, and NULLs never
+ * collide), and a plain unique index goes on that column. The column is
+ * VIRTUAL, not STORED: MySQL refuses a STORED generated column whose base
+ * columns carry a foreign key with ON DELETE SET NULL / CASCADE (error 1215,
+ * which stopped the live deploy), and InnoDB enforces a unique secondary
+ * index on a virtual column just the same.
  */
 return new class extends Migration
 {
@@ -78,7 +82,7 @@ return new class extends Migration
             }
             if (! Schema::hasColumn($c['table'], $c['generated'])) {
                 $parts = implode(", '|', ", array_map('trim', explode(',', $c['columns'])));
-                DB::statement("ALTER TABLE {$c['table']} ADD COLUMN {$c['generated']} VARCHAR(100) GENERATED ALWAYS AS (CASE WHEN {$c['where']} THEN CONCAT({$parts}) ELSE NULL END) STORED");
+                DB::statement("ALTER TABLE {$c['table']} ADD COLUMN {$c['generated']} VARCHAR(100) GENERATED ALWAYS AS (CASE WHEN {$c['where']} THEN CONCAT({$parts}) ELSE NULL END) VIRTUAL");
             }
             DB::statement("CREATE UNIQUE INDEX {$name} ON {$c['table']} ({$c['generated']})");
         }
