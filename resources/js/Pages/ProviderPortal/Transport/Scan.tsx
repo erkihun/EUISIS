@@ -9,7 +9,7 @@ export default function Scan({ routes, trips, stops, terminal }: { routes: Trans
 
     return (
         <TransportProviderLayout title={t('transport.scan_id')}>
-            <TransportScanPanel routes={routes} trips={trips} stops={stops} terminal={terminal} scanRouteName="provider.portal.transport.scan.store" lookupRouteName="provider.portal.transport.scan.lookup" dispatchRouteName="provider.portal.transport.trips.dispatch" />
+            <TransportScanPanel routes={routes} trips={trips} stops={stops} terminal={terminal} scanRouteName="provider.portal.transport.scan.store" lookupRouteName="provider.portal.transport.scan.lookup" dispatchRouteName="provider.portal.transport.trips.dispatch" todayRouteName="provider.portal.transport.scan.today" />
         </TransportProviderLayout>
     );
 }

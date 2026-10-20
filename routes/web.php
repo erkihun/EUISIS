@@ -285,6 +285,7 @@ Route::middleware(['auth:provider', 'provider.portal', 'provider.portal.context'
             Route::get('/dashboard', ProviderTransportDashboardController::class)->name('dashboard');
             Route::get('/scan', [ProviderTransportScanController::class, 'index'])->middleware('provider.permission:provider.transport.scan')->name('scan');
             Route::post('/scan', [ProviderTransportScanController::class, 'store'])->middleware(['provider.permission:provider.transport.scan', 'throttle:60,1'])->name('scan.store');
+            Route::get('/scan/today', [ProviderTransportScanController::class, 'today'])->middleware('provider.permission:provider.transport.scan')->name('scan.today');
             Route::post('/scan/lookup', TransportManualLookupController::class)->middleware(['provider.permission:provider.transport.manual_exception', 'throttle:30,1'])->name('scan.lookup');
             Route::get('/transactions', [ProviderTransportTransactionController::class, 'index'])->middleware('provider.permission:provider.transport.reports.view')->name('transactions.index');
             Route::get('/transactions/export/csv', [ProviderTransportTransactionController::class, 'exportCsv'])->middleware(['provider.permission:provider.transport.reports.view', 'throttle:10,1'])->name('transactions.export.csv');
@@ -1127,6 +1128,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         // The scan screen lists every provider, route and today's trips: operators only.
         Route::get('/scan', [TransportScanController::class, 'index'])->middleware('can:transport-scan.create')->name('scan');
         Route::post('/scan', [TransportScanController::class, 'store'])->middleware(['can:transport-scan.create', 'throttle:60,1'])->name('scan.store');
+        Route::get('/scan/today', [TransportScanController::class, 'today'])->middleware('can:transport-scan.create')->name('scan.today');
         Route::post('/scan/lookup', TransportManualLookupController::class)->middleware(['can:transport-scan.manual', 'throttle:30,1'])->name('scan.lookup');
         Route::get('/settings', [TransportSettingsController::class, 'index'])->middleware('can:transport-settings.view')->name('settings.index');
         Route::patch('/settings', [TransportSettingsController::class, 'update'])->middleware('can:transport-settings.update')->name('settings.update');

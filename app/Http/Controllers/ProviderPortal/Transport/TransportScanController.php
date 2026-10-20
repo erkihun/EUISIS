@@ -13,6 +13,7 @@ use App\Http\Resources\TransportTripResource;
 use App\Models\ProviderUser;
 use App\Models\TransportRoute;
 use App\Models\TransportRouteStop;
+use App\Models\TransportTransaction;
 use App\Models\TransportTrip;
 use App\Services\ProviderPortal\ProviderPortalContext;
 use App\Services\Transport\TransportQrScanService;
@@ -39,6 +40,27 @@ class TransportScanController extends Controller
                 'tripRequired' => $settings->requireTripForBoarding(),
                 'nfcEnabled' => $settings->nfcEnabled(),
             ],
+        ]);
+    }
+
+    /** Today's boardings at this provider, newest first, for the terminal's list; a trip narrows it. */
+    public function today(Request $request, ProviderPortalContext $context): JsonResponse
+    {
+        $provider = $context->provider($request);
+        abort_if($provider === null || ! $provider->hasService('transport'), 403, __('transport.provider_service_disabled'));
+        $data = $request->validate(['transport_trip_id' => ['nullable', 'uuid']]);
+
+        return response()->json([
+            'data' => TransportTransactionResource::collection(
+                TransportTransaction::query()
+                    ->with(['employee.currentAssignment.organization', 'route', 'trip'])
+                    ->where('provider_id', $provider->id)
+                    ->whereDate('transaction_date', today())
+                    ->when($data['transport_trip_id'] ?? null, fn ($query, $trip) => $query->where('transport_trip_id', $trip))
+                    ->orderByDesc('scanned_at')
+                    ->limit(200)
+                    ->get()
+            )->resolve(),
         ]);
     }
 

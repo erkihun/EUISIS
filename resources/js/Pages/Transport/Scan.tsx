@@ -12,7 +12,7 @@ export default function Scan({ providers, routes, trips, stops, terminal }: { pr
     return (
         <AuthenticatedLayout header={<PageHeader title={t('transport.scan_id')} description={t('transport.scanIntro')} />}>
             <Head title={t('transport.scan_id')} />
-            <TransportScanPanel providers={providers} routes={routes} trips={trips} stops={stops} terminal={terminal} scanRouteName="transport.scan.store" lookupRouteName="transport.scan.lookup" dispatchRouteName="transport.trips.dispatch" />
+            <TransportScanPanel providers={providers} routes={routes} trips={trips} stops={stops} terminal={terminal} scanRouteName="transport.scan.store" lookupRouteName="transport.scan.lookup" dispatchRouteName="transport.trips.dispatch" todayRouteName="transport.scan.today" />
         </AuthenticatedLayout>
     );
 }

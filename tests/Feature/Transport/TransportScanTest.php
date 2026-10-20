@@ -252,6 +252,35 @@ it('needs the scan permission', function (): void {
     ])->assertForbidden();
 });
 
+it("lists today's boardings for the terminal, this provider only, a trip narrowing them", function (): void {
+    $this->s->pass($this->employee, $this->provider, $this->route);
+    ($this->scan)()->assertCreated();
+    // A refusal is listed too: the operator sees what the terminal did today.
+    [$other, $otherCard] = $this->s->employee('woreda_a1', 'Hana Tadesse');
+    ($this->scan)(['qr_token' => $this->s->qr($otherCard)])->assertStatus(422);
+    // Another provider's boarding never appears.
+    $rival = $this->s->provider('Rival');
+    $rivalTrip = $this->s->trip($this->s->route($rival));
+    $this->actingAs($this->s->portalUser($rival, 'operator', ['provider.transport.scan']), 'provider')
+        ->postJson(route('provider.portal.transport.scan.store'), ['qr_token' => $this->s->qr($this->card), 'scan_nonce' => (string) Str::uuid(), 'transport_trip_id' => $rivalTrip->id]);
+
+    $portal = $this->actingAs($this->operator, 'provider')->getJson(route('provider.portal.transport.scan.today'))->assertOk();
+    $rows = collect($portal->json('data'));
+    expect($rows)->toHaveCount(2)
+        ->and($rows->pluck('status')->sort()->values()->all())->toBe(['accepted', 'rejected'])
+        ->and($rows->pluck('employee.employee_number')->sort()->values()->all())->toBe(collect([$this->employee->employee_number, $other->employee_number])->sort()->values()->all())
+        ->and($rows->firstWhere('status', 'accepted')['trip']['trip_number'])->toBe($this->trip->trip_number);
+
+    $this->actingAs($this->operator, 'provider')->getJson(route('provider.portal.transport.scan.today', ['transport_trip_id' => $rivalTrip->id]))
+        ->assertOk()->assertJsonCount(0, 'data');
+
+    $staff = $this->s->staff(['transport-scan.create']);
+    $this->actingAs($staff)->getJson(route('transport.scan.today', ['provider_id' => $this->provider->id]))->assertOk()->assertJsonCount(2, 'data');
+    $this->actingAs($staff)->getJson(route('transport.scan.today', ['provider_id' => $rival->id]))->assertOk()->assertJsonCount(1, 'data');
+    $this->actingAs($staff)->getJson(route('transport.scan.today', ['provider_id' => 'not-a-uuid']))->assertUnprocessable();
+    $this->actingAs($this->s->staff([]))->getJson(route('transport.scan.today', ['provider_id' => $this->provider->id]))->assertForbidden();
+});
+
 it('lets staff scan for a provider from the admin terminal', function (): void {
     $this->s->pass($this->employee, $this->provider, $this->route);
     $staff = $this->s->staff(['transport-scan.create']);

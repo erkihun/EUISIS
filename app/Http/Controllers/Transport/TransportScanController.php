@@ -13,6 +13,7 @@ use App\Http\Resources\TransportTripResource;
 use App\Models\Provider;
 use App\Models\TransportRoute;
 use App\Models\TransportRouteStop;
+use App\Models\TransportTransaction;
 use App\Models\TransportTrip;
 use App\Services\Transport\TransportQrScanService;
 use App\Services\Transport\TransportSettings;
@@ -52,6 +53,32 @@ class TransportScanController extends Controller
                 'tripRequired' => $settings->requireTripForBoarding(),
                 'nfcEnabled' => $settings->nfcEnabled(),
             ],
+        ]);
+    }
+
+    /**
+     * Today's boardings at one provider, newest first, for the terminal's
+     * list (an admin terminal names the provider; the trip narrows it).
+     */
+    public function today(Request $request): JsonResponse
+    {
+        // Validated first: PostgreSQL rejects comparing a uuid key with '' or other text.
+        $data = $request->validate([
+            'provider_id' => ['required', 'uuid', 'exists:providers,id'],
+            'transport_trip_id' => ['nullable', 'uuid'],
+        ]);
+
+        return response()->json([
+            'data' => TransportTransactionResource::collection(
+                TransportTransaction::query()
+                    ->with(['employee.currentAssignment.organization', 'route', 'trip'])
+                    ->where('provider_id', $data['provider_id'])
+                    ->whereDate('transaction_date', today())
+                    ->when($data['transport_trip_id'] ?? null, fn ($query, $trip) => $query->where('transport_trip_id', $trip))
+                    ->orderByDesc('scanned_at')
+                    ->limit(200)
+                    ->get()
+            )->resolve(),
         ]);
     }
 
