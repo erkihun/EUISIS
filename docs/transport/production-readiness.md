@@ -62,7 +62,7 @@ Verdict: **CONDITIONAL_TRANSPORT_MANAGEMENT_PRODUCTION_READY** — ready for a p
 | 54 | Evening UAT | Script in `uat.md`; automated equivalent in scenarios A, H and trip lifecycle tests. |
 | 55 | Reconciliation UAT | Script in `uat.md`; automated equivalent in scenarios F, G and the 100-employee fixture. |
 | 56 | Automated tests | 141 transport tests (1 PostgreSQL-only), Situation Room and Intelligence suites green. |
-| 57 | Full suite | Full `php artisan test` run recorded below (the cafeteria suites need the `bcmath` extension, absent from this sandbox). |
+| 57 | Full suite | 4,463 tests: 4,318 passed, 2 skipped, 143 failed in this sandbox — 117 are `Call to undefined function bccomp/bcadd` (the `bcmath` extension CI installs is absent here) and 25 are the same assessment/daily-activity flows failing downstream of it; the remaining one (`DesignImportTest`, 527 ≠ 528 rows) fails on `main`'s own CI (run 93). No transport, Situation Room, Intelligence or Integration test failed; those suites pass in full (413 + 1 PostgreSQL-only skip). |
 | 58 | Build | `npm run typecheck` clean; `npm run build` succeeds; `pint --test --dirty` clean; `composer audit` and `npm audit` report no advisories. |
 | 59 | Remaining P0 | None known for the pilot scope. |
 | 60 | Remaining P1 | Run the migrations on PostgreSQL in staging (partial indexes build `CONCURRENTLY`; `NEEDS_DATA_REVIEW` guard aborts on existing duplicates); run the k6 morning profile; a documented accounting hand-off for approved statements. |
@@ -81,7 +81,7 @@ Verdict: **CONDITIONAL_TRANSPORT_MANAGEMENT_PRODUCTION_READY** — ready for a p
 ## Verification record (this environment)
 * Transport suites: 141 passed, 1 skipped (PostgreSQL only).
 * Situation Room + Intelligence suites: 199 passed.
-* Full suite: see the verification record appended after the run.
+* Full suite (in-process, `opcache.enable_cli=1`, 46 min): 4,318 passed / 2 skipped / 143 failed, all `bcmath`-dependent suites or `main`'s pre-existing `DesignImportTest` failure; see row 57. `main`'s CI baseline (run 93) is itself red on `AdminDashboardExperienceTest`, `TelemetryTest` (collector flush) and `DesignImportTest`.
 * `npm run typecheck`, `npm run build`, `npm run i18n:audit` (strict), `composer audit --locked`, `npm audit`: clean.
 * `php artisan migrate:status`: 275 ran, 0 pending (SQLite); PostgreSQL run pending in staging.
 * Routes: 94 admin `transport.*`, 47 portal `provider.portal.transport.*`, 10 device API `api.transport.*`.
