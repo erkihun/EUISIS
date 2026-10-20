@@ -12,7 +12,7 @@ type Entry = {
     id: string; reference: string | null; type: string; status: string; tip_type: TipTypeBucket | null;
     target_type: 'employee' | 'organization'; target_name: string | null;
     message: string; created_at: string | null; submitted_at: string | null; employee: string | null;
-    employee_number: string | null; organization: string | null; handler: string | null;
+    employee_number: string | null; organization: string | null; organization_unit: string | null; unit_selection_mode: 'SELECTED' | 'GENERAL' | null; handler: string | null;
 };
 
 type Props = {
@@ -119,6 +119,9 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
                             <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-(--app-muted-foreground)">
                                 {entry.reference && <span className="font-mono">{entry.reference}</span>}
                                 {entry.organization && <span>{entry.organization}</span>}
+                                {entry.target_type === 'organization' && (entry.organization_unit || entry.unit_selection_mode === 'GENERAL') && (
+                                    <span>{t('serviceFeedback.relevantWorkUnit')}: {entry.organization_unit ?? t('serviceFeedback.generalNotSure')}</span>
+                                )}
                                 <LocalizedDateDisplay value={entry.submitted_at ?? entry.created_at} withTime />
                                 <span>{t('serviceFeedback.currentHandler')}: {entry.handler ?? t('serviceFeedback.noHandler')}</span>
                             </p>

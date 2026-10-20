@@ -14,7 +14,7 @@ type Entry = {
     id: string; reference: string | null; status: string; message: string; subject: string | null;
     target_type: 'employee' | 'organization'; target_name: string | null; target_code?: string | null;
     created_at: string | null; submitted_at: string | null; employee: string | null; employee_number: string | null;
-    organization: string | null; organization_unit: string | null; position: string | null; category: string | null;
+    organization: string | null; organization_unit: string | null; unit_selection_mode: 'SELECTED' | 'GENERAL' | null; position: string | null; category: string | null;
     client_name: string | null; client_contact: string | null; identity_hidden: boolean;
     client_email: string | null; submitter_organization: string | null;
     submitter_address: Partial<Record<'city' | 'sub_city' | 'woreda' | 'detail', string>> | null;
@@ -89,10 +89,13 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                             )}
                             {entry.intake_channel && <Field label={t('serviceFeedback.intakeChannel')}>{t(`serviceFeedback.intakeChannel_${entry.intake_channel}`)}</Field>}
                             <Field label={t('serviceFeedback.filterOrganization')}>{entry.organization ?? '—'}</Field>
-                            {entry.target_type === 'employee' && <>
+                            {entry.target_type === 'employee' ? <>
                                 <Field label={t('serviceFeedback.serviceUnit')}>{entry.organization_unit ?? '—'}</Field>
                                 <Field label={t('serviceFeedback.position')}>{entry.position ?? '—'}</Field>
-                            </>}
+                            </> : (
+                                // What the visitor said the submission concerns: contextual attribution, not the handler and not a finding.
+                                <Field label={t('serviceFeedback.relevantWorkUnit')}>{entry.organization_unit ?? (entry.unit_selection_mode === 'GENERAL' ? t('serviceFeedback.generalNotSure') : '—')}</Field>
+                            )}
                             <Field label={t('serviceFeedback.category')}>{entry.category ?? '—'}</Field>
                             <Field label={t('serviceFeedback.client')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_name ?? t('serviceFeedback.anonymousClient')}</Field>
                             <Field label={t('serviceFeedback.contact')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_contact ?? t('serviceFeedback.notProvided')}</Field>

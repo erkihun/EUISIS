@@ -12,6 +12,7 @@ use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
+use App\Models\OrganizationUnit;
 use App\Models\PositionService;
 use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackStatusHistory;
@@ -97,7 +98,7 @@ class ServiceFeedbackController extends Controller
                 ->map(fn (EmployeeServiceFeedback $item): array => $this->summarise($item)),
             'oldestPendingAt' => $this->feedbackQuery->oldestPendingAt($base),
             'filters' => $filters,
-            'filterOptions' => $this->filterOptions($user),
+            'filterOptions' => $this->filterOptions($user, $filters),
         ]);
     }
 
@@ -137,7 +138,7 @@ class ServiceFeedbackController extends Controller
             'feedback' => $feedback,
             'statusCounts' => $statusCounts,
             'filters' => $filters,
-            'filterOptions' => $this->filterOptions($user),
+            'filterOptions' => $this->filterOptions($user, $filters),
             'statuses' => array_column(ServiceFeedbackStatus::cases(), 'value'),
             'can' => $this->abilities(),
         ]);
@@ -372,7 +373,7 @@ class ServiceFeedbackController extends Controller
             'byServiceType' => $this->feedbackQuery->byServiceType($base, 50),
             'lowRated' => $lowRated,
             'filters' => $filters,
-            'filterOptions' => $this->filterOptions($user),
+            'filterOptions' => $this->filterOptions($user, $filters),
             'statuses' => array_column(ServiceFeedbackStatus::cases(), 'value'),
             'can' => ['export' => Auth::user()->can('export', EmployeeServiceFeedback::class)],
         ]);
@@ -481,7 +482,11 @@ class ServiceFeedbackController extends Controller
                 'employee_number' => $item->employee->employee_number,
             ],
             'organization' => $this->namePair($item->organization, 'name'),
-            'organization_unit' => $this->namePair($item->organizationUnit, 'name'),
+            // The relevant work unit as recorded at submission (organization form); the live unit for employee QRs and older rows.
+            'organization_unit' => $item->organization_unit_name_snapshot !== null
+                ? ['en' => $item->organization_unit_name_snapshot, 'am' => $item->organization_unit_name_am_snapshot]
+                : $this->namePair($item->organizationUnit, 'name'),
+            'unit_selection_mode' => $item->unit_selection_mode,
             'position' => $this->namePair($item->position, 'title'),
             'service_no' => $item->service_no_snapshot,
             'service_type' => $this->namePair($item->positionService, 'name'),
@@ -521,7 +526,7 @@ class ServiceFeedbackController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function filterOptions(mixed $user): array
+    private function filterOptions(mixed $user, array $filters = []): array
     {
         $scope = app(OrganizationScopeService::class);
 
@@ -534,8 +539,17 @@ class ServiceFeedbackController extends Controller
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_am']);
 
+        // The work units of the one institution chosen in the filter bar, and only when it is one the user may see.
+        $organizationId = is_string($filters['organization_id'] ?? null) ? $filters['organization_id'] : null;
+        $units = $organizationId === null || ! $organizations->contains('id', $organizationId) ? collect() : OrganizationUnit::query()->withTrashed()
+            ->where('organization_id', $organizationId)
+            ->orderBy('name_en')
+            ->limit(500)
+            ->get(['id', 'name_en', 'name_am']);
+
         return [
             'organizations' => $organizations,
+            'units' => $units,
             'serviceTypes' => PositionService::query()
                 ->where('is_active', true)
                 ->when(

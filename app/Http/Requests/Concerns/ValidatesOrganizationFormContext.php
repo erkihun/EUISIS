@@ -32,7 +32,7 @@ trait ValidatesOrganizationFormContext
         if (! $this->isOrganizationRoute()) {
             // organization_unit_id is left out on purpose: on the employee QR it is the employee's own
             // unit, taken from the current assignment, and a posted value is ignored like any forged target field.
-            return array_fill_keys(['service_id', 'service_text', 'service_date', 'service_time_band', 'questionnaire_version', 'answers'], ['prohibited']);
+            return array_fill_keys(['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band', 'questionnaire_version', 'answers'], ['prohibited']);
         }
 
         return [
@@ -40,6 +40,7 @@ trait ValidatesOrganizationFormContext
             'service_text' => ['nullable', 'string', 'max:200'],
             // The office (service point) where the service was received; checked against the institution by the controller.
             'organization_unit_id' => ['nullable', 'uuid'],
+            'unit_selection_mode' => ['nullable', 'string', Rule::in(['SELECTED', 'GENERAL'])],
             // Recent service only: feedback about a visit years ago is not service feedback.
             'service_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:'.now()->subYear()->toDateString()],
             'service_time_band' => ['nullable', 'string', Rule::enum(PublicServiceTimeBand::class)],
@@ -52,7 +53,7 @@ trait ValidatesOrganizationFormContext
     {
         return [
             'service_id.uuid' => __('service-feedback.service_not_provided'),
-            'organization_unit_id.uuid' => __('service-feedback.validation.office_invalid'),
+            'organization_unit_id.uuid' => __('service-feedback.validation.relevant_unit_invalid'),
             'service_date.before_or_equal' => __('service-feedback.validation.service_date_future'),
             'service_date.after_or_equal' => __('service-feedback.validation.service_date_too_old'),
             'service_date.date_format' => __('service-feedback.validation.service_date_invalid'),

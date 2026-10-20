@@ -20,6 +20,7 @@ use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationType;
+use App\Models\OrganizationUnit;
 use App\Models\Permission;
 use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackReportExport;
@@ -259,6 +260,37 @@ it('counts categories with uncategorized, and keeps hidden out of every bucket',
         ->and($categories->sum('total'))->toBe(3)
         ->and($categories->firstWhere('uncategorized', true)['total'])->toBe(1)
         ->and($categories->firstWhere('id', $this->category->id)['complaint'])->toBe(2);
+});
+
+it('counts the relevant work units the public named under the recorded name, with a General / Not sure bucket, inside the scope', function (): void {
+    $permits = OrganizationUnit::query()->create(['organization_id' => $this->woreda->id, 'unit_type' => 'office', 'code' => 'SR-PERMITS', 'name_en' => 'Permits office', 'name_am' => 'የፈቃድ ጽሕፈት ቤት', 'status' => 'active']);
+    $elsewhere = OrganizationUnit::query()->create(['organization_id' => $this->sibling->id, 'unit_type' => 'office', 'code' => 'SR-SIB', 'name_en' => 'Sibling office', 'status' => 'active']);
+    $named = ['organization_unit_id' => $permits->id, 'organization_unit_name_snapshot' => 'Permits office', 'organization_unit_name_am_snapshot' => 'የፈቃድ ጽሕፈት ቤት', 'unit_selection_mode' => 'SELECTED'];
+    srRow($this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, $named);
+    srRow($this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed, $named);
+    srRow($this->woreda, ServiceFeedbackType::Suggestion, ServiceFeedbackStatus::Pending, ['unit_selection_mode' => 'GENERAL']);
+    // Predates the field: no answer recorded, so it is in no bucket.
+    srRow($this->woreda, ServiceFeedbackType::Feedback, ServiceFeedbackStatus::Pending);
+    srRow($this->sibling, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, ['organization_unit_id' => $elsewhere->id, 'organization_unit_name_snapshot' => 'Sibling office', 'unit_selection_mode' => 'SELECTED']);
+    $permits->update(['name_en' => 'Renamed office']);
+
+    $voice = app(CommunityVoiceQuery::class);
+    $scope = srScope($this->bureauHead);
+    $units = collect($voice->byUnit($scope, $this->filters));
+    $permitsRow = $units->firstWhere('id', $permits->id);
+
+    expect($units->sum('total'))->toBe(3)
+        ->and($units->sum('total'))->toBeLessThanOrEqual($voice->kpis($scope, $this->filters)['current']['total'])
+        ->and($permitsRow['name_en'])->toBe('Permits office')
+        ->and($permitsRow['name_am'])->toBe('የፈቃድ ጽሕፈት ቤት')
+        ->and($permitsRow['total'])->toBe(2)
+        ->and($permitsRow['complaint'])->toBe(2)
+        ->and($permitsRow['unresolved'])->toBe(1)
+        ->and($permitsRow['general'])->toBeFalse()
+        ->and($units->firstWhere('general', true)['total'])->toBe(1)
+        ->and($units->pluck('id'))->not->toContain($elsewhere->id);
+
+    expect(app(CommunityVoiceRoomService::class)->breakdown($scope, $this->filters)['units'])->toBe($units->all());
 });
 
 it('separates target types by the viewer grants', function (): void {

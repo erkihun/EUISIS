@@ -35,10 +35,14 @@ Suggestions and complaints are routed inside the submission transaction:
 
 1. candidate rules = active, in effect, and matching on each dimension that
    the rule names: institution (`organization_id` or city-wide `null`),
-   `target_type`, `submission_type`, `category_id`;
+   relevant work unit (`organization_unit_id`: the unit the visitor named on
+   the organization form; a "General / Not sure" submission matches only
+   unit-less rules), `target_type`, `submission_type`, `tip_type`,
+   `category_id`;
 2. precedence: a rule naming the institution beats a city-wide one, then a
-   named target type, then a named submission type, then a named category;
-   among equals the lowest `priority` number, then the older rule;
+   named unit, then a named target type, then a named submission type, then a
+   named tip type, then a named category; among equals the lowest `priority`
+   number, then the older rule;
 3. the first candidate that can be applied wins. A candidate is skipped —
    with a warning naming the rule id only — when its handler no longer
    exists, is the target employee, or is outside the submission's
@@ -53,7 +57,11 @@ Rules are managed under Public Feedback Management → Routing rules: a scoped
 administrator manages the rules of their institutions; city-wide rules need
 an unrestricted account. A rule that already routed submissions is retired,
 not deleted. Rule validation refuses a handler the rule's institution cannot
-reach and a category of another institution.
+reach, a category of another institution, and a relevant work unit that is
+not the rule's institution's own (or any unit on a city-wide rule). The unit
+a rule matches on and the handler it names are separate fields: "about the
+Permits office" may be handled by a user, a role or another unit
+([public-feedback-unit-selection.md](public-feedback-unit-selection.md)).
 
 ### No-route condition
 

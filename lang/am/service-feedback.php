@@ -38,6 +38,7 @@ return [
     'rule_retired' => 'ጉዳዮች በዚህ ደንብ ስለተመሩ ከመሰረዝ ይልቅ ተሰናብቷል።',
     'rule_deleted' => 'የመስመር ደንቡ ተሰርዟል።',
     'category_out_of_scope' => 'ምድቡ ከተማ አቀፍ ወይም የደንቡ ተቋም መሆን አለበት።',
+    'unit_out_of_scope' => 'የሥራ ክፍሉ የደንቡ ተቋም መሆን አለበት።',
     'settings_saved' => 'የሕዝብ አስተያየት ፖሊሲው ተቀምጧል።',
     'questionnaire_draft_created' => 'የመጠይቁ አዲስ ረቂቅ ተፈጥሯል።',
     'questionnaire_saved' => 'የመጠይቁ ረቂቅ ተቀምጧል።',
@@ -98,6 +99,7 @@ return [
     'export_values' => [
         'types' => ['feedback' => 'አስተያየት', 'suggestion' => 'ጥቆማ', 'complaint' => 'ቅሬታ'],
         'target_types' => ['employee' => 'ሠራተኛ', 'organization' => 'ተቋም'],
+        'unit_selection' => ['GENERAL' => 'አጠቃላይ / አላውቅም'],
         'statuses' => [
             'pending' => 'በመጠባበቅ ላይ', 'unrouted' => 'ያልተላለፈ', 'assigned' => 'የተመደበ', 'reviewed' => 'ተገምግሟል',
             'under_review' => 'በግምገማ ላይ', 'accepted' => 'ተግባራዊ እንዲሆን ተቀባይነት ያገኘ', 'not_adopted' => 'ተቀባይነት ያላገኘ',
@@ -167,6 +169,8 @@ return [
         'attachments_disabled' => 'በአሁኑ ጊዜ ፋይሎች ማያያዝ አይቻልም።',
         'questionnaire_updated' => 'ቅጹን በሚሞሉበት ጊዜ ቅጹ ተሻሽሏል። እባክዎ ጥያቄዎቹን ይመልከቱ እና እንደገና ይላኩ።',
         'office_invalid' => 'እባክዎ ከተዘረዘሩት ቢሮዎች አንዱን ይምረጡ።',
+        'relevant_unit_invalid' => 'እባክዎ ከዚህ ተቋም የሚገኝ ትክክለኛ የሥራ ክፍል ይምረጡ።',
+        'relevant_unit_required' => 'የሚመለከተውን የሥራ ክፍል ወይም አጠቃላይ / አላውቅም ይምረጡ።',
         'service_date_future' => 'አገልግሎቱን ያገኙበት ቀን ወደፊት ሊሆን አይችልም።',
         'service_date_too_old' => 'አገልግሎቱን ያገኙበት ቀን ባለፈው አንድ ዓመት ውስጥ መሆን አለበት።',
         'service_date_invalid' => 'እባክዎ ትክክለኛ ቀን ያስገቡ።',

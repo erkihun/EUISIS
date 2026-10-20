@@ -29,6 +29,7 @@ room's other categories read other modules and are described in
 | `organization_id` | The institution the submission was recorded at, captured when it was submitted. Used for scope and roll-up for both target types. |
 | `category_id` | Category breakdown. `NULL` is shown as *Uncategorized*. |
 | `position_service_id` + `service_no_snapshot` / `service_name_snapshot` | Services named most often |
+| `organization_unit_id` + `organization_unit_name_snapshot` / `…_am_snapshot`, `unit_selection_mode` | Relevant work units named (organization form only). Counted under the name recorded at submission; `GENERAL` is its own bucket; rows with neither are not counted. A count is what the public said a submission concerns, never a finding about the unit. |
 | `employee_id` | Employee-targeted counts |
 | `rating` | Feedback ratings (1–5) |
 

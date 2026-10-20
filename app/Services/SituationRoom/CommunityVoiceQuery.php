@@ -200,6 +200,40 @@ final class CommunityVoiceQuery
     }
 
     /**
+     * Counts per relevant work unit the visitor named on the organization
+     * feedback form, under the name recorded at submission (a renamed or
+     * archived unit keeps its old label here). "General / Not sure" answers
+     * form one explicit bucket; rows that predate the field, and employee-QR
+     * rows (whose unit is the employee's post, not a visitor's choice), are
+     * left out. These are counts of what the public said a submission
+     * concerns — never a finding about the unit or its staff.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function byUnit(SituationRoomScope $scope, SituationRoomFilters $filters): array
+    {
+        $t = self::T;
+        $rows = $this->base($scope, $filters, $filters->start, $filters->end)->toBase()
+            ->where("{$t}.target_type", 'organization')
+            ->where(fn ($query) => $query->whereNotNull("{$t}.organization_unit_id")->orWhere("{$t}.unit_selection_mode", 'GENERAL'))
+            ->selectRaw("{$t}.organization_unit_id AS unit_id, MAX({$t}.organization_unit_name_snapshot) AS name_en, MAX({$t}.organization_unit_name_am_snapshot) AS name_am")
+            ->selectRaw($this->countColumns())
+            ->groupBy("{$t}.organization_unit_id")
+            ->get();
+
+        return $rows->map(fn ($row): array => [
+            'id' => $row->unit_id !== null ? (string) $row->unit_id : null,
+            'name_en' => $row->unit_id !== null ? $row->name_en : null,
+            'name_am' => $row->unit_id !== null ? $row->name_am : null,
+            'general' => $row->unit_id === null,
+        ] + $this->countsFrom($row))
+            ->sortByDesc('total')
+            ->take(SituationRoomMetrics::TOP_N)
+            ->values()
+            ->all();
+    }
+
+    /**
      * Counts per service the visitor named, as recorded at submission: the
      * position service (employee QR) or the institution catalog service
      * (organization feedback form). A service described only in words is not

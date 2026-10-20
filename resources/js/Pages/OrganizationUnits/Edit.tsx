@@ -45,6 +45,7 @@ export default function OrganizationUnitsEdit({
         description_en: unit.description_en ?? '',
         description_am: unit.description_am ?? '',
         status: unit.status,
+        is_public_feedback_selectable: unit.is_public_feedback_selectable ?? false,
         effective_from: unit.effective_from ?? '',
         effective_to: unit.effective_to ?? '',
         sort_order: unit.sort_order,
@@ -225,6 +226,14 @@ export default function OrganizationUnitsEdit({
                             <FieldError>{errors.effective_to}</FieldError>
                         </div>
                     </div>
+
+                    <label className="flex min-h-12 items-center gap-3 rounded-control border border-(--app-border) px-3 text-sm text-(--app-foreground)">
+                        <input type="checkbox" checked={data.is_public_feedback_selectable} onChange={(event) => setData('is_public_feedback_selectable', event.target.checked)} className="h-4 w-4" />
+                        <span>
+                            <span className="block font-medium">{t('organizationUnits.publicFeedbackSelectable')}</span>
+                            <span className="block text-xs text-(--app-muted-foreground)">{t('organizationUnits.publicFeedbackSelectableHint')}</span>
+                        </span>
+                    </label>
 
                     {/* Descriptions */}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

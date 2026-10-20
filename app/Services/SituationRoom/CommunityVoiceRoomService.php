@@ -53,12 +53,13 @@ final class CommunityVoiceRoomService
         });
     }
 
-    /** Categories, services, workflow state, target split and ratings. */
+    /** Categories, services, relevant work units, workflow state, target split and ratings. */
     public function breakdown(SituationRoomScope $scope, SituationRoomFilters $filters): array
     {
         return $this->remember($scope, $filters, 'breakdown', SituationRoomMetrics::CACHE_SECONDS, fn (): array => [
             'categories' => $this->voice->byCategory($scope, $filters),
             'services' => $this->voice->byService($scope, $filters),
+            'units' => $this->voice->byUnit($scope, $filters),
             'resolution' => $this->voice->resolution($scope, $filters),
             'targets' => $this->voice->byTarget($scope, $filters),
             'ratings' => $this->voice->ratings($scope, $filters),

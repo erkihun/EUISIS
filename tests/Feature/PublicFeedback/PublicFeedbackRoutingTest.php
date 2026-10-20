@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\OrganizationScopeType;
+use App\Enums\PublicFeedbackHandlerType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeServiceFeedback;
@@ -16,6 +17,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
+use App\Services\ServiceFeedback\PublicFeedbackAssignmentService;
 use App\Services\ServiceFeedback\PublicFeedbackRoutingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -309,6 +311,81 @@ it('falls through to the next usable rule when the most specific one cannot be u
     $complaint = EmployeeServiceFeedback::query()->sole();
     expect($complaint->status)->toBe(ServiceFeedbackStatus::Assigned)
         ->and(PublicFeedbackAssignment::query()->sole()->handler_id)->toBe((string) $this->handler->id);
+});
+
+/** A public-selectable office of institution A and a reviewer confined to A who can handle it. */
+function rtUnitScenario(): array
+{
+    $unit = OrganizationUnit::query()->create([
+        'organization_id' => test()->a->organization->id, 'unit_type' => 'office', 'code' => 'RT-PERMITS', 'name_en' => 'Permits office', 'name_am' => 'የፈቃድ ጽሕፈት ቤት', 'status' => 'active',
+    ]);
+    $lead = User::factory()->create(['name' => 'Permits Lead']);
+    $lead->assignRole('Service Quality Team');
+    UserOrganizationScope::query()->create(['user_id' => $lead->id, 'organization_id' => test()->a->organization->id, 'scope_type' => OrganizationScopeType::Self]);
+
+    return [$unit, $lead];
+}
+
+it('routes by the relevant work unit the visitor named, sends General / Not sure to the institution-wide rule, and reassignment never moves the unit', function (): void {
+    [$permits, $lead] = rtUnitScenario();
+    $wide = rtRule(['priority' => 50]);
+    $narrow = rtRule(['organization_unit_id' => $permits->id, 'handler_id' => (string) $lead->id, 'priority' => 50]);
+
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'The permits counter closed early.', 'organization_unit_id' => $permits->id, 'unit_selection_mode' => 'SELECTED']))
+        ->assertSessionHasNoErrors();
+    $about = EmployeeServiceFeedback::query()->sole();
+    expect($about->organization_unit_id)->toBe($permits->id)
+        ->and($about->organization_unit_name_snapshot)->toBe('Permits office')
+        ->and($about->currentAssignment->handler_id)->toBe((string) $lead->id)
+        ->and($about->currentAssignment->routing_rule_id)->toBe($narrow->id);
+
+    RateLimiter::clear('sf-submit:'.$this->orgToken.'|127.0.0.1');
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'Nobody answers the phone.', 'unit_selection_mode' => 'GENERAL']))
+        ->assertSessionHasNoErrors();
+    $general = EmployeeServiceFeedback::query()->where('unit_selection_mode', 'GENERAL')->sole();
+    expect($general->organization_unit_id)->toBeNull()
+        ->and($general->currentAssignment->handler_id)->toBe((string) $this->handler->id)
+        ->and($general->currentAssignment->routing_rule_id)->toBe($wide->id);
+
+    // The handler changes; what the submission is about does not.
+    app(PublicFeedbackAssignmentService::class)->assign($about, PublicFeedbackHandlerType::User, (string) $this->handler->id, $this->superAdmin);
+    $about->refresh();
+    expect($about->currentAssignment->handler_id)->toBe((string) $this->handler->id)
+        ->and($about->organization_unit_id)->toBe($permits->id)
+        ->and($about->organization_unit_name_snapshot)->toBe('Permits office')
+        ->and($about->organization_target_id)->toBe($this->a->organization->id);
+});
+
+it('leaves a General / Not sure complaint unrouted when every rule names a unit', function (): void {
+    [$permits, $lead] = rtUnitScenario();
+    rtRule(['organization_unit_id' => $permits->id, 'handler_id' => (string) $lead->id]);
+
+    $this->post('/feedback/'.$this->orgToken.'/complaint', pfComplete('complaint', ['message' => 'Nobody answers the phone.', 'unit_selection_mode' => 'GENERAL']))->assertSessionHasNoErrors();
+
+    expect(EmployeeServiceFeedback::query()->sole()->status)->toBe(ServiceFeedbackStatus::Unrouted)
+        ->and(PublicFeedbackAssignment::query()->count())->toBe(0);
+});
+
+it('accepts a unit only on its own institution\'s rule and shows it on the rules page', function (): void {
+    [$permits, $lead] = rtUnitScenario();
+    $foreign = OrganizationUnit::query()->create(['organization_id' => $this->b->organization->id, 'unit_type' => 'office', 'code' => 'RT-FOREIGN', 'name_en' => 'Foreign office', 'status' => 'active']);
+    $payload = [
+        'organization_id' => $this->a->organization->id, 'target_type' => 'organization', 'submission_type' => 'complaint', 'category_id' => null,
+        'handler_type' => 'user', 'handler_id' => (string) $lead->id, 'priority' => 20, 'is_active' => true,
+    ];
+
+    $this->actingAs($this->orgAdmin)->post(route('service-feedback.routing-rules.store'), $payload + ['organization_unit_id' => $foreign->id])->assertSessionHasErrors('organization_unit_id');
+    $this->actingAs($this->superAdmin)->post(route('service-feedback.routing-rules.store'), array_merge($payload, ['organization_id' => null, 'handler_type' => 'role', 'handler_id' => (string) Role::findByName('Service Quality Team', 'web')->id, 'organization_unit_id' => $permits->id]))
+        ->assertSessionHasErrors('organization_unit_id');
+    expect(PublicFeedbackRoutingRule::query()->count())->toBe(0);
+
+    $this->actingAs($this->orgAdmin)->post(route('service-feedback.routing-rules.store'), $payload + ['organization_unit_id' => $permits->id])->assertRedirect();
+    expect(PublicFeedbackRoutingRule::query()->sole()->organization_unit_id)->toBe($permits->id);
+
+    $this->actingAs($this->orgAdmin)->get(route('service-feedback.routing-rules.index'))->assertInertia(fn (Assert $page) => $page
+        ->where('rules.0.organization_unit_id', $permits->id)
+        ->where('rules.0.unit.en', 'Permits office')
+        ->where('rules.0.unit.am', 'የፈቃድ ጽሕፈት ቤት'));
 });
 
 it('filters the routing rules page by status and organization like every other list', function (): void {

@@ -63,9 +63,25 @@ export interface OrganizationFormContext {
     questionnaire: Questionnaire | null;
     /** `list`: the catalog itself; `search`: too large, searched on the server; `none`: no catalog, free text. */
     serviceOptions: { mode: 'list' | 'search' | 'none'; items: ServiceOption[] };
-    /** The institution's offices (service points); empty when it has fewer than two. */
-    offices: { id: string; name: string }[];
+    /** Safe public work units of the resolved organization only, each with its parent unit when that parent is itself offered. */
+    offices: UnitOption[];
 }
+
+export interface UnitOption {
+    id: string;
+    name: string;
+    type: string | null;
+    parent_id: string | null;
+    parent: string | null;
+}
+
+/** The unit as the visitor reads it: "Parent › Unit" when the parent is also on offer. */
+function unitLabel(unit: UnitOption): string {
+    return unit.parent ? `${unit.parent} › ${unit.name}` : unit.name;
+}
+
+/** Above this many units the visitor gets a filter box, as for the service catalog. */
+const UNIT_FILTER_FROM = 12;
 
 type StepId = 'service' | 'experience' | 'details' | 'submit';
 /** The fields that hold one string. */
@@ -79,6 +95,7 @@ interface OrganizationFormData {
     service_id: string;
     service_text: string;
     organization_unit_id: string;
+    unit_selection_mode: 'SELECTED' | 'GENERAL';
     service_date: string;
     service_time_band: string;
     answers: Record<string, AnswerValue>;
@@ -99,10 +116,10 @@ interface OrganizationFormData {
 
 const TIME_BANDS = ['morning', 'afternoon', 'evening'] as const;
 const OTHER_SERVICE = '__other';
-const SERVICE_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'service_date', 'service_time_band'];
+const SERVICE_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band'];
 const SUBMITTER_FIELDS = ['client_name', 'client_contact', 'client_email', 'submitter_organization', 'submitter_address', 'form_token', 'questionnaire_version'];
 /** What a draft keeps for this tab: never the visitor's identity, never files, never a Tip-off. */
-const DRAFT_FIELDS = ['category_id', 'service_id', 'service_text', 'organization_unit_id', 'service_date', 'service_time_band', 'answers', 'rating', 'comment', 'message', 'incident_location'] as const;
+const DRAFT_FIELDS = ['category_id', 'service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band', 'answers', 'rating', 'comment', 'message', 'incident_location'] as const;
 
 const STEP_TITLE: Record<StepId, Record<SubmissionKind, string>> = {
     service: { feedback: 'stepService', complaint: 'stepService', suggestion: 'stepServiceOptional' },
@@ -384,6 +401,73 @@ function ServiceReceived({ mode, items, searchUrl, data, setService, error }: {
     );
 }
 
+/**
+ * The relevant work unit: which part of the institution the submission
+ * concerns, from the public-selectable units the server sent for the scanned
+ * QR, or "General / Not sure". Units are grouped under their parent when the
+ * parent is itself offered; a long list gets a filter box. Only the unit's
+ * name is shown: no code, no staff, no manager.
+ */
+function RelevantWorkUnit({ units, value, required, onChange, error }: {
+    units: UnitOption[];
+    value: string;
+    required: boolean;
+    onChange: (unitId: string) => void;
+    error?: string;
+}) {
+    const { t } = useLocale();
+    const [filter, setFilter] = useState('');
+    const term = filter.trim().toLowerCase();
+    const filtering = term !== '';
+    const visible = filtering ? units.filter((unit) => unitLabel(unit).toLowerCase().includes(term)) : units;
+    // Children sit under their parent's name; units whose parent is not on offer are listed at the top level.
+    const offered = new Set(units.map((unit) => unit.id));
+    const roots = visible.filter((unit) => unit.parent_id === null || !offered.has(unit.parent_id));
+    const childrenOf = (parentId: string) => visible.filter((unit) => unit.parent_id === parentId);
+    const groups = roots.map((root) => ({ root, children: childrenOf(root.id) }));
+    const grouped = new Set(groups.flatMap((group) => [group.root.id, ...group.children.map((child) => child.id)]));
+    // Deeper descendants (grandchildren) are listed by their full path so nothing on offer is hidden.
+    const deeper = visible.filter((unit) => !grouped.has(unit.id));
+    const selected = units.find((unit) => unit.id === value);
+    const describedBy = ['relevant-work-unit-hint', error ? 'relevant-work-unit-error' : null].filter(Boolean).join(' ');
+
+    return (
+        <div data-field>
+            <label htmlFor="organization_unit_id" className={labelClass}>{t('serviceFeedback.relevantWorkUnit')}<RequirementMark required={required} /></label>
+            <p id="relevant-work-unit-hint" className={`mt-1 text-xs ${mutedClass}`}>{t('serviceFeedback.relevantWorkUnitHint')}</p>
+            {units.length > UNIT_FILTER_FROM && (
+                <input type="search" aria-label={t('serviceFeedback.unitFilter')} placeholder={t('serviceFeedback.unitFilter')} value={filter} onChange={(event) => setFilter(event.target.value)} className={fieldClass} autoComplete="off" />
+            )}
+            <select
+                id="organization_unit_id"
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                className={fieldClass}
+                aria-describedby={describedBy}
+                aria-invalid={error ? true : undefined}
+                aria-required={required || undefined}
+            >
+                <option value="">{t('serviceFeedback.generalNotSure')}</option>
+                {/* A filtered-out selection stays in the list, so the control never shows a value it does not contain. */}
+                {selected && !visible.some((unit) => unit.id === selected.id) && <option value={selected.id}>{unitLabel(selected)}</option>}
+                {groups.map(({ root, children }) => (
+                    children.length === 0
+                        ? <option key={root.id} value={root.id}>{filtering ? unitLabel(root) : root.name}</option>
+                        : (
+                            <optgroup key={root.id} label={root.name}>
+                                <option value={root.id}>{root.name}</option>
+                                {children.map((child) => <option key={child.id} value={child.id}>{child.name}</option>)}
+                            </optgroup>
+                        )
+                ))}
+                {deeper.map((unit) => <option key={unit.id} value={unit.id}>{unitLabel(unit)}</option>)}
+            </select>
+            {filtering && visible.length === 0 && <p className={`mt-1 text-xs ${mutedClass}`} aria-live="polite">{t('serviceFeedback.unitNoMatch')}</p>}
+            {error && <p id="relevant-work-unit-error" role="alert" className={errorClass}>{error}</p>}
+        </div>
+    );
+}
+
 /** One line of the review: what was entered, with a button back to its step. */
 function ReviewRow({ label, value, onEdit }: { label: string; value: ReactNode; onEdit: () => void }) {
     const { t } = useLocale();
@@ -438,6 +522,7 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
         service_id: '',
         service_text: '',
         organization_unit_id: '',
+        unit_selection_mode: 'GENERAL',
         service_date: '',
         service_time_band: '',
         answers: {},
@@ -557,6 +642,7 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
             service_id: current.service_id,
             service_text: current.service_id === '' ? current.service_text : '',
             organization_unit_id: current.organization_unit_id,
+            unit_selection_mode: current.organization_unit_id === '' ? 'GENERAL' : 'SELECTED',
             answers,
             client_name: current.client_name,
             client_contact: current.client_contact,
@@ -656,14 +742,16 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                             error={fieldErrors.service_id ?? fieldErrors.service_text}
                         />
                         {context.offices.length > 0 && (
-                            <div data-field>
-                                <label htmlFor="organization_unit_id" className={labelClass}>{t('serviceFeedback.servicePoint')}<RequirementMark required={false} /></label>
-                                <select id="organization_unit_id" value={data.organization_unit_id} onChange={(event) => set('organization_unit_id', event.target.value)} className={fieldClass} aria-invalid={fieldErrors.organization_unit_id ? true : undefined}>
-                                    <option value="">{t('serviceFeedback.servicePointPlaceholder')}</option>
-                                    {context.offices.map((option) => <option key={option.id} value={option.id}>{option.name}</option>)}
-                                </select>
-                                {fieldErrors.organization_unit_id && <p role="alert" className={errorClass}>{fieldErrors.organization_unit_id}</p>}
-                            </div>
+                            <RelevantWorkUnit
+                                units={context.offices}
+                                value={data.organization_unit_id}
+                                required={kind !== 'feedback'}
+                                onChange={(unitId) => {
+                                    setData((current) => ({ ...current, organization_unit_id: unitId, unit_selection_mode: unitId === '' ? 'GENERAL' : 'SELECTED' }));
+                                    clearErrors('organization_unit_id');
+                                }}
+                                error={fieldErrors.organization_unit_id}
+                            />
                         )}
                         {kind !== 'suggestion' && (
                             <>
@@ -809,7 +897,9 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                                     <ReviewRow label={t('serviceFeedback.tipTypeLabel')} value={data.tip_type ? t(TIP_TYPE_COPY[data.tip_type].label) : '—'} onEdit={() => goTo(stepIndexOf('details'))} />
                                 )}
                                 <ReviewRow label={t('serviceFeedback.serviceReceived')} value={serviceName ?? t('serviceFeedback.notGiven')} onEdit={() => goTo(stepIndexOf('service'))} />
-                                {office && <ReviewRow label={t('serviceFeedback.servicePoint')} value={office.name} onEdit={() => goTo(stepIndexOf('service'))} />}
+                                {context.offices.length > 0 && (
+                                    <ReviewRow label={t('serviceFeedback.relevantWorkUnit')} value={office ? unitLabel(office) : t('serviceFeedback.generalNotSure')} onEdit={() => goTo(stepIndexOf('service'))} />
+                                )}
                                 {kind !== 'suggestion' && data.service_date !== '' && (
                                     <ReviewRow label={t('serviceFeedback.serviceDate')} value={<LocalizedDateDisplay value={data.service_date} />} onEdit={() => goTo(stepIndexOf('service'))} />
                                 )}

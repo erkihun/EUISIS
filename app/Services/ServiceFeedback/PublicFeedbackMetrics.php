@@ -310,6 +310,34 @@ final class PublicFeedbackMetrics
     }
 
     /**
+     * The relevant work units visitors named on the organization form, under
+     * the name recorded at submission, plus one "General / Not sure" bucket
+     * (id null). Employee-QR rows and rows older than the field are left out.
+     * A count of what submissions concern — never a finding about a unit.
+     *
+     * @param  Builder<EmployeeServiceFeedback>  $query
+     * @return Collection<int, array{id: ?string, name_en: ?string, name_am: ?string, general: bool, total: int}>
+     */
+    public function byUnit(Builder $query): Collection
+    {
+        $rows = (clone $query)
+            ->where('target_type', PublicFeedbackTargetType::Organization->value)
+            ->where(fn (Builder $q) => $q->whereNotNull('organization_unit_id')->orWhere('unit_selection_mode', 'GENERAL'))
+            ->selectRaw('organization_unit_id, MAX(organization_unit_name_snapshot) AS name_en, MAX(organization_unit_name_am_snapshot) AS name_am, COUNT(*) AS total')
+            ->groupBy('organization_unit_id')
+            ->orderByDesc('total')
+            ->get();
+
+        return $rows->map(fn ($row): array => [
+            'id' => $row->organization_unit_id,
+            'name_en' => $row->organization_unit_id === null ? null : $row->name_en,
+            'name_am' => $row->organization_unit_id === null ? null : $row->name_am,
+            'general' => $row->organization_unit_id === null,
+            'total' => (int) $row->total,
+        ])->values();
+    }
+
+    /**
      * Current handlers of the submissions in the slice (brief §83 "routing/handler").
      *
      * @param  Builder<EmployeeServiceFeedback>  $query
@@ -392,7 +420,9 @@ final class PublicFeedbackMetrics
                             ? ($name($item->organizationTarget) ?? $item->target_name_snapshot)
                             : ($item->target_name_snapshot ?? $item->employee?->full_name),
                         'organization' => $name($item->organization),
-                        'organization_unit' => $name($item->organizationUnit),
+                        // The relevant work unit as recorded at submission; "General / Not sure" is spelled out, never a fake unit.
+                        'organization_unit' => $item->relevantUnitName($locale)
+                            ?? ($item->isGeneralUnitSelection() ? (string) __('service-feedback.export_values.unit_selection.GENERAL', [], $locale) : $name($item->organizationUnit)),
                         'category' => $name($item->category),
                         'status' => $value('statuses', $item->status->value),
                         'handler' => $item->currentAssignment?->handlerName($locale),

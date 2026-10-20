@@ -252,7 +252,7 @@ final class PublicFeedbackQuestionnaire
     }
 
     /**
-     * The service information and answers of an organization submission, for
+     * The service information, selected work-unit context, and answers of an organization submission, for
      * staff detail screens; null for an employee submission or a row with
      * none of it (submissions made before the organization form).
      *
@@ -272,7 +272,10 @@ final class PublicFeedbackQuestionnaire
             'service_code' => $entry->service_id !== null ? $entry->service_no_snapshot : null,
             // The visitor's own words: not linked to the institution's service catalog.
             'service_unstructured' => $entry->service_id === null && $entry->service_text !== null,
-            'service_point' => $unit === null ? null : ($locale === 'am' && filled($unit->name_am) ? $unit->name_am : $unit->name_en),
+            // The unit as recorded at submission; the live relation only for rows older than the snapshot.
+            'service_point' => $entry->relevantUnitName($locale)
+                ?? ($unit === null ? null : ($locale === 'am' && filled($unit->name_am) ? $unit->name_am : $unit->name_en)),
+            'unit_selection_mode' => $entry->unit_selection_mode,
             'service_date' => $entry->service_date?->toDateString(),
             'service_time_band' => $entry->service_time_band?->value,
             'questionnaire_version' => $entry->questionSet?->version_no,

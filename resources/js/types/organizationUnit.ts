@@ -27,6 +27,7 @@ export interface OrganizationUnit {
     description_en: string | null;
     description_am: string | null;
     status: OrganizationUnitStatus;
+    is_public_feedback_selectable?: boolean;
     effective_from: string | null;
     effective_to: string | null;
     sort_order: number;

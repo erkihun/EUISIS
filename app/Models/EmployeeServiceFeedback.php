@@ -53,6 +53,10 @@ class EmployeeServiceFeedback extends Model
         'incident_location',
         'organization_id',
         'organization_unit_id',
+        'organization_unit_name_snapshot',
+        'organization_unit_name_am_snapshot',
+        'organization_unit_type_snapshot',
+        'unit_selection_mode',
         'position_id',
         'position_service_id',
         'service_no_snapshot',
@@ -227,6 +231,26 @@ class EmployeeServiceFeedback extends Model
     public function organizationUnit(): BelongsTo
     {
         return $this->belongsTo(OrganizationUnit::class);
+    }
+
+    /**
+     * The relevant work unit as it was named when this submission was made.
+     * Null for rows older than the snapshot columns and for "General / Not sure"
+     * (unit_selection_mode GENERAL), which deliberately names no unit.
+     */
+    public function relevantUnitName(string $locale): ?string
+    {
+        if ($locale === 'am' && filled($this->organization_unit_name_am_snapshot)) {
+            return $this->organization_unit_name_am_snapshot;
+        }
+
+        return $this->organization_unit_name_snapshot;
+    }
+
+    /** The visitor explicitly answered "General / Not sure" instead of naming a unit. */
+    public function isGeneralUnitSelection(): bool
+    {
+        return $this->unit_selection_mode === 'GENERAL';
     }
 
     public function position(): BelongsTo

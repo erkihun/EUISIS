@@ -30,6 +30,7 @@ class PublicFeedbackRoutingRule extends Model
         'submission_type',
         'tip_type',
         'category_id',
+        'organization_unit_id',
         'handler_type',
         'handler_id',
         'priority',
@@ -60,6 +61,16 @@ class PublicFeedbackRoutingRule extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(PublicFeedbackCategory::class, 'category_id');
+    }
+
+    /**
+     * The relevant work unit this rule is narrowed to (null = any). This is
+     * what the submission is *about*, never who handles it: the handler is
+     * named separately in handler_type/handler_id.
+     */
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(OrganizationUnit::class, 'organization_unit_id');
     }
 
     public function assignments(): HasMany

@@ -47,6 +47,7 @@ class PublicFeedbackReportController extends Controller
             'byOrganization' => $this->metrics->byOrganization($query)->all(),
             'byCategory' => $this->metrics->byCategory($query)->all(),
             'byHandler' => $this->metrics->byHandler($query)->all(),
+            'byUnit' => $this->metrics->byUnit($query)->all(),
             'filterOptions' => $this->metrics->filterOptions($user),
             'exports' => PublicFeedbackReportExport::query()
                 ->where('requested_by', $user->getKey())

@@ -13,6 +13,8 @@ export type AttentionItem = { code: string; tone: 'info' | 'warning'; count: num
 export type SummarySentence = { code: string; params: Record<string, string | number | null> };
 export type CategoryRow = { id: string | null; uncategorized: boolean } & Name & Counts;
 export type ServiceRow = { id: string; service_no: string | null; name: string | null } & Counts;
+/** A relevant work unit the public named, under its name at submission; `general` is the "General / Not sure" bucket. */
+export type UnitRow = { id: string | null; general: boolean } & Name & Counts;
 export type Resolution = { statuses: Record<string, number>; by_type: Record<string, { unresolved: number; resolved: number }> };
 export type Ratings = { distribution: Record<string, number>; average: number | null; total: number };
 
@@ -247,6 +249,25 @@ export function ServiceSection({ services }: { services: ServiceRow[] }) {
                 <ul className="space-y-3">
                     {services.map((row) => (
                         <MeterRow key={row.id} label={[row.service_no, row.name].filter(Boolean).join(' · ') || '—'} value={row.total} max={max}
+                            hint={`${t('situationRoom.kpiComplaints')} ${row.complaint} · ${t('situationRoom.kpiUnresolved')} ${row.unresolved}`} />
+                    ))}
+                </ul>
+            )}
+        </Section>
+    );
+}
+
+export function UnitSection({ units }: { units: UnitRow[] }) {
+    const { t } = useLocale();
+    const name = useNamer();
+    const max = Math.max(1, ...units.map((row) => row.total));
+
+    return (
+        <Section id="sr-units" title={t('situationRoom.unitsTitle')} intro={t('situationRoom.unitsNote')}>
+            {units.length === 0 ? <p className="text-sm text-(--app-muted-foreground)">{t('situationRoom.unitsEmpty')}</p> : (
+                <ul className="space-y-3">
+                    {units.map((row) => (
+                        <MeterRow key={row.id ?? 'general'} label={row.general ? t('situationRoom.unitsGeneral') : name(row) || '—'} value={row.total} max={max}
                             hint={`${t('situationRoom.kpiComplaints')} ${row.complaint} · ${t('situationRoom.kpiUnresolved')} ${row.unresolved}`} />
                     ))}
                 </ul>

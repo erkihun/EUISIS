@@ -14,6 +14,7 @@ use App\Enums\PublicTipType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeServiceFeedback;
+use App\Models\OrganizationUnit;
 use App\Models\PositionService;
 use App\Models\Service;
 use Illuminate\Http\Request;
@@ -107,6 +108,10 @@ class PublicFeedbackSubmissionService
                     'organization_id' => $target->contextOrganizationId,
                     // Employee: the unit of the post. Organization: the office the visitor chose, checked against it.
                     'organization_unit_id' => $organizationForm['organization_unit_id'] ?? $target->contextUnitId,
+                    'organization_unit_name_snapshot' => $organizationForm['organization_unit_name_snapshot'] ?? null,
+                    'organization_unit_name_am_snapshot' => $organizationForm['organization_unit_name_am_snapshot'] ?? null,
+                    'organization_unit_type_snapshot' => $organizationForm['organization_unit_type_snapshot'] ?? null,
+                    'unit_selection_mode' => $organizationForm['unit_selection_mode'] ?? null,
                     'position_id' => $target->contextPositionId,
                     'target_name_snapshot' => $target->targetNameSnapshot,
                     'target_code_snapshot' => $target->targetCodeSnapshot,
@@ -218,6 +223,7 @@ class PublicFeedbackSubmissionService
         }
 
         $catalogService = ! empty($data['service_id']) ? Service::query()->find((string) $data['service_id']) : null;
+        $unit = ! empty($data['organization_unit_id']) ? OrganizationUnit::query()->find((string) $data['organization_unit_id']) : null;
         $set = $this->questionnaire->published();
         // Validation has checked the stated version is the published one; no version means the page showed no questions.
         $asked = $set !== null
@@ -231,6 +237,11 @@ class PublicFeedbackSubmissionService
             // The visitor's own words only when no catalog service was chosen: an unstructured service.
             'service_text' => $catalogService === null ? $this->trimmedOrNull(is_string($data['service_text'] ?? null) ? $data['service_text'] : null) : null,
             'organization_unit_id' => $this->trimmedOrNull(is_string($data['organization_unit_id'] ?? null) ? $data['organization_unit_id'] : null),
+            // The unit as the visitor saw it; a later rename or archive never rewrites this submission.
+            'organization_unit_name_snapshot' => $unit === null ? null : ($unit->name_en ?: $unit->name_am),
+            'organization_unit_name_am_snapshot' => $unit?->name_am,
+            'organization_unit_type_snapshot' => $unit?->unit_type,
+            'unit_selection_mode' => $unit === null ? 'GENERAL' : 'SELECTED',
             'service_date' => $data['service_date'] ?? null,
             'service_time_band' => $data['service_time_band'] ?? null,
             // The version is recorded whenever the visitor was shown its questions, answered or not.

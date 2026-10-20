@@ -165,7 +165,10 @@ class ServiceSubmissionController extends Controller
                 'intake_channel' => $submission->intake_channel?->value,
                 'incident_date' => $submission->incident_date?->toDateString(),
                 'incident_location' => $submission->incident_location,
-                'organization_unit' => $locale === 'am' ? ($submission->organizationUnit?->name_am ?? $submission->organizationUnit?->name_en) : $submission->organizationUnit?->name_en,
+                // The relevant work unit as recorded at submission; the live unit only for rows older than the snapshot.
+                'organization_unit' => $submission->relevantUnitName($locale)
+                    ?? ($locale === 'am' ? ($submission->organizationUnit?->name_am ?? $submission->organizationUnit?->name_en) : $submission->organizationUnit?->name_en),
+                'unit_selection_mode' => $submission->unit_selection_mode,
                 'position' => $locale === 'am' ? ($submission->position?->title_am ?? $submission->position?->title_en) : $submission->position?->title_en,
                 'category' => $submission->category?->localizedName($locale),
                 'review_note' => $submission->review_note,
@@ -407,6 +410,9 @@ class ServiceSubmissionController extends Controller
             'employee' => $entry->employee?->full_name,
             'employee_number' => $entry->employee?->employee_number,
             'organization' => $locale === 'am' ? ($entry->organization?->name_am ?? $entry->organization?->name_en) : $entry->organization?->name_en,
+            // The relevant work unit the visitor named on the organization form, as recorded then.
+            'organization_unit' => $entry->relevantUnitName($locale),
+            'unit_selection_mode' => $entry->unit_selection_mode,
             'handler' => $entry->currentAssignment?->handlerName($locale),
         ];
     }

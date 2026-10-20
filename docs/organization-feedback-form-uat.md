@@ -30,6 +30,7 @@ time.
 | A1 | Scan the QR (open the link) | Institution name and logo; three choices: Feedback, Tip-off, Complaint. No choice of institution. |
 | A2 | Choose Feedback | "Step 1 of 4 · Service information" |
 | A3 | Type or choose the service; pick a date and "Morning"; Next | Step 2. The date shows in the Gregorian calendar. |
+| A3b | On a Complaint: leave "Relevant Work Unit" on "General / Not sure", then pick a unit instead | Both are accepted. Units of an institution with a parent show under it; no code or staff name appears. The review step repeats the choice. |
 | A4 | Press Next without the overall rating | "Please choose your overall satisfaction." The error is focused. |
 | A5 | Rate several questions (try the keyboard: Tab, then arrow keys) and the overall question | The chosen label shows under each row ("Satisfied"). |
 | A6 | Next; write a comment; answer "Did you get the service?" | Step 3 → Step 4 |

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\ServiceFeedbackStatus;
 use App\Models\EmployeeServiceFeedback;
+use App\Models\OrganizationUnit;
 use App\Models\Permission;
 use App\Models\PublicFeedbackAssignment;
 use App\Models\PublicFeedbackCategory;
@@ -144,6 +145,37 @@ it('returns nothing for forged organization, unit, category and handler filters'
     'an unknown category' => [fn () => ['category_id' => (string) Str::uuid()]],
     'an unknown handler' => [fn () => ['handler_type' => 'user', 'handler_id' => '999999']],
 ]);
+
+it('filters by the relevant work unit of the chosen institution only, and shows the unit as recorded or General / Not sure', function (): void {
+    $permits = OrganizationUnit::query()->create(['organization_id' => $this->s->org['woreda_a1']->id, 'unit_type' => 'office', 'code' => 'A1-PERMITS', 'name_en' => 'Permits office', 'status' => 'active']);
+    $foreign = OrganizationUnit::query()->create(['organization_id' => $this->s->org['woreda_b1']->id, 'unit_type' => 'office', 'code' => 'B1-PERMITS', 'name_en' => 'B1 Permits office', 'status' => 'active']);
+    $this->rows['complaint']->forceFill(['organization_unit_id' => $permits->id, 'organization_unit_name_snapshot' => 'Permits office', 'organization_unit_type_snapshot' => 'office', 'unit_selection_mode' => 'SELECTED'])->save();
+    $this->rows['suggestion']->forceFill(['unit_selection_mode' => 'GENERAL'])->save();
+    $permits->update(['name_en' => 'Renamed office']);
+    $viewer = apfViewer('subcity_a');
+
+    // The unit filter offers the chosen institution's units, and never those of an institution outside the scope.
+    $props = apfProps($viewer, route('service-submissions.index', ['organization_id' => $this->s->org['woreda_a1']->id]));
+    expect(collect($props['filterOptions']['units'])->pluck('id')->all())->toBe([$permits->id]);
+    expect(apfProps($viewer, route('service-submissions.index'))['filterOptions']['units'])->toBe([])
+        ->and(apfProps($viewer, route('service-submissions.index', ['organization_id' => $this->s->org['woreda_b1']->id]))['filterOptions']['units'])->toBe([]);
+
+    $props = apfProps($viewer, route('service-submissions.index', ['organization_id' => $this->s->org['woreda_a1']->id, 'organization_unit_id' => $permits->id]));
+    expect($props['entries']['total'])->toBe(1)
+        ->and($props['entries']['data'][0]['type'])->toBe('complaint')
+        // The name at submission, not the renamed unit.
+        ->and($props['entries']['data'][0]['organization_unit'])->toBe('Permits office');
+    expect(apfProps($viewer, route('service-submissions.index', ['organization_unit_id' => $foreign->id]))['entries']['total'])->toBe(0);
+
+    $rows = collect(apfProps($viewer, route('service-submissions.index'))['entries']['data'])->keyBy('type');
+    expect($rows['suggestion']['organization_unit'])->toBeNull()
+        ->and($rows['suggestion']['unit_selection_mode'])->toBe('GENERAL');
+
+    $detail = apfProps($viewer, apfDetailUrl($this->rows['complaint']));
+    expect($detail['entry']['organization_unit'])->toBe('Permits office')
+        ->and($detail['entry']['unit_selection_mode'])->toBe('SELECTED')
+        ->and($detail['organizationForm']['service_point'])->toBe('Permits office');
+});
 
 // ── List, filters, counts, unrouted queue ───────────────────────────────
 

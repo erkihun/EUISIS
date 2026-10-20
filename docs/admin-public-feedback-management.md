@@ -46,10 +46,16 @@ export use, so the list, the cards and the export always agree.
   assigned, under review), Outcome recorded (resolved, accepted, not
   adopted), Unrouted. The cards use every filter except type and status, so
   they split the same slice. Their parts add up to "All" (tested).
-- **Filters:** type, target type, organization, unit (`organization_unit_id`),
-  category, status, submitter identity mode, date range (on `submitted_at`),
-  handler (`handler_type`, `handler_id`), "My queue". Each one only narrows
-  the scoped base.
+- **Filters:** type, target type, organization, relevant work unit
+  (`organization_unit_id`; its options are the chosen organization's units
+  and appear only once an organization in scope is chosen — a unit id of
+  another institution returns nothing), category, status, submitter identity
+  mode, date range (on `submitted_at`), handler (`handler_type`,
+  `handler_id`), "My queue". Each one only narrows the scoped base.
+- **Unit column:** the relevant work unit as recorded at submission
+  (`organization_unit_name_snapshot`, Amharic snapshot in Amharic), or
+  "General / Not sure" when the visitor chose that. A later rename of the
+  unit does not change old rows.
 - **Search** (`q`): an exact reference match (unique index), or a
   contains-match on the target name, service, institution, category and,
   with the employee-target grant, the employee's name. It runs inside the

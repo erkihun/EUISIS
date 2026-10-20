@@ -16,6 +16,7 @@ type NamePair = { en: string; am: string | null } | null;
 type Rule = RuleRecord & {
     organization: NamePair;
     category: NamePair;
+    unit: NamePair;
     handler_name: string | null;
     handler_name_am: string | null;
     referenced: boolean;
@@ -124,7 +125,7 @@ export default function RoutingRulesIndex({ rules, filters, organizations, canMa
                                         </Td>
                                         <Td>
                                             <div className="text-sm">{row.target_type ? t(row.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee') : t('serviceFeedback.anyTargetType')} · {row.submission_type ? t(row.submission_type === 'complaint' ? 'serviceFeedback.adminTypeComplaint' : 'serviceFeedback.adminTypeSuggestion') : t('serviceFeedback.anySubmissionType')}</div>
-                                            <div className="text-xs text-(--app-muted-foreground)">{pair(row.category, t('serviceFeedback.anyCategory'))}</div>
+                                            <div className="text-xs text-(--app-muted-foreground)">{pair(row.category, t('serviceFeedback.anyCategory'))} · {pair(row.unit, t('serviceFeedback.anyUnit'))}</div>
                                         </Td>
                                         <Td>
                                             <div className="font-medium">{locale === 'am' && row.handler_name_am ? row.handler_name_am : row.handler_name ?? '—'}</div>

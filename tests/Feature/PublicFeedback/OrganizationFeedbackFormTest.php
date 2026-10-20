@@ -110,7 +110,7 @@ function offPublishQuestionnaire(int $version = 1, string $courtesyLabel = 'Cour
 
     $questions = [
         ['staff_courtesy', 'experience', 'rating', $courtesyLabel, 'የሠራተኞች ትሕትና', true, ['feedback']],
-        ['waiting_time', 'experience', 'rating', 'Waiting time', 'የጥበቃ ጊዜ', false, ['feedback']],
+        ['waiting_time', 'experience', 'single_choice', 'About how long did you wait before you were served?', 'አገልግሎት ከመሰጠትዎ በፊት በግምት ስንት ጊዜ ጠበቁ?', false, ['feedback']],
         ['service_obtained', 'details', 'yes_no', 'Did you get the service?', 'አገልግሎቱን አግኝተዋል?', false, ['feedback', 'complaint']],
         ['visit_reason', 'details', 'single_choice', 'Why did you come?', 'ለምን መጡ?', false, ['feedback']],
         ['channels', 'details', 'multiple_choice', 'How did you learn about the service?', 'ስለ አገልግሎቱ እንዴት አወቁ?', false, ['feedback']],
@@ -127,6 +127,14 @@ function offPublishQuestionnaire(int $version = 1, string $courtesyLabel = 'Cour
         if ($code === 'visit_reason') {
             $question->options()->create(['code' => 'new_application', 'label_en' => 'A new application', 'label_am' => 'አዲስ ማመልከቻ', 'sort_order' => 1]);
             $question->options()->create(['code' => 'follow_up', 'label_en' => 'Following up', 'label_am' => 'ክትትል', 'sort_order' => 2]);
+        }
+
+        if ($code === 'waiting_time') {
+            $question->options()->create(['code' => 'under_15_minutes', 'label_en' => 'Less than 15 minutes', 'label_am' => 'ከ15 ደቂቃ በታች', 'sort_order' => 1]);
+            $question->options()->create(['code' => '15_to_30_minutes', 'label_en' => '15–30 minutes', 'label_am' => '15–30 ደቂቃ', 'sort_order' => 2]);
+            $question->options()->create(['code' => '31_to_60_minutes', 'label_en' => '31–60 minutes', 'label_am' => '31–60 ደቂቃ', 'sort_order' => 3]);
+            $question->options()->create(['code' => 'over_60_minutes', 'label_en' => 'More than 1 hour', 'label_am' => 'ከ1 ሰዓት በላይ', 'sort_order' => 4]);
+            $question->options()->create(['code' => 'not_sure', 'label_en' => 'Not sure', 'label_am' => 'እርግጠኛ አይደለሁም', 'sort_order' => 5]);
         }
 
         if ($code === 'channels') {
@@ -152,7 +160,7 @@ function offFeedback(array $overrides = []): array
         'comment' => 'Quick and polite service at the counter.',
         'answers' => [
             'staff_courtesy' => 5,
-            'waiting_time' => 2,
+            'waiting_time' => '15_to_30_minutes',
             'service_obtained' => 'yes',
             'visit_reason' => 'follow_up',
             'channels' => ['website', 'friend'],
@@ -168,6 +176,171 @@ function offUrl(string $type = ''): string
     return '/feedback/'.test()->token.($type === '' ? '' : '/'.$type);
 }
 
+it('accepts only effective public-selectable work units from the QR-resolved organization', function (): void {
+    $publicUnit = OrganizationUnit::query()->create([
+        'organization_id' => $this->organization->id,
+        'code' => 'OFF-PERMIT',
+        'name_en' => 'Permit Directorate',
+        'unit_type' => 'directorate',
+        'status' => 'active',
+        'effective_from' => now()->subDay()->toDateString(),
+        'is_public_feedback_selectable' => true,
+    ]);
+    $privateUnit = OrganizationUnit::query()->create([
+        'organization_id' => $this->organization->id,
+        'code' => 'OFF-PRIVATE',
+        'name_en' => 'Internal Security',
+        'unit_type' => 'directorate',
+        'status' => 'active',
+        'is_public_feedback_selectable' => false,
+    ]);
+
+    $this->post(offUrl('feedback'), offFeedback(['organization_unit_id' => $publicUnit->id, 'unit_selection_mode' => 'SELECTED']))
+        ->assertSessionHasNoErrors();
+
+    $entry = EmployeeServiceFeedback::query()->sole();
+    expect($entry->organization_unit_id)->toBe($publicUnit->id)
+        ->and($entry->organization_unit_name_snapshot)->toBe('Permit Directorate')
+        ->and($entry->organization_unit_type_snapshot)->toBe('directorate')
+        ->and($entry->unit_selection_mode)->toBe('SELECTED');
+
+    $this->post(offUrl('feedback'), offFeedback(['organization_unit_id' => $privateUnit->id, 'unit_selection_mode' => 'SELECTED']))
+        ->assertSessionHasErrors('organization_unit_id');
+});
+
+it('records General / Not sure without creating a fake organizational unit', function (): void {
+    $this->post(offUrl('complaint'), [
+        'questionnaire_version' => 1,
+        'service_id' => $this->service->id,
+        'unit_selection_mode' => 'GENERAL',
+        'message' => 'The office closed early.',
+        'client_name' => 'Abebe Kebede',
+        'client_contact' => '+251911000000',
+    ])->assertSessionHasNoErrors();
+
+    $entry = EmployeeServiceFeedback::query()->sole();
+    expect($entry->organization_unit_id)->toBeNull()
+        ->and($entry->unit_selection_mode)->toBe('GENERAL')
+        ->and($entry->organization_unit_name_snapshot)->toBeNull();
+});
+
+/** A complete complaint that names a relevant work unit (the branch unless overridden). */
+function offComplaint(array $overrides = []): array
+{
+    return array_replace([
+        'questionnaire_version' => 1,
+        'service_id' => test()->service->id,
+        'organization_unit_id' => test()->branch->id,
+        'unit_selection_mode' => 'SELECTED',
+        'message' => 'The office closed early.',
+        'client_name' => 'Abebe Kebede',
+        'client_contact' => '+251911000000',
+    ], $overrides);
+}
+
+it('refuses a work unit that is not public-selectable on this QR right now, and stores nothing', function (array $attributes): void {
+    $unit = OrganizationUnit::query()->create(array_merge([
+        'organization_id' => $this->organization->id, 'code' => 'OFF-X-'.Str::random(4), 'name_en' => 'Not offered unit',
+        'unit_type' => 'directorate', 'status' => 'active', 'is_public_feedback_selectable' => true,
+    ], $attributes));
+
+    // Not offered on the page either.
+    $this->get(offUrl('complaint'))->assertInertia(fn (Assert $page) => $page->where('offices', fn ($offices) => ! collect($offices)->pluck('id')->contains($unit->id)));
+
+    $this->post(offUrl('complaint'), offComplaint(['organization_unit_id' => $unit->id]))->assertSessionHasErrors('organization_unit_id');
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+})->with([
+    'a draft unit' => [['status' => 'draft']],
+    'an inactive unit' => [['status' => 'inactive']],
+    'an archived unit' => [['status' => 'archived']],
+    'a unit not yet in force' => [['effective_from' => now()->addDay()->toDateString()]],
+    'a unit whose effective window ended' => [['effective_to' => now()->subDay()->toDateString()]],
+    'a unit kept off the public form' => [['is_public_feedback_selectable' => false]],
+    'another institution\'s unit' => [fn () => ['organization_id' => test()->otherOrganization->id]],
+]);
+
+it('refuses a soft-deleted work unit', function (): void {
+    $this->branch->delete();
+
+    $this->post(offUrl('complaint'), offComplaint())->assertSessionHasErrors('organization_unit_id');
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+});
+
+it('keeps the unit as it was named at submission when it is later renamed or archived, and refuses new submissions to it', function (): void {
+    $this->post(offUrl('complaint'), offComplaint())->assertSessionHasNoErrors();
+
+    $this->branch->update(['name_en' => 'Renamed branch', 'name_am' => 'የተቀየረ ቅርንጫፍ']);
+    $this->branch->update(['status' => 'archived']);
+
+    $entry = EmployeeServiceFeedback::query()->sole();
+    expect($entry->organization_unit_id)->toBe($this->branch->id)
+        ->and($entry->organization_unit_name_snapshot)->toBe('Bole branch')
+        ->and($entry->organization_unit_name_am_snapshot)->toBe('Bole branch (አማ)')
+        ->and($entry->organization_unit_type_snapshot)->toBe('office')
+        ->and($entry->relevantUnitName('en'))->toBe('Bole branch')
+        ->and($entry->relevantUnitName('am'))->toBe('Bole branch (አማ)');
+
+    // Staff read the recorded name, not the live one.
+    $details = app(PublicFeedbackQuestionnaire::class)->presentForStaff($entry->fresh(), 'en');
+    expect($details['service_point'])->toBe('Bole branch')->and($details['unit_selection_mode'])->toBe('SELECTED');
+
+    RateLimiter::clear('sf-submit:'.$this->token.'|127.0.0.1');
+    $this->post(offUrl('complaint'), offComplaint())->assertSessionHasErrors('organization_unit_id');
+    expect(EmployeeServiceFeedback::query()->count())->toBe(1);
+});
+
+it('requires a unit or General / Not sure on a complaint and a Tip-off while units are offered, and nothing when none are', function (): void {
+    // The current form always states its answer; "SELECTED" with no unit is an incomplete answer.
+    $this->post(offUrl('complaint'), offComplaint(['organization_unit_id' => null]))->assertSessionHasErrors('organization_unit_id');
+    $this->post(offUrl('suggestion'), pfComplete('suggestion', ['message' => 'Something is wrong.', 'unit_selection_mode' => 'SELECTED']))->assertSessionHasErrors('organization_unit_id');
+
+    // A post that predates the field (no answer key at all) still goes through, as GENERAL.
+    $this->post(offUrl('complaint'), array_diff_key(offComplaint(['organization_unit_id' => null]), ['unit_selection_mode' => true]))->assertSessionHasNoErrors();
+    expect(EmployeeServiceFeedback::query()->sole()->unit_selection_mode)->toBe('GENERAL');
+
+});
+
+it('asks nothing and blocks nothing at an institution with no public-selectable unit', function (): void {
+    OrganizationUnit::query()->where('organization_id', $this->organization->id)->update(['is_public_feedback_selectable' => false]);
+
+    $this->get(offUrl('complaint'))->assertInertia(fn (Assert $page) => $page->where('offices', []));
+    $this->post(offUrl('complaint'), offComplaint(['organization_unit_id' => null, 'unit_selection_mode' => 'GENERAL']))->assertSessionHasNoErrors();
+
+    $entry = EmployeeServiceFeedback::query()->sole();
+    expect($entry->organization_unit_id)->toBeNull()->and($entry->unit_selection_mode)->toBe('GENERAL');
+});
+
+it('explains an invalid work unit in Amharic', function (): void {
+    $this->withHeader('X-Locale', 'am')
+        ->post(offUrl('complaint'), offComplaint(['organization_unit_id' => $this->foreignOffice->id]))
+        ->assertSessionHasErrors(['organization_unit_id' => 'እባክዎ ከዚህ ተቋም የሚገኝ ትክክለኛ የሥራ ክፍል ይምረጡ።']);
+});
+
+it('offers each unit with its parent unit when that parent is offered too, in the visitor\'s language, and never a code, a manager or staff', function (): void {
+    $desk = OrganizationUnit::query()->create([
+        'organization_id' => $this->organization->id, 'code' => 'OFF-HQ-PERMITS', 'name_en' => 'Permits desk', 'name_am' => 'የፈቃድ ዴስክ',
+        'unit_type' => 'team', 'status' => 'active', 'parent_unit_id' => $this->headOffice->id, 'is_public_feedback_selectable' => true,
+    ]);
+    // Its parent is internal: the visitor sees the unit on its own, with no path into the internal structure.
+    $internal = OrganizationUnit::query()->create([
+        'organization_id' => $this->organization->id, 'code' => 'OFF-INT', 'name_en' => 'Internal directorate', 'unit_type' => 'directorate', 'status' => 'active',
+    ]);
+    $orphan = OrganizationUnit::query()->create([
+        'organization_id' => $this->organization->id, 'code' => 'OFF-INT-DESK', 'name_en' => 'Public desk', 'unit_type' => 'team', 'status' => 'active',
+        'parent_unit_id' => $internal->id, 'is_public_feedback_selectable' => true,
+    ]);
+
+    $this->get(offUrl('complaint'))->assertInertia(fn (Assert $page) => $page
+        ->where('offices', fn ($offices) => collect($offices)->firstWhere('id', $desk->id) === ['id' => $desk->id, 'name' => 'Permits desk', 'type' => 'team', 'parent_id' => $this->headOffice->id, 'parent' => 'Head office'])
+        ->where('offices', fn ($offices) => collect($offices)->firstWhere('id', $orphan->id)['parent'] === null)
+        ->where('offices', fn ($offices) => collect($offices)->every(fn (array $unit): bool => array_keys($unit) === ['id', 'name', 'type', 'parent_id', 'parent']))
+        ->where('offices', fn ($offices) => ! str_contains(json_encode($offices), 'OFF-HQ') && ! collect($offices)->pluck('id')->contains($internal->id)));
+
+    $this->withHeader('X-Locale', 'am')->get(offUrl('complaint'))->assertInertia(fn (Assert $page) => $page
+        ->where('offices', fn ($offices) => collect($offices)->firstWhere('id', $desk->id)['name'] === 'የፈቃድ ዴስክ'
+            && collect($offices)->firstWhere('id', $desk->id)['parent'] === 'Head office (አማ)'));
+});
+
 // ── Rendering ────────────────────────────────────────────────────────────
 
 it('renders the institution, its published services and offices, and the questionnaire of the type — never an internal id', function (): void {
@@ -182,6 +355,8 @@ it('renders the institution, its published services and offices, and the questio
             ->where('questionnaire.questions', fn ($questions) => collect($questions)->pluck('code')->all() === ['staff_courtesy', 'waiting_time', 'service_obtained', 'visit_reason', 'channels', 'improvement'])
             ->where('questionnaire.questions.0.label', 'Courtesy of the staff')
             ->where('questionnaire.questions.0.required', true)
+            ->where('questionnaire.questions.1.label', 'About how long did you wait before you were served?')
+            ->where('questionnaire.questions.1.options.1.code', '15_to_30_minutes')
             ->where('questionnaire.questions.3.options.1.code', 'follow_up')
             ->where('serviceOptions.mode', 'list')
             // Only this institution's PUBLISHED catalog: no draft, nothing of another institution.
@@ -206,12 +381,12 @@ it('renders the questionnaire and service names in Amharic for an Amharic visito
         ->where('serviceOptions.items.0.name', 'የንግድ ፈቃድ እድሳት'));
 });
 
-it('offers no office choice when the institution has a single office, and free text when it has no catalog', function (): void {
+it('offers the remaining public work unit, and free text when it has no catalog', function (): void {
     $this->branch->update(['status' => 'inactive']);
     $this->service->update(['status' => 'superseded']);
 
     $this->get(offUrl('feedback'))->assertInertia(fn (Assert $page) => $page
-        ->where('offices', [])
+        ->where('offices', [['id' => $this->headOffice->id, 'name' => 'Head office', 'type' => 'office', 'parent_id' => null, 'parent' => null]])
         ->where('serviceOptions', ['mode' => 'none', 'items' => []]));
 });
 
@@ -254,7 +429,7 @@ it('stores an organization Feedback with service information and every structure
 
     expect($answers->keys()->sort()->values()->all())->toBe(['channels', 'improvement', 'service_obtained', 'staff_courtesy', 'visit_reason', 'waiting_time'])
         ->and($answers['staff_courtesy']->sole()->rating_value)->toBe(5)
-        ->and($answers['waiting_time']->sole()->rating_value)->toBe(2)
+        ->and($answers['waiting_time']->sole()->option->code)->toBe('15_to_30_minutes')
         ->and($answers['service_obtained']->sole()->bool_value)->toBeTrue()
         ->and($answers['visit_reason']->sole()->option->code)->toBe('follow_up')
         ->and($answers['channels']->map(fn ($answer) => $answer->option->code)->sort()->values()->all())->toBe(['friend', 'website'])
@@ -305,7 +480,7 @@ it('refuses out-of-range ratings, unknown choices and over-long text', function 
     expect(PublicFeedbackAnswer::query()->count())->toBe(0);
 })->with([
     'rating above 5' => [['staff_courtesy' => 6], 'answers.staff_courtesy'],
-    'rating below 1' => [['waiting_time' => 0], 'answers.waiting_time'],
+    'unknown waiting-time choice' => [['waiting_time' => 'two_hours'], 'answers.waiting_time'],
     'yes/no other value' => [['service_obtained' => 'maybe'], 'answers.service_obtained'],
     'unknown single choice' => [['visit_reason' => 'bribery'], 'answers.visit_reason'],
     'unknown multiple choice' => [['channels' => ['website', 'tv']], 'answers.channels.1'],
@@ -497,7 +672,13 @@ it('leaves submissions made before the organization form untouched and still rea
     $this->post(offUrl('feedback'), $payload)->assertSessionHasNoErrors();
 
     $legacy = EmployeeServiceFeedback::query()->sole();
-    expect(app(PublicFeedbackQuestionnaire::class)->presentForStaff($legacy, 'en'))->toBeNull()
+    expect(app(PublicFeedbackQuestionnaire::class)->presentForStaff($legacy, 'en'))->toMatchArray([
+        'service' => null,
+        'service_point' => null,
+        'unit_selection_mode' => 'GENERAL',
+        'questionnaire_version' => null,
+        'answers' => [],
+    ])
         ->and($legacy->answers()->count())->toBe(0);
 });
 
@@ -596,7 +777,7 @@ it('aggregates ratings and choices by question for the Situation Room, leaving h
     $summary = collect($statistics->ratingSummary(['organization_target_id' => $this->organization->id, 'service_id' => $this->service->id]))->keyBy('code');
 
     expect($summary['staff_courtesy'])->toBe(['code' => 'staff_courtesy', 'answered' => 2, 'average' => 4.0, 'distribution' => [1 => 0, 2 => 0, 3 => 1, 4 => 0, 5 => 1]])
-        ->and($summary['waiting_time']['answered'])->toBe(1)
+        ->and(collect($statistics->choiceCounts('waiting_time', ['organization_target_id' => $this->organization->id, 'service_id' => $this->service->id]))->sortKeys()->all())->toBe(['15_to_30_minutes' => 1])
         ->and(collect($statistics->choiceCounts('channels', ['organization_target_id' => $this->organization->id]))->sortKeys()->all())->toBe(['friend' => 1, 'website' => 2])
         ->and(collect($statistics->choiceCounts('service_obtained'))->sortKeys()->all())->toBe(['no' => 1, 'yes' => 1])
         ->and($statistics->ratingSummary(['organization_target_id' => $this->otherOrganization->id]))->toBe([]);

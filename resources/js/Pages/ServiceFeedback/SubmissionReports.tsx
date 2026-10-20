@@ -22,6 +22,8 @@ type Props = {
     byOrganization: (NamePair & { open: number; closed: number })[];
     byCategory: NamePair[];
     byHandler: (NamePair & { handler_type: string; handler_id: string })[];
+    /** Relevant work units the public named, under the name at submission; `general` is the "General / Not sure" bucket. */
+    byUnit: (NamePair & { general: boolean })[];
     tipOffs: TipOffBreakdown;
     tipOffsByOrganization: (Omit<NamePair, 'total'> & TipOffBreakdown)[];
     employeeTargetedTipOffs: ({ employee_id: string; full_name: string | null; employee_number: string | null } & TipOffBreakdown)[];
@@ -58,7 +60,7 @@ const TIP_BUCKETS: TipTypeBucket[] = ['CORRUPTION', 'IMPROPER_PRACTICE', 'UNCLAS
  * reviewers. These are reports received, not findings; nothing here is sorted
  * by count, scored or labelled as conduct.
  */
-export default function SubmissionReports({ filters, summary, byOrganization, byCategory, byHandler, tipOffs, tipOffsByOrganization, employeeTargetedTipOffs, filterOptions, exports, can }: Props) {
+export default function SubmissionReports({ filters, summary, byOrganization, byCategory, byHandler, byUnit, tipOffs, tipOffsByOrganization, employeeTargetedTipOffs, filterOptions, exports, can }: Props) {
     const { t, locale } = useLocale();
     const [draft, setDraft] = useState<Filters>({ ...filters });
     const exportForm = useForm({ format: 'csv' as 'csv' | 'xlsx' });
@@ -156,6 +158,7 @@ export default function SubmissionReports({ filters, summary, byOrganization, by
                     <Breakdown title={t('serviceFeedback.byOrganization')} rows={byOrganization} name={name} extra={(row) => `${t('serviceFeedback.openCount')}: ${row.open} · ${t('serviceFeedback.statusClosed')}: ${row.closed}`} empty={t('serviceFeedback.noSubmissions')} />
                     <Breakdown title={t('serviceFeedback.byCategory')} rows={byCategory} name={name} empty={t('serviceFeedback.noCategorisedSubmissions')} />
                     <Breakdown title={t('serviceFeedback.byHandler')} rows={byHandler} name={name} empty={t('serviceFeedback.noHandler')} />
+                    <Breakdown title={t('serviceFeedback.byUnit')} rows={byUnit} name={(row) => (row.general ? t('serviceFeedback.generalNotSure') : name(row))} empty={t('serviceFeedback.noUnitSubmissions')} />
                 </div>
 
                 <Alert tone="info">{t('serviceFeedback.noRankingNote')}</Alert>

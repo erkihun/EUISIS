@@ -47,6 +47,7 @@ class OrganizationUnitResource extends JsonResource
             'status' => $this->status instanceof OrganizationUnitStatus
                 ? $this->status->value
                 : $this->status,
+            'is_public_feedback_selectable' => (bool) $this->is_public_feedback_selectable,
             'effective_from' => $this->effective_from?->toDateString(),
             'effective_to' => $this->effective_to?->toDateString(),
             'sort_order' => $this->sort_order,

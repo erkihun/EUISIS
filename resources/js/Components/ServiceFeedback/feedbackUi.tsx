@@ -20,7 +20,10 @@ export type FeedbackSummary = {
     created_at: string | null;
     employee: { id: string; name: string | null; employee_number: string | null } | null;
     organization: NamePair;
+    /** The relevant work unit as recorded at submission (organization form) or the employee's unit (employee QR). */
     organization_unit?: NamePair;
+    /** GENERAL: the visitor explicitly answered "General / Not sure" instead of naming a unit. */
+    unit_selection_mode?: 'SELECTED' | 'GENERAL' | null;
     position?: NamePair;
     service_no?: string | null;
     service_type: NamePair;

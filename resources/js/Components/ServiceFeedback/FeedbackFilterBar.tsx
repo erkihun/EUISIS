@@ -26,6 +26,8 @@ export type FeedbackFilters = {
 
 export type FeedbackFilterOptions = {
     organizations: { id: string; name_en: string; name_am: string | null }[];
+    /** Work units of the organization chosen in the bar; empty (or absent) until one is chosen. */
+    units?: { id: string; name_en: string; name_am: string | null }[];
     serviceTypes: { id: string; name_en: string; name_am: string | null }[];
     /** Categories the user may filter on (city-wide and their institutions'); absent on screens without the filter. */
     categories?: { id: string; name_en: string; name_am: string | null }[];
@@ -211,7 +213,7 @@ export default function FeedbackFilterBar({
                     <Select
                         className={selectCls}
                         value={filters.organization_id ?? ''}
-                        onChange={(event) => apply({ organization_id: event.target.value })}
+                        onChange={(event) => apply({ organization_id: event.target.value, organization_unit_id: undefined })}
                         aria-label={t('serviceFeedback.filterOrganization')}
                     >
                         <option value="">{t('serviceFeedback.allOrganizations')}</option>
@@ -219,6 +221,20 @@ export default function FeedbackFilterBar({
                             <option key={org.id} value={org.id}>{am ? (org.name_am ?? org.name_en) : org.name_en}</option>
                         ))}
                     </Select>
+
+                    {filters.organization_id && filterOptions.units && filterOptions.units.length > 0 && (
+                        <Select
+                            className={selectCls}
+                            value={filters.organization_unit_id ?? ''}
+                            onChange={(event) => apply({ organization_unit_id: event.target.value })}
+                            aria-label={t('serviceFeedback.filterUnit')}
+                        >
+                            <option value="">{t('serviceFeedback.allUnits')}</option>
+                            {filterOptions.units.map((unit) => (
+                                <option key={unit.id} value={unit.id}>{am ? (unit.name_am ?? unit.name_en) : unit.name_en}</option>
+                            ))}
+                        </Select>
+                    )}
 
                     <Select
                         className={selectCls}

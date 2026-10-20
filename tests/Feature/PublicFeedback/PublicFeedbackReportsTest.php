@@ -9,6 +9,7 @@ use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Models\AuditLog;
 use App\Models\EmployeeServiceFeedback;
+use App\Models\OrganizationUnit;
 use App\Models\Permission;
 use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackReportExport;
@@ -17,6 +18,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use App\Services\ServiceFeedback\PublicFeedbackAssignmentService;
+use App\Services\ServiceFeedback\PublicFeedbackMetrics;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\PublicFeedbackScenario;
@@ -115,6 +117,29 @@ it('puts real scoped submission counts on the dashboard', function (): void {
     $this->actingAs($this->orgOnly)
         ->get(route('service-feedback.admin.dashboard'))
         ->assertInertia(fn (Assert $page) => $page->where('submissions.total', 1)->where('submissions.by_target.employee', 0)->where('byEmployee', []));
+});
+
+it('breaks organization submissions down by the relevant work unit named, with General / Not sure as its own bucket, and exports the recorded name', function (): void {
+    $permits = OrganizationUnit::query()->create(['organization_id' => $this->a->organization->id, 'unit_type' => 'office', 'code' => 'RP-PERMITS', 'name_en' => 'Permits office', 'name_am' => 'የፈቃድ ጽሕፈት ቤት', 'status' => 'active']);
+    $named = ['organization_unit_id' => $permits->id, 'organization_unit_name_snapshot' => 'Permits office', 'organization_unit_name_am_snapshot' => 'የፈቃድ ጽሕፈት ቤት', 'unit_selection_mode' => 'SELECTED'];
+    rptOrganizationRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, $named);
+    rptOrganizationRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed, $named);
+    rptOrganizationRow($this->a, ServiceFeedbackType::Suggestion, ServiceFeedbackStatus::Pending, ['unit_selection_mode' => 'GENERAL']);
+    // An employee QR: the unit is the employee's post, not the visitor's choice, so it is not counted here.
+    rptRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, ['organization_unit_id' => $this->a->unit->id]);
+    $permits->update(['name_en' => 'Renamed office']);
+
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.submission-reports.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('byUnit', fn ($rows) => collect($rows->toArray())->map(fn (array $row): array => [$row['name_en'], $row['general'], $row['total']])->all() === [['Permits office', false, 2], [null, true, 1]]));
+
+    $metrics = app(PublicFeedbackMetrics::class);
+    $units = collect($metrics->exportRows($metrics->query($this->superAdmin), $this->superAdmin, 'en'))->pluck('organization_unit')->countBy()->all();
+    expect($units)->toBe(['Permits office' => 2, 'General / Not sure' => 1, 'Licensing Unit' => 1]);
+    $am = collect($metrics->exportRows($metrics->query($this->superAdmin), $this->superAdmin, 'am'))->pluck('organization_unit')->all();
+    expect($am)->toContain('የፈቃድ ጽሕፈት ቤት')->toContain('አጠቃላይ / አላውቅም');
 });
 
 it('breaks submissions down by organization, category, status and handler with filters', function (): void {

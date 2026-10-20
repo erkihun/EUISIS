@@ -79,7 +79,8 @@ enforces them alone.
 |---|---|---|
 | `service_id` | all | optional; a UUID of a **published, in-force** service of the **scanned** institution (checked after the token is resolved) |
 | `service_text` | all | optional, ≤ 200 characters; kept only when no `service_id` is chosen |
-| `organization_unit_id` | all | optional; an **active** unit of the scanned institution whose type is `office`, or that replaced one of its former institution offices |
+| `organization_unit_id` | all | the **relevant work unit**: an active, in-force unit of the scanned institution flagged *Available for public feedback*; re-checked on POST against the resolved institution. Stored with name/type snapshots. See [public-feedback-unit-selection.md](public-feedback-unit-selection.md) |
+| `unit_selection_mode` | all | `SELECTED` (a unit) or `GENERAL` ("General / Not sure", no unit row). Tip-off and Complaint must answer while the institution offers units; a post without the key is treated as `GENERAL` |
 | `service_date` | Feedback, Complaint | optional, `Y-m-d`, not in the future, within the last year |
 | `service_time_band` | Feedback, Complaint | optional; `morning`, `afternoon` or `evening` |
 | `questionnaire_version` | all | the version the page showed; refused if another version is published now ("the form was updated"). Required when the type now has a **required** question: a page opened before that version was published states none, and is refused rather than skipping a question the visitor never saw. With only optional questions, a page that showed none is accepted and the row records no version |
@@ -265,6 +266,10 @@ Answers and service information appear on the staff detail screens
   submissions are left out everywhere. Indexes: `pfa_submission_idx`,
   `pfa_code_rating_idx`, `pfa_question_rating_idx`, `esf_service_idx`,
   `esf_question_set_idx`.
+- **By relevant work unit**: `CommunityVoiceQuery::byUnit()` and
+  `PublicFeedbackMetrics::byUnit()` count organization-form submissions per
+  unit the visitor named, under the name recorded at submission, with one
+  "General / Not sure" bucket. Employee-QR rows are not counted there.
 - Category, complaint-category and tip-type analysis use the existing columns.
 - These are what visitors said about a **service or an institution**. They
   are not a measure of any individual employee and must not be used as one.
@@ -303,7 +308,9 @@ NEEDS_LANGUAGE_REVIEW (proposed wording; review with the language owner):
 | NEEDS_POLICY_DECISION | Approve, change or reject the proposed questionnaire items before publishing version 1. |
 | NEEDS_POLICY_DECISION | Whether any demographic question (gender, age range, residence) is approved. None is collected now. |
 | NEEDS_POLICY_DECISION | Whether a separate "improvement suggestion" type is wanted beside Tip-off (§2). |
-| NEEDS_POLICY_DECISION | Which organization units are public service points. The current rule is "type `office`, or a unit that replaced a former institution office". A per-unit public flag would make this explicit. |
+| NEEDS_POLICY_DECISION | Which organization units each institution flags as *Available for public feedback* (`is_public_feedback_selectable`). Offices and former institution offices are flagged by default; internal units are opt-in. |
+| NEEDS_POLICY_DECISION_PUBLIC_FEEDBACK_UNIT_REQUIREDNESS | Tip-off and Complaint must answer "unit or General / Not sure" while units exist; Feedback may stay general. Confirm or extend. |
+| NEEDS_POLICY_DECISION_PUBLIC_UNIT_HIERARCHY_SOURCE | Units are not version-tied; the public form groups them by the structural `parent_unit_id`. Confirm this is the public-facing structure. |
 | NEEDS_POLICY_DECISION | Public tracking of a reference (still not built), and whether Feedback should get a reference number. |
 | SERVICE_LINKAGE_REQUIRED | Institutions without a published service catalog receive free-text services only. |
 | NEEDS_POLICY_DECISION | Per-institution questionnaires (not built; one city-wide questionnaire). |

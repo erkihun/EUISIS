@@ -9,6 +9,7 @@ export type OrganizationFormDetailsData = {
     /** The visitor's own words: not linked to the institution's service catalog. */
     service_unstructured: boolean;
     service_point: string | null;
+    unit_selection_mode?: 'SELECTED' | 'GENERAL' | null;
     service_date: string | null;
     service_time_band: 'morning' | 'afternoon' | 'evening' | null;
     questionnaire_version: number | null;
@@ -41,7 +42,7 @@ export default function OrganizationFormDetails({ details }: { details: Organiza
                         {details.service_unstructured && <span className="mt-0.5 block text-xs font-normal text-amber-700 dark:text-amber-300">{t('serviceFeedback.serviceUnstructured')}</span>}
                     </>
                 ) : '—')}
-                {field(t('serviceFeedback.servicePoint'), details.service_point ?? '—')}
+                {field(t('serviceFeedback.servicePoint'), details.service_point ?? (details.unit_selection_mode === 'GENERAL' ? t('serviceFeedback.generalNotSure') : '—'))}
                 {field(t('serviceFeedback.serviceDate'), details.service_date ? <LocalizedDateDisplay value={details.service_date} /> : '—')}
                 {field(t('serviceFeedback.serviceTime'), details.service_time_band ? t(`serviceFeedback.timeBand_${details.service_time_band}`) : '—')}
             </dl>

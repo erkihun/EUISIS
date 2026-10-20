@@ -50,6 +50,7 @@ class StoreOrganizationUnitRequest extends FormRequest
             'description_en' => ['nullable', 'string'],
             'description_am' => ['nullable', 'string'],
             'status' => ['required', new Enum(OrganizationUnitStatus::class)],
+            'is_public_feedback_selectable' => ['nullable', 'boolean'],
             'effective_from' => ['nullable', 'date'],
             'effective_to' => ['nullable', 'date', 'after:effective_from'],
             'sort_order' => ['nullable', 'integer', 'min:0'],

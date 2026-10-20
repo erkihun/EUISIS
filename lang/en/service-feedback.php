@@ -38,6 +38,7 @@ return [
     'rule_retired' => 'Submissions were routed by this rule, so it was retired instead of deleted.',
     'rule_deleted' => 'The routing rule was deleted.',
     'category_out_of_scope' => 'The category must be city-wide or belong to the rule\'s institution.',
+    'unit_out_of_scope' => 'The work unit must belong to the rule\'s institution.',
     'settings_saved' => 'The public feedback policy was saved.',
     'questionnaire_draft_created' => 'A new draft of the questionnaire was created.',
     'questionnaire_saved' => 'The questionnaire draft was saved.',
@@ -98,6 +99,7 @@ return [
     'export_values' => [
         'types' => ['feedback' => 'Feedback', 'suggestion' => 'Tip-off', 'complaint' => 'Complaint'],
         'target_types' => ['employee' => 'Employee', 'organization' => 'Institution'],
+        'unit_selection' => ['GENERAL' => 'General / Not sure'],
         'statuses' => [
             'pending' => 'Pending', 'unrouted' => 'Unrouted', 'assigned' => 'Assigned', 'reviewed' => 'Reviewed',
             'under_review' => 'Under review', 'accepted' => 'Accepted', 'not_adopted' => 'Not adopted',
@@ -167,6 +169,8 @@ return [
         'attachments_disabled' => 'Files cannot be attached at the moment.',
         'questionnaire_updated' => 'This form was updated while you were filling it in. Please review the questions and send again.',
         'office_invalid' => 'Please choose one of the offices listed.',
+        'relevant_unit_invalid' => 'Please choose a valid work unit from this organization.',
+        'relevant_unit_required' => 'Choose a relevant work unit or General / Not sure.',
         'service_date_future' => 'The service date cannot be in the future.',
         'service_date_too_old' => 'The service date must be within the last year.',
         'service_date_invalid' => 'Please enter a valid date.',

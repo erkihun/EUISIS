@@ -6,7 +6,6 @@ namespace App\Services\ServiceFeedback;
 
 use App\Enums\OrganizationDesignStatus;
 use App\Enums\OrganizationUnitStatus;
-use App\Enums\OrganizationUnitType;
 use App\Models\OrganizationUnit;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,13 +22,15 @@ use Illuminate\Database\Eloquent\Builder;
  *   service_text (SERVICE_LINKAGE_REQUIRED for that institution).
  * - A small catalog is sent with the page; a large one is searched on the
  *   server (LIST_LIMIT), so the page never carries hundreds of rows.
- * - Offices (service points) are the institution's own active organization
- *   units of type "office", and the units that replaced its former
- *   institution offices (institution_office_id set) — not its internal
- *   directorates and teams. They are offered only when it has more than one;
- *   with a single office there is nothing to choose. Which units count as
- *   public service points is NEEDS_POLICY_DECISION; until a unit carries its
- *   own "public service point" flag, this is the rule.
+ * - Relevant work units are the institution's own active, in-force
+ *   organization units that carry the "available for public feedback" flag
+ *   (`is_public_feedback_selectable`): offices and the units that replaced
+ *   its former institution offices are flagged by default, internal
+ *   directorates and teams are opt-in. The flag, the status and the
+ *   effective window are re-checked on submission; a unit of another
+ *   institution is refused whatever the browser sent. "General / Not sure" is
+ *   recorded as unit_selection_mode GENERAL with no unit row — never a fake
+ *   unit.
  */
 final class PublicOrganizationServiceContext
 {
@@ -39,6 +40,9 @@ final class PublicOrganizationServiceContext
     public const SEARCH_LIMIT = 20;
 
     public const SEARCH_MIN_LENGTH = 2;
+
+    /** Public-selectable work units sent with the page; the page filters them client-side. */
+    public const UNIT_LIST_LIMIT = 200;
 
     /** Published, in force today, and not deleted. */
     public function servicesQuery(string $organizationId): Builder
@@ -103,37 +107,52 @@ final class PublicOrganizationServiceContext
     }
 
     /**
-     * The institution's service points, when it has more than one.
+     * The work units the public may name on this institution's form: its own
+     * active, in-force units flagged as public-selectable (UNIT_LIST_LIMIT at
+     * most). Each carries the name of its parent unit, when that parent is
+     * itself in the list, so the page can show the path a visitor recognises.
+     * Never a count of staff, a manager's name or any employee data.
      *
-     * @return list<array{id: string, name: string}>
+     * @return list<array{id: string, name: string, type: string|null, parent_id: string|null, parent: string|null}>
      */
-    public function officeOptions(string $organizationId, string $locale): array
+    public function feedbackUnitOptions(string $organizationId, string $locale): array
     {
-        $offices = $this->officesQuery($organizationId)->orderBy('sort_order')->orderBy('name_en')->limit(200)->get();
+        $units = $this->feedbackUnitsQuery($organizationId)->orderBy('sort_order')->orderBy('name_en')->limit(self::UNIT_LIST_LIMIT)->get();
+        $byId = $units->keyBy(fn (OrganizationUnit $unit): string => (string) $unit->getKey());
 
-        if ($offices->count() < 2) {
-            return [];
-        }
+        return $units->map(function (OrganizationUnit $unit) use ($byId, $locale): array {
+            $parent = $unit->parent_unit_id !== null ? $byId->get((string) $unit->parent_unit_id) : null;
 
-        return $offices->map(fn (OrganizationUnit $unit): array => [
-            'id' => (string) $unit->getKey(),
-            'name' => $this->localized($unit->name_en, $unit->name_am, $locale),
-        ])->values()->all();
+            return [
+                'id' => (string) $unit->getKey(),
+                'name' => $this->localized($unit->name_en, $unit->name_am, $locale),
+                'type' => $unit->unit_type,
+                'parent_id' => $parent === null ? null : (string) $parent->getKey(),
+                'parent' => $parent === null ? null : $this->localized($parent->name_en, $parent->name_am, $locale),
+            ];
+        })->values()->all();
     }
 
-    public function availableOffice(string $unitId, string $organizationId): ?OrganizationUnit
+    public function hasFeedbackUnits(string $organizationId): bool
     {
-        return $this->officesQuery($organizationId)->whereKey($unitId)->first();
+        return $this->feedbackUnitsQuery($organizationId)->exists();
     }
 
-    private function officesQuery(string $organizationId): Builder
+    public function availableFeedbackUnit(string $unitId, string $organizationId): ?OrganizationUnit
     {
+        return $this->feedbackUnitsQuery($organizationId)->whereKey($unitId)->first();
+    }
+
+    private function feedbackUnitsQuery(string $organizationId): Builder
+    {
+        $today = now()->toDateString();
+
         return OrganizationUnit::query()
             ->where('organization_id', $organizationId)
+            ->where('is_public_feedback_selectable', true)
             ->where('status', OrganizationUnitStatus::Active->value)
-            ->where(fn (Builder $query) => $query
-                ->where('unit_type', OrganizationUnitType::Office->value)
-                ->orWhereNotNull('institution_office_id'));
+            ->where(fn (Builder $query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', $today))
+            ->where(fn (Builder $query) => $query->whereNull('effective_to')->orWhereDate('effective_to', '>=', $today));
     }
 
     /**

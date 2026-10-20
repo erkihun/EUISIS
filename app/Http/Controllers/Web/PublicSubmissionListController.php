@@ -10,6 +10,7 @@ use App\Enums\SubmitterIdentityMode;
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
+use App\Models\OrganizationUnit;
 use App\Models\PublicFeedbackCategory;
 use App\Models\User;
 use App\Services\ServiceFeedback\PublicFeedbackMetrics;
@@ -98,6 +99,8 @@ class PublicSubmissionListController extends Controller
             'filterOptions' => [
                 'organizations' => $options['organizations'],
                 'categories' => $options['categories'],
+                // The work units of the one institution chosen above, never of an institution outside the user's scope.
+                'units' => $this->unitOptions($filters['organization_id'] ?? null, $options['organizations']),
                 'statuses' => $options['statuses'],
                 'types' => $types,
                 'targets' => $this->visibility->visibleTargetTypes($user),
@@ -107,6 +110,29 @@ class PublicSubmissionListController extends Controller
             // Whether any submission exists in scope at all, so the page can tell "none yet" from "none match".
             'hasAny' => $this->metrics->query($user)->exists(),
         ]);
+    }
+
+    /**
+     * The relevant-work-unit filter choices: the units of the selected
+     * institution, offered only when that institution is one the user may
+     * see. Archived units stay listed so older submissions remain findable.
+     *
+     * @param  list<array<string, mixed>>  $organizations  the user's organization options
+     * @return list<array{id: string, name_en: string, name_am: string|null}>
+     */
+    private function unitOptions(?string $organizationId, array $organizations): array
+    {
+        if ($organizationId === null || ! in_array($organizationId, array_column($organizations, 'id'), true)) {
+            return [];
+        }
+
+        return OrganizationUnit::query()->withTrashed()
+            ->where('organization_id', $organizationId)
+            ->orderBy('name_en')
+            ->limit(500)
+            ->get(['id', 'name_en', 'name_am'])
+            ->map(fn (OrganizationUnit $unit): array => ['id' => (string) $unit->id, 'name_en' => (string) $unit->name_en, 'name_am' => $unit->name_am])
+            ->all();
     }
 
     /**
@@ -213,7 +239,9 @@ class PublicSubmissionListController extends Controller
                 : ($entry->employee?->full_name ?? $entry->target_name_snapshot),
             'target_detail' => $organizationTarget ? $entry->organizationTarget?->code : $entry->employee?->employee_number,
             'organization' => $name($entry->organization),
-            'organization_unit' => $name($entry->organizationUnit),
+            // The relevant work unit as recorded at submission; the live unit only for rows older than the snapshot.
+            'organization_unit' => $entry->relevantUnitName($locale) ?? $name($entry->organizationUnit),
+            'unit_selection_mode' => $entry->unit_selection_mode,
             'category' => $entry->category?->localizedName($locale),
             'service' => $entry->service_name_snapshot ?? $entry->service_text,
             'status' => $entry->status->value,

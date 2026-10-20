@@ -261,8 +261,19 @@ class PublicServiceFeedbackController extends Controller
                 return back()->withErrors(['service_id' => __('service-feedback.service_not_provided')]);
             }
 
-            if (! empty($validated['organization_unit_id']) && $this->serviceContext->availableOffice((string) $validated['organization_unit_id'], $context->organizationTargetId) === null) {
-                return back()->withErrors(['organization_unit_id' => __('service-feedback.validation.office_invalid')]);
+            if (! empty($validated['organization_unit_id']) && $this->serviceContext->availableFeedbackUnit((string) $validated['organization_unit_id'], $context->organizationTargetId) === null) {
+                return back()->withErrors(['organization_unit_id' => __('service-feedback.validation.relevant_unit_invalid')]);
+            }
+
+            // The current public form always sends an explicit answer. Treat
+            // legacy posts that predate this field as GENERAL so they remain
+            // readable and submit safely during a rolling deployment.
+            if ($type !== ServiceFeedbackType::Feedback
+                && $this->serviceContext->hasFeedbackUnits($context->organizationTargetId)
+                && empty($validated['organization_unit_id'])
+                && array_key_exists('unit_selection_mode', $validated)
+                && ($validated['unit_selection_mode'] ?? null) !== 'GENERAL') {
+                return back()->withErrors(['organization_unit_id' => __('service-feedback.validation.relevant_unit_required')]);
             }
         }
 
@@ -336,7 +347,9 @@ class PublicServiceFeedbackController extends Controller
         return [
             'questionnaire' => $this->questionnaire->toPublicArray($type, $locale),
             'serviceOptions' => $this->serviceContext->serviceOptions($context->organizationTargetId, $locale),
-            'offices' => $this->serviceContext->officeOptions($context->organizationTargetId, $locale),
+            // Kept as `offices` for a non-breaking Inertia rollout. Values are
+            // now the safe, explicit public work-unit list.
+            'offices' => $this->serviceContext->feedbackUnitOptions($context->organizationTargetId, $locale),
         ];
     }
 

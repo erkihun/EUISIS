@@ -28,6 +28,7 @@ type Entry = {
     target_detail: string | null;
     organization: string | null;
     organization_unit: string | null;
+    unit_selection_mode: 'SELECTED' | 'GENERAL' | null;
     category: string | null;
     service: string | null;
     status: string;
@@ -67,6 +68,8 @@ type Props = {
     filterOptions: {
         organizations: Named[];
         categories: Named[];
+        /** Work units of the selected organization; empty until one is chosen. */
+        units: Named[];
         statuses: string[];
         types: string[];
         targets: string[];
@@ -171,6 +174,12 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                             <option value="">{t('serviceFeedback.allOrganizations')}</option>
                             {filterOptions.organizations.map((org) => <option key={org.id} value={org.id}>{nameOf(org)}</option>)}
                         </Select>
+                        {filled(filters.organization_id) && filterOptions.units.length > 0 && (
+                            <Select className={selectCls} value={filters.organization_unit_id ?? ''} onChange={(event) => apply({ organization_unit_id: event.target.value })} aria-label={t('serviceFeedback.relevantWorkUnit')}>
+                                <option value="">{t('serviceFeedback.allUnits')}</option>
+                                {filterOptions.units.map((unit) => <option key={unit.id} value={unit.id}>{nameOf(unit)}</option>)}
+                            </Select>
+                        )}
                         {filterOptions.categories.length > 0 && (
                             <Select className={selectCls} value={filters.category_id ?? ''} onChange={(event) => apply({ category_id: event.target.value })} aria-label={t('serviceFeedback.category')}>
                                 <option value="">{t('serviceFeedback.allCategories')}</option>
@@ -252,7 +261,9 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                                             </td>
                                             <td className={cx(tableCellClassName, 'hidden lg:table-cell')}>
                                                 <span className="block max-w-56 text-(--app-foreground) wrap-anywhere">{entry.organization ?? '—'}</span>
-                                                {entry.organization_unit && <span className="block max-w-56 text-xs text-(--app-muted-foreground)">{entry.organization_unit}</span>}
+                                                {entry.organization_unit
+                                                    ? <span className="block max-w-56 text-xs text-(--app-muted-foreground)">{entry.organization_unit}</span>
+                                                    : entry.unit_selection_mode === 'GENERAL' && <span className="block max-w-56 text-xs text-(--app-muted-foreground)">{t('serviceFeedback.generalNotSure')}</span>}
                                             </td>
                                             <td className={cx(tableCellClassName, 'hidden xl:table-cell')}>{entry.category ?? <span className="text-(--app-muted-foreground)">{t('serviceFeedback.notCategorised')}</span>}</td>
                                             <td className={tableCellClassName}><FeedbackStatusBadge status={entry.status} /></td>

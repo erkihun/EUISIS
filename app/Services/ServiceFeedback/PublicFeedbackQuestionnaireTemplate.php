@@ -34,7 +34,18 @@ final class PublicFeedbackQuestionnaireTemplate
         return [
             self::rating('information_clarity', 'Clarity of the information you were given', 'የተሰጠዎት መረጃ ግልጽነት', $feedback),
             self::rating('staff_courtesy', 'Courtesy and respect of the staff', 'የሠራተኞች ትሕትና እና አክብሮት', $feedback),
-            self::rating('waiting_time', 'Time you waited before being served', 'አገልግሎት ለማግኘት የጠበቁበት ጊዜ', $feedback),
+            [
+                'code' => 'waiting_time',
+                'section' => 'experience',
+                'question_type' => 'single_choice',
+                'label_en' => 'About how long did you wait before you were served?',
+                'label_am' => 'አገልግሎት ከመሰጠትዎ በፊት በግምት ስንት ጊዜ ጠበቁ?',
+                'help_en' => 'Choose the closest waiting time.',
+                'help_am' => 'በጣም የሚቀርበውን የጥበቃ ጊዜ ይምረጡ።',
+                'is_required' => false,
+                'submission_types' => $feedback,
+                'options' => self::waitingTimeOptions(),
+            ],
             self::rating('service_speed', 'Speed of the service once you were served', 'አገልግሎቱ የተሰጠበት ፍጥነት', $feedback),
             self::rating('process_simplicity', 'Simplicity of the procedure and requirements', 'የአሠራሩ እና የሚጠየቁ መስፈርቶች ቀላልነት', $feedback),
             self::rating('fairness', 'Fair and equal treatment', 'ፍትሐዊ እና እኩል አያያዝ', $feedback),
@@ -95,6 +106,18 @@ final class PublicFeedbackQuestionnaireTemplate
             'is_required' => false,
             'submission_types' => $types,
             'options' => [],
+        ];
+    }
+
+    /** @return list<array{code: string, label_en: string, label_am: string}> */
+    private static function waitingTimeOptions(): array
+    {
+        return [
+            ['code' => 'under_15_minutes', 'label_en' => 'Less than 15 minutes', 'label_am' => 'ከ15 ደቂቃ በታች'],
+            ['code' => '15_to_30_minutes', 'label_en' => '15–30 minutes', 'label_am' => '15–30 ደቂቃ'],
+            ['code' => '31_to_60_minutes', 'label_en' => '31–60 minutes', 'label_am' => '31–60 ደቂቃ'],
+            ['code' => 'over_60_minutes', 'label_en' => 'More than 1 hour', 'label_am' => 'ከ1 ሰዓት በላይ'],
+            ['code' => 'not_sure', 'label_en' => 'Not sure', 'label_am' => 'እርግጠኛ አይደለሁም'],
         ];
     }
 }
