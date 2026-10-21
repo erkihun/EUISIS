@@ -1,0 +1,71 @@
+== Security headers (/login)
+        X-Powered-By: PHP/8.3.6
+        Cache-Control: no-cache, private
+        X-Frame-Options: DENY
+        X-Content-Type-Options: nosniff
+        Referrer-Policy: strict-origin-when-cross-origin
+        Permissions-Policy: camera=(self), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()
+        Cross-Origin-Opener-Policy: same-origin
+        Cross-Origin-Resource-Policy: same-origin
+        Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' http://localhost:5173 http://127.0.0.1:5173; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.
+        Set-Cookie: XSRF-TOKEN=eyJpdiI6IjFmL0FGcHoxZjVPL0NCUFdBemFHSFE9PSIsInZhbHVlIjoiRUM3bVRXaW01ak5DS1YyekxpMG5FeHRLV3FQcG1rWGd1MHMydTJwOWx5dlc3NFNIWUU1M1JqVTRMd1JoZHNkQVVlQWovaVhJejVZYlNqKzU3K0NUaURaTy9jMllOYlo4SFo1V
+        Set-Cookie: addis_one_session=eyJpdiI6Ik5ycGl5czFpTFdSaDdDZHdCV3k2NWc9PSIsInZhbHVlIjoiWVByRDZ4OERweURMbGpsVGV5YTB0Sko4aUw1MDBhK1oyL2JnaisvRzhFWFJNWEtxd09oLzBObGxiTzhjblo0WlJnOTdqNVVTYVZYVXBSZVlUblc0aG10azF5NTkyNX
+  FAIL  X-Powered-By hidden — header present
+  PASS  Permissions-Policy present
+  INFO  CSP allows 'unsafe-inline' (check script-src vs style-src): script-src 'self' 'unsafe-inline' http://localhost:5173 http://127.0.0.1:5173 style-src 'self' 'unsafe-inline' 
+  PASS  CSP has no unsafe-eval
+  FAIL  All cookies HttpOnly — Set-Cookie: XSRF-TOKEN=eyJpdiI6IjFmL0FGcHoxZjVPL0NCUFdBemFHSFE9PSIsInZhbHVlIjoiR
+  PASS  Cookies carry SameSite
+== Error hygiene
+  PASS  No internals on /this-does-not-exist-17238 (404)
+  PASS  No internals on /employees/00000000-0000-0000-0000-000000000000 (302)
+  PASS  No internals on /api/does-not-exist (404)
+  PASS  No internals on /employees/not-a-uuid (302)
+  PASS  TRACE refused (405)
+  INFO  POST /login with malformed JSON and no CSRF -> 302
+  FAIL  CSRF enforced on POST /login — got 302
+  INFO  unauthenticated POST /api/transport/boarding -> 404
+== Sensitive files not served
+  PASS  /.env -> 404
+  PASS  /.env.example -> 404
+  PASS  /composer.json -> 404
+  PASS  /composer.lock -> 404
+  PASS  /package.json -> 404
+  PASS  /phpunit.xml.dist -> 404
+  PASS  /.git/config -> 404
+  PASS  /.git/HEAD -> 404
+  PASS  /storage/logs/laravel.log -> 403
+  PASS  /employeeId_db -> 404
+  PASS  /sec-routes.json -> 404
+  PASS  /artisan -> 404
+  PASS  /README.md -> 404
+  PASS  /vite.config.js -> 404
+  PASS  /tsconfig.json -> 404
+  INFO  /build/manifest.json -> 200 (expected public)
+  PASS  /storage/app/private -> 403
+  FAIL  /.htaccess not served — HTTP 200
+  PASS  /web.config -> 404
+  INFO  /robots.txt -> 200
+        User-agent: *
+        Disallow:
+== Unauthenticated API surface (expect 401/403/404, JSON)
+  INFO  0 parameterless API GET uris probed; 0 answered 200 without auth
+== Throttling
+  PASS  forgot-password throttled after 5/min (429)
+  INFO  65 rapid /health/live -> last 200
+  INFO  GET /session/status anonymous -> 401
+== Session fixation / cookie rotation on login
+  PASS  login as qa.sysadmin8 -> 302
+  PASS  session id rotated on login
+  PASS  authenticated /dashboard 200
+== Authenticated API without token ability / cross-guard
+  INFO  GET /api/user with web session cookie -> 404 (Sanctum SPA stateful?)
+  INFO  GET /provider/portal/scan with staff session -> 401 (expect redirect to portal login, not 200)
+== Open redirect / host header
+  INFO  login?redirect= -> redirect_url=''
+  INFO  Host: evil.example on /dashboard -> 302 http://evil.example/login
+  INFO  X-Forwarded-Host evil on /dashboard -> 302 http://127.0.0.1:8123/login
+== Logout + reuse of old session
+  INFO  POST /logout -> 302
+  PASS  old session cookie rejected after logout (302)
+done

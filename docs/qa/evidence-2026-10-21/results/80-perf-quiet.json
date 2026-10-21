@@ -1,0 +1,122 @@
+[
+  {
+    "page": "/dashboard",
+    "status": 200,
+    "ttfb": 649,
+    "dcl": 727,
+    "load": 740,
+    "idle": 1658
+  },
+  {
+    "page": "/employees",
+    "status": 200,
+    "ttfb": 602,
+    "dcl": 701,
+    "load": 706,
+    "idle": 1607
+  },
+  {
+    "page": "/organizations",
+    "status": 200,
+    "ttfb": 951,
+    "dcl": 1028,
+    "load": 1034,
+    "idle": 1939
+  },
+  {
+    "page": "/organizations/create",
+    "status": 200,
+    "ttfb": 662,
+    "dcl": 740,
+    "load": 745,
+    "idle": 3349
+  },
+  {
+    "page": "/organization-unit-types/create",
+    "status": 200,
+    "ttfb": 589,
+    "dcl": 681,
+    "load": 690,
+    "idle": 2704
+  },
+  {
+    "page": "/reporting-lines",
+    "status": 200,
+    "ttfb": 622,
+    "dcl": 714,
+    "load": 720,
+    "idle": 1631
+  },
+  {
+    "page": "/organizations/import-structure",
+    "status": 200,
+    "ttfb": 627,
+    "dcl": 707,
+    "load": 714,
+    "idle": 1606
+  },
+  {
+    "page": "/performance/plans",
+    "status": 200,
+    "ttfb": 641,
+    "dcl": 722,
+    "load": 726,
+    "idle": 1607
+  },
+  {
+    "page": "/users/create",
+    "status": 200,
+    "ttfb": 603,
+    "dcl": 697,
+    "load": 697,
+    "idle": 1625
+  },
+  {
+    "page": "/audit-logs",
+    "status": 200,
+    "ttfb": 627,
+    "dcl": 720,
+    "load": 720,
+    "idle": 1662
+  },
+  {
+    "page": "/card-requests",
+    "status": 200,
+    "ttfb": 694,
+    "dcl": 790,
+    "load": 800,
+    "idle": 1747
+  },
+  {
+    "page": "/id-cards",
+    "status": 200,
+    "ttfb": 775,
+    "dcl": 860,
+    "load": 864,
+    "idle": 1794
+  },
+  {
+    "page": "/vacancy-applications",
+    "status": 200,
+    "ttfb": 744,
+    "dcl": 848,
+    "load": 858,
+    "idle": 1782
+  },
+  {
+    "page": "/hierarchy-versions",
+    "status": 200,
+    "ttfb": 646,
+    "dcl": 733,
+    "load": 733,
+    "idle": 1614
+  },
+  {
+    "page": "/transport/trips",
+    "status": 200,
+    "ttfb": 654,
+    "dcl": 731,
+    "load": 737,
+    "idle": 1639
+  }
+]
