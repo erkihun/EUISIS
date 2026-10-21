@@ -1,5 +1,5 @@
 const intelligence = {
-    title: 'የAddis One አስተውሎት',
+    title: 'የ{brand} አስተውሎት',
     description: 'ምን እየሆነ ነው፣ ምን ያልተለመደ ነው፣ ምን ማለት ሊሆን ይችላል እና ምን መፈተሽ አለበት — ከማስረጃ ጋር። እያንዳንዱ ውሳኔ በሰው እጅ ይቆያል።',
     fromSituationRoom: 'በእነዚህ አኃዞች ላይ የተገነቡ ግንዛቤዎች፣ ማንቂያዎች፣ ትንበያዎች እና የሥርዓት ጤንነት — በሁኔታ መከታተያ ማዕከሉ ላይ ያለው የትንተና ንብርብር።',
     ai: {
@@ -147,7 +147,7 @@ const intelligence = {
     sections: {
         business: { title: 'የሥራ እና የአመራር አስተውሎት', description: 'በእርስዎ የተቋም ወሰን ውስጥ ካሉ የዘርፍ መረጃዎች የተገኙ ድምሮች።' },
         alerts: { title: 'ማንቂያዎች', description: 'የሥራ እና የቴክኒክ ማንቂያዎች፤ ያልተደጋገሙ፣ በሰዎች የሚታወቁ እና የሚፈቱ።' },
-        knowledge: { title: 'ዕውቀት', description: 'በጸደቁ የAddis One የዕውቀት ምንጮች ላይ የተመሠረቱ መልሶች፣ ከማጣቀሻ ጋር።' },
+        knowledge: { title: 'ዕውቀት', description: 'በጸደቁ የ{brand} የዕውቀት ምንጮች ላይ የተመሠረቱ መልሶች፣ ከማጣቀሻ ጋር።' },
         system: { title: 'የሥርዓት ጤንነት', description: 'መድረኩ በእርግጥ ከሚሰበስባቸው ምልክቶች የተገኘ የመድረኩ ጤንነት።' },
         diagnostics: { title: 'ምርመራ እና መመሪያ', description: 'ለቴክኒክ ሠራተኞች የስህተት ትንተና፣ የዝርጋታ ትስስር፣ ምክረ ሐሳቦች እና የአሠራር መመሪያዎች።' },
         governance: { title: 'አስተዳደር', description: 'የሰው ሠራሽ ብልህነት ባህሪያት ምን እንደሆኑ፣ ምን እንደሚያነቡ እና እንዴት እንደሚገመገሙ።' },

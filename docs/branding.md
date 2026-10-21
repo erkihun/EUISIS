@@ -1,14 +1,18 @@
-# Branding — Addis One
+# Branding — Agelgay · አገልጋይ
 
 | | |
 | --- | --- |
-| **Brand name** | Addis One |
+| **Brand name** | **አገልጋይ** on Amharic pages, **Agelgay** in Latin script (English pages, e-mail sender, authenticator apps) |
+| **Meaning** | "Servant": the civil servant whose purpose is to serve the public |
 | **Official English name** | Addis Ababa Integrated Employee Management & Service System |
 | **Official Amharic name** | የአዲስ አበባ የተቀናጀ የሰራተኛ አስተዳደርና አገልግሎት ሥርዓት |
 | **Short name** | AA-IEMSS |
-| **Former names (historical only)** | EUISIS; Employee Unified ID and Service Integration System; Addis Ababa Employee Unified ID & Service Platform; AA Employee ID |
+| **Former names (historical only)** | Addis One (2026-10-12 → 2026-10-21); EUISIS; Employee Unified ID and Service Integration System; Addis Ababa Employee Unified ID & Service Platform; AA Employee ID |
 
-Rebranded on 2026-10-12. The product's *technical* identifiers (repository
+Rebranded to Agelgay / አገልጋይ on 2026-10-21 (approved name), after the
+2026-10-12 rebrand from EUISIS to Addis One. Do not combine the brand with
+"አዲስ" ("Addis Agelgay" reads as "a new servant"); the city is named by the
+official name and the owning institution instead. The product's *technical* identifiers (repository
 directory, package name, cookie and cache key prefixes, HMAC salts, API
 environment variable names used by integrators, pgBackRest stanza) keep
 their historical values on purpose: renaming them would break deployed
@@ -18,11 +22,13 @@ integrations, sessions or data, and they are never shown to a person (§4).
 
 | Layer | What | Who changes it |
 | --- | --- | --- |
-| System Settings › General | `application_name` (Brand Name), `application_short_name` (Official Short Name), `official_name_en`, `official_name_am`, `identity_system_logo`, `favicon`, `seal`, `organization_name` | holders of `system-settings.manageGeneral` (Super Admin, System Admin, System Settings Admin). Organizational Admin cannot. Every change is audited (`setting_updated`, before/after values; uploaded files are stored, not written to the audit row). |
-| `config/branding.php` | `APP_NAME`, `APP_SHORT_NAME`, `APP_FULL_NAME_EN`, `APP_FULL_NAME_AM` fallbacks, plus the list of former names | operators, through the environment; lets the app boot before the settings table exists |
-| `App\Services\Branding\BrandingService` | the only resolver: settings → config; blank setting = unset; `brandName()`, `shortName()`, `officialNameEn/Am()`, `officialName($locale)`, `formalLine()`, `logoUrl()`, `faviconUrl()`, `legacyNames()` | code — never read the keys elsewhere |
-| Shared Inertia prop `branding` | `{brandName, shortName, officialNameEn, officialNameAm, logoUrl, faviconUrl}` on every page | `HandleInertiaRequests`, once per request |
-| `useBranding()` (`resources/js/hooks/useBranding.ts`) | the frontend reader (live settings including the settings preview → shared prop → one fallback constant) and `withBrand()` for `{brand}`, `{shortName}`, `{officialName}` placeholders in translations | every component that shows the name |
+| System Settings › General | `application_name` (Brand Name, Latin script), `application_name_am` (Brand Name, Amharic), `application_short_name` (Official Short Name), `official_name_en`, `official_name_am`, `identity_system_logo`, `favicon`, `seal`, `organization_name` | holders of `system-settings.manageGeneral` (Super Admin, System Admin, System Settings Admin). Organizational Admin cannot. Every change is audited (`setting_updated`, before/after values; uploaded files are stored, not written to the audit row). |
+| `config/branding.php` | `APP_NAME`, `APP_NAME_AM`, `APP_SHORT_NAME`, `APP_FULL_NAME_EN`, `APP_FULL_NAME_AM` fallbacks, plus the list of former names | operators, through the environment; lets the app boot before the settings table exists |
+| `App\Services\Branding\BrandingService` | the only resolver: settings → config; blank setting = unset; `brandName($locale)` (current locale when null: Amharic → `brandNameAm()`, otherwise `brandNameEn()`), `shortName()`, `officialNameEn/Am()`, `officialName($locale)`, `formalLine()`, `logoUrl()`, `faviconUrl()`, `legacyNames()` | code — never read the keys elsewhere |
+| Shared Inertia prop `branding` | `{brandName, brandNameEn, brandNameAm, shortName, officialNameEn, officialNameAm, logoUrl, faviconUrl}` on every page (`brandName` in the request's language) | `HandleInertiaRequests`, once per request |
+| `lib/branding.ts`, `useBranding()` | `brandNameFor(locale, settings, shared)` and the boot fallbacks; `useBranding()` reads live settings including the settings preview → shared prop → fallback, and `withBrand()` resolves `{brand}`, `{shortName}`, `{officialName}` | every component that shows the name |
+| `useLocale().t` | resolves `{brand}` in every translation to the name in the current language, so a translation never spells the product name | translation files |
+| Server translations (`lang/*/assistant.php`, `public_assistant.php`, `intelligence*.php`) and AI prompts (`PromptRegistry`) | name the assistants literally ("Agelgay Assistant", "የአገልጋይ ረዳት"): these arrays have no placeholder support. A brand change in System Settings does not reach them; edit them with the brand | developers |
 
 Caching: settings live on the shared cache store (`system_settings_all`,
 `system_settings_public`) with a one-hour TTL and are dropped by
@@ -35,12 +41,14 @@ sender name are overridden from the same settings at boot.
 
 | Context | Use |
 | --- | --- |
-| Browser title | `{Page} \| Addis One` (from the shared prop; the build-time `VITE_APP_NAME` is only the pre-render fallback) |
-| Sign-in, forgot/reset password, MFA, self-registration, provider portal, guest layout | **Addis One** prominently, official name as subtitle |
-| Sidebar (desktop and mobile), public header | **Addis One**, then `AA-IEMSS`, then the owning institution (`organization_name`) |
+| Browser title | `{Page} \| አገልጋይ` on Amharic pages, `{Page} \| Agelgay` on English ones (from the shared settings; the build-time `VITE_APP_NAME` is only the pre-render fallback) |
+| Sign-in, forgot/reset password, MFA, self-registration, provider portal, guest layout | **አገልጋይ** / **Agelgay** by page language, prominently; official name as subtitle |
+| Sidebar (desktop and mobile), public header | **አገልጋይ** / **Agelgay** by page language, then `AA-IEMSS`, then the owning institution (`organization_name`) |
+| Module names | "{brand} Assistant", "{brand} Intelligence", "{brand} Help" → "የአገልጋይ ረዳት" / "Agelgay Assistant" and so on |
 | Formal documents (generated PDFs, report headers, poster attribution) | `Addis Ababa Integrated Employee Management & Service System (AA-IEMSS)` and the Amharic official name — `BrandingService::formalLine()` |
-| E-mail sender, subjects, SMS, Telegram | **Addis One** (concise); SMS templates take `:app` from the resolver |
-| TOTP issuer | `config('app.name')` → Addis One for new enrolments; existing authenticator entries keep working (the secret is unchanged) |
+| E-mail subjects, SMS | the brand in the message's language (`BrandingService::brandName()`); SMS templates take `:app` from the resolver |
+| E-mail sender name | **Agelgay** (`config('app.name')`, Latin script so every mail client shows it) |
+| TOTP issuer | `config('app.name')` → **Agelgay** for new enrolments; existing authenticator entries keep the name they were enrolled under and keep working (the secret is unchanged) |
 | File names of new system reports | not currently prefixed with a system identifier; when one is needed use `AA-IEMSS-…` (§51) |
 | HTML `application-name`, favicon | from the resolver; there is no PWA manifest in this product |
 
@@ -87,18 +95,27 @@ correspondence and dated assessment documents in `docs/`
 `security-remediation-roadmap`, `daily-activity-production-readiness`,
 `organization-design-readiness`, `load-testing` (the 2026-10-11 run),
 `requirements-extracted`, `Recommended-Technologies.txt`) keep the name
-they were written under. `branding:migrate-addis-one` never reads them.
+they were written under. `branding:migrate` never reads them. Code comments
+and dated design documents that say "Addis One" are history too and were not
+rewritten.
 
 ## 6. Moving an existing installation
 
 ```bash
-php artisan branding:migrate-addis-one --dry-run   # report only
-php artisan branding:migrate-addis-one             # move defaults, clear caches
-php artisan production:readiness                   # "Branding" section
+# 1. In .env: APP_NAME="Agelgay" and APP_NAME_AM="አገልጋይ" (the command refuses to move
+#    a value onto a name that is itself a former one, e.g. an old APP_NAME="Addis One").
+php artisan config:clear
+php artisan branding:migrate --dry-run   # report only
+php artisan branding:migrate             # move defaults, clear caches
+php artisan db:seed --class=PermissionSeeder   # permission labels that name the brand
+php artisan production:readiness         # "Branding" section
+npm run build                            # VITE_APP_NAME, the pre-render title fallback
 ```
 
-The command changes only rows whose value equals a former default
-(`general.application_name`, `general.application_short_name`, the legacy
+`branding:migrate-addis-one` still works: it is an alias kept for deploy
+scripts written for the previous rebrand. The command changes only rows
+whose value equals a former default (`general.application_name`,
+`general.application_name_am`, `general.application_short_name`, the legacy
 demo `branding.app_name_en/am`, the public home intro title); anything an
 administrator typed is listed as NEEDS_REVIEW and left alone. It is
 idempotent, writes no audit history and touches no historical record.
@@ -106,7 +123,7 @@ Seeders are `firstOrCreate` and never overwrite a customised brand.
 
 ## 7. BRAND_ASSET_REQUIRED
 
-No approved Addis One logo or favicon exists in this repository. The shell
+No approved Agelgay logo or favicon exists in this repository. The shell
 renders the generic mark (`ApplicationLogo`) and `public/favicon.ico` until
 an approved asset is uploaded under System Settings › General
 (`identity_system_logo`, `favicon`). `production:readiness` reports both as
@@ -115,11 +132,13 @@ the existing Appearance settings; no palette was changed (§54).
 
 ## 8. Proofs
 
-`tests/Feature/Branding/`: `BrandingConfigurationTest` (defaults, override,
-blank fallback, cache invalidation, institution separation),
+`tests/Feature/Branding/`: `BrandingConfigurationTest` (defaults, Amharic
+and Latin names by page language, override, blank fallback, cache
+invalidation, institution separation),
 `BrandingSecurityTest` (unauthorised, Organizational Admin, settings
 manager + audit), `BrandingUiTest` (static scan of components, translations,
 language files and views; sign-in, dashboard shell, public QR pages),
 `BrandingDocumentsTest` (poster, report headers, mail, QR and URL
-stability), `BrandingMigrationTest` (migration command, idempotency,
+stability), `BrandingMigrationTest` (migration command and its alias,
+EUISIS and Addis One defaults, refusal on a stale `.env`, idempotency,
 readiness section).

@@ -65,7 +65,7 @@ test('a configured provider answers; the JSON is validated and the run recorded 
 
     expect($result->ok)->toBeTrue()
         ->and($result->json['overall_confidence'])->toBe('medium')
-        ->and($result->provider)->toBe('openai_compatible')->and($result->model)->toBe('test-model')->and($result->promptVersion)->toBe('v1')
+        ->and($result->provider)->toBe('openai_compatible')->and($result->model)->toBe('test-model')->and($result->promptVersion)->toBe('v2')
         ->and($result->runId)->not->toBeNull();
 
     Http::assertSent(function ($request): bool {

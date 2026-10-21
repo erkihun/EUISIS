@@ -127,7 +127,7 @@ test('a successful assessment is stored on the incident with AI recommendations,
 
     // The page renders the assessment for diagnostics, not for a plain incidents viewer.
     $this->actingAs($developer)->get(route('intelligence.incidents.show', $incident))
-        ->assertInertia(fn (Assert $page) => $page->where('assessment.observed_symptom', 'PDF rendering fails repeatedly')->where('assessment_meta.prompt_version', 'v1'));
+        ->assertInertia(fn (Assert $page) => $page->where('assessment.observed_symptom', 'PDF rendering fails repeatedly')->where('assessment_meta.prompt_version', 'v2'));
     $this->actingAs(rcUser([IntelligencePermissions::VIEW, IntelligencePermissions::INCIDENTS]))->get(route('intelligence.incidents.show', $incident))
         ->assertInertia(fn (Assert $page) => $page->where('assessment', null));
 });

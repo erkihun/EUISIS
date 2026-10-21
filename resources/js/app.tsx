@@ -12,6 +12,7 @@ import { LocaleProvider, resolveInitialLocale } from '@/contexts/LocaleContext';
 import { ensureLocale } from '@/i18n/registry';
 import ConfirmProvider from '@/Components/ConfirmProvider';
 import { initTheme, type ThemePreference } from '@/lib/theme';
+import { BRANDING_FALLBACK, brandNameFor, type Branding } from '@/lib/branding';
 import AppErrorBoundary from '@/Components/errors/AppErrorBoundary';
 import AppPageLoader from '@/Components/ui/AppPageLoader';
 import SessionTimeoutManager, { type SessionPolicy } from '@/Components/SessionTimeoutManager';
@@ -27,9 +28,14 @@ globalThis.Ziggy = {
 };
 globalThis.route = ziggyRoute;
 
-// Set from the shared `branding` prop before the first render (System Settings over config);
-// the build-time env value is only the pre-render fallback.
-let brandName: string = import.meta.env.VITE_APP_NAME || 'Addis One';
+// Set from the shared settings and `branding` prop before the first render (System Settings
+// over config); the build-time env value is only the pre-render fallback. The title follows
+// the page language: አገልጋይ on Amharic pages, Agelgay elsewhere.
+let brandNames: Record<'en' | 'am', string> = {
+    en: import.meta.env.VITE_APP_NAME || BRANDING_FALLBACK.brandNameEn,
+    am: BRANDING_FALLBACK.brandNameAm,
+};
+const currentBrand = (): string => (document.documentElement.lang === 'am' ? brandNames.am : brandNames.en);
 const pages = import.meta.glob<{ default: ResolvedComponent }>('./Pages/**/*.tsx');
 
 /** Removes the static HTML loader once React has mounted. */
@@ -50,8 +56,11 @@ function mount() {
         // instance so its idle-timeout redirect (bootstrap.ts) and XSRF-cookie
         // handling keep covering navigation, forms and partial reloads.
         http: axiosAdapter(window.axios),
-        // "{Page} | Addis One"; a page titled with the brand itself is not doubled.
-        title: (title) => (title && title !== brandName ? `${title} | ${brandName}` : brandName),
+        // "{Page} | Agelgay"; a page titled with the brand itself is not doubled.
+        title: (title) => {
+            const brand = currentBrand();
+            return title && title !== brand ? `${title} | ${brand}` : brand;
+        },
         // Inertia 3: an async resolver returns the component itself, not its module.
         resolve: async (name): Promise<ResolvedComponent> => {
             try {
@@ -65,13 +74,17 @@ function mount() {
         setup({ el, App, props }) {
             const initialProps = props.initialPage.props as Record<string, unknown>;
             const settings = (initialProps.settings as Record<string, unknown> | undefined) ?? {};
-            const branding = initialProps.branding as { brandName?: string } | undefined;
-            // Error pages (404, 403, 419…) are rendered by the exception handler without the
-            // shared props, but the server still stamps the resolved brand into the document
-            // head; read it from there before falling back to the build-time env value, which
-            // a production build may have set to the old product name.
-            const headBrand = document.querySelector('meta[name="application-name"]')?.getAttribute('content')?.trim();
-            brandName = (settings['app.name'] as string | undefined) || branding?.brandName || headBrand || brandName;
+            const branding = initialProps.branding as Partial<Branding> | undefined;
+            if (settings['app.name'] || branding) {
+                brandNames = { en: brandNameFor('en', settings, branding), am: brandNameFor('am', settings, branding) };
+            } else {
+                // Error pages (404, 403, 419…) are rendered by the exception handler without the
+                // shared props, but the server still stamps the resolved brand (in the request's
+                // language) into the document head; prefer it over the build-time env value, which
+                // a production build may have set to a former product name.
+                const headBrand = document.querySelector('meta[name="application-name"]')?.getAttribute('content')?.trim();
+                if (headBrand) brandNames = { en: headBrand, am: headBrand };
+            }
             const defaultLocale = ((initialProps.locale as string | undefined) ?? 'en') as 'en' | 'am';
 
             initTheme(

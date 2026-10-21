@@ -24,7 +24,11 @@ declare(strict_types=1);
 
 return [
 
-    'name' => env('APP_NAME', 'Addis One'),
+    // Latin-script brand: English pages, e-mail sender, authenticator apps.
+    'name' => env('APP_NAME', 'Agelgay'),
+
+    // The same brand in Ge'ez script, for Amharic pages; blank falls back to `name`.
+    'name_am' => env('APP_NAME_AM', 'አገልጋይ'),
 
     'short_name' => env('APP_SHORT_NAME', 'AA-IEMSS'),
 
@@ -34,10 +38,11 @@ return [
 
     /*
     | Former product names. Used only to recognise stored defaults that the
-    | `branding:migrate-addis-one` command may move, and by the readiness gate
-    | to report legacy branding still in current settings. Never shown.
+    | `branding:migrate` command may move, and by the readiness gate to report
+    | legacy branding still in current settings. Never shown.
     */
     'legacy_names' => [
+        'Addis One',
         'EUISIS',
         'Employee Unified ID and Service Integration System',
         'Employee Unified ID & Service Integration System',

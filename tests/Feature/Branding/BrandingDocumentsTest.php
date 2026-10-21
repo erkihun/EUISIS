@@ -53,11 +53,11 @@ it('heads generated reports with the formal system line, not the former name', f
 
 it('brands e-mail subjects and the password reset mail with the current brand', function (): void {
     $backup = (new BackupHealthNotification('WARNING', []))->toMail($this->admin);
-    expect($backup->subject)->toStartWith('Addis One Backup & Recovery')->not->toContain('EUISIS');
+    expect($backup->subject)->toStartWith('Agelgay Backup & Recovery')->not->toContain('EUISIS');
 
     $reset = (new ResetPassword('token'))->toMail($this->admin);
     $rendered = (string) $reset->render();
-    expect($rendered)->toContain('Addis One')->not->toContain('EUISIS');
+    expect($rendered)->toContain('Agelgay')->not->toContain('EUISIS');
 });
 
 it('keeps employee and institution QR codes and their URLs when the brand changes', function (): void {
@@ -67,7 +67,7 @@ it('keeps employee and institution QR codes and their URLs when the brand change
     $orgToken = $orgCode->public_token;
 
     app(UpdateSystemSettingsGroupAction::class)->execute('general', [
-        'application_name' => 'Addis One', 'application_short_name' => 'AA-IEMSS',
+        'application_name' => 'Agelgay', 'application_short_name' => 'AA-IEMSS',
         'official_name_en' => 'Addis Ababa Integrated Employee Management & Service System',
         'official_name_am' => 'የአዲስ አበባ የተቀናጀ የሰራተኛ አስተዳደርና አገልግሎት ሥርዓት',
     ], $this->admin);

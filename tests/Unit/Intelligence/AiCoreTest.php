@@ -30,7 +30,7 @@ it('renders prompts with the input fenced as data and variables substituted safe
         ->toContain('How many { {days} } of leave?') // a variable can never open a second substitution
         ->toContain('Language: am')
         ->and(PromptRegistry::catalog())->toHaveCount(6)
-        ->and(PromptRegistry::get('incident_root_cause')['version'])->toBe('v1');
+        ->and(PromptRegistry::get('incident_root_cause')['version'])->toBe('v2');
 });
 
 it('validates model JSON against the schema and rejects anything that does not fit', function (): void {

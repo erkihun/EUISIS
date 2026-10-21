@@ -22,10 +22,28 @@ final class BrandingService
 {
     public function __construct(private readonly SystemSettingsService $settings) {}
 
-    /** Compact brand: browser title, sign-in pages, navigation, sender labels. */
-    public function brandName(): string
+    /**
+     * Compact brand in the given locale (current locale when null): browser
+     * title, sign-in pages, navigation, message subjects. Amharic pages get
+     * the Ge'ez-script name, everything else the Latin one.
+     */
+    public function brandName(?string $locale = null): string
     {
-        return $this->setting('application_name', (string) config('branding.name', 'Addis One'));
+        $locale ??= app()->getLocale();
+
+        return $locale === 'am' ? $this->brandNameAm() : $this->brandNameEn();
+    }
+
+    /** Latin-script brand; also the e-mail sender name and the authenticator-app issuer (config('app.name')). */
+    public function brandNameEn(): string
+    {
+        return $this->setting('application_name', (string) config('branding.name', 'Agelgay'));
+    }
+
+    /** Ge'ez-script brand for Amharic pages; the Latin one when no Amharic name is configured anywhere. */
+    public function brandNameAm(): string
+    {
+        return $this->setting('application_name_am', (string) config('branding.name_am')) ?: $this->brandNameEn();
     }
 
     /** Official short identifier: sidebar secondary line, formal references, file names. */
@@ -85,12 +103,15 @@ final class BrandingService
     /**
      * The safe, public shape shared with every page.
      *
-     * @return array{brandName: string, shortName: string, officialNameEn: string, officialNameAm: string, logoUrl: ?string, faviconUrl: ?string}
+     * @return array{brandName: string, brandNameEn: string, brandNameAm: string, shortName: string, officialNameEn: string, officialNameAm: string, logoUrl: ?string, faviconUrl: ?string}
      */
     public function toArray(): array
     {
         return [
+            // In the request's language; the page switches between the two below without a round trip.
             'brandName' => $this->brandName(),
+            'brandNameEn' => $this->brandNameEn(),
+            'brandNameAm' => $this->brandNameAm(),
             'shortName' => $this->shortName(),
             'officialNameEn' => $this->officialNameEn(),
             'officialNameAm' => $this->officialNameAm(),

@@ -17,7 +17,7 @@ final class IntelligenceCollect extends Command
 {
     protected $signature = 'intelligence:collect {--detect : Run the detection rules after collecting}';
 
-    protected $description = 'Collect platform telemetry for Addis One Intelligence';
+    protected $description = 'Collect platform telemetry for Agelgay Intelligence';
 
     public function handle(TelemetryCollector $collector, IntelligenceSettings $settings): int
     {

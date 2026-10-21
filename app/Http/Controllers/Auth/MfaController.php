@@ -58,7 +58,7 @@ class MfaController extends Controller
             );
         }
 
-        $issuer = (string) config('app.name', config('branding.name', 'Addis One'));
+        $issuer = (string) config('app.name', config('branding.name', 'Agelgay'));
         $accountLabel = $user->email ?? ('user-'.$user->getKey());
         $otpauthUri = $this->google2fa->getQRCodeUrl($issuer, $accountLabel, $user->two_factor_secret);
 

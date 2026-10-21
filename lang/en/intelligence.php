@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Addis One Intelligence — the shared dictionary of its pages
+ * Agelgay Intelligence — the shared dictionary of its pages
  * (App\Services\Intelligence\IntelligenceLabels). Area-specific panels,
  * KPIs and insights live in intelligence_business.php and
  * intelligence_system.php. Wording rules: a figure is what was MEASURED or
@@ -11,7 +11,7 @@ declare(strict_types=1);
  * it is; nothing is called a ranking of people.
  */
 return [
-    'title' => 'Addis One Intelligence',
+    'title' => 'Agelgay Intelligence',
 
     'ui' => [
         'insights' => 'Insights',

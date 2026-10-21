@@ -16,7 +16,7 @@ $entry = static fn (string $name, int $sort, string $en, string $am, string $des
 ];
 
 return [
-    $entry('intelligence.view', 10, 'Open Addis One Intelligence', 'የAddis One አስተውሎትን ይክፈቱ',
+    $entry('intelligence.view', 10, 'Open Agelgay Intelligence', 'የአገልጋይ አስተውሎትን ይክፈቱ',
         'Open the Intelligence launcher and the Overview. Each area needs its own grant.',
         'የአስተውሎት ማስጀመሪያውን እና አጠቃላይ እይታውን መክፈት ያስችላል። እያንዳንዱ ክፍል የራሱን ፈቃድ ይፈልጋል።'),
 
@@ -43,8 +43,8 @@ return [
         'View detected data quality issues with what, where, count, impact, evidence and remediation.',
         'የተገኙ የመረጃ ጥራት ችግሮችን ከምንነታቸው፣ ከቦታቸው፣ ከብዛታቸው፣ ከተጽዕኖአቸው፣ ከማስረጃቸው እና ከመፍትሔያቸው ጋር ማየት ያስችላል።'),
     $entry('intelligence.knowledge.view', 90, 'Use the Knowledge Assistant', 'የዕውቀት ረዳቱን ይጠቀሙ',
-        'Ask questions answered only from approved Addis One knowledge sources the viewer may read, with source references.',
-        'ተመልካቹ ማንበብ ከሚችላቸው የጸደቁ የAddis One የዕውቀት ምንጮች ብቻ ከምንጭ ማጣቀሻ ጋር መልስ የሚያገኙ ጥያቄዎችን መጠየቅ ያስችላል።'),
+        'Ask questions answered only from approved Agelgay knowledge sources the viewer may read, with source references.',
+        'ተመልካቹ ማንበብ ከሚችላቸው የጸደቁ የአገልጋይ የዕውቀት ምንጮች ብቻ ከምንጭ ማጣቀሻ ጋር መልስ የሚያገኙ ጥያቄዎችን መጠየቅ ያስችላል።'),
 
     // ── System health / diagnostic intelligence ─────────────────────────
     $entry('intelligence.system-health.view', 100, 'View system health', 'የሥርዓት ጤንነትን ይመልከቱ',

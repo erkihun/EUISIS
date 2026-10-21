@@ -1,6 +1,6 @@
 const publicAssistant = {
-    title: 'የAddis One እርዳታ',
-    welcomeFallback: 'ሰላም። የAddis One የሕዝብ አገልግሎቶችን ለመጠቀም ልረዳዎት እችላለሁ።',
+    title: 'የ{brand} እርዳታ',
+    welcomeFallback: 'ሰላም። የ{brand} የሕዝብ አገልግሎቶችን ለመጠቀም ልረዳዎት እችላለሁ።',
     conversation: 'ውይይት',
     loading: 'በመጫን ላይ…',
     open: 'እርዳታ ክፈት',

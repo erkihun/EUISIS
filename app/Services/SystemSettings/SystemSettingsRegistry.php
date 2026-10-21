@@ -103,15 +103,26 @@ class SystemSettingsRegistry
             self::GROUP_GENERAL => [
                 'application_name' => self::field(
                     type: 'string',
-                    default: 'Addis One',
+                    default: 'Agelgay',
                     labelEn: 'Brand Name',
                     labelAm: 'የምርት ስም',
-                    descriptionEn: 'The product brand shown in the browser title, sign-in pages, navigation and sender labels (compact contexts).',
-                    descriptionAm: 'በአሳሽ ርዕስ፣ በመግቢያ ገጾች፣ በአሰሳ እና በላኪ መለያዎች የሚታየው የምርት ስም (አጭር አውዶች)።',
+                    descriptionEn: 'The product brand in Latin script: browser title, sign-in pages and navigation in English, e-mail sender name and authenticator apps.',
+                    descriptionAm: 'የምርቱ ስም በላቲን ፊደል፦ በእንግሊዝኛ ገጾች የአሳሽ ርዕስ፣ የመግቢያ ገጾች እና አሰሳ፣ የኢሜይል ላኪ ስም እና የማረጋገጫ መተግበሪያዎች።',
                     isPublic: true,
                     isRequired: true,
                     validationRules: ['required', 'string', 'max:160'],
                     sortOrder: 10,
+                ),
+                'application_name_am' => self::field(
+                    type: 'string',
+                    default: 'አገልጋይ',
+                    labelEn: 'Brand Name (Amharic)',
+                    labelAm: 'የምርት ስም (አማርኛ)',
+                    descriptionEn: 'The same brand in Ge\'ez script, shown wherever the pages are in Amharic. To show the Latin name on Amharic pages too, enter it here.',
+                    descriptionAm: 'ያው የምርት ስም በግዕዝ ፊደል፤ ገጾቹ በአማርኛ በሚታዩበት ሁሉ ይታያል። በአማርኛ ገጾችም የላቲኑ ስም እንዲታይ ከተፈለገ እዚህ ያስገቡት።',
+                    isPublic: true,
+                    validationRules: ['nullable', 'string', 'max:160'],
+                    sortOrder: 11,
                 ),
                 'application_short_name' => self::field(
                     type: 'string',
@@ -1146,6 +1157,7 @@ class SystemSettingsRegistry
     {
         return [
             'app.name',
+            'app.name_am',
             'app.short_name',
             'app.official_name_en',
             'app.official_name_am',

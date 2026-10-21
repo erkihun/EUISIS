@@ -12,30 +12,36 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Moves stored *defaults* of the former product identity to Addis One
- * (rebrand brief §30, §58–§59). Only values that equal a known legacy
- * default are touched; anything an administrator typed is reported as
- * NEEDS_REVIEW and left alone. Historical records (audit logs, issued
- * documents, exports) are never read or written. Safe to run repeatedly.
+ * Moves stored *defaults* of a former product identity (EUISIS, then Addis
+ * One) to the current brand (docs/branding.md §6). Only values that equal a
+ * known former default are touched; anything an administrator typed is
+ * reported as NEEDS_REVIEW and left alone. Historical records (audit logs,
+ * issued documents, exports) are never read or written. Safe to run
+ * repeatedly. `branding:migrate-addis-one` stays as an alias for deploy
+ * scripts written for the previous rebrand.
  */
-class BrandingMigrateAddisOne extends Command
+class BrandingMigrate extends Command
 {
-    protected $signature = 'branding:migrate-addis-one {--dry-run : Report without writing}';
+    protected $signature = 'branding:migrate {--dry-run : Report without writing}';
 
-    protected $description = 'Move stored legacy product-name defaults to Addis One / AA-IEMSS, clear the settings cache and report remaining legacy references (idempotent)';
+    /** @var list<string> */
+    protected $aliases = ['branding:migrate-addis-one'];
+
+    protected $description = 'Move stored former product-name defaults to the current brand, clear the settings cache and report remaining legacy references (idempotent)';
 
     /** Stored default → new value, per settings row. */
     private const SETTING_MOVES = [
         'general' => [
             'application_name' => [
-                ['Addis Ababa Employee Unified ID & Service Platform', 'EUISIS', 'Employee Unified ID and Service Integration System', 'Employee Unified ID & Service Integration System', 'Unified Employee ID & Service Integration System'],
+                ['Addis One', 'Addis Ababa Employee Unified ID & Service Platform', 'EUISIS', 'Employee Unified ID and Service Integration System', 'Employee Unified ID & Service Integration System', 'Unified Employee ID & Service Integration System'],
                 'branding.name',
             ],
+            'application_name_am' => [['Addis One', 'አዲስ ዋን'], 'branding.name_am'],
             'application_short_name' => [['AA Employee ID', 'EUISIS'], 'branding.short_name'],
         ],
         'branding' => [
-            'app_name_en' => [['EUISIS'], 'branding.name'],
-            'app_name_am' => [['ኢዩሲሲስ', 'EUISIS'], 'branding.name'],
+            'app_name_en' => [['Addis One', 'EUISIS'], 'branding.name'],
+            'app_name_am' => [['Addis One', 'ኢዩሲሲስ', 'EUISIS'], 'branding.name_am'],
         ],
     ];
 
@@ -59,7 +65,10 @@ class BrandingMigrateAddisOne extends Command
                 }
                 $current = trim((string) $row->value);
                 $target = (string) config($configKey);
-                if ($this->matches($current, $legacyValues)) {
+                if ($this->matches($current, $legacyValues) && ($target === '' || $branding->isLegacyName($target))) {
+                    // An .env written for the previous rebrand (APP_NAME="Addis One") would "move" the value onto itself.
+                    $review[] = "setting {$group}.{$key} = \"{$current}\" not moved: its target {$configKey} is \"{$target}\" — update APP_NAME / APP_NAME_AM in .env first";
+                } elseif ($this->matches($current, $legacyValues)) {
                     if (! $dryRun) {
                         DB::table('system_settings')->where('id', $row->id)->update(['value' => $target, 'updated_at' => now()]);
                     }
@@ -119,7 +128,7 @@ class BrandingMigrateAddisOne extends Command
         } else {
             $this->components->twoColumnDetail('Current settings and public-site content free of the former product name', '<fg=green>OK</>');
         }
-        $this->components->twoColumnDetail('Brand now resolves to', $branding->brandName().' / '.$branding->shortName());
+        $this->components->twoColumnDetail('Brand now resolves to', $branding->brandNameEn().' / '.$branding->brandNameAm().' / '.$branding->shortName());
         $this->line('Historical audit entries, issued documents and exports are deliberately untouched (brief §31).');
 
         return self::SUCCESS;

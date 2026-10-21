@@ -1,9 +1,10 @@
-# Addis One (AA-IEMSS)
+# Agelgay · አገልጋይ (AA-IEMSS)
 
 **Addis Ababa Integrated Employee Management & Service System**
 **የአዲስ አበባ የተቀናጀ የሰራተኛ አስተዳደርና አገልግሎት ሥርዓት**
 
-Addis One is the Addis Ababa City Administration's platform for institution
+Agelgay (አገልጋይ, "servant": the civil servant who serves the public) is the
+Addis Ababa City Administration's platform for institution
 structure, positions, the employee registry and identity (ID cards with a
 stable verification QR), performance management, daily activity, field work,
 grievances, public service feedback and employee services. It is a
@@ -13,8 +14,8 @@ front end, in English and Amharic.
 Brand usage rules, the configurable identity (System Settings › General)
 and the list of legacy identifiers kept for compatibility are in
 [docs/branding.md](docs/branding.md). The product was known as "EUISIS"
-before October 2026; that name survives only in historical records and in
-technical identifiers listed there.
+until 2026-10-12 and as "Addis One" until 2026-10-21; those names survive only
+in historical records and in technical identifiers listed there.
 
 ## Getting started
 

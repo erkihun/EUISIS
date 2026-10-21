@@ -31,6 +31,7 @@ class PublicSettingsService
 
         return [
             'app.name' => $settings['general']['application_name'] ?? config('branding.name'),
+            'app.name_am' => $settings['general']['application_name_am'] ?? config('branding.name_am'),
             'app.short_name' => $settings['general']['application_short_name'] ?? config('branding.short_name'),
             'app.official_name_en' => $settings['general']['official_name_en'] ?? config('branding.official_name_en'),
             'app.official_name_am' => $settings['general']['official_name_am'] ?? config('branding.official_name_am'),

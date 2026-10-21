@@ -1,5 +1,5 @@
 const intelligence = {
-    title: 'Addis One Intelligence',
+    title: '{brand} Intelligence',
     description: 'What is happening, what is abnormal, what it may mean and what to check — with the evidence. Every decision stays with a person.',
     fromSituationRoom: 'Insights, alerts, forecasts and system health built on these figures — the analytical layer over the Situation Room.',
     ai: {
@@ -147,7 +147,7 @@ const intelligence = {
     sections: {
         business: { title: 'Business & management intelligence', description: 'Aggregates from the domain data inside your organization scope.' },
         alerts: { title: 'Alerts', description: 'Business and technical alerts, deduplicated, acknowledged and resolved by people.' },
-        knowledge: { title: 'Knowledge', description: 'Answers grounded in approved Addis One knowledge sources, with references.' },
+        knowledge: { title: 'Knowledge', description: 'Answers grounded in approved {brand} knowledge sources, with references.' },
         system: { title: 'System health', description: 'The health of the platform, from signals it actually collects.' },
         diagnostics: { title: 'Diagnostics & guidance', description: 'Error analysis, deployment correlation, recommendations and runbooks for technical staff.' },
         governance: { title: 'Governance', description: 'What the AI features are, what they read, and how they are evaluated.' },

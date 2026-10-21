@@ -81,7 +81,7 @@ const organizationDesign = {
             positions_without_jd: 'Positions without a published job description', positions_without_profile: 'Positions without a published profile', imports_waiting: 'Imports waiting for commit or mapping',
         },
         categories: {
-            legacy: { title: 'Legacy baselines', body: 'Capture what an institution legally was before Addis One, step by step, and publish it.' },
+            legacy: { title: 'Legacy baselines', body: 'Capture what an institution legally was before {brand}, step by step, and publish it.' },
             legal: { title: 'Legal framework', body: 'Legal sources, mandates and powers the design rests on.' },
             functions_services: { title: 'Functions & services', body: 'What the mandate requires and the services that deliver it.' },
             processes: { title: 'Processes & work standards', body: 'Processes, activities and tasks with their quantity, time and quality standards.' },
@@ -139,7 +139,7 @@ const organizationDesign = {
 
     legacyBaselines: {
         title: 'Legacy Baselines',
-        description: 'What an institution legally and administratively was before Addis One, captured step by step over the design records that already exist, validated, reviewed, approved and frozen on publication. A published baseline is never edited; a change is a new revision.',
+        description: 'What an institution legally and administratively was before {brand}, captured step by step over the design records that already exist, validated, reviewed, approved and frozen on publication. A published baseline is never edited; a change is a new revision.',
         create: 'Open baseline',
         edit: 'Edit baseline',
         formHelp: 'Name the capture and say which date it describes. Steps are detected from the records the organization already has; you can save and come back later.',
@@ -202,7 +202,7 @@ const organizationDesign = {
         hierarchyVersion: 'Hierarchy version',
         legalSource: 'Primary legal source',
         none: 'No legacy baselines yet',
-        noneHint: 'Open a baseline for an institution that existed before Addis One to capture what it legally was.',
+        noneHint: 'Open a baseline for an institution that existed before {brand} to capture what it legally was.',
         searchPlaceholder: 'Search by reference or title',
         stepNames: {
             organization_sources: 'Organization & legal sources', mandates: 'Mandates', powers_functions: 'Powers & functions', services: 'Services', processes: 'Processes',
@@ -213,7 +213,7 @@ const organizationDesign = {
         },
         stepHints: {
             organization_sources: 'The instruments the institution rests on. Record them in the legal source register and pick the primary one here.',
-            mandates: 'The mandate(s) in force before Addis One, each pointing at its legal source.',
+            mandates: 'The mandate(s) in force before {brand}, each pointing at its legal source.',
             powers_functions: 'What the mandate empowers and requires the institution to do.',
             services: 'The services delivered, with their classification where an official dataset exists.',
             processes: 'The processes behind the services.',

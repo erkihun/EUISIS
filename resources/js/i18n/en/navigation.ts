@@ -121,7 +121,7 @@ const navigation = {
     situationRoomActions: 'Action Register',
     situationRoomCommunityVoice: 'Community Voice',
     situationRoomReports: 'Executive Reports',
-    groupIntelligence: 'Addis One Intelligence',
+    groupIntelligence: '{brand} Intelligence',
     intelligence: 'Intelligence',
     intelligenceSystemHealth: 'System Health',
     intelligenceIncidents: 'Incidents',

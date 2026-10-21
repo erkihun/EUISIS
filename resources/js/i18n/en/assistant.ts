@@ -1,6 +1,6 @@
 const assistant = {
-    title: 'Addis One Assistant',
-    welcomeFallback: 'Hello. How can I help you with Addis One?',
+    title: '{brand} Assistant',
+    welcomeFallback: 'Hello. How can I help you with {brand}?',
     loading: 'Loading…',
     conversation: 'Conversation',
     nowOn: 'Now on',

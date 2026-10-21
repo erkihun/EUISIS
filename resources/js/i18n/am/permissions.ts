@@ -164,7 +164,7 @@ const permissions = {
         'service-types': 'የአገልግሎት ዓይነቶች',
         'service_feedback': 'የሕዝብ አስተያየት',
         'situation_room': 'የአመራር ሁኔታ መከታተያ ማዕከል',
-        'intelligence': 'የAddis One አስተውሎት',
+        'intelligence': 'የ{brand} አስተውሎት',
         'support': 'የድጋፍ ማዕከል',
         'communication': 'መልዕክቶች',
         'communication_groups': 'የመልዕክት ቡድኖች',

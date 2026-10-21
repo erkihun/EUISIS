@@ -64,9 +64,9 @@ it('has no former product name left in components, translations or language file
 it('renders the sign-in, password and MFA pages with the new brand and nothing of the old one', function (): void {
     foreach (['/login', '/forgot-password'] as $path) {
         $this->get($path)->assertOk()
-            ->assertSee('<title data-inertia>Addis One</title>', false)
+            ->assertSee('<title data-inertia>Agelgay</title>', false)
             ->assertDontSee('EUISIS')
-            ->assertInertia(fn (Assert $page) => $page->where('branding.brandName', 'Addis One')->where('branding.shortName', 'AA-IEMSS'));
+            ->assertInertia(fn (Assert $page) => $page->where('branding.brandName', 'Agelgay')->where('branding.shortName', 'AA-IEMSS'));
     }
 });
 
@@ -74,9 +74,9 @@ it('carries the brand into the dashboard shell for the sidebar and mobile naviga
     $this->actingAs($this->admin)->get('/dashboard')->assertOk()
         ->assertDontSee('EUISIS')
         ->assertInertia(fn (Assert $page) => $page
-            ->where('branding.brandName', 'Addis One')
+            ->where('branding.brandName', 'Agelgay')
             ->where('branding.shortName', 'AA-IEMSS')
-            ->where('settings', fn ($settings) => $settings['app.name'] === 'Addis One' && $settings['app.short_name'] === 'AA-IEMSS'));
+            ->where('settings', fn ($settings) => $settings['app.name'] === 'Agelgay' && $settings['app.short_name'] === 'AA-IEMSS'));
 });
 
 it('brands the public QR pages while the scanned target stays the primary identity', function (): void {
@@ -86,6 +86,6 @@ it('brands the public QR pages while the scanned target stays the primary identi
     foreach (['/service-feedback/'.$a->token->token, '/feedback/'.$orgToken, '/verify'] as $path) {
         $this->get($path)->assertOk()
             ->assertDontSee('EUISIS')
-            ->assertInertia(fn (Assert $page) => $page->where('branding.brandName', 'Addis One'));
+            ->assertInertia(fn (Assert $page) => $page->where('branding.brandName', 'Agelgay'));
     }
 });

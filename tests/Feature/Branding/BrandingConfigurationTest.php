@@ -29,32 +29,63 @@ beforeEach(function (): void {
     $this->admin->assignRole('Super Admin');
 });
 
-it('resolves Addis One, AA-IEMSS and both official names by default', function (): void {
+it('resolves Agelgay, AA-IEMSS and both official names by default', function (): void {
     $branding = app(BrandingService::class);
 
-    expect($branding->brandName())->toBe('Addis One')
+    expect($branding->brandName())->toBe('Agelgay')
         ->and($branding->shortName())->toBe('AA-IEMSS')
         ->and($branding->officialNameEn())->toBe('Addis Ababa Integrated Employee Management & Service System')
         ->and($branding->officialNameAm())->toBe(BRAND_OFFICIAL_AM)
         ->and($branding->officialName('am'))->toBe(BRAND_OFFICIAL_AM)
         ->and($branding->officialName('en'))->toBe('Addis Ababa Integrated Employee Management & Service System')
-        ->and(SystemSettingsRegistry::definitions()['general']['application_name']['default'])->toBe('Addis One')
+        ->and(SystemSettingsRegistry::definitions()['general']['application_name']['default'])->toBe('Agelgay')
         ->and(SystemSettingsRegistry::definitions()['general']['application_short_name']['default'])->toBe('AA-IEMSS')
         ->and(config('branding.short_name'))->toBe('AA-IEMSS');
+});
+
+it('names the product አገልጋይ on Amharic pages and Agelgay on English ones', function (): void {
+    $branding = app(BrandingService::class);
+
+    expect($branding->brandName('am'))->toBe('አገልጋይ')
+        ->and($branding->brandName('en'))->toBe('Agelgay')
+        ->and($branding->brandNameAm())->toBe('አገልጋይ')
+        ->and($branding->brandNameEn())->toBe('Agelgay')
+        ->and(SystemSettingsRegistry::definitions()['general']['application_name_am']['default'])->toBe('አገልጋይ');
+
+    $this->withHeader('X-Locale', 'am')->get('/login')->assertOk()
+        ->assertSee('<title data-inertia>አገልጋይ</title>', false)
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('branding.brandName', 'አገልጋይ')
+            ->where('branding.brandNameEn', 'Agelgay')
+            ->where('branding.brandNameAm', 'አገልጋይ')
+            ->where('settings', fn ($settings) => $settings['app.name'] === 'Agelgay' && $settings['app.name_am'] === 'አገልጋይ'));
+});
+
+it('keeps the two names independent, and a blank Amharic name falls back like every other setting', function (): void {
+    app(UpdateSystemSettingsGroupAction::class)->execute('general', ['application_name' => 'City HR Platform', 'application_name_am' => 'City HR Platform'], $this->admin);
+
+    expect(app(BrandingService::class)->brandName('am'))->toBe('City HR Platform')
+        ->and(app(BrandingService::class)->brandName('en'))->toBe('City HR Platform');
+
+    DB::table('system_settings')->where('group', 'general')->where('key', 'application_name_am')->update(['value' => '']);
+    app(SystemSettingsService::class)->clearCache();
+
+    expect(app(BrandingService::class)->brandName('am'))->toBe('አገልጋይ')
+        ->and(app(BrandingService::class)->brandName('en'))->toBe('City HR Platform');
 });
 
 it('shares the branding with every page and puts the brand in the document title', function (): void {
     $response = $this->get('/login')->assertOk();
 
     $response->assertInertia(fn (Assert $page) => $page
-        ->where('branding.brandName', 'Addis One')
+        ->where('branding.brandName', 'Agelgay')
         ->where('branding.shortName', 'AA-IEMSS')
         ->where('branding.officialNameEn', 'Addis Ababa Integrated Employee Management & Service System')
         ->where('branding.officialNameAm', BRAND_OFFICIAL_AM)
         ->has('branding.logoUrl')
         ->has('branding.faviconUrl'));
-    $response->assertSee('<title data-inertia>Addis One</title>', false)
-        ->assertSee('<meta name="application-name" content="Addis One">', false)
+    $response->assertSee('<title data-inertia>Agelgay</title>', false)
+        ->assertSee('<meta name="application-name" content="Agelgay">', false)
         ->assertDontSee('EUISIS');
 });
 
@@ -73,7 +104,7 @@ it('prefers System Settings and treats a blank setting as unset', function (): v
     DB::table('system_settings')->where('group', 'general')->whereIn('key', ['application_name', 'official_name_am'])->update(['value' => '']);
     app(SystemSettingsService::class)->clearCache();
 
-    expect(app(BrandingService::class)->brandName())->toBe('Addis One')
+    expect(app(BrandingService::class)->brandName())->toBe('Agelgay')
         ->and(app(BrandingService::class)->officialNameAm())->toBe(BRAND_OFFICIAL_AM)
         ->and(app(BrandingService::class)->shortName())->toBe('CHP');
 
@@ -85,8 +116,8 @@ it('prefers System Settings and treats a blank setting as unset', function (): v
 });
 
 it('invalidates the shared settings cache when the brand changes, so every node sees the new name', function (): void {
-    expect(app(BrandingService::class)->brandName())->toBe('Addis One');
-    expect(app(SystemSettingsService::class)->get('general', 'application_name'))->toBe('Addis One');
+    expect(app(BrandingService::class)->brandName())->toBe('Agelgay');
+    expect(app(SystemSettingsService::class)->get('general', 'application_name'))->toBe('Agelgay');
 
     app(UpdateSystemSettingsGroupAction::class)->execute('general', ['application_name' => 'Renamed Brand'], $this->admin);
 
@@ -103,10 +134,10 @@ it('keeps the global brand when an institution has its own name and logo', funct
     ]);
 
     $branding = app(BrandingService::class);
-    expect($branding->brandName())->toBe('Addis One')
+    expect($branding->brandName())->toBe('Agelgay')
         ->and($branding->officialNameEn())->toBe('Addis Ababa Integrated Employee Management & Service System')
         ->and($branding->logoUrl())->toBeNull();
     $this->actingAs($this->admin)->get('/dashboard')->assertInertia(fn (Assert $page) => $page
-        ->where('branding.brandName', 'Addis One')
+        ->where('branding.brandName', 'Agelgay')
         ->where('branding.logoUrl', null));
 });

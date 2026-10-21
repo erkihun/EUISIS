@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Addis One Intelligence — Knowledge Assistant dictionary (merged under the
+ * Agelgay Intelligence — Knowledge Assistant dictionary (merged under the
  * `intelligence.` prefix by IntelligenceLabels, so a page reads
  * `intelligence.classifications.internal`). Mirrored key-for-key in lang/am.
  */

@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 /*
- * የAddis One አስተውሎት — የገጾቹ የጋራ መዝገበ ቃላት (App\Services\Intelligence\IntelligenceLabels)።
+ * የአገልጋይ አስተውሎት — የገጾቹ የጋራ መዝገበ ቃላት (App\Services\Intelligence\IntelligenceLabels)።
  * የክፍል ፓነሎች፣ ቁልፍ አመልካቾች እና ግንዛቤዎች በ intelligence_business.php እና
  * intelligence_system.php ውስጥ ናቸው።
  */
 return [
-    'title' => 'የAddis One አስተውሎት',
+    'title' => 'የአገልጋይ አስተውሎት',
 
     'ui' => [
         'insights' => 'ግንዛቤዎች',

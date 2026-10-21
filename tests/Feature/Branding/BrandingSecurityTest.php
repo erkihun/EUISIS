@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 function brandPayload(array $overrides = []): array
 {
     return array_merge([
-        'application_name' => 'Addis One', 'application_short_name' => 'AA-IEMSS',
+        'application_name' => 'Agelgay', 'application_short_name' => 'AA-IEMSS',
         'official_name_en' => 'Addis Ababa Integrated Employee Management & Service System',
         'official_name_am' => 'የአዲስ አበባ የተቀናጀ የሰራተኛ አስተዳደርና አገልግሎት ሥርዓት',
         'organization_name' => 'Addis Ababa City Administration', 'default_dashboard_route' => 'dashboard',
@@ -40,7 +40,7 @@ it('refuses the global brand change to a user without the settings permission', 
     $user = User::factory()->create();
 
     $this->actingAs($user)->patch(route('system-settings.general.update'), brandPayload(['application_name' => 'Hijacked']))->assertForbidden();
-    expect(app(BrandingService::class)->brandName())->toBe('Addis One');
+    expect(app(BrandingService::class)->brandName())->toBe('Agelgay');
 });
 
 it('refuses the global brand change to an Organizational Admin', function (): void {
@@ -49,7 +49,7 @@ it('refuses the global brand change to an Organizational Admin', function (): vo
 
     expect(in_array('system-settings.manageGeneral', DefaultRoleMatrix::permissionsFor('Organizational Admin'), true))->toBeFalse();
     $this->actingAs($user)->patch(route('system-settings.general.update'), brandPayload(['application_name' => 'My Bureau System']))->assertForbidden();
-    expect(app(BrandingService::class)->brandName())->toBe('Addis One');
+    expect(app(BrandingService::class)->brandName())->toBe('Agelgay');
 });
 
 it('lets a settings administrator change the brand and audits it without the uploaded files', function (): void {
@@ -57,16 +57,16 @@ it('lets a settings administrator change the brand and audits it without the upl
     $user->assignRole('Settings Manager');
 
     $this->actingAs($user)
-        ->patch(route('system-settings.general.update'), brandPayload(['application_name' => 'Addis One Pilot', 'application_short_name' => 'AA-IEMSS-P']))
+        ->patch(route('system-settings.general.update'), brandPayload(['application_name' => 'Agelgay Pilot', 'application_short_name' => 'AA-IEMSS-P']))
         ->assertRedirect();
 
-    expect(app(BrandingService::class)->brandName())->toBe('Addis One Pilot')
+    expect(app(BrandingService::class)->brandName())->toBe('Agelgay Pilot')
         ->and(app(BrandingService::class)->shortName())->toBe('AA-IEMSS-P');
 
     $audit = DB::table('audit_logs')->where('event_type', 'setting_updated')->latest('id')->first();
     expect($audit)->not->toBeNull();
     $payload = json_encode($audit);
-    expect($payload)->toContain('Addis One Pilot')
+    expect($payload)->toContain('Agelgay Pilot')
         ->and($payload)->not->toContain('data:image')
         ->and(strlen($payload))->toBeLessThan(20000);
 });
