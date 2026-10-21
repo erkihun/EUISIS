@@ -393,6 +393,10 @@ class AppServiceProvider extends ServiceProvider
                 && in_array($ability, ['delete', 'forceDelete', 'archive', 'deactivate', 'assignRoles', 'assignOrganizationScope'], true)) {
                 return null;
             }
+            // Segregation of duties: nobody approves the card request they submitted.
+            if ($ability === 'approve' && $target instanceof CardRequest && $target->isRequestedBy($user)) {
+                return null;
+            }
 
             return true;
         });

@@ -45,6 +45,9 @@ beforeEach(function (): void {
 
     $this->actor = User::factory()->create();
     $this->actor->assignRole('Super Admin');
+    // A different person approves what the actor submitted.
+    $this->approver = User::factory()->create();
+    $this->approver->assignRole('Super Admin');
 });
 
 function raceEmployee(): Employee
@@ -98,10 +101,10 @@ test('an employee cannot end up with two live cards from two approvals', functio
         'submitted_at' => now(),
     ]);
 
-    app(ApproveCardRequestAction::class)->execute($first->fresh(), $this->actor);
+    app(ApproveCardRequestAction::class)->execute($first->fresh(), $this->approver);
 
     // The second approval must be refused, not silently issue a second card.
-    expect(fn () => app(ApproveCardRequestAction::class)->execute($second->fresh(), $this->actor))
+    expect(fn () => app(ApproveCardRequestAction::class)->execute($second->fresh(), $this->approver))
         ->toThrow(DomainException::class);
 
     $live = IdCard::query()
@@ -143,7 +146,7 @@ test('a replacement request is still allowed while a card is live', function ():
     $employee = raceEmployee();
 
     $first = app(SubmitCardRequestAction::class)->execute($employee, $this->actor);
-    app(ApproveCardRequestAction::class)->execute($first->fresh(), $this->actor);
+    app(ApproveCardRequestAction::class)->execute($first->fresh(), $this->approver);
 
     // The invariant must not block the legitimate replacement path.
     expect(IdCard::query()->where('employee_id', $employee->id)->count())->toBe(1);

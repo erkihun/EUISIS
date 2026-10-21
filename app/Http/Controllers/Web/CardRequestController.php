@@ -105,14 +105,14 @@ class CardRequestController extends Controller
         $employeeIds = $request->validated('employee_ids') ?? [$request->validated('employee_id')];
         $employees = Employee::query()->whereIn('id', $employeeIds)->orderBy('id')->get();
         foreach ($employees as $employee) {
-            $this->authorize('view', $employee);
+            $this->authorize('requestFor', [CardRequest::class, $employee]);
         }
 
         DB::transaction(function () use ($employees, $request, $requestType, $submitCardRequestAction, $eligibility): void {
             foreach ($employees as $employee) {
                 try {
                     $employee = Employee::query()->lockForUpdate()->findOrFail($employee->id);
-                    $this->authorize('view', $employee);
+                    $this->authorize('requestFor', [CardRequest::class, $employee]);
                     $cards = IdCard::query()->where('employee_id', $employee->id)->lockForUpdate()->get();
                     $pending = $employee->cardRequests()->whereIn('status', $eligibility->pendingStatuses())->exists();
                     if (! $eligibility->allows($employee, $requestType, $cards, $pending)) {

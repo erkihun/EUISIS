@@ -12,6 +12,7 @@ use App\Enums\CardRequestStatus;
 use App\Enums\CardRequestType;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
+use App\Enums\OrganizationScopeType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
@@ -19,6 +20,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -180,6 +182,8 @@ it('filters eligibility by request type and rejects mismatched submissions', fun
 it('replaces the linked card only when a correction is approved', function (): void {
     $actor = User::factory()->create();
     $actor->assignRole('Super Admin');
+    $approver = User::factory()->create();
+    $approver->assignRole('Super Admin');
     $employee = makeActiveEmployee();
     $card = IdCard::query()->create([
         'employee_id' => $employee->id, 'card_number' => 'CORRECTION-1',
@@ -191,7 +195,7 @@ it('replaces the linked card only when a correction is approved', function (): v
     ])->assertSessionHasNoErrors();
     expect($card->fresh()->status)->toBe(CardStatus::Active);
     $request = $employee->cardRequests()->firstOrFail();
-    $result = app(ApproveCardRequestAction::class)->execute($request, $actor);
+    $result = app(ApproveCardRequestAction::class)->execute($request, $approver);
     expect($card->fresh()->status)->toBe(CardStatus::Replaced)
         ->and($card->fresh()->is_current)->toBeFalse()
         ->and($result['card']->previous_card_id)->toBe($card->id);
@@ -263,11 +267,17 @@ it('preserves single employee request submissions', function (): void {
     $this->assertDatabaseCount('card_requests', 1);
 });
 
-it('does not create requests when a selected employee is unauthorized', function (): void {
-    Permission::findOrCreate('employees.view', 'web');
+it('does not create requests when a selected employee is outside the officer scope', function (): void {
     $actor = User::factory()->create();
     $actor->assignRole('HR Officer');
     $employees = [makeActiveEmployee(), makeActiveEmployee()];
+    $elsewhere = Organization::query()->create([
+        'organization_type_id' => $employees[0]->currentAssignment->organization->organization_type_id,
+        'code' => 'ELSEWHERE-ORG', 'name_en' => 'Elsewhere', 'status' => 'active',
+    ]);
+    UserOrganizationScope::query()->create([
+        'user_id' => $actor->id, 'organization_id' => $elsewhere->id, 'scope_type' => OrganizationScopeType::Self,
+    ]);
     $this->actingAs($actor)->post(route('card-requests.store'), [
         'employee_ids' => array_map(fn ($employee) => $employee->id, $employees),
     ])->assertForbidden();
@@ -291,11 +301,13 @@ it('rejects approval for inactive employee', function (): void {
     $employee = makeActiveEmployee();
     $actor = User::factory()->create();
     $actor->assignRole('City Admin');
+    $approver = User::factory()->create();
+    $approver->assignRole('City Admin');
 
     $request = app(SubmitCardRequestAction::class)->execute($employee, $actor);
     $employee->update(['status' => EmployeeStatus::Suspended]);
 
-    expect(fn () => app(ApproveCardRequestAction::class)->execute($request->fresh(), $actor))
+    expect(fn () => app(ApproveCardRequestAction::class)->execute($request->fresh(), $approver))
         ->toThrow(DomainException::class, 'inactive employee');
 });
 
@@ -304,11 +316,13 @@ it('throws when approving an already-approved request', function (): void {
     $employee = makeActiveEmployee();
     $actor = User::factory()->create();
     $actor->assignRole('City Admin');
+    $approver = User::factory()->create();
+    $approver->assignRole('City Admin');
 
     $request = app(SubmitCardRequestAction::class)->execute($employee, $actor);
-    app(ApproveCardRequestAction::class)->execute($request->fresh(), $actor);
+    app(ApproveCardRequestAction::class)->execute($request->fresh(), $approver);
 
-    expect(fn () => app(ApproveCardRequestAction::class)->execute($request->fresh(), $actor))
+    expect(fn () => app(ApproveCardRequestAction::class)->execute($request->fresh(), $approver))
         ->toThrow(DomainException::class);
 });
 
@@ -366,9 +380,11 @@ it('throws when issuing a pending_print card', function (): void {
     $employee = makeActiveEmployee();
     $actor = User::factory()->create();
     $actor->assignRole('City Admin');
+    $approver = User::factory()->create();
+    $approver->assignRole('City Admin');
 
     $request = app(SubmitCardRequestAction::class)->execute($employee, $actor);
-    $result = app(ApproveCardRequestAction::class)->execute($request->fresh(), $actor);
+    $result = app(ApproveCardRequestAction::class)->execute($request->fresh(), $approver);
     $card = $result['card'];
 
     expect($card->status)->toBe(CardStatus::PendingPrint);
@@ -381,9 +397,11 @@ it('throws when activating a printed (not issued) card', function (): void {
     $employee = makeActiveEmployee();
     $actor = User::factory()->create();
     $actor->assignRole('City Admin');
+    $approver = User::factory()->create();
+    $approver->assignRole('City Admin');
 
     $request = app(SubmitCardRequestAction::class)->execute($employee, $actor);
-    $result = app(ApproveCardRequestAction::class)->execute($request->fresh(), $actor);
+    $result = app(ApproveCardRequestAction::class)->execute($request->fresh(), $approver);
     $card = $result['card'];
 
     // Manually set to printed
@@ -401,6 +419,8 @@ it('throws when approving a second request when employee already has active card
     $employee = makeActiveEmployee();
     $actor = User::factory()->create();
     $actor->assignRole('City Admin');
+    $approver = User::factory()->create();
+    $approver->assignRole('City Admin');
 
     // Create first active card directly
     IdCard::query()->create([
@@ -413,7 +433,7 @@ it('throws when approving a second request when employee already has active card
 
     $request = app(SubmitCardRequestAction::class)->execute($employee, $actor);
 
-    expect(fn () => app(ApproveCardRequestAction::class)->execute($request->fresh(), $actor))
+    expect(fn () => app(ApproveCardRequestAction::class)->execute($request->fresh(), $approver))
         ->toThrow(DomainException::class, 'active card');
 });
 
@@ -421,6 +441,8 @@ it('issues one card when two approvers approve the same lost-card request', func
     $employee = makeActiveEmployee();
     $actor = User::factory()->create();
     $actor->assignRole('City Admin');
+    $approver = User::factory()->create();
+    $approver->assignRole('City Admin');
     $lost = IdCard::query()->create([
         'employee_id' => $employee->id, 'card_number' => 'CARD-LOST-1', 'status' => CardStatus::Lost,
         'token_hash' => hash('sha256', 'lost-token'), 'issued_at' => now()->subYear(), 'expires_at' => now()->addYear(),
@@ -431,9 +453,9 @@ it('issues one card when two approvers approve the same lost-card request', func
     // Both approvers loaded the request while it was still submitted.
     $first = $request->fresh();
     $second = $request->fresh();
-    app(ApproveCardRequestAction::class)->execute($first, $actor);
+    app(ApproveCardRequestAction::class)->execute($first, $approver);
 
-    expect(fn () => app(ApproveCardRequestAction::class)->execute($second, $actor))->toThrow(DomainException::class, 'approved')
+    expect(fn () => app(ApproveCardRequestAction::class)->execute($second, $approver))->toThrow(DomainException::class, 'approved')
         ->and(IdCard::query()->where('employee_id', $employee->id)->where('card_request_id', $request->id)->count())->toBe(1)
         ->and(IdCard::query()->where('employee_id', $employee->id)->where('is_current', true)->count())->toBe(1);
 });

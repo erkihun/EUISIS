@@ -468,7 +468,8 @@ it('generates id card number from code rules during approval', function (): void
 
     $cardRequest = CardRequest::query()->create([
         'employee_id' => $employee->id,
-        'requested_by' => $user->id,
+        // Submitted by someone else: nobody approves their own request.
+        'requested_by' => User::factory()->create()->id,
         'request_type' => CardRequestType::New,
         'status' => CardRequestStatus::Submitted,
         'submitted_at' => now(),

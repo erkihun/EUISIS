@@ -15,7 +15,7 @@ class ApproveCardRequestRequest extends FormRequest
 
         return $cardRequest instanceof CardRequest
             ? $this->user()?->can('approve', $cardRequest) ?? false
-            : ($this->user()?->can('id-cards.approveRequest') || $this->user()?->can('cards.manage')) ?? false;
+            : $this->user()?->can('id-cards.approveRequest') ?? false;
     }
 
     public function rules(): array

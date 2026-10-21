@@ -83,9 +83,11 @@ it('card request submission is audited', function (): void {
 it('card request approval is audited', function (): void {
     [$employee] = auditEmployee();
     $actor = User::factory()->create()->assignRole('City Admin');
+    $approver = User::factory()->create();
+    $approver->assignRole('City Admin');
 
     $request = app(SubmitCardRequestAction::class)->execute($employee, $actor);
-    app(ApproveCardRequestAction::class)->execute($request->fresh(), $actor);
+    app(ApproveCardRequestAction::class)->execute($request->fresh(), $approver);
 
     expect(AuditLog::query()->where('event_type', 'card_approved')->exists())->toBeTrue();
 });
