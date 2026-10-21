@@ -112,7 +112,10 @@ export default function PublicFooter() {
 
             <div className="border-t border-white/15">
                 <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 text-xs text-white/70 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-                    <p>{copyright || `© ${new Date().getFullYear()} ${organization}`}</p>
+                    <div className="flex flex-col gap-1">
+                        <p>{copyright || `© ${new Date().getFullYear()} ${organization}`}</p>
+                        <p>{t('common.designCredit')}</p>
+                    </div>
                     {legalLinks.length > 0 && (
                         <nav aria-label={t('publicSite.footerLegal')}>
                             <ul className="flex flex-wrap gap-x-4 gap-y-1">

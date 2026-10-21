@@ -49,6 +49,8 @@ const common = {
     change: 'Change',
     searchEmployee: 'Search by employee number or name (min. 2 characters)',
     close: 'Close',
+    // Footer credit on public and admin pages.
+    designCredit: 'Designed and developed by Erkihun Bewket',
     open: 'Open',
     more: 'More',
     clear: 'Clear',

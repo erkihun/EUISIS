@@ -276,6 +276,13 @@ export default function Authenticated({
                         </div>
                     </main>
                 )}
+
+                {/* Not in Communication mode: messaging fills the screen and keeps its composer at the bottom. */}
+                {!focus && (
+                    <footer className="shrink-0 border-t border-(--app-border) px-4 py-3 text-xs text-(--app-muted-foreground) sm:px-6 lg:px-8">
+                        <p className={CONTENT_WIDTH}>{t('common.designCredit')}</p>
+                    </footer>
+                )}
             </div>
         </div>
         </LocalizedUiProvider>
