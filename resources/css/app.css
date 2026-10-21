@@ -201,8 +201,13 @@
     --color-on-primary-soft:   #ffffff;
     --color-on-primary:        var(--color-on-primary-strong);
     /* Navy is already near-black, so hover LIGHTENS rather than darkens —
-       darkening reads as "disabled" against a white surface. */
-    --color-primary-hover:  #1d3084;
+       darkening reads as "disabled" against a white surface. Like the fill,
+       the hover has a strong and a soft variant, which AuthenticatedLayout
+       derives from the configured brand colour: a fixed navy hover under an
+       orange brand turned dark button text unreadable. */
+    --color-primary-hover-strong: #1d3084;
+    --color-primary-hover-soft:   #8f9fd8;
+    --color-primary-hover:  var(--color-primary-hover-strong);
     --color-primary-light:  #dde3f5;
 
     --color-accent-strong:  #d12908;
@@ -373,7 +378,7 @@
        action colour, so the interactive primary steps up the scale. */
     --color-primary:       var(--color-primary-soft);
     --color-on-primary:    var(--color-on-primary-soft);
-    --color-primary-hover: #8f9fd8;
+    --color-primary-hover: var(--color-primary-hover-soft);
     --color-primary-light: #1d3084;
     --color-accent:        var(--color-accent-soft);
     --color-accent-hover:  #fb9770;
@@ -806,6 +811,27 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 }
 .comm-scroll::-webkit-scrollbar { width: 8px; }
 .comm-scroll::-webkit-scrollbar-thumb { background: var(--app-border-strong); border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+/* The workspace tab strip scrolls sideways on phones without drawing a scrollbar
+   under the tabs; the active tab's underline already marks the position. */
+.comm-tabs {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+}
+.comm-tabs::-webkit-scrollbar { display: none; }
+/* A soft edge says "more this way" where the tabs do not fit (phones). */
+@media (max-width: 639px) {
+    .comm-tabs { mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent); }
+}
+.comm-tabs > li { scroll-snap-align: start; }
+/* iOS Safari zooms the whole page when a field under 16px takes focus, and
+   does not zoom back: on touch phones every field in the workspace (its
+   dialogs included) reads at 16px. */
+@media (pointer: coarse) and (max-width: 639px) {
+    html[data-workspace="communication"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea, select) {
+        font-size: 16px;
+    }
+}
 .comm-flash { animation: comm-flash 1.6s ease-out; }
 @keyframes comm-flash {
     0%, 30% { background-color: color-mix(in srgb, var(--color-primary) 14%, transparent); }

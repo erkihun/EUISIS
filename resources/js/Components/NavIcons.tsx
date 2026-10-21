@@ -6,6 +6,7 @@
  */
 import type { JSX, SVGProps } from 'react';
 import { ChatRoundDotsIcon as SolarChatRoundDotsIcon } from '@solar-icons/react/linear/chat-round-dots';
+import { StarsMinimalisticIcon as SolarStarsMinimalisticIcon } from '@solar-icons/react/linear/stars-minimalistic';
 import { PaperclipIcon as SolarPaperclipIcon } from '@solar-icons/react/linear/paperclip';
 import { SmileCircleIcon as SolarSmileCircleIcon } from '@solar-icons/react/linear/smile-circle';
 import { ReplyIcon as SolarReplyIcon } from '@solar-icons/react/linear/reply';
@@ -358,6 +359,8 @@ export const IdCardIcon = adapt(SolarUserIdIcon);
 
 // Communication & Collaboration (chat, channels, announcements).
 export const ChatIcon = adapt(SolarChatRoundDotsIcon);
+/** The assistant: sparkles, so it is never mistaken for Messages (ChatIcon). */
+export const AssistantIcon = adapt(SolarStarsMinimalisticIcon);
 export const PaperclipIcon = adapt(SolarPaperclipIcon);
 export const SmileIcon = adapt(SolarSmileCircleIcon);
 export const ReplyIcon = adapt(SolarReplyIcon);

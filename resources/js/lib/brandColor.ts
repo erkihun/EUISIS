@@ -69,6 +69,15 @@ export function darkThemeVariant(hex: string): string {
 }
 
 /**
+ * The hover state of a primary fill. Always a step lighter: a dark brand
+ * (navy) keeps white text legible, a bright one (orange) gains contrast for
+ * its dark text, and darkening would read as "disabled" on a light surface.
+ */
+export function hoverVariant(hex: string): string {
+    return lighten(hex, 0.14);
+}
+
+/**
  * WCAG relative luminance, 0 (black) to 1 (white).
  *
  * Unparseable input reports as light, so a malformed setting falls back to the

@@ -11,7 +11,7 @@ import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import GlobalAIAssistant from '@/Components/ai/GlobalAIAssistant';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
+import { darkThemeVariant, hoverVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
 
 import { buttonClassName } from '@/Components/ui';
 const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
@@ -20,6 +20,8 @@ const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 const SHELL_ROOT_PROPERTIES = [
     '--color-primary-strong',
     '--color-primary-soft',
+    '--color-primary-hover-strong',
+    '--color-primary-hover-soft',
     '--color-on-primary-strong',
     '--color-on-primary-soft',
     '--color-secondary',
@@ -117,6 +119,13 @@ export default function Authenticated({
     // after every successful navigation so the destination is immediately visible.
     useEffect(() => setSidebarOpen(false), [pageUrl]);
 
+    // Marks a focus workspace on <html>, so rules can reach its dialogs, which render outside the shell.
+    useEffect(() => {
+        if (!focus) return;
+        document.documentElement.dataset.workspace = mode;
+        return () => { delete document.documentElement.dataset.workspace; };
+    }, [focus, mode]);
+
     useEffect(() => {
         const root = document.documentElement;
         /* Write the two theme variants, never `--color-primary` itself: an
@@ -124,6 +133,8 @@ export default function Authenticated({
            dark mode stuck on the light-theme colour. */
         root.style.setProperty('--color-primary-strong', primary);
         root.style.setProperty('--color-primary-soft', darkThemeVariant(primary));
+        root.style.setProperty('--color-primary-hover-strong', hoverVariant(primary));
+        root.style.setProperty('--color-primary-hover-soft', hoverVariant(darkThemeVariant(primary)));
         // Text on a primary fill: the lighter dark-theme variant of a bright
         // brand colour needs dark text, not white.
         root.style.setProperty('--color-on-primary-strong', readableForeground(primary));
