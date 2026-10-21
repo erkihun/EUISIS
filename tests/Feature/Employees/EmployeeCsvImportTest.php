@@ -22,6 +22,7 @@ use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\Employees\EmployeeCsvImportService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
@@ -822,4 +823,27 @@ it('rejects an unsupported template locale', function (): void {
     $this->actingAs($this->admin)
         ->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id, 'locale' => 'fr']))
         ->assertSessionHasErrors('locale');
+});
+
+it('does not show database error details when an import fails in the database', function (): void {
+    $batch = $this->service->validate(csvUpload([importRow($this->alpha)]), $this->admin);
+
+    $this->mock(EmployeeCsvImportService::class, function ($mock): void {
+        $mock->shouldReceive('import')->andThrow(new QueryException(
+            'pgsql',
+            'update "cache_locks" set "owner" = ?',
+            ['secret-owner'],
+            new PDOException('SQLSTATE[25P02]: In failed sql transaction'),
+        ));
+    });
+
+    $this->actingAs($this->admin)
+        ->post(route('employees.import.confirm', $batch->id))
+        ->assertRedirect();
+
+    $message = (string) session('flash.message');
+    expect($message)->toBe(trim(__('employees.import.failed', ['reason' => ''])))
+        ->and($message)->not->toContain('SQLSTATE')
+        ->and($message)->not->toContain('cache_locks');
+    expect(Employee::query()->count())->toBe(0);
 });

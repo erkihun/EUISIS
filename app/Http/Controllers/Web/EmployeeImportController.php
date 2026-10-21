@@ -9,6 +9,7 @@ use App\Models\EmployeeImportBatch;
 use App\Models\Organization;
 use App\Services\Employees\EmployeeCsvImportService;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -131,6 +132,14 @@ class EmployeeImportController extends Controller
 
         try {
             $result = $this->importService->import($batch, Auth::user(), $request);
+        } catch (QueryException $e) {
+            // A database failure carries SQL, bindings and connection details: log it, never show it.
+            report($e);
+
+            return back()->with('flash', [
+                'message' => trim(__('employees.import.failed', ['reason' => ''])),
+                'type' => 'error',
+            ]);
         } catch (Throwable $e) {
             /*
              * The service rolls back on any failure, so nothing was written.
