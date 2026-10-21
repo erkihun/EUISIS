@@ -55,12 +55,14 @@ test('unauthenticated user cannot access dashboard', function (): void {
         ->assertRedirect(route('login'));
 });
 
-test('user without dashboard permission cannot access dashboard', function (): void {
+test('user without dashboard permission is sent to My Portal instead of the dashboard', function (): void {
     $user = User::factory()->create();
 
+    // Sign-in already lands them there; a stale link must not end on a 403
+    // whose only way forward is this same link again.
     $this->actingAs($user)
         ->get(route('dashboard'))
-        ->assertForbidden();
+        ->assertRedirect(route('employee.portal'));
 });
 
 test('super admin receives all dashboard sections', function (): void {

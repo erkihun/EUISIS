@@ -56,6 +56,7 @@ use App\Services\Performance\EpmsSettings;
 use App\Services\Performance\PerformanceAggregationService;
 use App\Services\Performance\PerformanceReviewService;
 use App\Services\Transfers\TransferEligibilityService;
+use App\Support\DailyActivity\DailyActivityRoles;
 use App\Support\NotificationPresenter;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -89,6 +90,10 @@ class EmployeePortalController extends Controller
                 'pending_requests' => 0,
                 'holidays' => [],
                 'requests' => [],
+                // Officer roles without dashboard access land here too. For them a
+                // missing employee record is expected, so the page does not send
+                // them to HR; any role besides Employee marks a staff account.
+                'staff_account' => $user->getRoleNames()->contains(fn (string $role): bool => $role !== DailyActivityRoles::EMPLOYEE_ROLE),
             ]);
         }
 

@@ -32,6 +32,8 @@ const Ic = {
 /* ── types ───────────────────────────────────────────────────────────────── */
 type DashboardDay = { date: string; status: string; is_late: boolean; items_count: number };
 type PortalProps = PageProps & {
+    /** Sent only when no employee record is linked: true for officer roles, which have no self-service. */
+    staff_account?: boolean;
     daily_activity: { today: string; today_status: string; week: DashboardDay[]; recent: DashboardDay[]; required: number; submitted: number; missing: number; returned: number } | null;
     /** EPMS: own agreement at a glance. Scores appear only once released. */
     performance?: {
@@ -148,7 +150,7 @@ const DAY_MARK: Record<string, { symbol: string; cls: string }> = {
 const QUIET_MARK = { symbol: '–', cls: 'bg-transparent text-gray-400 ring-gray-100 dark:text-slate-600 dark:ring-slate-800' };
 
 /* ── main page ───────────────────────────────────────────────────────────── */
-export default function EmployeePortal({ employee, assignment, id_card, entitlements, transfer_apps, open_announcements = [], daily_activity, performance = null, notifications, pending_requests, holidays, requests }: PortalProps) {
+export default function EmployeePortal({ employee, assignment, id_card, entitlements, transfer_apps, open_announcements = [], daily_activity, performance = null, notifications, pending_requests, holidays, requests, staff_account = false }: PortalProps) {
     const { t, locale } = useLocale();
     const { props } = usePage<PortalProps>();
     const user = props.auth?.user;
@@ -166,6 +168,19 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
         .join(' · ');
 
     if (!employee) {
+        // Officer roles without dashboard access also land here; for them the
+        // missing employee record is expected, not something HR has to fix.
+        if (staff_account) {
+            return (
+                <PortalPage title={t('employeePortal.title')}>
+                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-8 text-center">
+                        <p className="font-medium text-(--app-foreground)">{t('employeePortal.staffNoProfileTitle')}</p>
+                        <p className="mt-1 text-sm text-(--app-muted-foreground)">{t('employeePortal.staffNoProfileBody')}</p>
+                    </div>
+                </PortalPage>
+            );
+        }
+
         return (
             <PortalPage title={t('employeePortal.title')}>
                 <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">

@@ -22,6 +22,14 @@ use App\Services\SystemSettings\SystemSettingsService;
  */
 class MfaRequirementService
 {
+    /**
+     * The shipped baseline for MFA_REQUIRED_ROLES: every role that holds the
+     * full administrative grant (Super Admin, System Admin, City Admin, Public
+     * Service Bureau Admin) plus Cafeteria Admin, which approves money
+     * movements. Names must match DefaultRoleMatrix; a test keeps them in step.
+     */
+    public const DEFAULT_REQUIRED_ROLES = 'Super Admin,System Admin,City Admin,Public Service Bureau Admin,Cafeteria Admin';
+
     public function __construct(
         private readonly SystemSettingsService $settings,
     ) {}

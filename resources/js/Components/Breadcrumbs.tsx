@@ -58,6 +58,11 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
     const { can } = useCan();
     const [pathname, query = ''] = url.split('?');
     const employeePortal = props.is_employee_user === true;
+    // Roles without dashboard access have My Portal as home, as in the sidebar.
+    const portalHome = employeePortal || (props as { auth?: { canViewDashboard?: boolean } }).auth?.canViewDashboard === false;
+    const home: Crumb = portalHome
+        ? { label: t('nav.myPortal'), href: route('employee.portal') }
+        : { label: t('nav.dashboard'), href: route('dashboard') };
     const current = String(route().current() ?? '');
     const lookup = (key: string, fallback: string) => (t(key) === key ? fallback : t(key));
     const humanize = (segment: string) => segment.replace(/[-_]/g, ' ').replace(/^\w/, (letter) => letter.toUpperCase());
@@ -69,7 +74,7 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
         const permitted = (!item.permission || can(item.permission)) && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
         const isCurrent = current === item.routeName;
         crumbs = [
-            { label: t(employeePortal ? 'nav.myPortal' : 'nav.dashboard'), href: route(employeePortal ? 'employee.portal' : 'dashboard') },
+            home,
             // Groups organise the menu; they are not pages, so they are never links.
             { label: t(groupLabelKey) },
             { label: t(item.labelKey), href: isCurrent || !permitted ? undefined : route(item.routeName) + (item.tab ? '?tab=' + item.tab : '') },
@@ -83,7 +88,7 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
     } else {
         const segments = pathname.split('/').filter(Boolean);
         if (segments.length === 0 || segments[0] === 'dashboard') return null;
-        crumbs = [{ label: t('nav.dashboard'), href: '/dashboard' }];
+        crumbs = [home];
         let path = '';
         segments.forEach((segment, index) => {
             path += '/' + segment;

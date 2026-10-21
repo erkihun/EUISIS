@@ -22,6 +22,7 @@ use App\Services\Cafeteria\CafeteriaSettingsService;
 use App\Services\Cafeteria\TransactionStatementService;
 use App\Services\Calendar\CalendarService;
 use App\Services\Nfc\NfcCredentialService;
+use App\Support\EmployeeScanPhoto;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -318,7 +319,7 @@ class CafeteriaTransactionController extends Controller
             $employeeData = $employee ? [
                 'full_name' => $employee->full_name,
                 'employee_number' => $employee->employee_number,
-                'photo_url' => $employee->photo_path ? asset('storage/'.$employee->photo_path) : null,
+                'photo_url' => EmployeeScanPhoto::url($employee),
                 'position' => $employee->currentAssignment?->position?->title_en,
                 'organization' => $employee->currentAssignment?->organization?->name_en,
                 'organization_unit' => $employee->currentAssignment?->organizationUnit?->name_en,
@@ -372,7 +373,7 @@ class CafeteriaTransactionController extends Controller
                 $employeeData = [
                     'full_name' => $employee->full_name,
                     'employee_number' => $employee->employee_number,
-                    'photo_url' => $employee->photo_path ? asset('storage/'.$employee->photo_path) : null,
+                    'photo_url' => EmployeeScanPhoto::url($employee),
                     'position' => $employee->currentAssignment?->position?->title_en,
                     'organization' => $employee->currentAssignment?->organization?->name_en,
                     'organization_unit' => $employee->currentAssignment?->organizationUnit?->name_en,

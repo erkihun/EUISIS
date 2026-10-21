@@ -15,7 +15,9 @@ use App\Services\Calendar\CalendarService;
 use App\Services\Communication\CommunicationInbox;
 use App\Services\Communication\CommunicationNavigation;
 use App\Services\Communication\CommunicationSettings;
+use App\Services\Dashboard\DashboardDataService;
 use App\Services\IdCards\IdCardTemplateService;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\PublicAssistant\PublicAssistantSettings;
 use App\Services\PublicSite\PublicSiteContent;
 use App\Services\Security\SessionActivityService;
@@ -61,6 +63,12 @@ class HandleInertiaRequests extends Middleware
                 'roles' => $user ? $user->getRoleNames()->toArray() : [],
                 'permissions' => $user ? $user->getAllPermissions()->pluck('name')->toArray() : [],
                 'isSuperAdmin' => $user?->hasRole('Super Admin') ?? false,
+                // The same test DashboardController applies, so the sidebar never
+                // offers a Dashboard link that only redirects to My Portal.
+                'canViewDashboard' => $user !== null && app(DashboardDataService::class)->canViewDashboard($user),
+                // Citywide (unrestricted) organization scope: some settings pages,
+                // e.g. public feedback settings, are city-level only.
+                'unrestrictedScope' => $user !== null && $this->resolveUnrestrictedScope($user),
             ],
 
             // Populated by SetCafeteriaPortalContext middleware on portal routes.
@@ -265,6 +273,15 @@ class HandleInertiaRequests extends Middleware
      * it gates the admin landing page, so it is the cheapest accurate signal
      * that the admin navigation is meaningful for this user.
      */
+    private function resolveUnrestrictedScope(User $user): bool
+    {
+        try {
+            return app(OrganizationScopeService::class)->isUnrestricted($user);
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
     private function hasAdministrativeAccess(User $user): bool
     {
         if ($user->hasRole('Super Admin')) {

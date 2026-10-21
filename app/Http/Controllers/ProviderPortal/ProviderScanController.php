@@ -15,6 +15,7 @@ use App\Services\Cafeteria\CafeteriaCalendarService;
 use App\Services\Cafeteria\CafeteriaProviderLedgerService;
 use App\Services\Cafeteria\CafeteriaSettingsService;
 use App\Services\ProviderPortal\ProviderPortalContext;
+use App\Support\EmployeeScanPhoto;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -149,7 +150,7 @@ class ProviderScanController extends Controller
                 'full_name' => $employee->full_name,
                 'employee_number' => $employee->employee_number,
                 'position' => $employee->currentAssignment?->position?->title_en,
-                'photo_url' => $employee->photo_path ? asset('storage/'.$employee->photo_path) : null,
+                'photo_url' => EmployeeScanPhoto::url($employee),
             ] : null,
             'card_number' => $transaction?->idCard?->card_number ?? ($result['id_card'] ?? null)?->card_number,
             'card_status' => $transaction?->idCard?->status?->value ?? ($result['card_status'] ?? null),

@@ -10,6 +10,9 @@ const employeePortal = {
     // Unlinked account
     noProfileTitle: 'No employee profile is linked to your account.',
     noProfileBody: 'Your sign-in address does not match any employee record. Contact HR to have your account linked.',
+    // Staff account without an employee record (an officer role, not an employee)
+    staffNoProfileTitle: 'Your work pages are in the menu.',
+    staffNoProfileBody: 'This account is not linked to an employee record, so self-service pages are not available. Use the menu to open the pages of your role.',
 
     // Top stats
     cafeBalance: 'Café Balance',

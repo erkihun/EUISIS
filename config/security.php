@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Services\Security\MfaRequirementService;
+
 return [
 
     /*
@@ -44,7 +46,7 @@ return [
 
     'mfa_required_roles' => array_values(array_filter(array_map(
         'trim',
-        explode(',', (string) env('MFA_REQUIRED_ROLES', 'Super Admin,City Admin'))
+        explode(',', (string) env('MFA_REQUIRED_ROLES', MfaRequirementService::DEFAULT_REQUIRED_ROLES))
     ))),
 
     /*

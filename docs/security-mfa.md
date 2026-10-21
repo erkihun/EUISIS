@@ -30,7 +30,7 @@ Other users may still enrol voluntarily via `/mfa/setup`.
 
 | Env var | Default | Purpose |
 |---|---|---|
-| `MFA_REQUIRED_ROLES` | `"Super Admin,City Admin"` | Comma-separated role names whose users must enrol MFA (baseline, independent of DB settings). |
+| `MFA_REQUIRED_ROLES` | `"Super Admin,System Admin,City Admin,Public Service Bureau Admin,Cafeteria Admin"` (`MfaRequirementService::DEFAULT_REQUIRED_ROLES`) | Comma-separated role names whose users must enrol MFA (baseline, independent of DB settings). |
 | `MFA_PRIVILEGED_ROLES` | `"Super Admin,City Admin,Organization Admin"` | Role names treated as "admins" for the legacy `require_mfa_for_admins` setting. |
 | `MFA_ENFORCE` | `true` (false during `php artisan test`) | Master kill-switch for the `RequireMfa` middleware. |
 | `MFA_SESSION_LIFETIME_MINUTES` | falls back to `SESSION_LIFETIME` | How long an MFA session verification lasts before re-challenge. |

@@ -70,7 +70,7 @@ All names are bilingual (English / Amharic). Hierarchy: ROOT → ORG-1…ORG-4, 
 
 ## Accounts
 
-Password: `DEMO_USER_PASSWORD` from the local environment. On a developer machine or in tests, if it is not set, the documented development fallback `password` applies. Outside `local`/`testing` the variable is required. Accounts are created once; a re-run never resets a changed password. Accounts in `MFA_REQUIRED_ROLES` (by default City Admin and Cafeteria Admin) must enrol MFA at first sign-in outside tests.
+Password: `DEMO_USER_PASSWORD` from the local environment. On a developer machine or in tests, if it is not set, the documented development fallback `password` applies. Outside `local`/`testing` the variable is required. Accounts are created once; a re-run never resets a changed password. Accounts in `MFA_REQUIRED_ROLES` (by default Super Admin, System Admin, City Admin, Public Service Bureau Admin and Cafeteria Admin) must enrol MFA at first sign-in outside tests.
 
 No Super Admin is created: use the one from `DatabaseSeeder` / `UserSeeder` (`super.admin@demo.local`).
 

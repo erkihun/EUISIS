@@ -7,6 +7,9 @@ const employeePortal = {
     // Unlinked account
     noProfileTitle: 'ከመለያዎ ጋር የተገናኘ የሠራተኛ መዝገብ የለም።',
     noProfileBody: 'የመግቢያ አድራሻዎ ከማንኛውም የሠራተኛ መዝገብ ጋር አይዛመድም። መለያዎ እንዲገናኝ የሰው ኃይል ክፍልን ያነጋግሩ።',
+    // Staff account without an employee record (an officer role, not an employee)
+    staffNoProfileTitle: 'የሥራ ገጾችዎ በምናሌው ውስጥ ናቸው።',
+    staffNoProfileBody: 'ይህ መለያ ከሠራተኛ መዝገብ ጋር ስላልተገናኘ የራስ አገልግሎት ገጾች አይገኙም። የሚናዎን ገጾች ለመክፈት ምናሌውን ይጠቀሙ።',
 
     // Top stats
     cafeBalance: 'የካፌ ቀሪ ሂሳብ',

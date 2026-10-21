@@ -22,8 +22,9 @@ class EmployeePortalReviewController extends Controller
 {
     public function photo(Request $request, Employee $employee)
     {
-        $this->authorize('view', $employee);
+        $this->authorize('viewPhoto', $employee);
         abort_unless($employee->photo_path && preg_match('#^employee-photos/[a-zA-Z0-9-]+\.(jpg|jpeg|png|webp)$#D', $employee->photo_path), 404);
+
         return Storage::disk('local')->response($employee->photo_path, null, ['Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 
@@ -40,6 +41,7 @@ class EmployeePortalReviewController extends Controller
             'changed_fields' => array_map(fn ($field) => __('employee-portal.fields.'.$field), $card->reprint_reasons ?? []),
             'changed_at' => $card->reprint_required_at?->toDateString(), 'can_print' => $request->user()->can('reprint', $card),
         ]);
+
         return Inertia::render('IdCards/ReprintQueue', ['cards' => $cards, 'labels' => __('employee-portal')]);
     }
 
@@ -47,6 +49,7 @@ class EmployeePortalReviewController extends Controller
     {
         $data = $request->validate(['orientation' => ['nullable', 'in:portrait,landscape']]);
         $snapshot = $prints->prepare($card, $request->user(), $data['orientation'] ?? null);
+
         return to_route('id-cards.print-preparation', [$card, $snapshot]);
     }
 
@@ -54,6 +57,7 @@ class EmployeePortalReviewController extends Controller
     {
         $this->authorize('view', $card);
         abort_unless($snapshot->id_card_id === $card->id, 404);
+
         return Inertia::render('IdCards/PrintPreparation', ['card' => ['id' => $card->id, 'card_number' => $card->card_number], 'snapshot' => ['id' => $snapshot->id, 'orientation' => $snapshot->orientation, 'width_mm' => (float) $snapshot->width_mm, 'height_mm' => (float) $snapshot->height_mm, 'confirmed' => $snapshot->printed_at !== null], 'labels' => __('employee-portal')]);
     }
 
@@ -61,6 +65,7 @@ class EmployeePortalReviewController extends Controller
     {
         $this->authorize('view', $card);
         abort_unless($snapshot->id_card_id === $card->id && in_array($side, ['front', 'back'], true), 404);
+
         return Storage::disk('local')->response($snapshot->artifact_path.'-'.$side.'.svg', null, ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
     }
 
@@ -68,6 +73,7 @@ class EmployeePortalReviewController extends Controller
     {
         $request->validate(['printed_successfully' => ['required', 'accepted']]);
         $prints->confirm($card, $snapshot, $request->user());
+
         return back()->with('success', __('employee-portal.saved'));
     }
 
@@ -78,6 +84,7 @@ class EmployeePortalReviewController extends Controller
         if (! $scope->isUnrestricted($request->user())) {
             $query->whereHas('employee.currentAssignment', fn ($q) => $scope->applyOrganizationScope($q, $request->user()));
         }
+
         return Inertia::render('Employees/CorrectionRequests', [
             'requests' => $query->latest()->paginate(25)->through(fn ($correction) => [
                 'id' => $correction->id, 'employee' => $correction->employee->full_name,
@@ -117,6 +124,7 @@ class EmployeePortalReviewController extends Controller
             $correction->update(['status' => $data['decision'], 'reviewed_by' => $request->user()->id, 'reviewed_at' => now()]);
             app(WriteAuditLogAction::class)->execute(AuditEventType::EmployeeCorrectionReviewed, $request->user(), $correction, $employee->currentAssignment?->organization_id, newValues: ['field' => $correction->field, 'status' => $data['decision']]);
         });
+
         return back()->with('success', __('employee-portal.saved'));
     }
 }

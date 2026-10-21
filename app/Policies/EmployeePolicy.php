@@ -25,6 +25,22 @@ readonly class EmployeePolicy
         return $user->can('employees.view') && $this->organizationScopeService->canAccessEmployee($user, $employee);
     }
 
+    /**
+     * The photo alone, on the authorized staff photo route. Registry readers
+     * see it, and so does card staff: the ID Card Officer and Approver hold
+     * no registry access, yet must compare the face on cards and requests.
+     * The organization scope applies either way.
+     */
+    public function viewPhoto(User $user, Employee $employee): bool
+    {
+        if ($this->view($user, $employee)) {
+            return true;
+        }
+
+        return ($user->can('id-cards.view') || $user->can('id-cards.viewAny'))
+            && $this->organizationScopeService->canAccessEmployee($user, $employee);
+    }
+
     public function create(User $user): bool
     {
         return $user->can('employees.manage');

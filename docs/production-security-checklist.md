@@ -68,7 +68,7 @@
 
 - [ ] Super Admin account count is minimal (maximum 3 accounts)
 - [ ] Default/seed passwords have been changed on all admin accounts
-- [ ] `MFA_REQUIRED_ROLES` lists every privileged role (default `"Super Admin,City Admin"`)
+- [ ] `MFA_REQUIRED_ROLES` lists every privileged role (default `"Super Admin,System Admin,City Admin,Public Service Bureau Admin,Cafeteria Admin"`); a server that still carries the old list with "HR Manager" and "Security Officer" leaves System Admin and Public Service Bureau Admin without MFA
 - [ ] `MFA_ENFORCE=true` (or unset; defaults true outside `APP_ENV=testing`)
 - [ ] Every member of an MFA-required role has completed enrolment via `/mfa/setup`
 - [ ] `REGISTRATION_ENABLED=false` in production `.env` — public self-service registration is off

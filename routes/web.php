@@ -142,6 +142,7 @@ use App\Http\Controllers\Web\PublicSubmissionListController;
 use App\Http\Controllers\Web\RecycleBinController;
 use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
+use App\Http\Controllers\Web\ScanPhotoController;
 use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceSubmissionController;
@@ -531,6 +532,13 @@ Route::post('/service-feedback/{token}', [PublicServiceFeedbackController::class
 Route::get('/service-feedback/{token}/photo', PublicFeedbackEmployeePhotoController::class)
     ->middleware(['qr.private', 'signed:relative', 'throttle:service-feedback-photo'])
     ->name('service-feedback.photo');
+
+// The holder's photo on a cafeteria or provider-portal scan result, through the
+// signed short-lived link the result carries (EmployeeScanPhoto). No guard: the
+// provider portal signs in on its own guard, and the signature is the grant.
+Route::get('/scan-photos/{employee}', ScanPhotoController::class)
+    ->middleware(['signed:relative', 'throttle:120,1'])
+    ->name('employees.scan-photo');
 
 Route::get('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'form'])
     ->where('type', 'feedback|suggestion|complaint')
