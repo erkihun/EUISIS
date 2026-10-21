@@ -39,6 +39,32 @@ const auth = {
     featureCodeGen: 'Code Generation',
     footerGov: 'Government of Ethiopia',
 
+    // Sign-in stage (Components/auth/LoginStage)
+    stage: {
+        headline: 'One database. One employee identity.',
+        headlineAccent: 'Many services.',
+        // The journey that ends in the sign-in card, in order.
+        steps: {
+            city: { title: 'City Administration', text: 'One structure for every institution' },
+            institutions: { title: 'Institutions', text: 'Bureaus, sub-cities and woredas, each with its positions' },
+            employees: { title: 'Employees', text: 'One record per employee, from hiring to transfer' },
+            card: { title: 'ID card issued', text: 'Requested, approved by a second person, printed' },
+            verified: { title: 'Identity verified', text: 'Scanned at the counter, checked in seconds' },
+        },
+        cardTitle: 'Employee ID',
+        cardVerified: 'Verified',
+        // The services the ID card opens, orbiting it.
+        services: {
+            cafeteria: 'Cafeteria',
+            transport: 'Transport',
+            performance: 'Performance',
+            grievance: 'Grievances',
+            activity: 'Daily activity',
+            reports: 'Reports',
+        },
+        capsLock: 'Caps Lock is on',
+    },
+
     registration: {
         title: 'Create Account',
         systemName: '{officialName}',
