@@ -41,7 +41,11 @@ class UploadSystemAssetAction
         // content, never the uploader's file name (SEC-10).
         $path = ImageUploads::store(
             $file,
-            $key === 'favicon' ? ImageKind::Favicon : ImageKind::Logo,
+            match (true) {
+                $key === 'favicon' => ImageKind::Favicon,
+                in_array($key, SystemSettingsRegistry::LOGIN_CARD_PHOTO_KEYS, true) => ImageKind::Photo,
+                default => ImageKind::Logo,
+            },
             'system-assets/'.SystemSettingsRegistry::GROUP_GENERAL,
             'public',
             sprintf('%s-%s', $key, Str::uuid7()),
@@ -86,5 +90,41 @@ class UploadSystemAssetAction
         );
 
         return $existing;
+    }
+
+    /**
+     * Take an uploaded asset down: the file is deleted and the setting emptied. Used for the
+     * sign-in card photos, which an administrator must be able to withdraw at any time.
+     */
+    public function remove(string $key, User $actor): void
+    {
+        $existing = SystemSetting::query()
+            ->where('group', SystemSettingsRegistry::GROUP_GENERAL)
+            ->where('key', $key)
+            ->first();
+
+        $oldPath = $existing?->value;
+        if ($existing === null || ! is_string($oldPath) || $oldPath === '') {
+            return;
+        }
+
+        if (Storage::disk('public')->exists($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $existing->value = null;
+        $existing->updated_by = $actor->id;
+        $existing->save();
+
+        $this->settingsService->clearCache();
+
+        $this->writeAuditLogAction->execute(
+            AuditEventType::SettingAssetRemoved,
+            $actor,
+            $existing,
+            null,
+            ['configured' => true, 'key' => $key],
+            ['configured' => false, 'key' => $key],
+        );
     }
 }

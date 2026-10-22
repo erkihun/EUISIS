@@ -198,6 +198,7 @@ const auditLogs = {
         // Settings
         setting_updated: 'Setting Updated',
         setting_asset_uploaded: 'Setting Asset Uploaded',
+        setting_asset_removed: 'Setting Asset Removed',
         settings_cache_cleared: 'Settings Cache Cleared',
         notification_channel_tested: 'Notification Channel Tested',
         // Positions

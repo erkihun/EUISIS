@@ -13,7 +13,7 @@ const CARDS: Record<string, CardDefinition[]> = {
         { key: 'identity', fields: ['application_name', 'application_name_am', 'application_short_name', 'official_name_en', 'official_name_am', 'organization_name', 'system_environment_label', 'default_dashboard_route'] },
         { key: 'branding', fields: ['identity_system_logo', 'favicon', 'seal'] },
         { key: 'support', fields: ['support_email', 'support_phone', 'help_center_url', 'privacy_policy_url', 'terms_url'] },
-        { key: 'login', fields: ['login_page_message_en', 'login_page_message_am'] },
+        { key: 'login', fields: ['login_page_message_en', 'login_page_message_am', 'login_card_photo_1', 'login_card_photo_2', 'login_card_photo_3'] },
     ],
     localization: [
         { key: 'language', fields: ['default_locale', 'fallback_locale', 'supported_locales'] },

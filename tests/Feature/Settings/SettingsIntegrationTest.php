@@ -131,6 +131,10 @@ const SHARED_UNDER_ANOTHER_KEY = [
     'general.identity_system_logo' => 'general.identity_system_logo_url',
     'general.favicon' => 'general.favicon_url',
     'general.seal' => 'general.seal_url',
+    // The sign-in card photos are shared together, as one list of URLs.
+    'general.login_card_photo_1' => 'general.login_card_photo_urls',
+    'general.login_card_photo_2' => 'general.login_card_photo_urls',
+    'general.login_card_photo_3' => 'general.login_card_photo_urls',
 ];
 
 /*

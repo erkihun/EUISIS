@@ -41,7 +41,7 @@ export default function Login({
     const cardRef = useRef<HTMLDivElement>(null);
     const motion = useMotionAllowed();
     const { t, locale } = useLocale();
-    const { getString } = useSystemSettings();
+    const { getString, getStringArray } = useSystemSettings();
     const { registration_enabled: registrationEnabled = false } = usePage<
         PageProps<{ registration_enabled?: boolean }>
     >().props;
@@ -58,6 +58,8 @@ export default function Login({
         ? getString('general.login_page_message_am', '')
         : getString('general.login_page_message_en', '');
     const systemLogoUrl = getString('general.identity_system_logo_url', '');
+    // Sample photos uploaded for the sign-in card in System Settings (never employee registry photos).
+    const cardPhotos = getStringArray('general.login_card_photo_urls');
 
     // Every rejected attempt shakes the card once, even with the same message as before. The class is
     // restarted in place, so the form keeps its focus and values (a remount would not).
@@ -352,6 +354,7 @@ export default function Login({
                                 cardTitle={t('auth.stage.cardTitle')}
                                 verifiedLabel={t('auth.stage.cardVerified')}
                                 motion={motion}
+                                photos={cardPhotos}
                             />
                         </div>
                     </div>

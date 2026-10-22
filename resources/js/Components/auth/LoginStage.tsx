@@ -232,7 +232,7 @@ const CARD_POS = { x: (ORBIT_W_DESIGN - CARD.w) / 2, y: MID - CARD.h / 2 };
 const CARD_CENTER: Pt = { x: CARD_POS.x + CARD.w / 2, y: MID };
 const ORBIT = { rx: 232, ry: 165 };
 
-export function IdentityOrbit({ steps, services, brandName, logo, cardTitle, verifiedLabel, motion }: {
+export function IdentityOrbit({ steps, services, brandName, logo, cardTitle, verifiedLabel, motion, photos = [] }: {
     steps: FlowStep[];
     services: FlowService[];
     brandName: string;
@@ -240,9 +240,24 @@ export function IdentityOrbit({ steps, services, brandName, logo, cardTitle, ver
     cardTitle: string;
     verifiedLabel: string;
     motion: boolean;
+    /** Sample photos an administrator uploaded for this card (System Settings), never registry photos. */
+    photos?: string[];
 }) {
     const { ref, fit } = useFit(ORBIT_W, false);
     const chipRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+    // With several photos, the next one crossfades in just before each second scan, so every scan
+    // verifies a new card. The first swap waits for the first scan (clock start 1.6 s + 3 s).
+    const [photoIndex, setPhotoIndex] = useState(0);
+    useEffect(() => {
+        if (!motion || photos.length < 2) return;
+        let interval = 0;
+        const first = window.setTimeout(() => {
+            setPhotoIndex((i) => (i + 1) % photos.length);
+            interval = window.setInterval(() => setPhotoIndex((i) => (i + 1) % photos.length), 8000);
+        }, 8400);
+        return () => { window.clearTimeout(first); window.clearInterval(interval); };
+    }, [motion, photos.length]);
 
     // Services orbit the card in depth: behind it at the top of the ellipse, in front at the bottom.
     useEffect(() => {
@@ -351,11 +366,25 @@ export function IdentityOrbit({ steps, services, brandName, logo, cardTitle, ver
                             <div className="lg-idc-gold h-6 w-8 rounded-md" />
                         </div>
                         <div className="relative mt-3 flex gap-3">
-                            <div className="lg-idc-px-1 flex h-[80px] w-[64px] shrink-0 items-end justify-center overflow-hidden rounded-lg bg-linear-to-b from-white/25 to-white/5 ring-1 ring-white/25">
-                                <svg viewBox="0 0 40 48" className="h-[58px] w-[48px] text-white/70" fill="currentColor" aria-hidden="true">
-                                    <circle cx="20" cy="16" r="9" />
-                                    <path d="M2 48c1.5-11 9-17 18-17s16.5 6 18 17Z" />
-                                </svg>
+                            <div className="lg-idc-px-1 relative flex h-[80px] w-[64px] shrink-0 items-end justify-center overflow-hidden rounded-lg bg-linear-to-b from-white/25 to-white/5 ring-1 ring-white/25">
+                                {photos.length > 0 ? photos.map((src, i) => (
+                                    <img
+                                        key={src}
+                                        src={src}
+                                        alt=""
+                                        width={64}
+                                        height={80}
+                                        decoding="async"
+                                        loading={i === 0 ? 'eager' : 'lazy'}
+                                        className="lg-idc-photo absolute inset-0 h-full w-full object-cover"
+                                        style={{ opacity: i === photoIndex ? 1 : 0 }}
+                                    />
+                                )) : (
+                                    <svg viewBox="0 0 40 48" className="h-[58px] w-[48px] text-white/70" fill="currentColor" aria-hidden="true">
+                                        <circle cx="20" cy="16" r="9" />
+                                        <path d="M2 48c1.5-11 9-17 18-17s16.5 6 18 17Z" />
+                                    </svg>
+                                )}
                             </div>
                             <div className="min-w-0 flex-1 space-y-1.5 pt-1">
                                 <div className="lg-idc-line h-2 w-[86%] rounded-full" />

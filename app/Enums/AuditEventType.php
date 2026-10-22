@@ -192,6 +192,7 @@ enum AuditEventType: string
     case EntitlementRuleArchived = 'entitlement_rule_archived';
     case EntitlementRuleRestored = 'entitlement_rule_restored';
     case SettingAssetUploaded = 'setting_asset_uploaded';
+    case SettingAssetRemoved = 'setting_asset_removed';
     case SettingsCacheCleared = 'settings_cache_cleared';
     case NotificationChannelTested = 'notification_channel_tested';
     case CodeRuleCreated = 'code_rule_created';

@@ -4,6 +4,9 @@ import { useLocale } from '@/hooks/useLocale';
 import { Button, StatusBadge } from '@euisis/ui';
 import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
 
+/** Form value meaning "delete the saved image on save"; the page sends it as `remove_assets[]`. */
+export const REMOVE_ASSET = '__remove_asset__';
+
 type Props = {
     label: string;
     description?: string | null;
@@ -13,10 +16,14 @@ type Props = {
     disabled?: boolean;
     accept?: string;
     onChange: (file: File | null) => void;
+    /** The saved image may be taken down (the server accepts `remove_assets` for it). */
+    removable?: boolean;
+    markedForRemoval?: boolean;
+    onRemoveChange?: (remove: boolean) => void;
 };
 
 /** An uploaded asset: the current image, a replace button, and the chosen file until it is saved. */
-export default function ImageSettingField({ label, description, previewUrl, configured, error, disabled = false, accept = '.jpg,.jpeg,.png,.webp,.ico', onChange }: Props) {
+export default function ImageSettingField({ label, description, previewUrl, configured, error, disabled = false, accept = '.jpg,.jpeg,.png,.webp,.ico', onChange, removable = false, markedForRemoval = false, onRemoveChange }: Props) {
     const { t } = useLocale();
     const id = useId();
     const errorId = error ? `${id}-error` : undefined;
@@ -40,7 +47,8 @@ export default function ImageSettingField({ label, description, previewUrl, conf
         if (inputRef.current) inputRef.current.value = '';
     };
 
-    const shown = localPreview ?? previewUrl;
+    const shown = localPreview ?? (markedForRemoval ? null : previewUrl);
+    const canRemove = removable && configured && !file && Boolean(onRemoveChange);
 
     return (
         <FieldRow htmlFor={id} label={label} description={description} error={error} errorId={errorId}
@@ -53,10 +61,24 @@ export default function ImageSettingField({ label, description, previewUrl, conf
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
                     <input ref={inputRef} id={id} type="file" accept={accept} disabled={disabled} onChange={choose} className="sr-only" aria-describedby={errorId} />
-                    <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={() => inputRef.current?.click()}>
-                        {configured || file ? t('settings.replaceFile') : t('settings.chooseFile')}
-                    </Button>
-                    {file ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={() => { if (markedForRemoval) onRemoveChange?.(false); inputRef.current?.click(); }}>
+                            {configured || file ? t('settings.replaceFile') : t('settings.chooseFile')}
+                        </Button>
+                        {canRemove && !markedForRemoval && (
+                            <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={() => onRemoveChange?.(true)}>
+                                {t('settings.removeImage')}
+                            </Button>
+                        )}
+                    </div>
+                    {canRemove && markedForRemoval ? (
+                        <p className="flex min-w-0 items-center gap-2 text-xs">
+                            <StatusBadge tone="warning">{t('settings.removedOnSave')}</StatusBadge>
+                            <button type="button" onClick={() => onRemoveChange?.(false)} className="font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary">
+                                {t('settings.keepImage')}
+                            </button>
+                        </p>
+                    ) : file ? (
                         <p className="flex min-w-0 items-center gap-2 text-xs">
                             <StatusBadge tone="info">{t('settings.pendingUpload')}</StatusBadge>
                             <span className="min-w-0 truncate text-(--app-foreground)">{file.name}</span>

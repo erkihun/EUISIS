@@ -198,6 +198,7 @@ const auditLogs = {
         // Settings
         setting_updated: 'ቅንብር ተዘምኗል',
         setting_asset_uploaded: 'የቅንብር ፋይል ተሰቅሏል',
+        setting_asset_removed: 'የቅንብር ፋይል ተወግዷል',
         settings_cache_cleared: 'የቅንብር ካሽ ተጠርጓል',
         notification_channel_tested: 'የማሳወቂያ ቻናል ተሞክሯል',
         // Positions

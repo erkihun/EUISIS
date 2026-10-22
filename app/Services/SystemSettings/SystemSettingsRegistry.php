@@ -307,6 +307,10 @@ class SystemSettingsRegistry
                     validationRules: ['nullable', 'string', 'max:2000'],
                     sortOrder: 140,
                 ),
+                // Sample photos for the employee ID card animated on the sign-in page. Uploaded for
+                // that purpose only, never taken from the employee registry: the sign-in page is
+                // public, so registry photos must not appear there.
+                ...self::loginCardPhotoFields(),
             ],
 
             self::GROUP_LOCALIZATION => [
@@ -1170,6 +1174,7 @@ class SystemSettingsRegistry
             'general.terms_url',
             'general.login_page_message_en',
             'general.login_page_message_am',
+            'general.login_card_photo_urls',
             'general.identity_system_logo_url',
             'general.favicon_url',
             'general.seal_url',
@@ -1276,6 +1281,33 @@ class SystemSettingsRegistry
             'settlement_requires_distinct_approver' => self::field(type: 'boolean', default: true, labelEn: 'A statement must be approved by someone other than its computer', labelAm: 'መግለጫ ከሰላው ሰው በተለየ ሰው መጽደቅ አለበት', validationRules: ['required', 'boolean'], sortOrder: 160),
             'gps_retention_days' => self::field(type: 'integer', default: 90, labelEn: 'Days vehicle positions are kept', labelAm: 'የተሽከርካሪ አቀማመጦች የሚቆዩበት ቀናት', validationRules: ['required', 'integer', 'min:1', 'max:3650'], sortOrder: 170),
         ];
+    }
+
+    /** Sample photos for the sign-in page's animated ID card, in display order. */
+    public const LOGIN_CARD_PHOTO_KEYS = ['login_card_photo_1', 'login_card_photo_2', 'login_card_photo_3'];
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private static function loginCardPhotoFields(): array
+    {
+        $fields = [];
+        foreach (self::LOGIN_CARD_PHOTO_KEYS as $index => $key) {
+            $number = $index + 1;
+            $fields[$key] = self::field(
+                type: 'image',
+                default: null,
+                labelEn: "Sign-in card photo {$number}",
+                labelAm: "የመግቢያ ካርድ ፎቶ {$number}",
+                descriptionEn: 'Shown on the ID card animated on the public sign-in page, to everyone who opens it. Use a photo of someone who has agreed, or a model photo, never one taken from employee records.',
+                descriptionAm: 'በይፋዊው የመግቢያ ገጽ ላይ በሚንቀሳቀሰው መታወቂያ ካርድ ላይ ገጹን ለሚከፍት ሁሉ ይታያል። የተስማማ ሰው ፎቶ ወይም የናሙና ፎቶ ብቻ ይጠቀሙ፤ ከሠራተኛ መዝገብ የተወሰደ ፎቶ በፍጹም አይጠቀሙ።',
+                isPublic: true,
+                validationRules: ['nullable', 'file', 'mimes:jpg,jpeg,png,webp'],
+                sortOrder: 150 + $number,
+            );
+        }
+
+        return $fields;
     }
 
     /**
