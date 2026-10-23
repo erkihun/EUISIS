@@ -1,0 +1,115 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * Dependency direction of the master identity and organization backbone
+ * (docs/architecture/master-backbone.md):
+ *
+ *   1. Backbone code does not import service-module classes.
+ *   2. Service modules do not create or bulk-update backbone records directly;
+ *      they go through backbone commands.
+ *
+ * The allowlists are today's known exceptions (backbone-refactor-migration.md,
+ * section 2). They may only shrink: a new violation fails, and so does an
+ * allowlisted one that no longer exists, so its entry gets removed.
+ */
+
+const BACKBONE_PATHS = '#^app/(Backbone/|Actions/(Organizations|OrganizationUnits|OrganizationTypes|OrganizationUnitTypes|Positions|Employees|IdCards|CodeRules|GradeLevels|Occupations|IsicActivities)/|Services/(Organizations|OrganizationUnits|Positions|Employees|IdCards|Hierarchy|OrganizationScope|Verification|CodeGeneration)/|Observers/|Models/(Employee|EmployeeAssignment|Position|PositionOccupancy|PositionProfile|JobDescription|Organization|OrganizationUnit|OrganizationType|OrganizationUnitType|OrganizationEdge|OrganizationClosurePath|HierarchyVersion|IdCard|CardRequest|CardIssuance|CardReplacement|CardVerification|IdCardPrintSnapshot|CodeRule|GradeLevel|Occupation|Profession)\.php)#';
+
+// The integration layer (outbox, change feed, transfer events) is platform, not a service module.
+const SERVICE_CLASS = '#^App\\\\(?!Services\\\\Integration\\\\)(Models|Services|Actions|Jobs|Events|Enums)\\\\(.*\\\\)?[A-Za-z]*(Cafeteria|Transport|Grievance|Disciplin|Performance|Kpi|StrategicGoal|Assessment|DailyActivit|FieldWork|Vacanc|Transfer|PublicFeedback|ServiceFeedback|EmployeeFeedbackToken|Intelligence|Assistant|SituationRoom|Communication|SupportTicket|Provider|Nfc|OrganizationDesign)#';
+
+const SERVICE_PATH = '#^app/(?!Services/Integration/).*(Cafeteria|Transport|Grievance|Disciplin|Performance|Kpi|StrategicGoal|Assessment|DailyActivit|FieldWork|Vacanc|Transfer|PublicFeedback|ServiceFeedback|Intelligence|Assistant|SituationRoom|Communication|SupportTicket|ProviderPortal|Nfc|OrganizationDesign)#i';
+
+// Scanned per line: a static create, or a query chain on the same line that writes.
+const BACKBONE_MODEL = '(Employee|EmployeeAssignment|Position|PositionOccupancy|Organization|OrganizationUnit|IdCard)';
+const BACKBONE_CREATE = '#\b'.BACKBONE_MODEL.'::(create|insert|upsert|updateOrCreate|firstOrCreate|forceCreate)\(#';
+const BACKBONE_QUERY_WRITE = '#\b'.BACKBONE_MODEL.'::query\(\).*->(create|update|delete|forceDelete|insert|upsert|increment|decrement)\(#';
+
+/** @return list<string> repository-relative PHP paths under app/ */
+function backboneAppFiles(): array
+{
+    $root = dirname(__DIR__, 2);
+    $files = [];
+    foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root.'/app', FilesystemIterator::SKIP_DOTS)) as $file) {
+        if ($file->getExtension() === 'php') {
+            $files[] = str_replace('\\', '/', substr($file->getPathname(), strlen($root) + 1));
+        }
+    }
+    sort($files);
+
+    return $files;
+}
+
+it('keeps backbone code free of service-module imports', function (): void {
+    $root = dirname(__DIR__, 2);
+    $found = [];
+    foreach (backboneAppFiles() as $path) {
+        if (! preg_match(BACKBONE_PATHS, $path)) {
+            continue;
+        }
+        preg_match_all('/^use (App\\\\[A-Za-z0-9_\\\\]+);/m', (string) file_get_contents($root.'/'.$path), $m);
+        foreach ($m[1] as $class) {
+            if (preg_match(SERVICE_CLASS, $class)) {
+                $found[] = $path.' -> '.$class;
+            }
+        }
+    }
+
+    $allowed = [
+        'app/Actions/Employees/RegisterEmployeeAction.php -> App\Services\ServiceFeedback\EmployeeFeedbackTokenService',
+        'app/Actions/Employees/RegisterEmployeeAction.php -> App\Services\Vacancy\PositionCapacityService',
+        'app/Models/JobDescription.php -> App\Enums\OrganizationDesignStatus',
+        'app/Models/PositionProfile.php -> App\Enums\OrganizationDesignStatus',
+        'app/Observers/EmployeeAssignmentCommunicationObserver.php -> App\Jobs\Communication\SyncEmployeeCommunicationMemberships',
+        'app/Observers/TransportEligibilityObserver.php -> App\Jobs\Transport\ReevaluateTransportEligibility',
+        'app/Services/CodeGeneration/CodeFormatTokenResolver.php -> App\Models\ServiceProvider',
+        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\DisciplinaryCase',
+        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\EmployeeServiceFeedback',
+        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\Grievance',
+        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\GrievanceDecision',
+        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\GrievanceLetter',
+        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\ServiceProvider',
+        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\TransferApplication',
+        'app/Services/CodeGeneration/CodeRuleTargetRegistry.php -> App\Models\ServiceProvider',
+        'app/Services/CodeGeneration/CodeRuleTargetRegistry.php -> App\Models\TransferApplication',
+        'app/Services/Employees/EmployeeCsvImportService.php -> App\Services\Vacancy\PositionCapacityService',
+        'app/Services/IdCards/IdCardRenderDataFactory.php -> App\Services\ServiceFeedback\EmployeeFeedbackTokenService',
+        'app/Services/Organizations/OrganizationDeletionGuard.php -> App\Models\EmployeeTransfer',
+        'app/Services/Organizations/OrganizationDeletionGuard.php -> App\Models\Provider',
+        'app/Services/Organizations/OrganizationDeletionGuard.php -> App\Models\ServiceProvider',
+        'app/Services/Verification/VerifyCardForServiceAction.php -> App\Models\ServiceProvider',
+    ];
+
+    expect(array_values(array_diff($found, $allowed)))->toBe([], 'New backbone -> service dependency. Depend on a contract or event instead (master-backbone.md).')
+        ->and(array_values(array_diff($allowed, $found)))->toBe([], 'This exception is gone: remove it from the allowlist.');
+});
+
+it('keeps service modules from creating or bulk-updating backbone records', function (): void {
+    $root = dirname(__DIR__, 2);
+    $found = [];
+    foreach (backboneAppFiles() as $path) {
+        if (preg_match(BACKBONE_PATHS, $path) || ! preg_match(SERVICE_PATH, $path)) {
+            continue;
+        }
+        foreach (preg_split('/\R/', (string) file_get_contents($root.'/'.$path)) as $line) {
+            if (preg_match(BACKBONE_CREATE, $line) || preg_match(BACKBONE_QUERY_WRITE, $line)) {
+                $found[] = $path;
+                break;
+            }
+        }
+    }
+
+    $allowed = [
+        // Development load-test seeder, never run in production.
+        'app/Console/Commands/Transport/SeedTransportLoadTest.php',
+        // Stamps the in-force job description on current assignments; moves under the backbone in Stage 2.
+        'app/Services/OrganizationDesign/JobDescriptionService.php',
+        // Position occupancy is backbone data held in the Vacancy namespace; moves in Stage 2.
+        'app/Services/Vacancy/PositionCapacityService.php',
+    ];
+
+    expect(array_values(array_diff($found, $allowed)))->toBe([], 'A service module writes a backbone record. Call a backbone command instead (master-backbone.md).')
+        ->and(array_values(array_diff($allowed, $found)))->toBe([], 'This exception is gone: remove it from the allowlist.');
+});
