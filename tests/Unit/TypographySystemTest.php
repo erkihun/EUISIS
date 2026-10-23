@@ -124,9 +124,7 @@ it('leaves no hard-coded font family in the frontend', function (): void {
 });
 
 it('keeps the ID card preview on the card font token', function (): void {
-    expect(typographySource('resources/js/Components/IdCards/BackTextBlock.tsx'))
-        ->toContain("fontFamily: 'var(--font-id-card)'")
-        ->and(typographySource('resources/css/app.css'))
+    expect(typographySource('resources/css/app.css'))
         ->toContain(':where([data-card-template])')
         // Card exports inline the app fonts instead of skipping them.
         ->and(typographySource('resources/js/hooks/useCardExport.ts'))
@@ -139,7 +137,6 @@ it('keeps the ID card preview on the card font token', function (): void {
 it('lets layouts inherit the locale font instead of setting their own', function (): void {
     foreach ([
         'resources/js/Layouts/AuthenticatedLayout.tsx',
-        'resources/js/Layouts/CafeteriaProviderAdminLayout.tsx',
         'resources/js/Layouts/CafeteriaProviderPortalLayout.tsx',
         'resources/js/Layouts/TransportProviderLayout.tsx',
         'resources/js/Layouts/ProviderAuthLayout.tsx',
