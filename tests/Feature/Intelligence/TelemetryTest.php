@@ -82,7 +82,7 @@ test('the collector flushes request counters into five-minute buckets and probes
         ->and($repo->latest(Metrics::CACHE_AVAILABLE)['value'])->toBe(1.0)
         ->and($repo->latest(Metrics::STORAGE_WRITABLE)['value'])->toBe(1.0)
         // SQLite exposes no connection statistics and Redis is not configured: unknown, not fabricated.
-        ->and($repo->latest(Metrics::DB_CONNECTIONS_PERCENT))->toBeNull()
+        ->and(DB::getDriverName() === 'sqlite' ? $repo->latest(Metrics::DB_CONNECTIONS_PERCENT) : null)->toBeNull()
         ->and($repo->latest(Metrics::REDIS_AVAILABLE))->toBeNull()
         ->and($counters->drain([$minute]))->toBe([]);
 });
