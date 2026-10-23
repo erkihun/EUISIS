@@ -115,3 +115,24 @@ test('telemetry off records nothing', function (): void {
     $this->artisan('intelligence:collect')->expectsOutputToContain('telemetry is off')->assertSuccessful();
     expect(IntelligenceSignal::count())->toBe(0);
 });
+
+test('request buckets land in the app timezone, so recent windows include them outside UTC', function (): void {
+    $previous = date_default_timezone_get();
+    date_default_timezone_set('Africa/Addis_Ababa');
+    config(['app.timezone' => 'Africa/Addis_Ababa']);
+
+    try {
+        $counters = app(RequestCounters::class);
+        $now = CarbonImmutable::now()->setSecond(0);
+        foreach (range(1, 4) as $i) {
+            $counters->record(RouteGroups::DAILY_ACTIVITY, 200, 10, $counters->minuteKey($now->getTimestamp()) - 180);
+        }
+
+        app(TelemetryCollector::class)->collect($now);
+
+        expect(app(SignalRepository::class)->sum(Metrics::REQUEST_TOTAL, RouteGroups::DAILY_ACTIVITY, $now->subHour()))->toBe(4.0);
+    } finally {
+        date_default_timezone_set($previous);
+        config(['app.timezone' => $previous]);
+    }
+});
