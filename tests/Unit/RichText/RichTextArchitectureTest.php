@@ -17,7 +17,8 @@ function richTextSources(string $directory, string $pattern = '*.tsx'): Finder
 
 function richTextRelative(SplFileInfo $file): string
 {
-    return str_replace(dirname(__DIR__, 3).'/', '', $file->getPathname());
+    // Forward slashes on every OS, so the expected lists also hold on Windows.
+    return str_replace(str_replace('\\', '/', dirname(__DIR__, 3)).'/', '', str_replace('\\', '/', $file->getPathname()));
 }
 
 it('lets only the adapter import the editor library', function (): void {

@@ -101,18 +101,18 @@ export function NetworkFlow({ steps }: { steps: FlowStep[] }) {
     const rootGlow = `lg-root-${uid}`;
 
     const net = useMemo(() => {
-        const links: { d: string; tier: 0 | 1 | 2 }[] = [];
+        const edges: { d: string; tier: 0 | 1 | 2 }[] = [];
         const institutions = NET_INSTITUTION_X.map((x) => ({ x, y: NET_INSTITUTION_Y }));
         const employees: Pt[] = [];
         institutions.forEach((institution) => {
-            links.push({ d: drop(NET_ROOT, institution), tier: 0 });
+            edges.push({ d: drop(NET_ROOT, institution), tier: 0 });
             NET_EMPLOYEE_SPREAD.forEach((dx, j) => {
                 const employee = { x: institution.x + dx, y: NET_EMPLOYEE_Y + (j === 1 ? 26 : 0) };
                 employees.push(employee);
-                links.push({ d: drop(institution, employee), tier: 1 });
+                edges.push({ d: drop(institution, employee), tier: 1 });
             });
         });
-        return { links, institutions, employees };
+        return { edges, institutions, employees };
     }, []);
     const root = NET_ROOT;
 
@@ -138,7 +138,7 @@ export function NetworkFlow({ steps }: { steps: FlowStep[] }) {
                     ))}
 
                     {/* Links draw in once, then carry a wave of records down, one tier per second. */}
-                    {net.links.map((l, i) => (
+                    {net.edges.map((l, i) => (
                         <g key={i}>
                             <path d={l.d} pathLength={100} className={`lg-link lg-link-${l.tier}`} stroke={`url(#${linkGradient})`} />
                             <path d={l.d} pathLength={100} className={`lg-wave lg-wave-${l.tier}`} />

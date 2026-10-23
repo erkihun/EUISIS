@@ -41,6 +41,9 @@ it('answers 404 for transport once its flag is switched off', function (): void 
 });
 
 it('shares the flags with the frontend', function (): void {
+    // Without dashboard access the dashboard redirects to My Portal.
+    $this->admin->givePermissionTo(Permission::findOrCreate('dashboard.view', 'web'));
+
     actingAs($this->admin)->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('features.transport', true)
