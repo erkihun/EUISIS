@@ -10,8 +10,10 @@ use App\Enums\Communication\ConversationType;
 use App\Models\Communication\Announcement;
 use App\Models\Communication\AnnouncementTarget;
 use App\Models\Communication\ConversationMember;
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Matches a reader to announcement targets without fanning out rows.
@@ -120,7 +122,7 @@ final class AnnouncementAudience
 
         return $query->where(function (Builder $q) use ($orgs, $units, $employees, $roles, $groups): void {
             if ($orgs !== [] || $units !== []) {
-                $q->orWhereIn('users.employee_id', \App\Models\Employee::query()->select('employees.id')
+                $q->orWhereIn('users.employee_id', Employee::query()->select('employees.id')
                     ->join('employee_assignments', 'employee_assignments.id', '=', 'employees.current_assignment_id')
                     // Only the lists that have ids: an empty placeholder is not a valid uuid on PostgreSQL.
                     ->where(function ($p) use ($orgs, $units): void {
@@ -136,7 +138,7 @@ final class AnnouncementAudience
                 $q->orWhereIn('users.employee_id', $employees);
             }
             if ($roles !== []) {
-                $q->orWhereIn('users.id', \Illuminate\Support\Facades\DB::table(config('permission.table_names.model_has_roles', 'model_has_roles'))
+                $q->orWhereIn('users.id', DB::table(config('permission.table_names.model_has_roles', 'model_has_roles'))
                     ->select('model_id')->where('model_type', User::class)->whereIn('role_id', array_map('intval', $roles)));
             }
             if ($groups !== []) {

@@ -22,6 +22,13 @@ class AssessmentEvaluatorChange extends Model
         return ['created_at' => 'datetime'];
     }
 
-    public function record(): BelongsTo { return $this->belongsTo(AssessmentRecord::class, 'assessment_record_id'); }
-    public function changer(): BelongsTo { return $this->belongsTo(User::class, 'changed_by'); }
+    public function record(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentRecord::class, 'assessment_record_id');
+    }
+
+    public function changer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'changed_by');
+    }
 }

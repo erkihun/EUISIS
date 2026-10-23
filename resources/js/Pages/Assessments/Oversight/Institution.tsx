@@ -1,5 +1,5 @@
 import { CoverageBar, ExportButtons, GenderTable, Kpi, KpiGroup, OUTCOMES, OversightLayout, SeverityBadge, StatusBadge, named, oversightHref, pct, type Distribution, type Metrics, type ShellProps } from '@/Components/assessmentOversight/shell';
-import { Section, Table, dangerBtn, inputCls, textareaCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls } from '@/Components/performance/ui';
+import { Section, Table, dangerBtn, textareaCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls } from '@/Components/performance/ui';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { Link, router, useForm } from '@inertiajs/react';

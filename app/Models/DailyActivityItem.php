@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\RichTextHtml;
 use App\Enums\DailyActivityCategory;
 use App\Enums\DailyActivityProgressStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
@@ -50,6 +51,9 @@ class DailyActivityItem extends Model
     {
         return [
             'activity_category' => DailyActivityCategory::class,
+            // Work performed is formatted text: sanitized on every write;
+            // days saved before keep their plain text.
+            'description' => RichTextHtml::class,
             'progress_status' => DailyActivityProgressStatus::class,
             'duration_minutes' => 'integer',
             'quantity' => 'decimal:2',

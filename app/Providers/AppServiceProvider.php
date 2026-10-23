@@ -7,7 +7,6 @@ namespace App\Providers;
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
 use App\Http\Middleware\AuthenticateTransportDevice;
-use App\Jobs\Communication\SyncEmployeeCommunicationMemberships;
 use App\Models\AssessmentForm;
 use App\Models\AuditLog;
 use App\Models\CafeteriaDayRule;
@@ -211,6 +210,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->scoped(IntegrationEventContext::class);
         // One instance per request: validation, rendering and storage read the same questionnaire version.
         $this->app->scoped(PublicFeedbackQuestionnaire::class);
+        // One instance per request / job: holds the employees whose membership sync waits for the commit.
+        $this->app->scoped(EmployeeAssignmentCommunicationObserver::class);
 
         $this->app->singleton(RuntimeMailSettings::class);
         $this->app->singleton(RichTextSanitizer::class, fn (): RichTextSanitizer => new RichTextSanitizer((array) config('richtext')));
@@ -260,7 +261,7 @@ class AppServiceProvider extends ServiceProvider
         Employee::saved(fn (Employee $employee) => app(TransportEligibilityObserver::class)->employeeSaved($employee));
         User::saved(function (User $user): void {
             if ($user->employee_id !== null && $user->wasChanged('status')) {
-                SyncEmployeeCommunicationMemberships::dispatch((string) $user->employee_id)->afterCommit();
+                app(EmployeeAssignmentCommunicationObserver::class)->queue($user->employee_id);
             }
         });
         $this->configureViteAssetMode();
@@ -390,6 +391,10 @@ class AppServiceProvider extends ServiceProvider
             }
             if ($target instanceof User && $target->is($user)
                 && in_array($ability, ['delete', 'forceDelete', 'archive', 'deactivate', 'assignRoles', 'assignOrganizationScope'], true)) {
+                return null;
+            }
+            // Segregation of duties: nobody approves the card request they submitted.
+            if ($ability === 'approve' && $target instanceof CardRequest && $target->isRequestedBy($user)) {
                 return null;
             }
 

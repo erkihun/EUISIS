@@ -24,9 +24,7 @@ class MessageRead implements ShouldBroadcast
         return config('communication.broadcast_queue');
     }
 
-    public function __construct(public readonly string $conversationId, public readonly int $userId, public readonly string $lastReadMessageId)
-    {
-    }
+    public function __construct(public readonly string $conversationId, public readonly int $userId, public readonly string $lastReadMessageId) {}
 
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array

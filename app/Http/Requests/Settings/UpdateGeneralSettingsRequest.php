@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Settings;
 
+use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\Rule;
 
 class UpdateGeneralSettingsRequest extends FormRequest
 {
@@ -30,6 +32,7 @@ class UpdateGeneralSettingsRequest extends FormRequest
 
         return [
             'application_name' => ['required', 'string', 'max:160'],
+            'application_name_am' => ['nullable', 'string', 'max:160'],
             'application_short_name' => ['required', 'string', 'max:80'],
             'official_name_en' => ['required', 'string', 'max:200'],
             'official_name_am' => ['required', 'string', 'max:200'],
@@ -55,6 +58,12 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'identity_system_logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.$maxUploadKilobytes],
             'favicon' => ['nullable', 'file', 'mimes:ico,png,webp', 'max:'.$maxUploadKilobytes],
             'seal' => ['nullable', 'file', 'image', 'mimes:png', 'max:'.$maxUploadKilobytes],
+            // Sign-in card sample photos; `remove_assets` takes one down (only these may be removed).
+            ...collect(SystemSettingsRegistry::LOGIN_CARD_PHOTO_KEYS)->mapWithKeys(fn (string $key): array => [
+                $key => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.$maxUploadKilobytes],
+            ])->all(),
+            'remove_assets' => ['nullable', 'array'],
+            'remove_assets.*' => ['string', Rule::in(SystemSettingsRegistry::LOGIN_CARD_PHOTO_KEYS)],
         ];
     }
 

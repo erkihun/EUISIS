@@ -33,7 +33,7 @@ class PublicHoliday extends Model
     protected $casts = [
         'holiday_date' => 'date',
         'is_recurring' => 'boolean',
-        'is_active'    => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function createdBy(): BelongsTo

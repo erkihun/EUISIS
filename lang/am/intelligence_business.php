@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * የAddis One አስተውሎት — የቢዝነስ / አስተዳደር ክፍሎች (docs/intelligence-business.md)።
+ * የአገልጋይ አስተውሎት — የቢዝነስ / አስተዳደር ክፍሎች (docs/intelligence-business.md)።
  * በ IntelligenceLabels በ `intelligence.` ቅድመ ቅጥያ ይዋሃዳል። የአጻጻፍ ሕጎች፦ ቁጥር
  * የተመዘገበ፣ የተቀበለ ወይም የጸደቀ ነው እንጂ ግኝት አይደለም፤ የቅሬታ ብዛት ፈጽሞ ነጥብ አይደለም፤
  * ትንበያ ከገደቦቹ ጋር የሚቀርብ መነሻ ነው፤ ማንም ሰው በስም አይጠቀስም።

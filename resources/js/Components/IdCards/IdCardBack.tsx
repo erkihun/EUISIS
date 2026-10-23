@@ -27,7 +27,7 @@ type IdCardBackProps = {
 };
 
 export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, emergencyContactPhone, photoUrl, rootStyle }: IdCardBackProps) {
-    const { t, locale } = useLocale();
+    const { t } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
     const cardTemplate = useIdCardTemplate('landscape');
     if (cardTemplate?.employee_fields) {

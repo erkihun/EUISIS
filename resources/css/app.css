@@ -201,8 +201,13 @@
     --color-on-primary-soft:   #ffffff;
     --color-on-primary:        var(--color-on-primary-strong);
     /* Navy is already near-black, so hover LIGHTENS rather than darkens —
-       darkening reads as "disabled" against a white surface. */
-    --color-primary-hover:  #1d3084;
+       darkening reads as "disabled" against a white surface. Like the fill,
+       the hover has a strong and a soft variant, which AuthenticatedLayout
+       derives from the configured brand colour: a fixed navy hover under an
+       orange brand turned dark button text unreadable. */
+    --color-primary-hover-strong: #1d3084;
+    --color-primary-hover-soft:   #8f9fd8;
+    --color-primary-hover:  var(--color-primary-hover-strong);
     --color-primary-light:  #dde3f5;
 
     --color-accent-strong:  #d12908;
@@ -373,7 +378,7 @@
        action colour, so the interactive primary steps up the scale. */
     --color-primary:       var(--color-primary-soft);
     --color-on-primary:    var(--color-on-primary-soft);
-    --color-primary-hover: #8f9fd8;
+    --color-primary-hover: var(--color-primary-hover-soft);
     --color-primary-light: #1d3084;
     --color-accent:        var(--color-accent-soft);
     --color-accent-hover:  #fb9770;
@@ -769,28 +774,181 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 .rich-text-field[data-disabled] .rich-text-toolbar,
 .rich-text-field[data-readonly] .rich-text-toolbar { pointer-events: none; opacity: 0.6; }
 
-/* ── Sign-in motion (Pages/Auth/Login) ─────────────────────── */
-/* Transform and opacity only, so the page costs nothing to paint; the animations setting and the
-   reduced-motion preference above zero every duration, which leaves each element in its final state. */
+/* ── Sign-in flow (Pages/Auth/Login, Components/auth/LoginStage) ─────────────
+   City Administration → institutions → employees → ID card verified → the sign-in card, left to
+   right. One shared 4 s clock: each tier's wave runs for one second, so a record leaves the City
+   Administration, reaches the institutions, the employees, converges on the ID card, and the line
+   that leaves the card plugs into the sign-in card, which flares as it arrives. Every keyframe is a
+   stroke-dashoffset, opacity or transform. The animations setting and the reduced-motion preference
+   zero every duration (rules above), which leaves each element in its final, complete state; the
+   waves and the scan are switched off at the end because their final state would mislead. */
 @keyframes login-drift {
     from { transform: translate3d(0, 0, 0) scale(1); }
     to { transform: translate3d(6%, -9%, 0) scale(1.18); }
 }
 @keyframes login-rise {
-    from { opacity: 0; transform: translateY(14px); }
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
-}
-@keyframes login-orbit {
-    to { transform: rotate(360deg); }
 }
 @keyframes login-sheen {
     from { background-position: 200% 0; }
     to { background-position: -200% 0; }
 }
+@keyframes lg-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes lg-pop { from { opacity: 0; transform: scale(0.3); } 70% { transform: scale(1.1); } to { opacity: 1; transform: scale(1); } }
+/* A wave covers its link in the first quarter of the clock, then waits. */
+@keyframes lg-wave { 0% { stroke-dashoffset: 108; opacity: 1; } 24% { stroke-dashoffset: 0; opacity: 1; } 25%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+/* A node flares when its wave arrives, then settles. */
+@keyframes lg-hit { 0% { opacity: 0.95; transform: scale(0.7); } 18% { opacity: 0; transform: scale(1.9); } 100% { opacity: 0; transform: scale(1.9); } }
+@keyframes lg-caption-hit { 0%, 22% { opacity: 1; } 40%, 100% { opacity: 0.62; } }
+@keyframes lg-breathe { 0%, 100% { opacity: 0.6; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.06); } }
+@keyframes lg-idc-scan { 0% { opacity: 0; transform: translateY(-100%); } 4% { opacity: 1; } 22% { opacity: 1; transform: translateY(260%); } 24%, 100% { opacity: 0; transform: translateY(260%); } }
+@keyframes lg-float { 0%, 100% { transform: translate3d(0, -6px, 0); } 50% { transform: translate3d(0, 6px, 0); } }
+@keyframes lg-holo { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+@keyframes lg-verify { 0%, 16% { opacity: 0; transform: scale(0.6); } 24% { opacity: 1; transform: scale(1.08); } 30%, 70% { opacity: 1; transform: scale(1); } 85%, 100% { opacity: 0; transform: scale(0.95); } }
+@keyframes lg-arrive { 0% { box-shadow: 0 0 0 1px rgba(255, 176, 138, 0.8), 0 0 80px -10px rgba(255, 176, 138, 0.75); } 30%, 100% { box-shadow: 0 0 0 1px rgba(255, 176, 138, 0), 0 0 80px -10px rgba(255, 176, 138, 0); } }
+@keyframes lg-plug { 0% { opacity: 0.95; transform: scale(0.8); } 30%, 100% { opacity: 0.25; transform: scale(1.6); } }
+@keyframes lg-stepper { 0%, 100% { background-color: rgba(255, 255, 255, 0.1); transform: scale(1); } 10%, 24% { background-color: #f76b3c; transform: scale(1.12); } }
+@keyframes lg-stepper-line { from { background-position: 0 0; } to { background-position: 12px 0; } }
+@keyframes lg-stepper-drop { from { background-position: 0 0; } to { background-position: 0 12px; } }
+@keyframes lg-spin { to { --lg-angle: 360deg; } }
+@keyframes lg-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
+@keyframes lg-progress { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+
+@property --lg-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
 .login-blob { animation: login-drift 22s ease-in-out infinite alternate; will-change: transform; }
-.login-rise { animation: login-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.login-orbit { animation: login-orbit 28s linear infinite; transform-origin: 200px 200px; transform-box: view-box; }
+.login-rise { animation: login-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .login-sheen { background-size: 200% 100%; animation: login-sheen 7s linear infinite; }
+/* Soft lights as radial gradients, not filter: blur(). A large blur is re-rasterised whenever
+   anything above it repaints, which held the page near 5 fps on software-rendered PCs. */
+.lg-glow-primary { background: radial-gradient(closest-side, var(--color-primary), transparent); }
+.lg-glow-accent { background: radial-gradient(closest-side, var(--color-accent), transparent); }
+.lg-glow-sky { background: radial-gradient(closest-side, #38bdf8, transparent); }
+
+/* Network. The clock starts at 1.6 s, once the drawing is in. Tier n waits n seconds more. */
+.lg-org { --lg-start: 1.6s; }
+.lg-link { fill: none; stroke-width: 1.5; stroke-dasharray: 100; animation: lg-draw 1.2s cubic-bezier(0.65, 0, 0.35, 1) both; }
+.lg-link-1 { animation-delay: 0.25s; }
+.lg-link-2 { animation-delay: 0.5s; }
+.lg-link-3 { animation-delay: 0.85s; stroke-width: 2.5; }
+.lg-wave { fill: none; stroke-linecap: round; stroke-dasharray: 8 100; stroke-dashoffset: 108; opacity: 0; animation: lg-wave 4s linear infinite; }
+.lg-wave-0 { stroke: #ffb08a; stroke-width: 3.2; animation-delay: var(--lg-start); }
+.lg-wave-1 { stroke: #fde68a; stroke-width: 2.6; animation-delay: calc(var(--lg-start) + 1s); }
+.lg-wave-2 { stroke: #bfdbfe; stroke-width: 2.2; animation-delay: calc(var(--lg-start) + 2s); }
+.lg-wave-3 { stroke: #ffb08a; stroke-width: 4; stroke-dasharray: 30 100; animation-delay: calc(var(--lg-start) + 3s); }
+.lg-node { transform-box: fill-box; transform-origin: center; animation: lg-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.lg-hit { fill: none; stroke: rgba(255, 176, 138, 0.9); stroke-width: 1.6; opacity: 0; transform-box: fill-box; transform-origin: center; animation: lg-hit 4s ease-out infinite; }
+.lg-hit-0 { animation-delay: var(--lg-start); }
+.lg-hit-1 { animation-delay: calc(var(--lg-start) + 1s); }
+.lg-hit-2 { stroke: rgba(191, 219, 254, 0.9); animation-delay: calc(var(--lg-start) + 2s); }
+.lg-hit-1b { stroke: rgba(191, 219, 254, 0.9); animation-delay: calc(var(--lg-start) + 2s); }
+.lg-guide { stroke: rgba(255, 255, 255, 0.25); stroke-width: 1; stroke-dasharray: 2 4; }
+.lg-root-glow { transform-box: fill-box; transform-origin: center; animation: lg-breathe 4s ease-in-out infinite; animation-delay: var(--lg-start); }
+.lg-orbit-track { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 1; stroke-dasharray: 2 6; }
+.lg-orbit-chip { will-change: transform, opacity; }
+
+/* The ID card at the centre of the flow: floats, shimmers, is scanned and verified when the
+   employees' records arrive (same clock, tier 3). */
+.lg-idc-float { animation: lg-float 7s ease-in-out infinite; }
+.lg-idc {
+    background:
+        radial-gradient(120% 90% at 0% 0%, rgba(247, 107, 60, 0.38), transparent 55%),
+        linear-gradient(135deg, #1d3aa6 0%, #122170 50%, #0a1230 100%);
+    box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+.lg-idc-holo {
+    background: linear-gradient(115deg, transparent 20%, rgba(147, 197, 253, 0.22) 35%, rgba(255, 176, 138, 0.22) 45%, rgba(253, 230, 138, 0.18) 55%, transparent 70%);
+    background-size: 200% 100%;
+    animation: lg-holo 6s linear infinite;
+}
+/* Pointer tilt (IdentityOrbit sets the variables) and the glare that follows it. */
+.lg-idc {
+    transform: rotateX(var(--lg-tilt-x, 0deg)) rotateY(var(--lg-tilt-y, 0deg)) scale(var(--lg-lift, 1));
+    transform-style: preserve-3d;
+    transition: transform 0.08s linear;
+    will-change: transform;
+}
+.lg-idc-glare { opacity: var(--lg-glare-o, 0.55); background: radial-gradient(45% 65% at var(--lg-glare-x, 50%) var(--lg-glare-y, 30%), rgba(255, 255, 255, 0.45), transparent 62%); mix-blend-mode: soft-light; }
+/* Depth: the photo and the QR shift a little with the tilt, the QR more, as if closer. */
+.lg-idc-photo { transition: opacity 0.8s ease; }
+.lg-idc-px-1 { transform: translate(calc(var(--lg-px, 0) * 4px), calc(var(--lg-py, 0) * 3px)); }
+.lg-idc-px-2 { transform: translate(calc(var(--lg-px, 0) * 7px), calc(var(--lg-py, 0) * 5px)); }
+.lg-bridge { stroke: rgba(255, 176, 138, 0.45); stroke-width: 2; }
+.lg-wave-bridge { stroke: #ffb08a; stroke-width: 3.5; stroke-dasharray: 16 100; animation-delay: calc(var(--lg-start) + 2s); }
+.lg-selected-ring { animation-delay: calc(var(--lg-start) + 2s); }
+.lg-idc-gold { background: linear-gradient(135deg, #fde68a, #d4a017 60%, #fbbf24); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15); }
+.lg-idc-line { background: rgba(255, 255, 255, 0.5); }
+.lg-idc-scan {
+    background: linear-gradient(180deg, transparent, rgba(110, 231, 183, 0.45) 85%, rgba(209, 250, 229, 0.95));
+    border-bottom: 1px solid rgba(209, 250, 229, 0.95);
+    opacity: 0;
+    animation: lg-idc-scan 4s ease-in-out infinite;
+    animation-delay: calc(var(--lg-start) + 3s);
+}
+.lg-idc-verified { opacity: 0; transform-origin: left center; animation: lg-verify 4s ease-out infinite; animation-delay: calc(var(--lg-start) + 3s); }
+.lg-plug-ring { fill: none; stroke: rgba(255, 176, 138, 0.9); stroke-width: 1.4; transform-box: fill-box; transform-origin: center; animation: lg-plug 4s ease-out infinite; animation-delay: calc(var(--lg-start) + 3s); }
+.lg-plug-core { fill: #ffb08a; }
+
+/* Captions light with their tier. */
+.lg-caption { font-family: inherit; color: #fff; opacity: 0.62; animation: lg-caption-hit 4s ease-out infinite; }
+.lg-caption.lg-tier-0 { animation-delay: var(--lg-start); }
+.lg-caption.lg-tier-1 { animation-delay: calc(var(--lg-start) + 1s); }
+.lg-caption.lg-tier-2 { animation-delay: calc(var(--lg-start) + 2s); }
+.lg-caption.lg-tier-3 { animation-delay: calc(var(--lg-start) + 3s); }
+.lg-caption.lg-tier-4 { animation-delay: calc(var(--lg-start) + 3s); }
+.lg-caption-title { font-size: 17px; font-weight: 700; line-height: 1.2; }
+.lg-caption-text { margin-top: 4px; font-size: 13.5px; line-height: 1.35; color: rgba(255, 255, 255, 0.72); }
+
+/* The sign-in card flares as the record plugs in: same clock, one tier after the ID card. */
+.lg-card-slot { border-radius: var(--radius-panel, 12px); }
+
+/* Phones and tablets: numbered steps lighting in turn, then a line dropping into the card. */
+.lg-stepper-dot { background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 12px; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); animation: lg-stepper 2.5s ease-in-out infinite; }
+.lg-stepper-line { background: repeating-linear-gradient(90deg, rgba(255, 176, 138, 0.8) 0 6px, transparent 6px 12px); animation: lg-stepper-line 1s linear infinite; }
+.lg-stepper-drop { background: repeating-linear-gradient(180deg, rgba(255, 176, 138, 0.9) 0 6px, transparent 6px 12px); animation: lg-stepper-drop 1s linear infinite; }
+
+/* The form card: a slowly turning gradient rim, a focus glow on each field, a shake on errors. */
+.lg-rim { position: relative; isolation: isolate; }
+.lg-rim::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: conic-gradient(from var(--lg-angle), rgba(18, 33, 112, 0.0), rgba(247, 107, 60, 0.6), rgba(18, 33, 112, 0.0) 35%, rgba(59, 130, 246, 0.5) 60%, rgba(18, 33, 112, 0.0) 80%);
+    animation: lg-spin 9s linear infinite;
+}
+.lg-field { position: relative; border-radius: var(--radius-control, 8px); }
+.lg-field::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: calc(var(--radius-control, 8px) + 3px);
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent), 0 10px 30px -12px color-mix(in srgb, var(--color-primary) 55%, transparent);
+    transition: opacity 0.25s ease;
+}
+.lg-field:focus-within::after { opacity: 1; }
+.lg-field:focus-within > svg:first-child { color: var(--color-primary); transform: translateY(-50%) scale(1.1); }
+.lg-field > svg:first-child { transition: color 0.2s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.lg-shake { animation: lg-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+.lg-progress { animation: lg-progress 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+
+/* Still picture: the whole network drawn, captions and the verified badge shown, no half-waves. */
+@media (prefers-reduced-motion: reduce) {
+    .lg-wave, .lg-idc-scan, .lg-hit, .lg-progress { display: none; }
+    .lg-idc-verified, .lg-caption { opacity: 1 !important; transform: none !important; }
+    .lg-card-slot { animation: none; }
+}
+html[data-animations="false"] .lg-wave,
+html[data-animations="false"] .lg-idc-scan,
+html[data-animations="false"] .lg-hit,
+html[data-animations="false"] .lg-progress { display: none; }
+html[data-animations="false"] .lg-idc-verified,
+html[data-animations="false"] .lg-caption { opacity: 1 !important; transform: none !important; }
+html[data-animations="false"] .lg-card-slot { animation: none; }
 
 /* Grievance settings: the save bar rises into view when a change is made. */
 @keyframes slideUp {
@@ -806,6 +964,27 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 }
 .comm-scroll::-webkit-scrollbar { width: 8px; }
 .comm-scroll::-webkit-scrollbar-thumb { background: var(--app-border-strong); border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+/* The workspace tab strip scrolls sideways on phones without drawing a scrollbar
+   under the tabs; the active tab's underline already marks the position. */
+.comm-tabs {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+}
+.comm-tabs::-webkit-scrollbar { display: none; }
+/* A soft edge says "more this way" where the tabs do not fit (phones). */
+@media (max-width: 639px) {
+    .comm-tabs { mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent); }
+}
+.comm-tabs > li { scroll-snap-align: start; }
+/* iOS Safari zooms the whole page when a field under 16px takes focus, and
+   does not zoom back: on touch phones every field in the workspace (its
+   dialogs included) reads at 16px. */
+@media (pointer: coarse) and (max-width: 639px) {
+    html[data-workspace="communication"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea, select) {
+        font-size: 16px;
+    }
+}
 .comm-flash { animation: comm-flash 1.6s ease-out; }
 @keyframes comm-flash {
     0%, 30% { background-color: color-mix(in srgb, var(--color-primary) 14%, transparent); }

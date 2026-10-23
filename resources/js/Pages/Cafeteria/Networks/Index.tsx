@@ -4,7 +4,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Button, DataTable, type ColumnDef, FilterField, FilterPanel, Input, Select } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
-import { inputCls, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
+import { pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
 
 type Row = {
     id: string; code: string; name_en: string; name_am: string | null; status: string;

@@ -1,6 +1,7 @@
 import PageHeader from '@/Components/PageHeader';
 import { BellIcon, CheckCircle, CreditCard, GlobeIcon, KeyIcon, MailIcon, NetworkIcon, MessageSquareIcon, PaletteIcon, RefreshIcon, SendIcon, SettingsIcon, ShieldCheck } from '@/Components/Icons';
 import SettingField from '@/Components/settings/SettingField';
+import { REMOVE_ASSET } from '@/Components/settings/ImageSettingField';
 import EmailInEffect, { type EmailInEffectData } from '@/Components/settings/EmailInEffect';
 import SettingsCard from '@/Components/settings/SettingsCard';
 import SettingsNav, { type SettingsNavGroup } from '@/Components/settings/SettingsNav';
@@ -13,7 +14,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { SettingsField, SettingsGroupPayload } from '@/lib/settings';
 import { Alert, Button, EmptyState, FieldError, SearchInput, StatusBadge, cx } from '@euisis/ui';
 import { Head, router, useForm } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState, type ComponentType, type FormEvent, type SVGProps } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentType, type JSX, type FormEvent, type SVGProps } from 'react';
 
 type SettingsCan = {
     view: boolean;
@@ -370,6 +371,8 @@ function GroupFormPanel({
         form.transform((data) => {
             // A secret set to null was marked "remove saved value"; blank keeps it.
             const clear = payload.fields.filter((field) => isSecret(field) && data[field.key] === null).map((field) => field.key);
+            // An image marked for removal (sign-in card photos) is deleted on save.
+            const removeAssets = payload.fields.filter((field) => data[field.key] === REMOVE_ASSET).map((field) => field.key);
             return {
                 _method: 'patch',
                 ...payload.fields.reduce<Record<string, FormValue>>((carry, field) => {
@@ -377,6 +380,7 @@ function GroupFormPanel({
                     return carry;
                 }, {}),
                 ...(clear.length > 0 ? { clear } : {}),
+                ...(removeAssets.length > 0 ? { remove_assets: removeAssets } : {}),
             };
         });
 

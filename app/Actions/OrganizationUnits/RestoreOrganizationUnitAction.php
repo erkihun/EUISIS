@@ -22,7 +22,7 @@ readonly class RestoreOrganizationUnitAction
         $unit->restore();
 
         $unit->update([
-            'status'     => OrganizationUnitStatus::Active,
+            'status' => OrganizationUnitStatus::Active,
             'updated_by' => $actor->getKey(),
             'deleted_by' => null,
             'deletion_reason' => null,

@@ -16,6 +16,8 @@ interface Props {
     open: boolean;
     onClose: () => void;
     onMinimize: () => void;
+    /** Desktop only: open below this viewport offset (a trigger docked at the top) instead of above the floating trigger. */
+    anchorTop?: number | null;
 }
 
 const STATUS_TONE: Record<AssistantStatus, Tone> = { ready: 'success', limited: 'warning', unavailable: 'neutral' };
@@ -54,7 +56,7 @@ function ErrorLine({ error, onDismiss }: { error: AssistantError; onDismiss?: ()
     );
 }
 
-export default function AssistantPanel({ open, onClose, onMinimize }: Props) {
+export default function AssistantPanel({ open, onClose, onMinimize, anchorTop = null }: Props) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
     const { url: pageUrl } = usePage();
@@ -288,10 +290,17 @@ export default function AssistantPanel({ open, onClose, onMinimize }: Props) {
             className="fixed z-40 flex flex-col overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface) text-(--app-foreground) shadow-2xl"
             style={{
                 right: 'calc(1rem + env(safe-area-inset-right))',
-                bottom: 'calc(4.75rem + env(safe-area-inset-bottom))',
                 width: state.expanded ? 'min(720px, calc(100vw - 2rem))' : 'min(400px, calc(100vw - 2rem))',
-                height: state.expanded ? '90vh' : '600px',
-                maxHeight: state.expanded ? 'calc(100vh - 6rem)' : '80vh',
+                ...(anchorTop !== null
+                    ? {
+                        top: anchorTop,
+                        height: state.expanded ? `calc(100vh - ${anchorTop}px - 1rem)` : `min(600px, calc(100vh - ${anchorTop}px - 1rem))`,
+                    }
+                    : {
+                        bottom: 'calc(4.75rem + env(safe-area-inset-bottom))',
+                        height: state.expanded ? '90vh' : '600px',
+                        maxHeight: state.expanded ? 'calc(100vh - 6rem)' : '80vh',
+                    }),
             }}
         >
             {body}

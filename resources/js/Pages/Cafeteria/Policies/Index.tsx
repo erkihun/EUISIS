@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Button, DataTable, type ColumnDef, FilterField, FilterPanel, Select } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
-import { inputCls, Money, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
+import { Money, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
 
 export type PolicySummary = {
     id: string; policy_group_id: string; version_no: number;

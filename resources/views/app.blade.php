@@ -23,7 +23,7 @@
     // The active language's dictionary is a separate chunk; preloading it removes a request round trip before first render.
     $localeChunk = rescue(fn () => Illuminate\Support\Facades\Vite::asset('resources/js/i18n/bundles/'.$initialLocale.'.ts'), null, false);
 @endphp
-        <title inertia>{{ $branding->brandName() }}</title>
+        <title data-inertia>{{ $branding->brandName() }}</title>
         <meta name="application-name" content="{{ $branding->brandName() }}">
         <link rel="icon" href="{{ $branding->faviconUrl() ?? asset('favicon.ico') }}">
 

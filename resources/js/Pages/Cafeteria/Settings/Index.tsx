@@ -154,7 +154,6 @@ export default function CafeteriaSettingsIndex({
     providerUsers = [],
     providerOptions = [],
     userOptions = [],
-    organizationOptions = [],
     branchOptions = [],
 }: {
     cafeteriaSettings: Settings;

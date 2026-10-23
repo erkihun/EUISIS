@@ -34,15 +34,15 @@ class CafeteriaSubsidyLedger extends Model
     ];
 
     protected $casts = [
-        'ledger_date'        => 'date',
+        'ledger_date' => 'date',
         'allocated_for_date' => 'date',
-        'week_start_date'    => 'date',
-        'week_end_date'      => 'date',
-        'entry_type'         => CafeteriaLedgerEntryType::class,
-        'amount'        => 'decimal:2',
+        'week_start_date' => 'date',
+        'week_end_date' => 'date',
+        'entry_type' => CafeteriaLedgerEntryType::class,
+        'amount' => 'decimal:2',
         'balance_after' => 'decimal:2',
-        'working_day'   => 'boolean',
-        'metadata'      => 'array',
+        'working_day' => 'boolean',
+        'metadata' => 'array',
     ];
 
     public function employee(): BelongsTo

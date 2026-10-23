@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 /*
- * Addis One Help — public-site assistant strings (docs/public-assistant/architecture.md).
+ * Agelgay Help — public-site assistant strings (docs/public-assistant/architecture.md).
  * Approved public guidance only; the Amharic file mirrors every key.
  */
 return [
-    'title' => 'Addis One Help',
-    'welcome' => 'Hello, I can help you use Addis One public services.',
+    'title' => 'Agelgay Help',
+    'welcome' => 'Hello, I can help you use Agelgay public services.',
     'disclaimer' => 'This is general guidance from published information; the institution\'s published instructions and its officers are the authority.',
 
     'quick_actions' => [
@@ -35,7 +35,7 @@ return [
     'pages' => [
         'home' => [
             'label' => 'Public home',
-            'purpose' => 'This is the public site of Addis One, the city administration\'s employee information and service system. From here you can read announcements, browse published services, verify an employee ID card and reach support.',
+            'purpose' => 'This is the public site of Agelgay, the city administration\'s employee information and service system. From here you can read announcements, browse published services, verify an employee ID card and reach support.',
             'steps' => ['Open Services for published service information.', 'Open Announcements for current notices.', 'Scan an institution\'s or employee\'s feedback QR code to send feedback, a tip-off or a complaint.'],
             'notes' => ['Signing in is for staff accounts only; citizens do not need an account.'],
         ],
@@ -94,7 +94,7 @@ return [
             'notes' => ['Contact details are optional unless the form marks them as required.'],
         ],
         'unknown' => [
-            'label' => 'Addis One',
+            'label' => 'Agelgay',
             'purpose' => 'I can help with the public site: services, announcements, feedback, ID verification and support.',
             'steps' => ['Use the quick actions below or ask a question.'],
             'notes' => [],

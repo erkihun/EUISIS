@@ -290,7 +290,7 @@ export default function Welcome() {
     const { auth, meta } = usePage<WelcomePageProps>().props;
     const isAuthenticated = Boolean(auth?.user);
     const { t } = useLocale();
-    const { getString, getBoolean } = useSystemSettings();
+    const { getBoolean } = useSystemSettings();
     const { ref: stepsRef, inView: stepsInView } = useInView();
     const { ref: verifyRef, inView: verifyInView } = useInView();
 

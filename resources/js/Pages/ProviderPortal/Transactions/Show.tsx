@@ -2,7 +2,6 @@ import CafeteriaProviderPortalLayout from '@/Layouts/CafeteriaProviderPortalLayo
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head } from '@inertiajs/react';
-import { useLocale } from '@/hooks/useLocale';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Provider = { id: string; code: string; name_en: string; name_am?: string | null };
@@ -67,7 +66,6 @@ export default function TransactionShow({
     selected_provider_id: string | null;
     transaction: Transaction;
 }) {
-    const { t } = useLocale();
     const cfg = STATUS_CFG[transaction.status] ?? STATUS_CFG.rejected;
 
     return (

@@ -91,7 +91,8 @@ export default function SituationRoomIndex({ categories, filters, query, scope, 
                     );
                 })}
 
-                <Deferred data="result" fallback={null}>
+                {/* Inertia 3 refuses a falsy fallback; a function rendering nothing keeps "show nothing while loading". */}
+                <Deferred data="result" fallback={() => null}>
                     <PanelGrid panels={(result?.payload.panels ?? []).filter((p) => p.type !== 'kpis')} options={{ smallCell: privacy.small_cell }} />
                 </Deferred>
             </div>

@@ -487,6 +487,9 @@ final class DefaultRoleMatrix
                 'በአቅራቢ የአገልግሎት ግብይቶችን ለመመዝገብ የቆየ የሠራተኛ ሚና።'),
             'Settlement Officer' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'transactions.view', 'service-transactions.viewAny', 'providers.viewAny', 'reports.view',
+                // The settlement screens themselves (read-only): without these the role reached none of them.
+                'cafeteria_settlements.view', 'transport-settlements.viewAny', 'transport-settlements.view',
+                'transport-invoices.viewAny', 'transport-invoices.view',
             ], 'Reviews provider transactions for settlement. Read-only.',
                 'ለክፍያ ማስተካከያ የአቅራቢ ግብይቶችን ይገመግማል። በንባብ ብቻ።'),
             'Cafeteria Provider' => self::role(self::SCOPE_SCOPED, [

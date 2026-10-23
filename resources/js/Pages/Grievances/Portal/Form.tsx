@@ -1,4 +1,6 @@
 import { useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import RichTextEditor from '@/Components/forms/RichTextEditor';
 import { useLocale } from '@/hooks/useLocale';
 import { Workspace } from '@/Components/grievances/Workspace';
 import { FormRow, Section, inputCls, nameOf, primaryBtn, secondaryBtn, useEnumLabel } from '@/Components/grievances/ui';
@@ -8,6 +10,9 @@ import type { PortalFormProps } from '@/types/grievances';
 export default function Form({ grievance: g, categories, evidenceTypes, allowedExtensions, maxFileKb }: PortalFormProps) {
     const { t, locale } = useLocale(); const label = useEnumLabel();
     const form = useForm({ subject: g?.subject ?? '', description: g?.description ?? '', category_id: g?.category_id ?? '', incident_date: g?.incident_date ?? '', respondent_description: g?.respondent_description ?? '', written_issue_raised_at: g?.written_issue_raised_at ?? '', immediate_supervisor_name: g?.immediate_supervisor_name ?? '', applicant_address: g?.applicant_address ?? '', requested_remedy: g?.requested_remedy ?? '', late_submission_reason: g?.late_submission_reason ?? '', cause_ended_at: g?.cause_ended_at ?? '', declaration: false, amendment_reason: '', files: [] as File[], file_types: [] as string[], submit: false });
+    const [fileError, setFileError] = useState<string | null>(null);
+    // Per-file server errors arrive as files.0, files.1 …
+    const fileErrors = Object.entries(form.errors).filter(([k]) => k.startsWith('files.')).map(([, v]) => v).join(' ') || undefined;
     const save = (submit: boolean) => {
         form.transform(({ amendment_reason, ...data }) => ({ ...data, ...(g && g.status !== 'draft' ? { amendment_reason } : {}), submit }));
         form.post(g ? route('employee.grievances.update', g.id) : route('employee.grievances.store'));
@@ -17,7 +22,7 @@ export default function Form({ grievance: g, categories, evidenceTypes, allowedE
         <Section title={t('grievancePortal.details')} description={t('grievancePortal.routing_notice')}><form className="space-y-4" onSubmit={e => { e.preventDefault(); save(false); }}>
             <FormRow label={t('grievances.common.subject')} error={form.errors.subject}><input className={inputCls} required maxLength={255} value={form.data.subject} onChange={e => form.setData('subject', e.target.value)} /></FormRow>
             <div className="grid gap-4 sm:grid-cols-2"><FormRow label={t('grievances.common.category')} error={form.errors.category_id}><select className={inputCls} required value={form.data.category_id} onChange={e => form.setData('category_id', e.target.value)}><option value="">{t('grievances.common.select')}</option>{categories.map(c => <option key={c.id} value={c.id}>{nameOf(c, locale)}</option>)}</select></FormRow><FormRow label={t('grievances.common.incident_date')} error={form.errors.incident_date}><DatePicker value={form.data.incident_date} onChange={v => form.setData('incident_date', v)} /></FormRow></div>
-            <FormRow label={t('grievances.common.description')} error={form.errors.description}><textarea className={inputCls} required rows={8} maxLength={20000} value={form.data.description} onChange={e => form.setData('description', e.target.value)} /></FormRow>
+            <RichTextEditor id="grievance-description" label={t('grievances.common.description')} required preset="basic" minHeight={220} maxLength={20000} value={form.data.description} onChange={html => form.setData('description', html)} error={form.errors.description} />
             <FormRow label={t('grievancePortal.respondent')} error={form.errors.respondent_description}><textarea className={inputCls} rows={3} maxLength={2000} value={form.data.respondent_description} onChange={e => form.setData('respondent_description', e.target.value)} /></FormRow>
             <FormRow label={t('grievancePortal.requested_remedy')} help={t('grievancePortal.requested_remedy_help')} error={form.errors.requested_remedy}><textarea className={inputCls} rows={3} maxLength={5000} value={form.data.requested_remedy} onChange={e => form.setData('requested_remedy', e.target.value)} /></FormRow>
             <fieldset className="space-y-4 rounded-lg border border-(--app-border) p-4">
@@ -32,7 +37,14 @@ export default function Form({ grievance: g, categories, evidenceTypes, allowedE
             </fieldset>
             <FormRow label={t('grievancePortal.applicant_address')} help={t('grievancePortal.applicant_address_help')} error={form.errors.applicant_address}><input className={inputCls} maxLength={500} value={form.data.applicant_address} onChange={e => form.setData('applicant_address', e.target.value)} /></FormRow>
             {g && g.status !== 'draft' && <FormRow label={t('grievancePortal.amendment_reason')}><textarea className={inputCls} value={form.data.amendment_reason} onChange={e => form.setData('amendment_reason', e.target.value)} /></FormRow>}
-            <FormRow label={t('grievances.common.files')} help={`${allowedExtensions.join(', ')} · ${maxFileKb} KB`} error={form.errors.files}><input type="file" multiple accept={allowedExtensions.map(x => `.${x}`).join(',')} onChange={e => { const files = Array.from(e.target.files ?? []); form.setData(d => ({ ...d, files, file_types: files.map(() => 'document') })); }} /></FormRow>
+            <FormRow label={t('grievances.common.files')} help={`${allowedExtensions.map(x => x.toUpperCase()).join(', ')} · ${maxFileKb >= 1024 ? `${maxFileKb / 1024} MB` : `${maxFileKb} KB`}`} error={fileError ?? form.errors.files ?? fileErrors}><input type="file" multiple accept={[...allowedExtensions.map(x => `.${x}`), 'application/pdf'].join(',')} onChange={e => {
+                const picked = Array.from(e.target.files ?? []);
+                // Checked here first so a wrong file is named before the upload; the server checks again.
+                const rejected = picked.filter(f => !allowedExtensions.includes(f.name.split('.').pop()?.toLowerCase() ?? '') || f.size > maxFileKb * 1024);
+                const files = picked.filter(f => !rejected.includes(f));
+                setFileError(rejected.length ? `${t('grievancePortal.file_rejected')}: ${rejected.map(f => f.name).join(', ')}` : null);
+                form.setData(d => ({ ...d, files, file_types: files.map(() => 'document') }));
+            }} /></FormRow>
             {form.data.files.map((f, i) => <FormRow key={`${f.name}-${i}`} label={f.name}><select className={inputCls} value={form.data.file_types[i]} onChange={e => form.setData('file_types', form.data.file_types.map((v, n) => n === i ? e.target.value : v))}>{evidenceTypes.map(v => <option key={v} value={v}>{label('evidence_type', v)}</option>)}</select></FormRow>)}
             <label className="flex items-start gap-2 text-sm"><input type="checkbox" className="mt-1" checked={form.data.declaration} onChange={e => form.setData('declaration', e.target.checked)} /><span>{t('grievancePortal.declaration')}</span></label>
             {form.errors.declaration && <p className="text-sm text-red-700">{form.errors.declaration}</p>}

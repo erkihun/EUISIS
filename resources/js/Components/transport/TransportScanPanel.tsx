@@ -86,7 +86,7 @@ export default function TransportScanPanel({ providers, routes, trips, stops = [
     todayRouteName?: string;
     terminal?: TerminalConfig;
 }) {
-    const { t, locale, name, label, tone } = useTransportLabels();
+    const { t, name, label } = useTransportLabels();
     const config: TerminalConfig = terminal ?? { manualAllowed: false, canDispatch: false, tripRequired: false, nfcEnabled: false };
     const [providerId, setProviderId] = useState(providers?.[0]?.id ?? '');
     const [routeId, setRouteId] = useState('');

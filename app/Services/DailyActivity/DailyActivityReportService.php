@@ -10,6 +10,7 @@ use App\Models\DailyActivityItem;
 use App\Models\DailyActivityLog;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Support\RichText\RichText;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -170,7 +171,8 @@ class DailyActivityReportService
                     ? $this->localized($item->positionService->name_en, $item->positionService->name_am)
                     : ($item->activity_category ? __('daily-activities.categories.'.$item->activity_category->value) : __('daily-activities.categories.other')),
                 'title' => $item->title,
-                'description' => $item->description,
+                // Spreadsheets get the words, not the markup.
+                'description' => RichText::plainText($item->description),
                 'output_result' => $item->output_result,
                 'progress_status' => $item->progress_status?->value,
                 'status' => $item->log->status->value,

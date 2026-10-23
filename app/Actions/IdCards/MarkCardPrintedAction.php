@@ -10,8 +10,10 @@ use App\Enums\CardStatus;
 use App\Models\CardPrintBatch;
 use App\Models\IdCard;
 use App\Models\User;
+use App\Services\IdCards\IdCardFieldImpactService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 readonly class MarkCardPrintedAction
 {
@@ -32,9 +34,9 @@ readonly class MarkCardPrintedAction
                     $card = IdCard::query()->find($item->id_card_id);
 
                     if ($card && in_array($card->status, [CardStatus::PendingPrint, CardStatus::Printed], true)) {
-                        $snapshot = app(\App\Services\IdCards\IdCardFieldImpactService::class)->latest($card);
+                        $snapshot = app(IdCardFieldImpactService::class)->latest($card);
                         if (! $snapshot || $card->status === CardStatus::PendingPrint) {
-                            throw \Illuminate\Validation\ValidationException::withMessages(['printer_notes' => __('employee-portal.confirm_each_card')]);
+                            throw ValidationException::withMessages(['printer_notes' => __('employee-portal.confirm_each_card')]);
                         }
 
                         $item->update(['status' => 'printed']);

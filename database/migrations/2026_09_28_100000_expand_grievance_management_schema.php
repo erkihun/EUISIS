@@ -871,7 +871,7 @@ return new class extends Migration
         // on committees legitimately re-constituted while this was live.
     }
 
-    /** @param array<string, \Closure(Blueprint): mixed> $columns column => definition */
+    /** @param array<string, Closure(Blueprint): mixed> $columns column => definition */
     private function addColumns(string $table, array $columns): void
     {
         foreach ($columns as $column => $define) {
@@ -881,16 +881,16 @@ return new class extends Migration
         }
     }
 
-    /** @param \Closure(Blueprint): mixed $define */
-    private function addIndex(string $table, string $index, \Closure $define): void
+    /** @param Closure(Blueprint): mixed $define */
+    private function addIndex(string $table, string $index, Closure $define): void
     {
         if (! Schema::hasIndex($table, $index)) {
             Schema::table($table, fn (Blueprint $blueprint) => $define($blueprint));
         }
     }
 
-    /** @param \Closure(Blueprint): mixed $define */
-    private function createTable(string $table, \Closure $define): void
+    /** @param Closure(Blueprint): mixed $define */
+    private function createTable(string $table, Closure $define): void
     {
         if (! Schema::hasTable($table)) {
             Schema::create($table, $define);

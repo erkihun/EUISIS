@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Addis One Intelligence — የዕውቀት ረዳት መዝገበ ቃላት (lang/en/intelligence_knowledge.php
+ * የአገልጋይ አስተውሎት — የዕውቀት ረዳት መዝገበ ቃላት (lang/en/intelligence_knowledge.php
  * ቁልፍ በቁልፍ ይመሳሰላል)።
  */
 return [

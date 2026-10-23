@@ -95,7 +95,8 @@ final class TelemetryCollector
 
         $samples = [];
         foreach ($buckets as $bucketStart => $groups) {
-            $at = CarbonImmutable::createFromTimestamp($bucketStart);
+            // Carbon 3 reads a bare timestamp as UTC; buckets are stored and queried in the app timezone.
+            $at = CarbonImmutable::createFromTimestamp($bucketStart, date_default_timezone_get());
             foreach ($groups as $group => $f) {
                 $total = (int) ($f['total'] ?? 0);
                 $map = [

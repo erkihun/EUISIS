@@ -1,6 +1,6 @@
 const assistant = {
-    title: 'የAddis One ረዳት',
-    welcomeFallback: 'ሰላም። በAddis One ላይ እንዴት ልረዳዎት እችላለሁ?',
+    title: 'የ{brand} ረዳት',
+    welcomeFallback: 'ሰላም። በ{brand} ላይ እንዴት ልረዳዎት እችላለሁ?',
     loading: 'በመጫን ላይ…',
     conversation: 'ውይይት',
     nowOn: 'አሁን ያሉበት',

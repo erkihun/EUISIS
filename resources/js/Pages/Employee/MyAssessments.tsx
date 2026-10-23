@@ -1,6 +1,6 @@
 import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Details, Empty, Section, formatScore, inputCls, textareaCls, primaryBtn } from '@/Components/performance/ui';
+import { Details, Empty, Section, formatScore, textareaCls, primaryBtn } from '@/Components/performance/ui';
 import { RecordStatusBadge, usePick } from '@/Components/assessmentWorkspace/kit';
 import { useLocale } from '@/hooks/useLocale';
 import { useForm } from '@inertiajs/react';
@@ -8,7 +8,7 @@ import { useForm } from '@inertiajs/react';
 type Record = { id: string; status: string; form: { name_en: string; name_am: string | null; version_no: number } | null; cycle: { code: string; name_en: string; name_am: string | null } | null; period_start: string; period_end: string; percentage: string | null; contribution: string | null; band: { code: string; label_en: string | null; label_am: string | null } | null; components: { type: string; percentage: string | null; anonymous: boolean }[]; acknowledgement_required: boolean; acknowledged_at: string | null; can_acknowledge: boolean };
 
 export default function MyAssessments({ records }: { records: Record[] }) {
-    const { t } = useLocale(); const pick = usePick();
+    const { t } = useLocale();
     return <PortalPage title={t('assessmentWorkspace.myTitle')} description={t('assessmentWorkspace.myDescription')}>
         {records.length === 0 ? <Section title={t('assessmentWorkspace.myTitle')}><Empty>{t('assessmentWorkspace.my.empty')}</Empty></Section> : <div className="space-y-4">{records.map((record) => <AssessmentCard key={record.id} record={record} />)}</div>}
     </PortalPage>;

@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Support\RichText\RichText;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
@@ -174,7 +175,7 @@ final class AnnouncementPresenter
     }
 
     /**
-     * @param  callable(\Illuminate\Support\Collection<int, Announcement>): list<array<string, mixed>>  $present
+     * @param  callable(Collection<int, Announcement>): list<array<string, mixed>>  $present
      * @return array{data: list<array<string, mixed>>, next_cursor: ?string}
      */
     private function page(Builder $query, string $column, ?string $cursor, callable $present): array

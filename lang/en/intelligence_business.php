@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Addis One Intelligence — business / management areas (docs/intelligence-business.md).
+ * Agelgay Intelligence — business / management areas (docs/intelligence-business.md).
  * Merged under the `intelligence.` prefix by IntelligenceLabels. Wording rules:
  * a figure is what was recorded, received or approved, never a finding; a
  * complaint count is never a score; a forecast is a baseline with its

@@ -19,13 +19,13 @@ readonly class UpdatePublicHolidayAction
         $oldValues = ['name_en' => $holiday->name_en, 'holiday_date' => $holiday->holiday_date?->toDateString()];
 
         $holiday->forceFill([
-            'name_en'          => trim($attributes['name_en']),
-            'name_am'          => isset($attributes['name_am']) ? trim($attributes['name_am']) : $holiday->name_am,
-            'holiday_date'     => $attributes['holiday_date'] ?? $holiday->holiday_date,
-            'is_recurring'     => isset($attributes['is_recurring']) ? (bool) $attributes['is_recurring'] : $holiday->is_recurring,
-            'recurrence_type'  => $attributes['recurrence_type'] ?? $holiday->recurrence_type,
-            'is_active'        => isset($attributes['is_active']) ? (bool) $attributes['is_active'] : $holiday->is_active,
-            'description'      => $attributes['description'] ?? $holiday->description,
+            'name_en' => trim($attributes['name_en']),
+            'name_am' => isset($attributes['name_am']) ? trim($attributes['name_am']) : $holiday->name_am,
+            'holiday_date' => $attributes['holiday_date'] ?? $holiday->holiday_date,
+            'is_recurring' => isset($attributes['is_recurring']) ? (bool) $attributes['is_recurring'] : $holiday->is_recurring,
+            'recurrence_type' => $attributes['recurrence_type'] ?? $holiday->recurrence_type,
+            'is_active' => isset($attributes['is_active']) ? (bool) $attributes['is_active'] : $holiday->is_active,
+            'description' => $attributes['description'] ?? $holiday->description,
         ])->save();
 
         $this->writeAuditLogAction->execute(

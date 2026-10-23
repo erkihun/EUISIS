@@ -55,6 +55,12 @@ class CardRequest extends Model
         return $this->belongsTo(Employee::class);
     }
 
+    /** Whether the given user submitted this request (segregation of duties for approval). */
+    public function isRequestedBy(User $user): bool
+    {
+        return $this->requested_by !== null && (string) $this->requested_by === (string) $user->getKey();
+    }
+
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');

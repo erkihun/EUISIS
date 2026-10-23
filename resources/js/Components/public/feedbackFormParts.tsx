@@ -1,4 +1,4 @@
-import { ReactNode, RefObject, useEffect, useRef } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 import { controlClassName } from '@euisis/ui';
 import type { Page, VisitOptions } from '@inertiajs/core';
 import { router } from '@inertiajs/react';
@@ -209,7 +209,7 @@ export function revealFirstError(form: HTMLFormElement | null): void {
  *   too large, a 429, a 5xx from the web server): an error popup instead of
  *   silence or Inertia's raw error window.
  */
-export function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormElement>) {
+export function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HTMLFormElement | null>) {
     const { t } = useLocale();
     const listeners = useRef<Array<() => void>>([]);
     const stopListening = () => {
@@ -229,11 +229,11 @@ export function useSubmissionOutcome(kind: SubmissionKind, formRef: RefObject<HT
         onStart: () => {
             stopListening();
             listeners.current = [
-                router.on('exception', () => {
+                router.on('networkError', () => {
                     toast.error(t('serviceFeedback.sendFailedOffline'), { duration: ERROR_TOAST_MS });
                     return false;
                 }),
-                router.on('invalid', (event) => {
+                router.on('httpException', (event) => {
                     const status = event.detail.response.status;
                     // Each refusal says what it is: a 419 is an expired page, not a server fault; a 403 is not "try again".
                     const key = status === 413 ? 'sendFailedTooLarge'

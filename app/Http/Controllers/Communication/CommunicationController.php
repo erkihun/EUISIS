@@ -7,12 +7,15 @@ namespace App\Http\Controllers\Communication;
 use App\Enums\Communication\ConversationType;
 use App\Http\Controllers\Controller;
 use App\Models\Communication\AnnouncementReceipt;
+use App\Models\Communication\CommunicationTask;
 use App\Models\Communication\ConversationMember;
+use App\Models\User;
 use App\Services\Communication\AnnouncementAudience;
 use App\Services\Communication\CommunicationDirectory;
 use App\Services\Communication\CommunicationInbox;
 use App\Services\Communication\CommunicationSettings;
 use App\Services\Communication\ConversationList;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,18 +45,21 @@ class CommunicationController extends Controller
             ->where('conversation_members.user_id', '<>', $user->getKey())
             ->orderByDesc('conversations.last_message_at')->limit(8)
             ->get(['conversation_members.user_id', 'conversation_members.conversation_id']);
-        $contacts = $this->directory->present($user, \App\Models\User::query()->whereIn('id', $recentContacts->pluck('user_id'))->get(['id', 'name', 'employee_id']), $locale)
+        $contacts = $this->directory->present($user, User::query()->whereIn('id', $recentContacts->pluck('user_id'))->get(['id', 'name', 'employee_id']), $locale)
             ->map(fn ($p) => [...$p, 'conversation_id' => $recentContacts->firstWhere('user_id', $p['id'])?->conversation_id]);
 
+        // An Eloquent collection either way: modelKeys() below does not exist on a
+        // plain collection, and roles without announcements.view (investigator,
+        // privacy officer) reach this page too.
         $announcements = $user->can('announcements.view')
             ? $this->audience->liveFor($user)->latest('published_at')->limit(5)->get()
-            : collect();
+            : new EloquentCollection;
         $receipts = AnnouncementReceipt::query()->where('user_id', $user->getKey())->whereIn('announcement_id', $announcements->modelKeys())->get()->keyBy('announcement_id');
         $pendingAcks = $user->can('announcements.view')
             ? $this->audience->liveFor($user)->where('acknowledgement_required', true)
                 ->whereNotIn('announcements.id', AnnouncementReceipt::query()->select('announcement_id')->where('user_id', $user->getKey())->whereNotNull('acknowledged_at'))
                 ->latest('published_at')->limit(10)->get()
-            : collect();
+            : new EloquentCollection;
 
         return Inertia::render('Communication/Index', [
             'totals' => $this->inbox->totals($user, fresh: true),
@@ -74,7 +80,7 @@ class CommunicationController extends Controller
                 'createGroup' => $user->can('groups.create') && $this->settings->allowEmployeeGroups(),
                 'browseChannels' => $user->can('channels.view'),
                 'createAnnouncement' => $user->can('announcements.create'),
-                'tasks' => $user->can('communication.tasks.create') || \App\Models\Communication\CommunicationTask::query()->where('assigned_to', $user->getKey())->exists(),
+                'tasks' => $user->can('communication.tasks.create') || CommunicationTask::query()->where('assigned_to', $user->getKey())->exists(),
                 // Read from roles: the Super Admin bypass does not open moderation or investigations.
                 'moderate' => $user->checkPermissionTo('communication.moderate'),
                 'manageSettings' => $user->can('communication.settings.manage'),

@@ -45,7 +45,7 @@ const WEEKDAYS = ['1', '2', '3', '4', '5', '6', '7'];
 type PolicyValue = string | number | boolean | string[];
 
 export default function Index(props: SettingsIndexProps) {
-    const { t, locale } = useLocale();
+    const { t } = useLocale();
     const a = (k: string) => t(`grievanceAdmin.${k}`);
     const [section, setSection] = useState<SectionId>(ALL.includes(props.tab as SectionId) ? props.tab as SectionId : 'policy');
     const go = (id: SectionId) => {
@@ -554,7 +554,7 @@ function ExternalAuthoritiesSection({ props }: { props: SettingsIndexProps }) {
 }
 
 function DelegationsSection({ props }: { props: SettingsIndexProps }) {
-    const { t, locale } = useLocale();
+    const { locale } = useLocale();
     type Row = SettingsIndexProps['delegations'][number];
     const orgs = props.options.organizations.map(o => ({ value: o.id!, label: nameOf(o, locale) }));
     return <ListSection<Row> id="delegations" rows={props.delegations} canEdit={props.can.delegations} rowEdit={false}

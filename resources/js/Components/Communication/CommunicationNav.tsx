@@ -1,7 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
-import { useState, type JSX, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type JSX, type ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { ActionMenu } from '@/Components/Communication/MessageBubble';
+import AssistantDockButton from '@/Components/ai/AssistantDockButton';
 import { ChatIcon, ChecklistIcon, HashIcon, MegaphoneIcon, MenuDotsIcon, WidgetsIcon } from '@/Components/NavIcons';
 import type { PageProps } from '@/types';
 import type { WorkspaceLinks } from '@/types/communication';
@@ -18,6 +19,13 @@ export default function CommunicationNav(): JSX.Element | null {
     const { t } = useLocale();
     const nav = ((usePage<PageProps>().props as { communication?: Shared }).communication ?? null)?.nav ?? null;
     const [more, setMore] = useState(false);
+    const strip = useRef<HTMLUListElement>(null);
+    // On a phone the strip is wider than the screen: bring the current section into view.
+    useEffect(() => {
+        const list = strip.current;
+        const active = list?.querySelector<HTMLElement>('[aria-current="page"]');
+        if (list && active) list.scrollLeft = Math.max(0, active.offsetLeft - (list.clientWidth - active.offsetWidth) / 2);
+    }, []);
     if (!nav) return null;
 
     const current = String(route().current() ?? '');
@@ -39,7 +47,7 @@ export default function CommunicationNav(): JSX.Element | null {
     return (
         <nav aria-label={t('communication.workspace.label')} className="shrink-0 border-b border-(--app-border) bg-(--app-surface)">
             <div className="flex items-center gap-1 px-2 sm:px-4 lg:px-5">
-                <ul className="comm-scroll -mb-px flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
+                <ul ref={strip} className="comm-tabs -mb-px flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
                     {tabs.map((tab) => (
                         <li key={tab.key} className="shrink-0">
                             <Link
@@ -59,6 +67,8 @@ export default function CommunicationNav(): JSX.Element | null {
                         </li>
                     ))}
                 </ul>
+                {/* The assistant's trigger lives here in this workspace, not in the bottom-right corner, which the composer needs. */}
+                <AssistantDockButton />
                 <div className="relative shrink-0">
                     <button
                         type="button"
@@ -67,7 +77,7 @@ export default function CommunicationNav(): JSX.Element | null {
                         aria-haspopup="menu"
                         aria-label={t('communication.workspace.more')}
                         title={t('communication.workspace.more')}
-                        className={`flex h-9 w-9 items-center justify-center rounded-control transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary ${moreActive ? 'text-primary' : 'text-(--app-muted-foreground)'}`}
+                        className={`flex h-9 w-9 items-center justify-center rounded-control transition-colors hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary pointer-coarse:h-11 pointer-coarse:w-11 ${moreActive ? 'text-primary' : 'text-(--app-muted-foreground)'}`}
                     >
                         <MenuDotsIcon className="h-5 w-5" aria-hidden="true" />
                     </button>

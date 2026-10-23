@@ -26,7 +26,7 @@ class PanelErrorBoundary extends Component<{ fallback: (reset: () => void) => Re
     }
 
     componentDidCatch(error: Error, info: ErrorInfo): void {
-        if (import.meta.env.DEV) console.error('Addis One Help panel failed', error, info);
+        if (import.meta.env.DEV) console.error('Public help panel failed', error, info);
     }
 
     render() {

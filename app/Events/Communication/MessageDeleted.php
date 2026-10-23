@@ -24,9 +24,7 @@ class MessageDeleted implements ShouldBroadcast
         return config('communication.broadcast_queue');
     }
 
-    public function __construct(public readonly string $conversationId, public readonly string $messageId)
-    {
-    }
+    public function __construct(public readonly string $conversationId, public readonly string $messageId) {}
 
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array

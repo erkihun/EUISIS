@@ -31,6 +31,7 @@ class PublicSettingsService
 
         return [
             'app.name' => $settings['general']['application_name'] ?? config('branding.name'),
+            'app.name_am' => $settings['general']['application_name_am'] ?? config('branding.name_am'),
             'app.short_name' => $settings['general']['application_short_name'] ?? config('branding.short_name'),
             'app.official_name_en' => $settings['general']['official_name_en'] ?? config('branding.official_name_en'),
             'app.official_name_am' => $settings['general']['official_name_am'] ?? config('branding.official_name_am'),
@@ -45,6 +46,11 @@ class PublicSettingsService
             'general.login_page_message_en' => $settings['general']['login_page_message_en'] ?? null,
             'general.login_page_message_am' => $settings['general']['login_page_message_am'] ?? null,
             'general.identity_system_logo_url' => $this->publicAssetUrl($logoPath),
+            // Sample photos uploaded for the sign-in card (never registry photos), saved ones only.
+            'general.login_card_photo_urls' => array_values(array_filter(array_map(
+                fn (string $key): ?string => $this->publicAssetUrl($settings['general'][$key] ?? null),
+                SystemSettingsRegistry::LOGIN_CARD_PHOTO_KEYS,
+            ))),
             'general.favicon_url' => $this->publicAssetUrl($faviconPath),
             'general.seal_url' => $this->publicAssetUrl($sealPath),
             'localization.default_locale' => $settings['localization']['default_locale'] ?? 'en',

@@ -110,16 +110,18 @@ class ProductionReadiness extends Command
         $this->section('Branding (docs/branding.md)');
         try {
             $branding = app(BrandingService::class);
-            $brandOk = $branding->brandName() !== '' && $branding->shortName() !== '' && $branding->officialNameEn() !== '' && $branding->officialNameAm() !== '';
-            $this->check('Brand resolves to Addis One / AA-IEMSS', $brandOk && ! $branding->isLegacyName($branding->brandName()) && ! $branding->isLegacyName($branding->shortName()), $production, 'Brand: '.$branding->brandName().' / '.$branding->shortName().' — set System Settings > General or run php artisan branding:migrate-addis-one.');
+            $brandOk = $branding->brandNameEn() !== '' && $branding->shortName() !== '' && $branding->officialNameEn() !== '' && $branding->officialNameAm() !== '';
+            $current = $branding->brandNameEn().' / '.$branding->brandNameAm().' / '.$branding->shortName();
+            $this->check('Brand resolves to a current name (not a former one)', $brandOk && ! $branding->isLegacyName($branding->brandNameEn()) && ! $branding->isLegacyName($branding->brandNameAm()) && ! $branding->isLegacyName($branding->shortName()), $production, 'Brand: '.$current.' — set System Settings > General or run php artisan branding:migrate.');
+            $this->info_('Brand', $current);
             $this->info_('Official name', $branding->officialNameEn());
             $legacyRows = Schema::hasTable('system_settings')
                 ? DB::table('system_settings')->get(['group', 'key', 'value'])->filter(fn ($row): bool => collect($branding->legacyNames())->contains(fn (string $n): bool => str_contains(mb_strtolower((string) $row->value), mb_strtolower($n))))->map(fn ($row): string => $row->group.'.'.$row->key)->values()->all()
                 : [];
-            $this->check('No former product name in current settings', $legacyRows === [], false, 'Still naming the former product: '.implode(', ', $legacyRows).' — run php artisan branding:migrate-addis-one and review what it lists.');
+            $this->check('No former product name in current settings', $legacyRows === [], false, 'Still naming the former product: '.implode(', ', $legacyRows).' — run php artisan branding:migrate and review what it lists.');
             $logoUrl = $branding->logoUrl();
             $faviconUrl = $branding->faviconUrl();
-            $this->check('Brand logo configured (BRAND_ASSET_REQUIRED when missing)', $logoUrl !== null, false, 'No approved Addis One logo is uploaded; the shell shows the generic mark. Upload the approved asset under System Settings > General when it exists.');
+            $this->check('Brand logo configured (BRAND_ASSET_REQUIRED when missing)', $logoUrl !== null, false, 'No approved brand logo is uploaded; the shell shows the generic mark. Upload the approved asset under System Settings > General when it exists.');
             $this->check('Favicon configured (BRAND_ASSET_REQUIRED when missing)', $faviconUrl !== null, false, 'No favicon uploaded; public/favicon.ico is served. Upload the approved asset when it exists.');
         } catch (Throwable $e) {
             $this->check('Branding checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());

@@ -121,7 +121,7 @@ const navigation = {
     situationRoomActions: 'የእርምጃ መዝገብ',
     situationRoomCommunityVoice: 'የሕዝብ ድምፅ በተቋም',
     situationRoomReports: 'የአመራር ሪፖርቶች',
-    groupIntelligence: 'የAddis One አስተውሎት',
+    groupIntelligence: 'የ{brand} አስተውሎት',
     intelligence: 'አስተውሎት',
     intelligenceSystemHealth: 'የሥርዓት ጤንነት',
     intelligenceIncidents: 'ክስተቶች',

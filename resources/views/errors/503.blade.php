@@ -2,7 +2,7 @@
     // Rendered when `php artisan down` snapshots this view, so it must not
     // depend on the database. The brand comes from config (populated from
     // System Settings at boot when they were reachable).
-    $brand = (string) config('app.name', config('branding.name', 'Addis One'));
+    $brand = (string) config('app.name', config('branding.name', 'Agelgay'));
     $short = (string) config('branding.short_name', 'AA-IEMSS');
     $officialEn = (string) config('branding.official_name_en');
     $officialAm = (string) config('branding.official_name_am');

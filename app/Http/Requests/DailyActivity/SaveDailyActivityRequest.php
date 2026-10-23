@@ -6,6 +6,7 @@ namespace App\Http\Requests\DailyActivity;
 
 use App\Enums\DailyActivityCategory;
 use App\Enums\DailyActivityProgressStatus;
+use App\Rules\RichTextContent;
 use App\Services\DailyActivity\DailyActivityService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -59,7 +60,7 @@ class SaveDailyActivityRequest extends FormRequest
             'items.*.task_id' => ['nullable', 'uuid'],
             'items.*.actual_quality' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'items.*.title' => ['required_without:items.*.task_id', 'nullable', 'string', 'max:255'],
-            'items.*.description' => ['nullable', 'string', 'max:5000'],
+            'items.*.description' => ['nullable', new RichTextContent(maxLength: 5000)],
             'items.*.output_result' => ['nullable', 'string', 'max:5000'],
             'items.*.progress_status' => ['required', Rule::in(DailyActivityProgressStatus::values())],
             'items.*.started_at' => ['nullable', 'date_format:H:i'],

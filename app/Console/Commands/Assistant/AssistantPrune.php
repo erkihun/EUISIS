@@ -12,7 +12,7 @@ final class AssistantPrune extends Command
 {
     protected $signature = 'assistant:prune';
 
-    protected $description = 'Delete Addis One Assistant conversations older than the configured retention';
+    protected $description = 'Delete Agelgay Assistant conversations older than the configured retention';
 
     public function handle(AssistantConversations $conversations): int
     {

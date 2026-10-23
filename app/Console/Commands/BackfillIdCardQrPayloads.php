@@ -20,6 +20,7 @@ class BackfillIdCardQrPayloads extends Command
 
         if ($cards->isEmpty()) {
             $this->info('No cards need backfilling.');
+
             return self::SUCCESS;
         }
 
@@ -31,6 +32,7 @@ class BackfillIdCardQrPayloads extends Command
         }
 
         $this->info('Done.');
+
         return self::SUCCESS;
     }
 }

@@ -4,7 +4,7 @@ const support = {
     nav: 'Support tickets',
 
     index: {
-        description: 'Ask for help with Addis One. Your tickets, their status and the support team\'s notes stay here.',
+        description: 'Ask for help with {brand}. Your tickets, their status and the support team\'s notes stay here.',
         descriptionAll: 'Every support ticket in the help desk, with its safe diagnostic context and timeline.',
         newTicket: 'New ticket',
         newTicketHint: 'Describe what you were trying to do and what happened. Do not paste passwords, codes or other people\'s personal details.',

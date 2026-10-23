@@ -24,9 +24,7 @@ class CommunicationTaskAssigned implements ShouldBroadcast
         return config('communication.broadcast_queue');
     }
 
-    public function __construct(public readonly string $taskId, public readonly int $assigneeId)
-    {
-    }
+    public function __construct(public readonly string $taskId, public readonly int $assigneeId) {}
 
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array

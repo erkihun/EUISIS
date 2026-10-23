@@ -68,7 +68,7 @@ export function exportHref(report: string, format: 'csv' | 'xlsx' | 'pdf', cycle
     return route('assessment-oversight.export', params as Record<string, string>);
 }
 
-export function OversightLayout({ title, description, active, shell, actions, children, needsCycle = true }: {
+export function OversightLayout({ title, description, shell, actions, children, needsCycle = true }: {
     title: string; description?: string; active: string; shell: ShellProps; actions?: ReactNode; children: ReactNode; needsCycle?: boolean;
 }) {
     const { t, locale } = useLocale();

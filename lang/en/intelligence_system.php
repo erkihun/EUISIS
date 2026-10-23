@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * Addis One Intelligence — technical domain dictionary (merged under the
+ * Agelgay Intelligence — technical domain dictionary (merged under the
  * `intelligence.` prefix by IntelligenceLabels). Rules, recommendations,
  * evidence row labels, components, incident and health vocabulary.
  * Wording: an incident is a measured condition, a recommendation is advice

@@ -26,7 +26,8 @@ class EmployeeResource extends JsonResource
             'name_en' => $this->name_en,
             'phone' => $this->phone,
             'email' => $this->email,
-            'photo_url' => $this->photo_path ? asset('storage/'.$this->photo_path) : null,
+            // The accessor routes private photos through the authorized photo route.
+            'photo_url' => $this->photo_url,
             'status' => $this->status?->value ?? $this->status,
             'employment_type' => $this->employment_type?->value ?? $this->employment_type,
             'duplicate_flags_count' => $this->whenCounted('employeeDuplicateFlags'),

@@ -6,6 +6,7 @@ import CardDataChecklist from '@/Components/IdCards/CardDataChecklist';
 import CardLifecycleTimeline from '@/Components/IdCards/CardLifecycleTimeline';
 import CardStatusBadge from '@/Components/IdCards/CardStatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import { Description, Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
@@ -93,47 +94,50 @@ function ConfirmModal({
         danger:  'bg-red-600 hover:bg-red-700 focus:ring-red-500',
         warning: 'bg-orange-500 hover:bg-orange-600 focus:ring-orange-400',
     };
+    // Headless UI's Dialog supplies role="dialog", aria-modal, the focus trap,
+    // Escape to close and focus return; the panel is labelled by its title.
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs"
-            onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
-        >
-            <div className="w-full max-w-md rounded-panel bg-(--app-surface) shadow-2xl ring-1 ring-(--app-border-strong)">
-                <div className="flex items-start justify-between px-6 pt-5">
-                    <h3 className="text-base font-semibold text-(--app-foreground)">{title}</h3>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="ml-4 rounded-lg p-1 text-(--app-muted-foreground) hover:bg-(--app-surface-muted)"
-                    >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                {description && (
-                    <p className="mt-1 px-6 text-sm text-(--app-muted-foreground)">{description}</p>
-                )}
-                {children && <div className="mt-4 px-6 space-y-3">{children}</div>}
-                <div className="mt-5 flex justify-end gap-2 rounded-b-panel border-t border-(--app-border) bg-(--app-surface-muted) px-6 py-4">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className={buttonClassName({ variant: 'outline' })}
-                    >
-                        {t('common.cancel')}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onConfirm}
-                        disabled={processing}
-                        className={`rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-hidden focus:ring-2 focus:ring-offset-2 disabled:opacity-60 ${variantCls[variant]}`}
-                    >
-                        {processing ? t('common.saving') : confirmLabel}
-                    </button>
-                </div>
+        <Dialog open onClose={() => { if (!processing) onClose(); }} className="relative z-50">
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-xs" aria-hidden="true" />
+            <div className="fixed inset-0 flex items-center justify-center p-4">
+                <DialogPanel className="w-full max-w-md rounded-panel bg-(--app-surface) shadow-2xl ring-1 ring-(--app-border-strong)">
+                    <div className="flex items-start justify-between px-6 pt-5">
+                        <DialogTitle as="h3" className="text-base font-semibold text-(--app-foreground)">{title}</DialogTitle>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            aria-label={t('common.close')}
+                            className="ml-4 rounded-lg p-1 text-(--app-muted-foreground) hover:bg-(--app-surface-muted)"
+                        >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    {description && (
+                        <Description className="mt-1 px-6 text-sm text-(--app-muted-foreground)">{description}</Description>
+                    )}
+                    {children && <div className="mt-4 px-6 space-y-3">{children}</div>}
+                    <div className="mt-5 flex justify-end gap-2 rounded-b-panel border-t border-(--app-border) bg-(--app-surface-muted) px-6 py-4">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className={buttonClassName({ variant: 'outline' })}
+                        >
+                            {t('common.cancel')}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onConfirm}
+                            disabled={processing}
+                            className={`rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-hidden focus:ring-2 focus:ring-offset-2 disabled:opacity-60 ${variantCls[variant]}`}
+                        >
+                            {processing ? t('common.saving') : confirmLabel}
+                        </button>
+                    </div>
+                </DialogPanel>
             </div>
-        </div>
+        </Dialog>
     );
 }
 

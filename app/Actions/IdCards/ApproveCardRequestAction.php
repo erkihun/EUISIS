@@ -35,6 +35,11 @@ readonly class ApproveCardRequestAction
             throw new DomainException('Card request must be in submitted or verified status to be approved. Current status: '.$cardRequest->status->value);
         }
 
+        // Also enforced by CardRequestPolicy::approve; repeated here so no other caller can skip it.
+        if ($cardRequest->isRequestedBy($actor)) {
+            throw new DomainException('A card request must be approved by someone other than the person who submitted it.');
+        }
+
         $employee = $cardRequest->employee;
 
         if ($employee->status !== EmployeeStatus::Active) {

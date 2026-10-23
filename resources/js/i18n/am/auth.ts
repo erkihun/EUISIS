@@ -39,6 +39,32 @@ const auth = {
     featureCodeGen: 'ኮድ ማመንጨት',
     footerGov: 'የኢትዮጵያ መንግሥት',
 
+    // የመግቢያ ገጹ ትዕይንት (Components/auth/LoginStage)
+    stage: {
+        headline: 'አንድ የመረጃ ቋት፣ አንድ የሠራተኛ ማንነት፣',
+        headlineAccent: 'ብዙ አገልግሎት።',
+        // ወደ መግቢያ ካርዱ የሚያደርሰው ጉዞ፣ በቅደም ተከተል።
+        steps: {
+            city: { title: 'ከተማ አስተዳደር', text: 'ለሁሉም ተቋማት አንድ መዋቅር' },
+            institutions: { title: 'ተቋማት', text: 'ቢሮዎች፣ ክፍለ ከተሞችና ወረዳዎች፣ እያንዳንዱ ከሥራ መደቦቹ ጋር' },
+            employees: { title: 'ሠራተኞች', text: 'ከቅጥር እስከ ዝውውር ለእያንዳንዱ ሠራተኛ አንድ መዝገብ' },
+            card: { title: 'መታወቂያ ካርድ ተሰጥቷል', text: 'ተጠይቆ፣ በሁለተኛ ሰው ጸድቆ፣ ታትሟል' },
+            verified: { title: 'ማንነት ተረጋግጧል', text: 'በአገልግሎት መስኮት ተቃኝቶ በሰከንዶች ተረጋግጧል' },
+        },
+        cardTitle: 'የሠራተኛ መታወቂያ',
+        cardVerified: 'ተረጋግጧል',
+        // መታወቂያ ካርዱ የሚከፍታቸው አገልግሎቶች፣ በዙሪያው የሚዞሩ።
+        services: {
+            cafeteria: 'ካፌቴሪያ',
+            transport: 'ትራንስፖርት',
+            performance: 'አፈጻጸም',
+            grievance: 'ቅሬታ',
+            activity: 'ዕለታዊ ሥራ',
+            reports: 'ሪፖርቶች',
+        },
+        capsLock: 'Caps Lock በርቷል',
+    },
+
     registration: {
         title: 'መለያ ይፍጠሩ',
         systemName: '{officialName}',

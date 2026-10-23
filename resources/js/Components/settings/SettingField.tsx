@@ -1,6 +1,6 @@
 import ColorSettingField from '@/Components/settings/ColorSettingField';
 import FieldRow, { ChoiceChips, Switch } from '@/Components/settings/FieldRow';
-import ImageSettingField from '@/Components/settings/ImageSettingField';
+import ImageSettingField, { REMOVE_ASSET } from '@/Components/settings/ImageSettingField';
 import IdCardTemplateSettingField from '@/Components/settings/IdCardTemplateSettingField';
 import SecretSettingField from '@/Components/settings/SecretSettingField';
 import TimezoneSettingField from '@/Components/settings/TimezoneSettingField';
@@ -56,9 +56,12 @@ export default function SettingField({ field, locale, value, error, disabled = f
     }
 
     if (field.type === 'image' || field.type === 'file') {
+        // Sign-in card photos show people on a public page, so they can be taken down again.
+        const photo = field.key.startsWith('login_card_photo_');
         return (
             <ImageSettingField label={label} description={description} previewUrl={field.asset_url} configured={field.configured} error={error} disabled={disabled}
-                accept={field.key === 'seal' ? '.png,image/png' : undefined} onChange={(file) => onChange(file)} />
+                accept={field.key === 'seal' ? '.png,image/png' : photo ? '.jpg,.jpeg,.png,.webp' : undefined} onChange={(file) => onChange(file)}
+                removable={photo} markedForRemoval={value === REMOVE_ASSET} onRemoveChange={(remove) => onChange(remove ? REMOVE_ASSET : null)} />
         );
     }
 

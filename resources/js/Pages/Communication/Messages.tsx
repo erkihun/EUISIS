@@ -31,19 +31,33 @@ const urlFor = (id: string | null) => (id ? route('communication.messages.show',
  * Fills the space below the app header, whatever the header and banners
  * measure, so the page never scrolls: only the conversation list and the
  * messages do. The bottom gap matches the focus-mode padding of the layout.
+ *
+ * Measured against the visual viewport: on a phone the on-screen keyboard
+ * shrinks it (the layout viewport does not change on iOS), and the composer
+ * must stay above the keyboard rather than slide under it. Phones get no
+ * 420px floor either: a short landscape screen still shows the composer.
  */
-function useFillHeight(): [React.RefObject<HTMLDivElement>, number | null] {
+function useFillHeight(): [React.RefObject<HTMLDivElement | null>, number | null] {
     const ref = useRef<HTMLDivElement>(null);
     const [height, setHeight] = useState<number | null>(null);
     useLayoutEffect(() => {
+        const viewport = window.visualViewport;
         const measure = () => {
             const top = ref.current?.getBoundingClientRect().top ?? 0;
+            const visibleBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
             const gap = window.innerWidth >= 1024 ? 16 : window.innerWidth >= 640 ? 12 : 0;
-            setHeight(Math.max(420, window.innerHeight - top - gap));
+            const floor = window.innerWidth >= 640 ? 420 : 240;
+            setHeight(Math.max(floor, Math.round(visibleBottom - top - gap)));
         };
         measure();
         window.addEventListener('resize', measure);
-        return () => window.removeEventListener('resize', measure);
+        viewport?.addEventListener('resize', measure);
+        viewport?.addEventListener('scroll', measure);
+        return () => {
+            window.removeEventListener('resize', measure);
+            viewport?.removeEventListener('resize', measure);
+            viewport?.removeEventListener('scroll', measure);
+        };
     }, []);
     return [ref, height];
 }
@@ -185,7 +199,7 @@ export default function Messages(props: Props): JSX.Element {
             <div
                 ref={box}
                 style={height ? { height } : undefined}
-                className="flex min-h-[420px] overflow-hidden border-y border-(--app-border) bg-(--app-surface) sm:rounded-panel sm:border"
+                className="flex min-h-60 overflow-hidden border-b border-(--app-border) bg-(--app-surface) sm:min-h-[420px] sm:rounded-panel sm:border"
             >
                 <div className={`w-full shrink-0 border-e border-(--app-border) bg-(--app-surface) lg:block lg:w-80 ${activeId ? 'hidden' : 'block'}`}>
                     {composing === 'group' && can.createGroup ? (

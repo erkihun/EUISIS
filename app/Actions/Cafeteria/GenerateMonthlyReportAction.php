@@ -23,7 +23,7 @@ readonly class GenerateMonthlyReportAction
     public function execute(int $year, int $month, User $actor, ?string $organizationId = null, ?Request $request = null): CafeteriaReportRun
     {
         $from = Carbon::createFromDate($year, $month, 1)->startOfMonth();
-        $to   = $from->copy()->endOfMonth();
+        $to = $from->copy()->endOfMonth();
 
         $report = $this->reportService->createReportRun(
             CafeteriaReportType::Monthly,
@@ -40,7 +40,7 @@ readonly class GenerateMonthlyReportAction
             $organizationId,
             newValues: [
                 'report_number' => $report->report_number,
-                'period'        => $from->format('Y-m'),
+                'period' => $from->format('Y-m'),
             ],
             request: $request,
         );

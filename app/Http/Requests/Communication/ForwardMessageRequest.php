@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Communication;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /** Up to five target conversations. Authorization is the policy's, checked in the action. */
 class ForwardMessageRequest extends FormRequest

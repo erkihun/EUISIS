@@ -69,7 +69,6 @@ export default function IdCardFront({
     fullName,
     fullNameAm,
     employeeNumber,
-    organizationName,
     organizationLogoUrl,
     employmentStatus,
     gender,
@@ -89,7 +88,7 @@ export default function IdCardFront({
     cityLogoUrl,
     rootStyle,
 }: IdCardFrontProps) {
-    const { t, locale } = useLocale();
+    const { t } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
     const cardTemplate = useIdCardTemplate('landscape');
     const backgroundUrl = cardTemplate?.front_background_url;

@@ -36,13 +36,13 @@ class EmployeeCafeteriaExclusion extends Model
     ];
 
     protected $casts = [
-        'exclusion_type'   => CafeteriaExclusionType::class,
-        'starts_on'        => 'date',
-        'ends_on'          => 'date',
+        'exclusion_type' => CafeteriaExclusionType::class,
+        'starts_on' => 'date',
+        'ends_on' => 'date',
         'return_to_work_on' => 'date',
-        'is_open_ended'    => 'boolean',
-        'status'           => CafeteriaExclusionStatus::class,
-        'ended_at'         => 'datetime',
+        'is_open_ended' => 'boolean',
+        'status' => CafeteriaExclusionStatus::class,
+        'ended_at' => 'datetime',
     ];
 
     public function employee(): BelongsTo

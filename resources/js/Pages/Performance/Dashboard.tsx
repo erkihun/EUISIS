@@ -5,7 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { ActivityIcon, AlertTriangle, CalendarIcon, CheckCircle, ChevronRight, ClipboardCheckIcon, Layers, LayoutDashboard, RefreshIcon, TrendingUpIcon, Users } from '@/Components/Icons';
-import type { ReactNode, SVGProps } from 'react';
+import type { JSX, ReactNode, SVGProps } from 'react';
 
 import { buttonClassName } from '@/Components/ui';
 type IconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element;

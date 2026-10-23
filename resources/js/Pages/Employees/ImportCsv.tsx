@@ -362,7 +362,7 @@ function RowStatus({ row, validLabel, compact = false }: { row: PreviewRow; vali
     return <ul className="space-y-1 text-xs text-red-600 dark:text-red-400">{row.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>;
 }
 
-function Notice({ children, title, tone }: { children: ReactNode; title?: string; tone: 'warning' }): JSX.Element {
+function Notice({ children, title }: { children: ReactNode; title?: string; tone: 'warning' }): JSX.Element {
     return <div role="alert" className="rounded-panel border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">{title && <p className="font-semibold">{title}</p>}<div className={title ? 'mt-1 text-xs leading-5' : ''}>{children}</div></div>;
 }
 

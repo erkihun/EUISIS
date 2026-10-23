@@ -30,10 +30,10 @@ class GenerateCardTokenAction
         $rawToken = bin2hex(random_bytes(32));
 
         $card->update([
-            'token_hash'            => hash('sha256', $rawToken),
-            'token_version'         => ($card->token_version ?? 0) + 1,
+            'token_hash' => hash('sha256', $rawToken),
+            'token_version' => ($card->token_version ?? 0) + 1,
             'token_last_rotated_at' => now(),
-            'qr_payload'            => $card->id . '|' . $rawToken,
+            'qr_payload' => $card->id.'|'.$rawToken,
         ]);
 
         // Seed the stable public reference. Idempotent — never overwrites existing UUID.

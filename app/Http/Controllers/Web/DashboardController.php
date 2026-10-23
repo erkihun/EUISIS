@@ -7,18 +7,23 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Services\Backup\BackupStatusService;
 use App\Services\Dashboard\DashboardDataService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, DashboardDataService $dashboardDataService): Response
+    public function __invoke(Request $request, DashboardDataService $dashboardDataService): Response|RedirectResponse
     {
-        abort_unless(
-            $request->user() !== null && $dashboardDataService->canViewDashboard($request->user()),
-            403,
-        );
+        abort_if($request->user() === null, 403);
+
+        // Roles without dashboard access sign in to My Portal; links that still
+        // point here (an old bookmark, the error page's home button) take them
+        // there too instead of to a 403 that offers this same link again.
+        if (! $dashboardDataService->canViewDashboard($request->user())) {
+            return redirect()->route('employee.portal');
+        }
 
         $filters = $request->validate([
             'date_range' => ['nullable', 'in:today,7d,30d,90d,custom'],

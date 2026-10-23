@@ -106,7 +106,6 @@ class BackfillCodeRuleSequences extends Command
             default => $this->scopeResolver->detectAutoScopeTokens($rule->format),
         };
 
-        // Fetch generation logs for this rule
         $logs = DB::table('code_generation_logs')
             ->where('code_rule_id', $rule->id)
             ->orderBy('sequence_number')

@@ -143,7 +143,7 @@ import {
     WifiRouterIcon,
     X,
 } from '@/Components/NavIcons';
-import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
+import { type JSX, type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
@@ -163,6 +163,8 @@ type NavSubItem = {
     listedInAdmin?: boolean;
     /** The page serves the signed-in employee's own record, so accounts without one never see it. */
     employeeOnly?: boolean;
+    /** City-level page: the server refuses organization-scoped users even when they hold the permission. */
+    citywideOnly?: boolean;
     /** Unread count shown as a badge (Communication). */
     badge?: number | null;
 };
@@ -635,7 +637,8 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-feedback.organization-qr.index', labelKey: 'nav.organizationFeedbackQrCodes', icon: QrCodeIcon, permission: 'service_feedback.organization_qr.view' },
             { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: FileChartIcon, permission: 'service_feedback.view' },
             { routeName: 'service-feedback.submission-reports.index', labelKey: 'nav.serviceSubmissionReports', icon: FileSpreadsheetIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-feedback.settings.index', labelKey: 'nav.serviceFeedbackSettings', icon: SettingsIcon, permission: 'service_feedback.settings.manage' },
+            // PublicFeedbackSettings::canManage also requires citywide scope; the same permission serves scoped QR and position-service work.
+            { routeName: 'service-feedback.settings.index', labelKey: 'nav.serviceFeedbackSettings', icon: SettingsIcon, permission: 'service_feedback.settings.manage', citywideOnly: true },
         ],
     },
     {
@@ -826,6 +829,10 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const { props: pageProps, url: pageUrl } = usePage();
     const isEmployeeUser = pageProps.is_employee_user === true;
     const hasEmployeeRecord = pageProps.has_employee_record === true;
+    const authFlags = (pageProps as { auth?: { canViewDashboard?: boolean; unrestrictedScope?: boolean; isSuperAdmin?: boolean } }).auth ?? {};
+    // Roles without dashboard access sign in to My Portal, so that is their home link too.
+    const canViewDashboard = authFlags.canViewDashboard !== false;
+    const citywide = authFlags.unrestrictedScope === true || authFlags.isSuperAdmin === true;
     const instanceId = useId();
     const searchRef = useRef<HTMLInputElement>(null);
     const navRef = useRef<HTMLElement>(null);
@@ -849,6 +856,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     // Keep the existing permission contract, including independently permitted child links.
     const permitted = (item: NavSubItem) => moduleEnabled(item.routeName)
         && (!item.employeeOnly || hasEmployeeRecord)
+        && (!item.citywideOnly || citywide)
         && (!item.permission || can(item.permission))
         && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
     const allowedItems = (items: NavItem[]): NavSubItem[] => items
@@ -874,7 +882,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const allGroups = isEmployeeUser
         ? visiblePortalSections.flatMap((section) => section.groups)
         : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
-    const homeNav = isEmployeeUser ? portalDashboard : dashboardNav;
+    const homeNav = isEmployeeUser || !canViewDashboard ? portalDashboard : dashboardNav;
     const currentRoute = String(route().current() ?? '');
     const currentItem = activeRoute([homeNav, ...allGroups.flatMap((group) => group.items)], currentRoute);
     const activeGroupKeys = allGroups.filter((group) => group.items.some((item) => item.routeName === currentItem)).map((group) => group.key);
@@ -1110,7 +1118,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             <div className={collapsed ? 'flex h-16 shrink-0 items-center justify-center border-b border-(--sidebar-border)' : 'app-dot-grid shrink-0 border-b border-(--sidebar-border) px-4 py-3.5'}>
                 <div className="flex items-start gap-2">
                     <Link
-                        href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
+                        href={route(homeNav.routeName)}
                         onClick={onClose}
                         aria-label={appName}
                         title={collapsed ? appName : undefined}

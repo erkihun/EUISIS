@@ -21,9 +21,9 @@ final class DatabaseHealthAnalysis extends SystemAnalysis
     {
         return [
             'db_headline' => fn (): SituationPanel => $this->headline($context),
-            'db_ping_trend' => fn (): SituationPanel => $this->gaugeTrend($context,'db_ping_trend', Metrics::DB_PING_MS, 'avg', 'ms'),
-            'db_connections_trend' => fn (): SituationPanel => $this->gaugeTrend($context,'db_connections_trend', Metrics::DB_CONNECTIONS_PERCENT, 'max', 'percent'),
-            'db_long_queries_trend' => fn (): SituationPanel => $this->gaugeTrend($context,'db_long_queries_trend', Metrics::DB_LONG_QUERIES, 'max', null),
+            'db_ping_trend' => fn (): SituationPanel => $this->gaugeTrend($context, 'db_ping_trend', Metrics::DB_PING_MS, 'avg', 'ms'),
+            'db_connections_trend' => fn (): SituationPanel => $this->gaugeTrend($context, 'db_connections_trend', Metrics::DB_CONNECTIONS_PERCENT, 'max', 'percent'),
+            'db_long_queries_trend' => fn (): SituationPanel => $this->gaugeTrend($context, 'db_long_queries_trend', Metrics::DB_LONG_QUERIES, 'max', null),
         ];
     }
 

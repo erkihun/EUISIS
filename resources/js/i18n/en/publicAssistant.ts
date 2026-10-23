@@ -1,6 +1,6 @@
 const publicAssistant = {
-    title: 'Addis One Help',
-    welcomeFallback: 'Hello. I can help you use the Addis One public services.',
+    title: '{brand} Help',
+    welcomeFallback: 'Hello. I can help you use the {brand} public services.',
     conversation: 'Conversation',
     loading: 'Loading…',
     open: 'Open help',

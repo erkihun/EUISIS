@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 /*
- * Addis One Assistant — server-side strings (docs/assistant/architecture.md).
+ * Agelgay Assistant — server-side strings (docs/assistant/architecture.md).
  * Everything the backend puts into a message is composed here, so the panel
  * never ships English fallbacks and the Amharic file mirrors every key.
  */
 return [
-    'title' => 'Addis One Assistant',
-    'welcome' => 'Hello. How can I help you with Addis One?',
+    'title' => 'Agelgay Assistant',
+    'welcome' => 'Hello. How can I help you with Agelgay?',
     'disclaimer' => 'AI-generated guidance may require verification. Decisions on people, cases and records stay with the responsible officer.',
     'now_on' => 'Now on: :module',
 
@@ -24,7 +24,7 @@ return [
     ],
 
     'modules' => [
-        'general' => 'Addis One',
+        'general' => 'Agelgay',
         'dashboard' => 'Dashboard',
         'employees' => 'Employees',
         'organizations' => 'Organizations and structure',
@@ -59,7 +59,7 @@ return [
     // Short, approved page guidance per module: what it is for, the usual steps, what it needs, what goes wrong.
     'pages' => [
         'general' => [
-            'purpose' => 'Addis One is the employee information and management platform of the Addis Ababa city administration. Each module has its own pages, grants and workflow.',
+            'purpose' => 'Agelgay is the employee information and management platform of the Addis Ababa city administration. Each module has its own pages, grants and workflow.',
             'steps' => ['Use the sidebar to open a module.', 'Each page lists its actions at the top right.', 'Ask me "Explain this page" on any page for its purpose and steps.'],
             'permissions' => 'Each module needs its own grant; what you cannot open is not granted to your account.',
             'mistakes' => ['Working outside your organization scope: records outside it are not shown, not missing.'],
@@ -211,7 +211,7 @@ return [
         'denied_support' => 'Support requests are switched off on this installation.',
         'scope_denied' => 'That is outside your organization scope. I can only use figures and records your account may open.',
         'record_help' => 'Current record: :label.',
-        'unknown_page' => 'I do not have specific guidance for this page yet. General help for Addis One follows.',
+        'unknown_page' => 'I do not have specific guidance for this page yet. General help for Agelgay follows.',
         'ai_fallback' => 'AI assistance is temporarily unavailable; the figures above come directly from the platform.',
         'thinking' => 'Analyzing…',
         'ticket_created' => 'Support ticket :reference created. The :team team will follow up; you can track it from the ticket page.',

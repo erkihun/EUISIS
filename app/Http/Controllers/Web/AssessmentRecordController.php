@@ -9,6 +9,8 @@ use App\Models\AssessmentResponse;
 use App\Models\Employee;
 use App\Models\User;
 use App\Services\Assessment\AssessmentRecordService;
+use App\Services\Assessment\Execution\AssessmentResponseService;
+use App\Services\Assessment\Execution\AssessmentReviewService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -28,10 +30,15 @@ class AssessmentRecordController extends Controller
         ]));
         $query = AssessmentRecord::query()->where(function ($q) use ($actor, $manage): void {
             $q->where('reviewer_id', $actor->id)->orWhereHas('responses', fn ($r) => $r->where('evaluator_id', $actor->id));
-            if ($actor->employee) { $q->orWhere('employee_id', $actor->employee->id); }
+            if ($actor->employee) {
+                $q->orWhere('employee_id', $actor->employee->id);
+            }
             if ($manage) {
-                if ($this->scope->isUnrestricted($actor)) { $q->orWhereRaw('1 = 1'); }
-                else { $q->orWhereIn('organization_id', $this->scope->allowedOrganizationIds($actor)); }
+                if ($this->scope->isUnrestricted($actor)) {
+                    $q->orWhereRaw('1 = 1');
+                } else {
+                    $q->orWhereIn('organization_id', $this->scope->allowedOrganizationIds($actor));
+                }
             }
         })->when($filters['period_start'] ?? null, fn ($q, $value) => $q->whereDate('period_start', $value))
             ->when($filters['period_end'] ?? null, fn ($q, $value) => $q->whereDate('period_end', $value));
@@ -59,6 +66,7 @@ class AssessmentRecordController extends Controller
             $q->whereHas('employee.assignments', fn ($s) => $this->scope->applyOrganizationScope($s, $actor))
                 ->orWhere('id', $actor->id);
         })->orderBy('name')->limit(500)->get(['id', 'name']) : [];
+
         return Inertia::render('Assessments/Records/Index', [
             'records' => $query->when($filters['status'] ?? null, fn ($q, $value) => $q->where('status', $value))
                 ->with(['version', 'reviewer'])
@@ -77,6 +85,7 @@ class AssessmentRecordController extends Controller
             'reviewer_id' => ['required', 'integer', 'exists:users,id'], 'evaluator_ids' => ['required', 'array', 'min:1', 'max:50'],
             'evaluator_ids.*' => ['required', 'integer', 'distinct', 'exists:users,id'],
         ]);
+
         return redirect()->route('assessment-records.show', $this->records->assign($request->user(), $data));
     }
 
@@ -86,13 +95,14 @@ class AssessmentRecordController extends Controller
         abort_unless($this->records->visible($actor, $record), 403);
         $record->load('version.sections.criteria.options', 'version.evaluatorSchemes', 'version.form:id,code', 'reviewer');
         $response = $record->responses()->where('evaluator_id', $actor->id)->first();
+
         return Inertia::render('Assessments/Records/Show', [
             'record' => $this->present($actor, $record), 'version' => [...$record->version->only(['name_en', 'name_am', 'version_no']), 'code' => $record->version->form?->code, 'sections' => $record->version->sections],
             'response' => $response?->only(['answers', 'submitted_at']),
             'sheet' => $this->sheet($actor, $record, $response),
             // Same rules as the evaluator workspace and review services (one engine).
-            'can' => ['submit' => $response !== null && app(\App\Services\Assessment\Execution\AssessmentResponseService::class)->canEdit($actor, $response) && $actor->can('assessments.submit'),
-                'review' => $record->status === 'submitted' && app(\App\Services\Assessment\Execution\AssessmentReviewService::class)->canFinalize($actor, $record),
+            'can' => ['submit' => $response !== null && app(AssessmentResponseService::class)->canEdit($actor, $response) && $actor->can('assessments.submit'),
+                'review' => $record->status === 'submitted' && app(AssessmentReviewService::class)->canFinalize($actor, $record),
                 'acknowledge' => $actor->employee?->id === $record->employee_id && $record->status === 'reviewed' && (bool) $record->version->acknowledgement_required,
                 'unassessed' => $this->records->manages($actor, $record->organization_id) && in_array($record->status, ['assigned', 'pending_assignment'], true) && ! $record->responses()->where('status', 'submitted')->exists(),
                 'workspace' => $response !== null && $response->status !== 'cancelled'],
@@ -104,6 +114,7 @@ class AssessmentRecordController extends Controller
     {
         $data = $request->validate(['answers' => ['required', 'array'], 'answers.*' => ['required', 'uuid']]);
         $this->records->submit($request->user(), $record, $data['answers']);
+
         return back();
     }
 
@@ -111,6 +122,7 @@ class AssessmentRecordController extends Controller
     {
         $data = $action === 'unassessed' ? $request->validate(['reason' => ['required', Rule::in(['illness', 'other'])], 'note' => ['nullable', 'string', 'max:2000']]) : [];
         $this->records->transition($request->user(), $record, $action, $data);
+
         return back();
     }
 
@@ -147,6 +159,7 @@ class AssessmentRecordController extends Controller
     private function present(User $actor, AssessmentRecord $record): array
     {
         $resultVisible = in_array($record->status, ['reviewed', 'acknowledged'], true) || $this->records->manages($actor, $record->organization_id) || $actor->id === $record->reviewer_id;
+
         return [...$record->only(['id', 'status', 'employee_snapshot', 'reviewed_at', 'acknowledged_at', 'unassessed_reason']),
             'period_start' => $record->period_start->toDateString(), 'period_end' => $record->period_end->toDateString(),
             'version' => $record->version->only(['name_en', 'name_am', 'version_no']), 'reviewer' => $record->reviewer?->only(['name']),

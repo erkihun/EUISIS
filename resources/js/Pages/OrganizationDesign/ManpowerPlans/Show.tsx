@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { ParameterSchema } from '@/Components/organizationDesign/MethodologyForm';
-import PlanForm, { type MethodologyOption, type Option, type PlanFormValues, type StudyOption } from '@/Components/organizationDesign/PlanForm';
+import PlanForm, { type MethodologyOption, type PlanFormValues, type StudyOption } from '@/Components/organizationDesign/PlanForm';
 import PlanLineForm, { type LineRecord, type Named, type ProposalOption } from '@/Components/organizationDesign/PlanLineForm';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';

@@ -103,15 +103,26 @@ class SystemSettingsRegistry
             self::GROUP_GENERAL => [
                 'application_name' => self::field(
                     type: 'string',
-                    default: 'Addis One',
+                    default: 'Agelgay',
                     labelEn: 'Brand Name',
                     labelAm: 'የምርት ስም',
-                    descriptionEn: 'The product brand shown in the browser title, sign-in pages, navigation and sender labels (compact contexts).',
-                    descriptionAm: 'በአሳሽ ርዕስ፣ በመግቢያ ገጾች፣ በአሰሳ እና በላኪ መለያዎች የሚታየው የምርት ስም (አጭር አውዶች)።',
+                    descriptionEn: 'The product brand in Latin script: browser title, sign-in pages and navigation in English, e-mail sender name and authenticator apps.',
+                    descriptionAm: 'የምርቱ ስም በላቲን ፊደል፦ በእንግሊዝኛ ገጾች የአሳሽ ርዕስ፣ የመግቢያ ገጾች እና አሰሳ፣ የኢሜይል ላኪ ስም እና የማረጋገጫ መተግበሪያዎች።',
                     isPublic: true,
                     isRequired: true,
                     validationRules: ['required', 'string', 'max:160'],
                     sortOrder: 10,
+                ),
+                'application_name_am' => self::field(
+                    type: 'string',
+                    default: 'አገልጋይ',
+                    labelEn: 'Brand Name (Amharic)',
+                    labelAm: 'የምርት ስም (አማርኛ)',
+                    descriptionEn: 'The same brand in Ge\'ez script, shown wherever the pages are in Amharic. To show the Latin name on Amharic pages too, enter it here.',
+                    descriptionAm: 'ያው የምርት ስም በግዕዝ ፊደል፤ ገጾቹ በአማርኛ በሚታዩበት ሁሉ ይታያል። በአማርኛ ገጾችም የላቲኑ ስም እንዲታይ ከተፈለገ እዚህ ያስገቡት።',
+                    isPublic: true,
+                    validationRules: ['nullable', 'string', 'max:160'],
+                    sortOrder: 11,
                 ),
                 'application_short_name' => self::field(
                     type: 'string',
@@ -296,6 +307,10 @@ class SystemSettingsRegistry
                     validationRules: ['nullable', 'string', 'max:2000'],
                     sortOrder: 140,
                 ),
+                // Sample photos for the employee ID card animated on the sign-in page. Uploaded for
+                // that purpose only, never taken from the employee registry: the sign-in page is
+                // public, so registry photos must not appear there.
+                ...self::loginCardPhotoFields(),
             ],
 
             self::GROUP_LOCALIZATION => [
@@ -1146,6 +1161,7 @@ class SystemSettingsRegistry
     {
         return [
             'app.name',
+            'app.name_am',
             'app.short_name',
             'app.official_name_en',
             'app.official_name_am',
@@ -1158,6 +1174,7 @@ class SystemSettingsRegistry
             'general.terms_url',
             'general.login_page_message_en',
             'general.login_page_message_am',
+            'general.login_card_photo_urls',
             'general.identity_system_logo_url',
             'general.favicon_url',
             'general.seal_url',
@@ -1264,6 +1281,33 @@ class SystemSettingsRegistry
             'settlement_requires_distinct_approver' => self::field(type: 'boolean', default: true, labelEn: 'A statement must be approved by someone other than its computer', labelAm: 'መግለጫ ከሰላው ሰው በተለየ ሰው መጽደቅ አለበት', validationRules: ['required', 'boolean'], sortOrder: 160),
             'gps_retention_days' => self::field(type: 'integer', default: 90, labelEn: 'Days vehicle positions are kept', labelAm: 'የተሽከርካሪ አቀማመጦች የሚቆዩበት ቀናት', validationRules: ['required', 'integer', 'min:1', 'max:3650'], sortOrder: 170),
         ];
+    }
+
+    /** Sample photos for the sign-in page's animated ID card, in display order. */
+    public const LOGIN_CARD_PHOTO_KEYS = ['login_card_photo_1', 'login_card_photo_2', 'login_card_photo_3'];
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private static function loginCardPhotoFields(): array
+    {
+        $fields = [];
+        foreach (self::LOGIN_CARD_PHOTO_KEYS as $index => $key) {
+            $number = $index + 1;
+            $fields[$key] = self::field(
+                type: 'image',
+                default: null,
+                labelEn: "Sign-in card photo {$number}",
+                labelAm: "የመግቢያ ካርድ ፎቶ {$number}",
+                descriptionEn: 'Shown on the ID card animated on the public sign-in page, to everyone who opens it. Use a photo of someone who has agreed, or a model photo, never one taken from employee records.',
+                descriptionAm: 'በይፋዊው የመግቢያ ገጽ ላይ በሚንቀሳቀሰው መታወቂያ ካርድ ላይ ገጹን ለሚከፍት ሁሉ ይታያል። የተስማማ ሰው ፎቶ ወይም የናሙና ፎቶ ብቻ ይጠቀሙ፤ ከሠራተኛ መዝገብ የተወሰደ ፎቶ በፍጹም አይጠቀሙ።',
+                isPublic: true,
+                validationRules: ['nullable', 'file', 'mimes:jpg,jpeg,png,webp'],
+                sortOrder: 150 + $number,
+            );
+        }
+
+        return $fields;
     }
 
     /**

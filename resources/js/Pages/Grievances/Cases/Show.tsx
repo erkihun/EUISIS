@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import RichTextViewer from '@/Components/forms/RichTextViewer';
 import { useLocale } from '@/hooks/useLocale';
 import { ActionForm, CaseBanner, Timeline, Workspace, type InputField } from '@/Components/grievances/Workspace';
 import { DecisionPanel } from '@/Components/grievances/DecisionPanel';
@@ -85,7 +86,7 @@ export default function Show(props: CaseShowProps) {
         {!viewer.details && <p className="text-sm">{t('grievances.common.no_access_details')}</p>}
         {viewer.oversight_only && <p className="rounded-sm border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950/30">{c('oversight_notice')}</p>}
         {viewer.pending_recusal && <p className="rounded-sm border border-amber-200 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950/30">{c('recusal_notice')}</p>}
-        {viewer.details && <Section title={t('grievances.common.description')}><p className="whitespace-pre-wrap">{g.description}</p></Section>}
+        {viewer.details && <Section title={t('grievances.common.description')}><RichTextViewer html={g.description} /></Section>}
         <Section title={t('grievances.common.details')}><Details items={[
             [t('grievances.common.category'), nameOf(g.category, locale)],
             [t('grievances.common.organization'), nameOf(g.organization, locale)],
@@ -333,7 +334,7 @@ function CustodyButton({ url }: { url: string }) {
 }
 
 function Letters({ props, r }: { props: CaseShowProps; r: (name: string, extra?: (string | number)[]) => string }) {
-    const { grievance: g, tabs, options, can } = props;
+    const { tabs, options, can } = props;
     const { t } = useLocale(); const label = useEnumLabel();
     const c = (k: string) => t(`grievanceCases.${k}`);
     const letters = tabs.letters ?? [];

@@ -29,7 +29,7 @@ readonly class ArchiveOrganizationUnitAction
         }
 
         $unit->update([
-            'status'     => OrganizationUnitStatus::Archived,
+            'status' => OrganizationUnitStatus::Archived,
             'updated_by' => $actor->getKey(),
             'deleted_by' => $actor->getKey(),
             'deletion_reason' => $reason,

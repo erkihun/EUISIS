@@ -17,5 +17,8 @@ class AssessmentResponseEvidence extends Model
 
     protected $guarded = ['id'];
 
-    public function response(): BelongsTo { return $this->belongsTo(AssessmentResponse::class, 'response_id'); }
+    public function response(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentResponse::class, 'response_id');
+    }
 }

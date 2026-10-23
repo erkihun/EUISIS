@@ -81,7 +81,6 @@ export default function PositionsIndex({
     });
 
     const displayOrg = localSelected ?? selectedOrganization;
-    const hasUnits = (displayOrg?.organization_units_count ?? 0) > 0;
 
     const createHref =
         route('positions.create') +

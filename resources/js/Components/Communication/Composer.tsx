@@ -212,7 +212,7 @@ export default function Composer(props: Props): JSX.Element {
 
     return (
         <div
-            className="relative border-t border-(--app-border) bg-(--app-surface) px-3 pb-3 pt-2 sm:px-4"
+            className="relative border-t border-(--app-border) bg-(--app-surface) px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 sm:px-4 sm:pb-3"
             onDragOver={(event) => { if (canUpload && !editing && event.dataTransfer.types.includes('Files')) { event.preventDefault(); setDragging(true); } }}
             onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setDragging(false); }}
             onDrop={(event) => {
@@ -298,7 +298,7 @@ export default function Composer(props: Props): JSX.Element {
                             onClick={() => fileInput.current?.click()}
                             aria-label={t('communication.composer.attach')}
                             title={t('communication.composer.attach')}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) pointer-coarse:h-10 pointer-coarse:w-10"
                         >
                             <PaperclipIcon className="h-5 w-5" />
                         </button>
@@ -343,7 +343,7 @@ export default function Composer(props: Props): JSX.Element {
                             addFiles(event.clipboardData.files);
                         }
                     }}
-                    className="max-h-[200px] min-h-[36px] flex-1 resize-none border-0 bg-transparent px-1.5 py-2 text-sm leading-5 text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:outline-hidden focus:ring-0"
+                    className="max-h-[200px] min-h-[36px] min-w-0 flex-1 resize-none border-0 bg-transparent px-1.5 py-2 text-base leading-5 sm:text-sm text-(--app-foreground) placeholder:text-(--app-muted-foreground) focus:outline-hidden focus:ring-0"
                 />
 
                 <div className="relative shrink-0">
@@ -353,7 +353,7 @@ export default function Composer(props: Props): JSX.Element {
                         aria-label={t('communication.composer.emoji')}
                         aria-expanded={emoji}
                         title={t('communication.composer.emoji')}
-                        className="flex h-9 w-9 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)"
+                        className="flex h-9 w-9 items-center justify-center rounded-control text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) pointer-coarse:h-10 pointer-coarse:w-10"
                     >
                         <SmileIcon className="h-5 w-5" />
                     </button>
@@ -366,7 +366,7 @@ export default function Composer(props: Props): JSX.Element {
                     disabled={!canSubmit}
                     aria-label={editing ? t('communication.chat.saveEdit') : t('communication.composer.send')}
                     title={editing ? t('communication.chat.saveEdit') : t('communication.composer.send')}
-                    className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-control bg-primary px-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="flex h-9 min-w-9 shrink-0 items-center justify-center gap-1.5 rounded-control bg-primary px-3 text-sm font-medium text-(--color-on-primary) transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 pointer-coarse:h-10 pointer-coarse:min-w-11"
                 >
                     {editing ? t('communication.chat.saveEdit') : <SendIcon className="h-4 w-4" />}
                 </button>

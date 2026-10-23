@@ -24,9 +24,7 @@ class AnnouncementPublished implements ShouldBroadcast
         return config('communication.broadcast_queue');
     }
 
-    public function __construct(public readonly string $announcementId, public readonly string $priority)
-    {
-    }
+    public function __construct(public readonly string $announcementId, public readonly string $priority) {}
 
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array

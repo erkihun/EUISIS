@@ -4,7 +4,6 @@ import {
     gregorianIsoToEthiopian,
     ethiopianToGregorianIso,
     ethiopianMonthLength,
-    isEthiopianLeapYear,
 } from '@/lib/calendar/ethiopianCalendar';
 import { todayEthiopian } from '@/lib/calendar/dateFormat';
 import { useLocale } from '@/hooks/useLocale';
@@ -57,8 +56,6 @@ export default function EthiopianDatePicker({
     const todayEth = todayEthiopian();
 
     const selectedEth = value ? gregorianIsoToEthiopian(value) : null;
-    const minEth = min ? gregorianIsoToEthiopian(min) : null;
-    const maxEth = max ? gregorianIsoToEthiopian(max) : null;
 
     const [viewYear, setViewYear] = useState(selectedEth?.year ?? todayEth.year);
     const [viewMonth, setViewMonth] = useState(selectedEth?.month ?? todayEth.month);
@@ -215,7 +212,6 @@ export default function EthiopianDatePicker({
                         ))}
                         {Array.from({ length: daysInMonth }).map((_, i) => {
                             const day = i + 1;
-                            const iso = ethiopianToGregorianIso(viewYear, viewMonth, day) ?? '';
                             const isSelected = selectedEth?.year === viewYear && selectedEth?.month === viewMonth && selectedEth?.day === day;
                             const isToday = todayEth.year === viewYear && todayEth.month === viewMonth && todayEth.day === day;
                             const disabled2 = isDayDisabled(day);

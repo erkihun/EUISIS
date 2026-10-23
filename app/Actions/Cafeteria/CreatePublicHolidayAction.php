@@ -17,14 +17,14 @@ readonly class CreatePublicHolidayAction
     public function execute(array $attributes, User $actor, ?Request $request = null): PublicHoliday
     {
         $holiday = PublicHoliday::query()->create([
-            'name_en'         => trim($attributes['name_en']),
-            'name_am'         => isset($attributes['name_am']) ? trim($attributes['name_am']) : null,
-            'holiday_date'    => $attributes['holiday_date'],
-            'is_recurring'    => (bool) ($attributes['is_recurring'] ?? false),
+            'name_en' => trim($attributes['name_en']),
+            'name_am' => isset($attributes['name_am']) ? trim($attributes['name_am']) : null,
+            'holiday_date' => $attributes['holiday_date'],
+            'is_recurring' => (bool) ($attributes['is_recurring'] ?? false),
             'recurrence_type' => $attributes['recurrence_type'] ?? null,
-            'is_active'       => (bool) ($attributes['is_active'] ?? true),
-            'description'     => $attributes['description'] ?? null,
-            'created_by'      => $actor->id,
+            'is_active' => (bool) ($attributes['is_active'] ?? true),
+            'description' => $attributes['description'] ?? null,
+            'created_by' => $actor->id,
         ]);
 
         $this->writeAuditLogAction->execute(

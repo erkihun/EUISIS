@@ -126,13 +126,13 @@ class SystemSettingController extends Controller
     public function updateGeneral(UpdateGeneralSettingsRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $assets = [
-            'identity_system_logo' => $request->file('identity_system_logo'),
-            'favicon' => $request->file('favicon'),
-            'seal' => $request->file('seal'),
-        ];
+        $assetKeys = ['identity_system_logo', 'favicon', 'seal', ...SystemSettingsRegistry::LOGIN_CARD_PHOTO_KEYS];
+        $assets = collect($assetKeys)->mapWithKeys(fn (string $key): array => [$key => $request->file($key)])->all();
+        $remove = array_values(array_unique($validated['remove_assets'] ?? []));
 
-        unset($validated['identity_system_logo'], $validated['favicon'], $validated['seal']);
+        foreach ([...$assetKeys, 'remove_assets'] as $key) {
+            unset($validated[$key]);
+        }
 
         $this->updateGroupAction->execute(
             SystemSettingsRegistry::GROUP_GENERAL,
@@ -143,6 +143,13 @@ class SystemSettingController extends Controller
         foreach ($assets as $key => $file) {
             if ($file !== null) {
                 $this->uploadSystemAssetAction->execute($key, $file, $request->user());
+            }
+        }
+
+        // A removed photo goes at once (consent can be withdrawn); a new upload in the same save wins.
+        foreach ($remove as $key) {
+            if ($assets[$key] === null) {
+                $this->uploadSystemAssetAction->remove($key, $request->user());
             }
         }
 

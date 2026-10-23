@@ -1,12 +1,12 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Details, Field, FieldError, Section, formatScore, inputCls, textareaCls, pageCls, primaryBtn, secondaryBtn } from '@/Components/performance/ui';
+import { Details, Field, FieldError, Section, formatScore, textareaCls, pageCls, primaryBtn, secondaryBtn } from '@/Components/performance/ui';
 // The workspace strings use ":name" placeholders, so they take the workspace kit's fill (performance/ui's takes "{name}").
-import { DeadlineBadge, ResponseStatus, fill, usePick } from '@/Components/assessmentWorkspace/kit';
+import { DeadlineBadge, fill, usePick } from '@/Components/assessmentWorkspace/kit';
 import { useLocale } from '@/hooks/useLocale';
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { Head, router, useForm } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 
 type Option = { id: string; label_en: string | null; label_am: string | null; description_en: string | null; description_am: string | null; score: string };
 type Criterion = { id: string; title_en: string; title_am: string | null; description_en: string | null; description_am: string | null; max_score: string | null; is_required: boolean; comment_mode: 'disabled' | 'optional' | 'required'; evidence_mode: 'disabled' | 'optional' | 'required'; options: Option[] };
@@ -14,7 +14,7 @@ type Definition = { id: string; name_en: string; name_am: string | null; instruc
 type Props = { definition: Definition; response: { id: string; status: string; evaluator_type: string; lock_version: number; return_reason: string | null; due_at: string | null; deadline: string | null; submitted_at: string | null; answers: Record<string, string>; comments: Record<string, string>; evidence: Record<string, { id: string; original_name: string; size: number }[]> }; employee: { name?: string; name_en?: string; number?: string; organization?: string; organization_am?: string; unit?: string; unit_am?: string; position?: string; position_am?: string; grade?: string }; period: { start: string; end: string }; cycle: { code?: string; name_en?: string; name_am?: string; late_submission_policy?: string | null } | null; blocked: string | null; can: { edit: boolean; submit: boolean; conflict: boolean }; evidence: { mimes: string[]; max_kb: number } };
 
 export default function Assess({ definition, response, employee, period, cycle, blocked, can, evidence }: Props) {
-    const { t, locale } = useLocale(); const pick = usePick();
+    const { t } = useLocale(); const pick = usePick();
     const [answers, setAnswers] = useState<Record<string, string>>(response.answers);
     const [comments, setComments] = useState<Record<string, string>>(response.comments);
     const [lockVersion, setLockVersion] = useState(response.lock_version); const [saveState, setSaveState] = useState<'saved' | 'unsaved' | 'saving' | 'failed'>('saved'); const [errors, setErrors] = useState<Record<string, string>>({}); const [lateReason, setLateReason] = useState(''); const [showConfirm, setShowConfirm] = useState(false);

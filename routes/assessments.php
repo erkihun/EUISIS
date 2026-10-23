@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Employee\MyAssessmentsController;
+use App\Http\Controllers\Web\AssessmentFormController;
+use App\Http\Controllers\Web\AssessmentOversightAdminController;
+use App\Http\Controllers\Web\AssessmentOversightController;
+use App\Http\Controllers\Web\AssessmentOversightExportController;
+use App\Http\Controllers\Web\AssessmentRecordController;
+use App\Http\Controllers\Web\AssessmentReviewController;
+use App\Http\Controllers\Web\AssessmentWorkspaceController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -20,7 +29,7 @@ foreach ([
     'performance/assessment-oversight' => 'assessments/oversight',
     'performance/assessments' => 'assessments/records',
 ] as $old => $new) {
-    Route::get($old.'/{rest?}', function (\Illuminate\Http\Request $request, ?string $rest = null) use ($new) {
+    Route::get($old.'/{rest?}', function (Request $request, ?string $rest = null) use ($new) {
         $query = $request->getQueryString();
 
         return redirect('/'.$new.($rest ? '/'.$rest : '').($query ? '?'.$query : ''), 301);
@@ -34,7 +43,7 @@ foreach ([
 */
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     ->prefix('assessments/records')->group(function (): void {
-        $controller = \App\Http\Controllers\Web\AssessmentRecordController::class;
+        $controller = AssessmentRecordController::class;
         Route::get('/', [$controller, 'index'])->name('assessment-records.index');
         Route::post('/', [$controller, 'store'])->name('assessment-records.store');
         Route::get('/{record}', [$controller, 'show'])->whereUuid('record')->name('assessment-records.show');
@@ -54,7 +63,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     ->prefix('assessments/forms')
     ->group(function (): void {
-        $forms = \App\Http\Controllers\Web\AssessmentFormController::class;
+        $forms = AssessmentFormController::class;
 
         Route::get('/', [$forms, 'index'])->name('assessment-forms.index');
         Route::post('/', [$forms, 'store'])->name('assessment-forms.store');
@@ -82,9 +91,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     ->prefix('assessments/oversight')->name('assessment-oversight.')
     ->group(function (): void {
-        $pages = \App\Http\Controllers\Web\AssessmentOversightController::class;
-        $admin = \App\Http\Controllers\Web\AssessmentOversightAdminController::class;
-        $export = \App\Http\Controllers\Web\AssessmentOversightExportController::class;
+        $pages = AssessmentOversightController::class;
+        $admin = AssessmentOversightAdminController::class;
+        $export = AssessmentOversightExportController::class;
 
         Route::get('/', [$pages, 'dashboard'])->name('dashboard');
         Route::get('/institutions', [$pages, 'institutions'])->name('institutions');
@@ -135,7 +144,7 @@ Route::middleware(['auth', 'force.password', 'admin.access'])
     ->prefix('assessments')->name('assessment-workspace.')
     ->whereUuid(['response', 'evidence'])
     ->group(function (): void {
-        $workspace = \App\Http\Controllers\Web\AssessmentWorkspaceController::class;
+        $workspace = AssessmentWorkspaceController::class;
         Route::get('/my-assigned', [$workspace, 'index'])->name('index');
         Route::get('/respond/{response}', [$workspace, 'show'])->name('show');
         Route::post('/respond/{response}/draft', [$workspace, 'draft'])->middleware('throttle:120,1')->name('draft');
@@ -150,7 +159,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     ->prefix('assessments/reviews')->name('assessment-reviews.')
     ->whereUuid(['record', 'response'])
     ->group(function (): void {
-        $reviews = \App\Http\Controllers\Web\AssessmentReviewController::class;
+        $reviews = AssessmentReviewController::class;
         Route::get('/', [$reviews, 'index'])->name('index');
         Route::get('/{record}', [$reviews, 'show'])->name('show');
         Route::post('/{record}/finalize', [$reviews, 'finalize'])->name('finalize');
@@ -165,6 +174,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 Route::middleware(['auth', 'force.password', 'admin.access'])
     ->prefix('my-portal/assessments')->name('employee.assessments.')
     ->group(function (): void {
-        Route::get('/', [\App\Http\Controllers\Employee\MyAssessmentsController::class, 'index'])->name('index');
-        Route::post('/{record}/acknowledge', [\App\Http\Controllers\Employee\MyAssessmentsController::class, 'acknowledge'])->whereUuid('record')->name('acknowledge');
+        Route::get('/', [MyAssessmentsController::class, 'index'])->name('index');
+        Route::post('/{record}/acknowledge', [MyAssessmentsController::class, 'acknowledge'])->whereUuid('record')->name('acknowledge');
     });

@@ -15,7 +15,7 @@ class RejectCardRequestRequest extends FormRequest
 
         return $cardRequest instanceof CardRequest
             ? $this->user()?->can('reject', $cardRequest) ?? false
-            : ($this->user()?->can('id-cards.rejectRequest') || $this->user()?->can('cards.manage')) ?? false;
+            : $this->user()?->can('id-cards.rejectRequest') ?? false;
     }
 
     public function rules(): array

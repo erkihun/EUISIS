@@ -11,7 +11,9 @@ use App\Models\Communication\CommunicationUserSetting;
 use App\Models\Communication\ConversationMember;
 use App\Models\Communication\Message;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
 
 /**
@@ -108,7 +110,7 @@ final class ConversationList
                 'role' => $m->role->value,
                 'unread_count' => (int) $m->unread_count,
                 'muted' => $m->isMuted(),
-                'last_message_at' => $m->conversation_last_message_at ? \Illuminate\Support\Carbon::parse($m->conversation_last_message_at)->toIso8601String() : null,
+                'last_message_at' => $m->conversation_last_message_at ? Carbon::parse($m->conversation_last_message_at)->toIso8601String() : null,
                 'last_message' => $last === null ? null : [
                     'sender_name' => $last->sender?->name,
                     'deleted' => $last->trashed(),
@@ -121,7 +123,7 @@ final class ConversationList
     }
 
     /** "<@12>" → "@Name", "<!everyone>" → "@everyone"; unknown people become a bare "@". */
-    public static function readableBody(string $body, \Illuminate\Support\Collection $names): string
+    public static function readableBody(string $body, Collection $names): string
     {
         $text = preg_replace_callback('/<@(\d{1,19})>/', fn (array $m): string => '@'.($names->get((int) $m[1]) ?? ''), $body) ?? $body;
 
@@ -134,7 +136,7 @@ final class ConversationList
         $event = (string) ($metadata['system_event'] ?? '');
         $key = "communication.system.{$event}";
 
-        return $event !== '' && \Illuminate\Support\Facades\Lang::has($key)
+        return $event !== '' && Lang::has($key)
             ? (string) __($key, ['actor' => (string) ($metadata['actor_name'] ?? ''), 'subject' => (string) ($metadata['subject_name'] ?? '')])
             : '';
     }

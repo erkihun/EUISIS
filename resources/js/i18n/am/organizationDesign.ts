@@ -81,7 +81,7 @@ const organizationDesign = {
             positions_without_jd: 'ይፋ የሆነ የሥራ መግለጫ የሌላቸው መደቦች', positions_without_profile: 'ይፋ የሆነ መገለጫ የሌላቸው መደቦች', imports_waiting: 'ማጽደቅ ወይም ማዛመድ የሚጠብቁ ማስመጫዎች',
         },
         categories: {
-            legacy: { title: 'የቀድሞ መነሻ መዝገቦች', body: 'ተቋም ከAddis One በፊት በሕግ ምን እንደነበር ደረጃ በደረጃ ይቅረጹ፤ ይፋ ያድርጉ።' },
+            legacy: { title: 'የቀድሞ መነሻ መዝገቦች', body: 'ተቋም ከ{brand} በፊት በሕግ ምን እንደነበር ደረጃ በደረጃ ይቅረጹ፤ ይፋ ያድርጉ።' },
             legal: { title: 'የሕግ ማዕቀፍ', body: 'ንድፉ የሚመሠረትባቸው የሕግ ምንጮች፣ ሥልጣኖችና ድንጋጌዎች።' },
             functions_services: { title: 'ተግባራትና አገልግሎቶች', body: 'ሥልጣኑ የሚጠይቀውና የሚያቀርቡት አገልግሎቶች።' },
             processes: { title: 'ሂደቶችና የሥራ ስታንዳርዶች', body: 'ሂደቶች፣ እንቅስቃሴዎችና ሥራዎች ከብዛት፣ ከጊዜና ከጥራት ስታንዳርዶቻቸው ጋር።' },
@@ -139,7 +139,7 @@ const organizationDesign = {
 
     legacyBaselines: {
         title: 'የቀድሞ መነሻ መዝገቦች',
-        description: 'ተቋም ከAddis One በፊት በሕግና በአስተዳደር ምን እንደነበር፣ ቀድሞ በነበሩ የንድፍ መዝገቦች ላይ ደረጃ በደረጃ ተቀርጾ፣ ተረጋግጦ፣ ተገምግሞ፣ ጸድቆ ይፋ ሲሆን የሚቀዘቅዝ። ይፋ የሆነ መነሻ በጭራሽ አይስተካከልም፤ ለውጥ አዲስ ክለሳ ነው።',
+        description: 'ተቋም ከ{brand} በፊት በሕግና በአስተዳደር ምን እንደነበር፣ ቀድሞ በነበሩ የንድፍ መዝገቦች ላይ ደረጃ በደረጃ ተቀርጾ፣ ተረጋግጦ፣ ተገምግሞ፣ ጸድቆ ይፋ ሲሆን የሚቀዘቅዝ። ይፋ የሆነ መነሻ በጭራሽ አይስተካከልም፤ ለውጥ አዲስ ክለሳ ነው።',
         create: 'መነሻ መዝገብ ይክፈቱ',
         edit: 'መነሻ መዝገብ ያርትዑ',
         formHelp: 'ቀረጻውን ይሰይሙ፤ የትኛውን ቀን እንደሚገልጽ ይናገሩ። ደረጃዎች ተቋሙ አስቀድሞ ካሉት መዝገቦች ይታወቃሉ፤ አስቀምጠው በኋላ መመለስ ይችላሉ።',
@@ -202,7 +202,7 @@ const organizationDesign = {
         hierarchyVersion: 'የተዋረድ ስሪት',
         legalSource: 'ዋና የሕግ ምንጭ',
         none: 'እስካሁን የቀድሞ መነሻ መዝገብ የለም',
-        noneHint: 'ከAddis One በፊት ለነበረ ተቋም በሕግ ምን እንደነበር ለመቅረጽ መነሻ መዝገብ ይክፈቱ።',
+        noneHint: 'ከ{brand} በፊት ለነበረ ተቋም በሕግ ምን እንደነበር ለመቅረጽ መነሻ መዝገብ ይክፈቱ።',
         searchPlaceholder: 'በማጣቀሻ ወይም በርዕስ ይፈልጉ',
         stepNames: {
             organization_sources: 'ተቋምና የሕግ ምንጮች', mandates: 'ሥልጣኖች', powers_functions: 'ሥልጣንና ተግባራት', services: 'አገልግሎቶች', processes: 'ሂደቶች',
@@ -213,7 +213,7 @@ const organizationDesign = {
         },
         stepHints: {
             organization_sources: 'ተቋሙ የሚመሠረትባቸው ሰነዶች። በሕግ ምንጭ መዝገብ ይመዝግቧቸው፤ ዋናውን እዚህ ይምረጡ።',
-            mandates: 'ከAddis One በፊት በሥራ ላይ የነበሩ ሥልጣኖች፣ እያንዳንዱ የሕግ ምንጩን እየጠቆመ።',
+            mandates: 'ከ{brand} በፊት በሥራ ላይ የነበሩ ሥልጣኖች፣ እያንዳንዱ የሕግ ምንጩን እየጠቆመ።',
             powers_functions: 'ሥልጣኑ ተቋሙን የሚያስችለውና የሚያስገድደው።',
             services: 'የሚሰጡ አገልግሎቶች፣ ይፋዊ መረጃ ባለበት ከምደባቸው ጋር።',
             processes: 'ከአገልግሎቶቹ ጀርባ ያሉ ሂደቶች።',

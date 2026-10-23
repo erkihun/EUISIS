@@ -211,7 +211,7 @@ function ServiceSelect({ serviceTypes, value, onChange, error, optional }: {
 
 /** One form screen: the fields scroll, the Send button stays at the bottom edge, with upload progress above it. */
 function FormScreen({ formRef, onSubmit, requirements, processing, progress, submitLabel, children }: {
-    formRef: RefObject<HTMLFormElement>;
+    formRef: RefObject<HTMLFormElement | null>;
     onSubmit: (event: FormEvent) => void;
     requirements: SubmissionRequirements;
     processing: boolean;

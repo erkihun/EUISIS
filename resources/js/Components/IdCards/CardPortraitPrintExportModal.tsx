@@ -18,7 +18,6 @@ import { buttonClassName } from '@/Components/ui';
 // Capture at half size (270 × 428) then pixelRatio:2 → 540 × 856 output.
 
 type Tab = 'front' | 'back' | 'both';
-type PrintSide = 'front' | 'back' | 'both' | null;
 
 type Props = {
     card: CardForExport;
@@ -54,7 +53,7 @@ function downloadDataUrl(dataUrl: string, fileName: string): void {
 
 export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: Props) {
     const { t, locale } = useLocale();
-    const { width: PORTRAIT_W, height: PORTRAIT_H, widthMm: portraitWidthMm, printStyle } = useCardDimensions('portrait');
+    const { width: PORTRAIT_W, height: PORTRAIT_H, widthMm: portraitWidthMm } = useCardDimensions('portrait');
     const [tab, setTab]           = useState<Tab>('front');
     const [exporting, setExporting] = useState(false);
 

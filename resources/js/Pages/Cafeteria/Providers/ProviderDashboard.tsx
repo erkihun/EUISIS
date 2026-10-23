@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
@@ -50,7 +50,6 @@ export default function ProviderDashboard({
     const money = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const thCls = 'px-4 py-3 text-left text-xs font-semibold text-(--app-muted-foreground)';
-    const tdCls = 'px-4 py-3 text-sm text-(--app-foreground)';
 
     return (
         <AuthenticatedLayout

@@ -558,8 +558,8 @@ class DatabaseSeeder extends Seeder
         // Legacy/branding/ui defaults (kept for backward compatibility).
         $defaults = [
             // Branding
-            ['group' => 'branding', 'key' => 'app_name_en',   'value' => 'Addis One',                                           'type' => 'string',  'label_en' => 'Application Name (English)',  'label_am' => 'የሥርዓቱ ስም (እንግሊዝኛ)',  'is_public' => true,  'sort_order' => 1],
-            ['group' => 'branding', 'key' => 'app_name_am',   'value' => 'Addis One',                                             'type' => 'string',  'label_en' => 'Application Name (Amharic)', 'label_am' => 'የሥርዓቱ ስም (አማርኛ)',    'is_public' => true,  'sort_order' => 2],
+            ['group' => 'branding', 'key' => 'app_name_en',   'value' => 'Agelgay',                                             'type' => 'string',  'label_en' => 'Application Name (English)',  'label_am' => 'የሥርዓቱ ስም (እንግሊዝኛ)',  'is_public' => true,  'sort_order' => 1],
+            ['group' => 'branding', 'key' => 'app_name_am',   'value' => 'አገልጋይ',                                                'type' => 'string',  'label_en' => 'Application Name (Amharic)', 'label_am' => 'የሥርዓቱ ስም (አማርኛ)',    'is_public' => true,  'sort_order' => 2],
             ['group' => 'branding', 'key' => 'org_name_en',   'value' => 'Addis Ababa City Administration',                   'type' => 'string',  'label_en' => 'Organization Name (English)', 'label_am' => 'የድርጅቱ ስም (እንግሊዝኛ)', 'is_public' => true,  'sort_order' => 3],
             ['group' => 'branding', 'key' => 'org_name_am',   'value' => 'የአዲስ አበባ ከተማ አስተዳደር',                               'type' => 'string',  'label_en' => 'Organization Name (Amharic)', 'label_am' => 'የድርጅቱ ስም (አማርኛ)',   'is_public' => true,  'sort_order' => 4],
 

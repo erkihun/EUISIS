@@ -49,6 +49,8 @@ const common = {
     change: 'ይቀይሩ',
     searchEmployee: 'በሠራተኛ ቁጥር ወይም በስም ይፈልጉ (ቢያንስ 2 ፊደላት ያስገቡ)',
     close: 'ይዝጉ',
+    // Footer credit on public and admin pages; the name stays as the author writes it.
+    designCredit: 'ዲዛይንና ልማት፦ Erkihun Bewket',
     open: 'ይክፈቱ',
     more: 'ተጨማሪ',
     clear: 'ያጽዱ',

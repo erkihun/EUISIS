@@ -22,5 +22,8 @@ class AssessmentResponseRevision extends Model
         return ['items' => 'array', 'score_snapshot' => 'array', 'submitted_at' => 'datetime', 'returned_at' => 'datetime', 'created_at' => 'datetime'];
     }
 
-    public function response(): BelongsTo { return $this->belongsTo(AssessmentResponse::class, 'response_id'); }
+    public function response(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentResponse::class, 'response_id');
+    }
 }

@@ -26,3 +26,13 @@ yarn-error.log
 /.zed
 /EUISIS
 /.claude/settings.local.json
+
+# Local tool output and scratch files
+/.playwright-mcp/
+/.superpowers/
+/.claude/scheduled_tasks.lock
+/cognee_stderr.txt
+/omniroute_stderr.txt
+/employeeId_db
+/sec-routes.json
+/sec-audit.json

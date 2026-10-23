@@ -1,43 +1,28 @@
 import { usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { BRANDING_FALLBACK, brandNameFor, type Branding } from '@/lib/branding';
 import type { PageProps } from '@/types';
 
-/** The safe branding shape shared by HandleInertiaRequests (BrandingService::toArray). */
-export type Branding = {
-    brandName: string;
-    shortName: string;
-    officialNameEn: string;
-    officialNameAm: string;
-    logoUrl: string | null;
-    faviconUrl: string | null;
-};
+export { BRANDING_FALLBACK, type Branding };
 
 /**
- * The only place the product's name is written in the frontend. Everything
- * else reads it from here: System Settings (live, including the settings
- * preview) → the shared `branding` prop → these boot fallbacks, which mirror
- * config/branding.php.
+ * The frontend reader of the product's identity: System Settings (live,
+ * including the settings preview) → the shared `branding` prop → the boot
+ * fallbacks in lib/branding.ts, which mirror config/branding.php.
  */
-export const BRANDING_FALLBACK: Branding = {
-    brandName: 'Addis One',
-    shortName: 'AA-IEMSS',
-    officialNameEn: 'Addis Ababa Integrated Employee Management & Service System',
-    officialNameAm: 'የአዲስ አበባ የተቀናጀ የሰራተኛ አስተዳደርና አገልግሎት ሥርዓት',
-    logoUrl: null,
-    faviconUrl: null,
-};
-
 export function useBranding() {
     const { props } = usePage<PageProps<{ branding?: Partial<Branding> }>>();
-    const { getString } = useSystemSettings();
+    const { getString, settings } = useSystemSettings();
     const { locale } = useLocale();
     const shared = props.branding ?? {};
 
     const pick = (settingKey: string, propKey: keyof Branding): string =>
         getString(settingKey, (shared[propKey] as string | undefined) || (BRANDING_FALLBACK[propKey] as string));
 
-    const brandName = pick('app.name', 'brandName');
+    const brandNameEn = brandNameFor('en', settings, shared);
+    const brandNameAm = brandNameFor('am', settings, shared);
+    const brandName = locale === 'am' ? brandNameAm : brandNameEn;
     const shortName = pick('app.short_name', 'shortName');
     const officialNameEn = pick('app.official_name_en', 'officialNameEn');
     const officialNameAm = pick('app.official_name_am', 'officialNameAm') || officialNameEn;
@@ -54,7 +39,10 @@ export function useBranding() {
 
     return {
         withBrand,
+        /** The brand in the current language: አገልጋይ on Amharic pages, Agelgay elsewhere (by default). */
         brandName,
+        brandNameEn,
+        brandNameAm,
         shortName,
         officialNameEn,
         officialNameAm,

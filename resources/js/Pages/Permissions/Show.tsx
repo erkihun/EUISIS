@@ -34,7 +34,6 @@ export default function ShowPermission({
     const { t, locale } = useLocale();
 
     const label = (locale === 'am' ? permission.label_am : null) ?? permission.label_en ?? permission.name;
-    const description = (locale === 'am' ? permission.description_am : null) ?? permission.description_en;
 
     return (
         <AuthenticatedLayout

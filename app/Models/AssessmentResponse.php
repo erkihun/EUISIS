@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Services\Assessment\Oversight\AssessmentCoverageService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -16,7 +17,7 @@ class AssessmentResponse extends Model
     /** Oversight aggregates of the record's cycle are cached; a changed response invalidates them. */
     protected static function booted(): void
     {
-        static::saved(fn (AssessmentResponse $response) => \App\Services\Assessment\Oversight\AssessmentCoverageService::bump(
+        static::saved(fn (AssessmentResponse $response) => AssessmentCoverageService::bump(
             AssessmentRecord::query()->whereKey($response->assessment_record_id)->value('assessment_cycle_id')));
     }
 
@@ -35,12 +36,38 @@ class AssessmentResponse extends Model
     /** Statuses that still count towards the record (a cancelled or recused assignment does not). */
     public const ACTIVE = ['not_started', 'in_progress', 'submitted', 'returned'];
 
-    public function record(): BelongsTo { return $this->belongsTo(AssessmentRecord::class, 'assessment_record_id'); }
-    public function evaluator(): BelongsTo { return $this->belongsTo(User::class, 'evaluator_id'); }
-    public function scheme(): BelongsTo { return $this->belongsTo(AssessmentEvaluatorScheme::class, 'evaluator_scheme_id'); }
-    public function items(): HasMany { return $this->hasMany(AssessmentResponseItem::class, 'response_id'); }
-    public function evidence(): HasMany { return $this->hasMany(AssessmentResponseEvidence::class, 'response_id'); }
-    public function revisions(): HasMany { return $this->hasMany(AssessmentResponseRevision::class, 'response_id')->orderBy('revision_no'); }
+    public function record(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentRecord::class, 'assessment_record_id');
+    }
 
-    public function isEditable(): bool { return in_array($this->status, self::EDITABLE, true); }
+    public function evaluator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'evaluator_id');
+    }
+
+    public function scheme(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentEvaluatorScheme::class, 'evaluator_scheme_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(AssessmentResponseItem::class, 'response_id');
+    }
+
+    public function evidence(): HasMany
+    {
+        return $this->hasMany(AssessmentResponseEvidence::class, 'response_id');
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(AssessmentResponseRevision::class, 'response_id')->orderBy('revision_no');
+    }
+
+    public function isEditable(): bool
+    {
+        return in_array($this->status, self::EDITABLE, true);
+    }
 }

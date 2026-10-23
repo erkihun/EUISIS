@@ -11,10 +11,30 @@ import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import GlobalAIAssistant from '@/Components/ai/GlobalAIAssistant';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
+import { darkThemeVariant, hoverVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
 
 import { buttonClassName } from '@/Components/ui';
 const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
+
+/** What the shell writes onto <html> from System Settings › Appearance. */
+const SHELL_ROOT_PROPERTIES = [
+    '--color-primary-strong',
+    '--color-primary-soft',
+    '--color-primary-hover-strong',
+    '--color-primary-hover-soft',
+    '--color-on-primary-strong',
+    '--color-on-primary-soft',
+    '--color-secondary',
+    '--color-accent-strong',
+    '--color-accent-soft',
+    '--sidebar-bg-light',
+    '--sidebar-bg-dark',
+    '--sidebar-fg-light',
+    '--sidebar-fg-dark',
+    '--sidebar-accent-light',
+    '--sidebar-accent-dark',
+] as const;
+const SHELL_ROOT_DATASET = ['buttonStyle', 'cardRadius', 'tableDensity', 'stickyTables', 'animations'] as const;
 // Page chrome and content share one measure, so titles line up with the content below them
 // and very wide screens keep a readable line length.
 const CONTENT_WIDTH = 'mx-auto w-full max-w-[1600px]';
@@ -99,6 +119,13 @@ export default function Authenticated({
     // after every successful navigation so the destination is immediately visible.
     useEffect(() => setSidebarOpen(false), [pageUrl]);
 
+    // Marks a focus workspace on <html>, so rules can reach its dialogs, which render outside the shell.
+    useEffect(() => {
+        if (!focus) return;
+        document.documentElement.dataset.workspace = mode;
+        return () => { delete document.documentElement.dataset.workspace; };
+    }, [focus, mode]);
+
     useEffect(() => {
         const root = document.documentElement;
         /* Write the two theme variants, never `--color-primary` itself: an
@@ -106,6 +133,8 @@ export default function Authenticated({
            dark mode stuck on the light-theme colour. */
         root.style.setProperty('--color-primary-strong', primary);
         root.style.setProperty('--color-primary-soft', darkThemeVariant(primary));
+        root.style.setProperty('--color-primary-hover-strong', hoverVariant(primary));
+        root.style.setProperty('--color-primary-hover-soft', hoverVariant(darkThemeVariant(primary)));
         // Text on a primary fill: the lighter dark-theme variant of a bright
         // brand colour needs dark text, not white.
         root.style.setProperty('--color-on-primary-strong', readableForeground(primary));
@@ -144,6 +173,17 @@ export default function Authenticated({
         root.dataset.tableDensity = tableDensity;
         root.dataset.stickyTables = String(stickyTableHeaders);
         root.dataset.animations = String(enableAnimations);
+
+        /* Inertia swaps pages without reloading, so the root element outlives
+           this shell. Take the brand values back off when the shell goes away
+           (signing out lands on the public site) or the public pages keep the
+           admin colours until the next full reload. Between two signed-in
+           pages React runs this cleanup and the next shell's effect in the
+           same pass, so nothing flickers. */
+        return () => {
+            for (const name of SHELL_ROOT_PROPERTIES) root.style.removeProperty(name);
+            for (const key of SHELL_ROOT_DATASET) delete root.dataset[key];
+        };
     }, [primary, secondary, accent, sidebarColor, buttonStyle, cardRadius, tableDensity, stickyTableHeaders, enableAnimations]);
 
     return (
@@ -235,6 +275,13 @@ export default function Authenticated({
                             {contentWidth === 'form' ? <div className={FORM_WIDTH}>{children}</div> : children}
                         </div>
                     </main>
+                )}
+
+                {/* Not in Communication mode: messaging fills the screen and keeps its composer at the bottom. */}
+                {!focus && (
+                    <footer className="shrink-0 border-t border-(--app-border) px-4 py-3 text-xs text-(--app-muted-foreground) sm:px-6 lg:px-8">
+                        <p className={CONTENT_WIDTH}>{t('common.designCredit')}</p>
+                    </footer>
                 )}
             </div>
         </div>

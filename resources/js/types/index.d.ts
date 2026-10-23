@@ -18,6 +18,10 @@ export type PageProps<
         roles?: string[];
         permissions?: string[];
         isSuperAdmin?: boolean;
+        /** Whether /dashboard opens for this user; otherwise their home is My Portal. */
+        canViewDashboard?: boolean;
+        /** Citywide organization scope (city-level settings pages). */
+        unrestrictedScope?: boolean;
     };
     calendar?: {
         system: CalendarSystem;

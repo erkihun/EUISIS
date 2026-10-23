@@ -39,6 +39,23 @@ function MessageBubble(props: Props): JSX.Element {
     const [picker, setPicker] = useState(false);
     const [menu, setMenu] = useState(false);
     const [copied, setCopied] = useState(false);
+    // Touch screens have no hover: a tap on the bubble shows its actions, a tap anywhere else hides them.
+    const [revealed, setRevealed] = useState(false);
+    const item = useRef<HTMLLIElement>(null);
+    useEffect(() => {
+        if (!revealed) return;
+        const away = (event: PointerEvent) => {
+            if (!item.current?.contains(event.target as Node)) setRevealed(false);
+        };
+        document.addEventListener('pointerdown', away);
+        return () => document.removeEventListener('pointerdown', away);
+    }, [revealed]);
+    // Choosing a reaction or a menu entry is the end of the gesture: put the toolbar away again.
+    const hadOverlay = useRef(false);
+    useEffect(() => {
+        if (picker || menu) hadOverlay.current = true;
+        else if (hadOverlay.current) { hadOverlay.current = false; setRevealed(false); }
+    }, [picker, menu]);
 
     if (message.type === 'SYSTEM') {
         return (
@@ -72,6 +89,7 @@ function MessageBubble(props: Props): JSX.Element {
 
     return (
         <li
+            ref={item}
             id={`m-${message.id}`}
             className={`group relative flex px-3 sm:px-5 ${own ? 'justify-end' : 'justify-start'} ${continued ? 'mt-0.5' : 'mt-3'} ${highlighted ? 'comm-flash' : ''}`}
         >
@@ -80,7 +98,14 @@ function MessageBubble(props: Props): JSX.Element {
                     <span className="mb-0.5 px-1 text-xs font-semibold text-(--app-muted-foreground)">{message.sender?.name}</span>
                 )}
 
-                <div className={`relative rounded-panel px-3.5 py-2 text-sm leading-relaxed ${surface} ${own ? (continued ? 'rounded-se-md' : 'rounded-se-sm') : (continued ? 'rounded-ss-md' : 'rounded-ss-sm')}`}>
+                <div
+                    className={`relative rounded-panel px-3.5 py-2 text-sm leading-relaxed ${surface} ${own ? (continued ? 'rounded-se-md' : 'rounded-se-sm') : (continued ? 'rounded-ss-md' : 'rounded-ss-sm')} ${revealed ? 'ring-2 ring-[color-mix(in_srgb,var(--color-primary)_35%,transparent)]' : ''}`}
+                    onClick={(event) => {
+                        if (!actionable || !window.matchMedia?.('(pointer: coarse)').matches) return;
+                        if ((event.target as HTMLElement).closest('a, button')) return;
+                        setRevealed((shown) => !shown);
+                    }}
+                >
                     {message.forwarded && !message.deleted && (
                         <span className={`mb-1 flex items-center gap-1 text-[11px] italic ${own ? 'text-(--app-muted-foreground)' : 'text-(--app-muted-foreground)'}`}>
                             <ForwardIcon className="h-3 w-3" aria-hidden="true" /> {t('communication.chat.forwarded')}
@@ -146,7 +171,7 @@ function MessageBubble(props: Props): JSX.Element {
 
                 {actionable && (
                     <div
-                        className={`absolute top-0 z-10 flex -translate-y-1/2 items-center rounded-control border border-(--app-border) bg-(--app-surface) p-0.5 opacity-0 shadow-xs transition-opacity focus-within:opacity-100 group-hover:opacity-100 ${picker || menu ? 'opacity-100' : ''} ${own ? 'inset-s-0' : 'inset-e-0'}`}
+                        className={`absolute top-0 z-10 flex -translate-y-1/2 items-center rounded-control border border-(--app-border) bg-(--app-surface) p-0.5 shadow-xs transition-opacity ${picker || menu || revealed ? 'opacity-100' : 'pointer-events-none opacity-0 focus-within:pointer-events-auto focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100'} ${own ? 'inset-s-0' : 'inset-e-0'}`}
                     >
                         {can.react && (
                             <div className="relative">
@@ -171,7 +196,7 @@ function MessageBubble(props: Props): JSX.Element {
                             </div>
                         )}
                         {can.reply && (
-                            <ToolbarButton label={t('communication.actions.reply')} onClick={() => props.onReply(message)}>
+                            <ToolbarButton label={t('communication.actions.reply')} onClick={() => { setRevealed(false); props.onReply(message); }}>
                                 <ReplyIcon className="h-4 w-4" />
                             </ToolbarButton>
                         )}
@@ -223,7 +248,7 @@ function ToolbarButton({ label, onClick, expanded, children }: { label: string; 
             aria-label={label}
             aria-expanded={expanded}
             onClick={onClick}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground) focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-primary pointer-coarse:h-9 pointer-coarse:w-9"
         >
             {children}
         </button>

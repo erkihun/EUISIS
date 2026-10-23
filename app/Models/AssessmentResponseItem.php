@@ -20,7 +20,18 @@ class AssessmentResponseItem extends Model
         return ['score_snapshot' => 'decimal:4'];
     }
 
-    public function response(): BelongsTo { return $this->belongsTo(AssessmentResponse::class, 'response_id'); }
-    public function criterion(): BelongsTo { return $this->belongsTo(AssessmentCriterion::class, 'criterion_id'); }
-    public function option(): BelongsTo { return $this->belongsTo(AssessmentRatingOption::class, 'rating_option_id'); }
+    public function response(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentResponse::class, 'response_id');
+    }
+
+    public function criterion(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentCriterion::class, 'criterion_id');
+    }
+
+    public function option(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentRatingOption::class, 'rating_option_id');
+    }
 }

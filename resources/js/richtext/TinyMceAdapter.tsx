@@ -10,7 +10,7 @@
  * app's own locale fonts (resources/css/fonts.css, Ethiopic included) and the
  * same `.rich-text` styles the viewer uses.
  */
-import 'tinymce/tinymce';
+import './tinymceGlobal';
 import 'tinymce/models/dom/model';
 import 'tinymce/themes/silver/theme';
 import 'tinymce/icons/default/icons';
