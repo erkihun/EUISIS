@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Position;
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use Illuminate\Console\Command;
 
 class BackfillPositionOccupancies extends Command

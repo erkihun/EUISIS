@@ -24,7 +24,7 @@ use App\Models\User;
 use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use Illuminate\Support\Carbon;
 use Throwable;
 

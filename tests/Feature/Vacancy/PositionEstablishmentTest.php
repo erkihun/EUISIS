@@ -9,7 +9,7 @@ use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

@@ -14,6 +14,9 @@ use App\Backbone\Contracts\CardCredentialStatus;
 use App\Backbone\Contracts\EmployeeDirectory;
 use App\Backbone\Contracts\OrganizationHierarchy;
 use App\Backbone\Contracts\ServiceEligibility;
+use App\Backbone\Observers\BackboneDomainEventObserver;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -32,4 +35,14 @@ class BackboneServiceProvider extends ServiceProvider
         CardCredentialStatus::class => IdCardCredentialStatus::class,
         ServiceEligibility::class => CardBasedServiceEligibility::class,
     ];
+
+    public function boot(): void
+    {
+        // Backbone domain events (AssignmentChanged, EmployeeChanged); service modules listen.
+        EmployeeAssignment::created(fn (EmployeeAssignment $assignment) => app(BackboneDomainEventObserver::class)->assignmentCreated($assignment));
+        EmployeeAssignment::updated(fn (EmployeeAssignment $assignment) => app(BackboneDomainEventObserver::class)->assignmentUpdated($assignment));
+        EmployeeAssignment::deleted(fn (EmployeeAssignment $assignment) => app(BackboneDomainEventObserver::class)->assignmentDeleted($assignment));
+        Employee::created(fn (Employee $employee) => app(BackboneDomainEventObserver::class)->employeeCreated($employee));
+        Employee::updated(fn (Employee $employee) => app(BackboneDomainEventObserver::class)->employeeUpdated($employee));
+    }
 }

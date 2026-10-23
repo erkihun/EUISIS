@@ -9,7 +9,7 @@ use App\Services\Transport\TransportEligibilityReevaluator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/** Queued after a placement or status change commits (TransportEligibilityObserver). */
+/** Queued after a placement or status change commits (TransportEligibilitySync, on backbone events). */
 class ReevaluateTransportEligibility implements ShouldQueue
 {
     use Queueable;

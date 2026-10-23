@@ -31,7 +31,7 @@ use App\Services\IdCards\IdCardSnapshotComparisonService;
 use App\Services\Integration\Events\TransferEvents;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\Performance\EmployeeAgreementService;
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

@@ -59,11 +59,8 @@ it('keeps backbone code free of service-module imports', function (): void {
 
     $allowed = [
         'app/Actions/Employees/RegisterEmployeeAction.php -> App\Services\ServiceFeedback\EmployeeFeedbackTokenService',
-        'app/Actions/Employees/RegisterEmployeeAction.php -> App\Services\Vacancy\PositionCapacityService',
         'app/Models/JobDescription.php -> App\Enums\OrganizationDesignStatus',
         'app/Models/PositionProfile.php -> App\Enums\OrganizationDesignStatus',
-        'app/Observers/EmployeeAssignmentCommunicationObserver.php -> App\Jobs\Communication\SyncEmployeeCommunicationMemberships',
-        'app/Observers/TransportEligibilityObserver.php -> App\Jobs\Transport\ReevaluateTransportEligibility',
         'app/Services/CodeGeneration/CodeFormatTokenResolver.php -> App\Models\ServiceProvider',
         'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\DisciplinaryCase',
         'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\EmployeeServiceFeedback',
@@ -74,7 +71,6 @@ it('keeps backbone code free of service-module imports', function (): void {
         'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\TransferApplication',
         'app/Services/CodeGeneration/CodeRuleTargetRegistry.php -> App\Models\ServiceProvider',
         'app/Services/CodeGeneration/CodeRuleTargetRegistry.php -> App\Models\TransferApplication',
-        'app/Services/Employees/EmployeeCsvImportService.php -> App\Services\Vacancy\PositionCapacityService',
         'app/Services/IdCards/IdCardRenderDataFactory.php -> App\Services\ServiceFeedback\EmployeeFeedbackTokenService',
         'app/Services/Organizations/OrganizationDeletionGuard.php -> App\Models\EmployeeTransfer',
         'app/Services/Organizations/OrganizationDeletionGuard.php -> App\Models\Provider',
@@ -104,10 +100,6 @@ it('keeps service modules from creating or bulk-updating backbone records', func
     $allowed = [
         // Development load-test seeder, never run in production.
         'app/Console/Commands/Transport/SeedTransportLoadTest.php',
-        // Stamps the in-force job description on current assignments; moves under the backbone in Stage 2.
-        'app/Services/OrganizationDesign/JobDescriptionService.php',
-        // Position occupancy is backbone data held in the Vacancy namespace; moves in Stage 2.
-        'app/Services/Vacancy/PositionCapacityService.php',
     ];
 
     expect(array_values(array_diff($found, $allowed)))->toBe([], 'A service module writes a backbone record. Call a backbone command instead (master-backbone.md).')

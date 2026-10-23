@@ -15,7 +15,7 @@ use App\Models\User;
 use App\Models\VacancyApplication;
 use App\Services\Integration\Events\TransferEvents;
 use App\Services\OrganizationDesign\JobDescriptionService;
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use App\Services\Vacancy\VacancyTransferService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;

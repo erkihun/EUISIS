@@ -9,7 +9,7 @@ use App\Enums\EmploymentType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use App\Support\Security\NationalIdHash;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
