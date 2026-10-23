@@ -6,10 +6,9 @@ namespace App\Actions\Vacancy;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Entitlements\RecalculateEntitlementsAction;
-use App\Enums\AssignmentStatus;
+use App\Backbone\Commands\TransferAssignment;
 use App\Enums\AuditEventType;
 use App\Enums\TransferStatus;
-use App\Models\EmployeeAssignment;
 use App\Models\EmployeeTransfer;
 use App\Models\Position;
 use App\Models\User;
@@ -31,6 +30,7 @@ readonly class CompleteVacancyTransferAction
         private WriteAuditLogAction $writeAuditLogAction,
         private JobDescriptionService $jobDescriptions,
         private TransferEvents $transferEvents,
+        private TransferAssignment $transferAssignment,
     ) {}
 
     public function execute(VacancyApplication $application, array $data, User $actor): EmployeeTransfer
@@ -60,38 +60,30 @@ readonly class CompleteVacancyTransferAction
                 throw ValidationException::withMessages(['slots' => __('vacancies.noSlotsRemaining')]);
             }
 
-            $currentAssignment->update([
-                'assignment_status' => AssignmentStatus::Closed,
-                'is_current' => false,
-                // The old placement ends the day before the new one starts,
-                // so the two intervals never overlap (as CompleteTransferAction).
-                'effective_to' => $effectiveDate->copy()->subDay()->toDateString(),
-                'reason' => __('vacancies.transferReason'),
-            ]);
+            // The old placement ends the day before the new one starts, so the
+            // two intervals never overlap; the backbone command does the move.
+            $newAssignment = $this->transferAssignment->execute(
+                $employee,
+                $currentAssignment,
+                [
+                    'organization_id' => $positionEntry->organization_id,
+                    // The destination unit and its job description in force, so the
+                    // placement is complete in itself (master backbone audit).
+                    'organization_unit_id' => $destinationPosition?->organization_unit_id,
+                    'position_id' => $positionEntry->position_id,
+                    'hierarchy_version_id' => $currentAssignment->hierarchy_version_id,
+                    'job_description_id' => $destinationPosition === null ? null : $this->jobDescriptions->inForceFor($destinationPosition, $effectiveDate->toDateString())?->getKey(),
+                ],
+                $effectiveDate,
+                closeReason: __('vacancies.transferReason'),
+                openReason: __('vacancies.transferReason'),
+            );
 
             $this->capacityService->releaseOccupancyForAssignment(
                 $currentAssignment->id,
                 'vacancy_transfer',
                 $effectiveDate,
             );
-
-            $newAssignment = EmployeeAssignment::create([
-                'employee_id' => $employee->id,
-                'organization_id' => $positionEntry->organization_id,
-                // The destination unit and its job description in force, so the
-                // placement is complete in itself (master backbone audit).
-                'organization_unit_id' => $destinationPosition?->organization_unit_id,
-                'position_id' => $positionEntry->position_id,
-                'hierarchy_version_id' => $currentAssignment->hierarchy_version_id,
-                'job_description_id' => $destinationPosition === null ? null : $this->jobDescriptions->inForceFor($destinationPosition, $effectiveDate->toDateString())?->getKey(),
-                'assignment_status' => AssignmentStatus::Active,
-                'effective_from' => $effectiveDate->toDateString(),
-                'effective_to' => null,
-                'is_current' => true,
-                'reason' => __('vacancies.transferReason'),
-            ]);
-
-            $this->transferEvents->movePointer($employee, fn () => $employee->update(['current_assignment_id' => $newAssignment->id]));
 
             $establishment = $positionEntry->establishment;
 
