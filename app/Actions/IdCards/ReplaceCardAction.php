@@ -74,7 +74,9 @@ readonly class ReplaceCardAction
 
             CardReplacement::query()->create([
                 'old_card_id' => $oldCard->id,
-                'new_card_id' => $oldCard->id, // placeholder — will be updated when new card is approved
+                // Placeholder until the replacement is approved: ApproveCardRequestAction
+                // then sets the new card (the column is not nullable).
+                'new_card_id' => $oldCard->id,
                 'reason' => $reason ?? $oldCard->status->value,
                 'replaced_by' => $actor->getKey(),
                 'replaced_at' => now(),

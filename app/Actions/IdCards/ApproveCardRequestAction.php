@@ -10,6 +10,7 @@ use App\Enums\CardRequestStatus;
 use App\Enums\CardRequestType;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
+use App\Models\CardReplacement;
 use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\IdCard;
@@ -132,6 +133,15 @@ readonly class ApproveCardRequestAction
                     'organization' => $cardRequest->employee->currentAssignment?->organization?->name_en,
                 ],
             ]);
+
+            // Credential lineage: the replacement record opened by ReplaceCardAction
+            // now names the card that replaced the old one.
+            if ($cardRequest->previous_card_id !== null) {
+                CardReplacement::query()
+                    ->where('old_card_id', $cardRequest->previous_card_id)
+                    ->whereColumn('new_card_id', 'old_card_id')
+                    ->update(['new_card_id' => $card->getKey(), 'updated_at' => now()]);
+            }
 
             $plaintextToken = $this->generateCardTokenAction->execute($card);
             $card->refresh();
