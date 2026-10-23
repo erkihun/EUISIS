@@ -46,7 +46,7 @@ const STEP_TONES: Record<string, 'neutral' | 'success' | 'warning' | 'danger' | 
  * the header; the server decides every one of them.
  */
 export default function LegacyBaselineShow({ baseline, steps, validation, snapshot, versions, comparable, history, hierarchyVersions, legalSources, origins, stepStatuses, can }: Props) {
-    const { t, locale, tt } = useDesignText();
+    const { locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const firstOpen = steps.find((s) => !s.workflow && s.status !== 'complete')?.key ?? steps[0]?.key;
     const [activeKey, setActiveKey] = useState<string>(firstOpen);

@@ -198,7 +198,6 @@ export default function CodeRuleField({
 
     // ---- Auto-generate mode display ----
     const previewCode = preview?.code ?? null;
-    const ruleInfo = preview?.rule ?? null;
     const manualOverrideAllowed = preview?.manual_override_allowed ?? canManualOverride;
 
     return (
@@ -305,7 +304,6 @@ export default function CodeRuleField({
                 <p className="mt-1 text-xs text-red-600 dark:text-red-400">{overrideWarning}</p>
             )}
 
-            {/* Fetch error */}
             {fetchError && !loading && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-400">{fetchError}</p>
             )}

@@ -1,4 +1,4 @@
-import { ReactNode, RefObject, useEffect, useRef } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 import { controlClassName } from '@euisis/ui';
 import type { Page, VisitOptions } from '@inertiajs/core';
 import { router } from '@inertiajs/react';

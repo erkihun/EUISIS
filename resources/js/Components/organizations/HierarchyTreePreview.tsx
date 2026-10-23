@@ -27,7 +27,6 @@ function PreviewNode({
     const children = Array.isArray(node.children) ? node.children : [];
     const hasChildren = children.length > 0;
     const guideLeft = depth * INDENT_PX + GUIDE_X_OFFSET;
-    const childGuideLeft = (depth + 1) * INDENT_PX + GUIDE_X_OFFSET;
     const rowMarginLeft = depth > 0 ? guideLeft + ROW_GUTTER_PX : 0;
     const name = locale === 'am' && node.name_am ? node.name_am : node.name_en;
 

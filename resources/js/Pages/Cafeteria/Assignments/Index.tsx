@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Button, DataTable, type ColumnDef, FilterField, FilterPanel, Select } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
-import { ActionButton, inputCls, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
+import { ActionButton, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
 
 type Row = {
     id: string; organization: NamePair; provider: NamePair; network: NamePair; cafeteria: NamePair;

@@ -17,7 +17,7 @@ type Holiday = {
 };
 type Meta = { current_page: number; last_page: number; total: number; per_page: number };
 
-export default function HolidaysIndex({ holidays, meta, filters, year, can }: { holidays: Holiday[]; meta: Meta; filters: Record<string, string>; year: number; can: { create: boolean } }) {
+export default function HolidaysIndex({ holidays, meta, year, can }: { holidays: Holiday[]; meta: Meta; filters: Record<string, string>; year: number; can: { create: boolean } }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
     const hasActiveFilters = hasFilterQuery();

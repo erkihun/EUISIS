@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Details, Field, Section, formatScore, inputCls, pageCls, primaryBtn, secondaryBtn, Table, tdCls, thCls } from '@/Components/performance/ui';
+import { Details, Section, formatScore, inputCls, pageCls, primaryBtn, secondaryBtn, Table, tdCls, thCls } from '@/Components/performance/ui';
 import { RecordStatusBadge, ResponseStatus, usePick } from '@/Components/assessmentWorkspace/kit';
 import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';

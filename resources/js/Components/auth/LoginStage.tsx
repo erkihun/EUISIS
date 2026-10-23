@@ -232,7 +232,7 @@ const CARD_POS = { x: (ORBIT_W_DESIGN - CARD.w) / 2, y: MID - CARD.h / 2 };
 const CARD_CENTER: Pt = { x: CARD_POS.x + CARD.w / 2, y: MID };
 const ORBIT = { rx: 232, ry: 165 };
 
-export function IdentityOrbit({ steps, services, brandName, logo, cardTitle, verifiedLabel, motion, photos = [] }: {
+export function IdentityOrbit({ services, brandName, logo, cardTitle, verifiedLabel, motion, photos = [] }: {
     steps: FlowStep[];
     services: FlowService[];
     brandName: string;

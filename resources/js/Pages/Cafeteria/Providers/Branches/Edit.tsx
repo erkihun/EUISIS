@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { buttonClassName, cx, inputClassName } from '@/Components/ui';

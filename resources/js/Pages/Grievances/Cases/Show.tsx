@@ -334,7 +334,7 @@ function CustodyButton({ url }: { url: string }) {
 }
 
 function Letters({ props, r }: { props: CaseShowProps; r: (name: string, extra?: (string | number)[]) => string }) {
-    const { grievance: g, tabs, options, can } = props;
+    const { tabs, options, can } = props;
     const { t } = useLocale(); const label = useEnumLabel();
     const c = (k: string) => t(`grievanceCases.${k}`);
     const letters = tabs.letters ?? [];

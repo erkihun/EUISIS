@@ -174,7 +174,6 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                                         const selectedCount = position.applications.filter(a => ['selected', 'transferred'].includes(a.status)).length;
                                         const availableSlots = Math.max(0, position.vacancy_slots - selectedCount);
                                         const alreadyApplied = appliedPositionEntryIds.includes(position.id);
-                                        const canApplyHere = can.apply && availableSlots > 0 && !alreadyApplied;
 
                                         return (
                                             <tr key={position.id}>

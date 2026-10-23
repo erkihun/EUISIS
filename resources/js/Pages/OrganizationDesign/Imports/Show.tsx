@@ -33,7 +33,7 @@ const ROW_TONES: Record<string, 'neutral' | 'success' | 'warning' | 'danger' | '
  * hints), and the commit that turns valid rows into draft records.
  */
 export default function DesignImportShow({ batch, columns, referenceColumns, rows, rowStatus, rowStatuses, can }: Props) {
-    const { t, locale, tt } = useDesignText();
+    const { locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [mapping, setMapping] = useState<{ row: Row; error: RowError } | null>(null);
     const [statusDraft, setStatusDraft] = useState(rowStatus);

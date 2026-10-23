@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import Lookup from '@/Components/performance/Lookup';
-import { Empty, Field, FilterField, Pager, Pill, Section, Table, compactInputCls, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, titleOf, useEnumLabel, type Bilingual, type BilingualTitle, type Paginator } from '@/Components/performance/ui';
+import { Empty, Field, FilterField, Pager, Pill, Section, Table, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, titleOf, useEnumLabel, type Bilingual, type BilingualTitle, type Paginator } from '@/Components/performance/ui';
 import { FilterPanel, Select } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';

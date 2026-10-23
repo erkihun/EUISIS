@@ -14,13 +14,11 @@ import {
     LayoutDashboard, Building2, Users, CreditCard, Layers, ScrollText,
     SettingsIcon as Settings, ShieldCheck, Briefcase, TrashIcon as Trash2,
     TagsIcon as Tag, GitBranchIcon as GitBranch, HashIcon as Hash,
-    GitForkIcon as GitFork, ArrowLeftRightIcon as ArrowLeftRight,
-    ClipboardCheckIcon as ClipboardCheck, ClipboardListIcon as ClipboardList,
+    GitForkIcon as GitFork, ClipboardCheckIcon as ClipboardCheck, ClipboardListIcon as ClipboardList,
     MegaphoneIcon as Megaphone, Inbox, BadgeCheckIcon as BadgeCheck,
     ReceiptTextIcon as ReceiptText, HandshakeIcon as Handshake, KeyIcon as Key,
     UserCogIcon as UserCog, TrendingUpIcon as TrendingUp, HardHatIcon as HardHat,
-    ActivityIcon as Activity, BoxesIcon as Boxes, QrCodeIcon as QrCode,
-    UserIcon as User, SearchIcon as Search, NetworkIcon as Network,
+    ActivityIcon as Activity, BoxesIcon as Boxes, UserIcon as User, SearchIcon as Search, NetworkIcon as Network,
 } from '@/Components/Icons';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';

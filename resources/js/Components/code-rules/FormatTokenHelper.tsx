@@ -35,7 +35,7 @@ export default function FormatTokenHelper({
     onInsert?: (token: string) => void;
     tokens?: TokenDefinition[];
 }) {
-    const { t, locale } = useLocale();
+    const { t } = useLocale();
     const [search, setSearch] = useState('');
 
     // Tokens currently present in the format string

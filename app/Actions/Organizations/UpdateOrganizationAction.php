@@ -34,7 +34,6 @@ readonly class UpdateOrganizationAction
             $nameChanged = $this->attributeChanged($attributes, 'name_en', $organization->name_en)
                 || $this->attributeChanged($attributes, 'name_am', $organization->name_am);
 
-            // Handle logo upload.
             $logoFile = ($attributes['logo'] ?? null) instanceof UploadedFile ? $attributes['logo'] : null;
             $removeLogo = (bool) ($attributes['remove_logo'] ?? false);
             unset($attributes['logo'], $attributes['remove_logo']);

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import IdCardFront from '@/Components/IdCards/IdCardFront';
 import IdCardBack from '@/Components/IdCards/IdCardBack';
-import { CARD_CANVAS_HEIGHT, CARD_CANVAS_WIDTH } from '@/Components/IdCards/IdCardCanvas';
 import { useLocale } from '@/hooks/useLocale';
 import { useCardExport } from '@/hooks/useCardExport';
 import { formatDateDisplay } from '@/lib/calendar/dateFormat';
@@ -60,7 +59,7 @@ type Props = {
 
 export default function CardPrintExportModal({ card, isOpen, onClose }: Props) {
     const { t, locale } = useLocale();
-    const { width: CARD_W, height: CARD_H, widthMm, heightMm, printStyle } = useCardDimensions('landscape');
+    const { width: CARD_W, height: CARD_H, widthMm, heightMm } = useCardDimensions('landscape');
     const [tab, setTab] = useState<Tab>('front');
 
     const {

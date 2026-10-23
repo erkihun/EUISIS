@@ -40,12 +40,6 @@ async function captureElement(
 
     if (import.meta.env.DEV) {
         const rect = el.getBoundingClientRect();
-        console.debug(
-            '[card-export] el.getBoundingClientRect():',
-            Math.round(rect.width), '×', Math.round(rect.height),
-            'at', Math.round(rect.left), ',', Math.round(rect.top),
-            '| target:', targetW, '×', targetH,
-        );
         if (Math.abs(rect.width - targetW) > 4 || Math.abs(rect.height - targetH) > 4) {
             console.warn('[card-export] element size mismatch — PNG may be wrong');
         }

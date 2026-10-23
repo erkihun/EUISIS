@@ -6,7 +6,7 @@ import { FeedbackStatusBadge, statusLabelKey } from '@/Components/ServiceFeedbac
 import { ReferralsPanel, SubjectsPanel, type ReferralRow, type SubjectRow } from '@/Components/ServiceFeedback/ReferralPanels';
 import { useLocale } from '@/hooks/useLocale';
 import { AppDialog, Alert, Button, Card, FormField, Select, Textarea } from '@euisis/ui';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 import type { TipType } from '@/types/publicSubmissions';
 

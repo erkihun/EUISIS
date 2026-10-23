@@ -1,7 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
-import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { FormEvent } from 'react';

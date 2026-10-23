@@ -1,5 +1,5 @@
 import CafeteriaProviderPortalLayout from '@/Layouts/CafeteriaProviderPortalLayout';
-import { router, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
