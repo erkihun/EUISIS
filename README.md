@@ -41,3 +41,8 @@ Production gates: `php artisan production:readiness` and
 
 The repository directory and the Composer/npm package names keep their
 historical identifiers; renaming them is a separate, deliberate change.
+
+## Maintainer
+
+Erkihun Bewket maintains this repository. Contribution history is in the Git
+log, including co-author trailers.

@@ -2,12 +2,18 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "laravel/laravel",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Addis Ababa Integrated Employee Management & Service System (Agelgay).",
     "keywords": [
         "laravel",
         "framework"
     ],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Erkihun Bewket",
+            "role": "Maintainer"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "bacon/bacon-qr-code": "^3.1",
