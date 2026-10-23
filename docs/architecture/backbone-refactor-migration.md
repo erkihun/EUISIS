@@ -188,3 +188,21 @@ direct reads keep working until each module is migrated.
 
 Not in Stage 1: physical extraction, new tables, route changes, removal of any
 legacy field, authentication changes, UUID or QR changes.
+
+## 8. Stage 1 results
+
+Delivered as listed in section 7. Measured lookup latency of the contracts on
+the local 3-million-employee PostgreSQL database (`aaemployeedb_scale3m`,
+3,000,004 employees, 3,750,000 cards; 300 random keys each; one developer
+workstation, warm cache; not a production measurement):
+
+| Lookup | p50 | p95 | p99 |
+| --- | --- | --- | --- |
+| Employee by UUID | 0.31 ms | 0.43 ms | 0.52 ms |
+| Employee by number | 0.32 ms | 0.41 ms | 0.59 ms |
+| Current assignment | 0.39 ms | 0.55 ms | 0.80 ms |
+| Card credential by card UUID | 0.36 ms | 0.57 ms | 0.73 ms |
+| Organization within ancestor | not measured: the scale database has no hierarchy versions or closure paths | | |
+
+Partner eligibility and API round trips were not re-measured in Stage 1;
+status `DESIGN_READY_NOT_MEASURED` for those paths.
