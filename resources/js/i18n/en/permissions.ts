@@ -53,6 +53,7 @@ const permissions = {
     groupLabels: {
         'api_management': 'API Management',
         'integrations': 'Event Integration',
+        'core': 'Core Workspace',
         'assessment_assignments': 'Assessment assignments',
         'assessment_exclusions': 'Assessment exclusions',
         'assessment_forms': 'Assessment forms',

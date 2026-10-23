@@ -16,6 +16,7 @@ use App\Http\Middleware\EnsureProviderServiceEnabled;
 use App\Http\Middleware\EnsureProviderServicePermission;
 use App\Http\Middleware\EnsureProviderServiceScope;
 use App\Http\Middleware\EnsurePublicSiteEnabled;
+use App\Http\Middleware\EnterCoreWorkspace;
 use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -112,6 +113,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'mfa.setup' => EnsureMfaNotRequired::class,
             'public.site' => EnsurePublicSiteEnabled::class,
             'qr.private' => PrivateQrPageHeaders::class,
+            'core.workspace' => EnterCoreWorkspace::class,
         ]);
 
         /*

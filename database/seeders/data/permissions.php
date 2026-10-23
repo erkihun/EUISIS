@@ -1488,6 +1488,9 @@ return [
     // Event integration layer (docs/integration/partner-onboarding.md).
     ...require database_path('seeders/data/integration-permissions.php'),
 
+    // Core workspace (docs/architecture/core-workspace.md).
+    ...require database_path('seeders/data/core-permissions.php'),
+
     // API Management
     ['name' => 'api_management.view', 'group' => 'api_management', 'sort_order' => 10, 'is_system' => true,
         'label_en' => 'View API Management', 'label_am' => 'የAPI አስተዳደር ይመልከቱ',

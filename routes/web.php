@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Core\CoreDashboardController;
+use App\Http\Controllers\Core\CoreWorkspaceController;
 use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
 use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
@@ -602,7 +604,15 @@ Route::get('/verify/card/{publicCardUuid}', fn (string $publicCardUuid) => redir
     ->name('id-cards.verify.public')
     ->middleware('throttle:30,1');
 
+// The Core workspace's own entry address (docs/architecture/core-workspace.md): signs in, then lands in Core.
+Route::get('/core/login', [CoreWorkspaceController::class, 'login'])->name('core.login');
+
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
+    // The Core workspace: the master records with their own navigation. Opening it sets the
+    // workspace flag; leaving needs no permission, so it works after access is withdrawn.
+    Route::get('/core', CoreDashboardController::class)->middleware(['can:core.access', 'core.workspace'])->name('core.dashboard');
+    Route::post('/core/exit', [CoreWorkspaceController::class, 'exit'])->name('core.exit');
+
     Route::prefix('system/backup-recovery')->name('backups.')->middleware('throttle:30,1')->group(function (): void {
         Route::get('/', [BackupRecoveryController::class, 'index'])->name('index');
         Route::post('/refresh', [BackupRecoveryController::class, 'refresh'])->middleware('throttle:6,1')->name('refresh');

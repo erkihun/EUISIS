@@ -38,6 +38,7 @@ import enOrganizationUnitTypes from '@/i18n/en/organizationUnitTypes';
 import enOrganizationStructureImport from '@/i18n/en/organizationStructureImport';
 import enApiManagement from '@/i18n/en/apiManagement';
 import enIntegrations from '@/i18n/en/integrations';
+import enCore from '@/i18n/en/core';
 import enIdChecker from '@/i18n/en/idChecker';
 import enPublicSite from '@/i18n/en/publicSite';
 import enOrganizations from '@/i18n/en/organizations';
@@ -100,6 +101,7 @@ const tree: TranslationTree = {
     organizationDesign: enOrganizationDesign,
     apiManagement: enApiManagement,
     integrations: enIntegrations,
+    core: enCore,
     idChecker: enIdChecker,
     publicSite: enPublicSite,
     organizations: { ...((en.organizations as TranslationTree | undefined) ?? {}), ...enOrganizations },

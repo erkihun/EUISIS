@@ -53,6 +53,7 @@ const permissions = {
     groupLabels: {
         'api_management': 'የAPI አስተዳደር',
         'integrations': 'የክስተት ውህደት',
+        'core': 'ዋና መዝገብ',
         'assessment_assignments': 'የምዘና ምደባዎች',
         'assessment_exclusions': 'የምዘና ማግለያዎች',
         'assessment_forms': 'የምዘና ቅጾች',
