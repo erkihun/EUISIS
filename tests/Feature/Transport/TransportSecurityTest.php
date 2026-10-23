@@ -89,7 +89,8 @@ it('opens the manual-exception lookup only to the grant that may record one, and
     ($this->as)($operator)->postJson(route('provider.portal.transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertForbidden();
     ($this->as)($manual)->postJson(route('provider.portal.transport.scan.lookup'), ['employee_number' => 'EMP-NOPE'])->assertNotFound();
     $hit = ($this->as)($manual)->postJson(route('provider.portal.transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertOk()->json();
-    expect(array_keys($hit))->toBe(['id', 'employee_number', 'full_name']);
+    expect(array_keys($hit))->toBe(['id', 'employee_number', 'full_name'])
+        ->and($hit['full_name'])->toBe('Looked Up');
 
     $this->actingAs($this->s->staff(['transport-scan.create']))->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertForbidden();
     $this->actingAs($this->s->staff(['transport-scan.create', 'transport-scan.manual']))->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertOk();

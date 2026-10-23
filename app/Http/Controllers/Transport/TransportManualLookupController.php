@@ -25,7 +25,7 @@ class TransportManualLookupController extends Controller
         $employee = Employee::query()
             ->where('employee_number', trim($data['employee_number']))
             ->whereIn('status', [EmployeeStatus::Active->value, EmployeeStatus::Suspended->value])
-            ->first(['id', 'employee_number', 'first_name', 'father_name', 'grandfather_name']);
+            ->first(['id', 'employee_number', 'full_name']);
 
         if ($employee === null) {
             return response()->json(['message' => __('transport.reasons.employee_not_found')], 404);
