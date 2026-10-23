@@ -163,3 +163,13 @@ it('writes audit rows with the request correlation id', function (): void {
 
     expect(AuditLog::query()->latest('created_at')->value('request_id'))->toBe($id);
 });
+
+it('never writes a client correlation id that is not a UUID into the audit uuid column', function (): void {
+    [, $token] = s4Application(['id_cards.verify'], $this->mine);
+    $card = s4Card($this->employee);
+
+    $this->withToken($token)->withHeader('X-Request-ID', 'req-12345')->getJson('/api/v1/cards/'.$card->public_card_uuid)->assertOk()->assertHeader('X-Request-ID', 'req-12345');
+
+    $stored = (string) AuditLog::query()->latest('created_at')->value('request_id');
+    expect(Str::isUuid($stored))->toBeTrue()->and($stored)->not->toBe('req-12345');
+});

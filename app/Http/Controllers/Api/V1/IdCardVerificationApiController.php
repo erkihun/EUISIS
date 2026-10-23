@@ -6,11 +6,11 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Backbone\Contracts\CardCredentialStatus;
+use App\Backbone\Contracts\ServiceEligibility;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\IdCard;
-use App\Services\EmployeeServiceEligibilityService;
 use App\Services\Integration\EmployeePhotoLinkService;
 use App\Services\Integration\IntegrationAccessService;
 use App\Support\Api\ApiError;
@@ -39,7 +39,7 @@ use Illuminate\Support\Str;
 class IdCardVerificationApiController extends Controller
 {
     public function __construct(
-        private readonly EmployeeServiceEligibilityService $eligibilityService,
+        private readonly ServiceEligibility $eligibility,
         private readonly WriteAuditLogAction $writeAuditLogAction,
         private readonly IntegrationAccessService $access,
         private readonly EmployeePhotoLinkService $photoLinks,
@@ -151,15 +151,17 @@ class IdCardVerificationApiController extends Controller
             ->where('is_current', true)
             ->first();
 
-        $result = $this->eligibilityService->check(
-            $employee,
-            $card,
+        // The backbone gate on the employee's current card ('' when there is none).
+        $decision = $this->eligibility->checkCard(
+            (string) ($card?->getKey() ?? ''),
             $serviceType,
+            (string) $employee->getKey(),
             $this->access->humanActor($request),
             null,
             $request,
             attemptedBy: $this->access->callerLabel($request),
         );
+        $result = ['eligible' => $decision->eligible, 'reason_code' => $decision->reasonCode, 'message' => $decision->message, 'card_status' => $decision->cardStatus];
 
         $organizationId = $this->access->employeeOrganizationId($employee);
 

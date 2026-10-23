@@ -398,7 +398,7 @@ export default function TransportScanPanel({ providers, routes, trips, stops = [
                             {config.manualAllowed && lookupRouteName && <Button type="button" variant="ghost" size="sm" onClick={() => setManual((m) => !m)}>{t('transport.manualException')}</Button>}
                         </div>
                         {manual && config.manualAllowed && lookupRouteName && (
-                            <ManualExceptionForm lookupRouteName={lookupRouteName} disabled={!canScan} onSubmit={(employeeId, reason) => { setManual(false); void record({ manual_employee_id: employeeId, manual_reason: reason, qr_token: null }); }} onCancel={() => setManual(false)} />
+                            <ManualExceptionForm lookupRouteName={lookupRouteName} providerId={providers ? providerId : undefined} disabled={!canScan} onSubmit={(employeeId, reason) => { setManual(false); void record({ manual_employee_id: employeeId, manual_reason: reason, qr_token: null }); }} onCancel={() => setManual(false)} />
                         )}
                     </div>
                 </Card>
@@ -556,7 +556,8 @@ function TodayList({ scans, state }: { scans: TransportTransaction[]; state: Loa
 }
 
 /** A boarding without a working card: the operator names the employee by number and gives a reason; the record is flagged and audited. */
-function ManualExceptionForm({ lookupRouteName, disabled, onSubmit, onCancel }: { lookupRouteName: string; disabled: boolean; onSubmit: (employeeId: string, reason: string) => void; onCancel: () => void }) {
+/** `providerId`: the staff terminal's chosen provider; the lookup answers only for employees it may carry. */
+function ManualExceptionForm({ lookupRouteName, providerId, disabled, onSubmit, onCancel }: { lookupRouteName: string; providerId?: string; disabled: boolean; onSubmit: (employeeId: string, reason: string) => void; onCancel: () => void }) {
     const { t } = useTransportLabels();
     const [number, setNumber] = useState('');
     const [reason, setReason] = useState('');
@@ -567,7 +568,7 @@ function ManualExceptionForm({ lookupRouteName, disabled, onSubmit, onCancel }: 
     async function lookup() {
         setLooking(true); setError(null); setHit(null);
         try {
-            const response = await axios.post<{ id: string; employee_number: string; full_name: string }>(route(lookupRouteName), { employee_number: number.trim() });
+            const response = await axios.post<{ id: string; employee_number: string; full_name: string }>(route(lookupRouteName), { employee_number: number.trim(), ...(providerId ? { provider_id: providerId } : {}) });
             setHit(response.data);
         } catch (caught) {
             const response = (caught as AxiosError<{ message?: string }>).response;

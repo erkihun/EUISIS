@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Verification;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Backbone\Contracts\CredentialLookup;
+use App\Backbone\Contracts\ServiceEligibility;
+use App\Backbone\Data\CredentialFormat;
 use App\Enums\AuditEventType;
 use App\Enums\EntitlementStatus;
 use App\Models\CardVerification;
@@ -13,33 +16,24 @@ use App\Models\IdCard;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
-use App\Services\EmployeeServiceEligibilityService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 readonly class VerifyCardForServiceAction
 {
     public function __construct(
         private WriteAuditLogAction $writeAuditLogAction,
-        private EmployeeServiceEligibilityService $serviceEligibility,
+        private ServiceEligibility $serviceEligibility,
+        private CredentialLookup $credentials,
     ) {}
 
     public function execute(string $token, ServiceType $serviceType, ?ServiceProvider $provider, ?User $actor = null, ?Request $request = null): array
     {
-        // Token format: "<card_uuid>|<raw_token>" — pipe-separated, no PII
-        [$cardId, $rawToken] = array_pad(explode('|', $token, 2), 2, null);
-
-        // Lookup by SHA-256 hash (deterministic, non-bcrypt)
-        $tokenHash = $rawToken !== null ? hash('sha256', $rawToken) : null;
-        // A malformed id is simply not a card: never send it to the uuid key,
-        // which PostgreSQL would reject with an error instead of "no match".
-        $card = ($cardId !== null && $tokenHash !== null && Str::isUuid($cardId))
-            ? IdCard::query()
-                ->with('employee.currentAssignment')
-                ->where('id', $cardId)
-                ->where('token_hash', $tokenHash)
-                ->first()
-            : null;
+        // Token format "<card id>|<raw token>" (no PII), parsed and checked against
+        // the stored SHA-256 hash by the backbone credential lookup.
+        $credential = $this->credentials->resolveScan($token, CredentialFormat::Token);
+        $card = $credential === null ? null : IdCard::query()
+            ->with('employee.currentAssignment')
+            ->find($credential->cardRecordUuid);
 
         if ($card === null) {
             return $this->deny('invalid_token', null, $serviceType, $provider, $actor, $request);
@@ -50,17 +44,17 @@ readonly class VerifyCardForServiceAction
 
     public function verifyResolvedCard(IdCard $card, ServiceType $serviceType, ?ServiceProvider $provider, ?User $actor = null, ?Request $request = null): array
     {
-        $serviceEligibility = $this->serviceEligibility->check(
-            $card->employee,
-            $card,
+        $serviceEligibility = $this->serviceEligibility->checkCard(
+            (string) $card->getKey(),
             $serviceType->code,
+            null,
             $actor,
-            $provider?->id,
+            $provider === null ? null : (string) $provider->id,
             $request,
         );
 
-        if (! $serviceEligibility['eligible']) {
-            return $this->deny($serviceEligibility['reason_code'], $card, $serviceType, $provider, $actor, $request);
+        if (! $serviceEligibility->eligible) {
+            return $this->deny((string) $serviceEligibility->reasonCode, $card, $serviceType, $provider, $actor, $request);
         }
 
         if ($card->employee->currentAssignment === null) {

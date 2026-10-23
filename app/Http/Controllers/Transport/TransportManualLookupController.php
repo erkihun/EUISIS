@@ -8,6 +8,7 @@ use App\Backbone\Contracts\EmployeeDirectory;
 use App\Enums\EmployeeStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\Provider;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ProviderPortal\ProviderPortalContext;
 use App\Services\Transport\TransportEligibilityService;
@@ -19,10 +20,11 @@ use Illuminate\Http\Request;
  * id and name out, nothing else. Admin and portal share it; each route
  * carries its own manual-exception permission and a tight throttle.
  *
- * The answer is bounded so it cannot be used to read the register: a
- * provider user finds only employees that provider may carry (the same
- * transport eligibility the boarding engine applies next), and staff find
- * only employees inside their organization scope. Anyone else is reported
+ * The answer is bounded so it cannot be used to read the register: it names
+ * only employees the provider may carry (the transport eligibility the
+ * boarding engine applies next). The portal uses the user's own provider;
+ * the staff terminal sends the provider it is scanning for, and without one
+ * staff are held to their organization scope. Anyone else is reported
  * exactly like an unknown number.
  */
 class TransportManualLookupController extends Controller
@@ -34,26 +36,35 @@ class TransportManualLookupController extends Controller
         TransportEligibilityService $eligibility,
         OrganizationScopeService $scope,
     ): JsonResponse {
-        $data = $request->validate(['employee_number' => ['required', 'string', 'min:3', 'max:40']]);
+        $data = $request->validate([
+            'employee_number' => ['required', 'string', 'min:3', 'max:40'],
+            'provider_id' => ['nullable', 'uuid'],
+        ]);
 
         $identity = $directory->findByNumber($data['employee_number']);
         $employee = $identity !== null && in_array($identity->status, [EmployeeStatus::Active->value, EmployeeStatus::Suspended->value], true)
             ? Employee::query()->with('currentAssignment')->find($identity->employeeUuid)
             : null;
 
-        if ($employee === null || ! $this->mayLookUp($request, $employee, $portal, $eligibility, $scope)) {
+        if ($employee === null || ! $this->mayLookUp($request, $employee, $data['provider_id'] ?? null, $portal, $eligibility, $scope)) {
             return response()->json(['message' => __('transport.reasons.employee_not_found')], 404);
         }
 
         return response()->json(['id' => $identity->employeeUuid, 'employee_number' => $identity->employeeNumber, 'full_name' => $identity->fullName]);
     }
 
-    private function mayLookUp(Request $request, Employee $employee, ProviderPortalContext $portal, TransportEligibilityService $eligibility, OrganizationScopeService $scope): bool
+    private function mayLookUp(Request $request, Employee $employee, ?string $providerId, ProviderPortalContext $portal, TransportEligibilityService $eligibility, OrganizationScopeService $scope): bool
     {
         if ($request->routeIs('provider.portal.*')) {
             $provider = $portal->provider($request);
 
-            return $provider !== null && $eligibility->check($employee, null, $provider)['eligible'];
+            return $provider !== null && $eligibility->mayCarry($employee, $provider);
+        }
+
+        if ($providerId !== null) {
+            $provider = Provider::query()->where('status', 'active')->find($providerId);
+
+            return $provider !== null && $eligibility->mayCarry($employee, $provider);
         }
 
         $user = $request->user();

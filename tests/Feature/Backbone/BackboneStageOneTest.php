@@ -30,6 +30,7 @@ use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 /*
  * Stage 1 of the master backbone separation (docs/architecture/backbone-refactor-migration.md):
@@ -189,6 +190,20 @@ it('refuses to close another employee\'s assignment', function (): void {
         ->and($old->fresh()->is_current)->toBeTrue();
 });
 
+it('refuses a stale assignment, and an effective date that would end the old one before it began', function (): void {
+    [$employee, $old] = backboneEmployee();
+    $placement = ['organization_id' => $old->organization_id, 'organization_unit_id' => null, 'position_id' => null, 'hierarchy_version_id' => null, 'job_description_id' => null];
+    $command = app(TransferAssignment::class);
+
+    // On the day the current assignment started: the old one would end the day before it began.
+    expect(fn () => DB::transaction(fn () => $command->execute($employee, $old, $placement, $old->effective_from->copy(), 'a', 'b')))
+        ->toThrow(ValidationException::class);
+    expect($old->fresh()->is_current)->toBeTrue();
+
+    $old->forceFill(['is_current' => false])->save();
+    expect(fn () => DB::transaction(fn () => $command->execute($employee, $old, $placement, now()->addDay(), 'a', 'b')))->toThrow(LogicException::class);
+});
+
 it('links a replacement card to the card it replaced, on the card and on the replacement record', function (): void {
     [$employee, , $card] = backboneEmployee();
     $card->update(['status' => CardStatus::Lost]);
@@ -208,6 +223,16 @@ it('links a replacement card to the card it replaced, on the card and on the rep
         ->and($old->status)->toBe(CardStatus::Replaced)
         ->and($old->is_current)->toBeFalse()
         ->and(Employee::query()->count())->toBe(1);
+});
+
+it('records the status the card had when no replacement reason is given', function (): void {
+    [, , $card] = backboneEmployee();
+    $card->update(['status' => CardStatus::Lost]);
+
+    $request = app(ReplaceCardAction::class)->execute($card->fresh(), User::factory()->create());
+
+    expect($request->request_reason)->toBe('Card replacement for lost card')
+        ->and(CardReplacement::query()->where('old_card_id', $card->id)->value('reason'))->toBe('lost');
 });
 
 it('reports unlinked historical replacement records and repairs them only when asked', function (): void {

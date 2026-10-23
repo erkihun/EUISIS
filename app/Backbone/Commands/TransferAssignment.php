@@ -10,6 +10,7 @@ use App\Models\EmployeeAssignment;
 use App\Services\Integration\Events\TransferEvents;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use LogicException;
 
 /**
@@ -42,6 +43,14 @@ final readonly class TransferAssignment
         }
         if ((string) $current->employee_id !== (string) $employee->getKey()) {
             throw new LogicException('The assignment to close does not belong to this employee.');
+        }
+        if (! $current->is_current) {
+            throw new LogicException('The assignment to close is no longer the employee\'s current assignment.');
+        }
+        // The closed assignment ends the day before the new one starts; a date on or
+        // before its own start would leave it with an end before its beginning.
+        if ($current->effective_from !== null && $effectiveDate->toDateString() <= $current->effective_from->toDateString()) {
+            throw ValidationException::withMessages(['effective_date' => __('backbone.transfer_effective_date_after_current', ['date' => $current->effective_from->toDateString()])]);
         }
 
         $current->update([

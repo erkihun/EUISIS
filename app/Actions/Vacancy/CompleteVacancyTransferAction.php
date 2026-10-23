@@ -79,10 +79,12 @@ readonly class CompleteVacancyTransferAction
                 openReason: __('vacancies.transferReason'),
             );
 
+            // Released the day the old assignment ends (as CompleteTransferAction),
+            // so the employee never holds both positions on the effective date.
             $this->capacityService->releaseOccupancyForAssignment(
                 $currentAssignment->id,
                 'vacancy_transfer',
-                $effectiveDate,
+                $effectiveDate->copy()->subDay(),
             );
 
             $establishment = $positionEntry->establishment;

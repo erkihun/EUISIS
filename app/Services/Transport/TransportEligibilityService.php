@@ -117,6 +117,25 @@ class TransportEligibilityService
         return $this->deny('active_transport_pass_missing', $employee, $card, $day);
     }
 
+    /**
+     * Whether the provider may carry the employee on some route today, before a
+     * route is known (the manual-exception lookup). Same rules as check(),
+     * including the any-eligible alternative-route policy that check() applies
+     * only once a route is chosen.
+     */
+    public function mayCarry(Employee $employee, Provider $provider, ?Carbon $date = null): bool
+    {
+        $date ??= Carbon::today();
+        if ($this->check($employee, null, $provider, null, $date)['eligible']) {
+            return true;
+        }
+
+        return $provider->hasService('transport')
+            && $employee->currentAssignment !== null
+            && $this->settings->alternativeRoutePolicy() === TransportSettings::ALTERNATIVE_ROUTE_ANY_ELIGIBLE
+            && TransportPass::query()->where('employee_id', $employee->id)->validOn($date->toDateString())->exists();
+    }
+
     /** The grant covering the employee on the date: their own, their office's, or an ancestor's subtree grant. */
     public function grantFor(Employee $employee, ?Provider $provider, string $day): ?TransportEligibility
     {

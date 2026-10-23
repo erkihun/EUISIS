@@ -89,14 +89,15 @@ class WriteAuditLogAction
     /**
      * The request's correlation id (RequestCorrelationId, also on the response
      * header, error bodies and api_request_logs), so audit rows can be joined
-     * to the request that wrote them. Outside a request, or when a client-sent
-     * id does not fit the 36-character column, a fresh id is used.
+     * to the request that wrote them. The column is a uuid on PostgreSQL, so a
+     * client-sent id that is not a UUID (allowed by RequestCorrelationId) is
+     * never written: outside a request, or for such an id, a fresh id is used.
      */
     private function correlationId(): string
     {
         $id = app()->bound('correlation_id') ? (string) app('correlation_id') : '';
 
-        return $id !== '' && strlen($id) <= 36 ? $id : (string) Str::uuid7();
+        return Str::isUuid($id) ? $id : (string) Str::uuid7();
     }
 
     /** Strip sensitive fields from value arrays before persisting to the audit log. */

@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use App\Enums\Transport\TransportVerificationMethod;
+use App\Models\SystemSetting;
 use App\Models\TransportInvoice;
 use App\Services\Transport\Boarding\BoardingRequest;
 use App\Services\Transport\Boarding\TransportBoardingService;
 use App\Services\Transport\Settlement\TransportInvoiceService;
 use App\Services\Transport\Settlement\TransportSettlementService;
 use App\Services\Transport\TransportReportService;
+use App\Services\Transport\TransportSettings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Tests\Support\TransportScenario;
@@ -99,10 +101,30 @@ it('opens the manual-exception lookup only to the grant that may record one, and
 
     $this->actingAs($this->s->staff(['transport-scan.create']))->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertForbidden();
     $this->actingAs($this->s->staff(['transport-scan.create', 'transport-scan.manual']))->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertOk();
-    // Staff stay inside their organization scope.
+    // Without a provider, staff stay inside their organization scope.
     $scoped = $this->s->staff(['transport-scan.create', 'transport-scan.manual'], 'subcity_a');
     $this->actingAs($scoped)->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertOk();
     $this->actingAs($scoped)->postJson(route('transport.scan.lookup'), ['employee_number' => $stranger->employee_number])->assertNotFound();
+    // The staff terminal names its provider: then the provider's riders count, whatever the operator's scope.
+    $this->s->pass($stranger, $this->mine);
+    $this->actingAs($scoped)->postJson(route('transport.scan.lookup'), ['employee_number' => $stranger->employee_number, 'provider_id' => $this->mine->id])->assertOk();
+    $this->actingAs($scoped)->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number, 'provider_id' => $this->theirs->id])->assertNotFound();
+});
+
+it('lets the lookup follow the any-eligible route policy the boarding engine applies', function (): void {
+    [$rider] = $this->s->employee('woreda_a1', 'Rides Elsewhere');
+    $this->s->pass($rider, $this->theirs);
+    $manual = $this->s->portalUser($this->mine, 'operator', ['provider.transport.scan', 'provider.transport.manual_exception']);
+
+    ($this->as)($manual)->postJson(route('provider.portal.transport.scan.lookup'), ['employee_number' => $rider->employee_number])->assertNotFound();
+
+    SystemSetting::query()->updateOrCreate(['group' => 'transport', 'key' => 'alternative_route_policy'], [
+        'value' => 'allow_any_eligible', 'type' => 'string', 'label_en' => 'x', 'label_am' => 'x', 'default_value' => 'deny',
+        'is_public' => false, 'is_encrypted' => false, 'is_system' => false, 'is_required' => true,
+    ]);
+    app(TransportSettings::class)->forget();
+
+    ($this->as)($manual)->postJson(route('provider.portal.transport.scan.lookup'), ['employee_number' => $rider->employee_number])->assertOk();
 });
 
 it("keeps a scoped officer out of another organization's statement and lets them read their own", function (): void {

@@ -67,7 +67,8 @@ readonly class ReplaceCardAction
                 'requested_by' => $actor->getKey(),
                 'request_type' => $requestType,
                 'status' => CardRequestStatus::Submitted,
-                'request_reason' => $reason ?? 'Card replacement for '.$oldCard->status->value.' card',
+                // The status the card had before this action marked it replaced.
+                'request_reason' => $reason ?? 'Card replacement for '.$oldStatus->value.' card',
                 'previous_card_id' => $oldCard->id,
                 'submitted_at' => now(),
             ]);
@@ -77,7 +78,7 @@ readonly class ReplaceCardAction
                 // Placeholder until the replacement is approved: ApproveCardRequestAction
                 // then sets the new card (the column is not nullable).
                 'new_card_id' => $oldCard->id,
-                'reason' => $reason ?? $oldCard->status->value,
+                'reason' => $reason ?? $oldStatus->value,
                 'replaced_by' => $actor->getKey(),
                 'replaced_at' => now(),
             ]);
