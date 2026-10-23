@@ -79,11 +79,24 @@ class WriteAuditLogAction
             'old_values' => $this->redact($oldValues),
             'new_values' => $this->redact($newValues),
             'reason' => $reason,
-            'request_id' => (string) Str::uuid7(),
+            'request_id' => $this->correlationId(),
             'request_ip' => $request?->ip(),
             'user_agent' => $request?->userAgent(),
             'created_at' => now(),
         ]);
+    }
+
+    /**
+     * The request's correlation id (RequestCorrelationId, also on the response
+     * header, error bodies and api_request_logs), so audit rows can be joined
+     * to the request that wrote them. Outside a request, or when a client-sent
+     * id does not fit the 36-character column, a fresh id is used.
+     */
+    private function correlationId(): string
+    {
+        $id = app()->bound('correlation_id') ? (string) app('correlation_id') : '';
+
+        return $id !== '' && strlen($id) <= 36 ? $id : (string) Str::uuid7();
     }
 
     /** Strip sensitive fields from value arrays before persisting to the audit log. */

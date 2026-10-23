@@ -62,7 +62,8 @@ it('offers the organization-to-employee endpoints for assignment', function (): 
                 ->count() === count($expected))
         );
 
-    expect($expected)->toHaveCount(15);
+    // 15 plus the assignment collection and history added by backbone Stage 4.
+    expect($expected)->toHaveCount(17);
 });
 
 it('groups them as organization, employee and structure data APIs in the picker', function (): void {
