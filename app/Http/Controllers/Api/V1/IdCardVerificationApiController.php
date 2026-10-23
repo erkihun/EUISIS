@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Backbone\Contracts\CardCredentialStatus;
 use App\Enums\AuditEventType;
-use App\Enums\CardStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\IdCard;
@@ -43,6 +43,7 @@ class IdCardVerificationApiController extends Controller
         private readonly WriteAuditLogAction $writeAuditLogAction,
         private readonly IntegrationAccessService $access,
         private readonly EmployeePhotoLinkService $photoLinks,
+        private readonly CardCredentialStatus $credentials,
     ) {}
 
     /**
@@ -83,27 +84,14 @@ class IdCardVerificationApiController extends Controller
             return ApiError::response($request, 404, 'card_not_found', 'Card not found.', ['valid' => false, 'status' => 'not_found']);
         }
 
-        $isExpired = $card->expires_at !== null && $card->expires_at->isPast();
-        $qrRevoked = $card->qr_status !== null && $card->qr_status !== 'active';
-        $isValid = $card->status === CardStatus::Active
-            && $card->revoked_at === null
-            && ! $isExpired
-            && ! $qrRevoked
-            && (bool) $card->is_current;
-
-        $status = match (true) {
-            $card->status !== CardStatus::Active => $card->status->value,
-            $card->revoked_at !== null || $qrRevoked => CardStatus::Revoked->value,
-            $isExpired => CardStatus::Expired->value,
-            ! $card->is_current => CardStatus::Replaced->value,
-            default => CardStatus::Active->value,
-        };
+        // The backbone's single credential rule (F5).
+        $credential = $this->credentials->evaluate($card);
 
         $employee = $card->employee;
 
         return response()->json([
-            'valid' => $isValid,
-            'status' => $status,
+            'valid' => $credential->valid,
+            'status' => $credential->status,
             'card_uuid' => $card->public_card_uuid,
             'employee_uuid' => $employee?->getKey(),
             'organization_uuid' => $assignment?->organization_id,
