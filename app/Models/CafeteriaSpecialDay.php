@@ -36,11 +36,11 @@ class CafeteriaSpecialDay extends Model
     ];
 
     protected $casts = [
-        'special_date'   => 'date',
-        'day_type'       => CafeteriaSpecialDayType::class,
-        'is_open'        => 'boolean',
+        'special_date' => 'date',
+        'day_type' => CafeteriaSpecialDayType::class,
+        'is_open' => 'boolean',
         'is_subsidy_day' => 'boolean',
-        'is_active'      => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function provider(): BelongsTo

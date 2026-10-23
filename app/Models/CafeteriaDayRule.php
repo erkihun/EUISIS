@@ -26,12 +26,12 @@ class CafeteriaDayRule extends Model
     ];
 
     protected $casts = [
-        'day_of_week'    => 'integer',
-        'is_open'        => 'boolean',
+        'day_of_week' => 'integer',
+        'is_open' => 'boolean',
         'is_subsidy_day' => 'boolean',
         'effective_from' => 'date',
-        'effective_to'   => 'date',
-        'is_active'      => 'boolean',
+        'effective_to' => 'date',
+        'is_active' => 'boolean',
     ];
 
     public function updatedBy(): BelongsTo

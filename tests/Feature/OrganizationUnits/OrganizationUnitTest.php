@@ -12,6 +12,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Services\OrganizationUnits\OrganizationUnitTreeService;
+use Illuminate\Database\QueryException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -24,7 +25,7 @@ function makeOrganizationForUnitTest(): Organization
 
     return Organization::query()->create([
         'organization_type_id' => $type->id,
-        'code' => 'TEST-OU-' . uniqid(),
+        'code' => 'TEST-OU-'.uniqid(),
         'name_en' => 'Test Organization',
         'status' => OrganizationStatus::Active,
         'effective_from' => now()->toDateString(),
@@ -94,10 +95,10 @@ test('super_admin_can_create_organization_unit', function (): void {
     // Use manual code so no code-rule is needed in the test
     $payload = [
         'organization_id' => $org->id,
-        'unit_type'       => OrganizationUnitType::Department->value,
-        'code'            => 'DEPT-TEST-' . uniqid(),
-        'name_en'         => 'Human Resources',
-        'status'          => OrganizationUnitStatus::Active->value,
+        'unit_type' => OrganizationUnitType::Department->value,
+        'code' => 'DEPT-TEST-'.uniqid(),
+        'name_en' => 'Human Resources',
+        'status' => OrganizationUnitStatus::Active->value,
     ];
 
     // We call the action directly to avoid code-rule dependency in the test
@@ -112,14 +113,14 @@ test('super_admin_can_create_organization_unit', function (): void {
 
 test('user_without_permission_cannot_create_organization_unit', function (): void {
     $user = ouViewerUser();
-    $org  = makeOrganizationForUnitTest();
+    $org = makeOrganizationForUnitTest();
 
     $this->actingAs($user)
         ->post(route('organization-units.store'), [
             'organization_id' => $org->id,
-            'unit_type'       => 'department',
-            'name_en'         => 'Finance',
-            'status'          => 'active',
+            'unit_type' => 'department',
+            'name_en' => 'Finance',
+            'status' => 'active',
         ])
         ->assertForbidden();
 });
@@ -127,26 +128,26 @@ test('user_without_permission_cannot_create_organization_unit', function (): voi
 // ── 3. Code unique within organization ──────────────────────────────────────
 
 test('organization_unit_code_unique_within_organization', function (): void {
-    $org  = makeOrganizationForUnitTest();
-    $code = 'UNIQUE-' . uniqid();
+    $org = makeOrganizationForUnitTest();
+    $code = 'UNIQUE-'.uniqid();
 
     OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'unit_type'       => 'department',
-        'code'            => $code,
-        'name_en'         => 'Department A',
-        'status'          => 'active',
+        'unit_type' => 'department',
+        'code' => $code,
+        'name_en' => 'Department A',
+        'status' => 'active',
     ]);
 
     $duplicate = fn () => OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'unit_type'       => 'team',
-        'code'            => $code,
-        'name_en'         => 'Team B',
-        'status'          => 'active',
+        'unit_type' => 'team',
+        'code' => $code,
+        'name_en' => 'Team B',
+        'status' => 'active',
     ]);
 
-    expect($duplicate)->toThrow(\Illuminate\Database\QueryException::class);
+    expect($duplicate)->toThrow(QueryException::class);
 });
 
 // ── 4. Same code allowed in different organizations ──────────────────────────
@@ -154,22 +155,22 @@ test('organization_unit_code_unique_within_organization', function (): void {
 test('same_code_can_exist_in_different_organizations', function (): void {
     $org1 = makeOrganizationForUnitTest();
     $org2 = makeOrganizationForUnitTest();
-    $code = 'SHARED-' . uniqid();
+    $code = 'SHARED-'.uniqid();
 
     $unit1 = OrganizationUnit::query()->create([
         'organization_id' => $org1->id,
-        'unit_type'       => 'department',
-        'code'            => $code,
-        'name_en'         => 'Dept in Org1',
-        'status'          => 'active',
+        'unit_type' => 'department',
+        'code' => $code,
+        'name_en' => 'Dept in Org1',
+        'status' => 'active',
     ]);
 
     $unit2 = OrganizationUnit::query()->create([
         'organization_id' => $org2->id,
-        'unit_type'       => 'department',
-        'code'            => $code,
-        'name_en'         => 'Dept in Org2',
-        'status'          => 'active',
+        'unit_type' => 'department',
+        'code' => $code,
+        'name_en' => 'Dept in Org2',
+        'status' => 'active',
     ]);
 
     expect($unit1->id)->not->toBe($unit2->id)
@@ -184,10 +185,10 @@ test('parent_unit_must_belong_to_same_organization', function (): void {
 
     $parentInOrg1 = OrganizationUnit::query()->create([
         'organization_id' => $org1->id,
-        'unit_type'       => 'directorate',
-        'code'            => 'DIR-1-' . uniqid(),
-        'name_en'         => 'Parent in Org1',
-        'status'          => 'active',
+        'unit_type' => 'directorate',
+        'code' => 'DIR-1-'.uniqid(),
+        'name_en' => 'Parent in Org1',
+        'status' => 'active',
     ]);
 
     $user = ouAdminUser();
@@ -195,11 +196,11 @@ test('parent_unit_must_belong_to_same_organization', function (): void {
     $this->actingAs($user)
         ->post(route('organization-units.store'), [
             'organization_id' => $org2->id,
-            'parent_unit_id'  => $parentInOrg1->id,
-            'unit_type'       => 'department',
-            'code'            => 'CHILD-' . uniqid(),
-            'name_en'         => 'Child in Org2',
-            'status'          => 'active',
+            'parent_unit_id' => $parentInOrg1->id,
+            'unit_type' => 'department',
+            'code' => 'CHILD-'.uniqid(),
+            'name_en' => 'Child in Org2',
+            'status' => 'active',
         ])
         ->assertSessionHasErrors('parent_unit_id');
 });
@@ -207,23 +208,23 @@ test('parent_unit_must_belong_to_same_organization', function (): void {
 // ── 6. Circular hierarchy rejected ──────────────────────────────────────────
 
 test('circular_unit_hierarchy_is_rejected', function (): void {
-    $org    = makeOrganizationForUnitTest();
+    $org = makeOrganizationForUnitTest();
 
     $parent = OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'unit_type'       => 'directorate',
-        'code'            => 'PARENT-' . uniqid(),
-        'name_en'         => 'Parent Unit',
-        'status'          => 'active',
+        'unit_type' => 'directorate',
+        'code' => 'PARENT-'.uniqid(),
+        'name_en' => 'Parent Unit',
+        'status' => 'active',
     ]);
 
     $child = OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'parent_unit_id'  => $parent->id,
-        'unit_type'       => 'department',
-        'code'            => 'CHILD-' . uniqid(),
-        'name_en'         => 'Child Unit',
-        'status'          => 'active',
+        'parent_unit_id' => $parent->id,
+        'unit_type' => 'department',
+        'code' => 'CHILD-'.uniqid(),
+        'name_en' => 'Child Unit',
+        'status' => 'active',
     ]);
 
     $user = ouAdminUser();
@@ -232,11 +233,11 @@ test('circular_unit_hierarchy_is_rejected', function (): void {
     $this->actingAs($user)
         ->patch(route('organization-units.update', $parent->id), [
             'organization_id' => $org->id,
-            'parent_unit_id'  => $child->id,
-            'unit_type'       => 'directorate',
-            'code'            => $parent->code,
-            'name_en'         => $parent->name_en,
-            'status'          => 'active',
+            'parent_unit_id' => $child->id,
+            'unit_type' => 'directorate',
+            'code' => $parent->code,
+            'name_en' => $parent->name_en,
+            'status' => 'active',
         ])
         ->assertSessionHasErrors('parent_unit_id');
 });
@@ -244,30 +245,30 @@ test('circular_unit_hierarchy_is_rejected', function (): void {
 // ── 7. Employee assignment can store organization_unit_id ────────────────────
 
 test('employee_assignment_can_store_organization_unit_id', function (): void {
-    $org  = makeOrganizationForUnitTest();
+    $org = makeOrganizationForUnitTest();
     $unit = OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'unit_type'       => 'department',
-        'code'            => 'DEPT-' . uniqid(),
-        'name_en'         => 'Finance Dept',
-        'status'          => 'active',
+        'unit_type' => 'department',
+        'code' => 'DEPT-'.uniqid(),
+        'name_en' => 'Finance Dept',
+        'status' => 'active',
     ]);
 
     $employee = Employee::query()->create([
-        'employee_number' => 'TEST-' . uniqid(),
-        'first_name'      => 'Test',
-        'last_name'       => 'Employee',
-        'full_name'       => 'Test Employee',
-        'status'          => 'active',
+        'employee_number' => 'TEST-'.uniqid(),
+        'first_name' => 'Test',
+        'last_name' => 'Employee',
+        'full_name' => 'Test Employee',
+        'status' => 'active',
     ]);
 
     $assignment = EmployeeAssignment::query()->create([
-        'employee_id'          => $employee->id,
-        'organization_id'      => $org->id,
+        'employee_id' => $employee->id,
+        'organization_id' => $org->id,
         'organization_unit_id' => $unit->id,
-        'assignment_status'    => 'active',
-        'effective_from'       => now()->toDateString(),
-        'is_current'           => true,
+        'assignment_status' => 'active',
+        'effective_from' => now()->toDateString(),
+        'is_current' => true,
     ]);
 
     expect($assignment->organization_unit_id)->toBe($unit->id);
@@ -284,10 +285,10 @@ test('employee_assignment_rejects_unit_from_another_organization', function (): 
 
     $unitInOrg2 = OrganizationUnit::query()->create([
         'organization_id' => $org2->id,
-        'unit_type'       => 'department',
-        'code'            => 'DEPT-ORG2-' . uniqid(),
-        'name_en'         => 'Other Org Dept',
-        'status'          => 'active',
+        'unit_type' => 'department',
+        'code' => 'DEPT-ORG2-'.uniqid(),
+        'name_en' => 'Other Org Dept',
+        'status' => 'active',
     ]);
 
     $user = ouAdminUser();
@@ -297,10 +298,10 @@ test('employee_assignment_rejects_unit_from_another_organization', function (): 
     $this->actingAs($user)
         ->post(route('organization-units.store'), [
             'organization_id' => $org1->id,
-            'parent_unit_id'  => $unitInOrg2->id, // wrong org
-            'unit_type'       => 'team',
-            'name_en'         => 'Team',
-            'status'          => 'active',
+            'parent_unit_id' => $unitInOrg2->id, // wrong org
+            'unit_type' => 'team',
+            'name_en' => 'Team',
+            'status' => 'active',
         ])
         ->assertSessionHasErrors('parent_unit_id');
 });
@@ -308,13 +309,13 @@ test('employee_assignment_rejects_unit_from_another_organization', function (): 
 // ── 9. Archive action works ──────────────────────────────────────────────────
 
 test('organization_unit_archive_action_works', function (): void {
-    $org  = makeOrganizationForUnitTest();
+    $org = makeOrganizationForUnitTest();
     $unit = OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'unit_type'       => 'department',
-        'code'            => 'ARCH-' . uniqid(),
-        'name_en'         => 'To Archive',
-        'status'          => 'active',
+        'unit_type' => 'department',
+        'code' => 'ARCH-'.uniqid(),
+        'name_en' => 'To Archive',
+        'status' => 'active',
     ]);
 
     $user = ouAdminUser();
@@ -331,13 +332,13 @@ test('organization_unit_archive_action_works', function (): void {
 // ── 10. Restore action works ─────────────────────────────────────────────────
 
 test('organization_unit_restore_action_works', function (): void {
-    $org  = makeOrganizationForUnitTest();
+    $org = makeOrganizationForUnitTest();
     $unit = OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'unit_type'       => 'department',
-        'code'            => 'RESTORE-' . uniqid(),
-        'name_en'         => 'To Restore',
-        'status'          => 'archived',
+        'unit_type' => 'department',
+        'code' => 'RESTORE-'.uniqid(),
+        'name_en' => 'To Restore',
+        'status' => 'archived',
     ]);
     $unit->delete(); // soft delete
 
@@ -359,23 +360,23 @@ test('organization_unit_tree_service_builds_tree', function (): void {
 
     $parent = OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'unit_type'       => 'directorate',
-        'code'            => 'DIR-TREE-' . uniqid(),
-        'name_en'         => 'Directorate',
-        'status'          => 'active',
+        'unit_type' => 'directorate',
+        'code' => 'DIR-TREE-'.uniqid(),
+        'name_en' => 'Directorate',
+        'status' => 'active',
     ]);
 
     $child = OrganizationUnit::query()->create([
         'organization_id' => $org->id,
-        'parent_unit_id'  => $parent->id,
-        'unit_type'       => 'department',
-        'code'            => 'DEPT-TREE-' . uniqid(),
-        'name_en'         => 'Department',
-        'status'          => 'active',
+        'parent_unit_id' => $parent->id,
+        'unit_type' => 'department',
+        'code' => 'DEPT-TREE-'.uniqid(),
+        'name_en' => 'Department',
+        'status' => 'active',
     ]);
 
     $treeService = app(OrganizationUnitTreeService::class);
-    $tree        = $treeService->buildTree($org->id);
+    $tree = $treeService->buildTree($org->id);
 
     expect($tree)->toBeArray()
         ->and(count($tree))->toBeGreaterThanOrEqual(1);
@@ -384,6 +385,6 @@ test('organization_unit_tree_service_builds_tree', function (): void {
     expect($parentNode)->not->toBeNull();
 
     $childrenInTree = $parentNode['children'] ?? [];
-    $childIds       = array_column($childrenInTree, 'id');
+    $childIds = array_column($childrenInTree, 'id');
     expect($childIds)->toContain($child->id);
 });

@@ -10,6 +10,7 @@ use App\Models\KpiActual;
 use App\Models\PerformancePlan;
 use App\Models\PositionService;
 use App\Models\StrategicGoal;
+use App\Services\DailyActivity\DailyActivityPresenter;
 use App\Services\Performance\PerformanceCascadeService;
 use App\Services\Performance\PerformancePlanService;
 use App\Support\Demo\DemoDataset;
@@ -45,7 +46,7 @@ it('seeds an isolated coherent cascade and preserves published fixtures on rerun
     expect($activity->quantity)->toBe('1.00')->and($activity->log->status->value)->toBe('draft')
         ->and(array_column(app(PerformanceCascadeService::class)->activityTrace($activity), 'type'))->toBe(['GOAL', 'ALLOCATION', 'ORGANIZATION', 'UNIT', 'POSITION', 'SERVICE'])
         ->and(KpiActual::query()->count())->toBe(0);
-    $view = app(\App\Services\DailyActivity\DailyActivityPresenter::class)->detail($activity->log);
+    $view = app(DailyActivityPresenter::class)->detail($activity->log);
     expect(array_column($view['items'][0]['cascade_trace'], 'type'))->toBe(['GOAL', 'ALLOCATION', 'ORGANIZATION', 'UNIT', 'POSITION', 'SERVICE']);
     $before = [$plans->pluck('id')->all(), PositionService::query()->count(), EmployeePerformanceItem::query()->count(), DailyActivityItem::query()->count()];
     $this->seed(DemoPerformanceSeeder::class);

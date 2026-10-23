@@ -19,8 +19,8 @@ it('maps routes to coarse groups without carrying identifiers', function (): voi
 });
 
 it('normalises an error message so the same failure reads the same', function (): void {
-    $a = ErrorFingerprinter::normalize("No query results for model [App\\Models\\Employee] 0199a1b2-3c4d-7e5f-8a9b-0c1d2e3f4a5b");
-    $b = ErrorFingerprinter::normalize("No query results for model [App\\Models\\Employee] 0199ffff-3c4d-7e5f-8a9b-0c1d2e3f4a5b");
+    $a = ErrorFingerprinter::normalize('No query results for model [App\\Models\\Employee] 0199a1b2-3c4d-7e5f-8a9b-0c1d2e3f4a5b');
+    $b = ErrorFingerprinter::normalize('No query results for model [App\\Models\\Employee] 0199ffff-3c4d-7e5f-8a9b-0c1d2e3f4a5b');
     $c = ErrorFingerprinter::normalize("Call to a member function name() on null at 'C:\\www\\app\\Services\\X.php' line 42 for user@example.test");
 
     expect($a)->toBe($b)

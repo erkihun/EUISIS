@@ -8,10 +8,12 @@ use App\Events\Communication\MessageSent;
 use App\Events\Communication\UserTyping;
 use App\Models\User;
 use Illuminate\Broadcasting\BroadcastEvent;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Testing\TestResponse;
 use Tests\Support\CommunicationScenario;
 
 /*
@@ -39,7 +41,7 @@ beforeEach(function (): void {
 
 afterEach(fn () => Carbon::setTestNow());
 
-function rtAuth(object $test, User $user, string $channel): \Illuminate\Testing\TestResponse
+function rtAuth(object $test, User $user, string $channel): TestResponse
 {
     return $test->actingAs($user)->postJson('/broadcasting/auth', ['socket_id' => '1234.5678', 'channel_name' => 'private-'.$channel]);
 }
@@ -92,7 +94,7 @@ it('sends typing to the other members only, immediately, and never to the typist
 
     $this->actingAs($this->s->alice)->postJson(route('communication.api.conversations.typing', $conversation))->assertOk();
 
-    Event::assertDispatched(UserTyping::class, fn (UserTyping $event): bool => $event instanceof \Illuminate\Contracts\Broadcasting\ShouldBroadcastNow
+    Event::assertDispatched(UserTyping::class, fn (UserTyping $event): bool => $event instanceof ShouldBroadcastNow
         && $event->broadcastWith() === ['conversation_id' => $conversation->id, 'user_id' => $this->s->alice->id, 'name' => $this->s->alice->name]);
     $this->actingAs($this->s->carol)->postJson(route('communication.api.conversations.typing', $conversation))->assertNotFound();
 });

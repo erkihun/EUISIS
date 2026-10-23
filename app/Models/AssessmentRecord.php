@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Services\Assessment\Oversight\AssessmentCoverageService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,7 +28,7 @@ class AssessmentRecord extends Model
                 ->value('id');
         });
         // Oversight aggregates are cached per cycle; any change to a record invalidates them.
-        static::saved(fn (AssessmentRecord $record) => \App\Services\Assessment\Oversight\AssessmentCoverageService::bump($record->assessment_cycle_id));
+        static::saved(fn (AssessmentRecord $record) => AssessmentCoverageService::bump($record->assessment_cycle_id));
     }
 
     protected function casts(): array
@@ -36,13 +37,39 @@ class AssessmentRecord extends Model
             'score_breakdown' => 'array', 'finalized_at' => 'datetime', 'reopened_at' => 'datetime'];
     }
 
-    public function version(): BelongsTo { return $this->belongsTo(AssessmentFormVersion::class, 'form_version_id'); }
-    public function employee(): BelongsTo { return $this->belongsTo(Employee::class); }
-    public function reviewer(): BelongsTo { return $this->belongsTo(User::class, 'reviewer_id'); }
-    public function responses(): HasMany { return $this->hasMany(AssessmentResponse::class); }
-    public function cycle(): BelongsTo { return $this->belongsTo(AssessmentCycle::class, 'assessment_cycle_id'); }
-    public function evaluatorChanges(): HasMany { return $this->hasMany(AssessmentEvaluatorChange::class)->orderBy('created_at'); }
+    public function version(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentFormVersion::class, 'form_version_id');
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    public function responses(): HasMany
+    {
+        return $this->hasMany(AssessmentResponse::class);
+    }
+
+    public function cycle(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentCycle::class, 'assessment_cycle_id');
+    }
+
+    public function evaluatorChanges(): HasMany
+    {
+        return $this->hasMany(AssessmentEvaluatorChange::class)->orderBy('created_at');
+    }
 
     /** Finalized: the only state that feeds dashboards, oversight and EPMS. */
-    public function isFinalized(): bool { return in_array($this->status, ['reviewed', 'acknowledged'], true); }
+    public function isFinalized(): bool
+    {
+        return in_array($this->status, ['reviewed', 'acknowledged'], true);
+    }
 }

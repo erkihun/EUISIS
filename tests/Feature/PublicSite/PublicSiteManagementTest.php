@@ -123,12 +123,12 @@ test('read authorized announcement content is paginated instead of loading all r
     $user = publicEditorUser(['public_site.view', 'public_announcements.view']);
     $this->actingAs($user)->get(route('public-site-management.index', ['tab' => 'announcements', 'search' => 'Pagination record']))
         ->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('tabs', ['announcements'])->where('records.total', 18)
-            ->where('records.per_page', 15)->where('records.last_page', 2)->has('records.data', 15)
-            ->where('can.create', false)->where('can.update', false)->where('can.publish', false)->where('can.archive', false));
+        ->where('tabs', ['announcements'])->where('records.total', 18)
+        ->where('records.per_page', 15)->where('records.last_page', 2)->has('records.data', 15)
+        ->where('can.create', false)->where('can.update', false)->where('can.publish', false)->where('can.archive', false));
     $this->get(route('public-site-management.index', ['tab' => 'announcements', 'search' => 'Pagination record', 'page' => 2]))
         ->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->where('records.total', 18)->where('records.current_page', 2)->has('records.data', 3));
+        ->where('records.total', 18)->where('records.current_page', 2)->has('records.data', 3));
     $this->get(route('public-site-management.index', ['tab' => 'invented']))->assertForbidden();
     $this->post(route('public-site-management.store', 'users'), [])->assertNotFound();
     $this->put(route('public-site-management.update', ['users', $user->id]), ['name' => 'Changed'])->assertNotFound();

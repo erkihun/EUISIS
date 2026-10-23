@@ -24,9 +24,7 @@ class MessageSent implements ShouldBroadcast
         return config('communication.broadcast_queue');
     }
 
-    public function __construct(public readonly string $conversationId, public readonly string $messageId, public readonly ?int $senderId, public readonly array $message)
-    {
-    }
+    public function __construct(public readonly string $conversationId, public readonly string $messageId, public readonly ?int $senderId, public readonly array $message) {}
 
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array

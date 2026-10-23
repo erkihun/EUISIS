@@ -7,13 +7,16 @@ use App\Models\Employee;
 class EmployeeSelfServicePolicy
 {
     public const EDITABLE = ['address', 'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship', 'preferred_language', 'notification_preferences'];
+
     public const CORRECTIONS = ['full_name', 'date_of_birth', 'national_id', 'nationality', 'employee_number', 'employment_type', 'gender'];
 
     public function fields(Employee $employee, array $printed): array
     {
         $result = [];
         foreach (array_unique([...array_keys($employee->getAttributes()), ...self::EDITABLE, 'photo', 'organization', 'organization_unit', 'position', 'job_grade']) as $field) {
-            $cardField = match ($field) { 'full_name', 'first_name', 'middle_name', 'last_name', 'name_en' => 'name', 'photo_path' => 'photo', default => $field };
+            $cardField = match ($field) {
+                'full_name', 'first_name', 'middle_name', 'last_name', 'name_en' => 'name', 'photo_path' => 'photo', default => $field
+            };
             $impact = in_array($cardField, $printed, true);
             $access = match (true) {
                 in_array($field, ['email', 'phone'], true) => 'SELF_EDITABLE_WITH_VERIFICATION',
@@ -27,6 +30,7 @@ class EmployeeSelfServicePolicy
                 $result[$field] = ['access' => $access, 'card_visible' => $impact, 'editable' => in_array($field, [...self::EDITABLE, 'photo', 'photo_path', 'email', 'phone'], true), 'verification_required' => in_array($field, ['email', 'phone'], true)];
             }
         }
+
         return $result;
     }
 }

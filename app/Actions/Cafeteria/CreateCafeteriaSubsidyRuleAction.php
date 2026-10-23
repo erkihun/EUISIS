@@ -17,21 +17,21 @@ readonly class CreateCafeteriaSubsidyRuleAction
     public function execute(array $attributes, User $actor, ?Request $request = null): CafeteriaSubsidyRule
     {
         $rule = CafeteriaSubsidyRule::query()->create([
-            'code'             => strtoupper(trim($attributes['code'])),
-            'name_en'          => trim($attributes['name_en']),
-            'name_am'          => isset($attributes['name_am']) ? trim($attributes['name_am']) : null,
-            'subsidy_amount'   => (float) $attributes['subsidy_amount'],
-            'currency'         => strtoupper($attributes['currency'] ?? 'ETB'),
-            'effective_from'   => $attributes['effective_from'],
-            'effective_to'     => $attributes['effective_to'] ?? null,
-            'applies_to'       => $attributes['applies_to'] ?? 'all_employees',
-            'organization_id'  => $attributes['organization_id'] ?? null,
-            'employee_type'    => $attributes['employee_type'] ?? null,
-            'is_active'        => (bool) ($attributes['is_active'] ?? true),
+            'code' => strtoupper(trim($attributes['code'])),
+            'name_en' => trim($attributes['name_en']),
+            'name_am' => isset($attributes['name_am']) ? trim($attributes['name_am']) : null,
+            'subsidy_amount' => (float) $attributes['subsidy_amount'],
+            'currency' => strtoupper($attributes['currency'] ?? 'ETB'),
+            'effective_from' => $attributes['effective_from'],
+            'effective_to' => $attributes['effective_to'] ?? null,
+            'applies_to' => $attributes['applies_to'] ?? 'all_employees',
+            'organization_id' => $attributes['organization_id'] ?? null,
+            'employee_type' => $attributes['employee_type'] ?? null,
+            'is_active' => (bool) ($attributes['is_active'] ?? true),
             'exclude_weekends' => (bool) ($attributes['exclude_weekends'] ?? true),
-            'notes'            => $attributes['notes'] ?? null,
-            'created_by'       => $actor->id,
-            'updated_by'       => $actor->id,
+            'notes' => $attributes['notes'] ?? null,
+            'created_by' => $actor->id,
+            'updated_by' => $actor->id,
         ]);
 
         $this->writeAuditLogAction->execute(

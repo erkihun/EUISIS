@@ -17,8 +17,8 @@ readonly class ArchiveCafeteriaSpecialDayAction
     public function execute(CafeteriaSpecialDay $day, User $actor, ?string $reason, ?Request $request = null): void
     {
         $day->update([
-            'is_active'       => false,
-            'deleted_by'      => $actor->id,
+            'is_active' => false,
+            'deleted_by' => $actor->id,
             'deletion_reason' => $reason,
         ]);
         $day->delete();

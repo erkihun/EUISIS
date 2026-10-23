@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\AuditEventType;
+use App\Http\Resources\PermissionResource;
 use App\Models\AuditLog;
 use App\Models\Permission;
 use App\Models\User;
@@ -173,7 +174,7 @@ test('permissions index returns label_en and description_en in props', function 
             ->has('permissions.data')
         );
 
-    $perm = \App\Http\Resources\PermissionResource::make(
+    $perm = PermissionResource::make(
         Permission::where('name', 'organizations.viewAny')->first()
     )->resolve();
 

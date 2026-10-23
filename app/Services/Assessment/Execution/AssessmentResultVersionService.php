@@ -18,7 +18,10 @@ final class AssessmentResultVersionService
         return DB::transaction(function () use ($record, $actor): AssessmentResultVersion {
             $record = AssessmentRecord::query()->lockForUpdate()->findOrFail($record->id);
             $current = AssessmentResultVersion::query()->where('assessment_record_id', $record->id)->where('is_current', true)->lockForUpdate()->first();
-            if ($current) return $current;
+            if ($current) {
+                return $current;
+            }
+
             return AssessmentResultVersion::query()->create($this->values($record, 1, 'original', null, null, $actor));
         });
     }
@@ -28,10 +31,12 @@ final class AssessmentResultVersionService
         if (! in_array($changeType, ['appeal_decision', 'moderation', 'technical_correction'], true) || trim($reason) === '') {
             throw ValidationException::withMessages(['result' => 'A permitted change type and reason are required.']);
         }
+
         return DB::transaction(function () use ($record, $scores, $changeType, $reason, $actor, $reference): AssessmentResultVersion {
             $record = AssessmentRecord::query()->lockForUpdate()->findOrFail($record->id);
             $old = AssessmentResultVersion::query()->where('assessment_record_id', $record->id)->where('is_current', true)->lockForUpdate()->firstOrFail();
             $old->update(['is_current' => false, 'current_key' => null]);
+
             return AssessmentResultVersion::query()->create($this->values($record, $old->version_no + 1, $changeType, $old->id, $reason, $actor, $reference, $scores));
         });
     }

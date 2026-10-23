@@ -19,8 +19,8 @@ readonly class RestoreCafeteriaProviderAction
         $provider->restore();
 
         $provider->forceFill([
-            'is_active'       => true,
-            'deleted_by'      => null,
+            'is_active' => true,
+            'deleted_by' => null,
             'deletion_reason' => null,
         ])->save();
 

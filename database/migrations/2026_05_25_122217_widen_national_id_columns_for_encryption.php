@@ -12,14 +12,20 @@ return new class extends Migration
     {
         Schema::table('employees', function (Blueprint $table): void {
             if (Schema::hasColumn('employees', 'national_id')) {
-                try { $table->dropUnique(['national_id']); } catch (\Throwable) {}
+                try {
+                    $table->dropUnique(['national_id']);
+                } catch (Throwable) {
+                }
                 $table->text('national_id')->nullable()->change();
             }
         });
 
         Schema::table('users', function (Blueprint $table): void {
             if (Schema::hasColumn('users', 'national_id')) {
-                try { $table->dropUnique(['national_id']); } catch (\Throwable) {}
+                try {
+                    $table->dropUnique(['national_id']);
+                } catch (Throwable) {
+                }
                 $table->text('national_id')->nullable()->change();
             }
         });

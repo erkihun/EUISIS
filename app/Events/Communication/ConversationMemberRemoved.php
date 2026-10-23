@@ -24,9 +24,7 @@ class ConversationMemberRemoved implements ShouldBroadcast
         return config('communication.broadcast_queue');
     }
 
-    public function __construct(public readonly string $conversationId, public readonly int $userId)
-    {
-    }
+    public function __construct(public readonly string $conversationId, public readonly int $userId) {}
 
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array

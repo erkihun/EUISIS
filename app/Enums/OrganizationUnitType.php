@@ -16,24 +16,24 @@ enum OrganizationUnitType: string
     public function label(): string
     {
         return match ($this) {
-            self::Department  => 'Department',
+            self::Department => 'Department',
             self::Directorate => 'Directorate',
-            self::Team        => 'Team',
-            self::Unit        => 'Unit',
-            self::Office      => 'Office',
-            self::Section     => 'Section',
+            self::Team => 'Team',
+            self::Unit => 'Unit',
+            self::Office => 'Office',
+            self::Section => 'Section',
         };
     }
 
     public function labelAm(): string
     {
         return match ($this) {
-            self::Department  => 'ክፍል',
+            self::Department => 'ክፍል',
             self::Directorate => 'ዳይሬክቶሬት',
-            self::Team        => 'ቡድን',
-            self::Unit        => 'ዩኒት',
-            self::Office      => 'ቢሮ',
-            self::Section     => 'ሴክሽን',
+            self::Team => 'ቡድን',
+            self::Unit => 'ዩኒት',
+            self::Office => 'ቢሮ',
+            self::Section => 'ሴክሽን',
         };
     }
 
@@ -44,8 +44,8 @@ enum OrganizationUnitType: string
     {
         return array_map(
             static fn (self $case): array => [
-                'value'    => $case->value,
-                'label'    => $case->label(),
+                'value' => $case->value,
+                'label' => $case->label(),
                 'label_am' => $case->labelAm(),
             ],
             self::cases(),

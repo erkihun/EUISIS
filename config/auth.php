@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\CafeteriaProviderUser;
 use App\Models\ProviderUser;
 use App\Models\User;
 
@@ -80,7 +81,7 @@ return [
 
         'cafeteria_provider_users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\CafeteriaProviderUser::class,
+            'model' => CafeteriaProviderUser::class,
         ],
 
         'provider_users' => [

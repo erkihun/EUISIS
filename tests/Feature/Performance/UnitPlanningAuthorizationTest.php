@@ -3,6 +3,12 @@
 declare(strict_types=1);
 
 use App\Models\DailyActivityReviewerAssignment;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
+use App\Models\EmployeePerformanceAgreement;
+use App\Models\Kpi;
+use App\Models\KpiActual;
+use App\Models\KpiTarget;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
@@ -12,7 +18,10 @@ use App\Models\PerformancePlan;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\Performance\EpmsAccess;
+use App\Services\Performance\KpiActualService;
 use App\Services\Performance\PerformancePlanService;
+use App\Services\Performance\StrategicPlanningService;
+use App\Services\Performance\TargetAmendmentService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
@@ -81,26 +90,25 @@ it('includes authorized descendant units without granting organization master pl
         ->and($this->access->canPlan($manager, 'performance_plans.update', $this->org->id, null))->toBeFalse();
 });
 
-
 it('enforces unit coverage for target actuals amendments and period schedule writes', function (): void {
     $actor = unitPlanningActor($this, $this->otherUnit, ['kpi_actuals.enter', 'kpi_actuals.verify', 'kpi_targets.manage']);
     $objective = PerformanceObjective::query()->create(['performance_plan_id' => $this->plan->id, 'code' => 'UA-TARGET', 'title_en' => 'HR delivery', 'objective_type' => 'LOCAL', 'weight' => 100]);
-    $kpi = \App\Models\Kpi::query()->create(['code' => 'UA-KPI', 'name_en' => 'Count', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL']);
-    $target = \App\Models\KpiTarget::query()->create(['performance_plan_id' => $this->plan->id, 'objective_id' => $objective->id, 'kpi_id' => $kpi->id, 'target_value' => 10, 'weight' => 100, 'period_start' => '2026-01-01', 'period_end' => '2026-12-31']);
-    expect(fn () => app(\App\Services\Performance\StrategicPlanningService::class)->replacePeriodTargets($target, [], $actor))->toThrow(AuthorizationException::class);
+    $kpi = Kpi::query()->create(['code' => 'UA-KPI', 'name_en' => 'Count', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL']);
+    $target = KpiTarget::query()->create(['performance_plan_id' => $this->plan->id, 'objective_id' => $objective->id, 'kpi_id' => $kpi->id, 'target_value' => 10, 'weight' => 100, 'period_start' => '2026-01-01', 'period_end' => '2026-12-31']);
+    expect(fn () => app(StrategicPlanningService::class)->replacePeriodTargets($target, [], $actor))->toThrow(AuthorizationException::class);
     $this->plan->forceFill(['status' => 'PUBLISHED'])->save();
     $target->unsetRelation('plan');
-    expect(fn () => app(\App\Services\Performance\KpiActualService::class)->recordForTarget($target, ['period_start' => '2026-01-01', 'period_end' => '2026-01-31', 'actual_value' => 5], $actor))->toThrow(AuthorizationException::class);
-    $actual = \App\Models\KpiActual::query()->create(['subject_key' => 'target:'.$target->id, 'source_key' => 'manual', 'source_type' => 'MANUAL', 'kpi_id' => $kpi->id, 'target_id' => $target->id, 'performance_plan_id' => $this->plan->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'period_start' => '2026-01-01', 'period_end' => '2026-01-31', 'actual_value' => 5]);
-    expect(fn () => app(\App\Services\Performance\KpiActualService::class)->verify($actual, $actor))->toThrow(AuthorizationException::class);
-    expect(fn () => app(\App\Services\Performance\TargetAmendmentService::class)->request($target, ['target_value' => 20], 'Change', '2026-02-01', $actor))->toThrow(AuthorizationException::class);
+    expect(fn () => app(KpiActualService::class)->recordForTarget($target, ['period_start' => '2026-01-01', 'period_end' => '2026-01-31', 'actual_value' => 5], $actor))->toThrow(AuthorizationException::class);
+    $actual = KpiActual::query()->create(['subject_key' => 'target:'.$target->id, 'source_key' => 'manual', 'source_type' => 'MANUAL', 'kpi_id' => $kpi->id, 'target_id' => $target->id, 'performance_plan_id' => $this->plan->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'period_start' => '2026-01-01', 'period_end' => '2026-01-31', 'actual_value' => 5]);
+    expect(fn () => app(KpiActualService::class)->verify($actual, $actor))->toThrow(AuthorizationException::class);
+    expect(fn () => app(TargetAmendmentService::class)->request($target, ['target_value' => 20], 'Change', '2026-02-01', $actor))->toThrow(AuthorizationException::class);
 });
 
 it('does not disclose named-manager agreements without agreement viewing authority', function (): void {
     $actor = unitPlanningActor($this, null, ['performance_plans.view', 'strategic_goals.view']);
-    $employee = \App\Models\Employee::query()->create(['employee_number' => 'UA-EMP', 'first_name' => 'Private', 'last_name' => 'Employee', 'full_name' => 'Private Employee', 'status' => 'active']);
-    $assignment = \App\Models\EmployeeAssignment::query()->create(['employee_id' => $employee->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'assignment_status' => 'active', 'effective_from' => '2026-01-01', 'is_current' => true]);
-    $agreement = \App\Models\EmployeePerformanceAgreement::query()->create(['cycle_id' => $this->cycle->id, 'employee_id' => $employee->id, 'employee_assignment_id' => $assignment->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'manager_user_id' => $actor->id, 'effective_from' => '2026-01-01', 'effective_to' => '2026-12-31']);
+    $employee = Employee::query()->create(['employee_number' => 'UA-EMP', 'first_name' => 'Private', 'last_name' => 'Employee', 'full_name' => 'Private Employee', 'status' => 'active']);
+    $assignment = EmployeeAssignment::query()->create(['employee_id' => $employee->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'assignment_status' => 'active', 'effective_from' => '2026-01-01', 'is_current' => true]);
+    $agreement = EmployeePerformanceAgreement::query()->create(['cycle_id' => $this->cycle->id, 'employee_id' => $employee->id, 'employee_assignment_id' => $assignment->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'manager_user_id' => $actor->id, 'effective_from' => '2026-01-01', 'effective_to' => '2026-12-31']);
     expect($this->access->canViewAgreement($actor, $agreement))->toBeFalse()
-        ->and($this->access->constrainAgreements(\App\Models\EmployeePerformanceAgreement::query(), $actor)->count())->toBe(0);
+        ->and($this->access->constrainAgreements(EmployeePerformanceAgreement::query(), $actor)->count())->toBe(0);
 });

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
+use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
@@ -34,7 +35,7 @@ function registryEmployee(Organization $organization, string $number): Employee
 }
 
 beforeEach(function (): void {
-    $type = \App\Models\OrganizationType::query()->create(['code' => 'REG', 'name_en' => 'Registry type']);
+    $type = OrganizationType::query()->create(['code' => 'REG', 'name_en' => 'Registry type']);
     $this->own = Organization::query()->create(['organization_type_id' => $type->id, 'code' => 'REG-A', 'name_en' => 'Registry A', 'status' => 'active']);
     $this->outside = Organization::query()->create(['organization_type_id' => $type->id, 'code' => 'REG-B', 'name_en' => 'Registry B', 'status' => 'active']);
     $this->employee = registryEmployee($this->own, 'REG-001');
@@ -81,7 +82,9 @@ test('read-only registry users cannot open employee edit or create', function ()
 });
 
 test('registry pagination stays bounded and preserves search', function (): void {
-    for ($index = 3; $index <= 53; $index++) registryEmployee($this->own, 'REG-'.str_pad((string) $index, 3, '0', STR_PAD_LEFT));
+    for ($index = 3; $index <= 53; $index++) {
+        registryEmployee($this->own, 'REG-'.str_pad((string) $index, 3, '0', STR_PAD_LEFT));
+    }
     $this->actingAs(registryUser())->get(route('employees.index', ['search' => 'REG-', 'page' => 2]))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->has('employees', 3)->where('employees_pagination.per_page', 50)
             ->where('employees_pagination.current_page', 2)->where('employees_pagination.total', 53)->where('filters.search', 'REG-'));

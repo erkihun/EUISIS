@@ -27,7 +27,7 @@ class CalendarService
     public function calendarSystemForLocale(string $locale): CalendarSystem
     {
         return match ($locale) {
-            'am'    => CalendarSystem::Ethiopian,
+            'am' => CalendarSystem::Ethiopian,
             default => CalendarSystem::Gregorian,
         };
     }
@@ -44,7 +44,7 @@ class CalendarService
             return null;
         }
 
-        $carbon  = $this->toCarbonOrNull($date);
+        $carbon = $this->toCarbonOrNull($date);
         if ($carbon === null) {
             return null;
         }
@@ -77,6 +77,7 @@ class CalendarService
 
         if ($this->calendarSystemForLocale($locale) === CalendarSystem::Ethiopian) {
             $datePart = $this->ethiopian->formatGregorianDateAsEthiopian($carbon, $locale);
+
             return "{$datePart} {$timePart}";
         }
 
@@ -100,6 +101,7 @@ class CalendarService
             if (! $this->isValidGregorianIso($input)) {
                 throw new InvalidArgumentException("Invalid Gregorian date: {$input}");
             }
+
             return Carbon::parse($input);
         }
 
@@ -125,8 +127,8 @@ class CalendarService
         $carbon = $this->toCarbonOrNull($date);
 
         return [
-            'date_value'      => $carbon?->toDateString(),
-            'date_display'    => $this->formatDate($carbon, $locale),
+            'date_value' => $carbon?->toDateString(),
+            'date_display' => $this->formatDate($carbon, $locale),
             'calendar_system' => $this->calendarSystemForLocale($locale)->value,
         ];
     }
@@ -140,8 +142,8 @@ class CalendarService
         $carbon = $this->toCarbonOrNull($dateTime);
 
         return [
-            'date_value'      => $carbon?->toISOString(),
-            'date_display'    => $this->formatDateTime($carbon, $locale),
+            'date_value' => $carbon?->toISOString(),
+            'date_display' => $this->formatDateTime($carbon, $locale),
             'calendar_system' => $this->calendarSystemForLocale($locale)->value,
         ];
     }
@@ -154,6 +156,7 @@ class CalendarService
             return false;
         }
         [$y, $m, $d] = array_map('intval', explode('-', $date));
+
         return checkdate($m, $d, $y);
     }
 
@@ -162,6 +165,7 @@ class CalendarService
         if (! preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $matches)) {
             return false;
         }
+
         return $this->ethiopian->isValidEthiopianDate((int) $matches[1], (int) $matches[2], (int) $matches[3]);
     }
 

@@ -28,12 +28,12 @@ class CafeteriaReportRun extends Model
     ];
 
     protected $casts = [
-        'report_type'  => CafeteriaReportType::class,
+        'report_type' => CafeteriaReportType::class,
         'period_start' => 'date',
-        'period_end'   => 'date',
+        'period_end' => 'date',
         'generated_at' => 'datetime',
-        'filters'      => 'array',
-        'totals'       => 'array',
+        'filters' => 'array',
+        'totals' => 'array',
     ];
 
     public function generatedBy(): BelongsTo

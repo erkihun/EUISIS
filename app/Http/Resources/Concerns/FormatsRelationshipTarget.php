@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 trait FormatsRelationshipTarget
 {
-    protected function targetPayload(Model|null $target): ?array
+    protected function targetPayload(?Model $target): ?array
     {
         if ($target === null) {
             return null;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\OrganizationDesignStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
+use App\Models\DesignDocumentSuggestion;
 use App\Models\DesignImportBatch;
 use App\Models\DesignImportRow;
 use App\Models\InstitutionMandate;
@@ -130,7 +131,7 @@ function hdFixtures(Organization $organization): array
     $baseline = LegacyBaseline::query()->create(['organization_id' => $o, 'lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'reference_number' => 'LOB-'.substr(uniqid(), -8), 'title_en' => 'Baseline', 'status' => OrganizationDesignStatus::Draft, 'prepared_by' => $designer->id, 'created_by' => $designer->id]);
     $batch = DesignImportBatch::query()->create(['reference_number' => 'DIB-'.substr(uniqid(), -8), 'organization_id' => $o, 'entity_type' => 'mandates', 'file_name' => 'none.csv', 'file_disk' => 'local', 'file_path' => 'organization-design/imports/none.csv', 'fingerprint' => str_repeat('0', 64), 'status' => 'validated', 'uploaded_by' => $designer->id]);
     $row = DesignImportRow::query()->create(['batch_id' => $batch->id, 'row_number' => 2, 'data' => ['code' => 'X'], 'status' => 'valid', 'updated_at' => now()]);
-    $suggestion = \App\Models\DesignDocumentSuggestion::query()->create(['organization_id' => $o, 'mandate_id' => $mandate->id, 'kind' => 'functions', 'status' => 'ready', 'passage_sha256' => str_repeat('0', 64), 'passage_chars' => 1, 'items' => [['title' => 'T', 'kind' => 'function', 'legal_reference' => null, 'uncertain' => false, 'state' => 'pending', 'record_id' => null]], 'created_by' => $designer->id]);
+    $suggestion = DesignDocumentSuggestion::query()->create(['organization_id' => $o, 'mandate_id' => $mandate->id, 'kind' => 'functions', 'status' => 'ready', 'passage_sha256' => str_repeat('0', 64), 'passage_chars' => 1, 'items' => [['title' => 'T', 'kind' => 'function', 'legal_reference' => null, 'uncertain' => false, 'state' => 'pending', 'record_id' => null]], 'created_by' => $designer->id]);
 
     return [
         'suggestion' => $suggestion,

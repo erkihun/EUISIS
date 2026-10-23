@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Communication;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /** Mute for some minutes, or until unmuted (null minutes with mute true). Authorization is the policy's, checked in the action. */
 class MuteConversationRequest extends FormRequest

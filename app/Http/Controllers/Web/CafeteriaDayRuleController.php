@@ -26,7 +26,7 @@ class CafeteriaDayRuleController extends Controller
 
         return Inertia::render('Cafeteria/DayRules/Index', [
             'rules' => CafeteriaDayRuleResource::collection($rules)->resolve(),
-            'can'   => [
+            'can' => [
                 'update' => request()->user()?->can('cafeteria_day_rules.update') ?? false,
             ],
         ]);

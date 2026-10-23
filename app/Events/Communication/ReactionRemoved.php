@@ -24,9 +24,7 @@ class ReactionRemoved implements ShouldBroadcast
         return config('communication.broadcast_queue');
     }
 
-    public function __construct(public readonly string $conversationId, public readonly string $messageId, public readonly array $reactions)
-    {
-    }
+    public function __construct(public readonly string $conversationId, public readonly string $messageId, public readonly array $reactions) {}
 
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array

@@ -1,7 +1,6 @@
 <?php
 
 use App\Enums\AuditEventType;
-use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

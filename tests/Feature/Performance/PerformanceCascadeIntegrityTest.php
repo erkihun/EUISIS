@@ -202,7 +202,6 @@ it('rolls back an amendment when the upstream lineage has ambiguous successors',
         ->and($this->positionPlan->fresh()->status->value)->toBe('PUBLISHED');
 });
 
-
 it('requires only mandatory strategic objectives allocated to the receiving unit', function (): void {
     $this->unitPlan->forceFill(['status' => 'DRAFT'])->save();
     $this->rootObjective->update(['is_mandatory' => true]);

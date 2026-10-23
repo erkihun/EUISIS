@@ -22,6 +22,7 @@ class LinkCafeteriaProvidersToServiceProviders extends Command
 
         if (! $cafeteriaType) {
             $this->error('ServiceType with code "cafeteria" not found. Run seeders first.');
+
             return self::FAILURE;
         }
 
@@ -32,6 +33,7 @@ class LinkCafeteriaProvidersToServiceProviders extends Command
 
         if ($unlinked->isEmpty()) {
             $this->info('All cafeteria providers are already linked.');
+
             return self::SUCCESS;
         }
 
@@ -41,16 +43,16 @@ class LinkCafeteriaProvidersToServiceProviders extends Command
             // Ensure code uniqueness in service_providers — prefix if collision exists
             $code = $cafProvider->code;
             if (ServiceProvider::where('code', $code)->exists()) {
-                $code = 'CAF-' . $code . '-' . Str::upper(Str::random(4));
+                $code = 'CAF-'.$code.'-'.Str::upper(Str::random(4));
             }
 
             $serviceProvider = ServiceProvider::query()->create([
                 'service_type_id' => $cafeteriaType->id,
                 'organization_id' => $cafProvider->organization_id,
-                'name'            => $cafProvider->name_en,
-                'code'            => $code,
-                'status'          => $cafProvider->is_active ? 'active' : 'inactive',
-                'is_demo'         => false,
+                'name' => $cafProvider->name_en,
+                'code' => $code,
+                'status' => $cafProvider->is_active ? 'active' : 'inactive',
+                'is_demo' => false,
             ]);
 
             $cafProvider->withoutTimestamps(fn () => $cafProvider->updateQuietly([
@@ -61,6 +63,7 @@ class LinkCafeteriaProvidersToServiceProviders extends Command
         }
 
         $this->info('Done.');
+
         return self::SUCCESS;
     }
 }

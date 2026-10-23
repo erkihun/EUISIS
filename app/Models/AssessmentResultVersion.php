@@ -19,6 +19,13 @@ class AssessmentResultVersion extends Model
         return ['raw_score' => 'decimal:4', 'normalized_score' => 'decimal:4', 'contribution_score' => 'decimal:4', 'effective_at' => 'datetime', 'is_current' => 'bool'];
     }
 
-    public function record(): BelongsTo { return $this->belongsTo(AssessmentRecord::class, 'assessment_record_id'); }
-    public function supersedes(): BelongsTo { return $this->belongsTo(self::class, 'supersedes_version_id'); }
+    public function record(): BelongsTo
+    {
+        return $this->belongsTo(AssessmentRecord::class, 'assessment_record_id');
+    }
+
+    public function supersedes(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'supersedes_version_id');
+    }
 }

@@ -17,7 +17,7 @@ readonly class ArchiveEmployeeCafeteriaExclusionAction
     public function execute(EmployeeCafeteriaExclusion $exclusion, User $actor, ?string $reason, ?Request $request = null): void
     {
         $exclusion->update([
-            'deleted_by'      => $actor->id,
+            'deleted_by' => $actor->id,
             'deletion_reason' => $reason,
         ]);
         $exclusion->delete();

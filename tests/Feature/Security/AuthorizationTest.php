@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Enums\AssignmentStatus;
+use App\Enums\EmployeeStatus;
+use App\Enums\OrganizationStatus;
 use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
-use App\Models\UserOrganizationScope;
-use App\Enums\OrganizationStatus;
-use App\Enums\EmployeeStatus;
-use App\Enums\AssignmentStatus;
-use App\Models\EmployeeAssignment;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -71,7 +72,7 @@ test('employee detail resource hides national_id without viewPii permission', fu
         ['organization_type_id' => $type->id, 'name_en' => 'Auth Test Org', 'status' => OrganizationStatus::Active]
     );
     $employee = Employee::query()->create([
-        'employee_number' => 'EMP-AUTH-' . uniqid(),
+        'employee_number' => 'EMP-AUTH-'.uniqid(),
         'first_name' => 'Test',
         'last_name' => 'Employee',
         'full_name' => 'Test Employee',
@@ -116,7 +117,7 @@ test('employee detail resource exposes national_id with viewPii permission', fun
         ['organization_type_id' => $type->id, 'name_en' => 'PII Test Org', 'status' => OrganizationStatus::Active]
     );
     $employee = Employee::query()->create([
-        'employee_number' => 'EMP-PII-' . uniqid(),
+        'employee_number' => 'EMP-PII-'.uniqid(),
         'first_name' => 'PII',
         'last_name' => 'Test',
         'full_name' => 'PII Test',
@@ -160,7 +161,7 @@ test('shared auth props do not expose national_id or phone_number', function ():
 
 // 5. Public card verification does not require auth
 test('public card verification endpoint is accessible without authentication', function (): void {
-    $uuid = \Illuminate\Support\Str::uuid()->toString();
+    $uuid = Str::uuid()->toString();
     $response = $this->get("/verify/card/{$uuid}");
 
     // Should not redirect to login — returns 200 or 404, not 302 to /login
@@ -189,7 +190,7 @@ test('state-changing web route rejects request without CSRF token', function ():
     // Disable CSRF for the assertion test by using withoutMiddleware, then verify the
     // middleware is actually registered — we test via a direct POST without the token.
     $response = $this->actingAs($user)
-        ->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+        ->withoutMiddleware(ValidateCsrfToken::class)
         ->post('/logout');
 
     // The withoutMiddleware bypass confirms the route exists and would otherwise check CSRF.

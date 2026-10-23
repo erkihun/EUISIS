@@ -17,8 +17,8 @@ readonly class ArchivePublicHolidayAction
     public function execute(PublicHoliday $holiday, User $actor, ?string $reason = null, ?Request $request = null): PublicHoliday
     {
         $holiday->forceFill([
-            'is_active'       => false,
-            'deleted_by'      => $actor->id,
+            'is_active' => false,
+            'deleted_by' => $actor->id,
             'deletion_reason' => $reason,
         ])->save();
 

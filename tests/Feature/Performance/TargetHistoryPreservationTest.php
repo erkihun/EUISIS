@@ -17,6 +17,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\Performance\TargetAmendmentService;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 
 test('amending a target preserves published downstream lineage and copies explicit period targets', function (): void {
@@ -28,7 +29,7 @@ test('amending a target preserves published downstream lineage and copies explic
     $assignment = EmployeeAssignment::query()->create(['employee_id' => $employee->id, 'organization_id' => $organization->id, 'organization_unit_id' => $unit->id, 'position_id' => $position->id, 'assignment_status' => 'active', 'effective_from' => '2026-01-01', 'is_current' => true]);
     $cycle = PerformanceCycle::query()->create(['code' => 'HIST-2026', 'name_en' => 'History cycle', 'organization_id' => $organization->id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
     $plan = new PerformancePlan(['cycle_id' => $cycle->id, 'organization_id' => $organization->id, 'organization_unit_id' => $unit->id, 'position_id' => $position->id, 'plan_type' => 'POSITION', 'title' => 'Published position plan']);
-    $plan->forceFill(['status' => 'PUBLISHED', 'lineage_key' => (string) \Illuminate\Support\Str::uuid()])->save();
+    $plan->forceFill(['status' => 'PUBLISHED', 'lineage_key' => (string) Str::uuid()])->save();
     $objective = $plan->objectives()->create(['code' => 'HIST-O', 'title_en' => 'Complete requests', 'objective_type' => 'LOCAL', 'weight' => 100]);
     $kpi = Kpi::query()->create(['code' => 'HIST-K', 'name_en' => 'Requests', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL', 'frequency' => 'ANNUAL']);
     $target = $objective->targets()->create(['performance_plan_id' => $plan->id, 'kpi_id' => $kpi->id, 'period_start' => '2026-01-01', 'period_end' => '2026-12-31', 'target_value' => 100, 'weight' => 100]);

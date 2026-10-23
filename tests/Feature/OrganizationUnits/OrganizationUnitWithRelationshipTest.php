@@ -7,10 +7,10 @@ use App\Enums\OrganizationStatus;
 use App\Enums\RelationshipStatus;
 use App\Enums\RelationshipTargetType;
 use App\Models\Organization;
+use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitRelationship;
 use App\Models\OrganizationUnitType;
-use App\Models\OrganizationType;
 use App\Models\User;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -47,8 +47,8 @@ function ouRelTestOrganization(string $suffix = ''): Organization
 
     return Organization::query()->create([
         'organization_type_id' => $type->id,
-        'code' => 'OUREL-' . uniqid() . $suffix,
-        'name_en' => 'OU Relationship Test Org ' . $suffix,
+        'code' => 'OUREL-'.uniqid().$suffix,
+        'name_en' => 'OU Relationship Test Org '.$suffix,
         'status' => OrganizationStatus::Active,
     ]);
 }
@@ -65,7 +65,7 @@ test('org unit with functional reporting creates organization_unit_relationships
         ['prefix' => 'OFF', 'name_en' => 'Office', 'sort_order' => 1, 'is_active' => true],
     );
 
-    $code = 'OUREL-' . uniqid();
+    $code = 'OUREL-'.uniqid();
 
     $this->actingAs($user)
         ->post(route('institution-offices.store'), [
@@ -102,7 +102,7 @@ test('functional reporting relationship does not change the structural organizat
         ['prefix' => 'OFF', 'name_en' => 'Office', 'sort_order' => 1, 'is_active' => true],
     );
 
-    $code = 'OUREL-OID-' . uniqid();
+    $code = 'OUREL-OID-'.uniqid();
 
     $this->actingAs($user)
         ->post(route('institution-offices.store'), [
@@ -139,7 +139,7 @@ test('org unit created without functional reporting has no relationship record',
         ['prefix' => 'OFF', 'name_en' => 'Office', 'sort_order' => 1, 'is_active' => true],
     );
 
-    $code = 'OUREL-NR-' . uniqid();
+    $code = 'OUREL-NR-'.uniqid();
 
     $this->actingAs($user)
         ->post(route('institution-offices.store'), [
@@ -175,7 +175,7 @@ test('organization unit relationship target resolves to the correct organization
         'organization_id' => $structuralOrg->id,
         'organization_unit_type_id' => $unitType->id,
         'unit_type' => 'office',
-        'code' => 'OUREL-TGT-' . uniqid(),
+        'code' => 'OUREL-TGT-'.uniqid(),
         'name_en' => 'Target Resolution Test Unit',
         'status' => 'active',
     ]);

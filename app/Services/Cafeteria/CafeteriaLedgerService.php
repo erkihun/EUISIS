@@ -51,22 +51,22 @@ class CafeteriaLedgerService
         ?CafeteriaUsageMode $usageMode = null,
     ): CafeteriaSubsidyLedger {
         $previousBalance = $this->getBalance($employee);
-        $newBalance      = $previousBalance + $amount;
+        $newBalance = $previousBalance + $amount;
 
         return CafeteriaSubsidyLedger::query()->create([
-            'employee_id'              => $employee->id,
+            'employee_id' => $employee->id,
             'cafeteria_transaction_id' => $transaction?->id,
-            'ledger_date'              => $date->toDateString(),
-            'allocated_for_date'       => $allocatedForDate?->toDateString(),
-            'week_start_date'          => $weekStart?->toDateString(),
-            'week_end_date'            => $weekEnd?->toDateString(),
-            'usage_mode'               => $usageMode?->value,
-            'entry_type'               => $entryType,
-            'amount'                   => $amount,
-            'balance_after'            => $newBalance,
-            'working_day'              => $isWorkingDay,
-            'description'              => $description,
-            'created_by'               => $actor?->id,
+            'ledger_date' => $date->toDateString(),
+            'allocated_for_date' => $allocatedForDate?->toDateString(),
+            'week_start_date' => $weekStart?->toDateString(),
+            'week_end_date' => $weekEnd?->toDateString(),
+            'usage_mode' => $usageMode?->value,
+            'entry_type' => $entryType,
+            'amount' => $amount,
+            'balance_after' => $newBalance,
+            'working_day' => $isWorkingDay,
+            'description' => $description,
+            'created_by' => $actor?->id,
         ]);
     }
 

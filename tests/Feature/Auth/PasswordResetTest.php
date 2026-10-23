@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\AuditLog;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Notification;
@@ -77,6 +78,6 @@ test('a mail server failure gives the same answer and is recorded for administra
         ->assertRedirect()
         ->assertSessionHas('status', __('password-policy.reset_link_sent'));
 
-    expect(App\Models\AuditLog::query()->where('event_type', 'password_reset_requested')->latest('id')->value('reason'))
+    expect(AuditLog::query()->where('event_type', 'password_reset_requested')->latest('id')->value('reason'))
         ->toBe('password_reset_email_failed');
 });

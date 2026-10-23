@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\Communication\SendMessageAction;
 use App\Actions\Communication\StartDirectConversationAction;
 use App\Models\Communication\CommunicationBlock;
+use App\Models\Communication\CommunicationUserSetting;
 use App\Models\Communication\Conversation;
 use App\Models\Communication\ConversationMember;
 use App\Models\Communication\Message;
@@ -209,8 +210,8 @@ it('records the presence heartbeat for someone without settings yet, and again o
     Carbon::setTestNow(Carbon::parse('2026-10-18 09:05:00'));
     $this->actingAs($this->s->alice)->postJson(route('communication.api.presence'))->assertOk();
 
-    expect(\App\Models\Communication\CommunicationUserSetting::query()->where('user_id', $this->s->alice->id)->count())->toBe(1)
-        ->and(\App\Models\Communication\CommunicationUserSetting::query()->where('user_id', $this->s->alice->id)->first()->last_seen_at?->format('H:i'))->toBe('09:05');
+    expect(CommunicationUserSetting::query()->where('user_id', $this->s->alice->id)->count())->toBe(1)
+        ->and(CommunicationUserSetting::query()->where('user_id', $this->s->alice->id)->first()->last_seen_at?->format('H:i'))->toBe('09:05');
 });
 
 it('shows mentioned people by name in the conversation list preview, never as raw tokens', function (): void {

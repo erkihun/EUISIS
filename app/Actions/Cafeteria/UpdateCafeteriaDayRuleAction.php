@@ -19,12 +19,12 @@ readonly class UpdateCafeteriaDayRuleAction
         $old = $rule->only(['is_open', 'is_subsidy_day', 'open_time', 'close_time', 'notes']);
 
         $rule->update([
-            'is_open'        => (bool) ($attributes['is_open'] ?? $rule->is_open),
+            'is_open' => (bool) ($attributes['is_open'] ?? $rule->is_open),
             'is_subsidy_day' => (bool) ($attributes['is_subsidy_day'] ?? $rule->is_subsidy_day),
-            'open_time'      => $attributes['open_time'] ?? $rule->open_time,
-            'close_time'     => $attributes['close_time'] ?? $rule->close_time,
-            'notes'          => $attributes['notes'] ?? $rule->notes,
-            'updated_by'     => $actor->id,
+            'open_time' => $attributes['open_time'] ?? $rule->open_time,
+            'close_time' => $attributes['close_time'] ?? $rule->close_time,
+            'notes' => $attributes['notes'] ?? $rule->notes,
+            'updated_by' => $actor->id,
         ]);
 
         $this->writeAuditLogAction->execute(

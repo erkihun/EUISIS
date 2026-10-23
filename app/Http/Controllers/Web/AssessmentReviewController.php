@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AssessmentCycle;
 use App\Models\AssessmentRecord;
 use App\Models\AssessmentResponse;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\User;
 use App\Services\Assessment\Execution\AssessmentAssignmentService;
 use App\Services\Assessment\Execution\AssessmentFormDefinition;
@@ -48,7 +50,7 @@ class AssessmentReviewController extends Controller
             ->when($filters['cycle'] ?? null, fn ($q, $v) => $q->where('assessment_cycle_id', $v))
             ->when($filters['search'] ?? null, function ($q, $v): void {
                 $like = '%'.mb_strtolower(trim($v)).'%';
-                $q->whereIn('employee_id', \App\Models\Employee::query()->where(fn ($w) => $w->whereRaw('LOWER(employee_number) LIKE ?', [$like])->orWhereRaw('LOWER(full_name) LIKE ?', [$like]))->select('id'));
+                $q->whereIn('employee_id', Employee::query()->where(fn ($w) => $w->whereRaw('LOWER(employee_number) LIKE ?', [$like])->orWhereRaw('LOWER(full_name) LIKE ?', [$like]))->select('id'));
             })
             ->with(['version:id,name_en,name_am,version_no', 'cycle:id,code,name_en,name_am'])
             ->withCount(['responses as evaluators_active' => fn ($q) => $q->whereIn('status', AssessmentResponse::ACTIVE)])
@@ -176,7 +178,7 @@ class AssessmentReviewController extends Controller
     private function candidates(AssessmentRecord $record): array
     {
         return User::query()->where('status', 'active')->whereNotNull('employee_id')
-            ->whereIn('employee_id', \App\Models\EmployeeAssignment::query()->where('organization_id', $record->organization_id)->where('is_current', true)->select('employee_id'))
+            ->whereIn('employee_id', EmployeeAssignment::query()->where('organization_id', $record->organization_id)->where('is_current', true)->select('employee_id'))
             ->orderBy('name')->limit(300)->get(['id', 'name'])->map->only(['id', 'name'])->all();
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\User;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 // ── INSA Annex B: Rate limiting, account lockout ──────────────────────────────
 
@@ -91,7 +92,7 @@ test('reset-password endpoint has rate limiting', function (): void {
 });
 
 test('public card verification is rate limited', function (): void {
-    $uuid = \Illuminate\Support\Str::uuid()->toString();
+    $uuid = Str::uuid()->toString();
 
     // The route has throttle:30,1 — hit it 30 times rapidly
     for ($i = 0; $i < 30; $i++) {

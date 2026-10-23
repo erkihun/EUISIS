@@ -6,8 +6,8 @@ namespace App\Enums;
 
 enum OrganizationUnitStatus: string
 {
-    case Draft    = 'draft';
-    case Active   = 'active';
+    case Draft = 'draft';
+    case Active = 'active';
     case Inactive = 'inactive';
     case Archived = 'archived';
 }

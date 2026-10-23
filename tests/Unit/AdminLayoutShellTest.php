@@ -10,7 +10,7 @@ it('provides a responsive and keyboard-accessible admin shell', function (): voi
     expect($layout)
         ->toContain('DialogBackdrop')
         ->toContain('DialogPanel')
-        ->toContain("href=\"#main-content\"")
+        ->toContain('href="#main-content"')
         ->toContain('id="main-content"')
         ->toContain('useEffect(() => setSidebarOpen(false), [pageUrl])')
         ->and($header)

@@ -19,14 +19,14 @@ readonly class UpdateEmployeeCafeteriaExclusionAction
         $old = $exclusion->only(['exclusion_type', 'starts_on', 'ends_on', 'return_to_work_on', 'is_open_ended']);
 
         $exclusion->update([
-            'exclusion_type'    => $attributes['exclusion_type'] ?? $exclusion->exclusion_type,
-            'starts_on'         => $attributes['starts_on'] ?? $exclusion->starts_on,
-            'ends_on'           => $attributes['ends_on'] ?? null,
+            'exclusion_type' => $attributes['exclusion_type'] ?? $exclusion->exclusion_type,
+            'starts_on' => $attributes['starts_on'] ?? $exclusion->starts_on,
+            'ends_on' => $attributes['ends_on'] ?? null,
             'return_to_work_on' => $attributes['return_to_work_on'] ?? null,
-            'is_open_ended'     => (bool) ($attributes['is_open_ended'] ?? $exclusion->is_open_ended),
-            'reason_en'         => $attributes['reason_en'] ?? $exclusion->reason_en,
-            'reason_am'         => $attributes['reason_am'] ?? $exclusion->reason_am,
-            'updated_by'        => $actor->id,
+            'is_open_ended' => (bool) ($attributes['is_open_ended'] ?? $exclusion->is_open_ended),
+            'reason_en' => $attributes['reason_en'] ?? $exclusion->reason_en,
+            'reason_am' => $attributes['reason_am'] ?? $exclusion->reason_am,
+            'updated_by' => $actor->id,
         ]);
 
         $this->writeAuditLogAction->execute(

@@ -13,6 +13,7 @@ use App\Models\Organization;
 use App\Models\OrganizationDesignStudy;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationType;
+use App\Models\OrganizationUnitType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Spatie\Permission\Models\Permission;
@@ -94,7 +95,7 @@ test('segregation of duties: holding every permission does not let the same pers
     $almighty = sdUser($organization, OrganizationScopeType::Self);
     $this->actingAs($almighty)->post(route('organization-design.studies.store'), ['organization_id' => $organization->id, 'title_en' => 'Own study', 'study_type' => 'review', 'reason' => 'Review'])->assertRedirect();
     $study = OrganizationDesignStudy::query()->where('organization_id', $organization->id)->firstOrFail();
-    $unitType = \App\Models\OrganizationUnitType::query()->firstOrCreate(['code' => 'SD-DIR'], ['name_en' => 'Directorate', 'is_active' => true]);
+    $unitType = OrganizationUnitType::query()->firstOrCreate(['code' => 'SD-DIR'], ['name_en' => 'Directorate', 'is_active' => true]);
     $this->actingAs($almighty)->post(route('organization-design.studies.proposals.store', $study), ['proposal_type' => 'create', 'name_en' => 'New unit', 'proposed_unit_type_id' => $unitType->id])->assertRedirect();
     $this->actingAs($almighty)->post(route('organization-design.studies.submit', $study))->assertRedirect();
     expect($study->fresh()->status)->toBe(OrganizationDesignStatus::UnderReview);

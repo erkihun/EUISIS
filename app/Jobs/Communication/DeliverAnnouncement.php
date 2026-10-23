@@ -7,7 +7,8 @@ namespace App\Jobs\Communication;
 use App\Contracts\SmsGateway;
 use App\Enums\Communication\AnnouncementPriority;
 use App\Models\Communication\Announcement;
-use App\Models\User;
+use App\Models\Communication\CommunicationUserSetting;
+use App\Models\Employee;
 use App\Notifications\Communication\CommunicationNotification;
 use App\Services\Communication\AnnouncementAudience;
 use App\Services\Communication\CommunicationInbox;
@@ -78,7 +79,7 @@ class DeliverAnnouncement implements ShouldBeUnique, ShouldQueue
             ->chunkById(500, function (Collection $users) use ($kind, $channels, $text, $url, $texting, $sms, $inbox, $announcement, $checkpoint): void {
                 $inbox->forgetTotals(...$users->modelKeys());
                 // Personal preferences: someone who turned off email or SMS for announcements gets the in-app notice only.
-                $prefs = \App\Models\Communication\CommunicationUserSetting::query()->whereIn('user_id', $users->modelKeys())->get()->keyBy('user_id');
+                $prefs = CommunicationUserSetting::query()->whereIn('user_id', $users->modelKeys())->get()->keyBy('user_id');
                 $wants = fn (string $pref) => $users->filter(fn ($u) => (bool) ($prefs->get($u->getKey())?->{$pref} ?? true));
                 if ($kind !== null) {
                     if (in_array('mail', $channels, true)) {
@@ -91,7 +92,7 @@ class DeliverAnnouncement implements ShouldBeUnique, ShouldQueue
                 }
                 if ($texting) {
                     $message = Str::limit($announcement->title_am ?: $announcement->title, 140);
-                    $phones = \App\Models\Employee::query()->whereIn('id', $wants('sms_emergency_announcements')->pluck('employee_id')->filter())->whereNotNull('phone')->pluck('phone');
+                    $phones = Employee::query()->whereIn('id', $wants('sms_emergency_announcements')->pluck('employee_id')->filter())->whereNotNull('phone')->pluck('phone');
                     foreach ($phones as $phone) {
                         $sms->send((string) $phone, $message);
                     }

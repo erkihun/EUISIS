@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Communication\CreateGroupAction;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
 use App\Models\Communication\Announcement;
@@ -105,7 +106,7 @@ it('targets a unit with its sub-units, a single employee, or a group the author 
         ->and(caFeed($this, $this->s->carol))->toBe(['For Carol'])
         ->and(caFeed($this, $this->s->bob))->toBe(['HR directorate only']);
 
-    $group = app(\App\Actions\Communication\CreateGroupAction::class)->execute($this->s->alice, ['title' => 'Desk', 'member_ids' => [$this->s->bob->id]]);
+    $group = app(CreateGroupAction::class)->execute($this->s->alice, ['title' => 'Desk', 'member_ids' => [$this->s->bob->id]]);
     $this->actingAs($this->admin)->post(route('communication.announcements.store'), caPayload($this, ['targets' => [['type' => 'GROUP', 'id' => $group->id]]]))
         ->assertSessionHasErrors('targets');
 });

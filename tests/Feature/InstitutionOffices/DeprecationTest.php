@@ -9,6 +9,7 @@ use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -44,8 +45,8 @@ function deprecationTestOrganization(string $suffix = ''): Organization
 
     return Organization::query()->create([
         'organization_type_id' => $type->id,
-        'code' => 'DEP-' . uniqid() . $suffix,
-        'name_en' => 'Deprecation Test Org ' . $suffix,
+        'code' => 'DEP-'.uniqid().$suffix,
+        'name_en' => 'Deprecation Test Org '.$suffix,
         'status' => OrganizationStatus::Active,
     ]);
 }
@@ -82,7 +83,7 @@ test('POST institution-offices store creates an OrganizationUnit record', functi
         ['prefix' => 'OFF', 'name_en' => 'Office', 'sort_order' => 1, 'is_active' => true],
     );
 
-    $code = 'DEP-OU-' . uniqid();
+    $code = 'DEP-OU-'.uniqid();
 
     $this->actingAs($user)
         ->post(route('institution-offices.store'), [
@@ -118,12 +119,12 @@ test('GET institution-offices show redirects to mapped organization unit', funct
     );
 
     // Create an institution_office record so the FK constraint is satisfied
-    $officeId = \Illuminate\Support\Str::uuid()->toString();
+    $officeId = Str::uuid()->toString();
     DB::table('institution_offices')->insert([
         'id' => $officeId,
         'institution_id' => $org->id,
         'name_en' => 'Legacy Office For Show Test',
-        'office_code' => 'DEP-SHOW-LEGACY-' . uniqid(),
+        'office_code' => 'DEP-SHOW-LEGACY-'.uniqid(),
         'office_level' => 'other',
         'status' => 'active',
         'created_at' => now(),
@@ -135,7 +136,7 @@ test('GET institution-offices show redirects to mapped organization unit', funct
         'organization_unit_type_id' => $unitType->id,
         'unit_type' => 'office',
         'institution_office_id' => $officeId,
-        'code' => 'DEP-SHOW-' . uniqid(),
+        'code' => 'DEP-SHOW-'.uniqid(),
         'name_en' => 'Deprecation Show Test Unit',
         'status' => 'active',
     ]);
@@ -149,7 +150,7 @@ test('GET institution-offices show redirects to mapped organization unit', funct
 
 test('GET institution-offices show with unmapped id redirects to organization-units index', function (): void {
     $user = deprecationTestAdmin();
-    $unknownId = \Illuminate\Support\Str::uuid()->toString();
+    $unknownId = Str::uuid()->toString();
 
     $this->actingAs($user)
         ->get(route('institution-offices.show', $unknownId))
@@ -168,12 +169,12 @@ test('GET institution-offices edit redirects to mapped organization unit edit', 
     );
 
     // Create a real institution_office record so the FK constraint is satisfied
-    $officeId = \Illuminate\Support\Str::uuid()->toString();
+    $officeId = Str::uuid()->toString();
     DB::table('institution_offices')->insert([
         'id' => $officeId,
         'institution_id' => $org->id,
         'name_en' => 'Legacy Office For Edit Test',
-        'office_code' => 'DEP-EDIT-LEGACY-' . uniqid(),
+        'office_code' => 'DEP-EDIT-LEGACY-'.uniqid(),
         'office_level' => 'other',
         'status' => 'active',
         'created_at' => now(),
@@ -185,7 +186,7 @@ test('GET institution-offices edit redirects to mapped organization unit edit', 
         'organization_unit_type_id' => $unitType->id,
         'unit_type' => 'office',
         'institution_office_id' => $officeId,
-        'code' => 'DEP-EDIT-' . uniqid(),
+        'code' => 'DEP-EDIT-'.uniqid(),
         'name_en' => 'Deprecation Edit Test Unit',
         'status' => 'active',
     ]);

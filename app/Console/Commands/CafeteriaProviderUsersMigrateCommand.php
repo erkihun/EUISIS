@@ -7,7 +7,6 @@ namespace App\Console\Commands;
 use App\Models\CafeteriaProviderUser;
 use App\Models\User;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -60,6 +59,7 @@ class CafeteriaProviderUsersMigrateCommand extends Command
             if ($alreadyMigrated) {
                 $this->line("  SKIP  {$user->email} — already migrated.");
                 $skipped++;
+
                 continue;
             }
 

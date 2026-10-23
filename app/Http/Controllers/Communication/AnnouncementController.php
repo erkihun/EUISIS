@@ -18,8 +18,8 @@ use App\Http\Requests\Communication\CancelAnnouncementRequest;
 use App\Http\Requests\Communication\SaveAnnouncementRequest;
 use App\Models\Communication\Announcement;
 use App\Models\Communication\AnnouncementAttachment;
-use App\Models\Communication\AnnouncementReceipt;
 use App\Models\Communication\Conversation;
+use App\Models\Communication\ConversationMember;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
@@ -28,6 +28,8 @@ use App\Services\Communication\AnnouncementAudience;
 use App\Services\Communication\AnnouncementPresenter;
 use App\Services\Communication\AnnouncementTargeting;
 use App\Services\Communication\AttachmentStorage;
+use App\Services\Communication\CommunicationInbox;
+use App\Services\Communication\CommunicationSettings;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -135,7 +137,7 @@ class AnnouncementController extends Controller
         abort_unless(Gate::forUser($user)->allows('view', $announcement), 404);
         if ($announcement->isLive() && $this->audience->reaches($user, $announcement)) {
             AcknowledgeAnnouncementAction::touch($user, $announcement, ['delivered_at', 'viewed_at']);
-            app(\App\Services\Communication\CommunicationInbox::class)->forgetTotals($user->getKey());
+            app(CommunicationInbox::class)->forgetTotals($user->getKey());
         }
 
         return Inertia::render('Communication/Announcements/Show', [
@@ -256,7 +258,7 @@ class AnnouncementController extends Controller
                     ->map(fn ($r) => ['id' => (string) $r->id, 'name' => $r->name, 'hint' => null])
                 : collect(),
             AnnouncementTargetType::Group => Conversation::query()->where('type', ConversationType::Group->value)->whereNull('archived_at')
-                ->whereIn('id', \App\Models\Communication\ConversationMember::query()->select('conversation_id')->where('user_id', $user->getKey())->whereNull('left_at'))
+                ->whereIn('id', ConversationMember::query()->select('conversation_id')->where('user_id', $user->getKey())->whereNull('left_at'))
                 ->when(mb_strlen($term) >= 2, fn ($q) => $q->where('title', ci_like_operator(), $like))
                 ->orderBy('title')->limit(20)->get(['id', 'title'])->map(fn ($c) => ['id' => $c->id, 'name' => $c->title, 'hint' => null]),
             default => collect(),
@@ -329,8 +331,8 @@ class AnnouncementController extends Controller
             'targetTypes' => array_values(array_filter(AnnouncementTargetType::values(),
                 fn (string $t) => $cityWide || ! in_array($t, [AnnouncementTargetType::City->value, AnnouncementTargetType::Role->value], true))),
             'canPublish' => $user->can('announcements.publish'),
-            'limits' => ['maxAttachmentKb' => app(\App\Services\Communication\CommunicationSettings::class)->maxAttachmentKb(),
-                'allowedTypes' => app(\App\Services\Communication\CommunicationSettings::class)->allowedAttachmentTypes()],
+            'limits' => ['maxAttachmentKb' => app(CommunicationSettings::class)->maxAttachmentKb(),
+                'allowedTypes' => app(CommunicationSettings::class)->allowedAttachmentTypes()],
         ];
     }
 

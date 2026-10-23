@@ -36,10 +36,10 @@ class CafeteriaSubsidyRule extends Model
     ];
 
     protected $casts = [
-        'subsidy_amount'  => 'decimal:2',
-        'effective_from'  => 'date',
-        'effective_to'    => 'date',
-        'is_active'       => 'boolean',
+        'subsidy_amount' => 'decimal:2',
+        'effective_from' => 'date',
+        'effective_to' => 'date',
+        'is_active' => 'boolean',
         'exclude_weekends' => 'boolean',
     ];
 

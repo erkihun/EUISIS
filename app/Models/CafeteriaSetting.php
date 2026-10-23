@@ -28,10 +28,10 @@ class CafeteriaSetting extends Model
     ];
 
     protected $casts = [
-        'value'        => 'json',
-        'is_public'    => 'boolean',
+        'value' => 'json',
+        'is_public' => 'boolean',
         'is_encrypted' => 'boolean',
-        'sort_order'   => 'integer',
+        'sort_order' => 'integer',
     ];
 
     public function updatedBy(): BelongsTo

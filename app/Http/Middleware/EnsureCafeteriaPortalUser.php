@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\CafeteriaProviderUser;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +19,7 @@ final class EnsureCafeteriaPortalUser
 {
     public function handle(Request $request, Closure $next): Response
     {
-        /** @var \App\Models\CafeteriaProviderUser|null $providerUser */
+        /** @var CafeteriaProviderUser|null $providerUser */
         $providerUser = auth('cafeteria_provider')->user();
 
         if ($providerUser === null) {

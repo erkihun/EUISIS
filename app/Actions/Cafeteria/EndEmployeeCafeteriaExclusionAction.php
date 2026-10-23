@@ -19,11 +19,11 @@ readonly class EndEmployeeCafeteriaExclusionAction
     public function execute(EmployeeCafeteriaExclusion $exclusion, User $actor, ?string $returnToWorkOn, ?Request $request = null): void
     {
         $exclusion->update([
-            'status'            => CafeteriaExclusionStatus::Ended->value,
-            'ended_by'          => $actor->id,
-            'ended_at'          => Carbon::now(),
+            'status' => CafeteriaExclusionStatus::Ended->value,
+            'ended_by' => $actor->id,
+            'ended_at' => Carbon::now(),
             'return_to_work_on' => $returnToWorkOn ?? $exclusion->return_to_work_on,
-            'updated_by'        => $actor->id,
+            'updated_by' => $actor->id,
         ]);
 
         $this->writeAuditLogAction->execute(

@@ -74,8 +74,10 @@ final class IdCardAssetResolver
                     return 'data:'.$mime.';base64,'.base64_encode($disk->get($photoPath));
                 }
             }
+
             return null;
         }
+
         // Employee create/update accepts photos up to 4096 KB.
         return $this->resolveStoragePath($photoPath, 4 * 1024 * 1024);
     }

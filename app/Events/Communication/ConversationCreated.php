@@ -24,9 +24,7 @@ class ConversationCreated implements ShouldBroadcast
         return config('communication.broadcast_queue');
     }
 
-    public function __construct(public readonly string $conversationId, public readonly array $memberIds)
-    {
-    }
+    public function __construct(public readonly string $conversationId, public readonly array $memberIds) {}
 
     /** @return list<PrivateChannel> */
     public function broadcastOn(): array
