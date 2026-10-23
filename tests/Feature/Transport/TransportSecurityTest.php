@@ -83,6 +83,8 @@ it('ignores a provider, status or settlement a client posts with an invoice', fu
 
 it('opens the manual-exception lookup only to the grant that may record one, and answers nothing but id, number and name', function (): void {
     [$employee] = $this->s->employee('woreda_a1', 'Looked Up');
+    $this->s->pass($employee, $this->mine);
+    [$stranger] = $this->s->employee('subcity_b', 'Not Ours');
     $operator = $this->s->portalUser($this->mine, 'operator', ['provider.transport.scan']);
     $manual = $this->s->portalUser($this->mine, 'operator', ['provider.transport.scan', 'provider.transport.manual_exception']);
 
@@ -91,9 +93,16 @@ it('opens the manual-exception lookup only to the grant that may record one, and
     $hit = ($this->as)($manual)->postJson(route('provider.portal.transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertOk()->json();
     expect(array_keys($hit))->toBe(['id', 'employee_number', 'full_name'])
         ->and($hit['full_name'])->toBe('Looked Up');
+    // Someone this provider may not carry is answered exactly like an unknown number.
+    $miss = ($this->as)($manual)->postJson(route('provider.portal.transport.scan.lookup'), ['employee_number' => $stranger->employee_number])->assertNotFound()->json();
+    expect($miss)->toBe(($this->as)($manual)->postJson(route('provider.portal.transport.scan.lookup'), ['employee_number' => 'EMP-NOPE'])->json());
 
     $this->actingAs($this->s->staff(['transport-scan.create']))->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertForbidden();
     $this->actingAs($this->s->staff(['transport-scan.create', 'transport-scan.manual']))->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertOk();
+    // Staff stay inside their organization scope.
+    $scoped = $this->s->staff(['transport-scan.create', 'transport-scan.manual'], 'subcity_a');
+    $this->actingAs($scoped)->postJson(route('transport.scan.lookup'), ['employee_number' => $employee->employee_number])->assertOk();
+    $this->actingAs($scoped)->postJson(route('transport.scan.lookup'), ['employee_number' => $stranger->employee_number])->assertNotFound();
 });
 
 it("keeps a scoped officer out of another organization's statement and lets them read their own", function (): void {

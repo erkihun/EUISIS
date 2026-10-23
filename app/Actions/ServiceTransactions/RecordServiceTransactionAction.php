@@ -6,6 +6,7 @@ namespace App\Actions\ServiceTransactions;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Entitlements\RecalculateEntitlementsAction;
+use App\Backbone\Contracts\ServiceEligibility;
 use App\Enums\AuditEventType;
 use App\Enums\CardStatus;
 use App\Models\Employee;
@@ -15,7 +16,6 @@ use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\User;
-use App\Services\EmployeeServiceEligibilityService;
 use DomainException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +25,7 @@ readonly class RecordServiceTransactionAction
     public function __construct(
         private RecalculateEntitlementsAction $recalculateEntitlementsAction,
         private WriteAuditLogAction $writeAuditLogAction,
-        private EmployeeServiceEligibilityService $serviceEligibility,
+        private ServiceEligibility $serviceEligibility,
     ) {}
 
     public function execute(
@@ -38,16 +38,17 @@ readonly class RecordServiceTransactionAction
         ?User $actor,
         array $metadata = [],
     ): ServiceTransaction {
-        $eligibility = $this->serviceEligibility->check(
-            $employee,
-            $card,
+        // The presented card must belong to this employee; the backbone gate refuses it otherwise.
+        $eligibility = $this->serviceEligibility->checkCard(
+            (string) $card->getKey(),
             $serviceType->code,
+            (string) $employee->getKey(),
             $actor,
-            $provider->id,
+            (string) $provider->id,
         );
 
-        if (! $eligibility['eligible']) {
-            throw new DomainException($eligibility['reason_code']);
+        if (! $eligibility->eligible) {
+            throw new DomainException((string) $eligibility->reasonCode);
         }
 
         $transaction = DB::transaction(function () use ($employee, $card, $serviceType, $provider, $entitlement, $status, $metadata): ServiceTransaction {

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Cafeteria;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Backbone\Contracts\CredentialLookup;
+use App\Backbone\Contracts\ServiceEligibility;
+use App\Backbone\Data\CredentialFormat;
 use App\Enums\AuditEventType;
 use App\Enums\CafeteriaTransactionStatus;
 use App\Enums\CafeteriaUsageMode;
@@ -19,13 +22,10 @@ use App\Services\Cafeteria\Policy\CafeteriaPricing;
 use App\Services\Cafeteria\Policy\CafeteriaTransactionPricingService;
 use App\Services\Cafeteria\Policy\CafeteriaTransactionService;
 use App\Services\Cafeteria\Policy\EntitlementAlreadyConsumed;
-use App\Services\EmployeeServiceEligibilityService;
-use App\Services\IdCards\CardQrPayloadService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * One cafeteria scan, whatever the credential: a QR token string, or an
@@ -47,10 +47,10 @@ class CafeteriaQrScanService
 
     public function __construct(
         private readonly CafeteriaEligibilityService $eligibility,
-        private readonly CardQrPayloadService $qrPayloadService,
+        private readonly CredentialLookup $credentials,
         private readonly CafeteriaSettingsService $settings,
         private readonly WriteAuditLogAction $auditLog,
-        private readonly EmployeeServiceEligibilityService $serviceEligibility,
+        private readonly ServiceEligibility $serviceEligibility,
         private readonly CafeteriaPolicyResolver $policyResolver,
         private readonly CafeteriaEntitlementService $entitlements,
         private readonly CafeteriaTransactionPricingService $pricing,
@@ -106,9 +106,9 @@ class CafeteriaQrScanService
         }
 
         $employee = $card->employee;
-        $serviceEligibility = $this->serviceEligibility->check($employee, $card, 'cafeteria', $actor, $cafeteria->id, $request);
-        if (! $serviceEligibility['eligible']) {
-            return $this->deny($serviceEligibility['reason_code'], $employee, $card, $serviceEligibility['message']);
+        $serviceGate = $this->serviceEligibility->checkCard((string) $card->getKey(), 'cafeteria', null, $actor, $cafeteria->id, $request);
+        if (! $serviceGate->eligible) {
+            return $this->deny($serviceGate->reasonCode, $employee, $card, $serviceGate->message);
         }
 
         $eligibilityCheck = $this->eligibility->check($employee, $card);
@@ -237,42 +237,18 @@ class CafeteriaQrScanService
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
+    /**
+     * The backbone parses the scan (stable card URL or UUID, "<card id>|<token>",
+     * and the legacy card-id URL only while id_cards.accept_legacy_qr is on);
+     * the cafeteria then loads the card it named for its own rules.
+     */
     private function resolveCard(string $qrToken): ?IdCard
     {
-        // (a/b) Stable public_card_uuid
-        $publicUuid = $this->qrPayloadService->resolvePublicUuidFromScanValue($qrToken);
-        if ($publicUuid !== null) {
-            return IdCard::query()
-                ->with('employee.currentAssignment')
-                ->where('public_card_uuid', $publicUuid)
-                ->first();
-        }
+        $credential = $this->credentials->resolveScan($qrToken, CredentialFormat::PublicReference, CredentialFormat::Token, CredentialFormat::LegacyCardId);
 
-        // (c) Token format: "<card_primary_id>|<raw_token>"
-        if (str_contains($qrToken, '|')) {
-            [$cardId, $rawToken] = array_pad(explode('|', $qrToken, 2), 2, null);
-            // A non-uuid id is not a card (and PostgreSQL rejects comparing it).
-            if ($cardId !== null && $rawToken !== null && Str::isUuid($cardId)) {
-                return IdCard::query()
-                    ->with('employee.currentAssignment')
-                    ->where('id', $cardId)
-                    ->where('token_hash', hash('sha256', $rawToken))
-                    ->first();
-            }
-        }
-
-        // (d) Legacy URL: trailing card primary key. It carries no secret (card
-        // ids appear in admin URLs), so it is refused unless an operator turns
-        // on id_cards.accept_legacy_qr for a supervised reprint (decision D-3).
-        if (config('id_cards.accept_legacy_qr', false)
-            && preg_match('/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i', $qrToken, $m)) {
-            return IdCard::query()
-                ->with('employee.currentAssignment')
-                ->where('id', $m[1])
-                ->first();
-        }
-
-        return null;
+        return $credential === null ? null : IdCard::query()
+            ->with('employee.currentAssignment')
+            ->find($credential->cardRecordUuid);
     }
 
     private function denialMessage(?string $reason): ?string

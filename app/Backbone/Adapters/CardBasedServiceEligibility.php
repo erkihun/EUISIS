@@ -8,10 +8,12 @@ use App\Backbone\Contracts\ServiceEligibility;
 use App\Backbone\Data\EligibilityDecision;
 use App\Models\Employee;
 use App\Models\IdCard;
+use App\Models\User;
 use App\Services\EmployeeServiceEligibilityService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-/** Delegates to the existing eligibility service with the employee's current card, as the v1 API does. */
+/** Delegates to the existing eligibility service, so every caller gets the same rules and audit. */
 final class CardBasedServiceEligibility implements ServiceEligibility
 {
     public function __construct(private readonly EmployeeServiceEligibilityService $eligibility) {}
@@ -24,8 +26,24 @@ final class CardBasedServiceEligibility implements ServiceEligibility
             ->where('is_current', true)
             ->first();
 
-        $result = $this->eligibility->check($employee, $card, $serviceType, null, $providerId, attemptedBy: $attemptedBy);
+        return EligibilityDecision::fromArray($this->eligibility->check($employee, $card, $serviceType, null, $providerId, attemptedBy: $attemptedBy));
+    }
 
-        return new EligibilityDecision($result['eligible'], $result['reason_code'], $result['card_status']);
+    public function checkCard(
+        string $cardRecordUuid,
+        string $serviceType,
+        ?string $employeeUuid = null,
+        ?User $actor = null,
+        ?string $providerId = null,
+        ?Request $request = null,
+        ?string $attemptedBy = null,
+    ): EligibilityDecision {
+        $card = Str::isUuid($cardRecordUuid) ? IdCard::query()->find($cardRecordUuid) : null;
+        $employee = match (true) {
+            $employeeUuid !== null => Str::isUuid($employeeUuid) ? Employee::query()->find($employeeUuid) : null,
+            default => $card?->employee,
+        };
+
+        return EligibilityDecision::fromArray($this->eligibility->check($employee, $card, $serviceType, $actor, $providerId, $request, attemptedBy: $attemptedBy));
     }
 }

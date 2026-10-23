@@ -8,9 +8,11 @@ use App\Backbone\Adapters\CardBasedServiceEligibility;
 use App\Backbone\Adapters\ClosurePathOrganizationHierarchy;
 use App\Backbone\Adapters\EloquentAssignmentContextReader;
 use App\Backbone\Adapters\EloquentEmployeeDirectory;
+use App\Backbone\Adapters\IdCardCredentialLookup;
 use App\Backbone\Adapters\IdCardCredentialStatus;
 use App\Backbone\Contracts\AssignmentContextReader;
 use App\Backbone\Contracts\CardCredentialStatus;
+use App\Backbone\Contracts\CredentialLookup;
 use App\Backbone\Contracts\EmployeeDirectory;
 use App\Backbone\Contracts\OrganizationHierarchy;
 use App\Backbone\Contracts\ServiceEligibility;
@@ -34,6 +36,7 @@ class BackboneServiceProvider extends ServiceProvider
         OrganizationHierarchy::class => ClosurePathOrganizationHierarchy::class,
         CardCredentialStatus::class => IdCardCredentialStatus::class,
         ServiceEligibility::class => CardBasedServiceEligibility::class,
+        CredentialLookup::class => IdCardCredentialLookup::class,
     ];
 
     public function boot(): void

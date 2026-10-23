@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Actions\ServiceTransactions\RecordServiceTransactionAction;
+use App\Backbone\Adapters\CardBasedServiceEligibility;
+use App\Backbone\Contracts\ServiceEligibility;
 use App\Enums\AuditEventType;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
@@ -173,7 +175,11 @@ it('uses the shared eligibility service in cafeteria and provider portal scans',
             ? $parameter->getType()->getName()
             : null);
 
-    expect($dependencies)->toContain(EmployeeServiceEligibilityService::class);
+    // The cafeteria depends on the backbone gate contract, whose adapter delegates to the shared service.
+    expect($dependencies)->toContain(ServiceEligibility::class)
+        ->and(app(ServiceEligibility::class))->toBeInstanceOf(CardBasedServiceEligibility::class)
+        ->and((new ReflectionMethod(CardBasedServiceEligibility::class, '__construct'))->getParameters()[0]->getType()?->getName())
+        ->toBe(EmployeeServiceEligibilityService::class);
 });
 
 function quotaFixture(int $limit): array

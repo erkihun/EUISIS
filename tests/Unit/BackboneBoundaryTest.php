@@ -105,3 +105,30 @@ it('keeps service modules from creating or bulk-updating backbone records', func
     expect(array_values(array_diff($found, $allowed)))->toBe([], 'A service module writes a backbone record. Call a backbone command instead (master-backbone.md).')
         ->and(array_values(array_diff($allowed, $found)))->toBe([], 'This exception is gone: remove it from the allowlist.');
 });
+
+it('makes service modules use backbone contracts instead of the services behind them', function (): void {
+    // Stage 3: credential parsing and the service gate are reached through
+    // CredentialLookup and ServiceEligibility, never the concrete classes.
+    $concrete = ['App\Services\EmployeeServiceEligibilityService', 'App\Services\IdCards\CardQrPayloadService'];
+    $root = dirname(__DIR__, 2);
+    $found = [];
+    foreach (backboneAppFiles() as $path) {
+        if (preg_match(BACKBONE_PATHS, $path) || ! preg_match(SERVICE_PATH, $path)) {
+            continue;
+        }
+        $source = (string) file_get_contents($root.'/'.$path);
+        foreach ($concrete as $class) {
+            if (str_contains($source, 'use '.$class.';')) {
+                $found[] = $path.' -> '.$class;
+            }
+        }
+    }
+
+    $allowed = [
+        // Development load-test seeder, never run in production.
+        'app/Console/Commands/Transport/SeedTransportLoadTest.php -> App\Services\IdCards\CardQrPayloadService',
+    ];
+
+    expect(array_values(array_diff($found, $allowed)))->toBe([], 'Use the backbone contract (App\Backbone\Contracts) instead.')
+        ->and(array_values(array_diff($allowed, $found)))->toBe([], 'This exception is gone: remove it from the allowlist.');
+});
