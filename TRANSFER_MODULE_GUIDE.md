@@ -140,8 +140,6 @@ Managed via `TransferSetting` (singleton). Access via `TransferSetting::current(
 - `app/Actions/Transfers/ApproveTransferApprovalAction.php`
 - `app/Actions/Transfers/RejectTransferApprovalAction.php`
 - `app/Actions/Transfers/CompleteTransferAction.php` ← critical
-- `app/Actions/Transfers/RequestTransferOverrideAction.php`
-- `app/Actions/Transfers/DecideTransferOverrideAction.php`
 
 ### Controllers
 - `app/Http/Controllers/Transfers/TransferDashboardController.php`
