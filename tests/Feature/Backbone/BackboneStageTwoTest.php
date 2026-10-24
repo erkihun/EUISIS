@@ -123,6 +123,7 @@ it('reports a position whose organization does not exist, read-only', function (
             ['Current assignments the employee does not point at', '0'],
             ['Card replacement records not linked to the new card', '0'],
             ['Separated employees whose placement is still open', '0'],
+            ['Separated employees whose current ID card is still active', '0'],
             ['positions.organization_id foreign key present', 'no'],
         ])
         ->assertSuccessful();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Core;
 
 use App\Enums\AssignmentStatus;
+use App\Enums\CardStatus;
 use App\Services\Employees\EmploymentStatusTransition;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ final class BackboneIntegrityChecks
         'assignments_unpointed' => 'Current assignments the employee does not point at',
         'replacements_unlinked' => 'Card replacement records not linked to the new card',
         'separated_still_placed' => 'Separated employees whose placement is still open',
+        'separated_card_active' => 'Separated employees whose current ID card is still active',
     ];
 
     /** @return array<string, int> check key => findings */
@@ -64,6 +66,12 @@ final class BackboneIntegrityChecks
                 ->whereExists(fn (Builder $q) => $q->selectRaw('1')->from('employee_assignments')
                     ->whereColumn('employee_assignments.id', 'employees.current_assignment_id')
                     ->where('employee_assignments.assignment_status', AssignmentStatus::Active->value)),
+            // Service eligibility already refuses these cards (employee_inactive); the card itself should be revoked.
+            'separated_card_active' => DB::table('id_cards')
+                ->join('employees', 'employees.id', '=', 'id_cards.employee_id')
+                ->whereIn('employees.status', array_map(fn ($status): string => $status->value, EmploymentStatusTransition::SEPARATED))
+                ->where('id_cards.status', CardStatus::Active->value)
+                ->where('id_cards.is_current', true),
         ];
     }
 }

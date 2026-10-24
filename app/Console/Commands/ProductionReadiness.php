@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Employee;
+use App\Models\Integration\IntegrationEvent;
+use App\Models\Integration\WebhookDelivery;
 use App\Services\Backup\BackupStatusService;
 use App\Services\Branding\BrandingService;
+use App\Services\Core\BackboneIntegrityChecks;
 use App\Services\IdCards\IdCardPngExporter;
 use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
@@ -171,6 +174,21 @@ class ProductionReadiness extends Command
             }
         } catch (Throwable $e) {
             $this->check('Public feedback checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
+
+        $this->section('Core platform (docs/architecture/core-authority.md)');
+        try {
+            $findings = array_filter(app(BackboneIntegrityChecks::class)->counts());
+            $this->check('Golden Path integrity', $findings === [], $production, 'backbone:audit-integrity reports: '.implode('; ', array_map(fn (string $key, int $count): string => BackboneIntegrityChecks::LABELS[$key].' ('.$count.')', array_keys($findings), $findings)));
+            $this->check('Master-data writes are open', config('core.master_data_writes') !== 'frozen', $production, 'CORE_MASTER_DATA_WRITES=frozen refuses every organization, position, employee and card change; open it once the cutover or restore is done.');
+            if (Schema::hasTable('integration_events')) {
+                $stuck = IntegrationEvent::query()->where('status', IntegrationEvent::STATUS_PENDING)->where('created_at', '<', now()->subMinutes(15))->count();
+                $this->check('Integration outbox is draining', $stuck === 0, false, $stuck.' event(s) waiting longer than 15 minutes: check the scheduler runs integrations:publish.');
+                $dead = WebhookDelivery::query()->where('status', WebhookDelivery::STATUS_DEAD)->count();
+                $this->check('No abandoned webhook deliveries', $dead === 0, false, $dead.' delivery(ies) gave up after every retry: review them in Core › Integration Center and replay once the receiver is fixed.');
+            }
+        } catch (Throwable $e) {
+            $this->check('Core platform checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
         }
 
         $this->section('Operations');
