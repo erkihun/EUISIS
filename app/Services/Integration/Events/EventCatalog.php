@@ -35,6 +35,11 @@ final class EventCatalog
 
     private const POSITION = ['position_uuid', 'organization_uuid', 'unit_uuid', 'code', 'title_en', 'title_am', 'is_active'];
 
+    /** Occupancy of a position: never names the employee (positions.read holders may not see employees). */
+    private const OCCUPANCY = ['position_uuid', 'organization_uuid', 'occupancy_uuid', 'effective_date', 'state'];
+
+    private const CARD_STATE = ['card_uuid', 'employee_uuid', 'status', 'previous_status', 'is_current', 'state'];
+
     private const ASSIGNMENT = ['assignment_uuid', 'employee_uuid', 'organization_uuid', 'unit_uuid', 'position_uuid', 'assignment_status', 'effective_from', 'effective_to', 'is_current'];
 
     /**
@@ -55,6 +60,9 @@ final class EventCatalog
         'position.updated' => ['aggregate' => 'position', 'scope' => 'positions.read', 'data' => [...self::POSITION, 'changed_fields'], 'tombstone' => false],
         'position.status_changed' => ['aggregate' => 'position', 'scope' => 'positions.read', 'data' => ['position_uuid', 'organization_uuid', 'is_active', 'state'], 'tombstone' => null],
         'position.archived' => ['aggregate' => 'position', 'scope' => 'positions.read', 'data' => ['position_uuid', 'organization_uuid', 'state', 'reason_category'], 'tombstone' => true],
+        // Stage 6: explicit occupancy events (a seat of the position taken or released).
+        'position.occupied' => ['aggregate' => 'position', 'scope' => 'positions.read', 'data' => self::OCCUPANCY, 'tombstone' => false],
+        'position.vacated' => ['aggregate' => 'position', 'scope' => 'positions.read', 'data' => self::OCCUPANCY, 'tombstone' => false],
 
         'employee.created' => ['aggregate' => 'employee', 'scope' => 'employees.basic_read', 'data' => ['employee_uuid', 'employee_number', 'status'], 'tombstone' => false],
         'employee.updated' => ['aggregate' => 'employee', 'scope' => 'employees.basic_read', 'data' => ['employee_uuid', 'employee_number', 'status', 'changed_fields'], 'tombstone' => false],
@@ -73,7 +81,11 @@ final class EventCatalog
         'id_card.issued' => ['aggregate' => 'id_card', 'scope' => 'id_cards.verify', 'data' => ['card_uuid', 'employee_uuid', 'status', 'is_current', 'issued_at', 'expires_at'], 'tombstone' => false],
         'id_card.reprinted' => ['aggregate' => 'id_card', 'scope' => 'id_cards.verify', 'data' => ['card_uuid', 'employee_uuid', 'status', 'is_current', 'printed_at'], 'tombstone' => false],
         'id_card.revoked' => ['aggregate' => 'id_card', 'scope' => 'id_cards.verify', 'data' => ['card_uuid', 'employee_uuid', 'status', 'is_current', 'revoked_at', 'state'], 'tombstone' => true],
-        'id_card.status_changed' => ['aggregate' => 'id_card', 'scope' => 'id_cards.verify', 'data' => ['card_uuid', 'employee_uuid', 'status', 'previous_status', 'is_current', 'state'], 'tombstone' => null],
+        'id_card.status_changed' => ['aggregate' => 'id_card', 'scope' => 'id_cards.verify', 'data' => self::CARD_STATE, 'tombstone' => null],
+        // Stage 6: explicit card-state events, recorded beside id_card.status_changed (which stays).
+        'id_card.activated' => ['aggregate' => 'id_card', 'scope' => 'id_cards.verify', 'data' => [...self::CARD_STATE, 'expires_at'], 'tombstone' => false],
+        'id_card.suspended' => ['aggregate' => 'id_card', 'scope' => 'id_cards.verify', 'data' => self::CARD_STATE, 'tombstone' => true],
+        'id_card.expired' => ['aggregate' => 'id_card', 'scope' => 'id_cards.verify', 'data' => self::CARD_STATE, 'tombstone' => true],
 
         'hierarchy_version.published' => ['aggregate' => 'hierarchy_version', 'scope' => 'organization_structure.read', 'data' => ['hierarchy_version_uuid', 'version_name', 'effective_from', 'published_at'], 'tombstone' => false],
     ];

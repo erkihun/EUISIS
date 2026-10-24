@@ -43,6 +43,8 @@ Scope = the API scope an application needs to see or subscribe to the type.
 | `position.updated` | position | `positions.read` | Placement, code, titles, grade, occupation or dates changed | same + `changed_fields` |
 | `position.status_changed` | position | `positions.read` | Activated / deactivated, restored | `position_uuid, organization_uuid, is_active, state` |
 | `position.archived` | position | `positions.read` | Archived (tombstone) | `position_uuid, organization_uuid, state, reason_category` |
+| `position.occupied` | position | `positions.read` | A seat of the position was taken (occupancy recorded) | `position_uuid, organization_uuid, occupancy_uuid, effective_date, state` |
+| `position.vacated` | position | `positions.read` | A seat of the position was released | `position_uuid, organization_uuid, occupancy_uuid, effective_date, state` |
 | `employee.created` | employee | `employees.basic_read` | Employee registered | `employee_uuid, employee_number, status` |
 | `employee.updated` | employee | `employees.basic_read` | Employee number, name, gender, employment type or photo changed | `employee_uuid, employee_number, status, changed_fields` (categories: `employee_number`, `name`, `gender`, `employment_type`, `photo`) |
 | `employee.status_changed` | employee | `employees.basic_read` | Status changed (tombstone when no longer active) | `employee_uuid, employee_number, status, previous_status, state` |
@@ -55,6 +57,9 @@ Scope = the API scope an application needs to see or subscribe to the type.
 | `id_card.reprinted` | id_card | `id_cards.verify` | Same card printed again (identity unchanged) | `card_uuid, employee_uuid, status, is_current, printed_at` |
 | `id_card.revoked` | id_card | `id_cards.verify` | Card revoked, QR revoked or `revoked_at` set (tombstone) | `card_uuid, employee_uuid, status, is_current, revoked_at, state` |
 | `id_card.status_changed` | id_card | `id_cards.verify` | Lost, damaged, suspended, replaced, expired … | `card_uuid, employee_uuid, status, previous_status, is_current, state` |
+| `id_card.activated` | id_card | `id_cards.verify` | Card became active (also sent as `id_card.issued` or `id_card.status_changed`) | `card_uuid, employee_uuid, status, previous_status, is_current, state, expires_at` |
+| `id_card.suspended` | id_card | `id_cards.verify` | Card suspended (tombstone; also sent as `id_card.status_changed`) | `card_uuid, employee_uuid, status, previous_status, is_current, state` |
+| `id_card.expired` | id_card | `id_cards.verify` | Card expired (tombstone; also sent as `id_card.status_changed`) | `card_uuid, employee_uuid, status, previous_status, is_current, state` |
 | `hierarchy_version.published` | hierarchy_version | `organization_structure.read` | A hierarchy version is published (global) | `hierarchy_version_uuid, version_name, effective_from, published_at` |
 
 Never in any event: national ID, phone, e-mail, address, date of birth, salary,
@@ -76,6 +81,20 @@ fact that a name changed).
   `card_uuid`; the old one gets `id_card.status_changed` → `replaced`.
 - **Employee number change** → `employee.updated` with `changed_fields` containing
   `employee_number`; `employee_uuid` never changes.
+- **Explicit card states** (added 2026-10-24) → `id_card.activated`, `id_card.suspended`
+  and `id_card.expired` arrive *in addition to* the generic event for the same change,
+  in the same transaction and with consecutive sequences. Subscribe to the explicit
+  types if you only care about those states; keep handling `id_card.status_changed`
+  if you already do. De-duplicate per `event_id`, never per change.
+- **Occupancy** (added 2026-10-24) → `position.occupied` / `position.vacated` say that a
+  seat of a position was taken or released, from `effective_date`. They never name the
+  employee; a partner that needs who holds it reads `employee.transferred` or the
+  assignment API under `employee_assignments.read`. A transfer that moves someone
+  between positions sends `position.vacated` for the old position and
+  `position.occupied` for the new one.
+- **Switching a type off.** Operators can stop recording any type with
+  `INTEGRATION_DISABLED_EVENT_TYPES` (comma separated); nothing is recorded for it
+  while it is listed, and nothing is back-filled when it is removed.
 
 ## Transfers across an organization bound
 

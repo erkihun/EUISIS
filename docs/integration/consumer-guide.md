@@ -63,7 +63,8 @@ sequences ([replay-and-reconciliation.md](replay-and-reconciliation.md)).
 
 | Event | Cafeteria action |
 | --- | --- |
-| `id_card.revoked`, `id_card.status_changed` (not active) | Drop cached eligibility for that `card_uuid` immediately. |
+| `id_card.revoked`, `id_card.suspended`, `id_card.expired`, `id_card.status_changed` (not active) | Drop cached eligibility for that `card_uuid` immediately. |
+| `id_card.activated` | The card may be served again; the next scan still verifies with Addis One. |
 | `employee.status_changed` (tombstone) | Stop serving the employee; keep history. |
 | `employee.transferred` | Re-check the organization assignment for the cafeteria; `source_only` means the employee left your scope. |
 | `assignment.closed` | Remove the closed placement from any cache. |

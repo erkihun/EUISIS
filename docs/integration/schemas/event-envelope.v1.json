@@ -13,10 +13,12 @@
         "organization.created", "organization.updated", "organization.status_changed",
         "organization_unit.created", "organization_unit.updated", "organization_unit.moved", "organization_unit.status_changed",
         "position.created", "position.updated", "position.status_changed", "position.archived",
+        "position.occupied", "position.vacated",
         "employee.created", "employee.updated", "employee.status_changed",
         "assignment.created", "assignment.updated", "assignment.closed",
         "employee.assignment_changed", "employee.transferred",
         "id_card.issued", "id_card.reprinted", "id_card.revoked", "id_card.status_changed",
+        "id_card.activated", "id_card.suspended", "id_card.expired",
         "hierarchy_version.published",
         "webhook.test"
       ]

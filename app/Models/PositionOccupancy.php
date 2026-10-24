@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\OccupancyStatus;
+use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PositionOccupancy extends Model
 {
+    // Occupancy changes are integration events (position.occupied / position.vacated).
+    use HasIntegrationEvents;
     use HasUuidPrimaryKey;
 
     protected $fillable = [
