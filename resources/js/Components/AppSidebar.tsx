@@ -731,9 +731,10 @@ const coreHomeNav: NavItem = { routeName: 'core.dashboard', labelKey: 'core.nav.
 /** The icons the Core navigation names, by NavIcons export. */
 const CORE_ICONS: Record<string, NavGroup['icon']> = {
     AcademicCapIcon, BoxesIcon, BranchingUpIcon, Briefcase, Building2, CardReceiveIcon, CardTransferIcon, CityIcon,
-    ClipboardClockIcon, ClipboardTextIcon, CodeIcon, CreditCard, EyeScanIcon, FileCheckIcon, FilePenIcon, FileSearchIcon,
-    GitBranchIcon, GitForkIcon, HashIcon, IdCardIcon, ImportIcon, LockIcon, NetworkIcon, PaletteIcon, PenIcon, PrinterIcon,
-    RankingIcon, RestartIcon, ShieldUserIcon, SuitcaseTagIcon, TagsIcon, ToolboxIcon, UserCircleIcon, Users, UsersTwoIcon,
+    ClipboardClockIcon, ClipboardListIcon, ClipboardTextIcon, CodeIcon, CreditCard, DiplomaIcon, EyeScanIcon, FileCheckIcon,
+    FilePenIcon, FileSearchIcon, GitBranchIcon, GitForkIcon, HashIcon, IdCardIcon, ImportIcon, LockIcon, NetworkIcon, PaletteIcon,
+    PenIcon, PrinterIcon, QrCodeIcon, RankingIcon, RestartIcon, SettingsIcon, ShieldUserIcon, SuitcaseTagIcon, TagsIcon,
+    ToolboxIcon, UserCircleIcon, Users, UsersTwoIcon,
 };
 
 

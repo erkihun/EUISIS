@@ -17,6 +17,8 @@ class CoreDashboardController extends Controller
     {
         return Inertia::render('Core/Dashboard', [
             'metrics' => $metrics->for($request->user()),
+            // The latest master-data changes from the audit log (only for audit readers).
+            'recent' => $metrics->recentActivity($request->user()),
         ]);
     }
 }

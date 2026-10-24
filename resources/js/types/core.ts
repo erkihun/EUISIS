@@ -11,6 +11,9 @@ export type CoreWorkspaceShared = { name: 'core'; nav: CoreNavSection[] } | null
 
 export type CoreMetric = { key: string; value: number | string | null };
 
+/** One recent master-data change from the audit log: what and who, never values. */
+export type CoreActivity = { event_type: string; actor_name: string | null; subject: string | null; created_at: string | null };
+
 export type CoreDomain = { key: string; href: string | null; metrics: CoreMetric[] };
 
 export type CoreMetrics = {

@@ -2,7 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Core\CoreAssignmentController;
+use App\Http\Controllers\Core\CoreAuditCenterController;
 use App\Http\Controllers\Core\CoreDashboardController;
+use App\Http\Controllers\Core\CoreIntegrationCenterController;
+use App\Http\Controllers\Core\CoreSettingsController;
 use App\Http\Controllers\Core\CoreWorkspaceController;
 use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
 use App\Http\Controllers\Employee\EmployeePortalController;
@@ -612,6 +616,13 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     // workspace flag; leaving needs no permission, so it works after access is withdrawn.
     Route::get('/core', CoreDashboardController::class)->middleware(['can:core.access', 'core.workspace'])->name('core.dashboard');
     Route::post('/core/exit', [CoreWorkspaceController::class, 'exit'])->name('core.exit');
+    // Core-only pages (Core workspace Stage 2). Each also checks the permission of what it shows.
+    Route::middleware(['can:core.access', 'core.workspace'])->prefix('core')->name('core.')->group(function (): void {
+        Route::get('/assignments', CoreAssignmentController::class)->middleware('can:employees.view')->name('assignments');
+        Route::get('/integration', CoreIntegrationCenterController::class)->name('integration');
+        Route::get('/audit', CoreAuditCenterController::class)->name('audit');
+        Route::get('/settings', CoreSettingsController::class)->middleware('can:system-settings.view')->name('settings');
+    });
 
     Route::prefix('system/backup-recovery')->name('backups.')->middleware('throttle:30,1')->group(function (): void {
         Route::get('/', [BackupRecoveryController::class, 'index'])->name('index');

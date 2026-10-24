@@ -94,7 +94,7 @@ it('counts the master records a citywide viewer is responsible for', function ()
     $delta = fn (string $key): int => (int) coreFigures($after)[$key] - (int) ($before[$key] ?? 0);
 
     expect($after['citywide'])->toBeTrue()
-        ->and(collect($after['domains'])->pluck('key')->all())->toBe(['organization', 'positions', 'employees', 'credentials', 'governance'])
+        ->and(collect($after['domains'])->pluck('key')->all())->toBe(['organization', 'positions', 'employees', 'credentials', 'governance', 'quality'])
         ->and($delta('organizations_active'))->toBe(2)
         ->and($delta('units_active'))->toBe(2)
         ->and($delta('positions_active'))->toBe(2)
@@ -136,7 +136,7 @@ it('shows only the figures the viewer\'s permissions cover', function (): void {
     $metrics = app(CoreDashboardMetrics::class)->for($viewer);
 
     expect(collect($metrics['domains'])->pluck('key')->all())->toBe(['credentials'])
-        ->and(array_keys(coreFigures($metrics)))->toBe(['cards_active', 'cards_expiring'])
+        ->and(array_keys(coreFigures($metrics)))->toBe(['cards_active', 'cards_expiring', 'cards_suspended', 'cards_revoked'])
         ->and($metrics['domains'][0]['href'])->toBe(route('id-cards.index'));
 });
 

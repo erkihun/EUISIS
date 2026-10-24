@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Backbone\Contracts\AssignmentContextReader;
+use App\Backbone\Contracts\CredentialVerification;
+use App\Backbone\Contracts\EmployeeDirectory;
+use App\Backbone\Contracts\PositionDirectory;
 use App\Enums\CardStatus;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\CodeRuleResetFrequency;
@@ -290,4 +294,34 @@ test('82 negative paths on the golden setup: suspended card, no access, unknown 
     [$other, , , $stranger] = goldenEmployee($this, 'Transport Bureau');
     UserOrganizationScope::query()->create(['user_id' => $officer->id, 'organization_id' => $organization->id, 'scope_type' => 'self', 'is_active' => true]);
     $this->actingAs($officer)->get(route('employees.show', $stranger))->assertForbidden();
+});
+
+test('83 golden path through Core: the chain is visible in the Core workspace and the card verifies through the Core contracts', function (): void {
+    // Organization → unit → position → employee (+ assignment) → card, through the same admin routes.
+    [$organization, $unit, $position, $employee] = goldenEmployee($this, 'Core Bureau');
+    $card = goldenActiveCard($this, $employee);
+
+    // The Core workspace shows the placement the workflow created.
+    $this->actingAs($this->maker)->get(route('core.dashboard'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Core/Dashboard')->where('workspace.name', 'core'));
+    $this->get(route('core.assignments', ['search' => $employee->employee_number]))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Core/Assignments')
+            ->where('assignments.0.employee.id', $employee->id)
+            ->where('assignments.0.organization.id', $organization->id)
+            ->where('assignments.0.unit.id', $unit->id)
+            ->where('assignments.0.position.id', $position->id)
+            ->where('assignments.0.status', 'active'));
+
+    // The read contracts agree with the records: one identity, one placement, one valid credential.
+    $verification = app(CredentialVerification::class)->verifyCardUuid($card->public_card_uuid);
+    expect($verification->valid)->toBeTrue()
+        ->and($verification->employeeUuid)->toBe($employee->id)
+        ->and($verification->cardUuid)->not->toBe($employee->id)
+        ->and($verification->organizationUuid)->toBe($organization->id)
+        ->and(app(AssignmentContextReader::class)->currentFor($employee->id)?->positionUuid)->toBe($position->id)
+        ->and(app(PositionDirectory::class)->occupancy($position->id)?->occupied)->toBe(1)
+        ->and(app(EmployeeDirectory::class)->findFor($this->maker, $employee->id)?->employeeNumber)->toBe($employee->employee_number);
+
+    // The public checker still answers for the same card.
+    $this->get(route('id-checker.show', $card->public_card_uuid))->assertOk();
 });

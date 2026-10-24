@@ -52,7 +52,7 @@ it('opens Core and switches the shell to Core navigation filtered by permission'
         ->assertSessionHas(CoreWorkspace::SESSION_KEY, CoreWorkspace::NAME)
         ->assertInertia(fn (Assert $page) => $page->component('Core/Dashboard')
             ->where('workspace.name', 'core')
-            ->where('workspace.nav', fn ($nav) => coreNavRoutes(['nav' => $nav]) === ['organizations.index', 'id-cards.index', 'id-cards.reprint-required']));
+            ->where('workspace.nav', fn ($nav) => coreNavRoutes(['nav' => $nav]) === ['organizations.index', 'id-cards.index', 'id-cards.reprint-required', 'id-checker.index']));
 });
 
 it('offers no entry whose page the person may not open', function (): void {

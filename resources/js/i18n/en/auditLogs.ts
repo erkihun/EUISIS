@@ -32,6 +32,12 @@ const auditLogs = {
     // Misc
     system: 'system',
     eventPlaceholder: 'e.g. card_issued',
+    principal: 'Acted by',
+    principalAny: 'Anyone',
+    principalPerson: 'A signed-in person',
+    principalSystem: 'An application or the system',
+    requestId: 'Request ID',
+    requestIdPlaceholder: 'Correlation ID of one request',
     // Event type labels — all AuditEventType values
     events: {
         // Backup & Recovery

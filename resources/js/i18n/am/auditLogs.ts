@@ -32,6 +32,12 @@ const auditLogs = {
     // Misc
     system: 'ሥርዓት',
     eventPlaceholder: 'ለምሳሌ card_issued',
+    principal: 'ያከናወነው',
+    principalAny: 'ማንኛውም',
+    principalPerson: 'የገባ ሰው',
+    principalSystem: 'መተግበሪያ ወይም ሥርዓቱ',
+    requestId: 'የጥያቄ መለያ',
+    requestIdPlaceholder: 'የአንድ ጥያቄ የትስስር መለያ',
     // Event type labels
     events: {
         // Backup & Recovery

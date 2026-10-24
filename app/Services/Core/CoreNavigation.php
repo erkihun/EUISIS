@@ -35,7 +35,7 @@ final class CoreNavigation
                         ['route' => 'organization-units.index', 'label_key' => 'nav.organizationUnits', 'icon' => 'GitBranchIcon', 'permission' => 'organization-units.viewAny'],
                         ['route' => 'organization-unit-types.index', 'label_key' => 'nav.organizationUnitTypes', 'icon' => 'BoxesIcon', 'permission' => 'organization-unit-types.viewAny'],
                         ['route' => 'hierarchy-versions.index', 'label_key' => 'nav.hierarchyVersions', 'icon' => 'GitForkIcon', 'permission' => 'hierarchy-versions.viewAny'],
-                        ['route' => 'reporting-lines.index', 'label_key' => 'nav.reportingLines', 'icon' => 'BranchingUpIcon', 'permission' => 'relationships.viewAny'],
+                        ['route' => 'reporting-lines.index', 'label_key' => 'core.nav.relationships', 'icon' => 'BranchingUpIcon', 'permission' => 'relationships.viewAny'],
                     ],
                 ],
                 [
@@ -48,25 +48,27 @@ final class CoreNavigation
                     ],
                 ],
                 [
-                    'key' => 'corePositions', 'label_key' => 'core.nav.groupPositions', 'icon' => 'Briefcase',
+                    'key' => 'coreWorkforce', 'label_key' => 'core.nav.groupWorkforce', 'icon' => 'Briefcase',
                     'items' => [
                         ['route' => 'positions.index', 'label_key' => 'nav.positions', 'icon' => 'Briefcase', 'permission' => 'positions.viewAny'],
                         ['route' => 'positions.status', 'label_key' => 'nav.newJobPositionsStatus', 'icon' => 'SuitcaseTagIcon', 'permission' => 'positions.viewAny'],
                         ['route' => 'position-establishments.index', 'label_key' => 'nav.positionEstablishments', 'icon' => 'ClipboardTextIcon', 'permission' => 'position-establishments.viewAny'],
                         ['route' => 'grade-levels.index', 'label_key' => 'nav.gradeLevels', 'icon' => 'RankingIcon', 'permission' => 'grade-levels.viewAny'],
                         ['route' => 'occupations.index', 'label_key' => 'nav.occupations', 'icon' => 'AcademicCapIcon', 'permission' => 'occupations.viewAny'],
+                        ['route' => 'organization-design.professions.index', 'label_key' => 'core.nav.professions', 'icon' => 'DiplomaIcon', 'permission' => ['occupations.viewAny', 'professions.manage']],
                     ],
                 ],
                 [
                     'key' => 'coreEmployees', 'label_key' => 'core.nav.groupEmployees', 'icon' => 'UsersTwoIcon',
                     'items' => [
                         ['route' => 'employees.index', 'label_key' => 'nav.employees', 'icon' => 'Users', 'permission' => 'employees.view'],
+                        ['route' => 'core.assignments', 'label_key' => 'core.nav.assignments', 'icon' => 'ClipboardListIcon', 'permission' => 'employees.view'],
                         ['route' => 'employees.import.create', 'label_key' => 'nav.employeeImport', 'icon' => 'ImportIcon', 'permission' => 'employees.import.view'],
                         ['route' => 'employee-corrections.index', 'label_key' => 'nav.employeeCorrections', 'icon' => 'PenIcon', 'permission' => 'employees.manage'],
                     ],
                 ],
                 [
-                    'key' => 'coreCredentials', 'label_key' => 'nav.groupIdentity', 'icon' => 'IdCardIcon',
+                    'key' => 'coreCredentials', 'label_key' => 'core.nav.groupIdentity', 'icon' => 'IdCardIcon',
                     'items' => [
                         ['route' => 'id-cards.index', 'label_key' => 'nav.idCards', 'icon' => 'CreditCard', 'permission' => 'cards.view'],
                         ['route' => 'card-requests.index', 'label_key' => 'nav.cardRequests', 'icon' => 'CardReceiveIcon', 'permission' => 'id-cards.viewAny'],
@@ -74,6 +76,8 @@ final class CoreNavigation
                         ['route' => 'print-batches.index', 'label_key' => 'nav.printBatches', 'icon' => 'PrinterIcon', 'permission' => ['id-cards.createPrintBatch', 'cards.manage']],
                         ['route' => 'id-card-templates.index', 'label_key' => 'nav.idCardTemplates', 'icon' => 'PaletteIcon', 'permission' => 'id_card_templates.view'],
                         ['route' => 'nfc-management.credentials.index', 'label_key' => 'nav.nfcCredentials', 'icon' => 'CardTransferIcon', 'permission' => 'nfc_credentials.view'],
+                        // The public checker anyone can use; listed so staff find it, gated like the card pages.
+                        ['route' => 'id-checker.index', 'label_key' => 'core.nav.verification', 'icon' => 'QrCodeIcon', 'permission' => 'cards.view'],
                     ],
                 ],
             ],
@@ -92,6 +96,7 @@ final class CoreNavigation
                 [
                     'key' => 'coreIntegration', 'label_key' => 'core.nav.groupIntegration', 'icon' => 'CodeIcon',
                     'items' => [
+                        ['route' => 'core.integration', 'label_key' => 'core.nav.integrationCenter', 'icon' => 'NetworkIcon', 'permission' => ['api_management.view', 'integrations.view']],
                         ['route' => 'api-management.index', 'label_key' => 'nav.apiManagement', 'icon' => 'CodeIcon', 'permission' => 'api_management.view'],
                         ['route' => 'integrations.index', 'label_key' => 'core.nav.eventIntegration', 'icon' => 'NetworkIcon', 'permission' => 'integrations.view'],
                     ],
@@ -99,8 +104,15 @@ final class CoreNavigation
                 [
                     'key' => 'coreControl', 'label_key' => 'core.nav.groupControl', 'icon' => 'EyeScanIcon',
                     'items' => [
-                        ['route' => 'code-rules.index', 'label_key' => 'nav.codeRules', 'icon' => 'HashIcon', 'permission' => 'code-rules.viewAny'],
+                        ['route' => 'core.audit', 'label_key' => 'core.nav.auditCenter', 'icon' => 'EyeScanIcon', 'permission' => 'audit.view'],
                         ['route' => 'audit-logs.index', 'label_key' => 'nav.auditLogs', 'icon' => 'ClipboardClockIcon', 'permission' => 'audit.view'],
+                        ['route' => 'code-rules.index', 'label_key' => 'nav.codeRules', 'icon' => 'HashIcon', 'permission' => 'code-rules.viewAny'],
+                    ],
+                ],
+                [
+                    'key' => 'coreSettings', 'label_key' => 'core.nav.settings', 'icon' => 'SettingsIcon',
+                    'items' => [
+                        ['route' => 'core.settings', 'label_key' => 'core.nav.settings', 'icon' => 'SettingsIcon', 'permission' => 'system-settings.view'],
                     ],
                 ],
             ],
