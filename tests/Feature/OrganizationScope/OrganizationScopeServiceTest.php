@@ -3,10 +3,14 @@
 declare(strict_types=1);
 
 use App\Actions\Organizations\PublishHierarchyVersionAction;
+use App\Enums\AssignmentStatus;
+use App\Enums\EmployeeStatus;
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationRelationshipType;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
@@ -14,6 +18,7 @@ use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -80,11 +85,42 @@ it('fails closed when every scope record is inactive, expired or not yet started
         ->and($this->scope->applyOrganizationScope(Organization::query(), $user, 'id')->count())->toBe(0);
 });
 
-it('treats staff with no scope record as organization-wide (the documented convention)', function (): void {
-    $user = ossUser('HR Officer');
+it('confines staff with an organization-level role and no scope record to their own organization', function (): void {
+    $employee = Employee::query()->create(['employee_number' => 'OSS-E1', 'first_name' => 'Own', 'last_name' => 'Org', 'full_name' => 'Own Org', 'status' => EmployeeStatus::Active->value]);
+    $assignment = EmployeeAssignment::query()->create([
+        'employee_id' => $employee->id, 'organization_id' => $this->parent->id, 'is_current' => true,
+        'assignment_status' => AssignmentStatus::Active->value, 'effective_from' => '2025-01-01',
+    ]);
+    $employee->forceFill(['current_assignment_id' => $assignment->id])->save();
+    $linked = ossUser('HR Officer');
+    $linked->forceFill(['employee_id' => $employee->id])->save();
+    $linked = $linked->fresh();
+    $unlinked = ossUser('HR Officer');
 
-    expect($this->scope->isUnrestricted($user))->toBeTrue()
-        ->and($this->scope->canAccessOrganization($user, $this->other->id))->toBeTrue();
+    expect($this->scope->isUnrestricted($linked))->toBeFalse()
+        ->and($this->scope->allowedOrganizationIds($linked))->toBe([(string) $this->parent->id])
+        ->and($this->scope->canAccessOrganization($linked, $this->parent->id))->toBeTrue()
+        ->and($this->scope->canAccessOrganization($linked, $this->other->id))->toBeFalse()
+        ->and($this->scope->applyOrganizationScope(Organization::query(), $linked, 'id')->count())->toBe(1)
+        // No linked employee: nothing, never the whole city.
+        ->and($this->scope->isUnrestricted($unlinked))->toBeFalse()
+        ->and($this->scope->canAccessOrganization($unlinked, $this->other->id))->toBeFalse()
+        ->and($this->scope->applyOrganizationScope(Organization::query(), $unlinked, 'id')->count())->toBe(0);
+});
+
+it('keeps the former reach only for unscoped accounts whose roles are all global, or during the transition switch', function (): void {
+    Role::findOrCreate('Records Auditor', 'web');
+    DB::table('roles')->where('name', 'Records Auditor')->update(['scope_type' => 'global']);
+    $global = ossUser('Records Auditor');
+    $scoped = ossUser('HR Officer');
+
+    expect($this->scope->isUnrestricted($global))->toBeTrue()
+        ->and($this->scope->canAccessOrganization($global, $this->other->id))->toBeTrue()
+        ->and($this->scope->isUnrestricted($scoped))->toBeFalse();
+
+    config(['security.organization_scope.require_explicit_scope' => false]);
+    expect($this->scope->isUnrestricted($scoped))->toBeTrue()
+        ->and($this->scope->canAccessOrganization($scoped, $this->other->id))->toBeTrue();
 });
 
 it('gives an Organizational Admin without a scope record nothing, not everything', function (): void {
@@ -106,9 +142,10 @@ it('checks permission, then organization, and refuses organization-less operatio
         ->and($this->scope->canExercisePermission(ossUser('Super Admin'), 'employees.view'))->toBeTrue()
         ->and($this->scope->canExercisePermission($scoped, 'employees.view', $this->parent->id))->toBeTrue()
         ->and($this->scope->canExercisePermission($scoped, 'employees.view', $this->other->id))->toBeFalse()
-        // No organization to check against: only an unscoped actor may proceed.
+        // No organization to check against: only an unrestricted actor may proceed;
+        // an organization-level role without a scope record is not one.
         ->and($this->scope->canExercisePermission($scoped, 'employees.view'))->toBeFalse()
-        ->and($this->scope->canExercisePermission($unscoped, 'employees.view'))->toBeTrue()
+        ->and($this->scope->canExercisePermission($unscoped, 'employees.view'))->toBeFalse()
         ->and($this->scope->canAccessOrganization($unscoped, null))->toBeFalse();
 });
 

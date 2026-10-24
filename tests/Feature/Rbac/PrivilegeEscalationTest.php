@@ -8,6 +8,7 @@ use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -27,12 +28,15 @@ beforeEach(function (): void {
     Role::findOrCreate('Super Admin', 'web');
 
     // A delegated admin who can manage users/roles/scopes but is NOT a Super Admin.
+    // A city-level access role, so global: an organization-level role without
+    // a scope record reaches only its own organization.
     Role::findOrCreate('Delegated Admin', 'web')->syncPermissions([
         'users.viewAny', 'users.view', 'users.create', 'users.update',
         'users.assignRoles', 'users.assignOrganizationScopes',
         'roles.viewAny', 'roles.create', 'roles.update', 'roles.assignPermissions',
         'user-organization-scopes.create', 'user-organization-scopes.update',
     ]);
+    DB::table('roles')->where('name', 'Delegated Admin')->update(['scope_type' => 'global']);
 });
 
 function escSuperAdmin(): User

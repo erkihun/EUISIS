@@ -141,6 +141,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Organization scope
+    |--------------------------------------------------------------------------
+    |
+    | An account holding an organization-level (scoped) role must have explicit
+    | organization-scope records; without any it reaches only its linked
+    | employee's own organization (fail closed). `false` restores the former
+    | "no record means every organization" rule for a transition only:
+    | production:readiness fails while it is off. `php artisan
+    | access:scope-gaps` lists the accounts this rule confines.
+    |
+    */
+
+    'organization_scope' => [
+        'require_explicit_scope' => (bool) env('ORGANIZATION_SCOPE_REQUIRE_EXPLICIT', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Session idle timeout
     |--------------------------------------------------------------------------
     |

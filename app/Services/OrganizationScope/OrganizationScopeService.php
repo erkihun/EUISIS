@@ -7,6 +7,7 @@ namespace App\Services\OrganizationScope;
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
+use App\Enums\RoleScopeType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
@@ -65,8 +66,7 @@ class OrganizationScopeService
 
         // Everything else is operational: it must resolve inside the scope.
         if ($organizationId === null) {
-            return ! $this->isScopedOrganizationalAdmin($user)
-                && ! $user->organizationScopes()->exists();
+            return $this->isUnrestricted($user);
         }
 
         return $this->canAccessOrganization($user, $organizationId);
@@ -88,11 +88,12 @@ class OrganizationScopeService
 
         $hasAnyScopeRecord = $user->organizationScopes()->exists();
 
-        // Established convention: no explicit scope record means "not scoped
-        // yet", which grants org-wide access. Tightening this would silently
-        // lock out every existing role that has no scope rows, so it stays.
+        // No scope record: an account holding an organization-level role is
+        // confined to its own organization (fail closed); only accounts whose
+        // roles are all global keep the old "not scoped yet" reach.
         if (! $hasAnyScopeRecord) {
-            return true;
+            return ! $this->requiresExplicitScope($user)
+                || $this->ownOrganizationIds($user)->contains($organizationId);
         }
 
         return $this->accessibleOrganizationIds($user)->contains($organizationId);
@@ -286,9 +287,9 @@ class OrganizationScopeService
     }
 
     /**
-     * An actor is "unrestricted" when they are Super Admin / City Admin or
-     * carry no explicit organization-scope record. This mirrors the default
-     * used by {@see canAccessOrganization()}.
+     * An actor is "unrestricted" when they are Super Admin / City Admin, or
+     * carry no explicit organization-scope record and no organization-level
+     * role. This mirrors the default used by {@see canAccessOrganization()}.
      */
     public function isUnrestricted(User $user): bool
     {
@@ -300,7 +301,39 @@ class OrganizationScopeService
             return false;
         }
 
-        return ! $user->organizationScopes()->exists();
+        return ! $user->organizationScopes()->exists() && ! $this->requiresExplicitScope($user);
+    }
+
+    /**
+     * True when the account holds an organization-level (scoped) role, so it
+     * must be confined by explicit scope records. Such an account without any
+     * record reaches only its own organization, never the whole city.
+     * ORGANIZATION_SCOPE_REQUIRE_EXPLICIT=false restores the old behaviour for
+     * a transition; production:readiness fails while it is off.
+     */
+    public function requiresExplicitScope(User $user): bool
+    {
+        return (bool) config('security.organization_scope.require_explicit_scope', true)
+            && $user->roles->contains(fn ($role): bool => $role->scope_type === RoleScopeType::Scoped);
+    }
+
+    /**
+     * The organization of the account's linked employee's current placement:
+     * the only organization an unscoped organization-level account may reach.
+     *
+     * @return Collection<int, string>
+     */
+    private function ownOrganizationIds(User $user): Collection
+    {
+        if ($user->employee_id === null) {
+            return collect();
+        }
+
+        $organizationId = EmployeeAssignment::query()
+            ->whereKey(Employee::query()->whereKey($user->employee_id)->value('current_assignment_id'))
+            ->value('organization_id');
+
+        return collect($organizationId === null ? [] : [(string) $organizationId]);
     }
 
     /**
@@ -621,6 +654,10 @@ class OrganizationScopeService
         }
 
         $scopes = $user->organizationScopes()->active()->get();
+
+        if ($scopes->isEmpty() && $this->requiresExplicitScope($user) && ! $user->organizationScopes()->exists()) {
+            return $this->requestCache[$cacheKey] = $this->ownOrganizationIds($user);
+        }
 
         $ids = collect();
 

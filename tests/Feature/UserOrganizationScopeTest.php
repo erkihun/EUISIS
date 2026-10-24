@@ -7,6 +7,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -34,6 +35,8 @@ beforeEach(function (): void {
         'user-organization-scopes.delete',
         'user-organization-scopes.restore',
     ]);
+    // Granting scopes city-wide is an access-administration role, so global.
+    DB::table('roles')->where('name', 'Scope Manager')->update(['scope_type' => 'global']);
 });
 
 function scopeManager(): User

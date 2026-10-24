@@ -39,12 +39,7 @@ class VacancyAnnouncementController extends Controller
             ->withCount('applications')
             ->latest();
 
-        if (
-            $user !== null
-            && ! $user->hasRole('Super Admin')
-            && ! $user->hasRole('City Admin')
-            && $user->organizationScopes()->exists()
-        ) {
+        if ($user !== null && ! $organizationScopeService->isUnrestricted($user)) {
             $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
 
             $query->whereHas('positions', function ($positions) use ($accessibleOrganizationIds): void {
