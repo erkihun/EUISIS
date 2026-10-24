@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Database\Seeders\Concerns\DemoPasswords;
 use Illuminate\Database\Seeder;
+use RuntimeException;
 
 class UserSeeder extends Seeder
 {
@@ -14,6 +15,11 @@ class UserSeeder extends Seeder
 
     public function run(): void
     {
+        // Demo accounts (and resetting their passwords) never belong in production.
+        if (app()->environment('production')) {
+            throw new RuntimeException('UserSeeder creates demo accounts and is disabled in production. Create the first administrator with: php artisan user:create-super-admin <email> <full name>.');
+        }
+
         $this->call([
             PermissionSeeder::class,
             RoleSeeder::class,
