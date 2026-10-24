@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Exports\Organizations;
 
 use App\Services\OrganizationStructureImport\StructureSheet;
+use Maatwebsite\Excel\Concerns\Export;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
@@ -16,7 +17,8 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
  * The headers come from StructureSheet itself rather than a hard-coded list, so
  * the template and the parser cannot drift apart.
  */
-final class OrganizationStructureTemplateExport implements WithMultipleSheets
+// Laravel Excel 4 accepts only exports marked Export; WithMultipleSheets does not carry it.
+final class OrganizationStructureTemplateExport implements Export, WithMultipleSheets
 {
     use Exportable;
 

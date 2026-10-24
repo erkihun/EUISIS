@@ -144,7 +144,7 @@ Status: ✅ Pass | ❌ Fail | ⚠️ Partial | 🔲 Not Tested | N/A Not Applica
 | # | Test | Status | Notes |
 |---|---|---|---|
 | B10.1 | Security updates applied | 🔲 | Run `composer audit` and `npm audit` before each deployment |
-| B10.2 | No unsupported/EOL software | ⚠️ | PHP 8.4, Laravel 12, Node 24 LTS (22 LTS fallback; Node 20 is end of life) — verify before go-live (gate G3) |
+| B10.2 | No unsupported/EOL software | ⚠️ | PHP 8.4, Laravel 13, Node 24 LTS (22 LTS fallback; Node 20 is end of life) — verify before go-live (gate G3) |
 | B10.3 | HTTP TRACK/TRACE disabled | 🔲 | Nginx-level — `add_header ... ; # TraceEnable Off` |
 | B10.4 | Extraneous functionality removed | ✅ | `APP_ENV=production` removes dev routes |
 | B10.5 | Default credentials removed | ⚠️ | Seed passwords must be changed before production |

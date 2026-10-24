@@ -52,7 +52,7 @@ final class Dec
 
     public static function div(BigDecimal $a, BigDecimal $b): ?BigDecimal
     {
-        return $b->isZero() ? null : $a->dividedBy($b, self::WORK, RoundingMode::HALF_UP);
+        return $b->isZero() ? null : $a->dividedBy($b, self::WORK, RoundingMode::HalfUp);
     }
 
     public static function pct(BigDecimal $a, BigDecimal $b): ?BigDecimal
@@ -75,7 +75,7 @@ final class Dec
     /** Rounded string for storage / display (HALF_UP, 4 places). */
     public static function str(?BigDecimal $value, int $scale = self::SCALE): ?string
     {
-        return $value?->toScale($scale, RoundingMode::HALF_UP)->__toString();
+        return $value?->toScale($scale, RoundingMode::HalfUp)->__toString();
     }
 
     /** @param iterable<BigDecimal> $values */

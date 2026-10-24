@@ -12,7 +12,7 @@ use App\Models\ServiceType;
 use App\Models\User;
 use App\Providers\AppServiceProvider;
 use App\Services\Security\SessionActivityService;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Session\ArraySessionHandler;
 use Illuminate\Session\DatabaseSessionHandler;
 use Illuminate\Session\Store;
@@ -65,7 +65,8 @@ function stProviderUser(): ProviderUser
 /** Enforce CSRF in tests (Laravel skips it while running unit tests). */
 function stEnforceCsrf(): void
 {
-    app()->bind(ValidateCsrfToken::class, fn ($app) => new class($app, $app['encrypter']) extends ValidateCsrfToken
+    // Laravel 13 names the CSRF middleware PreventRequestForgery (ValidateCsrfToken is a deprecated alias).
+    app()->bind(PreventRequestForgery::class, fn ($app) => new class($app, $app['encrypter']) extends PreventRequestForgery
     {
         protected function runningUnitTests()
         {
@@ -224,6 +225,8 @@ test('15 separate device sessions keep independent idle clocks', function (): vo
 // ── Login, password change, MFA, forced change ──────────────────────────────
 
 test('16 login regenerates the session id, starts the idle clock and issues no remember-me cookie', function (): void {
+    // The idle clock is compared to "now" to the second: keep a slow run from crossing one.
+    $this->freezeSecond();
     $user = stUser(['password' => Hash::make('Correct-Horse-9')]);
     $this->get(route('login'));
     $before = app('session.store')->getId();

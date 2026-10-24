@@ -12,7 +12,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -206,7 +206,7 @@ test('state-changing web route rejects request without CSRF token', function ():
     // Disable CSRF for the assertion test by using withoutMiddleware, then verify the
     // middleware is actually registered — we test via a direct POST without the token.
     $response = $this->actingAs($user)
-        ->withoutMiddleware(ValidateCsrfToken::class)
+        ->withoutMiddleware(PreventRequestForgery::class)
         ->post('/logout');
 
     // The withoutMiddleware bypass confirms the route exists and would otherwise check CSRF.

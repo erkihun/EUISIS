@@ -30,6 +30,16 @@ return [
 
         'role' => Role::class,
 
+        /*
+         * Team model for the "Teams" feature (not used here), and the model
+         * that raw IDs passed to syncModels/attachModels/detachModels resolve
+         * to (null: the guard's model). Added by laravel-permission 8.
+         */
+
+        'team' => null,
+
+        'default_model' => null,
+
     ],
 
     'table_names' => [

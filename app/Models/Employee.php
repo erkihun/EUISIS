@@ -26,7 +26,8 @@ class Employee extends Model
 
     protected static function booted(): void
     {
-        static::observe(EmployeeCardImpactObserver::class);
+        // After the integration-event projector, as before (both run once booting is over).
+        static::whenBooted(fn () => static::observe(EmployeeCardImpactObserver::class));
     }
 
     protected $fillable = [

@@ -58,9 +58,9 @@ final class EmployeeScoreCalculator
 
         [$competencyScore, $competencyRows, $competencyComplete] = $this->competency($agreement);
 
-        $final = $results->multipliedBy($weights['results'])->dividedBy(100, 10, RoundingMode::HALF_UP);
+        $final = $results->multipliedBy($weights['results'])->dividedBy(100, 10, RoundingMode::HalfUp);
         if ($weights['competency'] > 0 && $competencyScore !== null) {
-            $final = $final->plus($competencyScore->multipliedBy($weights['competency'])->dividedBy(100, 10, RoundingMode::HALF_UP));
+            $final = $final->plus($competencyScore->multipliedBy($weights['competency'])->dividedBy(100, 10, RoundingMode::HalfUp));
         }
 
         $band = $this->band($final);
@@ -81,8 +81,8 @@ final class EmployeeScoreCalculator
             'competency_complete' => $competencyComplete,
             'results_weight' => (string) $weights['results'],
             'competency_weight' => (string) $weights['competency'],
-            'results_contribution' => Dec::str($results->multipliedBy($weights['results'])->dividedBy(100, 10, RoundingMode::HALF_UP)),
-            'competency_contribution' => Dec::str($competencyScore?->multipliedBy($weights['competency'])->dividedBy(100, 10, RoundingMode::HALF_UP)),
+            'results_contribution' => Dec::str($results->multipliedBy($weights['results'])->dividedBy(100, 10, RoundingMode::HalfUp)),
+            'competency_contribution' => Dec::str($competencyScore?->multipliedBy($weights['competency'])->dividedBy(100, 10, RoundingMode::HalfUp)),
             'final_score' => Dec::str($final),
             'rating' => $band,
             'complete' => $competencyComplete && collect($itemRows)->every(fn ($row) => $row['achievement_status'] !== 'NO_ACTUAL'),
@@ -115,7 +115,7 @@ final class EmployeeScoreCalculator
             'milestone_key' => $aggregate->milestoneKey,
         ]);
 
-        $weighted = BigDecimal::of($achievement->scoringValue())->multipliedBy(Dec::of($item->weight))->dividedBy(100, 10, RoundingMode::HALF_UP);
+        $weighted = BigDecimal::of($achievement->scoringValue())->multipliedBy(Dec::of($item->weight))->dividedBy(100, 10, RoundingMode::HalfUp);
 
         return [
             'item_id' => $item->getKey(),

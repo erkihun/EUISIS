@@ -154,7 +154,7 @@ final class EmployeeAgreementService
         $sort = 0;
         foreach ($plan->objectives()->where('status', 'ACTIVE')->with(['targets.kpi'])->get() as $objective) {
             foreach ($objective->targets as $target) {
-                $weight = Dec::of($objective->weight)->multipliedBy(Dec::of($target->weight))->dividedBy(100, 4, RoundingMode::HALF_UP);
+                $weight = Dec::of($objective->weight)->multipliedBy(Dec::of($target->weight))->dividedBy(100, 4, RoundingMode::HalfUp);
                 $agreement->allItems()->create([
                     'objective_id' => $objective->getKey(),
                     'kpi_id' => $target->kpi_id,
@@ -198,7 +198,7 @@ final class EmployeeAgreementService
         $count = $competencies->count();
         foreach ($competencies->values() as $index => $competency) {
             // Equal shares that total exactly 100: the last one takes the remainder.
-            $share = BigDecimal::of(100)->dividedBy($count, 4, RoundingMode::DOWN);
+            $share = BigDecimal::of(100)->dividedBy($count, 4, RoundingMode::Down);
             $weight = $index === $count - 1 ? BigDecimal::of(100)->minus($share->multipliedBy($count - 1)) : $share;
             $agreement->competencyAssessments()->create(['competency_id' => $competency->getKey(), 'weight' => (string) $weight]);
         }

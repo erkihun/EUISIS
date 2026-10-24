@@ -55,7 +55,7 @@ class ManpowerCalculationService
         $params = $this->validated($strategy->parameterSchema(), $parameters, 'parameters', complete: true);
         $values = $this->validated($strategy->inputSchema(), $inputs, 'inputs', complete: true);
         $result = $strategy->calculate($params, $values);
-        $fte = $result['fte']->toScale(Dec::SCALE, RoundingMode::HALF_UP);
+        $fte = $result['fte']->toScale(Dec::SCALE, RoundingMode::HalfUp);
         $rule = $rounding === null ? null : RoundingRule::tryFrom($rounding);
 
         return [

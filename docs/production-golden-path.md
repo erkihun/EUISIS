@@ -10,7 +10,7 @@ map of the real repository, not a target architecture. Related:
 
 | Layer | Technology |
 | --- | --- |
-| Server | PHP 8.2+, Laravel 12 |
+| Server | PHP 8.3+ (8.4 on the live server), Laravel 13; Node 24 LTS to build assets |
 | UI | Inertia 2 + React 18 + TypeScript 5, built by Vite 6 |
 | Database | PostgreSQL (production engine, decision D-5); SQLite only for fast local tests |
 | Authorization | spatie/laravel-permission 6.21 + `OrganizationScopeService` (organization scope) |

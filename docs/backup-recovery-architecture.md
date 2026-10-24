@@ -5,7 +5,7 @@ No production backup, restore, WAL change, key rotation or repository deletion w
 
 ## Evidence from inspection (2026-09-27)
 
-- Installed Laravel 12.69.2; `composer.json` requires Laravel 12 / PHP 8.2.
+- Installed Laravel 13.38.0; `composer.json` requires Laravel 13 / PHP 8.3 (upgraded 2026-10-24).
 - Local connection is PostgreSQL 18.6, `wal_level=replica`, `archive_mode=off`.
   An archive command is configured but cannot archive while archive mode is off.
   These are local observations, not evidence of production server configuration.
