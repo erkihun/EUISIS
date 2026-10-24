@@ -4,6 +4,7 @@ export default {
     workspaceName: 'Core',
     description: 'The master records every service relies on: organizations, positions, employees, their assignments and identity cards.',
     exit: 'Leave Core',
+    signInHint: 'Organizations, positions, employees and ID cards',
     scopeCitywide: 'Figures cover every organization in the city.',
     scopeOrganizations: 'Figures cover the :count organizations in your scope.',
     none: 'None',

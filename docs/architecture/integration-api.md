@@ -4,6 +4,12 @@ How systems outside the application use the backbone. Inside the application,
 modules use the contracts in [master-backbone.md](master-backbone.md) instead.
 Each section links the guide that holds the details.
 
+Partner systems read and verify; they never create or change an organization,
+unit, position, employee, assignment or card, and cannot suspend, revoke or
+activate a card ([ADR 0002](adr/0002-core-write-authority-assignment-ending-and-sign-in.md)).
+A partner that learns of a problem reports it to the responsible office, which
+acts in Core.
+
 ## Consistency model
 
 - REST under `/api/v1` is the authoritative current state.

@@ -10,7 +10,7 @@ Stage 1 gives Core its own entry point, navigation and dashboard inside the exis
 | --- | --- | --- |
 | Permission `core.access` | `database/seeders/data/core-permissions.php`, migration `register_core_access_permission` | Opens the workspace. Granted to Super Admin, System Admin, City Admin and Public Service Bureau Admin. It grants no record access of its own. |
 | Entry `GET /core` | `CoreDashboardController` behind `auth`, `verified`, `mfa`, `force.password`, `admin.access`, `can:core.access` | Shows the Core dashboard and, through `EnterCoreWorkspace`, sets the session flag. |
-| Entry `GET /core/login` | `CoreWorkspaceController::login` | Core's own address. Sends a guest to the one sign-in page with `/core` as the intended destination; a signed-in person goes straight to `/core`. |
+| Entry `GET /core/login` | `CoreWorkspaceController::login` | Core's own sign-in screen: the sign-in page titled for Core, without self-registration, posting to the one login route (shared throttling, MFA and session). Afterwards the person lands in `/core`; a signed-in person goes straight there (ADR 0002). |
 | Exit `POST /core/exit` | `CoreWorkspaceController::exit` | Clears the flag and returns to the full dashboard. Works without `core.access`, so a person whose access was withdrawn can always leave. |
 | Session flag | `App\Services\Core\CoreWorkspace` | Active only while the flag is set and the person still holds `core.access`. Signing out ends it. |
 | Navigation | `App\Services\Core\CoreNavigation` | The Core sidebar: master records (organization, change requests, positions, employees, identity cards) and governance (access, integration, rules and audit). Each entry is shown only when the person may open its page. |
@@ -46,6 +46,6 @@ Remove the three routes, the middleware alias, the `workspace` shared prop and t
 ## Next stages
 
 1. Core-only pages that do not exist yet: an assignments list, an Integration Center landing page, Audit Center filters.
-2. Backbone commands for the remaining direct writes: Start and End assignment, Suspend card. Backbone Stages 1 to 7 are done ([backbone-refactor-migration.md](backbone-refactor-migration.md), section 9); retiring the duplicate masters waits for live evidence.
+2. A staff route for suspending a card. Start and End assignment are done for employment ending and resuming ([ADR 0002](adr/0002-core-write-authority-assignment-ending-and-sign-in.md)); backbone Stages 1 to 7 are done ([backbone-refactor-migration.md](backbone-refactor-migration.md), section 9); retiring the duplicate masters waits for live evidence.
 3. Move the service modules onto backbone contracts or the API, one per release.
 4. Make Core authoritative, then remove the master-record groups from the full sidebar last.

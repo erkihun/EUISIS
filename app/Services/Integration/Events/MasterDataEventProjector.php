@@ -201,8 +201,10 @@ final class MasterDataEventProjector
     private function assignmentUpdated(EmployeeAssignment $assignment): void
     {
         $organizationId = $this->id($assignment->organization_id);
-        $closedNow = ($assignment->wasChanged('is_current') && ! $assignment->is_current && (bool) $assignment->getOriginal('is_current'))
-            || ($assignment->wasChanged('assignment_status') && $this->scalar($assignment->assignment_status) === 'closed');
+        // An assignment already closed (employment ended) that stops being the latest record is not closed again.
+        $wasClosed = $this->scalar($assignment->getOriginal('assignment_status')) === 'closed';
+        $closedNow = ! $wasClosed && (($assignment->wasChanged('is_current') && ! $assignment->is_current && (bool) $assignment->getOriginal('is_current'))
+            || ($assignment->wasChanged('assignment_status') && $this->scalar($assignment->assignment_status) === 'closed'));
 
         if ($closedNow) {
             $this->recorder->record('assignment.closed', $assignment->getKey(), [

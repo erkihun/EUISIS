@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\AssignmentStatus;
+use App\Services\Employees\EmploymentStatusTransition;
 use Illuminate\Console\Command;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +46,12 @@ class BackboneIntegrityAudit extends Command
             'Card replacement records not linked to the new card' => DB::table('card_replacements')
                 ->whereColumn('new_card_id', 'old_card_id')
                 ->whereExists(fn (Builder $q) => $q->selectRaw('1')->from('id_cards')->whereColumn('id_cards.previous_card_id', 'card_replacements.old_card_id')),
+            // Separations recorded before ADR 0002 left the placement open and the seat taken.
+            'Separated employees whose placement is still open' => DB::table('employees')
+                ->whereIn('employees.status', array_map(fn ($status): string => $status->value, EmploymentStatusTransition::SEPARATED))
+                ->whereExists(fn (Builder $q) => $q->selectRaw('1')->from('employee_assignments')
+                    ->whereColumn('employee_assignments.id', 'employees.current_assignment_id')
+                    ->where('employee_assignments.assignment_status', AssignmentStatus::Active->value)),
         ];
 
         $total = 0;

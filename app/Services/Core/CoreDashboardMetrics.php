@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Core;
 
+use App\Enums\AssignmentStatus;
 use App\Enums\CardRequestStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
@@ -138,7 +139,8 @@ final class CoreDashboardMetrics
             'positions_active' => $inOrganizations(Position::query()->where('is_active', true))->count(),
             'positions_inactive' => $inOrganizations(Position::query()->where('is_active', false))->count(),
             'employees_active' => $ofEmployees(Employee::query()->where('status', EmployeeStatus::Active->value), 'id')->count(),
-            'assignments_current' => $inOrganizations(EmployeeAssignment::query()->where('is_current', true))->count(),
+            // A separated employee's last assignment stays their latest record but is closed (ADR 0002).
+            'assignments_current' => $inOrganizations(EmployeeAssignment::query()->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value))->count(),
             'employees_unplaced' => Employee::query()->where('status', EmployeeStatus::Active->value)->whereNull('current_assignment_id')->count(),
             'cards_active' => $ofEmployees(IdCard::query()->where('status', CardStatus::Active->value)->where('is_current', true))->count(),
             'cards_expiring' => $ofEmployees(IdCard::query()->where('status', CardStatus::Active->value)->where('is_current', true)

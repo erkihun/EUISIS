@@ -25,6 +25,7 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Services\Employees\EmploymentStatusTransition;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
@@ -36,6 +37,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class EmployeeController extends Controller
 {
@@ -755,6 +757,7 @@ class EmployeeController extends Controller
         EmployeeUpdateRequest $request,
         Employee $employee,
         WriteAuditLogAction $writeAuditLogAction,
+        EmploymentStatusTransition $statusTransition,
     ): RedirectResponse {
         $this->authorize('update', $employee);
 
@@ -767,18 +770,38 @@ class EmployeeController extends Controller
             $request->string('last_name')->toString(),
         ])));
 
-        if ($request->boolean('remove_photo') && $employee->photo_path) {
-            EmployeePhotoStorage::delete($employee->photo_path);
+        $previousPhoto = $employee->photo_path;
+        $newPhoto = null;
+        if ($request->boolean('remove_photo') && $previousPhoto) {
             $attributes['photo_path'] = null;
         }
 
         if ($request->hasFile('photo')) {
-            EmployeePhotoStorage::delete($employee->photo_path);
             // Private disk: photos are personal data (SEC-013).
-            $attributes['photo_path'] = EmployeePhotoStorage::store($request->file('photo'));
+            $newPhoto = EmployeePhotoStorage::store($request->file('photo'));
+            $attributes['photo_path'] = $newPhoto;
         }
 
-        DB::transaction(fn () => $employee->update($attributes));
+        $previousStatus = $employee->status;
+
+        try {
+            DB::transaction(function () use ($employee, $attributes, $previousStatus, $statusTransition, $request): void {
+                $employee->update($attributes);
+                // Ending or resuming employment ends or restores the placement (ADR 0002).
+                $statusTransition->apply($employee, $previousStatus, $employee->status, $request->user(), $request);
+            });
+        } catch (Throwable $exception) {
+            // Nothing was saved: keep the old photo and drop the new upload.
+            if ($newPhoto !== null) {
+                EmployeePhotoStorage::delete($newPhoto);
+            }
+
+            throw $exception;
+        }
+
+        if ($previousPhoto && ($newPhoto !== null || $request->boolean('remove_photo'))) {
+            EmployeePhotoStorage::delete($previousPhoto);
+        }
 
         $writeAuditLogAction->execute(
             AuditEventType::EmployeeUpdated,

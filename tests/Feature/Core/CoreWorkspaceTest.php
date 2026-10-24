@@ -89,10 +89,17 @@ it('drops the Core navigation as soon as core.access is withdrawn', function ():
     $this->get(route('core.dashboard'))->assertForbidden();
 });
 
-it('has its own entry address that signs in and lands in Core', function (): void {
-    $this->get(route('core.login'))->assertRedirect(route('login'))->assertSessionHas('url.intended', route('core.dashboard'));
+it('has its own sign-in screen that uses the one login and lands in Core', function (): void {
+    // ADR 0002, decision 3: a Core-titled sign-in over the same authentication, without self-registration.
+    $this->get(route('core.login'))->assertOk()
+        ->assertSessionHas('url.intended', route('core.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->component('Auth/Login')->where('entry', 'core')->where('canResetPassword', true));
 
-    $this->actingAs(coreUser())->get(route('core.login'))->assertRedirect(route('core.dashboard'));
+    $user = coreUser();
+    $user->forceFill(['password' => bcrypt('Core-Sign-In-1'), 'status' => 'active', 'must_change_password' => false, 'password_changed_at' => now(), 'first_login_at' => now()])->save();
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'Core-Sign-In-1'])->assertRedirect(route('core.dashboard'));
+
+    $this->get(route('core.login'))->assertRedirect(route('core.dashboard'));
 });
 
 it('is granted to the citywide administration roles only', function (): void {

@@ -65,6 +65,13 @@ status and print snapshots. No card action creates or changes an employee.
   card active). HR administration of the employee is not gated by the card.
 - Transfers move the assignment through `App\Backbone\Commands\TransferAssignment`;
   the employee record, UUID, number and card are not written.
+- When employment ends (retired, terminated, deceased, transferred out) the
+  placement ends through `EndAssignment`: the assignment is closed and its seat
+  released, and it stays the employee's latest record. When employment resumes,
+  `StartAssignment` places the employee back in their last position if it has a
+  free seat ([ADR 0002](adr/0002-core-write-authority-assignment-ending-and-sign-in.md)).
+- Machine clients read master data and verify credentials; they never change
+  master data (ADR 0002). People change it in Core, through these commands.
 - `tests/Unit/BackboneBoundaryTest.php` fails when backbone code imports a
   service module or a service module creates or bulk-updates a backbone
   record, beyond a shrinking list of known exceptions.
