@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Addis One partner API
-  version: "1.3.0"
+  version: "1.4.0"
   description: |
     Partner-facing v1 endpoints after the master backbone remediation
     (docs/architecture/master-backbone-remediation-implementation.md).
@@ -37,6 +37,21 @@ components:
       in: path
       required: true
       schema: { type: string, format: uuid }
+    OrganizationUnitUuid:
+      name: unit
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    PositionUuid:
+      name: position
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    UpdatedAfter:
+      name: updated_after
+      in: query
+      description: 'ISO 8601; records updated at or after this time. Unparseable values are 422.'
+      schema: { type: string, format: date-time }
     Page:
       name: page
       in: query
@@ -159,6 +174,75 @@ components:
       properties:
         data: { type: array, items: { $ref: '#/components/schemas/Assignment' } }
         meta: { $ref: '#/components/schemas/PageMeta' }
+    OrganizationUnit:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name_en: { type: string }
+        name_am: { type: string, nullable: true }
+        unit_type: { type: string }
+        parent_unit_id: { type: string, format: uuid, nullable: true }
+        organization_id: { type: string, format: uuid }
+        status: { type: string, nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+    OrganizationUnitPage:
+      type: object
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/OrganizationUnit' } }
+        meta: { $ref: '#/components/schemas/PageMeta' }
+    Position:
+      type: object
+      description: Establishment and occupancy of a seat, never who fills it.
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, nullable: true, description: 'Job position code, else the position code' }
+        standard_name: { type: string }
+        standard_name_am: { type: string, nullable: true }
+        bpr_name: { type: string, nullable: true }
+        job_grade: { type: string, nullable: true }
+        position_status: { type: string, enum: [active, inactive] }
+        organization_id: { type: string, format: uuid, nullable: true }
+        organization_unit_id: { type: string, format: uuid, nullable: true }
+        occupied: { type: boolean }
+        vacant: { type: boolean }
+        updated_at: { type: string, format: date-time, nullable: true }
+    PositionPage:
+      type: object
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Position' } }
+        meta: { $ref: '#/components/schemas/PageMeta' }
+    Employee:
+      type: object
+      description: Basic employee fields only. Never national ID, phone, email, address, salary, documents or photo paths.
+      properties:
+        id: { type: string, format: uuid }
+        employee_number: { type: string }
+        full_name: { type: string }
+        full_name_en: { type: string, nullable: true }
+        employment_status: { type: string, nullable: true }
+        organization_id: { type: string, format: uuid, nullable: true }
+        organization_unit_id: { type: string, format: uuid, nullable: true }
+        position_id: { type: string, format: uuid, nullable: true }
+        active_assignment: { allOf: [ { $ref: '#/components/schemas/Assignment' } ], nullable: true }
+        updated_at: { type: string, format: date-time, nullable: true }
+        gender: { type: string, nullable: true }
+    EmployeePage:
+      type: object
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Employee' } }
+        meta: { $ref: '#/components/schemas/PageMeta' }
+    Entitlement:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        service_type_id: { type: string, format: uuid }
+        service_provider_id: { type: string, format: uuid, nullable: true, description: 'Null means any provider of the service type' }
+        status: { type: string, enum: [pending, active, paused, exhausted, expired, revoked] }
+        quota_limit: { type: integer, nullable: true }
+        quota_used: { type: integer }
+        effective_from: { type: string, format: date, nullable: true }
+        effective_to: { type: string, format: date, nullable: true }
     CardStatus:
       type: object
       description: The backbone credential rule. A replacement card is a new credential with its own card UUID and number.
@@ -315,6 +399,87 @@ paths:
         - $ref: '#/components/parameters/OrganizationUuid'
         - { name: depth, in: query, schema: { type: string, enum: [unit, position, employee], default: position } }
       responses: { '200': { description: OK }, '404': { $ref: '#/components/responses/NotFound' }, '422': { description: structure_too_large } }
+  /organization-units:
+    get:
+      summary: Units in the caller's bound, by sort order then name
+      description: 'Scope organization_units.read. Code filters are case-insensitive exact matches.'
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - { name: organization_code, in: query, schema: { type: string } }
+        - { name: organization_unit_code, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { $ref: '#/components/parameters/UpdatedAfter' }
+      responses:
+        '200': { description: Page, content: { application/json: { schema: { $ref: '#/components/schemas/OrganizationUnitPage' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /organization-units/{unit}:
+    get:
+      summary: One organization unit
+      description: 'Scope organization_units.read.'
+      parameters: [ { $ref: '#/components/parameters/OrganizationUnitUuid' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/OrganizationUnit' } } } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /organization-units/{unit}/positions:
+    get:
+      summary: Positions of a unit, by name
+      description: 'Scope positions.read.'
+      parameters:
+        - { $ref: '#/components/parameters/OrganizationUnitUuid' }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - { name: position_code, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string, enum: [active, inactive] } }
+        - { $ref: '#/components/parameters/UpdatedAfter' }
+      responses:
+        '200': { description: Page, content: { application/json: { schema: { $ref: '#/components/schemas/PositionPage' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /organization-units/{unit}/employees:
+    get:
+      summary: Employees whose current assignment is in the unit, by employee number
+      description: 'Scope employees.basic_read.'
+      parameters:
+        - { $ref: '#/components/parameters/OrganizationUnitUuid' }
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - { name: employee_number, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { $ref: '#/components/parameters/UpdatedAfter' }
+      responses:
+        '200': { description: Page, content: { application/json: { schema: { $ref: '#/components/schemas/EmployeePage' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /positions:
+    get:
+      summary: Positions in the caller's bound, by name
+      description: 'Scope positions.read. Code filters are case-insensitive exact matches.'
+      parameters:
+        - { $ref: '#/components/parameters/Page' }
+        - { $ref: '#/components/parameters/PerPage' }
+        - { name: organization_code, in: query, schema: { type: string } }
+        - { name: organization_unit_code, in: query, schema: { type: string } }
+        - { name: position_code, in: query, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string, enum: [active, inactive] } }
+        - { $ref: '#/components/parameters/UpdatedAfter' }
+      responses:
+        '200': { description: Page, content: { application/json: { schema: { $ref: '#/components/schemas/PositionPage' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/Unprocessable' }
+  /positions/{position}:
+    get:
+      summary: One position
+      description: 'Scope positions.read.'
+      parameters: [ { $ref: '#/components/parameters/PositionUuid' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { data: { $ref: '#/components/schemas/Position' } } } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /employees:
     get:
       summary: Employees in bound (employees.basic_read)
@@ -379,6 +544,7 @@ paths:
   /cards/verify:
     post:
       summary: Provider card verification for a service (id_cards.verify, provider-bound)
+      description: 'An application uses its bound provider. A person (personal token) must name provider_code, or gets 422 provider_required.'
       requestBody:
         required: true
         content:
@@ -393,6 +559,30 @@ paths:
       responses:
         '200': { description: Decision, content: { application/json: { schema: { $ref: '#/components/schemas/VerificationResult' } } } }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { description: 'Validation failed, or provider_required: a person did not name provider_code' }
+  /services/{serviceType}/authorize:
+    post:
+      summary: Authorize a card for a service without recording a transaction
+      description: 'Scope service_eligibility.check, provider-bound. A denial is 200 with allowed false and a result_code. The path serviceType decides the service; a body service_type may be omitted and, when given, must equal the path (422 otherwise). An application may name only its bound provider_code; without one, its bound provider is used. A person must name provider_code (422 provider_required). Each call keeps a verification record and an audit entry.'
+      parameters:
+        - { name: serviceType, in: path, required: true, schema: { type: string }, description: Service type code }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token: { type: string, description: '<card_id>|<raw token> from the card QR' }
+                service_type: { type: string, description: 'Optional; must equal the path serviceType' }
+                provider_code: { type: string, nullable: true }
+                device_identifier: { type: string, nullable: true }
+      responses:
+        '200': { description: Decision, content: { application/json: { schema: { $ref: '#/components/schemas/VerificationResult' } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: Unknown service type }
+        '422': { $ref: '#/components/responses/Unprocessable' }
   /services/{serviceType}/transactions:
     post:
       summary: Authorize and record a service transaction (service_transactions.create, provider-bound)
@@ -415,6 +605,15 @@ paths:
         '200': { description: Decision, content: { application/json: { schema: { $ref: '#/components/schemas/VerificationResult' } } } }
         '403': { $ref: '#/components/responses/Forbidden' }
         '409': { $ref: '#/components/responses/Conflict' }
+  /employees/{employee}/entitlements:
+    get:
+      summary: Service entitlements of an employee (not paginated)
+      description: 'Scope service_eligibility.check, provider-bound. An application must be bound to a service provider, is held to its organization bound and sees provider-neutral entitlements and its own provider''s only; a person is held to the employee view policy.'
+      parameters: [ { $ref: '#/components/parameters/EmployeeUuid' } ]
+      responses:
+        '200': { description: List, content: { application/json: { schema: { type: object, properties: { data: { type: array, items: { $ref: '#/components/schemas/Entitlement' } } } } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /offline-sync/transactions:
     post:
       summary: Verify an offline batch (≤200 items; every provider_code must be the bound provider)

@@ -12,7 +12,7 @@ here without the signer's name, date and the evidence they reviewed.
 | A1 | Organization, unit, position, employee, assignment and card chain works end to end | `tests/Feature/GoldenPath/*`, `BackboneStage*Test` | pending | automated pass |
 | A2 | Core is the only writer of master data | `BackboneBoundaryTest`, `MachineWriteBoundaryTest` | n/a | automated pass |
 | A3 | Assignment ends only with employment; same-day undo; history kept | `AssignmentLifecycleTest` | pending | automated pass |
-| A4 | Permission = what, organization scope = where, on Core pages and API | `tests/Feature/OrganizationScope/*`, `tests/Feature/Rbac/*`, `CoreWorkspacePagesTest`, `OrganizationEmployeeApiTest` | pending | automated pass; users without scope rows see all organizations (decision pending) |
+| A4 | Permission = what, organization scope = where, on Core pages and API | `tests/Feature/OrganizationScope/*`, `tests/Feature/Rbac/*`, `CoreWorkspacePagesTest`, `OrganizationEmployeeApiTest` | pending | automated pass; organization-level roles without a scope record confined to their own organization (ADR 0003) |
 | A5 | Public QR verification is privacy-minimised and fails closed | `PublicIdCheckerTest`, `IdCardIntegrationApiTest` | pending | automated pass |
 | A6 | Core workspace pages (dashboard, assignments, integration, audit, settings) | `CoreWorkspaceTest`, `CoreWorkspacePagesTest`, `CoreDashboardTest` | pending | automated pass |
 | A7 | Integration outbox, change feed and webhooks | `tests/Feature/Integration/*` | partner test pending | automated pass |
@@ -22,6 +22,9 @@ here without the signer's name, date and the evidence they reviewed.
 | A11 | Cutover tooling (write freeze, snapshot) | `CutoverToolingTest` | rehearsal pending | automated pass |
 | A12 | Go-live gate and smoke test | `CoreOperationalSafeguardsTest` | on target environment pending | automated pass |
 | A13 | No destructive migration after the baseline | `MigrationSafetyTest` | n/a | automated pass |
+| A16 | Audit log tamper evidence (seal, verify, retention) | `AuditSealAndScopeGapsTest` | n/a | automated pass |
+| A17 | Provider card checks name their provider; service type matches the path | `MasterBackboneRemediationApiTest` (ADR 0003 case) | partner test pending | automated pass |
+| A18 | Partner OpenAPI document matches every `/api/v1` route | `OpenApiContractTest` (empty backlog) | n/a | automated pass |
 | A14 | Backups and restore | Backup page, `production:readiness` | restore drill pending | **not ready** |
 | A15 | Performance at expected load | local benchmarks only ([../architecture/core-production-baseline.md](../architecture/core-production-baseline.md)) | production-class test pending | **not measured** |
 

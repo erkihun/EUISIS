@@ -314,7 +314,12 @@ class OrganizationScopeService
     public function requiresExplicitScope(User $user): bool
     {
         return (bool) config('security.organization_scope.require_explicit_scope', true)
-            && $user->roles->contains(fn ($role): bool => $role->scope_type === RoleScopeType::Scoped);
+            && $this->holdsOrganizationLevelRole($user);
+    }
+
+    public function holdsOrganizationLevelRole(User $user): bool
+    {
+        return $user->roles->contains(fn ($role): bool => $role->scope_type === RoleScopeType::Scoped);
     }
 
     /**

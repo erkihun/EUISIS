@@ -7,23 +7,14 @@ use Illuminate\Support\Facades\Route;
 /*
  * API lifecycle (docs/governance/api-lifecycle.md): the partner OpenAPI
  * document and the registered /api/v1 routes must not drift apart. Every
- * documented path must exist; every partner route must be documented, except
- * the ones listed below, which were undocumented on 2026-10-24 and are
- * tracked in docs/governance/technical-debt.md. The list may only shrink.
+ * documented path must exist; every partner route must be documented. The
+ * backlog of undocumented routes was cleared on 2026-10-24 and must stay
+ * empty: document a new route instead of listing it here.
  *
  * Terminal and device APIs (NFC, transport) have their own documents.
  */
 
-const UNDOCUMENTED_PARTNER_ROUTES = [
-    'api/v1/employees/{}/entitlements',
-    'api/v1/organization-units',
-    'api/v1/organization-units/{}',
-    'api/v1/organization-units/{}/employees',
-    'api/v1/organization-units/{}/positions',
-    'api/v1/positions',
-    'api/v1/positions/{}',
-    'api/v1/services/{}/authorize',
-];
+const UNDOCUMENTED_PARTNER_ROUTES = [];
 
 /** @return list<string> documented paths as route URIs, parameters normalised to {} */
 function documentedPartnerPaths(): array

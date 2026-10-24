@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Grievance;
+use App\Services\Audit\AuditLogSealer;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Closure;
@@ -27,7 +28,7 @@ class PruneRetainedData extends Command
 
     protected $description = 'Delete audit, security, notification, verification and reminder rows past their retention window';
 
-    public function handle(SystemSettingsService $settings): int
+    public function handle(SystemSettingsService $settings, AuditLogSealer $sealer): int
     {
         $auditDays = max(30, (int) $settings->get(SystemSettingsRegistry::GROUP_SECURITY, 'audit_retention_days', 730));
         $readDays = max(1, (int) config('retention.notifications_read_days', 90));
@@ -61,6 +62,11 @@ class PruneRetainedData extends Command
 
             $count = $this->prune($table, $key, $column, now()->subDays($days), $constraint, $dryRun);
             $this->line(sprintf('%s.%s older than %d days: %d %s', $table, $column, $days, $count, $dryRun ? 'would be deleted' : 'deleted'));
+        }
+
+        // The seals of pruned audit days go with them (the cutoff day is partly pruned).
+        if (! $dryRun && $sealer->available()) {
+            $this->line('audit_log_seals through the audit cutoff: '.$sealer->forgetThrough(now()->subDays($auditDays)->toDateString()).' deleted');
         }
 
         return self::SUCCESS;

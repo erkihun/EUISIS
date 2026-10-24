@@ -9,7 +9,8 @@ written; this page only points at them.
 | --- | --- |
 | Before any production deployment | `php artisan production:readiness --strict` (includes `security:production-check` and the Core section) |
 | After every deployment | `php artisan core:smoke` |
-| Daily in the first weeks, then weekly | `php artisan backbone:audit-integrity`, `php artisan api:access-review` |
+| Daily in the first weeks, then weekly | `php artisan backbone:audit-integrity`, `php artisan api:access-review`, `php artisan access:scope-gaps` |
+| Daily (scheduled) and after any suspected database tampering | `php artisan audit:seal` (scheduled 00:20), `php artisan audit:verify` |
 | Before and after a data move or restore | `php artisan core:snapshot --output=…` / `--compare=…` |
 | Before retiring a legacy master | `php artisan backbone:duplicate-masters` |
 

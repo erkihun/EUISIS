@@ -7,10 +7,12 @@ namespace App\Console\Commands;
 use App\Models\Employee;
 use App\Models\Integration\IntegrationEvent;
 use App\Models\Integration\WebhookDelivery;
+use App\Services\Audit\AuditLogSealer;
 use App\Services\Backup\BackupStatusService;
 use App\Services\Branding\BrandingService;
 use App\Services\Core\BackboneIntegrityChecks;
 use App\Services\IdCards\IdCardPngExporter;
+use App\Services\OrganizationScope\ScopeGapReport;
 use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Support\Security\NationalIdHash;
@@ -189,6 +191,25 @@ class ProductionReadiness extends Command
             }
         } catch (Throwable $e) {
             $this->check('Core platform checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
+
+        $this->section('Access and audit integrity');
+        try {
+            $this->check('Organization-level roles need an explicit scope', (bool) config('security.organization_scope.require_explicit_scope'), $production, 'ORGANIZATION_SCOPE_REQUIRE_EXPLICIT=false: an account with an organization-level role and no scope record sees every organization.');
+            $gaps = count(app(ScopeGapReport::class)->rows());
+            $this->check('Every organization-level account has an explicit scope', $gaps === 0, false, $gaps.' account(s) without a scope record: run php artisan access:scope-gaps and give each a scope or a global role.');
+
+            $sealer = app(AuditLogSealer::class);
+            if (! $sealer->available()) {
+                $this->check('Audit log seals present', false, $production, 'The audit_log_seals table is missing: run php artisan migrate.');
+            } else {
+                $last = $sealer->lastSealedDay();
+                $this->check('Audit log sealed through yesterday', $last !== null && $last >= now()->subDay()->toDateString(), false, 'Last sealed day: '.($last ?? 'none').'. The scheduler runs audit:seal daily; run it once by hand after deployment.');
+                $altered = collect($sealer->verify(now()->subDays(7)->toDateString()))->reject(fn (array $day): bool => $day['status'] === 'ok')->pluck('day')->all();
+                $this->check('Audit log seals of the last 7 days verify', $altered === [], $production, 'Sealed days that no longer verify: '.implode(', ', $altered).'. Treat as a security incident; run php artisan audit:verify.');
+            }
+        } catch (Throwable $e) {
+            $this->check('Access and audit checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
         }
 
         $this->section('Operations');

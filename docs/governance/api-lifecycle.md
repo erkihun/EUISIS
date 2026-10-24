@@ -31,6 +31,6 @@ version (`/api/v2`) that runs beside v1.
 - [ ] Rate limit considered.
 - [ ] Release note for partners.
 
-## Current gap
+## State
 
-Eight partner routes exist without OpenAPI entries (organization units, positions, entitlements, service authorize); listed in `OpenApiContractTest` and [technical-debt.md](technical-debt.md).
+Every partner route under `/api/v1` is in the OpenAPI document (1.4.0, 24 October 2026); `OpenApiContractTest` keeps it that way with an empty backlog.

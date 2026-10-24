@@ -10,7 +10,7 @@ application. No new monitoring stack was added; this maps what is in place.
 | Liveness / readiness | `/up`, `/health/live`, `/health/ready` |
 | Request correlation | `X-Request-ID` on every response (`RequestCorrelationId`); stored on audit rows; Audit logs page filters by request ID |
 | Request counts, status classes, latency buckets by route group | `RecordRequestTelemetry` → Intelligence › System health (no URLs or identifiers stored) |
-| Audit of every Golden Path change | `audit_logs` (actor, person or system principal, organization, request ID); Core → Audit Center |
+| Audit of every Golden Path change | `audit_logs` (actor, person or system principal, organization, request ID); Core → Audit Center; sealed daily, `audit:verify` detects tampering |
 | Partner API use | `api_request_logs`, Core → Integration Center (applications, last use, token expiry) |
 | Outbox backlog and webhook health | Integration Center: events waiting, failed deliveries, degraded subscriptions |
 | Referential integrity | `php artisan backbone:audit-integrity`, Core dashboard data-quality figure, Audit Center integrity view |

@@ -31,9 +31,11 @@ Service modules own their own records (see [database-ownership.md](database-owne
 | No new direct reads in service modules | per-module ratchet | `tests/Unit/ServiceModuleCoreDependencyTest.php` |
 | One writer during cutovers and restores | `CORE_MASTER_DATA_WRITES=frozen` | `tests/Feature/Core/CutoverToolingTest.php` |
 | Every change audited with actor, organization and request ID | Core actions | Audit Center, `audit_logs.request_id` |
-| Data stays consistent | `backbone:audit-integrity --strict`; `production:readiness` Core section | `BackboneStageTwoTest`, `CoreOperationalSafeguardsTest` |
+| Data stays consistent | `backbone:audit-integrity --strict`; `production:readiness` Core section; foreign keys on the assignment pointer and card lineage | `BackboneStageTwoTest`, `CoreOperationalSafeguardsTest` |
+| An organization-level role reaches only its scope (its own organization when it has no scope record) | `OrganizationScopeService::requiresExplicitScope` (ADR 0003) | `OrganizationScopeServiceTest`, `AuditSealAndScopeGapsTest` |
+| Audit rows cannot be changed unnoticed | daily HMAC seals, `audit:verify` | `AuditSealAndScopeGapsTest` |
 
 ## What is not yet enforced
 
 - 210 service-module files still read Golden Path models directly (frozen, not removed). Reads are safe inside one application; they block physical separation only.
-- Users with no organization-scope rows are treated as not yet scoped and see every organization (established convention in `OrganizationScopeService::canAccessOrganization`). Tightening it would lock out existing roles; it needs a business decision and a data clean-up first. Listed in [../governance/security-governance.md](../governance/security-governance.md).
+- Accounts given permissions directly without any role and without a scope record keep the old city-wide reach; `access:scope-gaps` lists them (DIRECT_PERMISSIONS_UNSCOPED) for an administrator to give them a role and a scope.

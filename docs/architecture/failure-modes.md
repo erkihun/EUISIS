@@ -17,7 +17,7 @@ later separation.
 | Public QR / ID-checker verification | FAIL_CLOSED | Unknown, revoked, expired, replaced or non-current cards are invalid (`IdCardCredentialStatus`); the public page shows minimal data only |
 | Partner card verification (`/api/v1/id-cards/verify`) | FAIL_CLOSED | Same credential status; scope and organization bounds checked first |
 | Service eligibility (cafeteria, transport, NFC terminals) | FAIL_CLOSED | `EmployeeServiceEligibilityService` denies inactive employees and invalid cards and records the attempt |
-| Permission and organization-scope checks | FAIL_CLOSED | Policies and `OrganizationScopeService`; a missing organization is refused (`canAccessOrganization(null)` is false) — except users with no scope rows, see [core-authority.md](core-authority.md) |
+| Permission and organization-scope checks | FAIL_CLOSED | Policies and `OrganizationScopeService`; a missing organization is refused (`canAccessOrganization(null)` is false); an organization-level role with no scope record reaches only its own organization (ADR 0003) |
 | Sign-in, MFA, OTP | FAIL_CLOSED | Throttles and lockouts live in the cache: if the cache store is down, sign-in fails rather than skipping the throttle |
 | Master-data writes during a freeze | FAIL_CLOSED | `GuardMasterDataWrites` answers 423 / a clear message |
 | Dashboards, Core metrics, Situation Room figures | CACHE_ALLOWED | Cached counts with their own time-to-live; stale figures are acceptable, wrong access is not |

@@ -36,15 +36,15 @@ measurement: every number comes from local benchmarks named below.
 | Restore test on production backups | not recorded | operations |
 | Penetration test of Core and `/api/v1` | not performed | security owner |
 | Central logging and alert routing | hosting decision | operations |
-| Users with no scope rows see every organization | convention; needs a decision before tightening | security owner |
 
 ## Security baseline (in place)
 
 Permission plus organization scope on every Core page and API; machine
 principals read-only for master data; partner scopes checked against the
 application on every call; signed webhooks; privacy-minimised public QR;
-sensitive fields encrypted and redacted in audit; `security:production-check`
-and `production:readiness` gates. Dependency audit on 24 October 2026:
-`composer audit` no advisories; `npm audit --omit=dev` 0; full `npm audit`
-1 low (esbuild development server on Windows, GHSA-g7r4-m6w7-qqqr; build-time
-only, fix needs a breaking upgrade).
+sensitive fields encrypted and redacted in audit; organization-level roles
+confined to an explicit scope (ADR 0003); audit log sealed daily with keyed
+checksums (`audit:verify`); provider card checks must name their provider;
+`security:production-check` and `production:readiness` gates. Dependency
+audit on 24 October 2026, after raising esbuild to 0.28: `composer audit` no
+advisories; `npm audit` 0 vulnerabilities.

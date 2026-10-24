@@ -7,9 +7,11 @@ use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\EntitlementStatus;
 use App\Enums\HierarchyVersionStatus;
+use App\Enums\OrganizationScopeType;
 use App\Models\ApiEndpointDefinition;
 use App\Models\ApiIdempotencyKey;
 use App\Models\ApiRequestLog;
+use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Entitlement;
@@ -24,6 +26,7 @@ use App\Models\Position;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use App\Services\ApiEndpointCatalogService;
 use App\Services\IdCards\CardQrPayloadService;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -315,6 +318,31 @@ it('refuses a machine principal on provider routes until it is bound to a provid
 
     $this->withToken($token)->postJson('/api/v1/cards/verify', ['token' => 'x|y', 'service_type' => 'cafeteria'])
         ->assertForbidden()->assertJsonPath('error_code', 'provider_binding_missing');
+});
+
+it('makes a person name the provider of a card check and keeps the service in the path (ADR 0003)', function (): void {
+    [$person, $token] = mbrPerson(['provider:access']);
+    UserOrganizationScope::query()->create([
+        'user_id' => $person->id, 'organization_id' => $this->woreda->id, 'scope_type' => OrganizationScopeType::ServiceProvider,
+        'service_provider_id' => $this->provider->id, 'service_type_id' => $this->serviceType->id, 'is_active' => true,
+    ]);
+
+    // Without a provider the provider scope was skipped and any provider's entitlement matched.
+    $this->withToken($token)->postJson('/api/v1/cards/verify', ['token' => 'x|y', 'service_type' => 'cafeteria'])
+        ->assertStatus(422)->assertJsonPath('error_code', 'provider_required');
+    $this->withToken($token)->postJson('/api/v1/services/cafeteria/authorize', ['token' => 'x|y'])
+        ->assertStatus(422)->assertJsonPath('error_code', 'provider_required');
+    expect(AuditLog::query()->where('event_type', 'provider_api_denied')->where('reason', 'No service provider named.')->count())->toBe(2);
+
+    $this->withToken($token)->postJson('/api/v1/services/cafeteria/authorize', ['token' => 'x|y', 'provider_code' => 'MBR-CAFE'])
+        ->assertOk()->assertJsonPath('data.allowed', false);
+    $this->withToken($token)->postJson('/api/v1/services/cafeteria/authorize', ['token' => 'x|y', 'provider_code' => 'MBR-OTHER-CAFE'])
+        ->assertForbidden()->assertJsonPath('error_code', 'provider_scope_denied');
+
+    // A body service that differs from the path is refused, not silently replaced.
+    ServiceType::query()->firstOrCreate(['code' => 'transport'], ['name_en' => 'Transport']);
+    $this->withToken($token)->postJson('/api/v1/services/cafeteria/authorize', ['token' => 'x|y', 'provider_code' => 'MBR-CAFE', 'service_type' => 'transport'])
+        ->assertStatus(422)->assertJsonValidationErrors('service_type');
 });
 
 it('lets a bound application act only for its own provider (F16)', function (): void {

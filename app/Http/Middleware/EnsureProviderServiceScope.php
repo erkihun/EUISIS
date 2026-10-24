@@ -67,6 +67,14 @@ readonly class EnsureProviderServiceScope
             return ApiError::response($request, 403, 'missing_provider_ability', 'Forbidden.');
         }
 
+        // A card check that names no provider would skip the provider scope
+        // below and match an entitlement of any provider: fail closed.
+        if ($references->isEmpty() && $request->routeIs('api.v1.cards.verify', 'api.v1.services.authorize')) {
+            $this->writeAuditLogAction->execute(AuditEventType::ProviderApiDenied, $principal, reason: 'No service provider named.', request: $request);
+
+            return ApiError::response($request, 422, 'provider_required', 'Name the service provider you act for (provider_code).');
+        }
+
         $serviceTypeCode = $request->route('serviceType') ?? $request->input('service_type');
         $serviceType = is_string($serviceTypeCode) && $serviceTypeCode !== ''
             ? ServiceType::query()->where('code', $serviceTypeCode)->first()

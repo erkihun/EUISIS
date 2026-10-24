@@ -491,6 +491,8 @@ class DatabaseSeeder extends Seeder
 
         if ($demoEmpIds->isNotEmpty()) {
             Employee::where('is_demo', true)->update(['current_assignment_id' => null]);
+            // Card lineage is a foreign key on server databases: unlink before deleting.
+            IdCard::whereIn('employee_id', $demoEmpIds)->update(['previous_card_id' => null]);
             IdCard::whereIn('employee_id', $demoEmpIds)->delete();
             CardRequest::whereIn('employee_id', $demoEmpIds)->delete();
             EmployeeAssignment::whereIn('employee_id', $demoEmpIds)->delete();
