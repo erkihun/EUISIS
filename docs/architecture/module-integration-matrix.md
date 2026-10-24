@@ -1,29 +1,82 @@
 # Module integration matrix
 
-How each module uses the backbone. "Reads" lists the backbone records a module
-needs; "Writes" must be "none" or a backbone command. Counts of files reading
-backbone models come from the 23 October scan in
-[backbone-refactor-migration.md](backbone-refactor-migration.md).
+How each module uses the Core (the Golden Path backbone). "Reads" lists the
+Core records a module needs; "Writes" must be "none" or a Core command.
 
-| Module | Reads from backbone | Writes to backbone | Owns | API | Events consumed | Events produced |
-| --- | --- | --- | --- | --- | --- | --- |
-| Cafeteria | employee, current card, organization | none | meal transactions, scans, menus, policies, ledgers, settlements | provider routes, offline sync, settlements | none yet (live verification per scan) | none |
-| Transport | employee, card, assignment organization | none | routes, stops, trips, vehicles, drivers, devices, boardings, invoices, settlements | `/api/v1/transport/*` | none (an assignment observer triggers eligibility re-evaluation; becomes an event in Stage 2) | none |
-| Recruitment / vacancy | position, establishment, assignment | `TransferAssignment` (internal mobility); position occupancy through the capacity service | announcements, applications, selection | none | none | `employee.transferred` (through the command) |
-| Transfer | employee, assignment, position, organization | `TransferAssignment` | applications, screening, approvals, transfer records | none | none | `employee.transferred` |
-| EPMS / performance | organization, unit, position, employee, assignment | none | cycles, agreements, KPIs, evidence, appraisals, results | none | none | none |
-| Assessment | employee, assignment, unit, position | none | cycles, forms, responses, results | none | none | none |
-| Daily work | employee, assignment, position services | none | daily logs, items, evidence, reviews | none | none | none |
-| Field work | employee, assignment, organization | none | requests, approvals, participants, locations | none | none | none |
-| Public feedback | organization, unit, employee (subject) | none | feedback, suggestions, complaints, routing, responses | public site | none | none |
-| Grievance | employee, assignment, organization, unit | none | cases, stages, hearings, decisions, letters | none | none | none |
-| Discipline / appeal | employee, assignment | none | cases, charges, decisions, appeals | none | none | none |
-| Communication | employee, assignment, organization, unit | none | conversations, channels, announcements | none | none (an assignment observer syncs memberships; becomes an event in Stage 2) | none |
-| Organization design | organization, unit, position, profiles | job description stamped on current assignments (moves under the backbone in Stage 2) | studies, proposals, manpower plans, imports | none | none | none |
-| Situation Room | organizations, hierarchy, aggregates | none | actions and their events | none | none | none |
-| Intelligence / assistant | aggregates through safe query services | none; may never change master data | alerts, forecasts, knowledge, runs | none | none | none |
-| Provider portals | card verification, eligibility | none | provider users, terminals | `/api/v1/*` provider routes | none | none |
-| External systems | organizations, units, positions, employee basic identity, assignment, card status, eligibility | none | their own data | `/api/v1` with scopes and organization bounds | change feed, webhooks | none |
+Status on 24 October 2026 (Core migration Stage 3). The direct-import counts
+are files that still `use` a Golden Path model; they are frozen by
+`tests/Unit/ServiceModuleCoreDependencyTest.php` and may only go down. No
+service module writes a Golden Path record at runtime: that is refused by
+`tests/Unit/BackboneBoundaryTest.php` (only the development load-test seeder
+is allowed).
 
-Backbone events available to every consumer are listed in the
+## Migration status
+
+| Status | Meaning |
+| --- | --- |
+| DIRECT_CORE_ACCESS | reads Core models directly (allowed inside one deployment, frozen by the ratchet) |
+| ADAPTER_INTRODUCED | a module adapter over Core contracts exists; some reads still direct |
+| CONTRACT_MIGRATED | the module's Core reads go through contracts |
+| EVENT_SYNCED | the module reacts to Core events instead of observing Core models |
+| MIGRATION_COMPLETE | no direct import left, writes only through Core commands |
+
+| Module | Files importing Core models | Status | Contracts / adapters used | Core events consumed | Writes to Core |
+| --- | --- | --- | --- | --- | --- |
+| Cafeteria | 23 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` (every scan); `CafeteriaEmployeeContext` over `AssignmentContextReader` (exclusion audit context) | none (live verification per scan) | none |
+| Transport | 13 | ADAPTER_INTRODUCED, EVENT_SYNCED | `CredentialLookup`, `ServiceEligibility` (boarding), `EmployeeDirectory` (manual lookup) | `AssignmentChanged`, `EmployeeChanged` (eligibility re-evaluation) | none |
+| Entitlements / service transactions | (in cafeteria and transport counts) | CONTRACT_MIGRATED for the service gate | `ServiceEligibility`, `CredentialLookup` | none | none |
+| Communication | 12 | EVENT_SYNCED | none | `AssignmentChanged`, `EmployeeChanged` (membership sync) | none |
+| Transfer | 15 | DIRECT_CORE_ACCESS (reads); writes through Core | `TransferAssignment` command | none | `TransferAssignment` only |
+| Recruitment / vacancy | 4 | DIRECT_CORE_ACCESS (reads); writes through Core | `TransferAssignment`, `PositionCapacityService` | none | `TransferAssignment` only |
+| EPMS / performance | 16 | DIRECT_CORE_ACCESS | none | none | none |
+| Assessment | 13 | DIRECT_CORE_ACCESS | none | none | none |
+| Daily work | 12 | DIRECT_CORE_ACCESS | none | none | none |
+| Field work | 8 | DIRECT_CORE_ACCESS | none | none | none |
+| Public / service feedback | 18 | DIRECT_CORE_ACCESS; registers its feedback-link adapter into Core | implements `EmployeeFeedbackLinks` | none | none |
+| Grievance | 15 | DIRECT_CORE_ACCESS | none | none | none |
+| Discipline / appeal | 3 | DIRECT_CORE_ACCESS | none | none | none |
+| Organization design | 37 | DIRECT_CORE_ACCESS; job-description stamp through Core | `StampJobDescriptionOnCurrentAssignments` | none | that command only |
+| Situation Room | 12 | DIRECT_CORE_ACCESS (read-only aggregates) | none | none | none |
+| Intelligence / assistant | 2 | DIRECT_CORE_ACCESS (read-only, safe query services) | none | none | none; may never change master data |
+| Provider portals / NFC | 7 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` | none | none |
+| External systems | n/a | API only | `/api/v1` with scopes and organization bounds | change feed, webhooks | none (ADR 0002) |
+
+Total: 210 files in service modules import a Golden Path model (24 October).
+
+## What each module owns
+
+| Module | Owns |
+| --- | --- |
+| Cafeteria | meal transactions, scans, menus, policies, ledgers, settlements, exclusions |
+| Transport | routes, stops, trips, vehicles, drivers, devices, boardings, invoices, settlements |
+| Recruitment / vacancy | announcements, applications, selection |
+| Transfer | applications, screening, approvals, transfer records |
+| EPMS / performance | cycles, agreements, KPIs, evidence, appraisals, results |
+| Assessment | cycles, forms, responses, results |
+| Daily work | daily logs, items, evidence, reviews |
+| Field work | requests, approvals, participants, locations |
+| Public feedback | feedback, suggestions, complaints, routing, responses |
+| Grievance | cases, stages, hearings, decisions, letters |
+| Discipline / appeal | cases, charges, decisions, appeals |
+| Communication | conversations, channels, announcements |
+| Organization design | studies, proposals, manpower plans, imports |
+| Situation Room | actions and their events |
+| Intelligence / assistant | alerts, forecasts, knowledge, runs |
+| Provider portals | provider users, terminals |
+
+None of them keeps an employee, organization, position, assignment or card
+identity table of its own; `*_snapshot` columns are evidence, not masters.
+
+## Next migrations, lowest risk first
+
+1. Cafeteria: the remaining employee lookups in exclusions and ledgers through `EmployeeDirectory`.
+2. Provider portals: scan lookups through `CredentialVerification`.
+3. EPMS and assessment: current placement through `AssignmentContextReader`, organization subtree through `OrganizationHierarchy`.
+4. Daily and field work: the same two contracts.
+5. Feedback, grievance, discipline: employee references through `EmployeeDirectory`.
+6. Transfer and recruitment last: their writes already go through `TransferAssignment`.
+
+Each step lowers the module's number in the ratchet in the same change.
+
+Core events available to every consumer are listed in the
 [event catalog](../integration/event-catalog.md).
