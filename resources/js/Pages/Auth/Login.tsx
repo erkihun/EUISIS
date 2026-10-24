@@ -360,7 +360,8 @@ export default function Login({
                             <IdentityOrbit
                                 steps={steps}
                                 services={services}
-                                brandName={systemName}
+                                // The sample ID card carries the product name, never the workspace's.
+                                brandName={brandName}
                                 logo={cardLogo}
                                 cardTitle={t('auth.stage.cardTitle')}
                                 verifiedLabel={t('auth.stage.cardVerified')}
