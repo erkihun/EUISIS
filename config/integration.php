@@ -21,6 +21,9 @@ return [
         'publish_batch' => (int) env('INTEGRATION_PUBLISH_BATCH', 500),
         // Upper bound on a serialized event payload (bytes).
         'max_payload_bytes' => (int) env('INTEGRATION_MAX_PAYLOAD_BYTES', 16384),
+        // Event types not recorded at all, comma separated (e.g. "position.occupied,position.vacated").
+        // The rollback switch for an event type without a deployment.
+        'disabled_types' => array_values(array_filter(array_map('trim', explode(',', (string) env('INTEGRATION_DISABLED_EVENT_TYPES', ''))))),
     ],
 
     'change_feed' => [

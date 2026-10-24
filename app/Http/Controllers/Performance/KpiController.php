@@ -139,11 +139,11 @@ class KpiController extends PerformanceController
 
         return match ($field) {
             'allow_overachievement' => (bool) $value,
-            'achievement_cap', 'target_tolerance', 'zero_score_deviation' => ($decimal = Dec::of($value)) === null ? null : (string) $decimal->stripTrailingZeros(),
+            'achievement_cap', 'target_tolerance', 'zero_score_deviation' => ($decimal = Dec::of($value)) === null ? null : (string) $decimal->strippedOfTrailingZeros(),
             // Labels may be reworded; keys, percentages and verification are the rule.
             'milestones' => array_map(fn ($m): array => [
                 (string) ($m['key'] ?? ''),
-                ($percent = Dec::of($m['percent'] ?? null)) === null ? null : (string) $percent->stripTrailingZeros(),
+                ($percent = Dec::of($m['percent'] ?? null)) === null ? null : (string) $percent->strippedOfTrailingZeros(),
                 (bool) ($m['requires_verification'] ?? false),
             ], array_values((array) ($value ?? []))),
             default => $value === '' ? null : $value,

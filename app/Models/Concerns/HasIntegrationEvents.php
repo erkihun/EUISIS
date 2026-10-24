@@ -25,7 +25,9 @@ trait HasIntegrationEvents
 {
     public static function bootHasIntegrationEvents(): void
     {
-        static::observe(MasterDataEventProjector::class);
+        // Registered once booting is over: Laravel 13 refuses to instantiate a
+        // model (as observe() does) while it is still booting.
+        static::whenBooted(fn () => static::observe(MasterDataEventProjector::class));
     }
 
     public function save(array $options = []): bool

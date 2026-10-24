@@ -150,6 +150,9 @@ class SeedTransportLoadTest extends Command
                 $provider->forceDelete();
             }
             $employeeIds = Employee::query()->where('employee_number', 'like', 'LOAD-%')->pluck('id');
+            // Pointer and lineage are foreign keys on server databases: unlink before deleting.
+            DB::table('employees')->whereIn('id', $employeeIds)->update(['current_assignment_id' => null]);
+            DB::table('id_cards')->whereIn('employee_id', $employeeIds)->update(['previous_card_id' => null]);
             DB::table('id_cards')->whereIn('employee_id', $employeeIds)->delete();
             DB::table('employee_assignments')->whereIn('employee_id', $employeeIds)->delete();
             Employee::query()->whereIn('id', $employeeIds)->delete();

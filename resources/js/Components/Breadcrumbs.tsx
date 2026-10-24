@@ -60,10 +60,15 @@ export default function Breadcrumbs({ className = '' }: { className?: string }) 
     const employeePortal = props.is_employee_user === true;
     // Roles without dashboard access have My Portal as home, as in the sidebar.
     const portalHome = employeePortal || (props as { auth?: { canViewDashboard?: boolean } }).auth?.canViewDashboard === false;
-    const home: Crumb = portalHome
-        ? { label: t('nav.myPortal'), href: route('employee.portal') }
-        : { label: t('nav.dashboard'), href: route('dashboard') };
+    // In the Core workspace the trail starts at the Core dashboard, which is itself a home page.
+    const inCore = (props as { workspace?: { name?: string } | null }).workspace?.name === 'core';
+    const home: Crumb = inCore
+        ? { label: t('core.nav.dashboard'), href: route('core.dashboard') }
+        : portalHome
+            ? { label: t('nav.myPortal'), href: route('employee.portal') }
+            : { label: t('nav.dashboard'), href: route('dashboard') };
     const current = String(route().current() ?? '');
+    if (current === 'core.dashboard') return null;
     const lookup = (key: string, fallback: string) => (t(key) === key ? fallback : t(key));
     const humanize = (segment: string) => segment.replace(/[-_]/g, ' ').replace(/^\w/, (letter) => letter.toUpperCase());
 

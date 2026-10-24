@@ -7,6 +7,7 @@ namespace App\Services\Vacancy;
 use App\Enums\VacancyAnnouncementStatus;
 use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
+use App\Services\Positions\PositionCapacityService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 

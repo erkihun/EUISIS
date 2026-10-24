@@ -40,6 +40,8 @@ return [
     'alpha_dash' => 'የ:attribute መስክ ፊደላት፣ ቁጥሮች፣ ሰረዞች (-) እና የታች ሰረዞች (_) ብቻ መያዝ አለበት።',
     'alpha_num' => 'የ:attribute መስክ ፊደላትና ቁጥሮች ብቻ መያዝ አለበት።',
     'array' => 'የ:attribute መስክ ዝርዝር መሆን አለበት።',
+    'array_keys' => 'የ:attribute መስክ የሚከተሉትን ቁልፎች ብቻ መያዝ አለበት፦ :values።',
+    'base64' => 'የ:attribute መስክ ትክክለኛ Base64 ጽሑፍ መሆን አለበት።',
     'before' => 'የ:attribute መስክ ከ:date በፊት የሆነ ቀን መሆን አለበት።',
     'before_or_equal' => 'የ:attribute መስክ ከ:date በፊት ወይም እኩል የሆነ ቀን መሆን አለበት።',
     'between' => [

@@ -8,7 +8,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { FilterField, FilterPanel, Input, ListPagination, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type AuditLog = {
     id: string;
     event_type: string;
@@ -85,7 +85,7 @@ export default function AuditLogsIndex({
 }: {
     auditLogs: AuditLog[];
     meta?: Meta;
-    filters?: { search?: string; event_type?: string; from?: string; to?: string };
+    filters?: { search?: string; event_type?: string; from?: string; to?: string; request_id?: string; principal?: string };
 }) {
     const { t } = useLocale();
     const filterForm = useForm({
@@ -93,6 +93,8 @@ export default function AuditLogsIndex({
         event_type: filters?.event_type ?? '',
         from: filters?.from ?? '',
         to: filters?.to ?? '',
+        request_id: filters?.request_id ?? '',
+        principal: filters?.principal ?? '',
     });
 
     const dateCls = cx(inputClassName, 'w-full');
@@ -138,6 +140,16 @@ export default function AuditLogsIndex({
                     </FilterField>
                     <FilterField label={t('common.effectiveTo')} htmlFor="audit-to">
                         <LocalizedDatePicker id="audit-to" className={dateCls} value={filterForm.data.to} onChange={(iso) => filterForm.setData('to', iso)} />
+                    </FilterField>
+                    <FilterField label={t('auditLogs.principal')} htmlFor="audit-principal">
+                        <select id="audit-principal" className={selectClassName} value={filterForm.data.principal} onChange={(e) => filterForm.setData('principal', e.target.value)}>
+                            <option value="">{t('auditLogs.principalAny')}</option>
+                            <option value="person">{t('auditLogs.principalPerson')}</option>
+                            <option value="system">{t('auditLogs.principalSystem')}</option>
+                        </select>
+                    </FilterField>
+                    <FilterField label={t('auditLogs.requestId')} htmlFor="audit-request-id">
+                        <Input id="audit-request-id" placeholder={t('auditLogs.requestIdPlaceholder')} value={filterForm.data.request_id} onChange={(e) => filterForm.setData('request_id', e.target.value.trim())} />
                     </FilterField>
                 </FilterPanel>
 

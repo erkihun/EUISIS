@@ -51,12 +51,16 @@ final class NfcAccess
     }
 
     /**
-     * Organization ids this user may see, or an empty collection for
-     * unrestricted users. Callers MUST treat empty as "no filter".
+     * Organization ids this user may see, or null for an unrestricted user.
+     * An empty collection means "no organization", never "every organization"
+     * (a scoped user whose scope rows expired, or an organization-level role
+     * without a scope record, ADR 0003).
      */
-    public function organizationScope(User $user): Collection
+    public function organizationScope(User $user): ?Collection
     {
-        return app(OrganizationScopeService::class)->accessibleOrganizationIds($user);
+        $scope = app(OrganizationScopeService::class);
+
+        return $scope->isUnrestricted($user) ? null : $scope->accessibleOrganizationIds($user);
     }
 
     public function cardPayload(User $user, IdCard $card): array

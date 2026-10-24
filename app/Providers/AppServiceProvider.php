@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Backbone\Events\AssignmentChanged;
+use App\Backbone\Events\EmployeeChanged;
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
 use App\Http\Middleware\AuthenticateTransportDevice;
@@ -55,9 +57,9 @@ use App\Models\OrganizationEdge;
 use App\Models\OrganizationFunction;
 use App\Models\OrganizationPower;
 use App\Models\OrganizationType;
-use App\Models\OrganizationUnit;
+use App\Models\OrganizationUnit; // alias to avoid clash with Illuminate\Support\ServiceProvider
 use App\Models\OrganizationUnitType;
-use App\Models\Permission; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\Permission;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\PositionProfile;
@@ -82,8 +84,6 @@ use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
 use App\Models\WorkforcePlanningMethodology;
 use App\Observers\EmployeeAssignmentCardImpactObserver;
-use App\Observers\EmployeeAssignmentCommunicationObserver;
-use App\Observers\TransportEligibilityObserver;
 use App\Policies\AssessmentFormPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CafeteriaDayRulePolicy;
@@ -167,6 +167,7 @@ use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
 use App\Services\Communication\AttachmentScanner;
+use App\Services\Communication\CommunicationMembershipSync;
 use App\Services\Communication\PendingAttachmentScanner;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
 use App\Services\Integration\Events\IntegrationEventContext;
@@ -177,6 +178,7 @@ use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\SituationRoom\SituationMemo;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
+use App\Services\Transport\TransportEligibilitySync;
 use App\Support\Mail\RuntimeMailSettings;
 use App\Support\RichText\RichTextSanitizer;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -211,7 +213,7 @@ class AppServiceProvider extends ServiceProvider
         // One instance per request: validation, rendering and storage read the same questionnaire version.
         $this->app->scoped(PublicFeedbackQuestionnaire::class);
         // One instance per request / job: holds the employees whose membership sync waits for the commit.
-        $this->app->scoped(EmployeeAssignmentCommunicationObserver::class);
+        $this->app->scoped(CommunicationMembershipSync::class);
 
         $this->app->singleton(RuntimeMailSettings::class);
         $this->app->singleton(RichTextSanitizer::class, fn (): RichTextSanitizer => new RichTextSanitizer((array) config('richtext')));
@@ -253,15 +255,16 @@ class AppServiceProvider extends ServiceProvider
         EmployeeAssignment::observe(EmployeeAssignmentCardImpactObserver::class);
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);
-        // Automatic Communication channel membership follows assignments and account status.
-        EmployeeAssignment::observe(EmployeeAssignmentCommunicationObserver::class);
-        Employee::saved(fn (Employee $employee) => app(EmployeeAssignmentCommunicationObserver::class)->employeeSaved($employee));
+        // Service modules follow the backbone through its domain events (master-backbone.md):
+        // Communication channel membership follows assignments and account status,
         // Transport route assignments follow placement and status (docs/transport/eligibility.md).
-        EmployeeAssignment::observe(TransportEligibilityObserver::class);
-        Employee::saved(fn (Employee $employee) => app(TransportEligibilityObserver::class)->employeeSaved($employee));
+        Event::listen(AssignmentChanged::class, [CommunicationMembershipSync::class, 'onAssignmentChanged']);
+        Event::listen(EmployeeChanged::class, [CommunicationMembershipSync::class, 'onEmployeeChanged']);
+        Event::listen(AssignmentChanged::class, [TransportEligibilitySync::class, 'onAssignmentChanged']);
+        Event::listen(EmployeeChanged::class, [TransportEligibilitySync::class, 'onEmployeeChanged']);
         User::saved(function (User $user): void {
             if ($user->employee_id !== null && $user->wasChanged('status')) {
-                app(EmployeeAssignmentCommunicationObserver::class)->queue($user->employee_id);
+                app(CommunicationMembershipSync::class)->queue($user->employee_id);
             }
         });
         $this->configureViteAssetMode();

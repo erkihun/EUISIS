@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\ServiceTransactions\RecordServiceTransactionAction;
+use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NfcVerificationResource;
 use App\Models\CafeteriaProvider;
@@ -14,7 +15,6 @@ use App\Services\CredentialVerificationService;
 use App\Services\Nfc\NfcAudit;
 use App\Services\Nfc\NfcPayloadParser;
 use App\Services\Nfc\NfcVerificationService;
-use App\Services\Verification\VerifyCardForServiceAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

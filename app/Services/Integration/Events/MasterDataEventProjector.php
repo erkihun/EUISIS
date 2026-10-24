@@ -10,6 +10,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Models\PositionOccupancy;
 use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -47,6 +48,7 @@ final class MasterDataEventProjector
             ], $this->employeeOrganization($model)),
             $model instanceof EmployeeAssignment => $this->recorder->record('assignment.created', $model->getKey(), $this->assignmentData($model), $this->id($model->organization_id), effectiveAt: $this->date($model->effective_from)),
             $model instanceof IdCard => $this->cardCreated($model),
+            $model instanceof PositionOccupancy => $this->occupancyCreated($model),
             default => null,
         };
     }
@@ -60,6 +62,7 @@ final class MasterDataEventProjector
             $model instanceof Employee => $this->employeeUpdated($model),
             $model instanceof EmployeeAssignment => $this->assignmentUpdated($model),
             $model instanceof IdCard => $this->cardUpdated($model),
+            $model instanceof PositionOccupancy => $this->occupancyUpdated($model),
             default => null,
         };
     }
@@ -198,8 +201,10 @@ final class MasterDataEventProjector
     private function assignmentUpdated(EmployeeAssignment $assignment): void
     {
         $organizationId = $this->id($assignment->organization_id);
-        $closedNow = ($assignment->wasChanged('is_current') && ! $assignment->is_current && (bool) $assignment->getOriginal('is_current'))
-            || ($assignment->wasChanged('assignment_status') && $this->scalar($assignment->assignment_status) === 'closed');
+        // An assignment already closed (employment ended) that stops being the latest record is not closed again.
+        $wasClosed = $this->scalar($assignment->getOriginal('assignment_status')) === 'closed';
+        $closedNow = ! $wasClosed && (($assignment->wasChanged('is_current') && ! $assignment->is_current && (bool) $assignment->getOriginal('is_current'))
+            || ($assignment->wasChanged('assignment_status') && $this->scalar($assignment->assignment_status) === 'closed'));
 
         if ($closedNow) {
             $this->recorder->record('assignment.closed', $assignment->getKey(), [
@@ -254,12 +259,28 @@ final class MasterDataEventProjector
         }
 
         if ($card->wasChanged('status')) {
-            if (in_array($status, ['issued', 'active'], true) && ! in_array($this->scalar($card->getOriginal('status')), ['issued', 'active'], true)) {
+            $previousStatus = $this->scalar($card->getOriginal('status'));
+            if (in_array($status, ['issued', 'active'], true) && ! in_array($previousStatus, ['issued', 'active'], true)) {
                 $this->recorder->record('id_card.issued', $card->getKey(), $this->cardIssuedData($card), $organizationId);
             } else {
                 $this->recorder->record('id_card.status_changed', $card->getKey(), [
-                    ...$base, 'previous_status' => $this->scalar($card->getOriginal('status')), 'state' => $status,
+                    ...$base, 'previous_status' => $previousStatus, 'state' => $status,
                 ], $organizationId);
+            }
+
+            // Stage 6: the explicit event for the states partners act on, beside the generic one above.
+            $explicit = match ($status) {
+                'active' => 'id_card.activated',
+                'suspended' => 'id_card.suspended',
+                'expired' => 'id_card.expired',
+                default => null,
+            };
+            if ($explicit !== null) {
+                $data = [...$base, 'previous_status' => $previousStatus, 'state' => $status];
+                if ($explicit === 'id_card.activated') {
+                    $data['expires_at'] = $this->date($card->expires_at);
+                }
+                $this->recorder->record($explicit, $card->getKey(), $data, $organizationId);
             }
 
             return;
@@ -269,6 +290,37 @@ final class MasterDataEventProjector
             // Same card record printed again: the card_uuid — the identity — does not change.
             $this->recorder->record('id_card.reprinted', $card->getKey(), [...$base, 'printed_at' => $card->printed_at->toIso8601String()], $organizationId);
         }
+    }
+
+    // ── Position occupancy ─────────────────────────────────────────────
+
+    private function occupancyCreated(PositionOccupancy $occupancy): void
+    {
+        if ($this->scalar($occupancy->status) === 'active') {
+            $this->occupancyEvent('position.occupied', $occupancy, $this->date($occupancy->occupied_from), 'occupied');
+        }
+    }
+
+    private function occupancyUpdated(PositionOccupancy $occupancy): void
+    {
+        if ($occupancy->wasChanged('status') && $this->scalar($occupancy->status) === 'released' && $this->scalar($occupancy->getOriginal('status')) === 'active') {
+            $this->occupancyEvent('position.vacated', $occupancy, $this->date($occupancy->occupied_until), 'vacated');
+        }
+    }
+
+    /** Never names the employee: positions.read partners see that a seat changed, not who holds it. */
+    private function occupancyEvent(string $type, PositionOccupancy $occupancy, ?string $effectiveDate, string $state): void
+    {
+        $positionId = $this->id($occupancy->position_id);
+        if ($positionId === null) {
+            return;
+        }
+
+        $organizationId = $this->id($occupancy->organization_id);
+        $this->recorder->record($type, $positionId, [
+            'position_uuid' => $positionId, 'organization_uuid' => $organizationId, 'occupancy_uuid' => (string) $occupancy->getKey(),
+            'effective_date' => $effectiveDate, 'state' => $state,
+        ], $organizationId, effectiveAt: $effectiveDate);
     }
 
     // ── Payload builders (whitelists) ──────────────────────────────────

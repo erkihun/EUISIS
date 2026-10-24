@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Api\V1\AssignmentApiController;
+use App\Http\Controllers\Api\V1\CardStatusApiController;
 use App\Http\Controllers\Api\V1\CardVerificationController;
 use App\Http\Controllers\Api\V1\ChangeFeedController;
 use App\Http\Controllers\Api\V1\EmployeeDirectoryApiController;
@@ -176,6 +178,25 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'api.external'])->prefix('v1'
     Route::get('/employees/{employee}/assignment', [EmployeeDirectoryApiController::class, 'assignment'])
         ->middleware('api.scope:employee_assignments.read')
         ->name('api.v1.employees.assignment');
+
+    // Master backbone, Stage 4 (docs/architecture/integration-api.md): additive
+    // reads and an explicit verification record; existing paths are unchanged.
+    Route::get('/employees/{employee}/assignments', [AssignmentApiController::class, 'history'])
+        ->middleware('api.scope:employee_assignments.read')
+        ->name('api.v1.employees.assignments');
+    Route::get('/assignments', [AssignmentApiController::class, 'index'])
+        ->middleware('api.scope:employee_assignments.read')
+        ->name('api.v1.assignments.index');
+    Route::get('/cards/{cardUuid}', [CardStatusApiController::class, 'show'])
+        ->middleware('api.scope:id_cards.verify')
+        ->whereUuid('cardUuid')
+        ->name('api.v1.cards.show');
+    Route::post('/verifications', [CardStatusApiController::class, 'store'])
+        ->middleware(['api.scope:id_cards.verify', 'api.idempotency'])
+        ->name('api.v1.verifications.store');
+    Route::get('/verifications/{verification}', [CardStatusApiController::class, 'showVerification'])
+        ->middleware('api.scope:id_cards.verify')
+        ->name('api.v1.verifications.show');
 
     /*
      * Event integration layer (docs/integration/change-feed.md). Registered

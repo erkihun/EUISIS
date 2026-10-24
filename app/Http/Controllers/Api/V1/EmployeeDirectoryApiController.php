@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Backbone\Contracts\AssignmentContextReader;
 use App\Http\Controllers\Api\V1\Concerns\FiltersOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
@@ -34,6 +35,7 @@ class EmployeeDirectoryApiController extends Controller
     public function __construct(
         private readonly OrganizationDataPresenter $presenter,
         private readonly IntegrationAccessService $access,
+        private readonly AssignmentContextReader $assignments,
     ) {}
 
     /** GET /api/v1/employees */
@@ -100,15 +102,17 @@ class EmployeeDirectoryApiController extends Controller
     public function assignment(Request $request, Employee $employee): JsonResponse
     {
         $this->access->assertHumanPermission($request, 'employee_assignments.read');
-        $employee->load([self::ASSIGNMENT_COLUMNS]);
-        $this->access->assertEmployee($request, $employee);
 
-        $assignment = $employee->currentAssignment;
+        // Read through the backbone contract (Core foundation Stage 1, first migrated read).
+        $assignment = $this->assignments->currentFor((string) $employee->getKey());
+
+        // Outside the caller's bound an employee is a 404 whether or not they have a placement.
+        $this->access->assertOrganization($request, $assignment?->organizationUuid);
 
         if ($assignment === null) {
             return ApiError::response($request, 404, 'assignment_not_found', 'Not Found.');
         }
 
-        return response()->json(['data' => $this->presenter->assignment($assignment)]);
+        return response()->json(['data' => $this->presenter->assignmentContext($assignment)]);
     }
 }

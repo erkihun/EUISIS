@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Audit;
 
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use Illuminate\Support\Facades\DB;
 
 /**

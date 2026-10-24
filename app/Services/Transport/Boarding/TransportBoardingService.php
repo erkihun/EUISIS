@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Transport\Boarding;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Backbone\Contracts\ServiceEligibility;
 use App\Enums\AuditEventType;
 use App\Enums\EmployeeStatus;
 use App\Enums\Transport\TransportExceptionType;
@@ -17,7 +18,6 @@ use App\Models\TransportRouteStop;
 use App\Models\TransportTransaction;
 use App\Models\TransportTrip;
 use App\Models\User;
-use App\Services\EmployeeServiceEligibilityService;
 use App\Services\Transport\TransportEligibilityService;
 use App\Services\Transport\TransportExceptionRecorder;
 use App\Services\Transport\TransportSettings;
@@ -52,7 +52,7 @@ final class TransportBoardingService
     public function __construct(
         private readonly CardCredentialResolver $cards,
         private readonly TransportEligibilityService $eligibility,
-        private readonly EmployeeServiceEligibilityService $serviceEligibility,
+        private readonly ServiceEligibility $serviceEligibility,
         private readonly TransportSettings $settings,
         private readonly TransportExceptionRecorder $exceptions,
         private readonly BoardingLock $lock,
@@ -151,7 +151,9 @@ final class TransportBoardingService
             }
             $employee = $card->employee;
 
-            $state = $this->serviceEligibility->check($employee, $card, 'transport', providerId: $provider->id, attemptedBy: $request->providerUser?->id ?? $request->device?->id);
+            $attemptedBy = $request->providerUser?->id ?? $request->device?->id;
+            $gate = $this->serviceEligibility->checkCard((string) $card->getKey(), 'transport', providerId: (string) $provider->id, attemptedBy: $attemptedBy === null ? null : (string) $attemptedBy);
+            $state = ['eligible' => $gate->eligible, 'reason_code' => $gate->reasonCode, 'card_status' => $gate->cardStatus];
             if (! $state['eligible']) {
                 $transaction = $this->writeRefusal($request, $nonce, $boardedAt, $employee, $card, $trip, $route, $stop, (string) $state['reason_code'], ['card_status' => $state['card_status']]);
                 if (in_array($state['reason_code'], ['id_card_revoked', 'id_card_suspended', 'id_card_lost', 'id_card_replaced', 'id_card_expired'], true)) {

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Transport\Boarding;
 
+use App\Backbone\Contracts\CredentialLookup;
+use App\Backbone\Data\CredentialFormat;
 use App\Enums\Transport\TransportVerificationMethod;
 use App\Models\IdCard;
-use App\Services\IdCards\CardQrPayloadService;
 use App\Services\Nfc\NfcCredentialService;
 
 /**
@@ -19,7 +20,7 @@ final readonly class CardCredentialResolver
     public const NFC_REFERENCE = '/\Anfc_[a-f0-9]{64}\z/';
 
     public function __construct(
-        private CardQrPayloadService $qrPayloadService,
+        private CredentialLookup $credentials,
         private NfcCredentialService $nfcCredentials,
     ) {}
 
@@ -40,12 +41,9 @@ final readonly class CardCredentialResolver
             return ['card' => $this->load($resolved['card']->public_card_uuid), 'reason' => null];
         }
 
-        $publicUuid = $this->qrPayloadService->resolvePublicUuidFromScanValue($value);
-        if ($publicUuid === null) {
-            return ['card' => null, 'reason' => 'card_not_found'];
-        }
-
-        $card = $this->load($publicUuid);
+        // Transport accepts only the printed QR (stable card URL or UUID); the backbone parses it.
+        $credential = $this->credentials->resolveScan($value, CredentialFormat::PublicReference);
+        $card = $this->load($credential?->cardUuid);
 
         return ['card' => $card, 'reason' => $card === null ? 'card_not_found' : null];
     }

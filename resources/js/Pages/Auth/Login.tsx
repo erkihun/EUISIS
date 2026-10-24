@@ -25,11 +25,17 @@ export default function Login({
     status,
     canResetPassword,
     sessionNotice,
+    entry = null,
 }: {
     status?: string;
     canResetPassword: boolean;
     /** Why the previous session ended; a code localized here. */
     sessionNotice?: 'idle_timeout' | 'password_changed' | 'page_expired' | null;
+    /**
+     * 'core' when opened at /core/login: the same sign-in, titled for the Core workspace, without the
+     * employee self-registration link (ADR 0002, decision 3). After signing in the person lands in Core.
+     */
+    entry?: 'core' | null;
 }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
@@ -47,7 +53,9 @@ export default function Login({
     >().props;
 
     // Branding pulled from system settings
-    const { brandName: systemName, officialName } = useBranding();
+    const { brandName, officialName, withBrand } = useBranding();
+    const inCore = entry === 'core';
+    const systemName = inCore ? withBrand(t('core.title')) : brandName;
     const orgName = locale === 'am'
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
@@ -115,7 +123,10 @@ export default function Login({
                                     <ApplicationLogo className="h-10 w-10 fill-primary" />
                                 )}
                             </div>
-                            <h2 className="login-rise min-w-0 truncate text-2xl font-bold tracking-tight text-(--app-foreground)" style={{ animationDelay: '200ms' }}>{systemName}</h2>
+                            <div className="min-w-0">
+                                <h2 className="login-rise min-w-0 truncate text-2xl font-bold tracking-tight text-(--app-foreground)" style={{ animationDelay: '200ms' }}>{systemName}</h2>
+                                {inCore && <p className="login-rise mt-0.5 text-sm text-(--app-muted-foreground)" style={{ animationDelay: '260ms' }}>{t('core.signInHint')}</p>}
+                            </div>
                         </div>
 
                         {sessionNotice && (
@@ -258,7 +269,7 @@ export default function Login({
                             </div>
                         </form>
 
-                        {registrationEnabled && (
+                        {registrationEnabled && !inCore && (
                             <div className="login-rise mt-6 border-t border-(--app-border) pt-6" style={{ animationDelay: '600ms' }}>
                                 <p className="mb-3 text-center text-sm text-(--app-muted-foreground)">{t('auth.noAccount')}</p>
                                 <Link
@@ -280,7 +291,7 @@ export default function Login({
 
     return (
         <div className="relative isolate flex min-h-screen flex-col overflow-hidden bg-[#070d26] text-white">
-            <Head title={t('auth.signIn')} />
+            <Head title={inCore ? systemName : t('auth.signIn')} />
 
             {/* Backdrop: slow lights and a grid that fades toward the edges. */}
             <div className="login-blob lg-glow-primary pointer-events-none absolute -left-40 -top-44 -z-10 h-136 w-136 rounded-full opacity-70" aria-hidden="true" />
@@ -349,7 +360,8 @@ export default function Login({
                             <IdentityOrbit
                                 steps={steps}
                                 services={services}
-                                brandName={systemName}
+                                // The sample ID card carries the product name, never the workspace's.
+                                brandName={brandName}
                                 logo={cardLogo}
                                 cardTitle={t('auth.stage.cardTitle')}
                                 verifiedLabel={t('auth.stage.cardVerified')}

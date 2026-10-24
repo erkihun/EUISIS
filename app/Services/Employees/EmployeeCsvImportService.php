@@ -21,7 +21,7 @@ use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;

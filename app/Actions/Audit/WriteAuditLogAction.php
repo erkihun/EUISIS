@@ -79,11 +79,25 @@ class WriteAuditLogAction
             'old_values' => $this->redact($oldValues),
             'new_values' => $this->redact($newValues),
             'reason' => $reason,
-            'request_id' => (string) Str::uuid7(),
+            'request_id' => $this->correlationId(),
             'request_ip' => $request?->ip(),
             'user_agent' => $request?->userAgent(),
             'created_at' => now(),
         ]);
+    }
+
+    /**
+     * The request's correlation id (RequestCorrelationId, also on the response
+     * header, error bodies and api_request_logs), so audit rows can be joined
+     * to the request that wrote them. The column is a uuid on PostgreSQL, so a
+     * client-sent id that is not a UUID (allowed by RequestCorrelationId) is
+     * never written: outside a request, or for such an id, a fresh id is used.
+     */
+    private function correlationId(): string
+    {
+        $id = app()->bound('correlation_id') ? (string) app('correlation_id') : '';
+
+        return Str::isUuid($id) ? $id : (string) Str::uuid7();
     }
 
     /** Strip sensitive fields from value arrays before persisting to the audit log. */

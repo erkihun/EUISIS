@@ -7,15 +7,11 @@ namespace App\Services\Organizations;
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationStatus;
 use App\Models\EmployeeAssignment;
-use App\Models\EmployeeTransfer;
 use App\Models\HierarchyVersion;
-use App\Models\InstitutionOffice;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\Provider;
-use App\Models\ServiceProvider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
@@ -35,6 +31,51 @@ use Illuminate\Support\Facades\Schema;
  */
 class OrganizationDeletionGuard
 {
+    /**
+     * Service-module tables whose rows reference an organization, registered by
+     * the owning module (ServiceModuleServiceProvider), so the guard never
+     * depends on a service module (backbone-refactor-migration.md, Stage 5).
+     *
+     * @var array<string, list<string>> table => organization id columns
+     */
+    private static array $moduleDependents = [];
+
+    /** A service module's table that references organizations through these columns. */
+    public static function registerDependent(string $table, string ...$columns): void
+    {
+        self::$moduleDependents[$table] = array_values(array_unique([...(self::$moduleDependents[$table] ?? []), ...$columns]));
+    }
+
+    /**
+     * Every table and column that blocks deleting an organization: the
+     * backbone's own and the ones service modules registered.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function dependents(): array
+    {
+        $dependents = self::CORE_DEPENDENTS;
+        foreach (self::$moduleDependents as $table => $columns) {
+            $dependents[$table] = array_values(array_unique([...($dependents[$table] ?? []), ...$columns]));
+        }
+
+        return $dependents;
+    }
+
+    /**
+     * The backbone's own references. Audit logs and organization name history
+     * are intentionally excluded: both are immutable historical records and
+     * safely retain the UUID.
+     */
+    private const CORE_DEPENDENTS = [
+        'organization_change_requests' => ['organization_id'],
+        'user_organization_scopes' => ['organization_id'],
+        'institution_offices' => ['institution_id', 'geographic_organization_id', 'structural_organization_id'],
+        'position_establishments' => ['organization_id'],
+        'position_occupancies' => ['organization_id'],
+        'organization_seals' => ['organization_id'],
+    ];
+
     /**
      * Resolve blockers for an index page with a fixed number of aggregate
      * queries instead of running the full guard once per row.
@@ -242,82 +283,25 @@ class OrganizationDeletionGuard
     }
 
     /**
-     * Rule 6: referenced by providers, transfers, or institution offices.
-     * Audit logs deliberately do not block a soft delete: they retain the
-     * organization UUID and remain the historical record of the operation.
+     * Rule 6: referenced by any other table in dependents(): providers,
+     * transfers, vacancies, cafeteria, transport, grievances, institution
+     * offices and the rest. Rows are counted whether or not they are soft
+     * deleted. Audit logs deliberately do not block a soft delete: they retain
+     * the organization UUID and remain the historical record of the operation.
      */
     private function hasOtherReferences(Organization $organization): bool
     {
-        $id = $organization->id;
-
-        if (ServiceProvider::query()->where('organization_id', $id)->exists()) {
-            return true;
-        }
-
-        if (Provider::query()->where('assigned_organization_id', $id)->exists()) {
-            return true;
-        }
-
-        if (EmployeeTransfer::query()
-            ->where('from_organization_id', $id)
-            ->orWhere('to_organization_id', $id)
-            ->exists()) {
-            return true;
-        }
-
-        if (InstitutionOffice::query()
-            ->where('institution_id', $id)
-            ->orWhere('geographic_organization_id', $id)
-            ->orWhere('structural_organization_id', $id)
-            ->exists()) {
-            return true;
-        }
-
-        return $this->otherReferencedOrganizationIds([$id])->isNotEmpty();
+        return $this->otherReferencedOrganizationIds([$organization->id])->isNotEmpty();
     }
 
     /**
-     * Operational references that make deleting an organization misleading.
-     * Audit logs and organization name history are intentionally excluded:
-     * both are immutable historical records and safely retain the UUID.
+     * Organizations among these that some dependent table still references.
      *
      * @param  list<string>  $organizationIds
      */
     private function otherReferencedOrganizationIds(array $organizationIds): Collection
     {
-        $references = [
-            'organization_change_requests' => ['organization_id'],
-            'user_organization_scopes' => ['organization_id'],
-            'service_providers' => ['organization_id'],
-            'providers' => ['assigned_organization_id'],
-            'employee_transfers' => ['from_organization_id', 'to_organization_id'],
-            'institution_offices' => ['institution_id', 'geographic_organization_id', 'structural_organization_id'],
-            'position_establishments' => ['organization_id'],
-            'position_occupancies' => ['organization_id'],
-            'vacancy_announcements' => ['organization_id'],
-            'vacancy_announcement_positions' => ['organization_id'],
-            'vacancy_applications' => ['current_organization_id'],
-            'transfer_announcements' => ['organization_id'],
-            'transfer_announcement_positions' => ['organization_id'],
-            'transfer_applications' => ['releasing_organization_id', 'receiving_organization_id'],
-            'cafeteria_providers' => ['organization_id'],
-            'cafeteria_subsidy_rules' => ['organization_id'],
-            'cafeteria_report_runs' => ['organization_id'],
-            'cafeteria_special_days' => ['organization_id'],
-            'cafeteria_provider_branches' => ['organization_id'],
-            'cafeteria_provider_users' => ['organization_id'],
-            'transport_providers' => ['assigned_organization_id'],
-            'transport_routes' => ['assigned_organization_id'],
-            'grievance_committees' => ['organization_id'],
-            'grievances' => ['organization_id'],
-            'grievance_sla_rules' => ['organization_id'],
-            'grievance_case_stages' => ['organization_id'],
-            'grievance_sla_profiles' => ['organization_id'],
-            'grievance_approval_rules' => ['organization_id'],
-            'grievance_letters' => ['organization_id'],
-            'grievance_external_authorities' => ['organization_id'],
-            'organization_seals' => ['organization_id'],
-        ];
+        $references = self::dependents();
 
         $found = collect();
 

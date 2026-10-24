@@ -24,9 +24,9 @@ enum RoundingRule: string
     public function apply(BigDecimal $fte): ?int
     {
         return match ($this) {
-            self::Ceil => $fte->toScale(0, RoundingMode::CEILING)->toInt(),
-            self::Floor => $fte->toScale(0, RoundingMode::FLOOR)->toInt(),
-            self::HalfUp => $fte->toScale(0, RoundingMode::HALF_UP)->toInt(),
+            self::Ceil => $fte->toScale(0, RoundingMode::Ceiling)->toInt(),
+            self::Floor => $fte->toScale(0, RoundingMode::Floor)->toInt(),
+            self::HalfUp => $fte->toScale(0, RoundingMode::HalfUp)->toInt(),
             self::Manual => null,
         };
     }

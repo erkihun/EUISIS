@@ -149,6 +149,7 @@ import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useBranding } from '@/hooks/useBranding';
+import type { CoreWorkspaceShared } from '@/types/core';
 
 /** A leaf nav item — renders as a clickable link. */
 type NavSubItem = {
@@ -724,6 +725,18 @@ const dashboardNav: NavItem = {
     icon: LayoutDashboard,
 };
 
+/** The Core workspace's home. Its navigation comes from the server (App\Services\Core\CoreNavigation). */
+const coreHomeNav: NavItem = { routeName: 'core.dashboard', labelKey: 'core.nav.dashboard', icon: LayoutDashboard };
+
+/** The icons the Core navigation names, by NavIcons export. */
+const CORE_ICONS: Record<string, NavGroup['icon']> = {
+    AcademicCapIcon, BoxesIcon, BranchingUpIcon, Briefcase, Building2, CardReceiveIcon, CardTransferIcon, CityIcon,
+    ClipboardClockIcon, ClipboardListIcon, ClipboardTextIcon, CodeIcon, CreditCard, DiplomaIcon, EyeScanIcon, FileCheckIcon,
+    FilePenIcon, FileSearchIcon, GitBranchIcon, GitForkIcon, HashIcon, IdCardIcon, ImportIcon, LockIcon, NetworkIcon, PaletteIcon,
+    PenIcon, PrinterIcon, QrCodeIcon, RankingIcon, RestartIcon, SettingsIcon, ShieldUserIcon, SuitcaseTagIcon, TagsIcon,
+    ToolboxIcon, UserCircleIcon, Users, UsersTwoIcon,
+};
+
 
 /** Administration is split into labeled sub-clusters so unrelated concerns stay scannable. */
 /**
@@ -755,6 +768,8 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
     {
         labelKey: 'nav.adminSystem',
         items: [
+            // The Core workspace: the master records with their own navigation (docs/architecture/core-workspace.md).
+            { routeName: 'core.dashboard', labelKey: 'core.workspaceName', icon: WidgetsIcon, permission: 'core.access' },
             { routeName: 'code-rules.index', labelKey: 'nav.codeRules', icon: HashIcon, permission: 'code-rules.viewAny' },
             { routeName: 'recycle-bin.index', labelKey: 'nav.recycleBin', icon: TrashIcon,    permission: 'recycle-bin.view' },
             // API Management lives as a tab inside System Settings, beside
@@ -878,11 +893,28 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             groups: section.groups.map((group) => ({ ...group, items: allowedItems(group.items) })).filter((group) => group.items.length > 0),
         }))
         .filter((section) => section.groups.length > 0);
-    // Employee-only accounts see My Portal; everyone else the admin structure.
-    const allGroups = isEmployeeUser
-        ? visiblePortalSections.flatMap((section) => section.groups)
-        : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
-    const homeNav = isEmployeeUser || !canViewDashboard ? portalDashboard : dashboardNav;
+    // In the Core workspace the server sends the navigation, already filtered by permission.
+    const workspace = (pageProps as { workspace?: CoreWorkspaceShared }).workspace ?? null;
+    const coreSections = workspace?.name === 'core'
+        ? workspace.nav.map((section) => ({
+            labelKey: section.label_key,
+            groups: section.groups.map((group): NavGroup => ({
+                key: group.key,
+                labelKey: group.label_key,
+                icon: CORE_ICONS[group.icon] ?? WidgetsIcon,
+                items: allowedItems(group.items.map((item) => ({ routeName: item.route, labelKey: item.label_key, icon: CORE_ICONS[item.icon] ?? WidgetsIcon }))),
+            })).filter((group) => group.items.length > 0),
+        })).filter((section) => section.groups.length > 0)
+        : null;
+    // Core shows its own navigation; employee-only accounts see My Portal; everyone else the admin structure.
+    const allGroups = coreSections
+        ? coreSections.flatMap((section) => section.groups)
+        : isEmployeeUser
+            ? visiblePortalSections.flatMap((section) => section.groups)
+            : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
+    const homeNav = coreSections ? coreHomeNav : isEmployeeUser || !canViewDashboard ? portalDashboard : dashboardNav;
+    // My Portal and Core are short enough to show every group open until the person collapses one.
+    const groupsOpenByDefault = isEmployeeUser || coreSections !== null;
     const currentRoute = String(route().current() ?? '');
     const currentItem = activeRoute([homeNav, ...allGroups.flatMap((group) => group.items)], currentRoute);
     const activeGroupKeys = allGroups.filter((group) => group.items.some((item) => item.routeName === currentItem)).map((group) => group.key);
@@ -912,7 +944,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     // Deep items in long groups can sit below the fold; keep the current page visible after each visit.
     // The active group opens in a follow-up render and hidden items cannot scroll, so this also re-runs
     // once that group is open (but not when unrelated groups are toggled).
-    const activeGroupOpen = activeGroupKeys.every((key) => openGroups[key] ?? isEmployeeUser);
+    const activeGroupOpen = activeGroupKeys.every((key) => openGroups[key] ?? groupsOpenByDefault);
     useEffect(() => {
         if (activeGroupOpen) navRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
     }, [pageUrl, collapsed, activeGroupOpen]);
@@ -1059,7 +1091,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         if (!items.length) return null;
         const Icon = group.icon;
         const selected = activeGroupKeys.includes(group.key);
-        const isOpen = Boolean(normalizedQuery || (openGroups[group.key] ?? isEmployeeUser));
+        const isOpen = Boolean(normalizedQuery || (openGroups[group.key] ?? groupsOpenByDefault));
         const panelId = instanceId + '-group-' + group.key;
         const label = t(group.labelKey);
         if (group.items.length === 1 && group.key !== 'admin') {
@@ -1129,7 +1161,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         </span>
                         {!collapsed && <div className="min-w-0">
                             <p className="whitespace-normal wrap-break-word text-[15px] font-medium leading-snug">{appName}</p>
-                            <p className="whitespace-normal wrap-break-word text-[11px] font-semibold uppercase tracking-wide text-(--sidebar-muted)">{shortName}</p>
+                            <p className="whitespace-normal wrap-break-word text-[11px] font-semibold uppercase tracking-wide text-(--sidebar-muted)">{coreSections ? t('core.workspaceName') : shortName}</p>
                             <p className="mt-1 whitespace-normal wrap-break-word text-xs leading-relaxed text-(--sidebar-muted)">{orgName}</p>
                         </div>}
                     </Link>
@@ -1169,7 +1201,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         {renderLink(homeNav)}
                     </ul>
                 )}
-                {isEmployeeUser
+                {coreSections
+                    ? coreSections.map((section) => renderSection(section.labelKey, section.groups))
+                    : isEmployeeUser
                     ? visiblePortalSections.map((section) => renderSection(section.labelKey, section.groups))
                     : sections.map((section) => {
                         const groups = section.keys.flatMap((key) => visibleGroups.filter((group) => group.key === key));
@@ -1183,13 +1217,22 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             </nav>
 
             <div className="shrink-0 border-t border-(--sidebar-border) p-2">
+                {/* Leaving Core returns to the full navigation; it needs no permission, so it always works. */}
+                {coreSections && (
+                    <Link href={route('core.exit')} method="post" as="button" onClick={onClose}
+                        aria-label={collapsed ? t('core.exit') : undefined} title={collapsed ? t('core.exit') : undefined}
+                        className={['flex min-h-10 items-center gap-3 rounded-md text-sm font-medium text-(--sidebar-fg)', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
+                        <ArrowLeftRightIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                        {!collapsed && <span>{t('core.exit')}</span>}
+                    </Link>
+                )}
                 {onToggleCollapse ? (
                     <button type="button" onClick={onToggleCollapse} aria-label={t(collapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')} title={collapsed ? t('nav.expandSidebar') : undefined}
                         className={['flex min-h-10 items-center gap-3 rounded-md text-sm text-(--sidebar-muted)', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
                         <ChevronRight className={collapsed ? 'h-4 w-4' : 'h-4 w-4 rotate-180'} aria-hidden="true" />
                         {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
                     </button>
-                ) : <p className="px-3 py-2 text-xs text-(--sidebar-muted)">{t(isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
+                ) : <p className="px-3 py-2 text-xs text-(--sidebar-muted)">{t(coreSections ? 'core.workspaceName' : isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
                 {/* Non-production environments are flagged where every page shows it, so test data is never mistaken for live. */}
                 {environmentLabel && environmentLabel.toLowerCase() !== 'production' && (collapsed
                     ? <span title={environmentLabel} aria-label={environmentLabel} className="mx-auto mb-1 mt-1 block h-2 w-2 rounded-full bg-amber-400" />

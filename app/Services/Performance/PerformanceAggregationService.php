@@ -237,7 +237,7 @@ final class PerformanceAggregationService
                     'milestone_key' => $aggregate->milestoneKey,
                 ]);
                 $reported = $reported || $achievement->achievement !== null;
-                $weighted = BigDecimal::of($achievement->scoringValue())->multipliedBy(Dec::of($target->weight))->dividedBy(100, 10, RoundingMode::HALF_UP);
+                $weighted = BigDecimal::of($achievement->scoringValue())->multipliedBy(Dec::of($target->weight))->dividedBy(100, 10, RoundingMode::HalfUp);
                 $objectiveScore = $objectiveScore->plus($weighted);
                 $targets[] = [
                     'target_id' => $target->getKey(),
@@ -255,7 +255,7 @@ final class PerformanceAggregationService
                     'health' => $this->health($achievement->achievement, $kpi->aggregation_method, $target, $asOf)->value,
                 ];
             }
-            $contribution = $objectiveScore->multipliedBy(Dec::of($objective->weight))->dividedBy(100, 10, RoundingMode::HALF_UP);
+            $contribution = $objectiveScore->multipliedBy(Dec::of($objective->weight))->dividedBy(100, 10, RoundingMode::HalfUp);
             $planScore = $planScore->plus($contribution);
             $objectives[] = [
                 'objective_id' => $objective->getKey(),
@@ -313,9 +313,10 @@ final class PerformanceAggregationService
 
         $value = BigDecimal::of($achievement);
         if ($method === KpiAggregation::Sum) {
-            $total = max(1, $start->diffInDays($end) + 1);
-            $elapsed = max(1, min($total, $start->diffInDays($asOf->min($end)) + 1));
-            $value = $value->multipliedBy($total)->dividedBy($elapsed, 4, RoundingMode::HALF_UP);
+            // Whole days: Carbon returns a float and brick/math 1.0 refuses floats.
+            $total = max(1, (int) round($start->diffInDays($end)) + 1);
+            $elapsed = max(1, min($total, (int) round($start->diffInDays($asOf->min($end))) + 1));
+            $value = $value->multipliedBy($total)->dividedBy($elapsed, 4, RoundingMode::HalfUp);
         }
 
         return match (true) {

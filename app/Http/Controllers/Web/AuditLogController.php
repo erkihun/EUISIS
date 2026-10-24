@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,6 +39,9 @@ class AuditLogController extends Controller
 
         $search = trim($request->string('search')->toString());
         $eventType = trim($request->string('event_type')->toString());
+        // Correlation id of one request, and who acted: a signed-in person or an application/system job.
+        $requestId = trim($request->string('request_id')->toString());
+        $principal = $request->string('principal')->toString();
         $from = $this->date($request->string('from')->toString());
         $to = $this->date($request->string('to')->toString());
         if ($from === null && $to === null) {
@@ -58,6 +62,9 @@ class AuditLogController extends Controller
                 });
             })
             ->when($eventType !== '', fn ($q) => $q->where('event_type', ci_like_operator(), "{$eventType}%"))
+            ->when(Str::isUuid($requestId), fn ($q) => $q->where('request_id', $requestId))
+            ->when($principal === 'person', fn ($q) => $q->whereNotNull('actor_user_id'))
+            ->when($principal === 'system', fn ($q) => $q->whereNull('actor_user_id'))
             ->when($from, fn ($q) => $q->where('created_at', '>=', $from->copy()->startOfDay()))
             ->when($to, fn ($q) => $q->where('created_at', '<=', $to->copy()->endOfDay()));
 
@@ -97,7 +104,7 @@ class AuditLogController extends Controller
                 'per_page' => $paginated->perPage(),
             ],
             'filters' => [
-                ...$request->only('search', 'event_type'),
+                ...$request->only('search', 'event_type', 'request_id', 'principal'),
                 'from' => $from?->toDateString(),
                 'to' => $to?->toDateString(),
             ],

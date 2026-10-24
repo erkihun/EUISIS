@@ -50,6 +50,7 @@ final class BackupHealthStatus
         'HISTORY_UNAVAILABLE' => 'Backup operation history is unavailable; apply the backup migration.',
         'CONTROL_UNVERIFIED' => 'A recovery control lacks current evidence.',
         'OBJECTIVES_NEED_DECISION' => 'RPO and RTO have not been approved.',
+        'OBJECTIVES_NOT_VALIDATED' => 'RPO and RTO targets are set but no restore and failover drill has proved them yet.',
         'ALERT_RECIPIENTS_NOT_CONFIGURED' => 'No backup alert recipients are configured.',
     ];
 

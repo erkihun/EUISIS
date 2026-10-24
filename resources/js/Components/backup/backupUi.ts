@@ -40,8 +40,8 @@ export type HistoryItem = {
 };
 export type RequestPermissions = { request: boolean; review: boolean; approve: boolean };
 
-const SUCCESS = ['HEALTHY', 'AVAILABLE', 'PASSED', 'NOT_REQUIRED', 'FOUND', 'SUCCEEDED', 'COMPLETED', 'READY'];
-const WARNING = ['WARNING', 'OVERDUE', 'NOT_RECORDED', 'RUNNING', 'NOT_EXECUTABLE', 'NOT_READY', 'NEEDS_DECISION'];
+const SUCCESS = ['HEALTHY', 'AVAILABLE', 'PASSED', 'NOT_REQUIRED', 'FOUND', 'SUCCEEDED', 'COMPLETED', 'READY', 'VALIDATED'];
+const WARNING = ['WARNING', 'OVERDUE', 'NOT_RECORDED', 'RUNNING', 'NOT_EXECUTABLE', 'NOT_READY', 'NEEDS_DECISION', 'TARGET_NOT_YET_VALIDATED'];
 const NEUTRAL = ['NOT_CONFIGURED', 'NOT_CHECKED', 'UNKNOWN', 'CANCELLED', 'REJECTED', 'CONFIGURED'];
 const INFO = ['REQUESTED', 'UNDER_REVIEW', 'APPROVED', 'TEST_RESTORE_RUNNING', 'TEST_RESTORE_VERIFIED', 'PRODUCTION_RESTORE_AUTHORIZED', 'RESTORING'];
 // Missing infrastructure is expected outside production: explained, not alarming (and never green).

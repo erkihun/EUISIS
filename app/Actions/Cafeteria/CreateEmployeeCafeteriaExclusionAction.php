@@ -7,14 +7,18 @@ namespace App\Actions\Cafeteria;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\CafeteriaExclusionStatus;
-use App\Models\Employee;
 use App\Models\EmployeeCafeteriaExclusion;
 use App\Models\User;
+use App\Services\Cafeteria\CafeteriaEmployeeContext;
 use Illuminate\Http\Request;
 
 readonly class CreateEmployeeCafeteriaExclusionAction
 {
-    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+    public function __construct(
+        private WriteAuditLogAction $writeAuditLogAction,
+        // The employee's organization comes from the Core placement, not from the Employee model.
+        private CafeteriaEmployeeContext $employees,
+    ) {}
 
     public function execute(array $attributes, User $actor, ?Request $request = null): EmployeeCafeteriaExclusion
     {
@@ -32,13 +36,11 @@ readonly class CreateEmployeeCafeteriaExclusionAction
             'updated_by' => $actor->id,
         ]);
 
-        $employee = Employee::query()->find($attributes['employee_id']);
-
         $this->writeAuditLogAction->execute(
             AuditEventType::EmployeeCafeteriaExclusionCreated,
             $actor,
             $exclusion,
-            $employee?->organization_id,
+            $this->employees->organizationOf((string) $attributes['employee_id']),
             newValues: [
                 'employee_id' => $exclusion->employee_id,
                 'exclusion_type' => $exclusion->exclusion_type,

@@ -41,10 +41,10 @@ trait ValidatesAssignableOrganization
 
     /**
      * Guards the `scope_type` field: an actor who carries any explicit
-     * organization-scope record is a *scoped* admin and may never grant a
-     * `citywide` scope, which would escalate the target to every organization.
-     * Only Super Admin / City Admin (by role) or a genuinely unscoped staff
-     * account (the app-wide "unrestricted default") may grant citywide.
+     * organization-scope record, or an organization-level role, is a *scoped*
+     * admin and may never grant a `citywide` scope, which would escalate the
+     * target to every organization. Only Super Admin / City Admin (by role)
+     * or an unscoped account whose roles are all global may grant citywide.
      */
     protected function assignableScopeTypeRule(): Closure
     {
@@ -66,7 +66,7 @@ trait ValidatesAssignableOrganization
 
             // Any existing scope record makes the actor explicitly scoped —
             // regardless of how many organizations it happens to resolve to.
-            if ($actor->organizationScopes()->exists()) {
+            if (! app(OrganizationScopeService::class)->isUnrestricted($actor)) {
                 $fail(__('users.organization_scope_citywide_forbidden'));
             }
         };
@@ -104,13 +104,12 @@ trait ValidatesAssignableOrganization
                 return;
             }
 
-            $accessible = app(OrganizationScopeService::class)->accessibleOrganizationIds($actor);
+            $scope = app(OrganizationScopeService::class);
 
-            // An empty set means "unrestricted" everywhere else in the app (see the
-            // `isNotEmpty()` guards in the Employee/Organization controllers), so only
-            // enforce the boundary for actors who actually carry an explicit scope.
-            // Super Admin / City Admin receive every organization id, so they pass.
-            if ($accessible->isNotEmpty() && ! $accessible->contains($value)) {
+            // Only an unrestricted actor may delegate any organization. A scoped
+            // actor whose set is empty (expired scopes, or an organization-level
+            // role without a scope record, ADR 0003) may delegate none.
+            if (! $scope->isUnrestricted($actor) && ! $scope->accessibleOrganizationIds($actor)->contains($value)) {
                 $fail(__('users.organization_scope_outside_actor_scope'));
             }
         };

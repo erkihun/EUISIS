@@ -98,10 +98,16 @@ final class BackupHealthEvaluator
                 $add(strtoupper($control).'_UNVERIFIED', 'CONTROL_UNVERIFIED', 'READINESS');
             }
         }
-        $rpo = config('backup.rpo') === 'NEEDS_DECISION' ? 'NEEDS_DECISION' : 'CONFIGURED';
-        $rto = config('backup.rto') === 'NEEDS_DECISION' ? 'NEEDS_DECISION' : 'CONFIGURED';
+        // A target set by the owner is not an achieved objective: it counts as met
+        // only once a restore and failover drill proved it (ADR 0004).
+        $validated = filled(config('backup.objectives_validated_by'));
+        $objective = fn (mixed $value): string => $value === 'NEEDS_DECISION' ? 'NEEDS_DECISION' : ($validated ? 'VALIDATED' : 'TARGET_NOT_YET_VALIDATED');
+        $rpo = $objective(config('backup.rpo'));
+        $rto = $objective(config('backup.rto'));
         if ($rpo === 'NEEDS_DECISION' || $rto === 'NEEDS_DECISION') {
             $add('RECOVERY_OBJECTIVES_NEED_DECISION', 'OBJECTIVES_NEED_DECISION', 'READINESS');
+        } elseif (! $validated) {
+            $add('RECOVERY_OBJECTIVES_NOT_VALIDATED', 'OBJECTIVES_NOT_VALIDATED', 'READINESS');
         }
         if (config('backup.alert_user_ids') === []) {
             $add('ALERT_RECIPIENTS_NOT_CONFIGURED', 'ALERT_RECIPIENTS_NOT_CONFIGURED', 'READINESS');

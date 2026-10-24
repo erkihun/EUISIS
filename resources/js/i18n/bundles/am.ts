@@ -36,6 +36,7 @@ import amHierarchyVersions from '@/i18n/am/hierarchyVersions';
 import amNavigation from '@/i18n/am/navigation';
 import amApiManagement from '@/i18n/am/apiManagement';
 import amIntegrations from '@/i18n/am/integrations';
+import amCore from '@/i18n/am/core';
 import amIdChecker from '@/i18n/am/idChecker';
 import amPublicSite from '@/i18n/am/publicSite';
 import amOrganizations from '@/i18n/am/organizations';
@@ -100,6 +101,7 @@ const tree: TranslationTree = {
     organizationDesign: amOrganizationDesign,
     apiManagement: amApiManagement,
     integrations: amIntegrations,
+    core: amCore,
     idChecker: amIdChecker,
     publicSite: amPublicSite,
     organizations: { ...(((am as { organizations?: TranslationTree }).organizations) ?? {}), ...amOrganizations },

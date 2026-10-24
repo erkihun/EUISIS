@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Backbone\Contracts\CredentialLookup;
+use App\Backbone\Contracts\ServiceEligibility;
+use App\Backbone\Data\CredentialFormat;
 use App\Models\IdCard;
-use App\Services\IdCards\CardQrPayloadService;
 use App\Services\Nfc\NfcVerificationService;
 use Illuminate\Http\Request;
 
@@ -16,11 +18,12 @@ final class CredentialVerificationService
             return app(NfcVerificationService::class)->verify($payload, $request, $purpose);
         }
         if ($type === 'qr') {
-            $uuid = app(CardQrPayloadService::class)->resolvePublicUuidFromScanValue($payload['credential'] ?? '');
-            $card = $uuid ? IdCard::with('employee')->where('public_card_uuid', $uuid)->first() : null;
-            $result = app(EmployeeServiceEligibilityService::class)->check($card?->employee, $card, $payload['service_type'] ?? 'verification');
+            $credential = app(CredentialLookup::class)->resolveScan((string) ($payload['credential'] ?? ''), CredentialFormat::PublicReference);
+            $card = $credential === null ? null : IdCard::with('employee')->find($credential->cardRecordUuid);
+            // An unknown card ('' is no card) is refused, and recorded, by the gate as before.
+            $result = app(ServiceEligibility::class)->checkCard((string) ($card?->getKey() ?? ''), (string) ($payload['service_type'] ?? 'verification'));
 
-            return ['valid' => $result['eligible'], 'eligible' => null, 'reason_code' => $result['reason_code'], 'card' => $card];
+            return ['valid' => $result->eligible, 'eligible' => null, 'reason_code' => $result->reasonCode, 'card' => $card];
         }
 
         return ['valid' => false, 'eligible' => false, 'reason_code' => 'CREDENTIAL_TYPE_UNSUPPORTED'];

@@ -130,7 +130,7 @@ final class KpiAggregationService
             return new AggregateValue(null, $method->value, 'ratio needs numerator and denominator on every actual', count($observations));
         }
 
-        $value = $percentage ? Dec::pct(BigDecimal::of($numerator), BigDecimal::of($denominator)) : Dec::div(BigDecimal::of($numerator), BigDecimal::of($denominator));
+        $value = $percentage ? Dec::pct(Dec::of($numerator), Dec::of($denominator)) : Dec::div(Dec::of($numerator), Dec::of($denominator));
 
         return new AggregateValue(Dec::str($value), $method->value, $percentage ? 'Σ numerator ÷ Σ denominator × 100' : 'Σ numerator ÷ Σ denominator', count($observations), $numerator, $denominator, null, null, $this->lastPeriod($observations));
     }

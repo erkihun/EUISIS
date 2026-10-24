@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Backbone\Contracts\CardCredentialStatus;
+use App\Backbone\Contracts\ServiceEligibility;
 use App\Enums\AuditEventType;
-use App\Enums\CardStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\IdCard;
-use App\Services\EmployeeServiceEligibilityService;
 use App\Services\Integration\EmployeePhotoLinkService;
 use App\Services\Integration\IntegrationAccessService;
 use App\Support\Api\ApiError;
@@ -39,10 +39,11 @@ use Illuminate\Support\Str;
 class IdCardVerificationApiController extends Controller
 {
     public function __construct(
-        private readonly EmployeeServiceEligibilityService $eligibilityService,
+        private readonly ServiceEligibility $eligibility,
         private readonly WriteAuditLogAction $writeAuditLogAction,
         private readonly IntegrationAccessService $access,
         private readonly EmployeePhotoLinkService $photoLinks,
+        private readonly CardCredentialStatus $credentials,
     ) {}
 
     /**
@@ -83,27 +84,14 @@ class IdCardVerificationApiController extends Controller
             return ApiError::response($request, 404, 'card_not_found', 'Card not found.', ['valid' => false, 'status' => 'not_found']);
         }
 
-        $isExpired = $card->expires_at !== null && $card->expires_at->isPast();
-        $qrRevoked = $card->qr_status !== null && $card->qr_status !== 'active';
-        $isValid = $card->status === CardStatus::Active
-            && $card->revoked_at === null
-            && ! $isExpired
-            && ! $qrRevoked
-            && (bool) $card->is_current;
-
-        $status = match (true) {
-            $card->status !== CardStatus::Active => $card->status->value,
-            $card->revoked_at !== null || $qrRevoked => CardStatus::Revoked->value,
-            $isExpired => CardStatus::Expired->value,
-            ! $card->is_current => CardStatus::Replaced->value,
-            default => CardStatus::Active->value,
-        };
+        // The backbone's single credential rule (F5).
+        $credential = $this->credentials->evaluate($card);
 
         $employee = $card->employee;
 
         return response()->json([
-            'valid' => $isValid,
-            'status' => $status,
+            'valid' => $credential->valid,
+            'status' => $credential->status,
             'card_uuid' => $card->public_card_uuid,
             'employee_uuid' => $employee?->getKey(),
             'organization_uuid' => $assignment?->organization_id,
@@ -163,15 +151,17 @@ class IdCardVerificationApiController extends Controller
             ->where('is_current', true)
             ->first();
 
-        $result = $this->eligibilityService->check(
-            $employee,
-            $card,
+        // The backbone gate on the employee's current card ('' when there is none).
+        $decision = $this->eligibility->checkCard(
+            (string) ($card?->getKey() ?? ''),
             $serviceType,
+            (string) $employee->getKey(),
             $this->access->humanActor($request),
             null,
             $request,
             attemptedBy: $this->access->callerLabel($request),
         );
+        $result = ['eligible' => $decision->eligible, 'reason_code' => $decision->reasonCode, 'message' => $decision->message, 'card_status' => $decision->cardStatus];
 
         $organizationId = $this->access->employeeOrganizationId($employee);
 

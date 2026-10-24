@@ -6,6 +6,7 @@ namespace App\Actions\Transfers;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Entitlements\RecalculateEntitlementsAction;
+use App\Backbone\Commands\TransferAssignment;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CardRequestStatus;
@@ -30,7 +31,7 @@ use App\Services\IdCards\IdCardSnapshotComparisonService;
 use App\Services\Integration\Events\TransferEvents;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\Performance\EmployeeAgreementService;
-use App\Services\Vacancy\PositionCapacityService;
+use App\Services\Positions\PositionCapacityService;
 use DomainException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,7 @@ readonly class CompleteTransferAction
         private IdCardSnapshotComparisonService $idCardSnapshotComparison,
         private JobDescriptionService $jobDescriptions,
         private TransferEvents $transferEvents,
+        private TransferAssignment $transferAssignment,
     ) {}
 
     public function execute(TransferApplication $application, User $actor): TransferApplication
@@ -87,34 +89,26 @@ readonly class CompleteTransferAction
                 }
 
                 $sourceSnapshot = $currentAssignment->toArray();
-                $currentAssignment->update([
-                    'assignment_status' => AssignmentStatus::Closed,
-                    'is_current' => false,
-                    // Intervals are inclusive: the successor starts on its effective date.
-                    'effective_to' => $effectiveDate->copy()->subDay()->toDateString(),
-                    'reason' => 'Transfer to '.($application->receivingOrganization?->name_en ?? 'receiving organization'),
-                ]);
+                // The assignment moves through the backbone command; the employee
+                // UUID, employee number and card are never written here.
+                $newAssignment = $this->transferAssignment->execute(
+                    $employee,
+                    $currentAssignment,
+                    [
+                        'organization_id' => $application->receiving_organization_id,
+                        'organization_unit_id' => $position->organization_unit_id,
+                        'position_id' => $position->id,
+                        'hierarchy_version_id' => $currentAssignment->hierarchy_version_id,
+                        // The destination's job description in force on the effective
+                        // date, so the new placement carries its own JD context rather
+                        // than inheriting the old post's (master backbone audit).
+                        'job_description_id' => $this->jobDescriptions->inForceFor($position, $effectiveDate->toDateString())?->getKey(),
+                    ],
+                    $effectiveDate,
+                    closeReason: 'Transfer to '.($application->receivingOrganization?->name_en ?? 'receiving organization'),
+                    openReason: 'Transfer from '.($application->releasingOrganization?->name_en ?? 'releasing organization'),
+                );
                 $this->capacityService->releaseOccupancyForAssignment($currentAssignment->id, 'transfer', $effectiveDate->copy()->subDay());
-
-                // The employee UUID and employee number are never written here.
-                $newAssignment = EmployeeAssignment::query()->create([
-                    'employee_id' => $employee->id,
-                    'organization_id' => $application->receiving_organization_id,
-                    'organization_unit_id' => $position->organization_unit_id,
-                    'position_id' => $position->id,
-                    'hierarchy_version_id' => $currentAssignment->hierarchy_version_id,
-                    // The destination's job description in force on the effective
-                    // date, so the new placement carries its own JD context rather
-                    // than inheriting the old post's (master backbone audit).
-                    'job_description_id' => $this->jobDescriptions->inForceFor($position, $effectiveDate->toDateString())?->getKey(),
-                    'assignment_status' => AssignmentStatus::Active,
-                    'effective_from' => $effectiveDate->toDateString(),
-                    'effective_to' => null,
-                    'is_current' => true,
-                    'reason' => 'Transfer from '.($application->releasingOrganization?->name_en ?? 'releasing organization'),
-                ]);
-
-                $this->transferEvents->movePointer($employee, fn () => $employee->update(['current_assignment_id' => $newAssignment->id]));
                 $this->capacityService->recordOccupancy($establishment, $newAssignment, $effectiveDate);
                 $this->employeeAgreements->closeForAssignmentChange($currentAssignment, $newAssignment, $actor);
 

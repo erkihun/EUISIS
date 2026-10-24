@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\OrganizationDesign;
 
+use App\Backbone\Commands\StampJobDescriptionOnCurrentAssignments;
 use App\Enums\AuditEventType;
 use App\Enums\OrganizationDesignStatus;
-use App\Models\EmployeeAssignment;
 use App\Models\JobDescription;
 use App\Models\JobDescriptionSection;
 use App\Models\Position;
@@ -51,6 +51,7 @@ class JobDescriptionService
         private readonly OrganizationDesignAudit $audit,
         private readonly PositionProfileService $profiles,
         private readonly RichTextSanitizer $richText,
+        private readonly StampJobDescriptionOnCurrentAssignments $stampAssignments,
     ) {}
 
     // ── Lifecycle ────────────────────────────────────────────────────────
@@ -183,7 +184,7 @@ class JobDescriptionService
                 $this->audit->transition($actor, $inForce, OrganizationDesignStatus::Published->value, OrganizationDesignStatus::Superseded->value);
             }
             $jd->forceFill(['status' => OrganizationDesignStatus::Published, 'published_by' => $actor->getKey(), 'published_at' => now(), 'updated_by' => $actor->getKey()])->save();
-            $stamped = EmployeeAssignment::query()->where('position_id', $jd->position_id)->where('is_current', true)->update(['job_description_id' => $jd->getKey()]);
+            $stamped = $this->stampAssignments->execute((string) $jd->position_id, (string) $jd->getKey());
             $this->audit->record(AuditEventType::JobDescriptionPublished, $actor, $jd, ['version_no' => $jd->version_no, 'assignments_stamped' => $stamped]);
             $this->audit->transition($actor, $jd, OrganizationDesignStatus::Approved->value, OrganizationDesignStatus::Published->value);
 

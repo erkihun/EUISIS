@@ -5,17 +5,24 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Employee;
+use App\Models\Integration\IntegrationEvent;
+use App\Models\Integration\WebhookDelivery;
+use App\Services\Audit\AuditLogSealer;
 use App\Services\Backup\BackupStatusService;
 use App\Services\Branding\BrandingService;
+use App\Services\Core\BackboneIntegrityChecks;
 use App\Services\IdCards\IdCardPngExporter;
+use App\Services\OrganizationScope\ScopeGapReport;
 use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
+use App\Support\Retention\RetentionMatrix;
 use App\Support\Security\NationalIdHash;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 /**
@@ -106,6 +113,10 @@ class ProductionReadiness extends Command
         $usesRedis = collect([config('cache.default'), config('queue.default'), config('session.driver')])->contains('redis');
         $this->check('redis extension (phpredis)', ! $usesRedis || config('database.redis.client') !== 'phpredis' || extension_loaded('redis'), $production, 'Cache, queue or session use Redis through phpredis.');
         $this->check('imagick with SVG support (card PNG export)', app(IdCardPngExporter::class)->isAvailable(), false, 'Without Imagick and its SVG coder (librsvg) PNG card export is refused; SVG and PDF still work.');
+        $node = $this->nodeVersion();
+        $this->check('G3 Node.js for the asset build is a supported LTS (24, or 22.12+)', $node !== null && version_compare($node, '22.12.0', '>='), false, $node === null
+            ? 'node is not on this user\'s PATH: build the assets where Node 24 LTS (or 22 LTS) runs; .nvmrc names the version.'
+            : "Found Node {$node}. Node 20 is end of life and Vite needs 22.12 or later; use Node 24 LTS (22 LTS as the fallback).");
 
         $this->section('Branding (docs/branding.md)');
         try {
@@ -172,6 +183,53 @@ class ProductionReadiness extends Command
         } catch (Throwable $e) {
             $this->check('Public feedback checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
         }
+
+        $this->section('Core platform (docs/architecture/core-authority.md)');
+        try {
+            $findings = array_filter(app(BackboneIntegrityChecks::class)->counts());
+            $this->check('Golden Path integrity', $findings === [], $production, 'backbone:audit-integrity reports: '.implode('; ', array_map(fn (string $key, int $count): string => BackboneIntegrityChecks::LABELS[$key].' ('.$count.')', array_keys($findings), $findings)));
+            $this->check('Master-data writes are open', config('core.master_data_writes') !== 'frozen', $production, 'CORE_MASTER_DATA_WRITES=frozen refuses every organization, position, employee and card change; open it once the cutover or restore is done.');
+            if (Schema::hasTable('integration_events')) {
+                $stuck = IntegrationEvent::query()->where('status', IntegrationEvent::STATUS_PENDING)->where('created_at', '<', now()->subMinutes(15))->count();
+                $this->check('Integration outbox is draining', $stuck === 0, false, $stuck.' event(s) waiting longer than 15 minutes: check the scheduler runs integrations:publish.');
+                $dead = WebhookDelivery::query()->where('status', WebhookDelivery::STATUS_DEAD)->count();
+                $this->check('No abandoned webhook deliveries', $dead === 0, false, $dead.' delivery(ies) gave up after every retry: review them in Core › Integration Center and replay once the receiver is fixed.');
+            }
+        } catch (Throwable $e) {
+            $this->check('Core platform checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
+
+        $this->section('Access and audit integrity');
+        try {
+            $this->check('Organization-level roles need an explicit scope', (bool) config('security.organization_scope.require_explicit_scope'), $production, 'ORGANIZATION_SCOPE_REQUIRE_EXPLICIT=false: an account with an organization-level role and no scope record sees every organization.');
+            $gaps = count(app(ScopeGapReport::class)->rows());
+            $this->check('Every organization-level account has an explicit scope', $gaps === 0, false, $gaps.' account(s) without a scope record: run php artisan access:scope-gaps and give each a scope or a global role.');
+
+            $sealer = app(AuditLogSealer::class);
+            if (! $sealer->available()) {
+                $this->check('Audit log seals present', false, $production, 'The audit_log_seals table is missing: run php artisan migrate.');
+            } else {
+                $last = $sealer->lastSealedDay();
+                $this->check('Audit log sealed through yesterday', $last !== null && $last >= now()->subDay()->toDateString(), false, 'Last sealed day: '.($last ?? 'none').'. The scheduler runs audit:seal daily; run it once by hand after deployment.');
+                $altered = collect($sealer->verify(now()->subDays(7)->toDateString()))->reject(fn (array $day): bool => $day['status'] === 'ok')->pluck('day')->all();
+                $this->check('Audit log seals of the last 7 days verify', $altered === [], $production, 'Sealed days that no longer verify: '.implode(', ', $altered).'. Treat as a security incident; run php artisan audit:verify.');
+            }
+        } catch (Throwable $e) {
+            $this->check('Access and audit checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
+
+        // Evidence produced by people, recorded as references (config/golive.php, ADR 0004).
+        $this->section('Go-live gates (docs/go-live/go-live-gates.md)');
+        $closedP0P1 = fn (mixed $count): bool => $count !== null && $count !== '' && (string) $count === '0';
+        // G1 also needs "Backup and recovery ready" in the Operations section below.
+        $this->check('G1 Database failover drill recorded', filled(config('golive.failover_drill')), $production, 'GOLIVE_FAILOVER_DRILL is empty: rehearse failover to the standby database (docs/runbooks/database-failover.md).');
+        $this->check('G2 Restore drill met the recovery targets', filled(config('backup.objectives_validated_by')), $production, 'BACKUP_OBJECTIVES_VALIDATED_BY is empty: RPO 15 min / RTO 1 h / 4 h are targets (TARGET_NOT_YET_VALIDATED), not yet proven by a restore drill.');
+        $this->check('G4 Independent penetration test with no open P0/P1', filled(config('golive.penetration_test.report')) && $closedP0P1(config('golive.penetration_test.open_p0_p1')), $production, 'GOLIVE_PENTEST_REPORT and GOLIVE_PENTEST_OPEN_P0_P1=0 are required (docs/go-live/penetration-test-scope.md).');
+        $this->check('G4 UAT signed off with no open P0/P1', filled(config('golive.uat.signoff')) && $closedP0P1(config('golive.uat.open_p0_p1')), $production, 'GOLIVE_UAT_SIGNOFF and GOLIVE_UAT_OPEN_P0_P1=0 are required (docs/go-live/uat-plan.md).');
+        $unnamed = array_keys(array_filter((array) config('golive.governance_roles'), fn (mixed $holder): bool => blank($holder)));
+        $this->check('G5 Governance roles named', $unnamed === [], $production, 'Not yet named: '.implode(', ', $unnamed).' (docs/governance/roles-register.md).');
+        $pending = collect(app(RetentionMatrix::class)->classes())->where('state', RetentionMatrix::NEEDS_POLICY_DECISION)->keys()->all();
+        $this->check('G6 Retention schedule approved for every record class', $pending === [], false, RetentionMatrix::NEEDS_POLICY_DECISION.' for: '.implode(', ', $pending).'. Records are kept, never deleted, until approved (docs/governance/retention-matrix.md).');
 
         $this->section('Operations');
         // --strict evaluates backups under production rules even outside production.
@@ -260,6 +318,20 @@ class ProductionReadiness extends Command
     }
 
     /** Longest `$timeout` declared by a queued job class in app/Jobs. */
+    /** The Node.js version on PATH (without the leading v), or null when there is none. */
+    private function nodeVersion(): ?string
+    {
+        try {
+            $process = new Process(['node', '--version']);
+            $process->setTimeout(5);
+            $process->run();
+
+            return $process->isSuccessful() && preg_match('/^v?(\d+\.\d+\.\d+)/', trim($process->getOutput()), $match) === 1 ? $match[1] : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
     private function longestJobTimeout(): int
     {
         $longest = 60; // worker default

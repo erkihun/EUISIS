@@ -8,7 +8,7 @@ Addis Ababa City Administration's platform for institution
 structure, positions, the employee registry and identity (ID cards with a
 stable verification QR), performance management, daily activity, field work,
 grievances, public service feedback and employee services. It is a
-Laravel 12 / PostgreSQL application with an Inertia React/TypeScript
+Laravel 13 / PostgreSQL application with an Inertia React/TypeScript
 front end, in English and Amharic.
 
 Brand usage rules, the configurable identity (System Settings › General)

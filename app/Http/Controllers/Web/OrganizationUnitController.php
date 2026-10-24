@@ -45,13 +45,15 @@ class OrganizationUnitController extends Controller
 
         $user = Auth::user();
         $accessibleOrgIds = $user?->accessibleOrganizationIds() ?? [];
+        // Fail closed: a scoped user whose set is empty sees nothing, never every organization.
+        $restricted = $user === null || ! app(OrganizationScopeService::class)->isUnrestricted($user);
 
         $orgQuery = Organization::query()
             ->with(['type:id,name_en,name_am,code'])
             ->withCount(['organizationUnits' => fn ($q) => $q->whereNull('deleted_at')])
             ->orderBy('name_en');
 
-        if (! empty($accessibleOrgIds)) {
+        if ($restricted) {
             $orgQuery->whereIn('id', $accessibleOrgIds);
         }
 
@@ -181,7 +183,7 @@ class OrganizationUnitController extends Controller
         if ($request->filled('organization_id')) {
             $orgId = $request->get('organization_id');
 
-            if (! empty($accessibleOrgIds) && ! in_array($orgId, $accessibleOrgIds, true)) {
+            if ($restricted && ! in_array($orgId, $accessibleOrgIds, true)) {
                 abort(403);
             }
 
@@ -202,7 +204,7 @@ class OrganizationUnitController extends Controller
         // tree). CASE sums rather than FILTER: the same SQL runs on PostgreSQL, SQLite and MySQL.
         $unitStats = OrganizationUnit::query()
             ->withTrashed()
-            ->when(! empty($accessibleOrgIds), fn ($q) => $q->whereIn('organization_id', $accessibleOrgIds))
+            ->when($restricted, fn ($q) => $q->whereIn('organization_id', $accessibleOrgIds))
             ->selectRaw('sum(case when deleted_at is null then 1 else 0 end) as total')
             ->selectRaw("sum(case when deleted_at is null and status = 'active' then 1 else 0 end) as active")
             ->selectRaw("sum(case when deleted_at is null and status <> 'active' then 1 else 0 end) as inactive")
@@ -250,10 +252,12 @@ class OrganizationUnitController extends Controller
 
         $user = Auth::user();
         $accessibleOrgIds = $user?->accessibleOrganizationIds() ?? [];
+        // Fail closed: a scoped user whose set is empty sees nothing, never every organization.
+        $restricted = $user === null || ! app(OrganizationScopeService::class)->isUnrestricted($user);
 
         $orgQuery = Organization::query()->orderBy('name_en');
 
-        if (! empty($accessibleOrgIds)) {
+        if ($restricted) {
             $orgQuery->whereIn('id', $accessibleOrgIds);
         }
 

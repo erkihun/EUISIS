@@ -15,6 +15,8 @@ use App\Services\Calendar\CalendarService;
 use App\Services\Communication\CommunicationInbox;
 use App\Services\Communication\CommunicationNavigation;
 use App\Services\Communication\CommunicationSettings;
+use App\Services\Core\CoreNavigation;
+use App\Services\Core\CoreWorkspace;
 use App\Services\Dashboard\DashboardDataService;
 use App\Services\IdCards\IdCardTemplateService;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -97,6 +99,16 @@ class HandleInertiaRequests extends Middleware
                     'unread_count' => app(CommunicationInbox::class)->totals($user)['total'],
                     'realtime' => ! in_array(config('broadcasting.default'), [null, 'null', 'log'], true),
                 ];
+            },
+
+            // The Core workspace (docs/architecture/core-workspace.md): its navigation while the
+            // person works in Core, null everywhere else. Pages themselves do not change.
+            'workspace' => function () use ($user, $request): ?array {
+                if (! $request->hasSession() || ! app(CoreWorkspace::class)->active($user, $request->session())) {
+                    return null;
+                }
+
+                return ['name' => CoreWorkspace::NAME, 'nav' => app(CoreNavigation::class)->for($user)];
             },
 
             'locale' => $locale,

@@ -11,22 +11,9 @@ use App\Exceptions\RandomCodeGenerationException;
 use App\Models\CodeGenerationLog;
 use App\Models\CodeRule;
 use App\Models\CodeRuleSequence;
-use App\Models\DisciplinaryCase;
-use App\Models\Employee;
-use App\Models\EmployeeServiceFeedback;
-use App\Models\Grievance;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceLetter;
-use App\Models\IdCard;
-use App\Models\Organization;
-use App\Models\OrganizationType;
-use App\Models\OrganizationUnit;
-use App\Models\OrganizationUnitType;
-use App\Models\Position;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
-use App\Models\TransferApplication;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -40,6 +27,7 @@ class CodeGeneratorService
     public function __construct(
         private readonly CodeFormatTokenResolver $resolver,
         private readonly SequenceScopeResolver $scopeResolver,
+        private readonly CodeRuleTargetRegistry $targets = new CodeRuleTargetRegistry,
     ) {}
 
     public function preview(CodeRule $rule, array $context = [], ?int $sequenceNumber = null): string
@@ -243,9 +231,6 @@ class CodeGeneratorService
             CodeRuleResetFrequency::Yearly => $lastResetAt->year !== $now->year,
             CodeRuleResetFrequency::Monthly => $lastResetAt->format('Y-m') !== $now->format('Y-m'),
             CodeRuleResetFrequency::Daily => $lastResetAt->toDateString() !== $now->toDateString(),
-            CodeRuleEntityType::GrievanceCase => Grievance::query()->where('reference_number', $generatedCode)->exists(),
-            CodeRuleEntityType::GrievanceDecision => GrievanceDecision::query()->where('decision_no', $generatedCode)->exists(),
-            CodeRuleEntityType::GrievanceLetter => GrievanceLetter::query()->where('reference_number', $generatedCode)->exists(),
             default => false,
         };
 
@@ -259,24 +244,26 @@ class CodeGeneratorService
         ]);
     }
 
+    /**
+     * Whether the code is already taken. Where to look comes from the target
+     * registry: the backbone lists its own entity types, service modules
+     * register theirs (ServiceModuleServiceProvider). An entity type without a
+     * check relies on its table's unique index.
+     */
     private function codeExists(CodeRuleEntityType|string $entityType, string $generatedCode): bool
     {
-        $entity = $entityType instanceof CodeRuleEntityType ? $entityType : CodeRuleEntityType::from($entityType);
+        $check = $this->targets->collisionCheck($entityType);
 
-        return match ($entity) {
-            CodeRuleEntityType::Organization => Organization::withTrashed()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::OrganizationType => OrganizationType::withTrashed()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::Employee => Employee::query()->where('employee_number', $generatedCode)->exists(),
-            CodeRuleEntityType::Position, CodeRuleEntityType::EmployeePosition => Position::withTrashed()->where('job_position_code', $generatedCode)->exists(),
-            CodeRuleEntityType::IdCard => IdCard::query()->where('card_number', $generatedCode)->exists(),
-            CodeRuleEntityType::ServiceProvider => ServiceProvider::query()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::ServiceType => ServiceType::withTrashed()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::OrganizationUnit => OrganizationUnit::withTrashed()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::OrganizationUnitType => OrganizationUnitType::withTrashed()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::TransferApplication => TransferApplication::withTrashed()->where('application_number', $generatedCode)->exists(),
-            CodeRuleEntityType::PublicServiceComplaint, CodeRuleEntityType::PublicTipOff => EmployeeServiceFeedback::query()->where('reference_number', $generatedCode)->exists(),
-            CodeRuleEntityType::DisciplinaryCase => DisciplinaryCase::query()->where('case_number', $generatedCode)->exists(),
-            default => false,
-        };
+        if ($check === null) {
+            return false;
+        }
+
+        /** @var class-string<Model> $model */
+        $model = $check['model'];
+        $query = $check['with_trashed'] && in_array(SoftDeletes::class, class_uses_recursive($model), true)
+            ? $model::withTrashed()
+            : $model::query();
+
+        return $query->where($check['column'], $generatedCode)->exists();
     }
 }

@@ -34,6 +34,12 @@ final class IntegrationEventRecorder
         return (bool) config('integration.events.enabled', true);
     }
 
+    /** An event type switched off by configuration (integration.events.disabled_types). */
+    public static function disabled(string $type): bool
+    {
+        return in_array($type, (array) config('integration.events.disabled_types', []), true);
+    }
+
     /**
      * @param  array<string, mixed>  $data  whitelisted payload (EventCatalog::dataKeys)
      */
@@ -47,7 +53,7 @@ final class IntegrationEventRecorder
         ?string $effectiveAt = null,
         ?string $causationId = null,
     ): ?IntegrationEvent {
-        if (! self::enabled() || $this->context->isSuppressed($type, $aggregateUuid)) {
+        if (! self::enabled() || $this->context->isSuppressed($type, $aggregateUuid) || self::disabled($type)) {
             return null;
         }
 

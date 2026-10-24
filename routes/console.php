@@ -18,6 +18,9 @@ Schedule::command('nfc:prune-challenges')->dailyAt('02:45')->withoutOverlapping(
 // Retention Days). Financial, employee-history and case records are never pruned.
 Schedule::command('data:prune-retention')->dailyAt('03:15')->withoutOverlapping()->onOneServer();
 
+// Audit-log tamper evidence: seal each finished day shortly after midnight.
+Schedule::command('audit:seal')->dailyAt('00:20')->withoutOverlapping()->onOneServer();
+
 // Cafeteria policy status bookkeeping (approved → active, ended → expired).
 // Scans follow policy dates, so this only keeps the labels current.
 Schedule::command('cafeteria:sync-policy-statuses')->dailyAt('00:05')->withoutOverlapping()->onOneServer();
