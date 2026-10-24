@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Backbone\Adapters;
+
+use App\Backbone\Contracts\OrganizationDirectory;
+use App\Backbone\Data\OrganizationData;
+use App\Enums\OrganizationStatus;
+use App\Models\Organization;
+use App\Models\User;
+use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Support\Str;
+
+/** Reads organizations from the existing table; scope comes from the one canonical OrganizationScopeService. */
+final readonly class EloquentOrganizationDirectory implements OrganizationDirectory
+{
+    public function __construct(private OrganizationScopeService $scope) {}
+
+    public function find(string $organizationUuid): ?OrganizationData
+    {
+        if (! Str::isUuid($organizationUuid)) {
+            return null;
+        }
+        $organization = Organization::query()->whereKey($organizationUuid)->first();
+
+        return $organization === null ? null : OrganizationData::fromModel($organization);
+    }
+
+    public function findByCode(string $code): ?OrganizationData
+    {
+        $organization = Organization::query()->where('code', $code)->first();
+
+        return $organization === null ? null : OrganizationData::fromModel($organization);
+    }
+
+    public function findFor(User $viewer, string $organizationUuid): ?OrganizationData
+    {
+        $organization = $this->find($organizationUuid);
+
+        return $organization !== null && $this->scope->canAccessOrganization($viewer, $organization->organizationUuid) ? $organization : null;
+    }
+
+    public function activeFor(User $viewer, int $limit = 100): array
+    {
+        $query = Organization::query()->where('status', OrganizationStatus::Active->value)->orderBy('code')->limit(max(1, $limit));
+
+        return $this->scope->applyOrganizationScope($query, $viewer, 'id')
+            ->get()
+            ->map(fn (Organization $organization): OrganizationData => OrganizationData::fromModel($organization))
+            ->values()
+            ->all();
+    }
+}

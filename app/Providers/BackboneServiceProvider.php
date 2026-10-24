@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Backbone\Adapters\BackboneCredentialVerification;
 use App\Backbone\Adapters\CardBasedServiceEligibility;
 use App\Backbone\Adapters\ClosurePathOrganizationHierarchy;
 use App\Backbone\Adapters\EloquentAssignmentContextReader;
 use App\Backbone\Adapters\EloquentEmployeeDirectory;
+use App\Backbone\Adapters\EloquentOrganizationDirectory;
+use App\Backbone\Adapters\EloquentPositionDirectory;
+use App\Backbone\Adapters\EloquentUnitDirectory;
 use App\Backbone\Adapters\IdCardCredentialLookup;
 use App\Backbone\Adapters\IdCardCredentialStatus;
 use App\Backbone\Adapters\NoEmployeeFeedbackLinks;
@@ -15,11 +19,15 @@ use App\Backbone\Adapters\NoProviderCodeLookup;
 use App\Backbone\Contracts\AssignmentContextReader;
 use App\Backbone\Contracts\CardCredentialStatus;
 use App\Backbone\Contracts\CredentialLookup;
+use App\Backbone\Contracts\CredentialVerification;
 use App\Backbone\Contracts\EmployeeDirectory;
 use App\Backbone\Contracts\EmployeeFeedbackLinks;
+use App\Backbone\Contracts\OrganizationDirectory;
 use App\Backbone\Contracts\OrganizationHierarchy;
+use App\Backbone\Contracts\PositionDirectory;
 use App\Backbone\Contracts\ProviderCodeLookup;
 use App\Backbone\Contracts\ServiceEligibility;
+use App\Backbone\Contracts\UnitDirectory;
 use App\Backbone\Observers\BackboneDomainEventObserver;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -41,6 +49,11 @@ class BackboneServiceProvider extends ServiceProvider
         CardCredentialStatus::class => IdCardCredentialStatus::class,
         ServiceEligibility::class => CardBasedServiceEligibility::class,
         CredentialLookup::class => IdCardCredentialLookup::class,
+        // Core read contracts (Core foundation Stage 1).
+        OrganizationDirectory::class => EloquentOrganizationDirectory::class,
+        UnitDirectory::class => EloquentUnitDirectory::class,
+        PositionDirectory::class => EloquentPositionDirectory::class,
+        CredentialVerification::class => BackboneCredentialVerification::class,
         // Ports that service modules fill (ServiceModuleServiceProvider); without them, no-ops.
         EmployeeFeedbackLinks::class => NoEmployeeFeedbackLinks::class,
         ProviderCodeLookup::class => NoProviderCodeLookup::class,

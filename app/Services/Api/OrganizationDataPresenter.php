@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Api;
 
+use App\Backbone\Data\AssignmentContext;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
@@ -166,6 +167,22 @@ class OrganizationDataPresenter
             'is_current' => (bool) $assignment->is_current,
             'effective_from' => $assignment->effective_from?->toDateString(),
             'effective_to' => $assignment->effective_to?->toDateString(),
+        ];
+    }
+
+    /** The same assignment shape, from the backbone's AssignmentContext (no model needed). @return array<string, mixed> */
+    public function assignmentContext(AssignmentContext $assignment): array
+    {
+        return [
+            'id' => $assignment->assignmentUuid,
+            'employee_id' => $assignment->employeeUuid,
+            'organization_id' => $assignment->organizationUuid,
+            'organization_unit_id' => $assignment->organizationUnitUuid,
+            'position_id' => $assignment->positionUuid,
+            'assignment_status' => $assignment->status,
+            'is_current' => $assignment->isCurrent,
+            'effective_from' => $assignment->effectiveFrom,
+            'effective_to' => $assignment->effectiveTo,
         ];
     }
 

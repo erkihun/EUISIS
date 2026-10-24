@@ -36,4 +36,21 @@ final class EloquentAssignmentContextReader implements AssignmentContextReader
 
         return $assignment === null ? null : AssignmentContext::fromModel($assignment);
     }
+
+    public function historyFor(string $employeeUuid): array
+    {
+        if (! Str::isUuid($employeeUuid)) {
+            return [];
+        }
+
+        return EmployeeAssignment::query()
+            ->where('employee_id', $employeeUuid)
+            ->orderByDesc('is_current')
+            ->orderByDesc('effective_from')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn (EmployeeAssignment $assignment): AssignmentContext => AssignmentContext::fromModel($assignment))
+            ->values()
+            ->all();
+    }
 }

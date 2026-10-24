@@ -12,4 +12,12 @@ interface AssignmentContextReader
     public function currentFor(string $employeeUuid): ?AssignmentContext;
 
     public function find(string $assignmentUuid): ?AssignmentContext;
+
+    /**
+     * Every assignment the employee has held, newest first. Rows are never
+     * rewritten: a closed assignment keeps its own dates.
+     *
+     * @return list<AssignmentContext>
+     */
+    public function historyFor(string $employeeUuid): array;
 }
