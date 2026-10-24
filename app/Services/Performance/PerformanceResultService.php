@@ -256,7 +256,7 @@ final class PerformanceResultService
 
                 continue;
             }
-            $span = BigDecimal::of($agreement->effective_from->diffInDays($agreement->effective_to) + 1);
+            $span = BigDecimal::of((int) round($agreement->effective_from->diffInDays($agreement->effective_to)) + 1);
             $total = $total->plus(Dec::of($result->final_score)->multipliedBy($span));
             $days = $days->plus($span);
             $parts[] = ['agreement_id' => $agreement->getKey(), 'days' => (string) $span, 'final_score' => $result->final_score];

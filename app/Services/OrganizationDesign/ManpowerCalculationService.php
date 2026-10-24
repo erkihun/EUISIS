@@ -123,8 +123,9 @@ class ManpowerCalculationService
                 continue;
             }
             $value = BigDecimal::of($text);
-            $min = isset($rule['min']) ? BigDecimal::of($rule['min']) : null;
-            $max = isset($rule['max']) ? BigDecimal::of($rule['max']) : null;
+            // Rule bounds may be floats in config; brick/math 1.0 takes strings only.
+            $min = isset($rule['min']) ? Dec::of($rule['min']) : null;
+            $max = isset($rule['max']) ? Dec::of($rule['max']) : null;
             $belowMin = $min !== null && (($rule['min_exclusive'] ?? false) ? $value->isLessThanOrEqualTo($min) : $value->isLessThan($min));
             $aboveMax = $max !== null && (($rule['max_exclusive'] ?? false) ? $value->isGreaterThanOrEqualTo($max) : $value->isGreaterThan($max));
             if ($belowMin || $aboveMax) {

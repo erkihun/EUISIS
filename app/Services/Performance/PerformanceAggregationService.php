@@ -313,8 +313,9 @@ final class PerformanceAggregationService
 
         $value = BigDecimal::of($achievement);
         if ($method === KpiAggregation::Sum) {
-            $total = max(1, $start->diffInDays($end) + 1);
-            $elapsed = max(1, min($total, $start->diffInDays($asOf->min($end)) + 1));
+            // Whole days: Carbon returns a float and brick/math 1.0 refuses floats.
+            $total = max(1, (int) round($start->diffInDays($end)) + 1);
+            $elapsed = max(1, min($total, (int) round($start->diffInDays($asOf->min($end))) + 1));
             $value = $value->multipliedBy($total)->dividedBy($elapsed, 4, RoundingMode::HalfUp);
         }
 

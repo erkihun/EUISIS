@@ -104,7 +104,7 @@ final class SystemKpiSourceRegistry
 
         // Weighted by response count so a parent re-averages correctly.
         return [
-            'value' => Dec::str(Dec::div(BigDecimal::of($sum), BigDecimal::of($count))),
+            'value' => Dec::str(Dec::div(Dec::of($sum), BigDecimal::of($count))),
             'numerator' => $sum,
             'denominator' => (string) $count,
             'weight' => (string) $count,

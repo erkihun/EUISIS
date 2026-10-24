@@ -204,7 +204,7 @@ final class EmployeeScoreCalculator
             if ($rating === null) {
                 $complete = false;
             }
-            $score = $rating === null ? null : Dec::pct(BigDecimal::of($rating), BigDecimal::of($max));
+            $score = $rating === null ? null : Dec::pct(Dec::of($rating), Dec::of($max));
             if ($score !== null) {
                 $weighted = $weighted->plus($score->multipliedBy(Dec::of($assessment->weight)));
                 $weights = $weights->plus(Dec::of($assessment->weight));
