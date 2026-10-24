@@ -14,6 +14,7 @@ written; this page only points at them.
 | Daily (scheduled) and after any suspected database tampering | `php artisan audit:seal` (scheduled 00:20), `php artisan audit:verify` |
 | Before and after a data move or restore | `php artisan core:snapshot --output=…` / `--compare=…` |
 | Before retiring a legacy master | `php artisan backbone:duplicate-masters` |
+| Monthly (governance cadence, [../governance/platform-governance.md](../governance/platform-governance.md)) | `php artisan access:review` (privileged accounts), `php artisan api:consumers` (API consumer registry), `php artisan structure:audit`, `php artisan data:audit-duplicates` |
 
 ## Runbooks
 

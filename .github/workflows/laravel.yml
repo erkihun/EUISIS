@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
       with:
-        # Laravel 12 needs PHP >= 8.2; composer.lock is resolved for 8.3.
+        # Laravel 13 needs PHP >= 8.3; the lock also installs on 8.4 and 8.5 (live hosts).
         php-version: '8.3'
         # bcmath: Daily Work performance calculation (bccomp/bcdiv).
         extensions: bcmath, pdo_sqlite, intl, gd, zip, mbstring, opcache
@@ -32,6 +32,14 @@ jobs:
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+    - name: Dependency audit (release gate, docs/governance/release-management.md)
+      # Any known advisory in a PHP package, or a high/critical one in the
+      # npm tree, blocks the merge until it is patched or formally accepted.
+      run: |
+        composer audit --locked --no-interaction
+        npm audit --audit-level=high
+    - name: Code style (Pint)
+      run: vendor/bin/pint --test app config database routes tests
     - name: Build frontend assets
       # Inertia pages, including error pages, need the Vite manifest.
       run: |

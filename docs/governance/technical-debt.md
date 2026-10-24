@@ -1,17 +1,28 @@
 # Technical debt register
 
-Known debt with its guard and the way out. Reviewed monthly.
+Known, intentional debt with its guard and the way out, so temporary layers do
+not become permanent unnoticed. Reviewed monthly and in the quarterly
+architecture review ([platform-governance.md](platform-governance.md)).
 
-| ID | Debt | Guard today | Way out | Owner |
-| --- | --- | --- | --- | --- |
-| TD-1 | 210 service-module files read Golden Path models directly | `ServiceModuleCoreDependencyTest` ratchet per module | move each module onto Core contracts; lower the baseline | module owners |
-| TD-2 | ~~Eight partner routes missing from the OpenAPI document~~ **resolved 2026-10-24**: documented (OpenAPI 1.4.0), backlog empty | `OpenApiContractTest` | — | integration owner |
-| TD-3 | ~~Users with no scope rows see every organization~~ **resolved 2026-10-24** for organization-level roles (ADR 0003); role-less accounts with direct permissions remain, listed by `access:scope-gaps` | `OrganizationScopeServiceTest` | give those accounts a role and a scope | security owner |
-| TD-4 | Legacy masters (institution offices, `users.national_id`, `api_clients`) | redirects, duplicate-masters report | [deprecation-register.md](deprecation-register.md) | data steward |
-| TD-5 | `DesignImportTest` intermittent in parallel runs | — | isolate its fixtures | QA |
-| TD-6 | Suites that fail only on MariaDB (field work, grievance aggregation, vacancy announcement, knowledge pages, organization feedback form, one Golden Path case) | PostgreSQL is the production engine | fix the engine-specific SQL or mark the engine | module owners |
-| TD-7 | ~~esbuild low advisory in the build toolchain~~ **resolved 2026-10-24**: esbuild 0.28.2, `npm audit` 0 | — | — | release manager |
-| TD-8 | No central log shipping or alert routing for production | hosting decision | choose with operations | operations lead |
-| TD-9 | Physical Core separation not started | boundary and ownership documented | after TD-1 | architecture |
-| TD-10 | Retention periods per data class undecided (NEEDS_POLICY_DECISION_RETENTION); RPO/RTO approved as targets but not validated | records are kept (no class is deleted without approval); readiness shows TARGET_NOT_YET_VALIDATED | approval by HR, Legal, Records Management, Audit, Data Protection; restore and failover drills | Data Owner, DR Coordinator |
-| TD-11 | Module housekeeping jobs (communication, Intelligence, assistant pruning) not yet reviewed against the retention matrix | their own settings | include them in the retention review | Data Owner |
+| ID | Debt | Reason / risk | Guard today | Way out | Owner | Target |
+| --- | --- | --- | --- | --- | --- | --- |
+| TD-1 | 210 service-module files read Golden Path models directly | historic; blocks physical separation | `ServiceModuleCoreDependencyTest` ratchet per module | move each module onto Core contracts; lower the baseline | module owners | per module |
+| TD-2 | ~~Eight partner routes missing from the OpenAPI document~~ **resolved 2026-10-24** (OpenAPI 1.4.0) | — | `OpenApiContractTest` | — | Integration/API Owner | done |
+| TD-3 | ~~Users with no scope rows see every organization~~ **resolved 2026-10-24** for organization-level roles (ADR 0003); role-less accounts with direct permissions remain | access wider than intended | `OrganizationScopeServiceTest`, `access:scope-gaps` | give those accounts a role and a scope | Information Security Lead | before go-live |
+| TD-4 | Legacy masters (institution offices, `users.national_id`, `api_clients`) | second sources of truth | redirects, `backbone:duplicate-masters` | [deprecation-register.md](deprecation-register.md) | Data Steward | per register |
+| TD-5 | `DesignImportTest` intermittent in parallel runs | noisy CI | — | isolate its fixtures | QA | next quarter |
+| TD-6 | Suites that fail only on MariaDB/MySQL (field work, grievance aggregation, vacancy announcement, knowledge pages, organization feedback form, one Golden Path case) | **the live host runs MySQL** (see TD-19), so these are live risks, not only test noise | targeted MariaDB runs before releases | fix the engine-specific SQL; run the full suite on MySQL in CI | module owners | before go-live |
+| TD-7 | ~~esbuild low advisory~~ **resolved 2026-10-24** | — | CI `npm audit` | — | Release Manager | done |
+| TD-8 | No central log shipping or alert routing for production | incidents found late | readiness checks, manual log reads | choose with operations | Technical Custodian | before go-live |
+| TD-9 | Physical Core separation not started | Core and services share one deployment | boundary tests, ownership docs | after TD-1 | System Owner | after TD-1 |
+| TD-10 | Retention periods per data class undecided (NEEDS_POLICY_DECISION_RETENTION); RPO/RTO approved as targets but not validated | storage growth; unproven recovery | records kept; readiness shows TARGET_NOT_YET_VALIDATED | approvals by HR, Legal, Records Management, Audit, Data Protection; restore and failover drills | Data Owner, DR Coordinator | before go-live |
+| TD-11 | Module housekeeping jobs (communication, Intelligence, assistant pruning) not reviewed against the retention matrix | may delete before a policy exists | their own settings | include them in the retention review | Data Owner | with TD-10 |
+| TD-12 | No static analysis (Larastan/PHPStan, Semgrep) and no schema-level OpenAPI diff in CI | type and contract errors reach review | tests, Pint, contract tests, CODEOWNERS review | add Larastan with a baseline that may only shrink; add an OpenAPI diff step | Release Manager | next quarter |
+| TD-13 | No Git release tags; release-note history starts 2026-10-24 | rollback target named by commit only | production branch commit subjects; [../releases/](../releases/README.md) | tag each production release `vYYYY.MM.N` | Release Manager | next release |
+| TD-14 | No controlled employee-merge workflow | duplicates can only be flagged and deactivated | `data:audit-duplicates`; stewardship rule (never delete) | merge workflow that moves assignments, cards, documents and service references and records merge history | Data Steward | after go-live |
+| TD-15 | No read replica or reporting database | heavy analytics compete with transactions | caching, scheduled analyses | provision a replica; point Situation Room and Intelligence reads at it | Database/Infrastructure Administrator | capacity-driven |
+| TD-16 | Partner API tokens live 8 hours under the global `SANCTUM_TOKEN_EXPIRATION_MINUTES`; no per-application lifetime or rotation schedule | integrations need frequent re-issue, or pressure to raise the global lifetime for everyone | `api:consumers` shows each token's expiry | per-application credential lifetime and rotation policy | Integration/API Owner | before first production partner |
+| TD-17 | No approval-gated, time-limited privilege elevation; break-glass grants do not expire automatically | standing privilege | MFA, audit log, `access:review` | elevation with reason, approval and automatic expiry | Information Security Lead | next quarter |
+| TD-18 | Consumer registry reuses `owner_institution` and `contact_person`; no separate system-owner, technical-owner or expiry fields per application | weaker impact analysis | `api:consumers` | additive columns on `external_applications` (expand only) | Integration/API Owner | next quarter |
+| TD-19 | Live host runs MySQL while decision D-5 names PostgreSQL; pgBackRest status and PITR checks do not apply on MySQL | no automated backup health, no point-in-time recovery evidence | readiness shows backups NOT_CONFIGURED | either move production to PostgreSQL (D-5) or adopt MySQL binary-log backups with a status report for the backup page; decide by ADR | System Owner, Database/Infrastructure Administrator | before go-live |
+| TD-20 | Data-quality rules visible only on the command line beyond the Core dashboard's integrity counts | stewards need shell access to drill down | `structure:audit`, `data:audit-duplicates`, `backbone:audit-integrity` | data-quality page with every rule and links to the affected records, within scope | Data Steward | next quarter |

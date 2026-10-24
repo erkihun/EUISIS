@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\Audit;
 
+use App\Enums\OccupancyStatus;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -72,6 +73,23 @@ class AuditStructure extends ReadOnlyAuditCommand
                 'rows' => fn () => DB::table('employees as e')->where('e.status', 'active')
                     ->whereNotExists(fn ($q) => $q->from('employee_assignments as a')->whereColumn('a.employee_id', 'e.id')->where('a.is_current', true))
                     ->pluck('e.id'),
+            ],
+            [
+                'key' => 'position_occupancies.without_active_assignment', 'severity' => 'MEDIUM',
+                'label' => 'Occupied seats whose assignment is no longer active',
+                'why' => 'The seat counts as taken, so the position looks full while nobody holds it.',
+                'rows' => fn () => DB::table('position_occupancies as po')->join('employee_assignments as a', 'a.id', '=', 'po.employee_assignment_id')
+                    ->where('po.status', OccupancyStatus::Active->value)
+                    ->where(fn ($q) => $q->where('a.is_current', false)->orWhere('a.assignment_status', '!=', 'active'))
+                    ->pluck('po.id'),
+            ],
+            [
+                'key' => 'organizations.missing_amharic_name', 'severity' => 'LOW',
+                'label' => 'Active organizations without an Amharic name',
+                'why' => 'Amharic pages, cards and documents fall back to the English name.',
+                'rows' => fn () => DB::table('organizations')->where('status', 'active')->whereNull('deleted_at')
+                    ->where(fn ($q) => $q->whereNull('name_am')->orWhere('name_am', ''))
+                    ->pluck('id'),
             ],
         ];
     }

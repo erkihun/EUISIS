@@ -1,0 +1,51 @@
+# Review routing for sensitive code (docs/governance/platform-governance.md).
+# Every path below changes Golden Path data, access control, a published
+# contract or the schema, so a UI review alone is not enough.
+#
+# The repository owner holds every area until the governance roles register
+# (docs/governance/roles-register.md) names the Integration/API Owner,
+# Information Security Lead, Data Steward and module owners; then replace the
+# owner here with their GitHub accounts or teams. These rules take effect
+# when branch protection requires code-owner review on main.
+
+# Core master data and its write paths
+/app/Backbone/                                   @erkihun
+/app/Actions/Organizations/                      @erkihun
+/app/Actions/OrganizationUnits/                  @erkihun
+/app/Actions/Positions/                          @erkihun
+/app/Actions/Employees/                          @erkihun
+/app/Actions/IdCards/                            @erkihun
+/app/Services/Hierarchy/                         @erkihun
+/app/Services/Positions/                         @erkihun
+
+# Organization scope, authentication and authorization
+/app/Services/OrganizationScope/                 @erkihun
+/app/Services/Security/                          @erkihun
+/app/Policies/                                   @erkihun
+/app/Http/Middleware/                            @erkihun
+/config/permission.php                           @erkihun
+/config/security.php                             @erkihun
+/database/seeders/PermissionSeeder.php           @erkihun
+/database/seeders/RoleSeeder.php                 @erkihun
+
+# Published contracts: partner API, events, card verification
+/routes/api.php                                  @erkihun
+/app/Http/Controllers/Api/                       @erkihun
+/app/Services/Integration/                       @erkihun
+/app/Services/Verification/                      @erkihun
+/docs/integration/                               @erkihun
+/tests/Fixtures/contracts/                       @erkihun
+
+# Schema and the guard tests themselves
+/database/migrations/                            @erkihun
+/tests/Unit/BackboneBoundaryTest.php             @erkihun
+/tests/Unit/GovernanceDriftTest.php              @erkihun
+/tests/Unit/MigrationSafetyTest.php              @erkihun
+/tests/Unit/ServiceModuleCoreDependencyTest.php  @erkihun
+/tests/Unit/EventCatalogContractTest.php         @erkihun
+/tests/Feature/Api/MachineWriteBoundaryTest.php  @erkihun
+/tests/Feature/Integration/OpenApiContractTest.php @erkihun
+
+# Release and CI
+/.github/                                        @erkihun
+/scripts/release/                                @erkihun
