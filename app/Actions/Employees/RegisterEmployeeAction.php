@@ -6,6 +6,7 @@ namespace App\Actions\Employees;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\CodeRules\GenerateCodeAction;
+use App\Backbone\Contracts\EmployeeFeedbackLinks;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
@@ -16,7 +17,6 @@ use App\Models\EmploymentStatusHistory;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\Positions\PositionCapacityService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -27,7 +27,7 @@ readonly class RegisterEmployeeAction
         private DetectDuplicateEmployeeAction $detectDuplicateEmployeeAction,
         private WriteAuditLogAction $writeAuditLogAction,
         private GenerateCodeAction $generateCodeAction,
-        private EmployeeFeedbackTokenService $feedbackTokenService,
+        private EmployeeFeedbackLinks $feedbackLinks,
     ) {}
 
     public function execute(array $employeeAttributes, array $assignmentAttributes, User $actor): Employee
@@ -102,7 +102,7 @@ readonly class RegisterEmployeeAction
              * Inside the same transaction: if registration rolls back, the
              * token must not survive pointing at an employee that never existed.
              */
-            $this->feedbackTokenService->ensureActiveTokenFor($employee, $actor);
+            $this->feedbackLinks->provision($employee, $actor);
 
             $this->writeAuditLogAction->execute(
                 AuditEventType::EmployeeCreated,

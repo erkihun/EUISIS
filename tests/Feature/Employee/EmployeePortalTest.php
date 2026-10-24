@@ -390,6 +390,8 @@ test('my services shows transport passes and rides from the transport module', f
 });
 
 test('my services shows cafeteria consumption from a real scan', function (): void {
+    // The cafeteria is closed at weekends; the scan has to fall on a working day.
+    $this->travelTo(now()->next(Carbon::WEDNESDAY)->setTime(10, 0));
     $scenario = CafeteriaScenario::make();
     $organization = $scenario->organization('Cafeteria Portal Org');
     $scenario->enroll($organization, '55.00');

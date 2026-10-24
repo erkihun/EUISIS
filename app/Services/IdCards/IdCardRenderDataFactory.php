@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\IdCards;
 
+use App\Backbone\Contracts\EmployeeFeedbackLinks;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Services\Calendar\EthiopianCalendarService;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -31,7 +31,7 @@ final readonly class IdCardRenderDataFactory
         private SystemSettingsService $systemSettings,
         private IdCardTemplateService $templates,
         private EthiopianCalendarService $ethiopianCalendar,
-        private EmployeeFeedbackTokenService $feedbackTokens,
+        private EmployeeFeedbackLinks $feedbackLinks,
     ) {}
 
     public function make(IdCard $card, ?string $orientation = null): IdCardRenderData
@@ -139,7 +139,7 @@ final readonly class IdCardRenderDataFactory
             header: $header,
             backPhoto: $this->templates->backPhoto($template),
             organizationLogoDataUri: $organizationLogo,
-            feedbackQrUrl: $employee ? $this->feedbackTokens->activeToken($employee)?->publicUrl() : null,
+            feedbackQrUrl: $employee ? $this->feedbackLinks->publicUrlFor($employee) : null,
         );
     }
 

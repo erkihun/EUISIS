@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\VerifyCardApiRequest;
 use App\Http\Resources\VerificationResultResource;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Services\Integration\IntegrationAccessService;
-use App\Services\Verification\VerifyCardForServiceAction;
 
 class CardVerificationController extends Controller
 {

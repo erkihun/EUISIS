@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Verification;
+namespace App\Actions\ServiceTransactions;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Backbone\Contracts\CredentialLookup;

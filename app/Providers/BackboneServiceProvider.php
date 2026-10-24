@@ -10,11 +10,15 @@ use App\Backbone\Adapters\EloquentAssignmentContextReader;
 use App\Backbone\Adapters\EloquentEmployeeDirectory;
 use App\Backbone\Adapters\IdCardCredentialLookup;
 use App\Backbone\Adapters\IdCardCredentialStatus;
+use App\Backbone\Adapters\NoEmployeeFeedbackLinks;
+use App\Backbone\Adapters\NoProviderCodeLookup;
 use App\Backbone\Contracts\AssignmentContextReader;
 use App\Backbone\Contracts\CardCredentialStatus;
 use App\Backbone\Contracts\CredentialLookup;
 use App\Backbone\Contracts\EmployeeDirectory;
+use App\Backbone\Contracts\EmployeeFeedbackLinks;
 use App\Backbone\Contracts\OrganizationHierarchy;
+use App\Backbone\Contracts\ProviderCodeLookup;
 use App\Backbone\Contracts\ServiceEligibility;
 use App\Backbone\Observers\BackboneDomainEventObserver;
 use App\Models\Employee;
@@ -37,6 +41,9 @@ class BackboneServiceProvider extends ServiceProvider
         CardCredentialStatus::class => IdCardCredentialStatus::class,
         ServiceEligibility::class => CardBasedServiceEligibility::class,
         CredentialLookup::class => IdCardCredentialLookup::class,
+        // Ports that service modules fill (ServiceModuleServiceProvider); without them, no-ops.
+        EmployeeFeedbackLinks::class => NoEmployeeFeedbackLinks::class,
+        ProviderCodeLookup::class => NoProviderCodeLookup::class,
     ];
 
     public function boot(): void

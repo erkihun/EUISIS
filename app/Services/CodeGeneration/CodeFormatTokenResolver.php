@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\CodeGeneration;
 
+use App\Backbone\Contracts\ProviderCodeLookup;
 use App\Exceptions\MissingTokenContextException;
 use App\Models\CodeRule;
 use App\Models\Employee;
@@ -12,7 +13,6 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Position;
-use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use Illuminate\Support\Carbon;
 
@@ -41,7 +41,14 @@ class CodeFormatTokenResolver
 
     public function __construct(
         private readonly PositionCodeContextResolver $positionCodeContextResolver,
+        // Provider codes come from service delivery through the backbone contract.
+        private readonly ?ProviderCodeLookup $providerCodes = null,
     ) {}
+
+    private function providerCode(string $providerId): ?string
+    {
+        return ($this->providerCodes ?? app(ProviderCodeLookup::class))->codeFor($providerId);
+    }
 
     /**
      * Resolve all tokens found in the rule format string.
@@ -784,9 +791,7 @@ class CodeFormatTokenResolver
             );
         }
 
-        $code = ServiceProvider::query()->whereKey($providerId)->value('code');
-
-        return $this->sanitize((string) ($code ?? ''));
+        return $this->sanitize((string) ($this->providerCode((string) $providerId) ?? ''));
     }
 
     /** @param array<string, mixed> $context */
@@ -800,14 +805,13 @@ class CodeFormatTokenResolver
             );
         }
 
-        /** @var ServiceProvider|null $provider */
-        $provider = ServiceProvider::query()->whereKey($providerId)->first(['id', 'code']);
+        $providerCode = $this->providerCode((string) $providerId);
 
-        if ($provider === null) {
+        if ($providerCode === null) {
             return '';
         }
 
-        $code = strtoupper($provider->code ?? '');
+        $code = strtoupper($providerCode);
 
         if (preg_match('/^([A-Z]+)/', $code, $matches)) {
             return $this->sanitize($matches[1]);

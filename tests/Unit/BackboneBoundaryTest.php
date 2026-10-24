@@ -58,24 +58,11 @@ it('keeps backbone code free of service-module imports', function (): void {
     }
 
     $allowed = [
-        'app/Actions/Employees/RegisterEmployeeAction.php -> App\Services\ServiceFeedback\EmployeeFeedbackTokenService',
+        // Position profiles and job descriptions share the design-record lifecycle
+        // (draft, review, approved, published, superseded) with organization design.
+        // The enum is shared vocabulary, not a service dependency; kept on purpose.
         'app/Models/JobDescription.php -> App\Enums\OrganizationDesignStatus',
         'app/Models/PositionProfile.php -> App\Enums\OrganizationDesignStatus',
-        'app/Services/CodeGeneration/CodeFormatTokenResolver.php -> App\Models\ServiceProvider',
-        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\DisciplinaryCase',
-        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\EmployeeServiceFeedback',
-        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\Grievance',
-        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\GrievanceDecision',
-        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\GrievanceLetter',
-        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\ServiceProvider',
-        'app/Services/CodeGeneration/CodeGeneratorService.php -> App\Models\TransferApplication',
-        'app/Services/CodeGeneration/CodeRuleTargetRegistry.php -> App\Models\ServiceProvider',
-        'app/Services/CodeGeneration/CodeRuleTargetRegistry.php -> App\Models\TransferApplication',
-        'app/Services/IdCards/IdCardRenderDataFactory.php -> App\Services\ServiceFeedback\EmployeeFeedbackTokenService',
-        'app/Services/Organizations/OrganizationDeletionGuard.php -> App\Models\EmployeeTransfer',
-        'app/Services/Organizations/OrganizationDeletionGuard.php -> App\Models\Provider',
-        'app/Services/Organizations/OrganizationDeletionGuard.php -> App\Models\ServiceProvider',
-        'app/Services/Verification/VerifyCardForServiceAction.php -> App\Models\ServiceProvider',
     ];
 
     expect(array_values(array_diff($found, $allowed)))->toBe([], 'New backbone -> service dependency. Depend on a contract or event instead (master-backbone.md).')
