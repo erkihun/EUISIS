@@ -9,7 +9,7 @@ Owner: Release Manager ([roles-register.md](roles-register.md)).
 
 - Work on a branch; merge to `main` through a reviewed pull request. No force-pushes, no rewritten history, commit authorship stays true.
 - Sensitive paths need their owners' review ([`.github/CODEOWNERS`](../../.github/CODEOWNERS)): Golden Path writes, organization scope, authentication, API and event contracts, schema, card verification. A UI review alone does not approve them.
-- The `production` branch is built from `main` by `scripts/release/build-production-branch.sh` (one commit per release, fast-forward only); it is never edited by hand.
+- The `production` branch is built from `main` by `scripts/release/build-production-branch.sh` (one commit per release, fast-forward only); it is never edited by hand. It leaves out tests, docs, CI and tooling, and everything that makes fake data: demo seeders (`DatabaseSeeder`, `DemoDataSeeder`, `UserSeeder`, `seeders/Demo`, the sample assessment form), the demo-data validator and the scale and load-test generators. Reference seeders and `seeders/data` stay, because migrations and the application read them. The script refuses to build when shipped code still names something it left out.
 - Deployments are done by the operations team, never automatically from a merge.
 
 ## Release types
