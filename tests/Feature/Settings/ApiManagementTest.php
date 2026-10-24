@@ -323,7 +323,7 @@ it('exposes the delete capability to the detail page', function (): void {
         );
 });
 
-it('prunes api request logs older than the retention window', function (): void {
+it('prunes api request logs older than the approved retention window only', function (): void {
     ApiRequestLog::query()->create([
         'external_application_id' => $this->application->id,
         'endpoint' => '/api/v1/old', 'method' => 'GET',
@@ -338,7 +338,12 @@ it('prunes api request logs older than the retention window', function (): void 
         'requested_at' => now()->subDay(),
     ]);
 
-    $this->artisan('api:prune-logs', ['--days' => 90])->assertSuccessful();
+    // Kept until the retention of API logs is approved (ADR 0004).
+    $this->artisan('api:prune-logs')->expectsOutputToContain('NEEDS_POLICY_DECISION_RETENTION')->assertSuccessful();
+    expect(ApiRequestLog::query()->count())->toBe(2);
+
+    config(['retention.records.api_logs' => ['action' => 'purge_when_authorized', 'days' => 90, 'approval' => 'RET-API-1']]);
+    $this->artisan('api:prune-logs')->assertSuccessful();
 
     expect(ApiRequestLog::query()->count())->toBe(1)
         ->and(ApiRequestLog::query()->first()->endpoint)->toBe('/api/v1/recent');

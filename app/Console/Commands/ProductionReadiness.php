@@ -15,12 +15,14 @@ use App\Services\IdCards\IdCardPngExporter;
 use App\Services\OrganizationScope\ScopeGapReport;
 use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
+use App\Support\Retention\RetentionMatrix;
 use App\Support\Security\NationalIdHash;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\Process\Process;
 use Throwable;
 
 /**
@@ -111,6 +113,10 @@ class ProductionReadiness extends Command
         $usesRedis = collect([config('cache.default'), config('queue.default'), config('session.driver')])->contains('redis');
         $this->check('redis extension (phpredis)', ! $usesRedis || config('database.redis.client') !== 'phpredis' || extension_loaded('redis'), $production, 'Cache, queue or session use Redis through phpredis.');
         $this->check('imagick with SVG support (card PNG export)', app(IdCardPngExporter::class)->isAvailable(), false, 'Without Imagick and its SVG coder (librsvg) PNG card export is refused; SVG and PDF still work.');
+        $node = $this->nodeVersion();
+        $this->check('G3 Node.js for the asset build is a supported LTS (24, or 22.12+)', $node !== null && version_compare($node, '22.12.0', '>='), false, $node === null
+            ? 'node is not on this user\'s PATH: build the assets where Node 24 LTS (or 22 LTS) runs; .nvmrc names the version.'
+            : "Found Node {$node}. Node 20 is end of life and Vite needs 22.12 or later; use Node 24 LTS (22 LTS as the fallback).");
 
         $this->section('Branding (docs/branding.md)');
         try {
@@ -212,6 +218,19 @@ class ProductionReadiness extends Command
             $this->check('Access and audit checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
         }
 
+        // Evidence produced by people, recorded as references (config/golive.php, ADR 0004).
+        $this->section('Go-live gates (docs/go-live/go-live-gates.md)');
+        $closedP0P1 = fn (mixed $count): bool => $count !== null && $count !== '' && (string) $count === '0';
+        // G1 also needs "Backup and recovery ready" in the Operations section below.
+        $this->check('G1 Database failover drill recorded', filled(config('golive.failover_drill')), $production, 'GOLIVE_FAILOVER_DRILL is empty: rehearse failover to the standby database (docs/runbooks/database-failover.md).');
+        $this->check('G2 Restore drill met the recovery targets', filled(config('backup.objectives_validated_by')), $production, 'BACKUP_OBJECTIVES_VALIDATED_BY is empty: RPO 15 min / RTO 1 h / 4 h are targets (TARGET_NOT_YET_VALIDATED), not yet proven by a restore drill.');
+        $this->check('G4 Independent penetration test with no open P0/P1', filled(config('golive.penetration_test.report')) && $closedP0P1(config('golive.penetration_test.open_p0_p1')), $production, 'GOLIVE_PENTEST_REPORT and GOLIVE_PENTEST_OPEN_P0_P1=0 are required (docs/go-live/penetration-test-scope.md).');
+        $this->check('G4 UAT signed off with no open P0/P1', filled(config('golive.uat.signoff')) && $closedP0P1(config('golive.uat.open_p0_p1')), $production, 'GOLIVE_UAT_SIGNOFF and GOLIVE_UAT_OPEN_P0_P1=0 are required (docs/go-live/uat-plan.md).');
+        $unnamed = array_keys(array_filter((array) config('golive.governance_roles'), fn (mixed $holder): bool => blank($holder)));
+        $this->check('G5 Governance roles named', $unnamed === [], $production, 'Not yet named: '.implode(', ', $unnamed).' (docs/governance/roles-register.md).');
+        $pending = collect(app(RetentionMatrix::class)->classes())->where('state', RetentionMatrix::NEEDS_POLICY_DECISION)->keys()->all();
+        $this->check('G6 Retention schedule approved for every record class', $pending === [], false, RetentionMatrix::NEEDS_POLICY_DECISION.' for: '.implode(', ', $pending).'. Records are kept, never deleted, until approved (docs/governance/retention-matrix.md).');
+
         $this->section('Operations');
         // --strict evaluates backups under production rules even outside production.
         $backup = app(BackupStatusService::class)->status(fresh: true, enforce: $production ?: null);
@@ -299,6 +318,20 @@ class ProductionReadiness extends Command
     }
 
     /** Longest `$timeout` declared by a queued job class in app/Jobs. */
+    /** The Node.js version on PATH (without the leading v), or null when there is none. */
+    private function nodeVersion(): ?string
+    {
+        try {
+            $process = new Process(['node', '--version']);
+            $process->setTimeout(5);
+            $process->run();
+
+            return $process->isSuccessful() && preg_match('/^v?(\d+\.\d+\.\d+)/', trim($process->getOutput()), $match) === 1 ? $match[1] : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
     private function longestJobTimeout(): int
     {
         $longest = 60; // worker default

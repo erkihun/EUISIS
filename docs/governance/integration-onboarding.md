@@ -29,4 +29,4 @@ LEGACY_CREDENTIAL, PROVIDER_UNBOUND).
 
 Remove scopes, revoke tokens, disable the application and its webhook
 subscriptions. Its request logs follow the normal API log retention
-(`api:prune-logs`, 90 days by default); the application record itself is kept.
+(kept until the API log retention is approved; [retention-matrix.md](retention-matrix.md)); the application record itself is kept.

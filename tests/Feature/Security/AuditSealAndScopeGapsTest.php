@@ -77,9 +77,11 @@ it('drops the seals of days removed by retention', function (): void {
     $this->travelTo(Carbon::parse('2026-10-21 09:00'));
     $this->artisan('audit:seal')->assertSuccessful();
 
+    // Approved audit retention (ADR 0004); the period is the Security setting (730 days by default).
+    config(['retention.records.audit_logs' => ['action' => 'purge_when_authorized', 'days' => null, 'approval' => 'RET-AUDIT-1']]);
     $this->artisan('data:prune-retention')->assertSuccessful();
 
-    // Default audit retention is 730 days: rows and seals through 2024-10-21 go.
+    // Audit retention of 730 days: rows and seals through 2024-10-21 go.
     expect(DB::table(AuditLogSealer::TABLE)->where('sealed_on', '<=', '2024-10-21')->count())->toBe(0)
         ->and(DB::table(AuditLogSealer::TABLE)->where('sealed_on', '2024-10-22')->exists())->toBeTrue()
         ->and(DB::table('audit_logs')->where('reason', 'old')->exists())->toBeFalse();

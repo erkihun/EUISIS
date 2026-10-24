@@ -27,4 +27,4 @@ announce; stop publishing only after no subscription filters on it.
 
 ## Retention
 
-Event and delivery retention is configuration (`INTEGRATION_EVENT_RETENTION_DAYS`, `INTEGRATION_DELIVERY_RETENTION_DAYS`) and is **not set**: legal retention periods have not been decided and are not invented here. Until they are, nothing is purged.
+Event and delivery retention is configuration (`INTEGRATION_EVENT_RETENTION_DAYS`, `INTEGRATION_DELIVERY_RETENTION_DAYS`) and is **not set**: legal retention periods have not been decided and are not invented here. Until they are, nothing is purged. They are part of the data-sharing review in the [retention matrix](retention-matrix.md).

@@ -142,7 +142,7 @@ transactions per request.
 
 No connection leak, no memory growth and no latency drift were seen. The `cache` table holds
 rate-limit rows that expire, so it does not grow. `api_request_logs` and `card_verifications`
-grow with traffic by design (retention: `api:prune-logs`, 90 days).
+grow with traffic by design (retention: kept until approved, `api:prune-logs`, ADR 0004).
 
 ## Integrity after load
 

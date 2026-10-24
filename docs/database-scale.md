@@ -101,7 +101,7 @@ Separate business/legal retention from online performance retention. Grievance,
 discipline, audit and HR history are never deleted for performance. Online
 retention periods for logs (audit online window, notifications, verification logs,
 reminders, security events) are **NEEDS_DECISION**; until decided only
-`api:prune-logs` (90 days) and `nfc:prune-challenges` run.
+`api:prune-logs` (API logs kept until their retention is approved, ADR 0004) and `nfc:prune-challenges` run.
 
 ## Maintenance
 

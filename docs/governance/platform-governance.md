@@ -6,17 +6,15 @@ existing policies instead of repeating them.
 
 ## Roles
 
-| Role | Decides | Named in |
-| --- | --- | --- |
-| Business owner | scope, priorities, acceptance, RPO/RTO, retention | acceptance matrix sign-offs |
-| Core data steward | master-data quality, integrity findings, legacy retirement | [data-stewardship.md](data-stewardship.md) |
-| Security owner | access model, partner access, pen tests, incidents | [security-governance.md](security-governance.md) |
-| Integration owner | partner onboarding, scopes, API and event versions | [integration-onboarding.md](integration-onboarding.md), [api-lifecycle.md](api-lifecycle.md) |
-| Release manager | release contents, change windows, rollback calls | [release-management.md](release-management.md) |
-| Operations lead | deployment, backups, monitoring, on-call | [../operations/README.md](../operations/README.md) |
-| Module owners | their service module and its move onto Core contracts | [../architecture/module-integration-matrix.md](../architecture/module-integration-matrix.md) |
-
-People are assigned to these roles by the business owner; until then each row is **unassigned** and the related sign-off cannot be given.
+The roles, their decisions and their holders are in the
+[roles register](roles-register.md): Project Sponsor, Business Owner, System
+Owner, Data Owner, Data Steward, Technical Custodian, Information Security
+Lead, Database/Infrastructure Administrator, DR Coordinator, Incident
+Manager, Integration/API Owner, Release Manager, Audit/Compliance Owner and
+one owner per module. Management names every holder before go-live (gate
+G5); one person may hold several roles, but ownership is explicit and not
+"IT owns everything". Until a role is named, the sign-offs that depend on it
+cannot be given.
 
 ## Rules enforced by code (CI fails when broken)
 

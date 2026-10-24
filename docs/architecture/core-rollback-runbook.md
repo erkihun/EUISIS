@@ -10,7 +10,7 @@ Any one of these during or after a cutover window:
 - `core:snapshot --compare` reports a difference that is not explained by the plan;
 - `backbone:audit-integrity --strict` reports a new finding;
 - `/health/ready` fails for more than five minutes after the switch;
-- ID-card verification (`/v/{uuid}`, `/api/v1/id-cards/verify`) fails for valid cards;
+- ID-card verification (`/id-checker/{cardUuid}`, `/api/v1/id-cards/verify/{token}`) fails for valid cards;
 - sign-in or permission checks fail for administrators of a checked organization;
 - the integration outbox stops draining (Integration Center → Events waiting keeps rising) or webhook failures jump;
 - the release manager calls it.

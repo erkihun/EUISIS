@@ -83,7 +83,7 @@ function fakeBackupInfrastructure(?string $info = null, ?array $wal = null, ?arr
 {
     config(['backup.enabled' => true, 'backup.driver' => 'pgbackrest', 'backup.cache_seconds' => 0,
         'backup.pgbackrest.binary' => PHP_BINARY, 'backup.pgbackrest.config' => null, 'backup.pgbackrest.run_as' => null,
-        'backup.rpo' => 'approved', 'backup.rto' => 'approved']);
+        'backup.rpo' => 'approved', 'backup.rto' => 'approved', 'backup.objectives_validated_by' => 'DRILL-TEST']);
     if (config('backup.alert_user_ids') === []) {
         config(['backup.alert_user_ids' => [1]]);
     }

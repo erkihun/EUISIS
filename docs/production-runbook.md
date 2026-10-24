@@ -23,7 +23,7 @@ Run workers under a supervisor (systemd/supervisord) with automatic restart and
 
 | Task | Cadence | Notes |
 | --- | --- | --- |
-| `api:prune-logs` | daily 02:30 | 90-day API log retention |
+| `api:prune-logs` | daily 02:30 | applies the approved API log retention; keeps everything until approved (ADR 0004) |
 | `nfc:prune-challenges` | daily 02:45 | expired NFC nonces |
 | `cafeteria:sync-policy-statuses` | daily 00:05 | policy status labels |
 | `daily-activities:send-reminders` | every 15 min | each employee evaluated once per date/type |

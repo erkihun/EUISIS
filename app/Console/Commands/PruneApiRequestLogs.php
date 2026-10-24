@@ -4,40 +4,32 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Models\ApiRequestLog;
+use App\Services\Retention\RetentionProcessor;
+use App\Support\Retention\RetentionMatrix;
 use Illuminate\Console\Command;
 
 /**
- * Trims api_request_logs to a retention window.
- *
- * The table grows with every integration request, so without pruning it
- * becomes the largest table in the system. Schedule this daily.
+ * API request logs are a record class (ADR 0004): they are archived or purged
+ * only under an approved retention decision (RETENTION_API_LOGS_*), the same
+ * way data:prune-retention handles them. Kept on its own schedule slot.
  */
 class PruneApiRequestLogs extends Command
 {
-    protected $signature = 'api:prune-logs {--days=90 : Retention window in days}';
+    protected $signature = 'api:prune-logs';
 
-    protected $description = 'Delete API request logs older than the retention window';
+    protected $description = 'Apply the approved retention to API request logs (kept until approved)';
 
-    public function handle(): int
+    public function handle(RetentionProcessor $processor, RetentionMatrix $matrix): int
     {
-        $days = max(1, (int) $this->option('days'));
-        $cutoff = now()->subDays($days);
+        $results = $processor->process('api_logs');
 
-        // Delete in chunks so a large backlog does not lock the table or
-        // exhaust memory in one statement.
-        $deleted = 0;
+        if ($results === null) {
+            $this->info('API request logs kept: '.$matrix->for('api_logs')['state'].' (docs/governance/retention-matrix.md).');
 
-        do {
-            $batch = ApiRequestLog::query()
-                ->where('requested_at', '<', $cutoff)
-                ->limit(1000)
-                ->delete();
+            return self::SUCCESS;
+        }
 
-            $deleted += $batch;
-        } while ($batch > 0);
-
-        $this->info("Pruned {$deleted} API request log(s) older than {$days} day(s).");
+        $this->info('API request logs: '.array_sum(array_column($results, 'rows')).' row(s) '.($matrix->for('api_logs')['action'] === 'archive' ? 'archived' : 'purged').' under approval '.$matrix->for('api_logs')['approval'].'.');
 
         return self::SUCCESS;
     }

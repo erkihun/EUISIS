@@ -230,7 +230,7 @@ it('caches probes briefly and re-probes on an explicit refresh', function () {
 
 it('reads the report driver with distinct reasons', function () {
     fakeWal(healthyWal());
-    config(['backup.enabled' => true, 'backup.driver' => 'report', 'backup.cache_seconds' => 0, 'backup.rpo' => 'approved', 'backup.rto' => 'approved', 'backup.alert_user_ids' => [1]]);
+    config(['backup.enabled' => true, 'backup.driver' => 'report', 'backup.cache_seconds' => 0, 'backup.rpo' => 'approved', 'backup.rto' => 'approved', 'backup.objectives_validated_by' => 'DRILL-TEST', 'backup.alert_user_ids' => [1]]);
     config(['backup.report_path' => base_path('missing/status.json')]);
     expect(backupHealth())->reason_code->toBe('REPORT_NOT_FOUND')->infrastructure_status->toBe('UNAVAILABLE');
     $path = writeBackupReport(healthyBackupReport());
@@ -289,6 +289,18 @@ it('keeps readiness evidence gaps separate from operational health', function ()
     $status = backupHealth(enforce: true);
     expect($status)->overall_status->toBe('HEALTHY')->readiness->toBe('NOT_READY')->production_blocker->toBeTrue()
         ->and(array_column($status['issues'], 'severity'))->each->toBe('READINESS');
+});
+
+it('treats the owner\'s recovery targets as not met until a drill validated them (ADR 0004)', function () {
+    fakeBackupInfrastructure();
+    config(['backup.rpo' => 'PT15M', 'backup.rto' => 'PT1H application node; PT4H database restore', 'backup.objectives_validated_by' => null]);
+    $status = backupHealth(enforce: true);
+    expect($status)->rpo->toBe('TARGET_NOT_YET_VALIDATED')->rto->toBe('TARGET_NOT_YET_VALIDATED')->readiness->toBe('NOT_READY')
+        ->and(array_column($status['issues'], 'reason'))->toContain('OBJECTIVES_NOT_VALIDATED');
+
+    config(['backup.objectives_validated_by' => 'DRILL-2026-11-01']);
+    $status = backupHealth(enforce: true);
+    expect($status)->rpo->toBe('VALIDATED')->readiness->toBe('READY');
 });
 
 it('renders the page when the backup tables are missing and reports why', function () {

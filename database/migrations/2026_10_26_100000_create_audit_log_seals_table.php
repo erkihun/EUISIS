@@ -14,6 +14,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // MySQL DDL is not transactional: a retried deploy must be able to resume.
+        if (Schema::hasTable('audit_log_seals')) {
+            return;
+        }
+
         Schema::create('audit_log_seals', function (Blueprint $table): void {
             $table->id();
             $table->date('sealed_on')->unique();

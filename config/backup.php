@@ -51,6 +51,12 @@ return [
         1 => (string) env('BACKUP_REPOSITORY_1_NAME', 'Private repository'),
         2 => (string) env('BACKUP_REPOSITORY_2_NAME', 'Independent off-site repository'),
     ],
-    'rpo' => env('BACKUP_RPO', 'NEEDS_DECISION'),
-    'rto' => env('BACKUP_RTO', 'NEEDS_DECISION'),
+    // Recovery targets set by the project owner as the initial operational target
+    // (ADR 0004): data loss at most 15 minutes; service back within 1 hour when an
+    // application node is lost and within 4 hours when the database is restored.
+    // They show as TARGET_NOT_YET_VALIDATED, and block readiness, until a restore
+    // and failover drill has met them and its record is named here.
+    'rpo' => env('BACKUP_RPO', 'PT15M'),
+    'rto' => env('BACKUP_RTO', 'PT1H application node; PT4H database restore'),
+    'objectives_validated_by' => env('BACKUP_OBJECTIVES_VALIDATED_BY'),
 ];

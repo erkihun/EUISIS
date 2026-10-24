@@ -31,7 +31,7 @@ measurement: every number comes from local benchmarks named below.
 | --- | --- | --- |
 | Expected usage (requests and scans per second at peak) | no usage forecast exists, so capacity cannot be sized | business owner |
 | Throughput on production-class servers with PHP-FPM and PgBouncer | local rig only | operations |
-| RPO and RTO | **NEEDS_DECISION** ([../backup-and-disaster-recovery.md](../backup-and-disaster-recovery.md)) | business owner + operations |
+| RPO and RTO proven | targets approved (RPO 15 min, RTO 1 h / 4 h), **TARGET_NOT_YET_VALIDATED** until a drill (ADR 0004) | DR Coordinator |
 | PostgreSQL standby and failover | not deployed (**NEEDS_DEPLOYMENT_CONFIGURATION_POSTGRES_HA**, [../production-readiness/deployment-topology.md](../production-readiness/deployment-topology.md)) | operations |
 | Restore test on production backups | not recorded | operations |
 | Penetration test of Core and `/api/v1` | not performed | security owner |

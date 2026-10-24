@@ -32,11 +32,10 @@ what their scope allows within their organization bounds; national ID is
 encrypted and stored with a keyed hash; sensitive fields are redacted in audit
 rows.
 
-Log retention is already a setting: `data:prune-retention` runs daily and
-removes audit and security events after System Settings › Security › Audit
-retention days (default 730, minimum 30; audit rows of a grievance stay while
-the case is open or on legal hold), and verification, notification and
-reminder logs after the periods in `config/retention.php`. Employee records,
-employment history, documents and case records are never pruned. Their legal
-retention periods, and those of integration events, are **not decided** and
-are not invented here.
+Retention follows the [retention matrix](retention-matrix.md): every record
+class (employee master, assignment and card history, cases, performance,
+transactions, documents, audit, verification and API logs) is kept until HR,
+Legal, Records Management, Audit and Data Protection approve its period;
+only then can a log class be archived or purged, with the approval
+reference. No period is invented here. Operational housekeeping
+(notifications, reminders) keeps its automatic windows.

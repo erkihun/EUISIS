@@ -100,6 +100,10 @@ Windows; build-time only).
 
 ## Recommendation (needs business-owner approval): RPO and RTO
 
+Superseded by ADR 0004: the project owner approved these as the initial
+operational targets, shown as TARGET_NOT_YET_VALIDATED until a drill proves
+them.
+
 Recommended targets for the backup objectives, based on the designed
 PostgreSQL PITR with continuous WAL archiving:
 

@@ -25,7 +25,8 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
-        node-version: '22'
+        # The production build target (Node 24 LTS; 22 LTS is the fallback). Node 20 is end of life.
+        node-version-file: '.nvmrc'
         cache: 'npm'
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"

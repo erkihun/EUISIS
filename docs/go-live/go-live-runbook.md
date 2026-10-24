@@ -9,7 +9,8 @@ this runbook adds the Core steps. Nobody on the call shares secrets in chat.
 - [ ] Release candidate tagged after review; CI green.
 - [ ] UAT sign-offs recorded in the acceptance matrix.
 - [ ] Production branch built (`scripts/release/build-production-branch.sh`) and reviewed.
-- [ ] Live runtime confirmed (PHP version and extensions, Node ≥ 20.19 for the build).
+- [ ] Live runtime confirmed (PHP version and extensions; Node 24 LTS for the build, 22 LTS as the fallback; never Node 20, which is end of life).
+- [ ] `php artisan production:readiness --strict` shows every go-live gate (G1–G5) as PASS ([go-live-gates.md](go-live-gates.md)).
 - [ ] Restore drill done on a copy; `core:snapshot` compared before and after.
 - [ ] Communication to administrators: the Core workspace, what changes, where to get help.
 

@@ -19,7 +19,7 @@ function localReportHealth(): array
 function configureLocalReport(string $path): void
 {
     config(['backup.enabled' => true, 'backup.driver' => 'report', 'backup.cache_seconds' => 0, 'backup.report_path' => $path,
-        'backup.rpo' => 'approved', 'backup.rto' => 'approved']);
+        'backup.rpo' => 'approved', 'backup.rto' => 'approved', 'backup.objectives_validated_by' => 'DRILL-TEST']);
     // WAL health comes from the live PostgreSQL connection, which the test database does not have.
     fakeWal(healthyWal());
 }

@@ -7,7 +7,8 @@ written; this page only points at them.
 
 | When | Command |
 | --- | --- |
-| Before any production deployment | `php artisan production:readiness --strict` (includes `security:production-check` and the Core section) |
+| Before any production deployment | `php artisan production:readiness --strict` (includes `security:production-check`, the Core section and the go-live gates G1–G6, [../go-live/go-live-gates.md](../go-live/go-live-gates.md)) |
+| Retention review | `php artisan data:retention-report` ([../governance/retention-matrix.md](../governance/retention-matrix.md)) |
 | After every deployment | `php artisan core:smoke` |
 | Daily in the first weeks, then weekly | `php artisan backbone:audit-integrity`, `php artisan api:access-review`, `php artisan access:scope-gaps` |
 | Daily (scheduled) and after any suspected database tampering | `php artisan audit:seal` (scheduled 00:20), `php artisan audit:verify` |
@@ -23,6 +24,7 @@ written; this page only points at them.
 | Go-live rollback | [../go-live/rollback-runbook.md](../go-live/rollback-runbook.md) |
 | Core data move or restore window | [../architecture/core-cutover-runbook.md](../architecture/core-cutover-runbook.md), [../architecture/core-rollback-runbook.md](../architecture/core-rollback-runbook.md) |
 | Backups | [../runbooks/database-backup.md](../runbooks/database-backup.md), [../runbooks/backup-health-troubleshooting.md](../runbooks/backup-health-troubleshooting.md) |
+| Database failover and drill | [../runbooks/database-failover.md](../runbooks/database-failover.md) |
 | Restore and disaster recovery | [../runbooks/disaster-recovery.md](../runbooks/disaster-recovery.md), [../runbooks/postgresql-pitr.md](../runbooks/postgresql-pitr.md), [../runbooks/restore-validation.md](../runbooks/restore-validation.md), [../runbooks/object-storage-recovery.md](../runbooks/object-storage-recovery.md) |
 | Security incident | [../incident-response-plan.md](../incident-response-plan.md), [../incident-response.md](../incident-response.md) |
 | Lost keys or secrets | [../key-recovery-runbook.md](../key-recovery-runbook.md) |

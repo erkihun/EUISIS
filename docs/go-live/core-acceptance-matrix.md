@@ -39,11 +39,14 @@ conditions in [../architecture/production-cutover.md](../architecture/production
 
 | Sign-off | Role | Name | Date | Evidence reviewed |
 | --- | --- | --- | --- | --- |
-| Business acceptance (UAT) | Business owner | — pending — | | |
-| Data acceptance (counts, integrity, migration) | Core data steward | — pending — | | |
-| Security acceptance (penetration test, access review) | Security owner | — pending — | | |
-| Operations handover (runbooks, monitoring, on-call) | Operations lead | — pending — | | |
-| Backup objectives (RPO/RTO) | Business owner + operations | — pending — | | |
+| Business acceptance (UAT, gate G4) | Business Owner | — pending — | | |
+| Data acceptance (counts, integrity, migration) | Data Owner, Data Steward | — pending — | | |
+| Security acceptance (independent penetration test, access review, gate G4) | Information Security Lead | — pending — | | |
+| Operations handover (runbooks, monitoring, on-call) | Technical Custodian, Database/Infrastructure Administrator | — pending — | | |
+| Recovery targets validated by drills (gates G1, G2) | DR Coordinator, Business Owner | — pending — | | |
+| Governance roles named (gate G5) | Project Sponsor | — pending — | | |
+
+Roles: [../governance/roles-register.md](../governance/roles-register.md). Gates and their evidence: [go-live-gates.md](go-live-gates.md). Go-live is not allowed while any P0/P1 security or business defect is open.
 
 ## Defect register
 
