@@ -49,5 +49,8 @@ financial evidence needs it they also keep a minimal immutable snapshot
 
 | Copy | Class | Plan |
 | --- | --- | --- |
-| `users.national_id`, `users.national_id_hash` | duplicate master | read from the linked employee after a sign-in and recovery review |
-| `institution_offices` | legacy organization master, routes already redirect | retire after confirming no row is referenced |
+| `users.national_id`, `users.national_id_hash` | duplicate master | read from the linked employee after a sign-in and recovery review; ready when `backbone:duplicate-masters` reports no differing or unlinked account |
+| `institution_offices` | legacy organization master, routes already redirect | retire when `backbone:duplicate-masters` reports no live office without its organization unit |
+
+Run `php artisan backbone:duplicate-masters --json` on live data and keep the
+output with the change record. It is read-only and prints counts only.

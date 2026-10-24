@@ -80,7 +80,21 @@ Inside the application, depend on the contracts in `app/Backbone/Contracts`
 | `AssignmentContextReader` | where do they work now (organization, unit, position, version) |
 | `OrganizationHierarchy` | is organization A within B, which organizations are under B |
 | `CardCredentialStatus` | is this card a valid credential, and its state |
-| `ServiceEligibility` | may this employee receive service X now |
+| `ServiceEligibility` | may this employee receive service X now (`check`, `checkCard`) |
+| `CredentialLookup` | which card a scanned QR value or token names |
+
+Two contracts point the other way: the backbone declares them and a service
+module implements them in `ServiceModuleServiceProvider`. Without the module the
+backbone binds a no-op.
+
+| Contract | Implemented by | Used for |
+| --- | --- | --- |
+| `EmployeeFeedbackLinks` | service feedback | provisioning an employee's public feedback link at registration and printing it on the ID card |
+| `ProviderCodeLookup` | service delivery | the `{PROVIDER_CODE}` and `{PROVIDER_PREFIX}` code-rule tokens |
+
+Service modules also register into two backbone registries from the same
+provider: code-rule targets and collision checks (`CodeRuleTargetRegistry`) and
+the tables that block deleting an organization (`OrganizationDeletionGuard`).
 
 They return immutable DTOs (`app/Backbone/Data`), never Eloquent models, so a
 module cannot write back through them. Outside the application, use the

@@ -46,6 +46,6 @@ Remove the three routes, the middleware alias, the `workspace` shared prop and t
 ## Next stages
 
 1. Core-only pages that do not exist yet: an assignments list, an Integration Center landing page, Audit Center filters.
-2. The open backbone stages: module registration for code rules, deletion checks and feedback links; explicit occupancy and card events; Start and End assignment and Suspend card commands.
+2. Backbone commands for the remaining direct writes: Start and End assignment, Suspend card. Backbone Stages 1 to 7 are done ([backbone-refactor-migration.md](backbone-refactor-migration.md), section 9); retiring the duplicate masters waits for live evidence.
 3. Move the service modules onto backbone contracts or the API, one per release.
 4. Make Core authoritative, then remove the master-record groups from the full sidebar last.

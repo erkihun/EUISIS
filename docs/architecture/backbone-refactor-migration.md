@@ -206,3 +206,41 @@ workstation, warm cache; not a production measurement):
 
 Partner eligibility and API round trips were not re-measured in Stage 1;
 status `DESIGN_READY_NOT_MEASURED` for those paths.
+
+## 9. Stages 2 to 7 results
+
+| Stage | Delivered | Tests |
+| --- | --- | --- |
+| 2 | `AssignmentChanged` and `EmployeeChanged` backbone events replace the transport and communication observers; `PositionCapacityService` moved to `app/Services/Positions`; `positions.organization_id` foreign key added only when no orphan exists (`backbone:audit-integrity` reports orphans) | `BackboneStageTwoTest` |
+| 3 | `CredentialLookup` and `ServiceEligibility::checkCard`; cafeteria, transport, service transactions, card verification and the partner API gate scans through them; transport manual lookup is scoped | `BackboneStageThreeTest`, transport security tests |
+| 4 | `/api/v1/assignments`, `/employees/{employee}/assignments`, `/cards/{card_uuid}`, `/verifications`; audit rows carry the request correlation id; OpenAPI 1.3.0 | `BackboneStageFourApiTest` |
+| 5 | Code-rule targets and collision checks, organization-deletion dependents, feedback links and provider codes are registered by the owning modules (`ServiceModuleServiceProvider`); `VerifyCardForServiceAction` moved to `Actions/ServiceTransactions`; grievance numbers are now checked for collisions (they never were) | `BackboneStageFiveTest` |
+| 6 | Integration events `position.occupied`, `position.vacated`, `id_card.activated`, `id_card.suspended`, `id_card.expired`; any type can be switched off with `INTEGRATION_DISABLED_EVENT_TYPES` | `BackboneStageSixTest` |
+| 7 | `backbone:duplicate-masters`: read-only evidence on whether `institution_offices` and `users.national_id` can be retired. Nothing is retired yet | `BackboneStageSevenTest` |
+
+The ratchet (`tests/Unit/BackboneBoundaryTest.php`) now allows two backbone
+imports of service-module classes, both the shared design-record status enum
+on position profiles and job descriptions, down from eighteen. Its other two
+rules allow only the development load-test seeder.
+
+### Retiring a duplicate master (Stage 7, not yet done)
+
+Retirement changes the data model, so it waits for evidence from live data and
+a reviewed change of its own:
+
+1. Run `php artisan backbone:duplicate-masters --json` on the live database and
+   attach the output to the change record.
+2. **institution_offices:** when no live office lacks its organization unit, a
+   migration copies the table to `institution_offices_archive`, drops the
+   foreign key from `organization_units.institution_office_id` and stops
+   reading the table. The column and the archive stay until a later release
+   confirms nothing reads them. Until then, run
+   `institution-offices:migrate-to-organization-units` (dry run first).
+3. **users.national_id:** when every account that holds an identifier is
+   linked to an employee with the same identifier, sign-in and account
+   recovery are reviewed for any use of the account copy; reads then move to
+   the linked employee, and the column is emptied in a later release, never in
+   the same one. Accounts that differ or are unlinked are resolved with HR
+   first.
+4. No step deletes business history, and no step runs on its own: each is a
+   migration that goes through review like any other.
