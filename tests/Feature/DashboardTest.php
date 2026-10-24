@@ -207,6 +207,9 @@ test('dashboard handles empty data safely', function (): void {
     ServiceTransaction::query()->delete();
     Entitlement::query()->delete();
     CardVerification::query()->delete();
+    // The assignment pointer and card lineage are foreign keys on server databases (ADR 0003).
+    Employee::query()->update(['current_assignment_id' => null]);
+    IdCard::query()->update(['previous_card_id' => null]);
     IdCard::query()->delete();
     CardRequest::query()->delete();
     EmployeeTransfer::query()->delete();
