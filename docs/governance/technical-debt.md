@@ -13,4 +13,4 @@ Known debt with its guard and the way out. Reviewed monthly.
 | TD-7 | esbuild low advisory in the build toolchain | build-time only | upgrade with the next Vite update | release manager |
 | TD-8 | No central log shipping or alert routing for production | hosting decision | choose with operations | operations lead |
 | TD-9 | Physical Core separation not started | boundary and ownership documented | after TD-1 | architecture |
-| TD-10 | RPO/RTO and personal-data retention undecided | nothing is purged | business decision | business owner |
+| TD-10 | RPO/RTO, and legal retention of employee records, case records and integration events, undecided | employee and case records are never pruned; integration events are not purged while their retention is unset | business decision | business owner |

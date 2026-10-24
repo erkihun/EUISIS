@@ -18,7 +18,7 @@ truth table and lists how the rule is enforced. Decisions behind it: ADR 0001
 | Users, roles, permissions, organization scopes | Core | Access administration | Permission = what, organization scope = where |
 | Code rules and sequences | Core | Code rule actions; modules register targets | — |
 | Partner applications, tokens, webhooks | Core | Integration Center | — |
-| Audit log | Core | `WriteAuditLogAction` only (append-only) | Audit Center, read-only |
+| Audit log | Core | `WriteAuditLogAction` only; append-only, removed only by the retention job `data:prune-retention` after the configured audit retention | Audit Center, read-only |
 
 Service modules own their own records (see [database-ownership.md](database-ownership.md)) and may keep UUID references and `*_snapshot` evidence columns, never a second master.
 

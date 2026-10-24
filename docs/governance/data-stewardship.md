@@ -30,5 +30,13 @@ answer for the records of their own organizations within their scope.
 Employee data is shared by purpose: public QR shows the minimum; partners get
 what their scope allows within their organization bounds; national ID is
 encrypted and stored with a keyed hash; sensitive fields are redacted in audit
-rows. Retention periods for personal data are **not decided** and are not
-invented here; until they are, data is kept.
+rows.
+
+Log retention is already a setting: `data:prune-retention` runs daily and
+removes audit and security events after System Settings › Security › Audit
+retention days (default 730, minimum 30; audit rows of a grievance stay while
+the case is open or on legal hold), and verification, notification and
+reminder logs after the periods in `config/retention.php`. Employee records,
+employment history, documents and case records are never pruned. Their legal
+retention periods, and those of integration events, are **not decided** and
+are not invented here.

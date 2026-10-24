@@ -28,4 +28,5 @@ LEGACY_CREDENTIAL, PROVIDER_UNBOUND).
 ## Offboarding
 
 Remove scopes, revoke tokens, disable the application and its webhook
-subscriptions; keep its request logs for the retention period once decided.
+subscriptions. Its request logs follow the normal API log retention
+(`api:prune-logs`, 90 days by default); the application record itself is kept.
