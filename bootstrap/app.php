@@ -19,6 +19,7 @@ use App\Http\Middleware\EnsurePublicSiteEnabled;
 use App\Http\Middleware\EnterCoreWorkspace;
 use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
+use App\Http\Middleware\GuardMasterDataWrites;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PrivateQrPageHeaders;
 use App\Http\Middleware\RecordRequestTelemetry;
@@ -91,6 +92,8 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             AuthenticateSession::class,
+            // Refuses master-data changes during a cutover or restore window (config/core.php).
+            GuardMasterDataWrites::class,
         ]);
 
         $middleware->alias([
