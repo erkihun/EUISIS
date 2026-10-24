@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -39,12 +41,25 @@ function opOrg(string $code, string $status = 'active'): Organization
 
 function opManager(): User
 {
-    return tap(User::factory()->create())->assignRole('OP Manager');
+    return opCitywide(tap(User::factory()->create())->assignRole('OP Manager'));
 }
 
 function opViewer(): User
 {
-    return tap(User::factory()->create())->assignRole('OP Viewer');
+    return opCitywide(tap(User::factory()->create())->assignRole('OP Viewer'));
+}
+
+// Organization-level roles need an explicit scope (ADR 0003).
+function opCitywide(User $user): User
+{
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
+
+    return $user;
 }
 
 it('renders the index with KPI summary counts', function (): void {

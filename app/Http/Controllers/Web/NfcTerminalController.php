@@ -239,7 +239,7 @@ class NfcTerminalController extends Controller
         $organizationIds = $this->access->organizationScope($request->user());
 
         return ServiceTerminal::query()->when(
-            $organizationIds->isNotEmpty(),
+            $organizationIds !== null,
             fn (Builder $query) => $query->whereIn('organization_id', $organizationIds),
         );
     }
@@ -253,7 +253,7 @@ class NfcTerminalController extends Controller
         $organizationIds = $this->access->organizationScope($request->user());
 
         abort_if(
-            $organizationIds->isNotEmpty() && ! $organizationIds->contains($terminal->organization_id),
+            $organizationIds !== null && ! $organizationIds->contains($terminal->organization_id),
             404,
         );
     }
@@ -263,7 +263,7 @@ class NfcTerminalController extends Controller
     {
         $organizationIds = $this->access->organizationScope($request->user());
 
-        if ($organizationIds->isEmpty()) {
+        if ($organizationIds === null) {
             return;
         }
 
@@ -276,7 +276,7 @@ class NfcTerminalController extends Controller
 
         return Organization::query()
             ->select(['id', 'name_en', 'name_am'])
-            ->when($organizationIds->isNotEmpty(), fn (Builder $query) => $query->whereIn('id', $organizationIds))
+            ->when($organizationIds !== null, fn (Builder $query) => $query->whereIn('id', $organizationIds))
             ->orderBy('name_en')
             ->get()
             ->all();

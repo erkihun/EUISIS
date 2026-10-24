@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Enums\OrganizationUnitType;
@@ -11,6 +12,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use App\Services\OrganizationUnits\OrganizationUnitTreeService;
 use Illuminate\Database\QueryException;
 use Spatie\Permission\Models\Permission;
@@ -60,7 +62,7 @@ function ouAdminUser(): User
     $user = User::factory()->create();
     $user->assignRole('OUAdmin');
 
-    return $user;
+    return ouCitywide($user);
 }
 
 function ouViewerUser(): User
@@ -71,6 +73,19 @@ function ouViewerUser(): User
 
     $user = User::factory()->create();
     $user->assignRole('OUViewer');
+
+    return ouCitywide($user);
+}
+
+// Organization-level roles need an explicit scope (ADR 0003).
+function ouCitywide(User $user): User
+{
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
 
     return $user;
 }

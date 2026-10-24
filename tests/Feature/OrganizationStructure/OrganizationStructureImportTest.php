@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\EmployeeStatus;
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Models\AuditLog;
@@ -15,6 +16,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Models\UserOrganizationScope;
 use App\Services\OrganizationStructureImport\StructureSheet;
 use Illuminate\Http\UploadedFile;
 
@@ -390,7 +392,16 @@ it('updates an existing organization instead of duplicating it', function (): vo
         'effective_from' => now()->toDateString(),
     ]);
 
-    $this->actingAs(structureImporterUser())
+    // Organization-level roles need an explicit scope (ADR 0003) to update an existing organization.
+    $importer = structureImporterUser();
+    UserOrganizationScope::query()->create([
+        'user_id' => $importer->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($importer)
         ->post(route('organizations.import-structure.confirm'), [
             'file' => structureWorkbookFile(validStructureSheets()),
         ])

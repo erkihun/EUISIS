@@ -265,6 +265,10 @@ test('requirements freeze with the published process and travel with a new versi
     $designer = ocDesignerFor($organization);
     $approver = User::factory()->create();
     $approver->assignRole('Requirement Approver');
+    // The approver works city-wide; organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $approver->id, 'organization_id' => null, 'scope_type' => OrganizationScopeType::Citywide, 'is_active' => true,
+    ]);
     [$process, $activity, $task] = ocDraftProcess($organization, $designer);
     $occupation = ocOccupation();
     $competency = ocCompetency();

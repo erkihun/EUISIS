@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Models\AuditLog;
@@ -15,6 +16,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -85,6 +87,14 @@ function copyTestAdminUser(): User
 
     $user = User::factory()->create();
     $user->assignRole('CopyTestAdmin');
+
+    // Organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
 
     return $user;
 }

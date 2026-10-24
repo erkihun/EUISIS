@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\Organizations\GetOrganizationFullTreeAction;
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -12,6 +13,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -52,6 +54,13 @@ function viewerUser(): User
 {
     $user = User::factory()->create();
     $user->assignRole('Viewer');
+    // Organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
 
     return $user;
 }

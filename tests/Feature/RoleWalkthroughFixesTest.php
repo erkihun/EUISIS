@@ -164,15 +164,20 @@ it('lets card staff see the photo without employee registry access, and nobody e
     $this->seed(PermissionSeeder::class);
     $this->seed(RoleSeeder::class);
     $employee = walkthroughEmployee(withPhoto: true);
+    // Organization-level roles need an explicit scope (ADR 0003): every actor here is scoped to the employee's organization.
+    $scopeToEmployeeOrganization = fn (User $user): User => tap($user, fn (User $u) => UserOrganizationScope::query()->create([
+        'user_id' => $u->id, 'organization_id' => $employee->currentAssignment->organization_id, 'scope_type' => 'self',
+        'effective_from' => now()->subDay()->toDateString(), 'is_active' => true,
+    ]));
 
     foreach (['ID Card Officer', 'ID Card Approver'] as $role) {
-        $user = walkthroughUser($role);
+        $user = $scopeToEmployeeOrganization(walkthroughUser($role));
         expect($user->can('employees.view'))->toBeFalse();
 
         $this->actingAs($user)->get(route('employees.private-photo', $employee))->assertOk();
     }
 
-    $this->actingAs(walkthroughUser('Report Viewer'))->get(route('employees.private-photo', $employee))->assertForbidden();
+    $this->actingAs($scopeToEmployeeOrganization(walkthroughUser('Report Viewer')))->get(route('employees.private-photo', $employee))->assertForbidden();
 });
 
 it('keeps card staff inside their organization scope for photos', function (): void {

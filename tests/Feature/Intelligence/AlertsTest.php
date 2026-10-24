@@ -16,6 +16,7 @@ use App\Services\Intelligence\System\RouteGroups;
 use App\Services\Intelligence\System\Telemetry\Metrics;
 use App\Services\Intelligence\System\Telemetry\SignalRepository;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
@@ -29,10 +30,14 @@ use Tests\Support\SituationRoomScenario;
  * visibility follows the two domains.
  */
 
-function alertUser(array $permissions): User
+function alertUser(array $permissions, bool $global = false): User
 {
     $user = User::factory()->create();
     $role = Role::findOrCreate('alert-'.md5(implode(',', $permissions)), 'web');
+    if ($global) {
+        // City-wide business figures need an unrestricted actor; organization-level roles are confined (ADR 0003).
+        DB::table('roles')->where('id', $role->id)->update(['scope_type' => 'global']);
+    }
     $role->syncPermissions($permissions);
     $user->assignRole($role);
 
@@ -111,7 +116,7 @@ test('the alerts page shows each domain only to its grants, and acknowledging is
 
     $technician = alertUser([IntelligencePermissions::VIEW, IntelligencePermissions::INCIDENTS, IntelligencePermissions::INCIDENTS_MANAGE]);
     $scopedExecutive = SituationRoomScenario::build()->viewer([IntelligencePermissions::VIEW, IntelligencePermissions::EXECUTIVE], 'subcity_a', OrganizationScopeType::Self);
-    $cityExecutive = alertUser([IntelligencePermissions::VIEW, IntelligencePermissions::EXECUTIVE]);
+    $cityExecutive = alertUser([IntelligencePermissions::VIEW, IntelligencePermissions::EXECUTIVE], global: true);
 
     $this->actingAs($technician)->get(route('intelligence.alerts.index'))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('Intelligence/Alerts/Index')

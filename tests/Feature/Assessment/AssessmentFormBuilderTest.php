@@ -22,6 +22,7 @@ use App\Services\Assessment\AssessmentTargetResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Database\Seeders\AssessmentSampleFormSeeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
@@ -39,9 +40,13 @@ use Spatie\Permission\Models\Role;
 
 const AF_ALL = ['assessment_forms.view', 'assessment_forms.create', 'assessment_forms.edit_draft', 'assessment_forms.publish', 'assessment_forms.archive'];
 
-function afUser(array $permissions, ?Organization $scope = null): User
+function afUser(array $permissions, ?Organization $scope = null, bool $global = false): User
 {
     $role = Role::findOrCreate('AF '.Str::random(6), 'web');
+    if ($global) {
+        // City-wide form administration needs an unrestricted actor; organization-level roles are confined (ADR 0003).
+        DB::table('roles')->where('id', $role->id)->update(['scope_type' => 'global']);
+    }
     foreach ($permissions as $permission) {
         $role->givePermissionTo(Permission::findOrCreate($permission, 'web'));
     }
@@ -131,7 +136,7 @@ beforeEach(function (): void {
     $this->director = Position::query()->create(['organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'job_position_code' => 'AF-D', 'title_en' => 'Director', 'grade_level' => 'XV', 'job_family' => 'Management', 'is_active' => true]);
     $this->officer = Position::query()->create(['organization_id' => $this->org->id, 'organization_unit_id' => $this->subUnit->id, 'job_position_code' => 'AF-O', 'title_en' => 'HR Officer', 'grade_level' => 'IX', 'job_family' => 'Professional', 'is_active' => true]);
     $this->type = AssessmentType::query()->where('code', 'BEHAVIORAL_COMPETENCY')->firstOrFail();
-    $this->admin = afUser(AF_ALL);
+    $this->admin = afUser(AF_ALL, global: true);
 });
 
 afterEach(fn () => Carbon::setTestNow());
@@ -142,7 +147,8 @@ test('published peer form completes assignment submission review and employee ac
     $subject = afUser(['assessments.view_own_result']);
     $subject->forceFill(['employee_id' => $employee->id])->save();
     $peer = afUser(['assessments.view_assigned', 'assessments.complete_assigned', 'assessments.submit']);
-    $reviewer = afUser([...AF_ALL, 'assessments.review', 'assessments.finalize']);
+    // The reviewer works in the employee's organization; organization-level roles need an explicit scope (ADR 0003).
+    $reviewer = afUser([...AF_ALL, 'assessments.review', 'assessments.finalize'], $this->org);
     $peer->forceFill(['employee_id' => $peerEmployee->id])->save();
     $version = afPublished($this, $this->admin, 'FLOW', [['target_type' => 'everyone', 'effect' => 'include']], [
         'evaluators' => [['evaluator_type' => 'peer', 'required_count' => 1, 'contribution_weight' => 100, 'selection_method' => 'admin_selected', 'is_anonymous' => true, 'requires_review' => true]],
@@ -512,7 +518,8 @@ test('the printed form shows each evaluator column only to those allowed to see 
 
         return $peer;
     });
-    $reviewer = afUser([...AF_ALL, 'assessments.review', 'assessments.finalize']);
+    // The reviewer works in the employee's organization; organization-level roles need an explicit scope (ADR 0003).
+    $reviewer = afUser([...AF_ALL, 'assessments.review', 'assessments.finalize'], $this->org);
     $version = afPublished($this, $this->admin, 'SHEET', [['target_type' => 'everyone', 'effect' => 'include']], [
         'evaluators' => [['evaluator_type' => 'peer', 'required_count' => 2, 'contribution_weight' => 100, 'selection_method' => 'admin_selected', 'is_anonymous' => true, 'requires_review' => true]],
     ]);

@@ -7,6 +7,7 @@ use App\Actions\IdCards\SubmitCardRequestAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\CardRequestStatus;
 use App\Enums\EmployeeStatus;
+use App\Enums\OrganizationScopeType;
 use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -14,6 +15,7 @@ use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Inertia\Testing\AssertableInertia;
@@ -30,10 +32,23 @@ beforeEach(function (): void {
     $this->seed(PermissionSeeder::class);
     $this->seed(RoleSeeder::class);
 
-    $this->officer = User::factory()->create()->assignRole('ID Card Officer');
-    $this->approver = User::factory()->create()->assignRole('ID Card Approver');
     $this->employee = segregationEmployee();
+    $this->officer = segregationScoped(User::factory()->create()->assignRole('ID Card Officer'));
+    $this->approver = segregationScoped(User::factory()->create()->assignRole('ID Card Approver'));
 });
+
+// Organization-level roles need an explicit scope (ADR 0003); these staff serve the segregation org.
+function segregationScoped(User $user): User
+{
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'organization_id' => Organization::query()->where('code', 'SEG-ORG')->value('id'),
+        'scope_type' => OrganizationScopeType::Self,
+        'is_active' => true,
+    ]);
+
+    return $user;
+}
 
 function segregationEmployee(): Employee
 {
@@ -95,7 +110,7 @@ it('lets the ID Card Approver approve a request someone else submitted', functio
 });
 
 it('refuses approval by the person who submitted the request', function (): void {
-    $both = User::factory()->create()->assignRole(['ID Card Officer', 'ID Card Approver']);
+    $both = segregationScoped(User::factory()->create()->assignRole(['ID Card Officer', 'ID Card Approver']));
     $request = app(SubmitCardRequestAction::class)->execute($this->employee, $both);
 
     $this->actingAs($both)

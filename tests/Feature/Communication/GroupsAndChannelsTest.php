@@ -6,14 +6,17 @@ use App\Actions\Communication\CreateChannelAction;
 use App\Actions\Communication\CreateGroupAction;
 use App\Actions\Communication\SendMessageAction;
 use App\Enums\AuditEventType;
+use App\Enums\OrganizationScopeType;
 use App\Models\AuditLog;
 use App\Models\Communication\Channel;
 use App\Models\Communication\Conversation;
 use App\Models\Communication\ConversationMember;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use App\Notifications\Communication\CommunicationNotification;
 use App\Services\Communication\ChannelMembershipSync;
 use App\Services\Communication\CommunicationInbox;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Support\Communication\CommunicationRoles;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
@@ -198,6 +201,11 @@ it('lists joinable organization channels and your own, never other people\'s pri
 });
 
 it('moves automatic memberships with a transfer, and never pulls back someone who left', function (): void {
+    // The manager runs channels in both bureaus; organization-level roles need an explicit scope (ADR 0003).
+    foreach ([$this->s->orgA, $this->s->orgB] as $organization) {
+        UserOrganizationScope::query()->create(['user_id' => $this->manager->id, 'organization_id' => $organization->id, 'scope_type' => OrganizationScopeType::Self, 'is_active' => true]);
+    }
+    app(OrganizationScopeService::class)->clearCache();
     $orgA = cgChannel($this, ['auto_membership' => true]);
     $orgB = app(CreateChannelAction::class)->execute($this->manager, ['name' => 'Health Bureau — all staff', 'type' => 'PUBLIC_ORGANIZATION', 'organization_id' => $this->s->orgB->id, 'auto_membership' => true]);
 

@@ -345,7 +345,7 @@ class NfcAdminController extends Controller
      *
      * @return list<array{day: string, allowed: int, blocked: int}>
      */
-    private function buildTrend(Collection $organizationIds, Carbon $today): array
+    private function buildTrend(?Collection $organizationIds, Carbon $today): array
     {
         $rows = $this->logQuery($organizationIds)
             ->whereDate('occurred_at', '>=', $today->copy()->subDays(13))
@@ -370,10 +370,10 @@ class NfcAdminController extends Controller
             ->all();
     }
 
-    private function credentialQuery(Collection $organizationIds): Builder
+    private function credentialQuery(?Collection $organizationIds): Builder
     {
         return NfcCredential::query()->when(
-            $organizationIds->isNotEmpty(),
+            $organizationIds !== null,
             fn (Builder $query) => $query->whereHas(
                 'idCard.employee.currentAssignment',
                 fn (Builder $assignment) => $assignment->whereIn('organization_id', $organizationIds),
@@ -381,10 +381,10 @@ class NfcAdminController extends Controller
         );
     }
 
-    private function logQuery(Collection $organizationIds): Builder
+    private function logQuery(?Collection $organizationIds): Builder
     {
         return NfcVerificationLog::query()->when(
-            $organizationIds->isNotEmpty(),
+            $organizationIds !== null,
             fn (Builder $query) => $query->whereHas(
                 'nfcCredential.idCard.employee.currentAssignment',
                 fn (Builder $assignment) => $assignment->whereIn('organization_id', $organizationIds),
@@ -392,19 +392,19 @@ class NfcAdminController extends Controller
         );
     }
 
-    private function terminalQuery(Collection $organizationIds): Builder
+    private function terminalQuery(?Collection $organizationIds): Builder
     {
         return ServiceTerminal::query()->when(
-            $organizationIds->isNotEmpty(),
+            $organizationIds !== null,
             fn (Builder $query) => $query->whereIn('organization_id', $organizationIds),
         );
     }
 
-    private function organizationOptions(Collection $organizationIds): array
+    private function organizationOptions(?Collection $organizationIds): array
     {
         return Organization::query()
             ->select(['id', 'name_en', 'name_am'])
-            ->when($organizationIds->isNotEmpty(), fn (Builder $query) => $query->whereIn('id', $organizationIds))
+            ->when($organizationIds !== null, fn (Builder $query) => $query->whereIn('id', $organizationIds))
             ->orderBy('name_en')
             ->get()
             ->all();

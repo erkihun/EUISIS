@@ -103,9 +103,13 @@ test('dashboard organization filters narrow all totals and reject a forged organ
         ->get(route('assessment-oversight.dashboard', ['cycle' => $this->cycle->id, 'organization_id' => $this->orgB->id]))->assertForbidden();
 });
 
-function aoUser(array $permissions, ?Organization $scope = null, ?Employee $employee = null): User
+function aoUser(array $permissions, ?Organization $scope = null, ?Employee $employee = null, bool $global = false): User
 {
     $role = Role::findOrCreate('AO '.Str::random(6), 'web');
+    if ($global) {
+        // City-wide oversight needs an unrestricted actor; organization-level roles are confined (ADR 0003).
+        DB::table('roles')->where('id', $role->id)->update(['scope_type' => 'global']);
+    }
     foreach ($permissions as $permission) {
         $role->givePermissionTo(Permission::findOrCreate($permission, 'web'));
     }
@@ -199,8 +203,8 @@ beforeEach(function (): void {
     $this->posA = Position::query()->create(['organization_id' => $this->orgA->id, 'organization_unit_id' => $this->unitA1->id, 'job_position_code' => 'AO-PA', 'title_en' => 'Officer A', 'is_active' => true]);
     $this->posB = Position::query()->create(['organization_id' => $this->orgB->id, 'organization_unit_id' => $this->unitB->id, 'job_position_code' => 'AO-PB', 'title_en' => 'Officer B', 'is_active' => true]);
     $this->type = AssessmentType::query()->where('code', 'BEHAVIORAL_COMPETENCY')->firstOrFail();
-    $this->city = aoUser(AO_CITY);
-    $this->reviewer = aoUser(AO_CITY);
+    $this->city = aoUser(AO_CITY, global: true);
+    $this->reviewer = aoUser(AO_CITY, global: true);
     $this->v1 = aoVersion($this, 'AO-F1');
     $this->cycle = AssessmentCycle::query()->create([
         'code' => 'AO-2026H1', 'name_en' => '2026 first half', 'assessment_type_id' => $this->type->id,

@@ -7,6 +7,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -47,6 +48,9 @@ beforeEach(function (): void {
     Role::findOrCreate('User Viewer', 'web')->syncPermissions([
         'users.viewAny',
     ]);
+
+    // City-wide user administration is a global role; organization-level roles need an explicit scope (ADR 0003).
+    DB::table('roles')->whereIn('name', ['User Manager', 'User Viewer'])->update(['scope_type' => 'global']);
 });
 
 function userMgmtAdmin(): User

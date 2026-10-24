@@ -155,6 +155,10 @@ test('service version history is preserved when a new version is published', fun
     $designer = scDesignerFor($organization);
     $approver = User::factory()->create();
     $approver->assignRole('Service Approver');
+    // The approver works city-wide; organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $approver->id, 'organization_id' => null, 'scope_type' => OrganizationScopeType::Citywide, 'is_active' => true,
+    ]);
 
     $this->actingAs($designer)->post(route('organization-design.services.store'), scServicePayload($organization, ['code' => 'SRV-V']))->assertRedirect();
     $v1 = Service::query()->where('code', 'SRV-V')->firstOrFail();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\AssignmentStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
+use App\Enums\OrganizationScopeType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeFeedbackToken;
@@ -14,6 +15,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -89,6 +91,23 @@ beforeEach(function (): void {
     $this->admin = User::factory()->create();
     $this->admin->assignRole('Super Admin');
 });
+
+/** Staff holding employees.view only, serving the QR organization. */
+function qrEmployeeViewer(): User
+{
+    $viewer = User::factory()->create();
+    $viewer->assignRole('Employee Viewer');
+
+    // Organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $viewer->id,
+        'organization_id' => test()->org->id,
+        'scope_type' => OrganizationScopeType::Self,
+        'is_active' => true,
+    ]);
+
+    return $viewer;
+}
 
 /** Give the employee an active card with a public reference. */
 function giveActiveCard(Employee $employee): IdCard
@@ -259,8 +278,7 @@ it('changes the feedback token only on an explicit regenerate', function (): voi
 it('hides both qr cards from a user without the qr permissions', function (): void {
     giveActiveCard($this->employee);
 
-    $viewer = User::factory()->create();
-    $viewer->assignRole('Employee Viewer');
+    $viewer = qrEmployeeViewer();
 
     $this->actingAs($viewer)
         ->get(route('employees.show', $this->employee->id))
@@ -275,8 +293,7 @@ it('hides both qr cards from a user without the qr permissions', function (): vo
 });
 
 it('does not provision a feedback token for an unauthorized viewer', function (): void {
-    $viewer = User::factory()->create();
-    $viewer->assignRole('Employee Viewer');
+    $viewer = qrEmployeeViewer();
 
     $this->actingAs($viewer)->get(route('employees.show', $this->employee->id))->assertOk();
 
@@ -289,8 +306,7 @@ it('blocks an unauthorized user from regenerating the token', function (): void 
 
     $before = EmployeeFeedbackToken::query()->where('employee_id', $this->employee->id)->firstOrFail()->token;
 
-    $viewer = User::factory()->create();
-    $viewer->assignRole('Employee Viewer');
+    $viewer = qrEmployeeViewer();
 
     $this->actingAs($viewer)
         ->post(route('employees.feedback-qr.regenerate', $this->employee->id))

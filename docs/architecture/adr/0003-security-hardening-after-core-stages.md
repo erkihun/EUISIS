@@ -35,6 +35,17 @@ Rollout: run `access:scope-gaps` on production before deploying, give each
 listed account a scope (or a global role when its work is city-wide), deploy,
 run it again.
 
+Which of the two: a `citywide` scope record lets an operational role see and
+work on every organization's records. City-level functions that were built
+for "unrestricted" actors — city assessment oversight (cycle and policy
+administration, city verification), city-wide assessment forms, business
+alerts in Intelligence — still need an unrestricted actor: City Admin,
+Public Service Bureau Admin, or a custom role marked global in Roles. Before
+this decision such staff got there implicitly by having no scope record; now
+it is an explicit role choice. The test suite was updated the same way
+(city-level test actors use global roles; operational test actors get
+citywide or self scope records).
+
 ## Decision 2: audit-log tamper evidence
 
 Each finished day of `audit_logs` is sealed (`audit:seal`, scheduled 00:20)
@@ -65,7 +76,24 @@ positions key: skipped (and logged) when orphaned rows exist, skipped on
 SQLite, no cascade. The development seeders clear these pointers before they
 delete demo rows.
 
-## Decision 5: build toolchain advisory
+## Decision 5: an empty scope set means nothing, everywhere
+
+Three places still read an empty organization set as "no filter", so a
+scoped user whose scope rows had all expired (risk SEC-5), or an
+organization-level role without a scope record, saw everything there:
+
+- the NFC management pages (credentials, verification logs, terminals,
+  organization options): `NfcAccess::organizationScope()` now returns null
+  only for an unrestricted user and an empty set otherwise;
+- the organization-unit index and create form (organization list, unit tree,
+  KPI counts, organization selection);
+- the organization-scope delegation rule (a scoped actor with an empty set
+  could grant any organization).
+
+All three now use `OrganizationScopeService::isUnrestricted()`, like the rest
+of the application. `EmptyScopeFailsClosedTest` covers them.
+
+## Decision 6: build toolchain advisory
 
 esbuild is raised to 0.28 (GHSA-g7r4-m6w7-qqqr, development server on
 Windows; build-time only).

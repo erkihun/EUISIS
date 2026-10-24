@@ -6,11 +6,14 @@ use App\Enums\CardStatus;
 use App\Enums\OrganizationScopeType;
 use App\Models\IdCard;
 use App\Models\OrganizationType;
+use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use App\Services\Nfc\NfcAccess;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\Support\GrievanceScenario;
 
 use function Pest\Laravel\actingAs;
@@ -48,4 +51,22 @@ it('shows no ID cards to a scoped user whose scope has expired', function (): vo
     actingAs($this->user)->get(route('id-cards.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('summary.total', 0));
+});
+
+it('shows no organizations or units to a scoped user whose scope has expired', function (): void {
+    $this->user->givePermissionTo(Permission::findOrCreate('organization-units.viewAny', 'web'));
+    OrganizationUnit::query()->create(['organization_id' => $this->org->id, 'code' => 'ESC-U1', 'name_en' => 'Unit', 'unit_type' => 'department', 'status' => 'active']);
+
+    actingAs($this->user)->get(route('organization-units.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('stats.total', 0)->where('organizations', []));
+    actingAs($this->user)->get(route('organization-units.index', ['organization_id' => $this->org->id]))->assertForbidden();
+});
+
+it('gives the NFC pages an empty organization set, not an unfiltered one, for a scoped user whose scope has expired', function (): void {
+    $access = app(NfcAccess::class);
+    $admin = User::factory()->create()->assignRole(Role::findOrCreate('Super Admin', 'web'));
+
+    expect($access->organizationScope($this->user))->not->toBeNull()->toBeEmpty()
+        ->and($access->organizationScope($admin))->toBeNull();
 });

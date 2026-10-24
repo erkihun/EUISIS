@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -49,7 +51,7 @@ function ouIndexAdminUser(): User
     $user = User::factory()->create();
     $user->assignRole('OUIndexAdmin');
 
-    return $user;
+    return ouIndexCitywide($user);
 }
 
 function ouIndexViewerUser(): User
@@ -61,6 +63,19 @@ function ouIndexViewerUser(): User
 
     $user = User::factory()->create();
     $user->assignRole('OUIndexViewer');
+
+    return ouIndexCitywide($user);
+}
+
+// Organization-level roles need an explicit scope (ADR 0003).
+function ouIndexCitywide(User $user): User
+{
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
 
     return $user;
 }

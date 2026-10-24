@@ -105,6 +105,13 @@ function ogUser(string $role = 'OG Viewer', ?Organization $scopeTo = null): User
             'scope_type' => 'self',
             'is_active' => true,
         ]);
+    } else {
+        // Organization-level roles need an explicit scope (ADR 0003).
+        $user->organizationScopes()->create([
+            'organization_id' => null,
+            'scope_type' => 'citywide',
+            'is_active' => true,
+        ]);
     }
 
     return $user->fresh();

@@ -8,6 +8,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -45,6 +46,9 @@ beforeEach(function (): void {
 
     // Can edit users, but must NOT be able to touch organization scopes.
     Role::findOrCreate('UOS Weak', 'web')->syncPermissions(['users.viewAny', 'users.update']);
+
+    // Granting scopes city-wide is an access-administration role, so global; organization-level roles need an explicit scope (ADR 0003).
+    DB::table('roles')->whereIn('name', ['UOS Manager', 'UOS Weak'])->update(['scope_type' => 'global']);
 
     $this->uosType = OrganizationType::query()->create([
         'code' => 'UOS-TYPE',

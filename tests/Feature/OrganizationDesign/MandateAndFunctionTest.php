@@ -66,6 +66,10 @@ function odApprover(): User
 {
     $user = User::factory()->create();
     $user->assignRole('Design Approver');
+    // The approver works city-wide; organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id, 'organization_id' => null, 'scope_type' => OrganizationScopeType::Citywide, 'is_active' => true,
+    ]);
 
     return $user;
 }

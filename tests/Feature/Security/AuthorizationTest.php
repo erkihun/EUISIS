@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
@@ -90,6 +92,13 @@ test('employee detail resource hides national_id without viewPii permission', fu
 
     $user = User::factory()->create();
     $user->assignRole($viewRole);
+    // Organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Self,
+        'organization_id' => $org->id,
+        'is_active' => true,
+    ]);
 
     $response = $this->actingAs($user)->get("/employees/{$employee->id}");
 
@@ -135,6 +144,13 @@ test('employee detail resource exposes national_id with viewPii permission', fun
 
     $user = User::factory()->create();
     $user->assignRole($piiRole);
+    // Organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Self,
+        'organization_id' => $org->id,
+        'is_active' => true,
+    ]);
 
     $response = $this->actingAs($user)->get("/employees/{$employee->id}");
 

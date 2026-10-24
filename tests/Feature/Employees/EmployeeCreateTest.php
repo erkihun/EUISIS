@@ -7,6 +7,7 @@ use App\Enums\CodeRuleEntityType;
 use App\Enums\CodeRuleResetFrequency;
 use App\Enums\CodeRuleScopeStrategy;
 use App\Enums\EmployeeStatus;
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Models\CodeRule;
@@ -17,6 +18,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -66,12 +68,25 @@ beforeEach(function (): void {
 
 function ecManager(): User
 {
-    return tap(User::factory()->create())->assignRole('EC Manager');
+    return ecCitywide(tap(User::factory()->create())->assignRole('EC Manager'));
 }
 
 function ecViewer(): User
 {
-    return tap(User::factory()->create())->assignRole('EC Viewer');
+    return ecCitywide(tap(User::factory()->create())->assignRole('EC Viewer'));
+}
+
+// Organization-level roles need an explicit scope (ADR 0003).
+function ecCitywide(User $user): User
+{
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
+
+    return $user;
 }
 
 function ecOrg(string $code, string $status = 'active'): Organization

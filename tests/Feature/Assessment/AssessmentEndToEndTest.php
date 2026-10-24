@@ -19,6 +19,7 @@ use App\Models\UserOrganizationScope;
 use App\Services\Assessment\Oversight\OversightAccess;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
@@ -33,9 +34,13 @@ use Spatie\Permission\Models\Role;
 | Synthetic data; nothing from the reference paper form.
 */
 
-function e2eUser(array $permissions, ?Organization $scope = null, ?Employee $employee = null): User
+function e2eUser(array $permissions, ?Organization $scope = null, ?Employee $employee = null, bool $global = false): User
 {
     $role = Role::findOrCreate('E2E '.Str::random(6), 'web');
+    if ($global) {
+        // City-wide form administration and oversight need an unrestricted actor; organization-level roles are confined (ADR 0003).
+        DB::table('roles')->where('id', $role->id)->update(['scope_type' => 'global']);
+    }
     foreach ($permissions as $permission) {
         $role->givePermissionTo(Permission::findOrCreate($permission, 'web'));
     }
@@ -75,8 +80,8 @@ test('a peer assessment flows from the form builder to a finalized institutional
         'assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_oversight.view_employee_status', 'assessment_oversight.view_results',
         'assessment_oversight.view_demographics', 'assessment_oversight.view_data_quality', 'assessment_oversight.manage_cycles', 'assessment_oversight.manage_policies',
         'assessment_submissions.review', 'assessment_submissions.return', 'assessment_submissions.verify', 'assessment_submissions.finalize', 'assessment_reports.view', 'assessment_reports.export',
-    ]);
-    $reviewer = e2eUser(['assessment_forms.view', 'assessment_forms.publish', 'assessments.review', 'assessments.finalize', 'assessment_oversight.view_dashboard', 'assessment_submissions.review', 'assessment_submissions.verify']);
+    ], global: true);
+    $reviewer = e2eUser(['assessment_forms.view', 'assessment_forms.publish', 'assessments.review', 'assessments.finalize', 'assessment_oversight.view_dashboard', 'assessment_submissions.review', 'assessment_submissions.verify'], global: true);
     $institution = e2eUser(['assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_oversight.view_employee_status', 'assessment_submissions.submit'], $org);
     $evaluator = ['assessments.view_assigned', 'assessments.complete_assigned', 'assessments.submit', 'assessments.view_own_result'];
     $alemUser = e2eUser($evaluator, null, $alem);

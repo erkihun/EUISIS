@@ -7,6 +7,7 @@ use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationRelationshipType;
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\AuditLog;
 use App\Models\Employee;
@@ -18,6 +19,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Validation\ValidationException;
@@ -55,12 +57,25 @@ function odgOrg(string $code, string $status = 'active'): Organization
     ]);
 }
 
+// Organization-level roles need an explicit scope (ADR 0003).
+function odgCitywideScope(User $user): User
+{
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'organization_id' => null,
+        'is_active' => true,
+    ]);
+
+    return $user;
+}
+
 function odgManager(): User
 {
     $user = User::factory()->create();
     $user->assignRole('ODG Manager');
 
-    return $user;
+    return odgCitywideScope($user);
 }
 
 function odgViewer(): User
@@ -68,7 +83,7 @@ function odgViewer(): User
     $user = User::factory()->create();
     $user->assignRole('ODG Viewer');
 
-    return $user;
+    return odgCitywideScope($user);
 }
 
 function odgHierarchyVersion(string $status): HierarchyVersion

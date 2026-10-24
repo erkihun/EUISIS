@@ -106,13 +106,10 @@ function osViewer(?Organization $scopeTo = null): User
     $user = User::factory()->create();
     $user->assignRole('OS Viewer');
 
-    if ($scopeTo !== null) {
-        $user->organizationScopes()->create([
-            'organization_id' => $scopeTo->id,
-            'scope_type' => 'self',
-            'is_active' => true,
-        ]);
-    }
+    // Organization-level roles need an explicit scope (ADR 0003); unscoped means city-wide here.
+    $user->organizationScopes()->create($scopeTo !== null
+        ? ['organization_id' => $scopeTo->id, 'scope_type' => 'self', 'is_active' => true]
+        : ['organization_id' => null, 'scope_type' => 'citywide', 'is_active' => true]);
 
     return $user->fresh();
 }

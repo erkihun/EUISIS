@@ -57,6 +57,12 @@ beforeEach(function (): void {
 
     $this->reviewer = User::factory()->create();
     $this->reviewer->assignRole('Reviewer');
+    // The reviewer works in the submissions' organization; organization-level roles need an explicit scope (ADR 0003).
+    UserOrganizationScope::query()->create([
+        'user_id' => $this->reviewer->id,
+        'organization_id' => $this->a->organization->id,
+        'scope_type' => OrganizationScopeType::Self,
+    ]);
 });
 
 function wfSubmission(ServiceFeedbackType $type, ServiceFeedbackStatus $status = ServiceFeedbackStatus::Pending): EmployeeServiceFeedback

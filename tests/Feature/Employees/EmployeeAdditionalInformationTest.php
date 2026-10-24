@@ -72,9 +72,21 @@ beforeEach(function (): void {
     ]);
 });
 
-function aiManager(): User
+function aiManager(bool $citywide = true): User
 {
-    return tap(User::factory()->create())->assignRole('AI Manager');
+    $user = tap(User::factory()->create())->assignRole('AI Manager');
+
+    // Organization-level roles need an explicit scope (ADR 0003).
+    if ($citywide) {
+        UserOrganizationScope::query()->create([
+            'user_id' => $user->id,
+            'scope_type' => OrganizationScopeType::Citywide,
+            'organization_id' => null,
+            'is_active' => true,
+        ]);
+    }
+
+    return $user;
 }
 
 function aiOrg(string $code): Organization
@@ -348,7 +360,7 @@ it('forbids a scoped user from updating an employee outside their scope', functi
     $ownOrg = aiOrg('AI-6-OWN');
     $otherOrg = aiOrg('AI-6-OTHER');
 
-    $scopedUser = aiManager();
+    $scopedUser = aiManager(citywide: false);
     UserOrganizationScope::query()->create([
         'user_id' => $scopedUser->id,
         'organization_id' => $ownOrg->id,
@@ -374,7 +386,7 @@ it('forbids a scoped user from updating an employee outside their scope', functi
 it('lets a scoped user update an employee inside their scope', function (): void {
     $ownOrg = aiOrg('AI-6B-OWN');
 
-    $scopedUser = aiManager();
+    $scopedUser = aiManager(citywide: false);
     UserOrganizationScope::query()->create([
         'user_id' => $scopedUser->id,
         'organization_id' => $ownOrg->id,

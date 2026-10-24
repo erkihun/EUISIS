@@ -63,9 +63,21 @@ beforeEach(function (): void {
     ]);
 });
 
-function flManager(): User
+function flManager(bool $citywide = true): User
 {
-    return tap(User::factory()->create())->assignRole('FL Manager');
+    $user = tap(User::factory()->create())->assignRole('FL Manager');
+
+    // Organization-level roles need an explicit scope (ADR 0003).
+    if ($citywide) {
+        UserOrganizationScope::query()->create([
+            'user_id' => $user->id,
+            'scope_type' => OrganizationScopeType::Citywide,
+            'organization_id' => null,
+            'is_active' => true,
+        ]);
+    }
+
+    return $user;
 }
 
 function flOrg(string $code): Organization
@@ -220,7 +232,7 @@ it('offers a scoped user only in-scope organizations, units and positions', func
     $otherUnit = flUnit($otherOrg, 'FL-5-OTHER-U');
     flPosition($otherOrg, $otherUnit, 'FL-5-OTHER-P');
 
-    $scoped = flScopedTo(flManager(), $ownOrg);
+    $scoped = flScopedTo(flManager(citywide: false), $ownOrg);
 
     $this->actingAs($scoped)
         ->get(route('employees.create'))
@@ -241,7 +253,7 @@ it('refuses a scoped user opening the create page for an outside organization', 
     $ownOrg = flOrg('FL-6-OWN');
     $otherOrg = flOrg('FL-6-OTHER');
 
-    $scoped = flScopedTo(flManager(), $ownOrg);
+    $scoped = flScopedTo(flManager(citywide: false), $ownOrg);
 
     $this->actingAs($scoped)
         ->get(route('employees.create', ['organization_id' => $otherOrg->id]))
@@ -252,7 +264,7 @@ it('rejects a store that names an organization outside the user scope', function
     $ownOrg = flOrg('FL-7-OWN');
     $otherOrg = flOrg('FL-7-OTHER');
 
-    $scoped = flScopedTo(flManager(), $ownOrg);
+    $scoped = flScopedTo(flManager(citywide: false), $ownOrg);
 
     $this->actingAs($scoped)
         ->post(route('employees.store'), [
@@ -271,7 +283,7 @@ it('forbids a scoped user editing an employee outside their scope', function ():
     $ownOrg = flOrg('FL-8-OWN');
     $otherOrg = flOrg('FL-8-OTHER');
 
-    $scoped = flScopedTo(flManager(), $ownOrg);
+    $scoped = flScopedTo(flManager(citywide: false), $ownOrg);
     $outsider = flEmployeeIn($otherOrg);
 
     $this->actingAs($scoped)->get(route('employees.edit', $outsider))->assertForbidden();

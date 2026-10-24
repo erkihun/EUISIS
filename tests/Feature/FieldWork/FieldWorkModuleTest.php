@@ -691,6 +691,9 @@ test('Team Field Work lists only the user\'s own team, even when they also hold 
 
     // The HR directorate supervisor also oversees the whole organization.
     $this->supervisor->givePermissionTo(Permission::findOrCreate('field_work.view_org', 'web'));
+    // Organization oversight needs an explicit scope on that organization (ADR 0003).
+    UserOrganizationScope::query()->create(['user_id' => $this->supervisor->id, 'organization_id' => $this->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
     $supervisor = $this->supervisor->fresh();
 
     $this->actingAs($supervisor)->get(route('field-work.team.index'))
