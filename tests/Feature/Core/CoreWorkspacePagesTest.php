@@ -198,3 +198,22 @@ it('shows recent audited changes on the employee page only to audit viewers, wit
     $viewer = corePagesUser(['employees.view'], $this->mine);
     expect($this->actingAs($viewer)->get(route('employees.show', $this->employee))->assertOk()->inertiaProps('recentActivity'))->toBeNull();
 });
+
+it('shows the data-quality checks with a link to each finding to city-wide auditors only', function (): void {
+    // A finding: a second active card for one employee.
+    foreach (['CP-DQ-1', 'CP-DQ-2'] as $number) {
+        IdCard::query()->create(['employee_id' => $this->employee->id, 'card_number' => $number, 'status' => CardStatus::Active->value, 'is_current' => $number === 'CP-DQ-1', 'expires_at' => now()->addYear()]);
+    }
+
+    $auditor = corePagesUser(['audit.view']);
+    $checks = collect($this->actingAs($auditor)->get(route('core.data-quality'))->assertOk()->inertiaProps('checks'))->keyBy('key');
+
+    expect($checks['employees_multiple_active_cards']['count'])->toBe(1)
+        ->and($checks['employees_multiple_active_cards']['records'][0]['href'])->toBe(route('employees.show', $this->employee->id))
+        ->and($checks['positions_missing_organization']['records'])->toBe([]);
+
+    $this->flushSession();
+    $this->actingAs(corePagesUser(['audit.view'], $this->mine))->get(route('core.data-quality'))->assertForbidden();
+    $this->flushSession();
+    $this->actingAs(corePagesUser([]))->get(route('core.data-quality'))->assertForbidden();
+});

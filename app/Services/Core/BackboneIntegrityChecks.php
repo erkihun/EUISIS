@@ -32,10 +32,53 @@ final class BackboneIntegrityChecks
         'positions_over_capacity' => 'Positions held by more employees than their approved seats (one without an establishment)',
     ];
 
+    /**
+     * Which record each check points at, for the data-quality drill-down:
+     * the column holding its id and the kind of record (position, employee, card).
+     *
+     * @var array<string, array{0: string, 1: string}>
+     */
+    public const SUBJECTS = [
+        'positions_missing_organization' => ['positions.id', 'position'],
+        'positions_foreign_unit' => ['positions.id', 'position'],
+        'employees_bad_pointer' => ['employees.id', 'employee'],
+        'assignments_unpointed' => ['employee_assignments.employee_id', 'employee'],
+        'replacements_unlinked' => ['card_replacements.old_card_id', 'card'],
+        'separated_still_placed' => ['employees.id', 'employee'],
+        'separated_card_active' => ['id_cards.id', 'card'],
+        'employees_multiple_active_cards' => ['employees.id', 'employee'],
+        'positions_over_capacity' => ['positions.id', 'position'],
+    ];
+
     /** @return array<string, int> check key => findings */
     public function counts(): array
     {
         return array_map(fn (Builder $query): int => (int) $query->count(), $this->queries());
+    }
+
+    /**
+     * Up to $limit ids of the records a check found (Stage 8 data-quality
+     * drill-down). Ids only: the person opening them still needs the record's
+     * own permission and scope.
+     *
+     * @return list<string>
+     */
+    public function samples(string $key, int $limit = 20): array
+    {
+        $query = $this->queries()[$key] ?? null;
+        if ($query === null) {
+            return [];
+        }
+        [$column] = self::SUBJECTS[$key];
+
+        return $query->select($column.' as subject_id')
+            ->orderBy($column)
+            ->limit(max(1, $limit))
+            ->pluck('subject_id')
+            ->map(fn ($id): string => (string) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /** @return array<string, Builder> */

@@ -52,9 +52,11 @@ checks, which list the record ids (`structure:audit`, `data:audit-duplicates`;
 `--json` for a machine-readable summary). The KPIs reviewed monthly are the
 counts per rule above: completeness (employees without assignment, missing
 Amharic names), duplicates, invalid assignments, position inconsistencies,
-card inconsistencies and hierarchy issues. A dashboard page with every rule
-and a link to each affected record is [technical-debt.md](technical-debt.md)
-TD-20.
+card inconsistencies and hierarchy issues. Since 25 October 2026 the Core
+workspace has a Data Quality page (`/core/data-quality`, `audit.view`, city-wide
+auditors) listing every Golden Path integrity check with its count and a link
+to each affected record (first 20 per check); the `structure:audit` and
+duplicate rules are still command-line only ([technical-debt.md](technical-debt.md) TD-20).
 
 ## Correcting data
 

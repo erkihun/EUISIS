@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Core\CoreAssignmentController;
 use App\Http\Controllers\Core\CoreAuditCenterController;
 use App\Http\Controllers\Core\CoreDashboardController;
+use App\Http\Controllers\Core\CoreDataQualityController;
 use App\Http\Controllers\Core\CoreIntegrationCenterController;
 use App\Http\Controllers\Core\CoreSettingsController;
 use App\Http\Controllers\Core\CoreWorkspaceController;
@@ -622,6 +623,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::get('/assignments', CoreAssignmentController::class)->middleware('can:employees.view')->name('assignments');
         Route::get('/integration', CoreIntegrationCenterController::class)->name('integration');
         Route::get('/audit', CoreAuditCenterController::class)->name('audit');
+        Route::get('/data-quality', CoreDataQualityController::class)->middleware('can:audit.view')->name('data-quality');
         Route::get('/settings', CoreSettingsController::class)->middleware('can:system-settings.view')->name('settings');
 
         // Core addresses for the master-data workspaces (Core Stage 2). The pages stay
