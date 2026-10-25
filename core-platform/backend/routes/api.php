@@ -111,6 +111,7 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
             Route::get('/webhook-deliveries', [IntegrationAdminController::class, 'deliveries']);
             Route::post('/webhook-deliveries/{delivery}/retry', [IntegrationAdminController::class, 'retryDelivery']);
             Route::get('/integration-events', [IntegrationAdminController::class, 'events']);
+            Route::get('/system-health', [AdminController::class, 'systemHealth']);
         });
 
         // The governed hierarchy lifecycle is the city's: city-wide administrators only.

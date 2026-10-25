@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Services\SystemHealth;
 use App\Services\WebhookDeliverer;
 use Illuminate\Console\Command;
 
@@ -17,6 +18,7 @@ class DeliverWebhooks extends Command
     public function handle(WebhookDeliverer $deliverer): int
     {
         $this->info($deliverer->deliverDue(max(1, (int) $this->option('limit'))).' delivery attempt(s) made.');
+        SystemHealth::recordRun('core:deliver-webhooks');
 
         return self::SUCCESS;
     }

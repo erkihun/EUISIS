@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\IdCard;
 use App\Services\AuditWriter;
+use App\Services\SystemHealth;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -49,6 +50,7 @@ class ExpireCards extends Command
             }
         });
         $this->info("{$expired} card(s) marked expired.");
+        SystemHealth::recordRun('core:expire-cards');
 
         return self::SUCCESS;
     }

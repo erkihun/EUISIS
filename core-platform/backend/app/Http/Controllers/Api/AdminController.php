@@ -10,6 +10,7 @@ use App\Models\IdCard;
 use App\Models\User;
 use App\Services\IntegrityChecks;
 use App\Services\OrganizationScope;
+use App\Services\SystemHealth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -73,5 +74,18 @@ class AdminController extends Controller
         }
 
         return response()->json(['checks' => $results]);
+    }
+
+    /** Operational health from real measurements (SystemHealth); city-wide administrators only. */
+    public function systemHealth(SystemHealth $health): JsonResponse
+    {
+        $checks = $health->checks();
+        $statuses = array_column($checks, 'status');
+
+        return response()->json([
+            'status' => in_array('error', $statuses, true) ? 'error' : (in_array('warning', $statuses, true) ? 'warning' : 'ok'),
+            'checked_at' => now()->toIso8601String(),
+            'checks' => $checks,
+        ]);
     }
 }

@@ -180,3 +180,29 @@ origins, `APP_KEY`).
 - Back up `euisis_core` from the cutover on; EUISIS backups no longer cover it.
 - Sign-in tokens last 8 hours; deactivating an account (`is_active = false`)
   stops it at the next request.
+- Run the scheduler (`php artisan schedule:work`, or `schedule:run` every
+  minute from cron): it delivers webhooks every minute and marks expired cards
+  daily. `GET /api/v1/system-health` (city-wide administrators) shows when
+  each last ran, with the database, cache, storage, queue, webhook, API and
+  access checks; backups are reported as unknown because the Core cannot see them.
+- Set `NATIONAL_ID_HASH_KEY` to the EUISIS value so national-ID duplicate
+  checks compare imported and new records (the Core stores only the hash).
+
+## Integrations, events and governance (ADR 0007)
+
+- Consuming systems use **API clients** with least-privilege scopes, an owner
+  organization, an IP allow list, a rate limit and an expiry; secrets are shown
+  once and can be rotated or revoked. They read `/api/v1/integration/*` and
+  check cards; they never write. Developer guide:
+  [docs/integration-api.md](docs/integration-api.md).
+- Every published change becomes an event in the same transaction (outbox) and
+  is delivered to webhooks signed with HMAC-SHA256, retried with back-off.
+- Hierarchy versions go draft → review → approval by a second city-wide
+  administrator → publication; the structure of any earlier day stays
+  queryable (`GET /api/v1/hierarchy?on=YYYY-MM-DD`).
+- One-time passwords must be replaced at first sign-in (password policy in
+  Core settings › Security); the last city-wide administrator cannot be removed.
+- Registration checks for duplicates (national-ID hash, name and date of birth,
+  phone, e-mail) and never merges records automatically.
+- Tests run on SQLite by default; run them on PostgreSQL too before a release:
+  `DB_CONNECTION=pgsql DB_DATABASE=<scratch database> php artisan test`.
