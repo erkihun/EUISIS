@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Services\IdCards\QrPayloadParser;
-use App\Services\Transport\TransportQrScanService;
+use App\Services\Transport\Boarding\CardCredentialResolver;
 
 require_once __DIR__.'/IdCardFrontHelpers.php';
 
@@ -74,5 +74,15 @@ it('routes every terminal through the same parser', function (string $service): 
     expect($resolver->invoke(app($service), $printed)?->id)->toBe($card->id);
 })->with([
     'cafeteria' => [CafeteriaQrScanService::class],
-    'transport' => [TransportQrScanService::class],
 ]);
+
+it('routes the transport terminals through the same parser', function (): void {
+    // Every transport scan (portal, admin terminal, device API, offline sync) goes
+    // through TransportBoardingService, which resolves the card with CardCredentialResolver.
+    $card = frontCard();
+    $printed = app(CardQrPayloadService::class)->buildStableQrUrl($card);
+
+    $resolved = app(CardCredentialResolver::class)->resolve(CardCredentialResolver::methodFor($printed), $printed);
+
+    expect($resolved['card']?->id)->toBe($card->id);
+});
