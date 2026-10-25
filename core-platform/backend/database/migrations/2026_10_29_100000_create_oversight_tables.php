@@ -42,8 +42,8 @@ return new class extends Migration
             $table->string('status', 16)->default('open');
             $table->string('summary', 500);
             $table->json('details')->nullable();
-            $table->timestamp('detected_at');
-            $table->timestamp('last_detected_at');
+            $table->dateTime('detected_at');
+            $table->dateTime('last_detected_at');
             $table->unsignedInteger('times_reopened')->default(0);
             $table->unsignedBigInteger('assigned_to')->nullable();
             $table->text('resolution')->nullable();
@@ -72,7 +72,7 @@ return new class extends Migration
             $table->string('url', 500)->nullable();
             $table->uuid('audit_log_id')->nullable();
             $table->timestamp('read_at')->nullable();
-            $table->timestamp('created_at');
+            $table->dateTime('created_at');
             $table->index(['user_id', 'read_at', 'created_at'], 'core_notifications_user_idx');
             $table->unique(['user_id', 'audit_log_id', 'event'], 'core_notifications_once_per_change');
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
@@ -84,7 +84,7 @@ return new class extends Migration
             $table->string('channel', 16);
             $table->string('status', 16);
             $table->string('error', 500)->nullable();
-            $table->timestamp('attempted_at');
+            $table->dateTime('attempted_at');
             $table->index(['core_notification_id'], 'notification_deliveries_notification_idx');
             $table->index(['channel', 'status', 'attempted_at'], 'notification_deliveries_status_idx');
             $table->foreign('core_notification_id')->references('id')->on('core_notifications')->cascadeOnDelete();

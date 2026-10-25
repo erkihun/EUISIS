@@ -18,7 +18,9 @@ return new class extends Migration
     {
         match (DB::getDriverName()) {
             'pgsql', 'sqlite' => DB::statement('CREATE INDEX employees_dob_lower_name_idx ON employees (date_of_birth, lower(full_name))'),
-            'mysql', 'mariadb' => DB::statement('CREATE INDEX employees_dob_lower_name_idx ON employees (date_of_birth, (lower(full_name)))'),
+            // MariaDB has no expression index; its default collation compares names without case anyway,
+            // and the date of birth leads, so the lookup still narrows to one day's births (ADR 0012).
+            'mysql', 'mariadb' => DB::statement('CREATE INDEX employees_dob_lower_name_idx ON employees (date_of_birth, full_name)'),
             default => null,
         };
     }

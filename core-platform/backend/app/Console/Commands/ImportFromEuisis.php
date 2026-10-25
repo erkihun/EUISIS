@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Support\LegacyCredentialBackfill;
 use App\Support\PositionMasterBackfill;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -62,6 +63,10 @@ class ImportFromEuisis extends Command
         Schema::disableForeignKeyConstraints();
         try {
             if ($this->option('fresh-tables')) {
+                // Credentials belong to the cards being replaced; the backfill below gives the copies theirs.
+                if (Schema::hasTable('digital_credentials')) {
+                    DB::table('digital_credentials')->delete();
+                }
                 foreach (array_reverse($tables) as $table) {
                     DB::table($table)->delete();
                 }
@@ -109,6 +114,8 @@ class ImportFromEuisis extends Command
                 }
             }
             PositionMasterBackfill::run();
+            // Printed QR codes of copied cards keep verifying (ADR 0012): the migration only covered the cards present then.
+            $rows[] = ['digital_credentials (legacy QR)', LegacyCredentialBackfill::run()];
         } finally {
             Schema::enableForeignKeyConstraints();
         }

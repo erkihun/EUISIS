@@ -39,7 +39,7 @@ return new class extends Migration
             $table->text('reason');
             $table->unsignedInteger('duration_minutes');
             $table->string('status', 16)->default('requested');
-            $table->timestamp('requested_at');
+            $table->dateTime('requested_at');
             $table->unsignedBigInteger('decided_by')->nullable();
             $table->timestamp('decided_at')->nullable();
             $table->text('decision_reason')->nullable();
@@ -65,12 +65,12 @@ return new class extends Migration
             $table->char('head_hash', 64);
             $table->char('signature', 64);
             $table->uuid('previous_seal_id')->nullable();
-            $table->timestamp('created_at');
+            $table->dateTime('created_at');
         });
 
         Schema::create('audit_verifications', function (Blueprint $table): void {
             $table->id();
-            $table->timestamp('started_at');
+            $table->dateTime('started_at');
             $table->timestamp('finished_at')->nullable();
             $table->boolean('ok')->default(false);
             $table->unsignedBigInteger('checked_rows')->default(0);
