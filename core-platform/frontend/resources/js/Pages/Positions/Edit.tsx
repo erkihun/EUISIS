@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import JobMasterSelects, { type JobMasterGroup } from '@/Components/positions/JobMasterSelects';
 import { toDateInput } from '@/lib/dateUtils';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
@@ -18,9 +19,11 @@ interface Props {
     organizationUnits: UnitOption[];
     occupations: OccupationOption[];
     gradeLevels: string[];
+    /** Core only (ADR 0010): the other job masters. */
+    jobMasters?: JobMasterGroup[];
 }
 
-export default function PositionsEdit({ position, organizations, organizationUnits, occupations, gradeLevels }: Props) {
+export default function PositionsEdit({ position, organizations, organizationUnits, occupations, gradeLevels, jobMasters }: Props) {
     const { t, locale } = useLocale();
     const form = useForm({
         job_position_code: position.job_position_code ?? '',
@@ -34,6 +37,10 @@ export default function PositionsEdit({ position, organizations, organizationUni
         description_en: position.description_en ?? '',
         description_am: position.description_am ?? '',
         grade_level: position.grade_level ?? '',
+        job_level_id: position.job_level_id ?? '',
+        profession_id: position.profession_id ?? '',
+        employment_type_id: position.employment_type_id ?? '',
+        position_category_id: position.position_category_id ?? '',
         job_family: position.job_family ?? '',
         is_active: position.is_active ?? true,
         effective_from: toDateInput(position.effective_from),
@@ -185,6 +192,10 @@ export default function PositionsEdit({ position, organizations, organizationUni
                             ))}
                         </select>
                     </div>
+
+                    {jobMasters && <JobMasterSelects groups={jobMasters} errors={form.errors}
+                        values={{ job_level_id: form.data.job_level_id, profession_id: form.data.profession_id, employment_type_id: form.data.employment_type_id, position_category_id: form.data.position_category_id }}
+                        onChange={(field, value) => form.setData(field, value)} />}
 
                     {/* Job Family */}
                     <div className="space-y-1.5">

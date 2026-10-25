@@ -5,6 +5,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { localizedName } from '@/utils/localizedName';
+import JobMasterSelects, { type JobMasterGroup } from '@/Components/positions/JobMasterSelects';
 
 import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
 type OccupationOption = { id: string; isco_code: string; name_en: string | null; name_am: string | null };
@@ -28,9 +29,11 @@ interface Props {
     gradeLevels: string[];
     selectedOrganizationId: string | null;
     selectedOrganizationUnitId: string | null;
+    /** Core only (ADR 0010): the other job masters. */
+    jobMasters?: JobMasterGroup[];
 }
 
-export default function PositionsCreate({ organizations, organizationUnits, occupations, gradeLevels, selectedOrganizationId, selectedOrganizationUnitId }: Props) {
+export default function PositionsCreate({ organizations, organizationUnits, occupations, gradeLevels, selectedOrganizationId, selectedOrganizationUnitId, jobMasters }: Props) {
     const { t, locale } = useLocale();
     const form = useForm({
         job_position_code: '',
@@ -42,6 +45,10 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
         organization_unit_id: selectedOrganizationUnitId ?? '',
         occupation_id: '',
         grade_level: '',
+        job_level_id: '',
+        profession_id: '',
+        employment_type_id: '',
+        position_category_id: '',
         is_active: true,
     });
 
@@ -277,6 +284,10 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                         </select>
                         {form.errors.grade_level && <p className={errorCls}>{form.errors.grade_level}</p>}
                     </div>
+
+                    {jobMasters && <JobMasterSelects groups={jobMasters} errors={form.errors}
+                        values={{ job_level_id: form.data.job_level_id, profession_id: form.data.profession_id, employment_type_id: form.data.employment_type_id, position_category_id: form.data.position_category_id }}
+                        onChange={(field, value) => form.setData(field, value)} />}
                 </div>
 
                 {/* Active */}

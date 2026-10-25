@@ -7,6 +7,7 @@ namespace App\Imports;
 use App\Actions\SaveEstablishment;
 use App\Actions\SavePosition;
 use App\Models\ImportBatch;
+use App\Models\JobGrade;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
@@ -51,6 +52,9 @@ final class PositionImport extends ImportDefinition
         if ($organization !== null && $row['unit_code'] !== null
             && ! OrganizationUnit::query()->where('organization_id', $organization->id)->where('code', $row['unit_code'])->exists()) {
             $errors[] = $this->error('unit_code', 'UNKNOWN_UNIT', 'The organization has no unit with this code.');
+        }
+        if ($row['grade_level'] !== null && ! JobGrade::query()->where('code', $row['grade_level'])->where('is_active', true)->exists()) {
+            $errors[] = $this->error('grade_level', 'UNKNOWN_GRADE', 'No active job grade has this code.');
         }
         if ($row['effective_from'] !== null && $this->pastDate($row['effective_from']) === null) {
             $errors[] = $this->error('effective_from', 'INVALID_DATE', 'Use a date that is not in the future.');

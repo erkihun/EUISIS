@@ -145,7 +145,7 @@ final readonly class EmployeeVerification
                 throw ValidationException::withMessages(['employee' => 'This position is already occupied: it has no free seat.']);
             }
 
-            $placement->forceFill(['assignment_status' => EmployeeAssignment::ACTIVE])->save();
+            $placement->forceFill(['assignment_status' => EmployeeAssignment::ACTIVE, 'approved_by' => $actorId, 'approved_at' => now()])->save();
             $employee->forceFill([
                 'status' => Employee::ACTIVE, 'verification_status' => 'approved',
                 'approved_by' => $actorId, 'approved_at' => now(),

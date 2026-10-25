@@ -16,6 +16,10 @@ interface AssignmentRow {
     is_current: boolean;
     effective_from: string | null;
     effective_to: string | null;
+    /** Where the placement came from (ADR 0010); absent on older EUISIS data. */
+    assignment_type?: string | null;
+    reason_code?: string | null;
+    source_system?: string | null;
     employee: { id: string; employee_number: string; full_name: string | null; status: string | null } | null;
     organization: Named;
     unit: Named;
@@ -89,6 +93,7 @@ export default function CoreAssignments({ assignments, meta, filters, statuses }
                                     <Th>{t('core.assignments.from')}</Th>
                                     <Th>{t('core.assignments.to')}</Th>
                                     <Th>{t('core.assignments.status')}</Th>
+                                    <Th>{t('core.assignments.provenance')}</Th>
                                 </Tr>
                             </THead>
                             <TBody>
@@ -109,6 +114,11 @@ export default function CoreAssignments({ assignments, meta, filters, statuses }
                                         <Td><LocalizedDateDisplay value={row.effective_from} /></Td>
                                         <Td muted><LocalizedDateDisplay value={row.effective_to} /></Td>
                                         <Td><StatusBadge status={row.status} label={t(`core.assignments.statuses.${row.status}`)} /></Td>
+                                        <Td muted>
+                                            {row.assignment_type ? t(`core.assignments.types.${row.assignment_type}`) : '—'}
+                                            {row.reason_code && <div className="text-xs">{t(`core.assignments.reasonCodes.${row.reason_code}`)}</div>}
+                                            {row.source_system && <div className="text-xs">{t(`core.assignments.sources.${row.source_system}`)}</div>}
+                                        </Td>
                                     </Tr>
                                 ))}
                             </TBody>

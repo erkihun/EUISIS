@@ -49,9 +49,14 @@ class CoreWriteController extends Controller
             'position_id' => ['required', 'uuid'],
             'effective_date' => ['required', 'date'],
             'reason' => ['nullable', 'string', 'max:1000'],
+            'assignment_type' => ['sometimes', 'string', 'max:24'],
+            'reason_code' => ['nullable', 'string', 'max:32'],
+            'source_document_id' => ['nullable', 'uuid'],
+            'external_reference' => ['nullable', 'string', 'max:128'],
         ]);
+        $provenance = array_intersect_key($data, array_flip(['assignment_type', 'reason_code', 'source_document_id', 'external_reference'])) + ['source_system' => 'api'];
 
-        return response()->json(['data' => $transfer->execute($employee, $data['position_id'], $data['effective_date'], $request->user(), $data['reason'] ?? null)]);
+        return response()->json(['data' => $transfer->execute($employee, $data['position_id'], $data['effective_date'], $request->user(), $data['reason'] ?? null, $provenance)]);
     }
 
     public function changeCard(Request $request, IdCard $card, string $transition, ChangeCardStatus $change): JsonResponse

@@ -57,6 +57,8 @@ final class CoreNavigation
                         ['route' => 'positions.index', 'label_key' => 'nav.positions', 'icon' => 'Briefcase', 'permission' => 'positions.viewAny'],
                         ['route' => 'positions.status', 'label_key' => 'nav.newJobPositionsStatus', 'icon' => 'SuitcaseTagIcon', 'permission' => 'positions.viewAny'],
                         ['route' => 'position-establishments.index', 'label_key' => 'nav.positionEstablishments', 'icon' => 'ClipboardTextIcon', 'permission' => 'position-establishments.viewAny'],
+                        // Core-only (ADR 0010): grades, levels, occupations, professions, employment types and categories in one place.
+                        ['route' => 'core.job-masters', 'label_key' => 'core.nav.jobMasters', 'icon' => 'RankingIcon', 'permission' => 'positions.viewAny'],
                         ['route' => 'grade-levels.index', 'label_key' => 'nav.gradeLevels', 'icon' => 'RankingIcon', 'permission' => 'grade-levels.viewAny'],
                         ['route' => 'occupations.index', 'label_key' => 'nav.occupations', 'icon' => 'AcademicCapIcon', 'permission' => 'occupations.viewAny'],
                         ['route' => 'organization-design.professions.index', 'label_key' => 'core.nav.professions', 'icon' => 'DiplomaIcon', 'permission' => ['occupations.viewAny', 'professions.manage']],

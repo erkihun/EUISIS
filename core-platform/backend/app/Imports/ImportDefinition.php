@@ -27,6 +27,18 @@ abstract class ImportDefinition
     /** @return list<string> the template's columns, in order */
     abstract public function columns(): array;
 
+    /** @return list<string> columns a file may leave out (ADR 0010); the template lists them after the required ones */
+    public function optionalColumns(): array
+    {
+        return [];
+    }
+
+    /** @return list<string> every column, required first */
+    public function allColumns(): array
+    {
+        return [...$this->columns(), ...$this->optionalColumns()];
+    }
+
     /**
      * What is wrong with a row, each as field, code and message (empty when valid).
      *
@@ -59,7 +71,7 @@ abstract class ImportDefinition
     public function normalize(array $cells): array
     {
         $row = [];
-        foreach ($this->columns() as $column) {
+        foreach ($this->allColumns() as $column) {
             $value = $cells[$column] ?? null;
             if ($value instanceof \DateTimeInterface) {
                 $value = $value->format('Y-m-d');

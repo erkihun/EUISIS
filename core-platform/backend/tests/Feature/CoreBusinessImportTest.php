@@ -12,6 +12,7 @@ use App\Models\EmployeeDuplicateReview;
 use App\Models\HierarchyVersion;
 use App\Models\ImportBatch;
 use App\Models\ImportRow;
+use App\Models\JobGrade;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\Position;
@@ -144,16 +145,19 @@ class CoreBusinessImportTest extends TestCase
 
     public function test_positions_need_a_known_organization_inside_the_scope(): void
     {
+        JobGrade::query()->create(['code' => 'IX', 'name_en' => 'Grade IX']);
         $this->signIn('core_officer', $this->bureauA);
         $batch = $this->upload('positions', $this->csv(['code', 'title_en', 'title_am', 'organization_code', 'unit_code', 'grade_level', 'approved_slots', 'effective_from'], [
             ['POS-NEW', 'Analyst', '', 'BUR-A', '', 'IX', '2', '2025-01-01'],
+            ['', 'Clerk', '', 'BUR-A', '', 'NO-GRADE', '', ''],
             ['', 'Driver', '', 'NO-SUCH', '', '', '', ''],
             ['', 'Guard', '', 'BUR-B', '', '', '', ''],
             ['POS-A', 'Taken', '', 'BUR-A', '', '', '', ''],
         ]));
-        $this->assertSame(['UNKNOWN_ORGANIZATION'], $this->errors($batch, 3));
-        $this->assertSame(['OUT_OF_SCOPE_ORGANIZATION'], $this->errors($batch, 4));
-        $this->assertSame(['DUPLICATE_CODE'], $this->errors($batch, 5));
+        $this->assertSame(['UNKNOWN_GRADE'], $this->errors($batch, 3));
+        $this->assertSame(['UNKNOWN_ORGANIZATION'], $this->errors($batch, 4));
+        $this->assertSame(['OUT_OF_SCOPE_ORGANIZATION'], $this->errors($batch, 5));
+        $this->assertSame(['DUPLICATE_CODE'], $this->errors($batch, 6));
 
         // A scoped batch is invisible outside the uploader's organizations.
         $this->signIn('core_admin', $this->bureauB);
@@ -164,6 +168,7 @@ class CoreBusinessImportTest extends TestCase
         $this->post('/core/imports/'.$batch->id.'/approve', ['acknowledge_invalid' => true])->assertSessionHasNoErrors();
         $position = Position::query()->where('job_position_code', 'POS-NEW')->sole();
         $this->assertSame(2, $position->establishments()->sole()->approved_slots);
+        $this->assertSame('IX', $position->grade->code);
     }
 
     public function test_placement_changes_reuse_the_transfer_rules_and_a_retry_writes_nothing_twice(): void

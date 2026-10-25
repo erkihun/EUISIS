@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\ChangePositionLifecycle;
+use App\Actions\ManageJobMasters;
 use App\Actions\SaveEstablishment;
 use App\Actions\SavePosition;
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
+use App\Models\JobGrade;
+use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
@@ -219,8 +223,9 @@ class PositionController extends Controller
             'organizationUnits' => $organizationId === null ? [] : OrganizationUnit::query()->where('organization_id', $organizationId)->orderBy('name_en')
                 ->get(['id', 'name_en', 'name_am', 'code', 'organization_unit_type_id'])
                 ->map(fn (OrganizationUnit $unit): array => $unit->toArray() + ['owner_organization' => null, 'host_organization' => null])->all(),
-            'occupations' => [],
+            'occupations' => $this->occupationOptions(),
             'gradeLevels' => $this->gradeLevels(),
+            'jobMasters' => $this->masterOptions(),
             'selectedOrganizationId' => $organizationId,
             'selectedOrganizationUnitId' => $unitId,
         ]);
@@ -237,10 +242,12 @@ class PositionController extends Controller
     {
         Gate::authorize('view', $position);
         abort_unless($this->scope->allows($request->user(), (string) $position->organization_id), 403);
-        $position->load('organization:id,name_en,name_am', 'unit:id,name_en,name_am,code')->loadCount('assignments');
+        $position->load('organization:id,name_en,name_am', 'unit:id,name_en,name_am,code', 'grade', 'level', 'occupation', 'profession', 'employmentType', 'category')
+            ->loadCount(['assignments', 'holders']);
 
         return Inertia::render('Positions/Show', [
             'position' => $this->resource($position),
+            'lifecycle' => $this->lifecycle($request->user(), $position),
             'movementHistory' => [],
             'positionServices' => [],
             'currentPerformancePlans' => [],
@@ -259,8 +266,9 @@ class PositionController extends Controller
             'organizations' => $this->organizationOptions($request->user()),
             'organizationUnits' => $position->organization_id === null ? [] : OrganizationUnit::query()->where('organization_id', $position->organization_id)
                 ->orderBy('name_en')->get(['id', 'name_en', 'name_am', 'code', 'organization_unit_type_id'])->toArray(),
-            'occupations' => [],
+            'occupations' => $this->occupationOptions(),
             'gradeLevels' => $this->gradeLevels(),
+            'jobMasters' => $this->masterOptions(),
         ]);
     }
 
@@ -270,6 +278,15 @@ class PositionController extends Controller
         $save->execute($position, $this->validated($request, false), $request->user());
 
         return to_route('positions.show', $position)->with('flash', ['message' => __('positions.updated_successfully'), 'type' => 'success']);
+    }
+
+    /** One lifecycle step (ADR 0010): approve, suspend, reinstate, abolish or archive. */
+    public function lifecycleStep(Request $request, Position $position, ChangePositionLifecycle $lifecycle): RedirectResponse
+    {
+        $data = $request->validate(['step' => ['required', Rule::in(ChangePositionLifecycle::steps())], 'reason' => ['nullable', 'string', 'max:2000']]);
+        $lifecycle->execute($position, $data['step'], $data['reason'] ?? null, $request->user());
+
+        return back()->with('flash', ['message' => __('positions.lifecycle_changed'), 'type' => 'success']);
     }
 
     public function archive(Request $request, Position $position, AuditWriter $audit): RedirectResponse
@@ -419,8 +436,14 @@ class PositionController extends Controller
             'organization_unit_id' => $position->organization_unit_id,
             'organization_unit' => $position->unit?->only(['id', 'name_en', 'name_am', 'code']),
             'occupation_id' => $position->occupation_id,
-            'occupation' => null,
+            'occupation' => $position->relationLoaded('occupation') ? $position->occupation?->only(['id', 'code', 'name_en', 'name_am']) : null,
             'grade_level' => $position->grade_level,
+            'job_grade_id' => $position->job_grade_id,
+            'job_level_id' => $position->job_level_id,
+            'profession_id' => $position->profession_id,
+            'employment_type_id' => $position->employment_type_id,
+            'position_category_id' => $position->position_category_id,
+            'lifecycle_status' => $position->lifecycle_status,
             'job_family' => $position->job_family,
             'is_active' => $position->is_active,
             'effective_from' => $position->effective_from?->toDateString(),
@@ -453,6 +476,12 @@ class PositionController extends Controller
             'description_en' => ['nullable', 'string', 'max:5000'],
             'description_am' => ['nullable', 'string', 'max:5000'],
             'grade_level' => ['nullable', 'string', 'max:255'],
+            'job_grade_id' => ['nullable', 'uuid'],
+            'job_level_id' => ['nullable', 'uuid'],
+            'occupation_id' => ['nullable', 'uuid'],
+            'profession_id' => ['nullable', 'uuid'],
+            'employment_type_id' => ['nullable', 'uuid'],
+            'position_category_id' => ['nullable', 'uuid'],
             'job_family' => ['nullable', 'string', 'max:255'],
             'is_active' => ['sometimes', 'boolean'],
             'effective_from' => ['nullable', 'date'],
@@ -482,10 +511,67 @@ class PositionController extends Controller
         return fn (string $id): int => (int) ($approved[$id] ?? 0) > 0 ? (int) $approved[$id] : $default;
     }
 
+    /**
+     * The lifecycle panel (ADR 0010): the status and reason, who created and
+     * approved it, the masters it uses, its seats against its holders, the
+     * steps this reader may take now, and the position's history.
+     *
+     * @return array<string, mixed>
+     */
+    private function lifecycle(User $user, Position $position): array
+    {
+        $inScope = $this->scope->allows($user, (string) $position->organization_id);
+        $names = User::query()->whereIn('id', array_filter([$position->created_by, $position->approved_by]))->pluck('name', 'id');
+        $history = $position->histories()->limit(50)->get();
+        $actors = User::query()->whereIn('id', $history->pluck('actor_id')->filter()->unique())->pluck('name', 'id');
+        $master = fn ($value): ?array => $value?->only(['id', 'code', 'name_en', 'name_am']);
+        $seats = app(SeatCapacity::class)->capacity((string) $position->id);
+
+        return [
+            'status' => $position->lifecycle_status,
+            'reason' => $position->status_reason,
+            'created_by' => $names->get($position->created_by),
+            'approved_by' => $names->get($position->approved_by),
+            'approved_at' => $position->approved_at?->toIso8601String(),
+            'masters' => [
+                'grade' => $master($position->grade), 'level' => $master($position->level), 'occupation' => $master($position->occupation),
+                'profession' => $master($position->profession), 'employment_type' => $master($position->employmentType), 'category' => $master($position->category),
+            ],
+            'occupancy' => ['seats' => $seats, 'holders' => (int) $position->holders_count, 'vacant' => max(0, $seats - (int) $position->holders_count)],
+            'steps' => $position->trashed() || ! $inScope ? [] : collect(ChangePositionLifecycle::allowedFrom((string) $position->lifecycle_status))
+                ->filter(fn (string $step): bool => $user->can(ChangePositionLifecycle::permissionFor($step)))
+                ->map(fn (string $step): array => ['step' => $step, 'needs_reason' => ChangePositionLifecycle::needsReason($step)])->values(),
+            'step_url' => route('positions.lifecycle', $position),
+            'history' => $history->map(fn ($row): array => [
+                'id' => $row->id, 'change_type' => $row->change_type, 'changes' => $row->changes, 'reason' => $row->reason,
+                'effective_from' => $row->effective_from?->toDateString(), 'actor' => $actors->get($row->actor_id), 'at' => $row->created_at?->toIso8601String(),
+            ])->values(),
+        ];
+    }
+
+    /** @return list<array{id: string, isco_code: string, name_en: string, name_am: string|null}> */
+    private function occupationOptions(): array
+    {
+        return Occupation::query()->where('is_active', true)->orderBy('sort_order')->orderBy('code')->get(['id', 'code', 'name_en', 'name_am'])
+            ->map(fn (Occupation $o): array => ['id' => $o->id, 'isco_code' => $o->code, 'name_en' => $o->name_en, 'name_am' => $o->name_am])->all();
+    }
+
+    /** The other job masters for the position form (ADR 0010): active values only. */
+    private function masterOptions(): array
+    {
+        $options = [];
+        foreach (['levels' => 'job_level_id', 'professions' => 'profession_id', 'employment_types' => 'employment_type_id', 'categories' => 'position_category_id'] as $kind => $column) {
+            $class = ManageJobMasters::KINDS[$kind][0];
+            $options[] = ['kind' => $kind, 'field' => $column, 'options' => $class::query()->where('is_active', true)->orderBy('sort_order')->orderBy('code')->get(['id', 'code', 'name_en', 'name_am'])->all()];
+        }
+
+        return $options;
+    }
+
     /** @return list<string> */
     private function gradeLevels(): array
     {
-        return Position::query()->whereNotNull('grade_level')->distinct()->orderBy('grade_level')->pluck('grade_level')->all();
+        return JobGrade::query()->where('is_active', true)->orderBy('sort_order')->orderBy('code')->pluck('code')->all();
     }
 
     private function organizationOptions(User $user): Collection

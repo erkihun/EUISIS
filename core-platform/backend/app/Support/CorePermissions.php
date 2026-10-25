@@ -73,6 +73,8 @@ final class CorePermissions
             'position-establishments.update' => ['Edit establishments', 'የጸደቁ መደቦችን ማስተካከል'],
             'position-establishments.approve' => ['Approve establishments', 'የጸደቁ መደቦችን ማጽደቅ'],
             'position-establishments.archive' => ['Archive establishments', 'የጸደቁ መደቦችን ወደ ማህደር ማስገባት'],
+            'positions.approve' => ['Approve draft positions', 'ረቂቅ የሥራ መደቦችን ማጽደቅ'],
+            'positions.master.manage' => ['Manage grades, levels, occupations, professions, employment types and categories', 'ደረጃዎችን፣ እርከኖችን፣ የሥራ ዓይነቶችን፣ ሙያዎችን፣ የቅጥር ዓይነቶችንና ምድቦችን ማስተዳደር'],
         ],
         'employees' => [
             'employees.view' => ['View employees', 'ሠራተኞችን ማየት'],
@@ -115,6 +117,16 @@ final class CorePermissions
             'id-cards.replace' => ['Report lost or damaged cards and replace them', 'የጠፉ ወይም የተጎዱ ካርዶችን ሪፖርት ማድረግና መተካት'],
             'id-cards.suspend' => ['Suspend and reinstate cards', 'ካርዶችን ማገድና መመለስ'],
             'id-cards.revoke' => ['Revoke cards', 'ካርዶችን መሻር'],
+            'cards.quality_check' => ['Check printed cards before issue', 'የታተሙ ካርዶችን ከመሰጠታቸው በፊት መመርመር'],
+            'cards.reprint' => ['Reprint cards (with a reason)', 'ካርዶችን እንደገና ማተም (ከምክንያት ጋር)'],
+            'card_templates.view' => ['View card templates', 'የካርድ ቅጾችን ማየት'],
+            'card_templates.manage' => ['Design and activate card templates', 'የካርድ ቅጾችን መንደፍና ሥራ ላይ ማዋል'],
+            'card_print_batches.view' => ['View print batches', 'የሕትመት ስብስቦችን ማየት'],
+            'card_print_batches.manage' => ['Prepare and run print batches', 'የሕትመት ስብስቦችን ማዘጋጀትና ማካሄድ'],
+            'digital_credentials.view' => ['View digital credentials', 'ዲጂታል ማስረጃዎችን ማየት'],
+            'digital_credentials.issue' => ['Issue digital credentials', 'ዲጂታል ማስረጃዎችን መስጠት'],
+            'digital_credentials.rotate' => ['Rotate digital credentials', 'ዲጂታል ማስረጃዎችን መቀየር'],
+            'digital_credentials.revoke' => ['Revoke digital credentials', 'ዲጂታል ማስረጃዎችን መሻር'],
         ],
         'imports' => [
             'imports.view' => ['View imports', 'የገቢ ፋይሎችን ማየት'],
@@ -137,6 +149,11 @@ final class CorePermissions
             'audit.view' => ['View the audit trail', 'የኦዲት መዝገቡን ማየት'],
             'system-settings.view' => ['View Core settings', 'የዋና መዝገብ ቅንብሮችን ማየት'],
             'system-settings.update' => ['Change Core settings', 'የዋና መዝገብ ቅንብሮችን መቀየር'],
+            'audit.integrity.view' => ['See the audit integrity status', 'የኦዲት መዝገብ ታማኝነት ሁኔታን ማየት'],
+            'audit.integrity.verify' => ['Seal and verify the audit trail', 'የኦዲት መዝገቡን ማተምና ማረጋገጥ'],
+            'break_glass.request' => ['Request emergency access', 'የአደጋ ጊዜ ፈቃድ መጠየቅ'],
+            'break_glass.approve' => ['Approve emergency access of others', 'የሌሎችን የአደጋ ጊዜ ፈቃድ ማጽደቅ'],
+            'break_glass.revoke' => ['End emergency access', 'የአደጋ ጊዜ ፈቃድን ማቋረጥ'],
         ],
     ];
 
@@ -145,7 +162,8 @@ final class CorePermissions
         'system-settings.view', 'system-settings.update', 'organizations.delete',
         'integrations.view', 'integrations.manage', 'api_management.view',
         'hierarchy-versions.manage', 'hierarchy-versions.approve', 'hierarchy-versions.publish',
-        'roles.manage',
+        'roles.manage', 'card_templates.manage', 'digital_credentials.rotate', 'audit.integrity.verify',
+        'break_glass.approve', 'break_glass.revoke', 'positions.master.manage',
     ];
 
     /** Permissions only a city-wide holder of roles.manage may put in a role. */
@@ -153,6 +171,7 @@ final class CorePermissions
         ...self::CITYWIDE_ONLY,
         'core.administer', 'users.create', 'users.update', 'users.restore', 'users.manageUsersWithinScope', 'roles.viewAny',
         'employee_signatures.view', 'employee_signatures.upload', 'employee_signatures.verify', 'audit.view',
+        'audit.integrity.view', 'cards.reprint',
     ];
 
     private const VIEWER = [
@@ -163,6 +182,7 @@ final class CorePermissions
         'employees.view', 'assignments.view',
         'cards.view', 'id-cards.viewAny',
         'employee_documents.view', 'employee_photos.view',
+        'card_templates.view', 'card_print_batches.view', 'digital_credentials.view',
     ];
 
     private const OFFICER = [
@@ -181,6 +201,8 @@ final class CorePermissions
         'cards.manage', 'card-requests.create', 'card-requests.verify', 'card-requests.approve',
         'id-cards.print', 'id-cards.issue', 'id-cards.activate', 'id-cards.replace', 'id-cards.suspend', 'id-cards.revoke',
         'imports.view', 'imports.create',
+        'positions.approve', 'cards.quality_check', 'card_print_batches.manage', 'digital_credentials.issue', 'digital_credentials.revoke',
+        'break_glass.request',
     ];
 
     private const ADMIN = [
@@ -191,6 +213,9 @@ final class CorePermissions
         'system-settings.view', 'system-settings.update', 'organizations.delete',
         'integrations.view', 'integrations.manage', 'api_management.view',
         'hierarchy-versions.manage', 'hierarchy-versions.approve', 'hierarchy-versions.publish',
+        // P3 (ADR 0010)
+        'positions.master.manage', 'cards.reprint', 'card_templates.manage', 'digital_credentials.rotate',
+        'audit.integrity.view', 'audit.integrity.verify', 'break_glass.approve', 'break_glass.revoke',
     ];
 
     /**

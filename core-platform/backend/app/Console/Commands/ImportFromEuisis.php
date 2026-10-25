@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Support\PositionMasterBackfill;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -35,6 +36,9 @@ class ImportFromEuisis extends Command
         'position_occupancies', 'card_requests', 'id_cards', 'card_replacements',
     ];
 
+    /** Master data copied first when EUISIS has it, so positions keep their references (ADR 0010). */
+    private const MASTERS = ['occupations'];
+
     /** Pointers that close a loop: copied empty first, filled once every row exists. */
     private const DEFERRED = [
         'employees' => ['current_assignment_id'],
@@ -64,6 +68,13 @@ class ImportFromEuisis extends Command
             }
 
             $rows = [];
+            foreach (self::MASTERS as $table) {
+                if ($source->getSchemaBuilder()->hasTable($table) && ! DB::table($table)->exists()) {
+                    $columns = array_values(array_intersect(Schema::getColumnListing($table), $source->getSchemaBuilder()->getColumnListing($table)));
+                    $source->table($table)->select($columns)->orderBy('id')->chunk($chunk, fn ($batch) => DB::table($table)->insert($batch->map(fn ($row): array => (array) $row)->all()));
+                    $rows[] = [$table, DB::table($table)->count()];
+                }
+            }
             foreach ($tables as $table) {
                 if (! $source->getSchemaBuilder()->hasTable($table)) {
                     $this->warn("EUISIS has no {$table} table; skipped.");
@@ -97,6 +108,7 @@ class ImportFromEuisis extends Command
                     });
                 }
             }
+            PositionMasterBackfill::run();
         } finally {
             Schema::enableForeignKeyConstraints();
         }

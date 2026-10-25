@@ -120,6 +120,11 @@ final readonly class RegisterEmployee
                 'is_current' => true,
                 'effective_from' => $data['effective_from'],
                 'reason' => 'registered',
+                'assignment_type' => 'initial',
+                'reason_code' => 'registration',
+                'created_by' => $actor->getKey(),
+                'source_system' => in_array($data['source_system'] ?? null, EmployeeAssignment::SOURCES, true) ? $data['source_system'] : 'core',
+                'external_reference' => $data['external_reference'] ?? null,
             ]);
             $employee->forceFill(['current_assignment_id' => $assignment->id])->save();
 

@@ -13,6 +13,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Services\OrganizationScope;
 use App\Services\SeatCapacity;
+use Illuminate\Validation\Rule;
 
 /**
  * Placement changes (ADR 0009) through TransferEmployee: an active employee
@@ -32,6 +33,11 @@ final class AssignmentImport extends ImportDefinition
         return ['employee_number', 'position_code', 'effective_from', 'reason'];
     }
 
+    public function optionalColumns(): array
+    {
+        return ['assignment_type', 'reason_code'];
+    }
+
     public function permission(): string
     {
         return 'assignments.change';
@@ -41,6 +47,7 @@ final class AssignmentImport extends ImportDefinition
     {
         $errors = $this->basic($row, [
             'employee_number' => ['required'], 'position_code' => ['required'], 'effective_from' => ['required', 'date'], 'reason' => ['nullable', 'max:1000'],
+            'assignment_type' => ['nullable', Rule::in(array_values(array_diff(EmployeeAssignment::TYPES, ['initial'])))], 'reason_code' => ['nullable', Rule::in(EmployeeAssignment::REASON_CODES)],
         ]);
         $employee = $row['employee_number'] === null ? null : Employee::query()->where('employee_number', $row['employee_number'])->first();
         $current = $employee === null ? null : EmployeeAssignment::query()->find($employee->current_assignment_id);
@@ -94,7 +101,10 @@ final class AssignmentImport extends ImportDefinition
     {
         $employee = Employee::query()->where('employee_number', $row['employee_number'])->firstOrFail();
         $assignment = app(TransferEmployee::class)->execute($employee, (string) Position::query()->where('job_position_code', $row['position_code'])->value('id'),
-            (string) $row['effective_from'], $actor, $row['reason'] ?? 'Imported placement change');
+            (string) $row['effective_from'], $actor, $row['reason'] ?? 'Imported placement change', array_filter([
+                'assignment_type' => $row['assignment_type'] ?? null, 'reason_code' => $row['reason_code'] ?? null,
+                'source_system' => 'import', 'external_reference' => 'import:'.$batch->id.':'.$row['employee_number'],
+            ], fn ($value): bool => $value !== null));
 
         return ['EmployeeAssignment', (string) $assignment->id];
     }

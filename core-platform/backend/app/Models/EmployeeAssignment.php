@@ -19,11 +19,20 @@ class EmployeeAssignment extends Model
 
     public const CLOSED = 'closed';
 
+    /** How a placement came about (ADR 0010). 'unspecified' only for rows older than P3. */
+    public const TYPES = ['initial', 'transfer', 'promotion', 'demotion', 'reassignment', 'correction'];
+
+    /** Why, as a code reports can count; the free-text reason says the rest. */
+    public const REASON_CODES = ['registration', 'reorganization', 'promotion', 'demotion', 'lateral_move', 'employee_request', 'disciplinary', 'correction', 'other'];
+
+    /** Where the placement was recorded: these screens, the API, a business import, or before P3. */
+    public const SOURCES = ['core', 'api', 'import', 'legacy'];
+
     protected $guarded = ['id', 'current_employee_id'];
 
     protected function casts(): array
     {
-        return ['is_current' => 'boolean', 'effective_from' => 'date', 'effective_to' => 'date'];
+        return ['is_current' => 'boolean', 'is_primary' => 'boolean', 'effective_from' => 'date', 'effective_to' => 'date', 'approved_at' => 'datetime'];
     }
 
     public function isEffective(): bool

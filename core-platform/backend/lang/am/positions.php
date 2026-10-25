@@ -40,4 +40,6 @@ return [
     'archived_position_cannot_move' => 'በማህደር የተቀመጠ ወይም ንቁ ያልሆነ የሥራ መደብ ሊንቀሳቀስ አይችልም።',
     'archive_blocked_active_assignments' => 'ይህ የሥራ መደብ በማህደር ሊቀመጥ አይችልም፦ :count ንቁ ምደባ(ዎች) አሁንም በላዩ ላይ አሉ። መጀመሪያ እነዚያን ምደባዎች ያዛውሩ ወይም ያጠናቅቁ።',
     'organization_required' => 'ይህ የሥራ መደብ የሚገኝበትን ተቋም ይምረጡ።',
+    'lifecycle_changed' => 'የሥራ መደቡ ሁኔታ ተቀይሯል።',
+    'job_master_saved' => 'የሥራ መሠረታዊ መረጃው ተቀምጧል።',
 ];

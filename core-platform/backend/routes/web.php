@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCheckerController;
 use App\Http\Controllers\Web\ImportController;
 use App\Http\Controllers\Web\IntegrationCenterController;
+use App\Http\Controllers\Web\JobMasterController;
 use App\Http\Controllers\Web\MfaController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationUnitController;
@@ -76,6 +77,13 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/{importBatch}/approve', [ImportController::class, 'approve'])->name('.approve');
             Route::post('/{importBatch}/cancel', [ImportController::class, 'cancel'])->name('.cancel');
             Route::get('/{importBatch}/errors', [ImportController::class, 'errors'])->name('.errors');
+        });
+
+        // Job master data (ADR 0010): readers of positions see it; positions.master.manage changes it (ManageJobMasters).
+        Route::middleware('can:positions.viewAny')->group(function (): void {
+            Route::get('/job-masters', [JobMasterController::class, 'index'])->name('job-masters');
+            Route::post('/job-masters/{kind}', [JobMasterController::class, 'store'])->middleware('can:positions.master.manage')->name('job-masters.store');
+            Route::patch('/job-masters/{kind}/{id}', [JobMasterController::class, 'update'])->middleware('can:positions.master.manage')->whereUuid('id')->name('job-masters.update');
         });
 
         Route::middleware('can:employees.duplicates.review')->group(function (): void {
@@ -188,6 +196,8 @@ Route::middleware('auth')->group(function (): void {
         Route::patch('/positions/{position}', [PositionController::class, 'update'])->middleware('can:positions.update')->name('positions.update');
         Route::delete('/positions/{position}', [PositionController::class, 'archive'])->middleware('can:positions.archive')->name('positions.archive');
         Route::post('/positions/{position}/restore', [PositionController::class, 'restore'])->middleware('can:positions.restore')->name('positions.restore');
+        // The position lifecycle (ADR 0010): ChangePositionLifecycle checks each step's permission and scope.
+        Route::post('/positions/{position}/lifecycle', [PositionController::class, 'lifecycleStep'])->middleware('throttle:30,1')->name('positions.lifecycle');
         Route::post('/positions/{position}/approve-establishment', [PositionController::class, 'approveEstablishment'])->middleware('can:position-establishments.approve')->name('positions.approve-establishment');
     });
     Route::middleware('can:position-establishments.viewAny')->group(function (): void {

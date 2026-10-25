@@ -9,6 +9,7 @@ use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\OrganizationScope;
+use App\Services\PositionHistoryLog;
 use App\Services\SeatCapacity;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ use Illuminate\Validation\ValidationException;
  */
 final readonly class SaveEstablishment
 {
-    public function __construct(private AuditWriter $audit, private OrganizationScope $scope, private SeatCapacity $seats) {}
+    public function __construct(private AuditWriter $audit, private OrganizationScope $scope, private SeatCapacity $seats, private PositionHistoryLog $history) {}
 
     /** @param array{approved_slots: int, effective_from: string, establishment_number?: ?string, approval_reference?: ?string, notes?: ?string} $data */
     public function approve(Position $position, array $data, User $actor): PositionEstablishment
@@ -29,6 +30,10 @@ final readonly class SaveEstablishment
         return DB::transaction(function () use ($position, $data, $actor): PositionEstablishment {
             $position = Position::query()->lockForUpdate()->findOrFail($position->id);
             $this->assertScope($position, $actor);
+            if (in_array($position->lifecycle_status, [Position::ABOLISHED, Position::ARCHIVED], true)) {
+                throw ValidationException::withMessages(['approved_slots' => 'An abolished or archived position takes no new seats.']);
+            }
+            $before = $this->seats->capacity((string) $position->id);
 
             $number = trim((string) ($data['establishment_number'] ?? ''));
             $number = $number !== '' ? $number : 'EST-'.$position->job_position_code.'-'.now()->format('YmdHis');
@@ -51,6 +56,8 @@ final readonly class SaveEstablishment
             ]);
             $this->audit->write('establishment.approved', $actor, $establishment, (string) $position->organization_id, null,
                 $establishment->only(['establishment_number', 'position_id', 'approved_slots', 'effective_from']));
+            $this->history->record($position, 'capacity_changed', ['seats' => ['from' => $before, 'to' => $this->seats->capacity((string) $position->id)],
+                'establishment' => ['from' => null, 'to' => $establishment->establishment_number]], $actor, $data['approval_reference'] ?? null, (string) $data['effective_from']);
 
             return $establishment;
         });
@@ -78,6 +85,8 @@ final readonly class SaveEstablishment
             }
             $this->audit->write('establishment.ended', $actor, $establishment, (string) $position->organization_id, null,
                 ['effective_to' => $effectiveTo, 'status' => 'archived'], $reason);
+            $this->history->record($position, 'capacity_changed', ['establishment' => ['from' => $establishment->establishment_number, 'to' => null], 'seats_after' => ['from' => null, 'to' => $after]],
+                $actor, $reason, $firstDayWithout->toDateString());
 
             return $establishment;
         });

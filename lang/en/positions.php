@@ -40,4 +40,6 @@ return [
     'archived_position_cannot_move' => 'An archived or inactive position cannot be moved.',
     'archive_blocked_active_assignments' => 'This position cannot be archived: :count active assignment(s) still occupy it. Transfer or end those assignments first.',
     'organization_required' => 'Select the organization this position belongs to.',
+    'lifecycle_changed' => 'The position status was changed.',
+    'job_master_saved' => 'The job master value was saved.',
 ];

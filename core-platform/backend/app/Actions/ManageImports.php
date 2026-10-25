@@ -132,7 +132,7 @@ final readonly class ManageImports
     /** A blank template with the columns, as CSV. */
     public function template(string $type): StreamedResponse
     {
-        $columns = self::definition($type)->columns();
+        $columns = self::definition($type)->allColumns();
 
         return response()->streamDownload(function () use ($columns): void {
             $out = fopen('php://output', 'wb');
@@ -149,7 +149,7 @@ final readonly class ManageImports
      */
     public function errorReport(ImportBatch $batch, User $actor): StreamedResponse
     {
-        $columns = self::definition($batch->type)->columns();
+        $columns = self::definition($batch->type)->allColumns();
         $this->audit->writeFor('import.error_report_downloaded', $actor, 'ImportBatch', (string) $batch->id, $batch->scope_organization_id);
 
         return response()->streamDownload(function () use ($batch, $columns): void {
