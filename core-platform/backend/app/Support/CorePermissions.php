@@ -37,8 +37,11 @@ final class CorePermissions
 
     private const ADMIN = [
         'users.viewAny', 'users.create', 'users.update', 'users.restore', 'users.manageUsersWithinScope',
-        'audit.view', 'system-settings.view', 'system-settings.update',
+        'audit.view',
     ];
+
+    /** Core-wide settings and deleting organizations: a city-wide administrator only (EnsureCoreUser city-admin). */
+    private const CITY_ADMIN = ['system-settings.view', 'system-settings.update', 'organizations.delete'];
 
     /** @return list<string> */
     public static function for(?User $user): array
@@ -48,7 +51,7 @@ final class CorePermissions
         }
 
         return match ($user->role) {
-            'core_admin' => [...self::VIEWER, ...self::OFFICER, ...self::ADMIN],
+            'core_admin' => [...self::VIEWER, ...self::OFFICER, ...self::ADMIN, ...($user->isCityWide() ? self::CITY_ADMIN : [])],
             'core_officer' => [...self::VIEWER, ...self::OFFICER],
             'core_viewer' => self::VIEWER,
             default => [],

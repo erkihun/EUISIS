@@ -133,6 +133,32 @@ class CoreScreensTest extends TestCase
         $this->assertGuest('web');
     }
 
+    public function test_a_one_time_password_is_replaced_before_anything_else(): void
+    {
+        $user = $this->signIn('core_officer');
+        $user->forceFill(['must_change_password' => true])->save();
+
+        $this->get('/organizations')->assertRedirect('/change-password');
+        $this->get('/change-password')->assertInertia(fn (Assert $page) => $page->component('Auth/ForcedPasswordChange'));
+        $this->post('/change-password', ['current_password' => 'wrong', 'password' => 'NewPassword2026', 'password_confirmation' => 'NewPassword2026'])
+            ->assertSessionHasErrors('current_password');
+        $this->post('/change-password', ['current_password' => 'secret-password-1', 'password' => 'NewPassword2026', 'password_confirmation' => 'NewPassword2026'])
+            ->assertRedirect('/core');
+        $this->assertFalse($user->fresh()->must_change_password);
+        // A real request reloads the account from the session; the test's signed-in model is refreshed by hand.
+        $this->actingAs($user->fresh(), 'web')->get('/organizations')->assertOk();
+    }
+
+    public function test_settings_belong_to_a_city_wide_administrator(): void
+    {
+        $this->signIn('core_admin', $this->bureauA);
+        $this->get('/system-settings')->assertForbidden();
+        $this->get('/users')->assertOk();
+
+        $this->signIn('core_admin');
+        $this->get('/system-settings')->assertOk();
+    }
+
     public function test_a_viewer_reads_but_cannot_open_the_forms(): void
     {
         $this->signIn('core_viewer');

@@ -16,14 +16,15 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
-use App\Services\CodeGenerator;
 use App\Services\CoreSettings;
 use App\Services\OrganizationScope;
 use App\Services\SeatCapacity;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -137,24 +138,23 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function store(Request $request, RegisterEmployee $register, UpdateEmployee $update, CodeGenerator $codes): RedirectResponse
+    public function store(Request $request, RegisterEmployee $register, UpdateEmployee $update): RedirectResponse
     {
         $data = $request->validate([
-            'employee_number' => ['nullable', 'string', 'max:64', Rule::unique('employees', 'employee_number')],
+            'employee_number' => ['nullable', 'string', 'max:64'],
             'position_id' => ['required', 'uuid', Rule::exists('positions', 'id')],
             'effective_from' => ['nullable', 'date'],
             ...$this->personRules(),
         ]);
-        $employee = $register->execute([
-            'employee_number' => $codes->code('employee', $data['employee_number'] ?? null),
-            'first_name' => $data['first_name'],
-            'middle_name' => $data['middle_name'] ?? null,
-            'last_name' => $data['last_name'],
-            'gender' => $data['gender'] ?? null,
-            'position_id' => $data['position_id'],
-            'effective_from' => $data['effective_from'] ?? now()->toDateString(),
-        ], $request->user());
-        $details = array_filter(array_intersect_key($data, array_flip(['name_en', 'phone', 'email', 'date_of_birth', 'nationality', 'employment_type', 'address', 'emergency_contact_name', 'emergency_contact_phone'])), fn ($v) => $v !== null);
+        try {
+            // A blank number is generated; the national id is kept only as its keyed hash.
+            $employee = $register->execute([...$data, 'effective_from' => $data['effective_from'] ?? now()->toDateString()], $request->user());
+        } catch (HttpResponseException $exception) {
+            // A possible duplicate (409 POSSIBLE_DUPLICATE): the EUISIS form has no confirmation step, so it is refused here.
+            $matches = collect($exception->getResponse()->getData(true)['matches'] ?? [])->pluck('employee_number')->filter()->implode(', ');
+            throw ValidationException::withMessages(['first_name' => __('This person may already be registered').($matches !== '' ? " ({$matches})." : '.')]);
+        }
+        $details = array_filter(array_intersect_key($data, array_flip(['name_en', 'nationality', 'employment_type', 'address', 'emergency_contact_name', 'emergency_contact_phone'])), fn ($v) => $v !== null);
         if ($details !== []) {
             $update->details($employee, $details, $request->user());
         }

@@ -19,7 +19,7 @@ const targetJs = path.join(here, 'resources', 'js');
 
 /** The EUISIS pages the Core backend renders (Inertia::render names). */
 export const PAGES = [
-    'Auth/Login', 'Profile/Edit',
+    'Auth/Login', 'Auth/ForcedPasswordChange', 'Profile/Edit',
     'Core/Dashboard', 'Core/Assignments', 'Core/DataQuality', 'Core/Settings', 'Core/AuditCenter',
     'Organizations/Index', 'Organizations/Show', 'Organizations/Create', 'Organizations/Edit', 'Organizations/Organogram',
     'OrganizationTypes/Index', 'OrganizationTypes/Show', 'OrganizationTypes/Create', 'OrganizationTypes/Edit',

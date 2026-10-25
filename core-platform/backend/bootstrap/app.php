@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureApiClient;
 use App\Http\Middleware\EnsureCoreUser;
+use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequestId;
 use App\Http\Middleware\SecurityHeaders;
@@ -29,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['core.user' => EnsureCoreUser::class, 'core.client' => EnsureApiClient::class]);
         // The EUISIS screens: the page's language, the idle sign-out and the shared props, on the browser routes.
         $middleware->encryptCookies(except: [SetClientLocale::COOKIE]);
-        $middleware->web(append: [SetClientLocale::class, TrackSessionActivity::class, HandleInertiaRequests::class]);
+        $middleware->web(append: [SetClientLocale::class, TrackSessionActivity::class, EnsurePasswordChanged::class, HandleInertiaRequests::class]);
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('core.dashboard'));
     })

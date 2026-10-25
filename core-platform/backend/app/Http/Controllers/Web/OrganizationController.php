@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\DeleteOrganization;
 use App\Actions\SaveOrganization;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
@@ -18,6 +19,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Services\CodeGenerator;
 use App\Services\OrganizationScope;
+use App\Services\OrganizationUsage;
 use App\Services\StructureTree;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +31,7 @@ use Inertia\Response;
 /** EUISIS Organizations/* pages over the Core tables; writes go through SaveOrganization. */
 class OrganizationController extends Controller
 {
-    public function __construct(private readonly OrganizationScope $scope) {}
+    public function __construct(private readonly OrganizationScope $scope, private readonly OrganizationUsage $usage) {}
 
     public function index(Request $request): Response
     {
@@ -68,7 +70,7 @@ class OrganizationController extends Controller
             'created_at' => $organization->created_at?->toIso8601String(),
             'parent' => $parents->get($parentIds->get($organization->id))?->only(['id', 'code', 'name_en', 'name_am']),
             'can' => $this->rowCan($user, $organization),
-            'deletion_blockers' => [],
+            'deletion_blockers' => $this->blockers($organization),
         ])->values());
 
         $scoped = fn () => $this->scope->apply(Organization::query()->where('status', '!=', 'archived'), $user, 'id');
@@ -121,7 +123,7 @@ class OrganizationController extends Controller
             'reportingOffices' => [],
             'reportingUnits' => [],
             'can' => $this->rowCan($user, $organization) + ['feedbackQr' => false],
-            'deletionBlockers' => [],
+            'deletionBlockers' => $this->blockers($organization),
         ]);
     }
 
@@ -190,6 +192,14 @@ class OrganizationController extends Controller
         return to_route('organizations.index')->with('flash', ['message' => __('organizations.archived_successfully'), 'type' => 'success']);
     }
 
+    /** Soft delete for an organization nothing refers to (DeleteOrganization); the EUISIS page asks no reason. */
+    public function destroy(Request $request, Organization $organization, DeleteOrganization $delete): RedirectResponse
+    {
+        $delete->execute($organization, $request->string('reason')->toString() ?: __('Deleted on the organization page.'), $request->user());
+
+        return to_route('organizations.index')->with('flash', ['message' => __('organizations.deleted_successfully'), 'type' => 'success']);
+    }
+
     public function deactivate(Request $request, Organization $organization, SaveOrganization $save): RedirectResponse
     {
         $save->execute($organization, ['status' => 'inactive'], $request->user());
@@ -251,6 +261,22 @@ class OrganizationController extends Controller
         ]);
     }
 
+    /**
+     * Why the organization cannot be deleted (OrganizationUsage), in the keys the EUISIS page names.
+     *
+     * @return list<string>
+     */
+    private function blockers(Organization $organization): array
+    {
+        $keys = [
+            'hierarchy_history' => 'usedInPublishedHierarchy', 'hierarchy_drafts' => 'usedInPublishedHierarchy',
+            'units' => 'hasOrganizationUnits', 'positions' => 'hasPositions', 'establishments' => 'hasPositions',
+            'assignments' => 'hasEmployeeAssignments', 'scoped_accounts' => 'hasOtherReferences',
+        ];
+
+        return array_values(array_unique(array_map(fn (string $key): string => $keys[$key] ?? 'hasOtherReferences', array_keys($this->usage->deletionBlockers($organization)))));
+    }
+
     /** @return array{update: bool, delete: bool, archive: bool, deactivate: bool, createChild: bool} */
     private function rowCan(User $user, Organization $organization): array
     {
@@ -258,7 +284,7 @@ class OrganizationController extends Controller
 
         return [
             'update' => $inScope && $user->can('organizations.update'),
-            'delete' => false,
+            'delete' => $inScope && $user->can('organizations.delete'),
             'archive' => $inScope && $user->can('organizations.archive') && $organization->status !== 'archived',
             'deactivate' => $inScope && $user->can('organizations.update') && $organization->status === 'active',
             'createChild' => $inScope && $user->can('organizations.create'),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\ChangePassword;
 use App\Http\Controllers\Controller;
 use App\Http\Middleware\TrackSessionActivity;
 use App\Models\User;
@@ -15,7 +16,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -57,6 +57,7 @@ class SessionController extends Controller
         $request->session()->put(TrackSessionActivity::KEY, time());
         /** @var User $user */
         $user = $request->user();
+        $user->forceFill(['last_login_at' => now()])->save();
         $audit->write('auth.signed_in', $user, $user, $user->scope_organization_id);
 
         return redirect()->intended(route('core.dashboard'));
@@ -124,7 +125,7 @@ class SessionController extends Controller
                 'initials' => mb_strtoupper(mb_substr($user->name, 0, 1)),
                 'roles' => [CorePermissions::roleName($user)],
                 'status' => $user->is_active ? 'active' : 'inactive',
-                'last_login_at' => null,
+                'last_login_at' => $user->last_login_at?->toDateTimeString(),
                 'created_at' => $user->created_at?->toIso8601String(),
             ],
             'security' => ['two_factor_enabled' => false, 'two_factor_required' => false, 'two_factor_confirmed_at' => null, 'two_factor_last_used_at' => null],
@@ -160,18 +161,39 @@ class SessionController extends Controller
         return redirect()->route('profile.edit')->with('flash', ['message' => __('Profile updated.'), 'type' => 'success']);
     }
 
-    public function updatePassword(Request $request, AuditWriter $audit): RedirectResponse
+    public function updatePassword(Request $request, ChangePassword $change): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-        $data = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::min(12)],
-        ]);
-        $user->update(['password' => Hash::make($data['password'])]);
-        $audit->write('user.password_changed', $user, $user, $user->scope_organization_id);
+        $this->changePassword($request, $change);
 
         return back()->with('flash', ['message' => __('Password updated.'), 'type' => 'success']);
+    }
+
+    /** EUISIS Auth/ForcedPasswordChange: the one-time password is replaced before anything else. */
+    public function forcedPassword(Request $request): Response|RedirectResponse
+    {
+        if (! $request->user()->must_change_password) {
+            return redirect()->route('core.dashboard');
+        }
+
+        return Inertia::render('Auth/ForcedPasswordChange');
+    }
+
+    public function updateForcedPassword(Request $request, ChangePassword $change): RedirectResponse
+    {
+        $this->changePassword($request, $change);
+        $request->session()->regenerate();
+
+        return redirect()->route('core.dashboard')->with('flash', ['message' => __('Password updated.'), 'type' => 'success']);
+    }
+
+    /** The password rules of ChangePassword (length, history, no name or e-mail) for both forms. */
+    private function changePassword(Request $request, ChangePassword $change): void
+    {
+        $data = $request->validate([
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'confirmed'],
+        ]);
+        $change->execute($request->user(), $data['current_password'], $data['password']);
     }
 
     public function destroyDevice(Request $request, string $session): RedirectResponse

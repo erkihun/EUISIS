@@ -54,7 +54,7 @@ class UserController extends Controller
                 'status' => $user->is_active ? 'active' : 'inactive',
                 'phone_number' => null,
                 'gender' => null,
-                'last_login_at' => null,
+                'last_login_at' => $user->last_login_at?->toDateTimeString(),
                 'created_at' => $user->created_at?->toDateString(),
                 'roles' => [CorePermissions::roleName($user)],
                 'profile_photo_url' => null,
@@ -165,7 +165,8 @@ class UserController extends Controller
         if ($request->boolean('generate_temporary_password')) {
             $temporary = $save->resetPassword($user, $request->user());
         } elseif (filled($data['password'] ?? null)) {
-            $user->update(['password' => Hash::make($data['password'])]);
+            // A password set by an administrator is replaced by its owner at the next sign-in.
+            $user->forceFill(['password' => Hash::make($data['password']), 'must_change_password' => true])->save();
         }
 
         return $this->withTemporaryPassword(to_route('users.index'), $temporary, __('users.updated'));

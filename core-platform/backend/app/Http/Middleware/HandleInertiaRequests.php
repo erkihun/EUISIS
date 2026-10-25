@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Services\CoreNavigation;
+use App\Services\CoreSettings;
 use App\Services\SharedSettings;
 use App\Support\CorePermissions;
 use Illuminate\Http\Request;
@@ -81,7 +82,7 @@ class HandleInertiaRequests extends Middleware
                 'generated_token' => session('flash.generated_token'),
                 'temporary_password' => session('flash.temporary_password'),
             ],
-            'password_policy' => fn (): array => ['min_length' => 12, 'max_length' => 128, 'history_count' => 0, 'blocks_personal_information' => false, 'blocks_common_passwords' => false, 'checks_breaches' => false],
+            'password_policy' => fn (): array => ['min_length' => app(CoreSettings::class)->int('security.password_min_length'), 'max_length' => 128, 'history_count' => app(CoreSettings::class)->int('security.password_history_count'), 'blocks_personal_information' => true, 'blocks_common_passwords' => false, 'checks_breaches' => false],
         ];
     }
 

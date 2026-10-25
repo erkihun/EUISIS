@@ -27,6 +27,8 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
+    Route::get('/change-password', [SessionController::class, 'forcedPassword'])->name('password.forced');
+    Route::post('/change-password', [SessionController::class, 'updateForcedPassword'])->middleware('throttle:6,1')->name('password.forced.update');
     Route::post('/session/activity', [SessionController::class, 'activity'])->name('session.activity');
     Route::get('/session/status', [SessionController::class, 'status'])->name('session.status');
     Route::get('/notifications/feed', [SessionController::class, 'notifications'])->name('notifications.feed');
@@ -74,6 +76,7 @@ Route::middleware('auth')->group(function (): void {
         Route::patch('/organizations/{organization}', [OrganizationController::class, 'update'])->middleware('can:organizations.update')->name('organizations.update');
         Route::delete('/organizations/{organization}', [OrganizationController::class, 'archive'])->middleware('can:organizations.archive')->name('organizations.archive');
         Route::patch('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])->middleware('can:organizations.update')->name('organizations.deactivate');
+        Route::delete('/organizations/{organization}/destroy', [OrganizationController::class, 'destroy'])->middleware('can:organizations.delete')->name('organizations.destroy');
         Route::get('/organizations/{organization}/units/options', [OrganizationUnitController::class, 'optionsFor'])->name('organizations.units.options');
         Route::get('/organizations/{organization}/units/tree', [OrganizationUnitController::class, 'tree'])->name('organizations.units.tree');
     });
