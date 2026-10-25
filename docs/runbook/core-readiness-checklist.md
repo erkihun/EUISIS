@@ -67,7 +67,7 @@ Evidence abbreviations:
 | Backup run: encrypted, checksummed, copied, status file | Pass (rehearsed) | E§5 (pg_dump path; the off-host copy is on the same disk) |
 | Restore drill on a real restored instance | Pass (rehearsed) | E§6: 120 s, fingerprints identical, MFA sign-in, documents, credentials |
 | pgBackRest, WAL, PITR, off-site repository | Not Tested | R-03 |
-| RPO / RTO | Not Tested | BUSINESS DECISION REQUIRED (D-01) |
+| RPO / RTO | Not Tested | BUSINESS DECISION REQUIRED (D-01/D-02) |
 
 ## Queues and scheduler
 
@@ -82,7 +82,7 @@ Evidence abbreviations:
 | Item | Result | Evidence |
 |---|---|---|
 | Probes and monitor endpoint (19 metrics, no personal data) | Pass | `CoreGoLiveOperationsTest`; E§7 smoke |
-| External monitoring and alerting connected; alerts proven to fire | Not Tested | D-09; `core-monitoring-and-alerts.md` |
+| External monitoring and alerting connected; alerts proven to fire | Not Tested | D-10; `core-monitoring-and-alerts.md` |
 
 ## Performance
 
@@ -90,7 +90,7 @@ Evidence abbreviations:
 |---|---|---|
 | Single user at 300,000 employees | Pass | ADR 0011 §9 |
 | Concurrency (workstation rig) | See E§9 | measured capacity, no invented threshold |
-| Load on production-like hardware against agreed targets | Not Tested | R-02, D-02 |
+| Load on production-like hardware against agreed targets | Not Tested | R-02, D-03 |
 
 ## Localization
 
@@ -98,13 +98,13 @@ Evidence abbreviations:
 |---|---|---|
 | Keys complete, glossary | Pass | `npm run i18n:audit`: 0 blocking |
 | Native Amharic review | Not Tested | `core-amharic-review.csv` (R-11) |
-| Times shown in Addis Ababa time | Fail (today UTC) | R-15, D-06 |
+| Times shown in Addis Ababa time | Fail (today UTC) | R-15, D-07 |
 
 ## Notifications and reports
 
 | Item | Result | Evidence |
 |---|---|---|
 | In-app notifications delivered by the workers | Pass (rehearsed) | E§11: 118 delivered |
-| E-mail through a real mailer | Not Tested | D-03 |
-| SMS | Not Applicable (pending approval) | D-04 |
-| Server-generated PDF | Not Applicable (pending approval) | D-05 |
+| E-mail through a real mailer | Not Tested | D-04 |
+| SMS | Not Applicable (pending approval) | D-05 |
+| Server-generated PDF | Not Applicable (pending approval) | D-06 |

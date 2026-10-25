@@ -186,7 +186,7 @@ TLS. Runbooks: [core-deployment.md](../../runbook/core-deployment.md) and
 | Deploy | 68 s: migrate (nothing pending), configuration review passed, switch, reload, workers restarted, smoke passed incl. `/health/monitor` reporting 15c095aa |
 | Golden Path over HTTPS | passed in 38.6 s |
 | CSP, first pass (release 39928823, signed in as an administrator, 15 page loads) | **1 distinct violation on every page**: the inline theme bootstrap (`script-src 'self'`, hash `sha256-txPkqvLO…`). Classified as a required application source, so it needs a nonce |
-| CSP, second pass (release 15c095aa, the same 15 pages: sign-in, dashboard, employees, organizations, positions, cards, print batches, reports, data quality, Security Center, System Health, notifications, users, settings, card templates) | **0 console messages, 0 violations**. The policy carries a per-request nonce and the theme script carries it (checked in the page). Still report-only; `CORE_CSP_ENFORCE=true` enforces it (decision D-10) |
+| CSP, second pass (release 15c095aa, the same 15 pages: sign-in, dashboard, employees, organizations, positions, cards, print batches, reports, data quality, Security Center, System Health, notifications, users, settings, card templates) | **0 console messages, 0 violations**. The policy carries a per-request nonce and the theme script carries it (checked in the page). Still report-only; `CORE_CSP_ENFORCE=true` enforces it (decision D-11) |
 | Suites on the candidate | SQLite 230/230 · PostgreSQL 18.6 230/230 · MariaDB 10.4 228 passed + 2 skipped · frontend typecheck pass · i18n audit 0 blocking (23,786 keys) · `composer audit` none · `npm audit --omit=dev` 0 |
 | `/health/monitor` over HTTPS | 200 with the token, 401 without; release reported; 19 metrics. The status was "warning" only because the daily tasks had not run yet. The scheduler alert therefore uses the every-minute tasks |
 
@@ -221,7 +221,7 @@ rehearsals were run into fresh Core databases with the go-live sequence
 
 ## 9. Load and concurrency
 
-**Not production hardware, and no agreed targets (D-02), so no pass
+**Not production hardware, and no agreed targets (D-03), so no pass
 threshold is set.** These are the measured capacity of this rig and where it
 saturates.
 
@@ -333,6 +333,20 @@ PHP-FPM, against business-approved concurrency targets.
   [core-amharic-review.csv](core-amharic-review.csv), 2,921 strings, 0
   missing.
 
+## 15a. Release source of truth (2026-10-26, after `git fetch`)
+
+| Ref | Commit | What it is |
+|---|---|---|
+| `origin/main` | e0bc149a | unchanged since the P0/P1 gate. An ancestor of every commit below: no divergence |
+| **release_code_commit (proposed)** | **15c095aa** | the last commit that changes `core-platform/backend`, `frontend` or `deploy`. Rehearsed: staging deploy, rollback, restore drill, CSP pass, load |
+| **release_docs_commit (proposed)** | the latest docs/CI commit on top of 15c095aa (37449238, then the decision-register and CI commit) | 37449238 changes only `docs/` and `core-platform/loadtest/` (test tooling, not in the artifact). 0 files under `core-platform/backend`, `frontend` or `deploy` |
+| a202bb31, rebased as **064c5e4b** (local branch `feat/golden-path-stages-apply`) | not in 15c095aa | the settings work ("the Core settings are the EUISIS settings"): 16 files, about 2,100 lines in settings, services, controllers, the provider, routes, the screen sync and CI; no migrations. **Excluded** from the rehearsed candidate. Including it means a new candidate and a full rehearsal again (D-12) |
+
+The Core CI (`.github/workflows/core-platform.yml`) runs only on pushes and
+PRs to `main`. At 15c095aa it had no PostgreSQL job: the PostgreSQL 18 job
+`core-backend-postgres` was added on top. **No tag exists, and none is created
+until D-12 is decided by a person.**
+
 ## 15. Release source
 
 - `feat/core-p0-p1-gate` is 17+ commits ahead of `origin/main` and 0
@@ -341,4 +355,4 @@ PHP-FPM, against business-approved concurrency targets.
 - Nothing is pushed and there is no `core-*` tag. The peer's settings work
   (a202bb31, on `feat/golden-path-stages-apply`) is not in this candidate.
 - **Release commit, tag (`core-v1.0.0-rc1`), push and CI need the owner's
-  agreement (D-11).**
+  agreement (D-12).**

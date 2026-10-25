@@ -15,7 +15,7 @@
 | Frontend build manifest SHA-256 | `03fed388b8c605b16bf9916cf32bc5f295748d6b5a5069a7cd22c6dbffe8e2d5` |
 | Migrations | 29 |
 | Artifact | `core-15c095aa.tar.gz` (7.7 MB), SHA-256 `1815711609fee1cdf1d5719a9e162dd0194e36c49b875fe090687c3d5ed03912`, built by `deploy/release/build-artifact.sh` |
-| Status | **release candidate, not agreed and not tagged**: proposed tag `core-v1.0.0-rc1` once the release commit is agreed and pushed and CI is green (D-11). Generated with `deploy/release/manifest.php` from the deployed staging release |
+| Status | **release candidate, not agreed and not tagged**: proposed tag `core-v1.0.0-rc1` once the release commit is agreed and pushed and CI is green (D-12). Generated with `deploy/release/manifest.php` from the deployed staging release |
 
 ## Migrations
 

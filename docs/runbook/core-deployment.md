@@ -129,7 +129,7 @@ Rehearsed on 2026-10-26 with 28 and 220,000 employees (evidence §8).
 
 1. **Before the window.**
    - EUISIS sets an explicit `NATIONAL_ID_HASH_KEY` and runs its rehash.
-   - The Core gets the same value (D-12).
+   - The Core gets the same value (D-13).
    - A sanitized production copy has been rehearsed with
      `deploy/migration/reconcile.php` (R-09).
 2. **Freeze EUISIS writes** to the Golden Path tables, then take its

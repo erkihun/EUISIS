@@ -98,7 +98,7 @@ it, every printed QR code would have stopped verifying. Imports cap rows per
 insert by the column count (PostgreSQL allows 65,535 bound values per
 statement).
 
-### 8. Time: stored in UTC, shown in Addis Ababa time (proposal D-06)
+### 8. Time: stored in UTC, shown in Addis Ababa time (proposal D-07)
 
 Checked, not assumed:
 
@@ -113,7 +113,7 @@ Checked, not assumed:
 - The cron times in `routes/console.php` are UTC: 00:15 UTC is 03:15 in
   Addis Ababa.
 
-Proposal D-06: keep storage, the API and the scheduler in UTC, and show
+Proposal D-07: keep storage, the API and the scheduler in UTC, and show
 Africa/Addis_Ababa (UTC+3, no daylight saving) wherever a time of day is
 shown. This is one change in the shared formatter (EUISIS source, synced to
 the Core) plus `CoreDates`, and both applications must change together, or
