@@ -81,6 +81,9 @@ Run every scenario in Amharic **and** English unless it says otherwise.
 | L-01 | Amharic UI: walk E-01…C-05 in Amharic | HR Officer, Verifier | every label, message and date (Ethiopian calendar) is understandable; wording issues go to the native review list |
 | L-02 | English UI: the same in English | HR Officer | the same; dates in ISO form |
 | N-01 | Notifications: approvals and expiring cards reach the right people, in their language | Approver | in-app notices appear; nothing for people outside the scope |
+| SET-01 | Settings › General: change the support e-mail and help link, upload the logo (PNG) | City Admin | saved and audited; the logo shows on every page; an SVG file is refused; a Scoped Viewer cannot open or change settings |
+| SET-02 | Settings › Email and Notifications: set the mailer and sender, save the mail password, send the test e-mail | City Admin | the password is never shown back; the test e-mail arrives (if D-04 says e-mail is in V1) or the page says mail is off |
+| SET-03 | Settings › Security: change the MFA switches and the session timeout | City Admin | the change applies at the next sign-in; it is audited with old and new values |
 
 ## Sign-off record
 

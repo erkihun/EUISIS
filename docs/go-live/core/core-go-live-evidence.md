@@ -333,7 +333,18 @@ PHP-FPM, against business-approved concurrency targets.
   [core-amharic-review.csv](core-amharic-review.csv), 2,921 strings, 0
   missing.
 
-## 15a. Release source of truth (2026-10-26, after `git fetch`)
+## 15b. D-12 decided: the settings work is in the candidate (2026-10-26)
+
+The project owner decided to include the settings work. The release branch was fast-forwarded to 69e0fa03 (the same patch as 064c5e4b, rebased on 1aabf8e5). A review of it found two problems, both fixed (6bb346ee):
+
+- an SVG favicon could carry script from `/storage`;
+- releases never linked the public disk.
+
+One problem in the configuration review was also fixed (91c3d851): it ignored the mailer set on the settings page.
+
+**Proposed release_code_commit: 91c3d851.** Locally: SQLite 238/238, PostgreSQL 238/238, MariaDB 236 + 2 skipped; Pint, audits, typecheck, build and drift checks clean. **None of the staging evidence above applies to it.** It is rehearsed again per [core-rc1-rehearsal-plan.md](core-rc1-rehearsal-plan.md).
+
+## 15a. Release source of truth (2026-10-26, after `git fetch`; superseded for the code commit by §15b)
 
 | Ref | Commit | What it is |
 |---|---|---|

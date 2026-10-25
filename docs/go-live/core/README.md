@@ -6,6 +6,7 @@
 | [core-release-manifest.md](core-release-manifest.md) | the release candidate: commit, versions, migrations, environment, schedule, workers (generated) |
 | [core-owner-matrix-and-risks.md](core-owner-matrix-and-risks.md) | owners (BLOCKED until assigned), the decision register, the risk register |
 | [core-go-live-checklist.md](core-go-live-checklist.md) | the 19 go-live gates and the external evidence each still needs |
+| [core-rc1-rehearsal-plan.md](core-rc1-rehearsal-plan.md) | after D-12: the new candidate (settings work included) and its full rehearsal |
 | [core-uat-package.md](core-uat-package.md), [core-uat-signoff.csv](core-uat-signoff.csv) | business UAT scenarios and the blank sign-off record |
 | [core-pentest-pack.md](core-pentest-pack.md) | handing the release to the independent penetration testers |
 | [core-amharic-review.md](core-amharic-review.md), [core-amharic-review.csv](core-amharic-review.csv) | the native-speaker review |
