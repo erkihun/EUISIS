@@ -26,6 +26,25 @@ final class CodeGenerator
 
     public function __construct(private readonly CoreSettings $settings) {}
 
+    /** The code the next record of a kind would get, without taking it (the form's preview). */
+    public function preview(string $entity): ?string
+    {
+        if (! isset(self::ENTITIES[$entity])) {
+            return null;
+        }
+        [$setting, $table, $column] = self::ENTITIES[$entity];
+        $format = (string) $this->settings->get($setting);
+        preg_match('/\{seq:([1-9])\}/', $format, $match);
+        $pattern = str_replace(['{year}', $match[0]], [now()->format('Y'), '{seq}'], $format);
+        $last = (int) DB::table('code_sequences')->where('pattern', $pattern)->value('last_value');
+        do {
+            $last++;
+            $code = str_replace('{seq}', str_pad((string) $last, (int) $match[1], '0', STR_PAD_LEFT), $pattern);
+        } while (DB::table($table)->where($column, $code)->exists());
+
+        return $code;
+    }
+
     public function code(string $entity, ?string $manual = null): string
     {
         $manual = $manual === null ? '' : trim($manual);

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrganizationType extends Model
@@ -13,4 +14,14 @@ class OrganizationType extends Model
     use HasUuids, SoftDeletes;
 
     protected $guarded = ['id'];
+
+    protected function casts(): array
+    {
+        return ['is_active' => 'boolean', 'parent_allowed_types' => 'array'];
+    }
+
+    public function organizations(): HasMany
+    {
+        return $this->hasMany(Organization::class);
+    }
 }

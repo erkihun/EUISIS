@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class IdCard extends Model
 {
@@ -60,6 +61,17 @@ class IdCard extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function previousCard(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'previous_card_id');
+    }
+
+    /** The card issued in place of this one. */
+    public function replacementCard(): HasOne
+    {
+        return $this->hasOne(self::class, 'previous_card_id');
     }
 
     /** The shared, machine-readable reason a credential cannot be accepted. */

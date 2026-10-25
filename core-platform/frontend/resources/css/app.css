@@ -1,0 +1,995 @@
+/*
+ * Tailwind CSS 4. The layer order is declared first so the design tokens and
+ * fonts can sit in `base` ahead of Tailwind's own reset, where Tailwind 3
+ * placed them. Everything after the header is unlayered, as it was after
+ * `@tailwind utilities` in Tailwind 3, so these rules keep winning over
+ * utilities.
+ */
+@layer theme, base, components, utilities;
+
+@import '@euisis/ui/tokens.css' layer(base);
+
+/*
+ * ── Typography ────────────────────────────────────────────────
+ *
+ * UI fonts are self-hosted (fonts.css) — never a CDN stylesheet, which the
+ * CSP (`font-src 'self' data:`) blocks and which would disclose every visitor
+ * to a third party. English = Inter, Amharic = Abyssinica SIL; the stack
+ * switches on the `lang` attribute (see the typography tokens below), so no
+ * component chooses a font family itself. Full rules: docs/ui-typography.md.
+ */
+@import './fonts.css' layer(base);
+
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+
+/* Laravel's pagination views live in vendor/, which automatic detection skips; the separate cafeteria app has its own build. */
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source not '../../external-apps';
+
+/* `dark` follows the `.dark` class on <html> (the theme toggle), not the OS setting. */
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Theme keys that point at the app's own runtime variables (fonts and sizes
+ * switched by `lang`, the brand colours an admin can change, radii and
+ * control heights). `inline` makes each utility use the variable itself, as
+ * Tailwind 3 did, so a value switched on any element applies there;
+ * `reference` keeps Tailwind from emitting `--x: var(--x)` copies, which
+ * would be self-referencing and invalid.
+ */
+@theme inline reference {
+  --font-sans: var(--font-ui);
+  --font-ui: var(--font-ui);
+  --font-document: var(--font-document);
+  --font-id-card: var(--font-id-card);
+
+  --text-xs: var(--fs-xs);
+  --text-xs--line-height: var(--lh-xs);
+  --text-sm: 0.875rem;
+  --text-sm--line-height: var(--lh-sm);
+  --text-base: 1rem;
+  --text-base--line-height: var(--lh-base);
+  --text-page-title: 1.375rem;
+  --text-page-title--line-height: var(--lh-title);
+  --text-page-title--font-weight: 700;
+  --text-section-title: 1.125rem;
+  --text-section-title--line-height: var(--lh-section);
+  --text-section-title--font-weight: 600;
+  --text-body: 0.875rem;
+  --text-body--line-height: var(--lh-sm);
+  --text-label: 0.875rem;
+  --text-label--line-height: var(--lh-sm);
+  --text-label--font-weight: 500;
+  --text-table: 0.8125rem;
+  --text-table--line-height: var(--lh-table);
+  --text-helper: var(--fs-helper);
+  --text-helper--line-height: var(--lh-helper);
+
+  --color-primary: var(--color-primary);
+  --color-primary-50: var(--color-primary-50);
+  --color-primary-100: var(--color-primary-100);
+  --color-primary-200: var(--color-primary-200);
+  --color-primary-300: var(--color-primary-300);
+  --color-primary-400: var(--color-primary-400);
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-600: var(--color-primary-600);
+  --color-primary-700: var(--color-primary-700);
+  --color-primary-800: var(--color-primary-800);
+  --color-primary-900: var(--color-primary-900);
+  --color-primary-950: var(--color-primary-950);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-light: var(--color-primary-light);
+
+  --color-accent: var(--color-accent);
+  --color-accent-hover: var(--color-accent-hover);
+  --color-accent-light: var(--color-accent-light);
+
+  --color-surface: var(--app-surface);
+  --color-surface-muted: var(--app-surface-muted);
+  --color-app-bg: var(--app-background);
+  --color-app-border: var(--app-border);
+  --color-app-border-strong: var(--app-border-strong);
+  --color-muted-foreground: var(--app-muted-foreground);
+
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+  --radius-panel: var(--radius-panel);
+
+  --height-control-sm: var(--control-h-sm);
+  --height-control-md: var(--control-h-md);
+  --height-control-lg: var(--control-h-lg);
+}
+
+/* Literal theme values. */
+@theme {
+  /* Only 400–700 are shipped; the heaviest utilities are pinned to the heaviest real face. */
+  --font-weight-extrabold: 700;
+  --font-weight-black: 700;
+
+  /* Tailwind's stock blue repointed at the institutional navy (see the note in the design tokens below). */
+  --color-blue-50: #eef1fa;
+  --color-blue-100: #dde3f5;
+  --color-blue-200: #bcc7eb;
+  --color-blue-300: #8f9fd8;
+  --color-blue-400: #5d72bf;
+  --color-blue-500: #33499f;
+  --color-blue-600: #1d3084;
+  --color-blue-700: #122170;
+  --color-blue-800: #0f1c5c;
+  --color-blue-900: #0d1749;
+  --color-blue-950: #070d2c;
+}
+
+/*
+ * Tailwind 3 defaults that Tailwind 4 changed, kept so nothing moves:
+ * borders default to gray-200 (v4: currentColor) and buttons show a pointer.
+ */
+@layer base {
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentcolor);
+    }
+
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+        cursor: pointer;
+    }
+
+    /*
+     * Native controls follow the app theme (not the OS): date and time
+     * pickers, the open list of a <select>, scrollbars and number spinners
+     * draw dark when the `.dark` class is on <html>.
+     */
+    :root {
+        @apply scheme-light;
+    }
+
+    :root.dark {
+        @apply scheme-dark;
+    }
+}
+
+/* ── Design tokens ─────────────────────────────────────────────
+ *
+ * Brand: #122170 (institutional navy) and #D12908 (signal red).
+ *
+ * These were previously Tailwind's stock blue-600/orange-600, which is the
+ * single strongest "generic dashboard template" tell in the whole app. The
+ * navy is the identity colour; the red is a SIGNAL, not a decoration — it
+ * marks the one thing on a screen that needs attention (the accent rail on
+ * the header, a destructive confirmation, an overdue queue), and nothing
+ * else. If red appears twice on a page, one of them is wrong.
+ *
+ * `appearance.*` settings can override primary/secondary/accent at runtime
+ * (see AuthenticatedLayout); the values below are the shipped defaults and
+ * must stay in sync with the defaults declared there.
+ */
+:root {
+    /* Navy scale — 700 is the brand value. */
+    --color-primary-50:    #eef1fa;
+    --color-primary-100:   #dde3f5;
+    --color-primary-200:   #bcc7eb;
+    --color-primary-300:   #8f9fd8;
+    --color-primary-400:   #5d72bf;
+    --color-primary-500:   #33499f;
+    --color-primary-600:   #1d3084;
+    --color-primary-700:   #122170;
+    --color-primary-800:   #0f1c5c;
+    --color-primary-900:   #0d1749;
+    --color-primary-950:   #070d2c;
+
+    /*
+     * `--color-primary-strong` / `--color-primary-soft` are the two theme
+     * variants; `--color-primary` just picks one. AuthenticatedLayout writes
+     * the two variants (derived from the admin-configurable brand colour) and
+     * deliberately never writes `--color-primary` itself — an inline value
+     * there would outrank the `.dark` rule below and strand dark mode on the
+     * light-theme colour.
+     */
+    --color-primary-strong: #122170;
+    --color-primary-soft:   #5d72bf;
+    --color-primary:        var(--color-primary-strong);
+    /* Text on a primary fill, chosen per variant by AuthenticatedLayout
+       (readableForeground): a bright brand colour's lighter dark-theme
+       variant needs dark text. */
+    --color-on-primary-strong: #ffffff;
+    --color-on-primary-soft:   #ffffff;
+    --color-on-primary:        var(--color-on-primary-strong);
+    /* Navy is already near-black, so hover LIGHTENS rather than darkens —
+       darkening reads as "disabled" against a white surface. Like the fill,
+       the hover has a strong and a soft variant, which AuthenticatedLayout
+       derives from the configured brand colour: a fixed navy hover under an
+       orange brand turned dark button text unreadable. */
+    --color-primary-hover-strong: #1d3084;
+    --color-primary-hover-soft:   #8f9fd8;
+    --color-primary-hover:  var(--color-primary-hover-strong);
+    --color-primary-light:  #dde3f5;
+
+    --color-accent-strong:  #d12908;
+    --color-accent-soft:    #f76b3c;
+    --color-accent:         var(--color-accent-strong);
+    --color-accent-hover:   #ae2108;
+    --color-accent-light:   #fee2d6;
+
+    --color-success:       #15803d;
+    --color-warning:       #b45309;
+    --color-danger:        #b91c1c;
+
+    /* ── Surfaces ──────────────────────────────────────────────
+       Four levels, used consistently: the page sits one step below the
+       cards on it, so borders stay thin and shadows stay unnecessary. */
+    --app-background:      #f4f6fb;
+    --app-foreground:      #0f172a;
+    --app-surface:         #ffffff;
+    --app-surface-muted:   #f1f3f6;
+    --app-border:          #e2e5ea;
+    --app-border-strong:   #cbd2dc;
+    --app-muted-foreground:#5b6472;
+
+    /* ── Cards (light theme) ───────────────────────────────────
+       Admin cards are tonal, not white: a soft navy tint for content
+       panels, and a tint per meaning for KPI cards (card-tone-*). Form
+       fields, menus and dialogs stay on --app-surface so they read as
+       controls. Dark theme keeps its surfaces; see "Tonal cards" below. */
+    --app-card:            #edf1fb;
+    --app-card-border:     #d5ddf1;
+    --app-card-hover:      #e3e9f8;
+    --app-card-inset:      #e0e7f7;
+    --app-card-muted-text: #5b6472;
+
+    --tone-info-bg:        #e6ecfb;
+    --tone-info-border:    #c9d4f2;
+    --tone-success-bg:     #dff3ea;
+    --tone-success-border: #b7e2cd;
+    --tone-warning-bg:     #fdf0d9;
+    --tone-warning-border: #f2d59b;
+    --tone-danger-bg:      #fbe4e1;
+    --tone-danger-border:  #f1c0ba;
+
+    /* ── Sidebar ───────────────────────────────────────────────
+     *
+     * Driven by the `appearance.sidebar_color` setting. Only the background
+     * and foreground are supplied by AuthenticatedLayout (per theme); the
+     * border, muted text and hover wash are mixed from those two here, so an
+     * administrator configures one colour and the rest of the sidebar stays
+     * in proportion to it whatever they pick.
+     *
+     * The literals in the `var()` fallbacks are what renders before the layout
+     * effect runs, and on any page that does not set them.
+     */
+    --sidebar-bg:      var(--sidebar-bg-light, #ffffff);
+    --sidebar-fg:      var(--sidebar-fg-light, #1f2937);
+    --sidebar-border:  color-mix(in srgb, var(--sidebar-fg) 14%, var(--sidebar-bg));
+    /* Menu labels are body-sized text, so the muted tone must retain enough
+       foreground to stay readable on user-configured light and dark colours. */
+    --sidebar-muted:   color-mix(in srgb, var(--sidebar-fg) 72%, var(--sidebar-bg));
+    --sidebar-hover:   color-mix(in srgb, var(--sidebar-fg) 12%, var(--sidebar-bg));
+    /* Selected item. Normally the brand colour; falls back to the sidebar
+       foreground when the sidebar is set to the brand colour itself. */
+    --sidebar-accent:  var(--sidebar-accent-light, var(--color-primary));
+    --sidebar-accent-wash: color-mix(in srgb, var(--sidebar-accent) 18%, var(--sidebar-bg));
+
+    /* ── Radius ────────────────────────────────────────────────
+       One scale, 6–10px. `--radius-card` is the only value a card should
+       use; controls use `--radius-control`. */
+    --radius-control:      6px;
+    --radius-card:         8px;
+    --radius-panel:        10px;
+
+    /* ── Control heights ───────────────────────────────────────
+       Inputs and buttons share these so a filter row lines up without
+       per-page nudging. */
+    --control-h-sm:        30px;
+    --control-h-md:        36px;
+    --control-h-lg:        40px;
+
+    /* ── Typography tokens ─────────────────────────────────────
+     *
+     * The ONLY place UI font stacks are defined. Tailwind's `font-sans` /
+     * `font-ui` resolve to `--font-ui`, which the [lang] rules below point at
+     * the English or Amharic stack.
+     *
+     * Each stack names the other language's font second, so a stray Ethiopic
+     * word in English UI (or a Latin code in Amharic UI) still renders in a
+     * designed face rather than a system fallback. After those come locally
+     * installed Ethiopic faces (Nyala on Windows, Kefa on Apple) and the
+     * system UI font, so the interface stays readable if a webfont fails.
+     */
+    --font-ui-en: 'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-ui-am: 'Abyssinica SIL', 'Inter', 'Inter Fallback', 'Noto Sans Ethiopic', 'Nyala', 'Kefa', system-ui, sans-serif;
+    /* Formal documents and long-form official text (see docs). */
+    --font-document-am: 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', serif;
+    --font-document-en: 'Noto Sans', 'Inter', system-ui, sans-serif;
+    /* ID cards: Latin first so codes and English lines use Inter; Ethiopic
+       falls through to Abyssinica SIL. Mirrors config/typography.php,
+       which the server-rendered card SVG uses. */
+    --font-id-card: 'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', sans-serif;
+
+    --font-ui: var(--font-ui-en);
+    --font-document: var(--font-document-en);
+
+    /* Line heights. Ethiopic glyphs are taller than Latin x-height text and
+       need more vertical room; the [lang|="am"] rule raises these slightly. */
+    --ui-line-height: 1.5;
+    --fs-xs: 0.75rem;
+    --lh-xs: 1rem;
+    --lh-sm: 1.25rem;
+    --lh-base: 1.5rem;
+    --lh-title: 1.3;
+    --lh-section: 1.4;
+    --lh-table: 1.25rem;
+    --fs-helper: 0.75rem;
+    --lh-helper: 1rem;
+}
+
+/*
+ * Language-driven typography. `lang` on <html> is set by the server
+ * (app.blade.php) and kept in sync by LocaleContext, so switching language
+ * re-points every token at once. An element carrying its own `lang` (a
+ * bilingual ID card field, an English name inside Amharic UI) re-points the
+ * tokens for its subtree.
+ */
+[lang|="en"] {
+    --font-ui: var(--font-ui-en);
+    --font-document: var(--font-document-en);
+    --ui-line-height: 1.5;
+    --fs-xs: 0.75rem;
+    --lh-xs: 1rem;
+    --lh-sm: 1.25rem;
+    --lh-base: 1.5rem;
+    --lh-title: 1.3;
+    --lh-section: 1.4;
+    --lh-table: 1.25rem;
+    --fs-helper: 0.75rem;
+    --lh-helper: 1rem;
+}
+
+[lang|="am"] {
+    --font-ui: var(--font-ui-am);
+    --font-document: var(--font-document-am);
+    --ui-line-height: 1.6;
+    /* 12px Ethiopic is hard to read; the smallest step becomes 12.8px. */
+    --fs-xs: 0.8rem;
+    --lh-xs: 1.25rem;
+    --lh-sm: 1.375rem;
+    --lh-base: 1.625rem;
+    --lh-title: 1.45;
+    --lh-section: 1.55;
+    --lh-table: 1.3125rem;
+    --fs-helper: 0.8rem;
+    --lh-helper: 1.25rem;
+}
+
+.dark {
+    --app-background:      #0b1020;
+    --app-foreground:      #f8fafc;
+    --app-surface:         #111827;
+    --app-surface-muted:   #171f31;
+    --app-border:          #1f2937;
+    --app-border-strong:   #334155;
+    --app-muted-foreground:#94a3b8;
+
+    /* On a dark surface the 700 navy has too little contrast to read as an
+       action colour, so the interactive primary steps up the scale. */
+    --color-primary:       var(--color-primary-soft);
+    --color-on-primary:    var(--color-on-primary-soft);
+    --color-primary-hover: var(--color-primary-hover-soft);
+    --color-primary-light: #1d3084;
+    --color-accent:        var(--color-accent-soft);
+    --color-accent-hover:  #fb9770;
+
+    /* A light sidebar colour is not carried into dark mode — the layout
+       substitutes the dark surface instead, so the two themes stay coherent
+       whatever is configured. */
+    --sidebar-bg: var(--sidebar-bg-dark, #0b1020);
+    --sidebar-fg: var(--sidebar-fg-dark, #f1f5f9);
+    --sidebar-accent: var(--sidebar-accent-dark, var(--color-primary));
+}
+
+html,
+body,
+#app {
+    min-height: 100vh;
+    background: var(--app-background);
+    color: var(--app-foreground);
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-ui);
+    line-height: var(--ui-line-height);
+}
+
+/* ── Locale typography ──────────────────────────────────────────
+ *
+ * Font family is inherited, so it is declared on <body> and re-declared only
+ * on elements that change language. Unlike the previous `:lang(am) *` rule
+ * this leaves `font-mono` codes, SVG icons, QR and charts alone. `:where()`
+ * keeps specificity at zero so a utility class on the same element wins.
+ */
+:where([lang]) {
+    font-family: var(--font-ui);
+}
+
+/* Toasts: Sonner injects its own system-font stack at runtime. */
+html [data-sonner-toaster] {
+    font-family: var(--font-ui);
+}
+
+/*
+ * English label conventions do not apply to Ethiopic, which has no letter
+ * case and reads worse when tracked out. Scoped with `:lang(am)` on the
+ * element itself, so an English island (`lang="en"`) keeps its styling.
+ */
+.uppercase:lang(am) {
+    text-transform: none;
+}
+:is(.tracking-tighter, .tracking-tight, .tracking-wide, .tracking-wider, .tracking-widest, [class*="tracking-["]):lang(am) {
+    letter-spacing: normal;
+}
+
+/*
+ * Readable floor for Ethiopic. Dense English metadata uses 9–11px arbitrary
+ * sizes; Ethiopic at that size loses its distinguishing marks, so in Amharic
+ * those steps render at the smallest scale step instead. ID card faces are
+ * exempt: their sizes come from the card template and must match the print.
+ */
+:is([class~="text-[9px]"], [class~="text-[10px]"], [class~="text-[10.5px]"], [class~="text-[11px]"]):lang(am):not([data-card-template], [data-card-template] *) {
+    font-size: var(--fs-xs);
+}
+
+/*
+ * ID card faces use one stack for both languages (Latin → Inter, Ethiopic →
+ * Abyssinica SIL) — the same stack the server-rendered card SVG names, so
+ * the preview, print and PNG export agree. Zero specificity: `font-mono` on a
+ * code field still wins.
+ */
+:where([data-card-template]),
+:where([data-card-template] [lang]) {
+    font-family: var(--font-id-card);
+}
+
+/* ── Sidebar scrollbar ──────────────────────────────────────── */
+.sidebar-scroll::-webkit-scrollbar       { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+/* The thumb is mixed from the sidebar foreground, so it suits whatever sidebar colour is configured. */
+.sidebar-scroll::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--sidebar-fg) 28%, transparent); border-radius: 9999px; }
+
+/* ── Dot-matrix texture ─────────────────────────────────────
+ * A faint dot grid in the element's own text colour, drawn on a pseudo
+ * element behind the content and fading out towards the start edge, so it
+ * reads as texture beside a title rather than as a pattern under text. Used
+ * by the page heading band and the sidebar brand block. */
+.app-dot-grid {
+    position: relative;
+    isolation: isolate;
+}
+.app-dot-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, currentColor 16%, transparent) 1px, transparent 1.6px);
+    background-size: 16px 16px;
+    -webkit-mask-image: linear-gradient(to left, #000 15%, transparent 70%);
+    mask-image: linear-gradient(to left, #000 15%, transparent 70%);
+}
+
+/* ── Sticky table headers (controlled by setting) ───────────── */
+html[data-sticky-tables="true"] thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: inherit;
+}
+.table-sticky thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: inherit;
+}
+
+/* ── Disable animations (setting) ──────────────────────────── */
+html[data-animations="false"] *,
+html[data-animations="false"] *::before,
+html[data-animations="false"] *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+}
+
+/* The operating-system preference is honoured the same way as the setting. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0ms !important;
+        animation-duration: 0ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ── Table density (controlled by setting) ──────────────────── */
+html[data-table-density="compact"] td,
+html[data-table-density="compact"] th {
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+}
+html[data-table-density="spacious"] td,
+html[data-table-density="spacious"] th {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+/* ── Card radius (controlled by setting) ──────────────────────
+ *
+ * This used to be ~30 lines of `!important` overrides matching on Tailwind's
+ * own radius classes, duplicated once without `!important` and again with it.
+ * Because it keyed on `.rounded-lg`, it also resized every button, input and
+ * badge that happened to share that class — the setting was never only about
+ * cards.
+ *
+ * Now it moves the two radius tokens instead. Anything built on
+ * `rounded-card` / `rounded-panel` follows; controls keep their own
+ * `--radius-control` and stay put, which is what "card radius" should mean.
+ */
+html[data-card-radius="sm"]  { --radius-card: 2px;  --radius-panel: 3px;  }
+html[data-card-radius="md"]  { --radius-card: 4px;  --radius-panel: 6px;  }
+html[data-card-radius="lg"]  { --radius-card: 6px;  --radius-panel: 8px;  }
+/* xl is the shipped default — declared for completeness, not as an override. */
+html[data-card-radius="xl"]  { --radius-card: 8px;  --radius-panel: 10px; }
+html[data-card-radius="2xl"] { --radius-card: 12px; --radius-panel: 16px; }
+
+/* ── Button style (controlled by setting) ─────────────────────
+ *
+ * Likewise scoped to the control token rather than blanket-matching every
+ * `button` and `a[class*="rounded"]` on the page, which previously squared off
+ * avatars and pill toggles along with the buttons.
+ */
+html[data-button-style="square"]  { --radius-control: 0; }
+html[data-button-style="soft"]    { --radius-control: 8px; }
+
+/* ── Tonal cards (admin layout, light theme) ──────────────────
+ *
+ * Cards are recognised by their semantic classes: `rounded-card` /
+ * `rounded-panel` (and the `--radius-card/panel` arbitrary forms), plus
+ * bordered `rounded-xl/2xl` blocks, when they are painted with the white
+ * surface. So every admin page gets tonal cards without each page choosing a
+ * colour, and anything already given a colour (an amber "due soon" card, a
+ * red alert) keeps it. Form fields, buttons and floating menus are excluded.
+ *
+ * Scope: `.admin-shell` (AuthenticatedLayout, not the employee portal) and
+ * `:root:not(.dark)`, so the dark theme is unchanged. A card inside a card
+ * goes back to white, so nested content still reads as a layer.
+ * Mock: Claude Design canvas "EUISIS Admin Colorful Cards", direction A.
+ */
+:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]):is(.bg-white, [class*="bg-(--app-surface)"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex),
+:root:not(.dark) .admin-shell #main-content .app-card {
+    background-color: var(--app-card);
+    border-color: var(--app-card-border);
+}
+
+:root:not(.dark) .admin-shell #main-content :is(a, button):is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]):is(.bg-white, [class*="bg-(--app-surface)"]):not(.inline-flex):hover,
+:root:not(.dark) .admin-shell #main-content a.app-card:hover {
+    background-color: var(--app-card-hover);
+}
+
+/* A card inside a card: back to white. */
+:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"], .app-card) :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]):is(.bg-white, [class*="bg-(--app-surface)"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex) {
+    background-color: var(--app-surface);
+    border-color: var(--app-border);
+}
+
+/* Inside a tonal card: table headers and footers take a deeper tint, table
+   rows are see-through, hairlines use the card border, and grey-500 text is
+   darkened to keep 4.5:1 on the tint. */
+:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(thead, tfoot, div, section, footer, tr).bg-gray-50,
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(thead, tfoot, div, footer, tr)[class*="bg-(--app-surface-muted)"] {
+    background-color: var(--app-card-inset);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(table, tbody, tr, td).bg-white {
+    background-color: transparent;
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(.border-gray-100, .border-gray-200, tbody > tr) {
+    border-color: var(--app-card-border);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) :is(.divide-gray-100, .divide-gray-200, [class*="divide-(--app-border)"]) > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--app-card-border);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-(--radius-card)"], [class*="rounded-(--radius-panel)"]) .text-gray-500 {
+    color: var(--app-card-muted-text);
+}
+
+/* KPI cards tinted by meaning (KpiCard `tone`). Light theme only. */
+:root:not(.dark) .card-tone-neutral { background-color: var(--app-card);       border-color: var(--app-card-border); }
+:root:not(.dark) .card-tone-info    { background-color: var(--tone-info-bg);    border-color: var(--tone-info-border); }
+:root:not(.dark) .card-tone-success { background-color: var(--tone-success-bg); border-color: var(--tone-success-border); }
+:root:not(.dark) .card-tone-warning { background-color: var(--tone-warning-bg); border-color: var(--tone-warning-border); }
+:root:not(.dark) .card-tone-danger  { background-color: var(--tone-danger-bg);  border-color: var(--tone-danger-border); }
+:root:not(.dark) a[class*="card-tone-"]:hover { filter: brightness(0.97); }
+
+/* ── Focus ring ─────────────────────────────────────────────── */
+@layer base {
+    *:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+}
+
+/* ── Status badge – no letter-spacing stretch ───────────────── */
+.badge {
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+/* ── Toast progress bar ─────────────────────────────────────── */
+@keyframes toast-shrink {
+    from { width: 100%; }
+    to   { width: 0%; }
+}
+
+/* ── Toast slide-in / fade-out ──────────────────────────────── */
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toast-fade-out {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.95); }
+}
+
+.toast-enter {
+    animation: toast-slide-in 0.22s ease-out forwards;
+}
+
+.toast-exit {
+    animation: toast-fade-out 0.18s ease-in forwards;
+}
+
+@media print {
+    /* Common chrome we never want on paper. */
+    .no-print,
+    nav,
+    aside,
+    header,
+    footer,
+    [data-sidebar],
+    .modal-backdrop {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+}
+
+
+
+/* ── Org tree connectors ────────────────────────────────────── */
+.org-tree-connector::before {
+    content: '';
+    position: absolute;
+    left: -1rem;
+    top: 50%;
+    width: 1rem;
+    height: 1px;
+    background: #cbd5e1;
+}
+.dark .org-tree-connector::before {
+    background: #475569;
+}
+
+/* ── Public site long-form text ───────────────────────────────
+ * Styles the sanitized HTML that Public Site Management produces
+ * (announcements, service details, FAQ answers). Only the elements the
+ * server-side allow-list permits are styled, because nothing else can
+ * reach the page. Kept here rather than pulling in a typography plugin.
+ */
+/* In the components layer so a utility on the element (text-sm, a
+   colour) overrides the base size/colour, as utilities should. */
+@layer components {
+    .public-prose {
+        color: var(--app-foreground);
+        font-size: 1rem;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+    }
+    .public-prose > * + * { margin-top: 1em; }
+    .public-prose h2 { font-size: 1.25rem; font-weight: 600; line-height: 1.35; margin-top: 1.75em; }
+    .public-prose h3 { font-size: 1.0625rem; font-weight: 600; line-height: 1.4; margin-top: 1.5em; }
+    .public-prose h4 { font-size: 1rem; font-weight: 600; margin-top: 1.25em; }
+    .public-prose ul { list-style: disc; padding-inline-start: 1.25em; }
+    .public-prose ol { list-style: decimal; padding-inline-start: 1.25em; }
+    .public-prose li + li { margin-top: 0.35em; }
+    .public-prose a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+    .public-prose strong { font-weight: 600; }
+    .public-prose blockquote { border-inline-start: 3px solid var(--app-border-strong); padding-inline-start: 1em; color: var(--app-muted-foreground); }
+    .public-prose code { font-size: 0.875em; background: var(--app-surface-muted); padding: 0.1em 0.3em; border-radius: 4px; }
+    .public-prose hr { border-color: var(--app-border); }
+    .public-prose table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; display: block; overflow-x: auto; }
+    .public-prose th, .public-prose td { border: 1px solid var(--app-border); padding: 0.5em 0.75em; text-align: start; }
+    .public-prose th { background: var(--app-surface-muted); font-weight: 600; }
+
+    /* Formatted text (RichTextViewer, and the writing area of RichTextEditor, so
+       what is typed looks as it will read). Only what policy.json allows needs a
+       style. Tables scroll inside their own box on a phone instead of widening
+       the page. docs/rich-text-editor.md */
+    .rich-text {
+        color: var(--app-foreground);
+        font-size: 0.9375rem;
+        line-height: 1.65;
+        overflow-wrap: anywhere;
+    }
+    .rich-text:lang(am), .rich-text :lang(am) { line-height: 1.85; }
+    .rich-text > * + * { margin-top: 0.75em; }
+    .rich-text h2 { font-size: 1.1875rem; font-weight: 600; line-height: 1.35; margin-top: 1.25em; }
+    .rich-text h3 { font-size: 1.0625rem; font-weight: 600; line-height: 1.4; margin-top: 1.1em; }
+    .rich-text h4 { font-size: 0.9375rem; font-weight: 600; margin-top: 1em; }
+    .rich-text > :first-child { margin-top: 0; }
+    .rich-text ul { list-style: disc; padding-inline-start: 1.5em; }
+    .rich-text ol { list-style: decimal; padding-inline-start: 1.5em; }
+    .rich-text li + li { margin-top: 0.25em; }
+    .rich-text li > ul, .rich-text li > ol { margin-top: 0.25em; }
+    .rich-text a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+    .rich-text strong { font-weight: 600; }
+    .rich-text u { text-decoration: underline; text-underline-offset: 2px; }
+    .rich-text blockquote { border-inline-start: 3px solid var(--app-border-strong); padding-inline-start: 1em; color: var(--app-muted-foreground); }
+    .rich-text table { border-collapse: collapse; font-size: 0.875rem; display: block; max-width: 100%; overflow-x: auto; }
+    .rich-text th, .rich-text td { border: 1px solid var(--app-border-strong); padding: 0.4em 0.65em; text-align: start; vertical-align: top; min-width: 4rem; }
+    .rich-text th { background: var(--app-surface-muted); font-weight: 600; }
+
+}
+
+/* ── Rich-text editor chrome (RichTextEditor) ─────────────────
+   Outside the layers on purpose: the editor injects its skin as an
+   unlayered <style>, which beats any layered rule. Toolbar pinned above
+   an inline writing area that carries the `.rich-text` reading styles. */
+.rich-text-editable { padding: 0.75rem; outline: none !important; cursor: text; }
+.rich-text-field[data-disabled] .rich-text-editable { cursor: not-allowed; }
+.rich-text-editable[data-mce-placeholder]:not(.mce-visualblocks)::before { color: var(--app-muted-foreground) !important; padding-inline-start: 0 !important; }
+.rich-text-toolbar:empty { display: none; }
+.rich-text-toolbar { border-bottom: 1px solid var(--app-border); }
+.rich-text-toolbar .tox.tox-tinymce-inline { border: 0 !important; box-shadow: none !important; position: static !important; width: auto !important; }
+.rich-text-toolbar .tox-tinymce-inline .tox-editor-header { border: 0 !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; }
+.rich-text-toolbar .tox .tox-toolbar,
+.rich-text-toolbar .tox .tox-toolbar__primary,
+.rich-text-toolbar .tox .tox-toolbar__overflow { background: transparent !important; }
+/* Idle buttons sit on the app surface; hover, focus and active keep the skin's states. */
+.rich-text-toolbar .tox .tox-tbtn:focus-visible, .rich-text-toolbar .tox .tox-tbtn:focus { outline: 2px solid var(--color-primary) !important; outline-offset: 1px; }
+.rich-text-toolbar .tox .tox-tbtn:not(:hover):not(:focus):not(.tox-tbtn--enabled):not([aria-pressed="true"]):not([aria-expanded="true"]) { background: transparent !important; }
+.rich-text-field[data-disabled] .rich-text-toolbar,
+.rich-text-field[data-readonly] .rich-text-toolbar { pointer-events: none; opacity: 0.6; }
+
+/* ── Sign-in flow (Pages/Auth/Login, Components/auth/LoginStage) ─────────────
+   City Administration → institutions → employees → ID card verified → the sign-in card, left to
+   right. One shared 4 s clock: each tier's wave runs for one second, so a record leaves the City
+   Administration, reaches the institutions, the employees, converges on the ID card, and the line
+   that leaves the card plugs into the sign-in card, which flares as it arrives. Every keyframe is a
+   stroke-dashoffset, opacity or transform. The animations setting and the reduced-motion preference
+   zero every duration (rules above), which leaves each element in its final, complete state; the
+   waves and the scan are switched off at the end because their final state would mislead. */
+@keyframes login-drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(6%, -9%, 0) scale(1.18); }
+}
+@keyframes login-rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-sheen {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+@keyframes lg-draw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes lg-pop { from { opacity: 0; transform: scale(0.3); } 70% { transform: scale(1.1); } to { opacity: 1; transform: scale(1); } }
+/* A wave covers its link in the first quarter of the clock, then waits. */
+@keyframes lg-wave { 0% { stroke-dashoffset: 108; opacity: 1; } 24% { stroke-dashoffset: 0; opacity: 1; } 25%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+/* A node flares when its wave arrives, then settles. */
+@keyframes lg-hit { 0% { opacity: 0.95; transform: scale(0.7); } 18% { opacity: 0; transform: scale(1.9); } 100% { opacity: 0; transform: scale(1.9); } }
+@keyframes lg-caption-hit { 0%, 22% { opacity: 1; } 40%, 100% { opacity: 0.62; } }
+@keyframes lg-breathe { 0%, 100% { opacity: 0.6; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.06); } }
+@keyframes lg-idc-scan { 0% { opacity: 0; transform: translateY(-100%); } 4% { opacity: 1; } 22% { opacity: 1; transform: translateY(260%); } 24%, 100% { opacity: 0; transform: translateY(260%); } }
+@keyframes lg-float { 0%, 100% { transform: translate3d(0, -6px, 0); } 50% { transform: translate3d(0, 6px, 0); } }
+@keyframes lg-holo { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+@keyframes lg-verify { 0%, 16% { opacity: 0; transform: scale(0.6); } 24% { opacity: 1; transform: scale(1.08); } 30%, 70% { opacity: 1; transform: scale(1); } 85%, 100% { opacity: 0; transform: scale(0.95); } }
+@keyframes lg-arrive { 0% { box-shadow: 0 0 0 1px rgba(255, 176, 138, 0.8), 0 0 80px -10px rgba(255, 176, 138, 0.75); } 30%, 100% { box-shadow: 0 0 0 1px rgba(255, 176, 138, 0), 0 0 80px -10px rgba(255, 176, 138, 0); } }
+@keyframes lg-plug { 0% { opacity: 0.95; transform: scale(0.8); } 30%, 100% { opacity: 0.25; transform: scale(1.6); } }
+@keyframes lg-stepper { 0%, 100% { background-color: rgba(255, 255, 255, 0.1); transform: scale(1); } 10%, 24% { background-color: #f76b3c; transform: scale(1.12); } }
+@keyframes lg-stepper-line { from { background-position: 0 0; } to { background-position: 12px 0; } }
+@keyframes lg-stepper-drop { from { background-position: 0 0; } to { background-position: 0 12px; } }
+@keyframes lg-spin { to { --lg-angle: 360deg; } }
+@keyframes lg-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-7px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(2px); } }
+@keyframes lg-progress { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+
+@property --lg-angle { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+.login-blob { animation: login-drift 22s ease-in-out infinite alternate; will-change: transform; }
+.login-rise { animation: login-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.login-sheen { background-size: 200% 100%; animation: login-sheen 7s linear infinite; }
+/* Soft lights as radial gradients, not filter: blur(). A large blur is re-rasterised whenever
+   anything above it repaints, which held the page near 5 fps on software-rendered PCs. */
+.lg-glow-primary { background: radial-gradient(closest-side, var(--color-primary), transparent); }
+.lg-glow-accent { background: radial-gradient(closest-side, var(--color-accent), transparent); }
+.lg-glow-sky { background: radial-gradient(closest-side, #38bdf8, transparent); }
+
+/* Network. The clock starts at 1.6 s, once the drawing is in. Tier n waits n seconds more. */
+.lg-org { --lg-start: 1.6s; }
+.lg-link { fill: none; stroke-width: 1.5; stroke-dasharray: 100; animation: lg-draw 1.2s cubic-bezier(0.65, 0, 0.35, 1) both; }
+.lg-link-1 { animation-delay: 0.25s; }
+.lg-link-2 { animation-delay: 0.5s; }
+.lg-link-3 { animation-delay: 0.85s; stroke-width: 2.5; }
+.lg-wave { fill: none; stroke-linecap: round; stroke-dasharray: 8 100; stroke-dashoffset: 108; opacity: 0; animation: lg-wave 4s linear infinite; }
+.lg-wave-0 { stroke: #ffb08a; stroke-width: 3.2; animation-delay: var(--lg-start); }
+.lg-wave-1 { stroke: #fde68a; stroke-width: 2.6; animation-delay: calc(var(--lg-start) + 1s); }
+.lg-wave-2 { stroke: #bfdbfe; stroke-width: 2.2; animation-delay: calc(var(--lg-start) + 2s); }
+.lg-wave-3 { stroke: #ffb08a; stroke-width: 4; stroke-dasharray: 30 100; animation-delay: calc(var(--lg-start) + 3s); }
+.lg-node { transform-box: fill-box; transform-origin: center; animation: lg-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.lg-hit { fill: none; stroke: rgba(255, 176, 138, 0.9); stroke-width: 1.6; opacity: 0; transform-box: fill-box; transform-origin: center; animation: lg-hit 4s ease-out infinite; }
+.lg-hit-0 { animation-delay: var(--lg-start); }
+.lg-hit-1 { animation-delay: calc(var(--lg-start) + 1s); }
+.lg-hit-2 { stroke: rgba(191, 219, 254, 0.9); animation-delay: calc(var(--lg-start) + 2s); }
+.lg-hit-1b { stroke: rgba(191, 219, 254, 0.9); animation-delay: calc(var(--lg-start) + 2s); }
+.lg-guide { stroke: rgba(255, 255, 255, 0.25); stroke-width: 1; stroke-dasharray: 2 4; }
+.lg-root-glow { transform-box: fill-box; transform-origin: center; animation: lg-breathe 4s ease-in-out infinite; animation-delay: var(--lg-start); }
+.lg-orbit-track { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 1; stroke-dasharray: 2 6; }
+.lg-orbit-chip { will-change: transform, opacity; }
+
+/* The ID card at the centre of the flow: floats, shimmers, is scanned and verified when the
+   employees' records arrive (same clock, tier 3). */
+.lg-idc-float { animation: lg-float 7s ease-in-out infinite; }
+.lg-idc {
+    background:
+        radial-gradient(120% 90% at 0% 0%, rgba(247, 107, 60, 0.38), transparent 55%),
+        linear-gradient(135deg, #1d3aa6 0%, #122170 50%, #0a1230 100%);
+    box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+.lg-idc-holo {
+    background: linear-gradient(115deg, transparent 20%, rgba(147, 197, 253, 0.22) 35%, rgba(255, 176, 138, 0.22) 45%, rgba(253, 230, 138, 0.18) 55%, transparent 70%);
+    background-size: 200% 100%;
+    animation: lg-holo 6s linear infinite;
+}
+/* Pointer tilt (IdentityOrbit sets the variables) and the glare that follows it. */
+.lg-idc {
+    transform: rotateX(var(--lg-tilt-x, 0deg)) rotateY(var(--lg-tilt-y, 0deg)) scale(var(--lg-lift, 1));
+    transform-style: preserve-3d;
+    transition: transform 0.08s linear;
+    will-change: transform;
+}
+.lg-idc-glare { opacity: var(--lg-glare-o, 0.55); background: radial-gradient(45% 65% at var(--lg-glare-x, 50%) var(--lg-glare-y, 30%), rgba(255, 255, 255, 0.45), transparent 62%); mix-blend-mode: soft-light; }
+/* Depth: the photo and the QR shift a little with the tilt, the QR more, as if closer. */
+.lg-idc-photo { transition: opacity 0.8s ease; }
+.lg-idc-px-1 { transform: translate(calc(var(--lg-px, 0) * 4px), calc(var(--lg-py, 0) * 3px)); }
+.lg-idc-px-2 { transform: translate(calc(var(--lg-px, 0) * 7px), calc(var(--lg-py, 0) * 5px)); }
+.lg-bridge { stroke: rgba(255, 176, 138, 0.45); stroke-width: 2; }
+.lg-wave-bridge { stroke: #ffb08a; stroke-width: 3.5; stroke-dasharray: 16 100; animation-delay: calc(var(--lg-start) + 2s); }
+.lg-selected-ring { animation-delay: calc(var(--lg-start) + 2s); }
+.lg-idc-gold { background: linear-gradient(135deg, #fde68a, #d4a017 60%, #fbbf24); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15); }
+.lg-idc-line { background: rgba(255, 255, 255, 0.5); }
+.lg-idc-scan {
+    background: linear-gradient(180deg, transparent, rgba(110, 231, 183, 0.45) 85%, rgba(209, 250, 229, 0.95));
+    border-bottom: 1px solid rgba(209, 250, 229, 0.95);
+    opacity: 0;
+    animation: lg-idc-scan 4s ease-in-out infinite;
+    animation-delay: calc(var(--lg-start) + 3s);
+}
+.lg-idc-verified { opacity: 0; transform-origin: left center; animation: lg-verify 4s ease-out infinite; animation-delay: calc(var(--lg-start) + 3s); }
+.lg-plug-ring { fill: none; stroke: rgba(255, 176, 138, 0.9); stroke-width: 1.4; transform-box: fill-box; transform-origin: center; animation: lg-plug 4s ease-out infinite; animation-delay: calc(var(--lg-start) + 3s); }
+.lg-plug-core { fill: #ffb08a; }
+
+/* Captions light with their tier. */
+.lg-caption { font-family: inherit; color: #fff; opacity: 0.62; animation: lg-caption-hit 4s ease-out infinite; }
+.lg-caption.lg-tier-0 { animation-delay: var(--lg-start); }
+.lg-caption.lg-tier-1 { animation-delay: calc(var(--lg-start) + 1s); }
+.lg-caption.lg-tier-2 { animation-delay: calc(var(--lg-start) + 2s); }
+.lg-caption.lg-tier-3 { animation-delay: calc(var(--lg-start) + 3s); }
+.lg-caption.lg-tier-4 { animation-delay: calc(var(--lg-start) + 3s); }
+.lg-caption-title { font-size: 17px; font-weight: 700; line-height: 1.2; }
+.lg-caption-text { margin-top: 4px; font-size: 13.5px; line-height: 1.35; color: rgba(255, 255, 255, 0.72); }
+
+/* The sign-in card flares as the record plugs in: same clock, one tier after the ID card. */
+.lg-card-slot { border-radius: var(--radius-panel, 12px); }
+
+/* Phones and tablets: numbered steps lighting in turn, then a line dropping into the card. */
+.lg-stepper-dot { background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 12px; font-weight: 700; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); animation: lg-stepper 2.5s ease-in-out infinite; }
+.lg-stepper-line { background: repeating-linear-gradient(90deg, rgba(255, 176, 138, 0.8) 0 6px, transparent 6px 12px); animation: lg-stepper-line 1s linear infinite; }
+.lg-stepper-drop { background: repeating-linear-gradient(180deg, rgba(255, 176, 138, 0.9) 0 6px, transparent 6px 12px); animation: lg-stepper-drop 1s linear infinite; }
+
+/* The form card: a slowly turning gradient rim, a focus glow on each field, a shake on errors. */
+.lg-rim { position: relative; isolation: isolate; }
+.lg-rim::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    background: conic-gradient(from var(--lg-angle), rgba(18, 33, 112, 0.0), rgba(247, 107, 60, 0.6), rgba(18, 33, 112, 0.0) 35%, rgba(59, 130, 246, 0.5) 60%, rgba(18, 33, 112, 0.0) 80%);
+    animation: lg-spin 9s linear infinite;
+}
+.lg-field { position: relative; border-radius: var(--radius-control, 8px); }
+.lg-field::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: calc(var(--radius-control, 8px) + 3px);
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent), 0 10px 30px -12px color-mix(in srgb, var(--color-primary) 55%, transparent);
+    transition: opacity 0.25s ease;
+}
+.lg-field:focus-within::after { opacity: 1; }
+.lg-field:focus-within > svg:first-child { color: var(--color-primary); transform: translateY(-50%) scale(1.1); }
+.lg-field > svg:first-child { transition: color 0.2s, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.lg-shake { animation: lg-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+.lg-progress { animation: lg-progress 1.1s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+
+/* Still picture: the whole network drawn, captions and the verified badge shown, no half-waves. */
+@media (prefers-reduced-motion: reduce) {
+    .lg-wave, .lg-idc-scan, .lg-hit, .lg-progress { display: none; }
+    .lg-idc-verified, .lg-caption { opacity: 1 !important; transform: none !important; }
+    .lg-card-slot { animation: none; }
+}
+html[data-animations="false"] .lg-wave,
+html[data-animations="false"] .lg-idc-scan,
+html[data-animations="false"] .lg-hit,
+html[data-animations="false"] .lg-progress { display: none; }
+html[data-animations="false"] .lg-idc-verified,
+html[data-animations="false"] .lg-caption { opacity: 1 !important; transform: none !important; }
+html[data-animations="false"] .lg-card-slot { animation: none; }
+
+/* Grievance settings: the save bar rises into view when a change is made. */
+@keyframes slideUp {
+    from { transform: translateY(8px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+}
+
+/* Communication: thin scrollbars in the chat columns, and a brief highlight
+   when jumping to a replied or pinned message (none with reduced motion). */
+.comm-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--app-border-strong) transparent;
+}
+.comm-scroll::-webkit-scrollbar { width: 8px; }
+.comm-scroll::-webkit-scrollbar-thumb { background: var(--app-border-strong); border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+/* The workspace tab strip scrolls sideways on phones without drawing a scrollbar
+   under the tabs; the active tab's underline already marks the position. */
+.comm-tabs {
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+}
+.comm-tabs::-webkit-scrollbar { display: none; }
+/* A soft edge says "more this way" where the tabs do not fit (phones). */
+@media (max-width: 639px) {
+    .comm-tabs { mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent); }
+}
+.comm-tabs > li { scroll-snap-align: start; }
+/* iOS Safari zooms the whole page when a field under 16px takes focus, and
+   does not zoom back: on touch phones every field in the workspace (its
+   dialogs included) reads at 16px. */
+@media (pointer: coarse) and (max-width: 639px) {
+    html[data-workspace="communication"] :is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]), textarea, select) {
+        font-size: 16px;
+    }
+}
+.comm-flash { animation: comm-flash 1.6s ease-out; }
+@keyframes comm-flash {
+    0%, 30% { background-color: color-mix(in srgb, var(--color-primary) 14%, transparent); }
+    100% { background-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .comm-flash { animation: none; outline: 2px solid var(--color-primary); outline-offset: -2px; }
+}

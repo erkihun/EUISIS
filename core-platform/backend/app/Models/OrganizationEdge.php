@@ -25,4 +25,9 @@ class OrganizationEdge extends Model
     public const TREE_TYPES = [self::REPORTS_TO, self::STRUCTURAL];
 
     protected $guarded = ['id'];
+
+    protected function casts(): array
+    {
+        return ['effective_from' => 'date', 'effective_to' => 'date'];
+    }
 }

@@ -17,12 +17,13 @@ use App\Settings\CoreSettingsRegistry;
 use Illuminate\Support\Facades\Route;
 
 /*
- * The Core platform API, used by the Core frontend and, later, by EUISIS and
- * partner systems. Read routes need any active Core account; write routes need
+ * The Core platform API, for EUISIS and partner systems (the Core's own
+ * screens are the web routes). Read routes need any active Core account; write routes need
  * an officer or admin role; settings need an admin. Every route applies the
  * caller's organization scope. Rate limits come from Core settings › Security
  * (AppServiceProvider).
  */
+Route::get('/', fn () => response()->json(['service' => config('app.name'), 'api' => url('/api/v1'), 'health' => url('/up')]));
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:20,1');
 Route::get('/settings/public', [SettingsController::class, 'public'])->middleware('throttle:120,1');
 

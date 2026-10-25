@@ -21,8 +21,9 @@ The Core platform lives in `core-platform/`:
   organization scope rule (scope = WHERE over the published hierarchy; fails
   closed), seat capacity, one current placement per employee, card transitions
   and its own audit log carrying the request id.
-- `core-platform/frontend`: a Vite + React single-page app (English and
-  Amharic) that talks only to the Core API.
+- `core-platform/frontend`: the EUISIS screens (English and Amharic), copied
+  unchanged and served by the Core backend (see "The screens are the EUISIS
+  screens" below). The API stays for EUISIS and partner systems.
 - Data enters by copy: `core:import-from-euisis` reads EUISIS (read only),
   keeps every UUID, number and public card reference, and `core:snapshot`
   (same algorithm and table list as EUISIS `core:snapshot`) proves the copy
@@ -55,6 +56,38 @@ decision, taken under the owner's delegation:
    per rendered pattern; a typed code is kept as given.
 4. **Production steps per card.** Print batches stay in EUISIS; the Core marks
    one card printed, then issued, then active.
+
+### The screens are the EUISIS screens (2026-10-25)
+
+The owner asked for every Core screen to be exactly the EUISIS one. The Core
+now serves the EUISIS pages themselves (copied unchanged by
+`core-platform/frontend/scripts/sync-from-euisis.mjs`, checked in CI) through
+Inertia, under the EUISIS route names. Decisions taken under the delegation:
+
+5. **One copy, one patch.** Pages, components, styles, the UI kit and the
+   language files are copied byte for byte. The only change is in `app.tsx`:
+   a link to a page that stays in EUISIS resolves to `#` instead of failing.
+6. **Browser sessions.** The screens sign in with a session (database
+   driver) that ends after Core settings › Security › session length without
+   activity, as in EUISIS. The API keeps its 8-hour tokens.
+7. **Roles as EUISIS permissions.** Each Core role grants a fixed list of
+   EUISIS permission names (`CorePermissions`), so the pages offer what EUISIS
+   offers for those rights. An account still has one role and one scope
+   organization: when several roles are ticked the highest one is kept.
+8. **Contact details on the screens.** Employee and card pages show phone,
+   e-mail, address and emergency contact to Core readers, as EUISIS shows them
+   to `employees.view`. The national id stays hidden (EUISIS needs
+   `employees.viewPii`, which no Core role has). The API still returns none of
+   these fields.
+9. **Public card check.** The holder's code goes by e-mail only; the Core has
+   no SMS gateway.
+10. **Hierarchy versions are read only in the Core.** Versions are drafted
+    and published in EUISIS; the Core shows them and places organizations in
+    the published one.
+11. **Core-only settings.** Numbering formats and the workforce seat default
+    appear on the General tab of the EUISIS settings page.
+12. **Exit Core** opens `EUISIS_APP_URL` when it is set, otherwise it signs
+    the person out.
 
 ## Consequences
 - The Core can be deployed, scaled, backed up and secured on its own.
