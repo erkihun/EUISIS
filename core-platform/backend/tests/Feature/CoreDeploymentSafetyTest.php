@@ -31,4 +31,23 @@ class CoreDeploymentSafetyTest extends TestCase
         $this->assertSame('no-referrer', $response->headers->get('Referrer-Policy'));
         $this->assertStringContainsString("frame-ancestors 'none'", (string) $response->headers->get('Content-Security-Policy-Report-Only'));
     }
+
+    public function test_the_inline_theme_script_carries_the_policy_nonce_and_enforcement_is_a_switch(): void
+    {
+        $response = $this->get('/login')->assertOk();
+        preg_match("/'nonce-([A-Za-z0-9]+)'/", (string) $response->headers->get('Content-Security-Policy-Report-Only'), $header);
+        $this->assertNotEmpty($header[1] ?? null, 'the policy names a nonce');
+        $this->assertStringContainsString('<script nonce="'.$header[1].'">', (string) $response->getContent());
+        // Every inline script on the page carries it: no <script> without a nonce or a src (JSON data blocks are not executed).
+        preg_match_all('/<script(?![^>]*\b(?:nonce|src)=)(?![^>]*type="application\/json")[^>]*>/', (string) $response->getContent(), $bare);
+        $this->assertSame([], $bare[0]);
+
+        $second = $this->get('/login');
+        $this->assertStringNotContainsString($header[1], (string) $second->headers->get('Content-Security-Policy-Report-Only'), 'a fresh nonce per request');
+
+        config(['core.csp_enforce' => true]);
+        $enforced = $this->get('/login');
+        $this->assertNotNull($enforced->headers->get('Content-Security-Policy'));
+        $this->assertNull($enforced->headers->get('Content-Security-Policy-Report-Only'));
+    }
 }

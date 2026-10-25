@@ -62,6 +62,9 @@ return [
      */
     'audit_head_disk' => (string) env('CORE_AUDIT_HEAD_DISK', ''),
 
+    /* Enforce the screens' content security policy instead of reporting it (ADR 0012); after a staging browser pass with no violation. */
+    'csp_enforce' => (bool) env('CORE_CSP_ENFORCE', false),
+
     /* The external monitor's bearer token for GET /health/monitor (ADR 0012); empty = that endpoint answers 404. */
     'monitor_token' => (string) env('CORE_MONITOR_TOKEN', ''),
 
