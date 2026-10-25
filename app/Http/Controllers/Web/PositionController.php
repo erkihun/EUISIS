@@ -518,6 +518,13 @@ class PositionController extends Controller
                     ->when($request->string('job_family')->toString() !== '', fn ($q) => $q->where('job_family', $request->string('job_family')->toString()))
                     ->when($request->string('grade_level')->toString() !== '', fn ($q) => $q->where('grade_level', $request->string('grade_level')->toString()))
                     ->when($request->filled('is_active'), fn ($q) => $q->where('is_active', $request->boolean('is_active')))
+                    // Vacant / held, by the one Core rule: an active current assignment holds the seat.
+                    ->when(in_array($request->string('occupancy')->toString(), ['vacant', 'held'], true), function ($q) use ($request): void {
+                        $held = fn ($assignments) => $assignments->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value);
+                        $request->string('occupancy')->toString() === 'held'
+                            ? $q->whereHas('assignments', $held)
+                            : $q->whereDoesntHave('assignments', $held);
+                    })
                     ->orderBy('job_position_code')
                     ->get();
             }
@@ -559,7 +566,7 @@ class PositionController extends Controller
             'organizationUnits' => $organizationUnits,
             'selectedUnit' => $selectedUnit,
             'positions' => $positionData,
-            'filters' => $request->only(['search', 'job_family', 'grade_level', 'is_active']),
+            'filters' => $request->only(['search', 'job_family', 'grade_level', 'is_active', 'occupancy']),
             'can' => [
                 'create' => $user?->can('create', Position::class) ?? false,
                 'approve_establishment' => $user?->can('position-establishments.approve') ?? false,

@@ -87,12 +87,16 @@ function formatNationalId(raw?: string | null): string {
     return raw.replace(/(.{4})/g, '$1 ').trim();
 }
 
+type RecentActivity = Array<{ event_type: string; created_at: string; actor: string | null }>;
+
 export default function EmployeesShow({
     employee,
     qrCodes,
+    recentActivity = null,
 }: {
     employee: EmployeeDetail;
     qrCodes?: QrCodesProp;
+    recentActivity?: RecentActivity | null;
 }) {
     const { t, locale } = useLocale();
     const { can } = useCan();
@@ -411,6 +415,31 @@ export default function EmployeesShow({
                             ))}
                         </div>
                     </div>
+
+                    {/* ── Audit (audit.view holders only) ─────────────── */}
+                    {recentActivity !== null && (
+                        <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                            <h3 className="text-sm font-semibold text-(--app-foreground) mb-4">
+                                {t('employees.recentActivity')}
+                            </h3>
+                            {recentActivity.length === 0 ? (
+                                <p className="text-sm text-(--app-muted-foreground)">{t('employees.noRecentActivity')}</p>
+                            ) : (
+                                <ul className="divide-y divide-(--app-border) text-sm">
+                                    {recentActivity.map((entry, index) => (
+                                        <li key={`${entry.created_at}-${index}`} className="flex items-center justify-between gap-3 py-2">
+                                            <span className="font-medium text-(--app-foreground)">
+                                                {t(`auditLogs.events.${entry.event_type}`) !== `auditLogs.events.${entry.event_type}` ? t(`auditLogs.events.${entry.event_type}`) : entry.event_type}
+                                            </span>
+                                            <span className="text-xs text-(--app-muted-foreground)">
+                                                {entry.actor ?? t('employees.systemActor')} · <LocalizedDateDisplay value={entry.created_at} withTime />
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

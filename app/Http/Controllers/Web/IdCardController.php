@@ -66,6 +66,7 @@ class IdCardController extends Controller
             'expired' => (clone $baseQuery)->where('status', CardStatus::Expired)->count(),
             'revoked' => (clone $baseQuery)->where('status', CardStatus::Revoked)->count(),
             'lost' => (clone $baseQuery)->where('status', CardStatus::Lost)->count(),
+            'suspended' => (clone $baseQuery)->where('status', CardStatus::Suspended)->count(),
         ];
 
         $filters = $request->validate([

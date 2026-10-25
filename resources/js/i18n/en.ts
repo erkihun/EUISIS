@@ -817,6 +817,7 @@ const en = {
         pendingApproval: 'Pending Approval',
         expiredCards: 'Expired Cards',
         lostCards: 'Lost Cards',
+        suspendedCards: 'Suspended Cards',
         previewCard: 'Preview Card',
         indexDescription: 'Manage, review, preview, and securely print employee identification cards.',
         approvedRequests: 'Approved Requests',

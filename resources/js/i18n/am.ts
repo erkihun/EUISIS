@@ -633,6 +633,7 @@ const am = {
         pendingApproval: 'ማጽደቅ በመጠባበቅ ላይ',
         expiredCards: 'ጊዜያቸው ያለፈ ካርዶች',
         lostCards: 'የጠፉ ካርዶች',
+        suspendedCards: 'የታገዱ ካርዶች',
         previewCard: 'ካርድ ቅድመ እይታ',
         indexDescription: 'የሠራተኞችን መታወቂያ ካርዶች ያስተዳድሩ፣ ይገምግሙ፣ ቅድመ እይታ ያድርጉ እና በደህንነት ያትሙ።',
         approvedRequests: 'የጸደቁ ጥያቄዎች',

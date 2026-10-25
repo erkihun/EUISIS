@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
+use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\ExternalApplication;
+use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Position;
@@ -138,4 +140,61 @@ it('adds the new pages to the Core navigation only for those who may open them',
             return in_array('core.assignments', $routes, true) && in_array('core.audit', $routes, true)
                 && ! in_array('core.integration', $routes, true) && ! in_array('core.settings', $routes, true);
         }));
+});
+
+it('gives each master-data workspace a Core address that enters the workspace and keeps the page where it is', function (string $section, string $destination): void {
+    $this->actingAs(corePagesUser([]))
+        ->get('/core/'.$section)
+        ->assertRedirect($destination)
+        ->assertSessionHas('workspace', 'core');
+})->with([
+    'organizations' => ['organizations', '/organizations'],
+    'units' => ['units', '/organization-units'],
+    'hierarchy' => ['hierarchy', '/hierarchy-versions'],
+    'positions' => ['positions', '/positions'],
+    'employees' => ['employees', '/employees'],
+    'id cards' => ['id-cards', '/id-cards'],
+]);
+
+it('refuses the Core addresses without core access', function (): void {
+    $this->actingAs(User::factory()->create())->get('/core/employees')->assertForbidden();
+});
+
+it('filters the positions list to vacant or held seats by the Core rule', function (): void {
+    $vacant = Position::query()->create(['organization_id' => $this->mine->id, 'job_position_code' => 'CP-VAC', 'title_en' => 'Vacant officer', 'is_active' => true]);
+    $viewer = corePagesUser(['positions.viewAny', 'positions.view']);
+
+    $codes = fn (string $occupancy) => collect($this->actingAs($viewer)
+        ->get(route('positions.index', ['organization_id' => $this->mine->id, 'occupancy' => $occupancy]))
+        ->assertOk()
+        ->inertiaProps('positions'))->pluck('job_position_code')->all();
+
+    expect($codes('vacant'))->toContain('CP-VAC')->not->toContain('CP-E1-P')
+        ->and($codes('held'))->toContain('CP-E1-P')->not->toContain('CP-VAC');
+});
+
+it('shows each employee\'s card status on the employee list', function (): void {
+    IdCard::query()->create([
+        'employee_id' => $this->employee->id, 'card_number' => 'CP-CARD-1', 'status' => CardStatus::Active->value,
+        'is_current' => true, 'issued_at' => now()->subMonth(), 'expires_at' => now()->addYear(),
+    ]);
+    $viewer = corePagesUser(['employees.view', 'employees.viewAny'], $this->mine);
+
+    $rows = collect($this->actingAs($viewer)->get(route('employees.index'))->assertOk()->inertiaProps('employees'));
+
+    expect($rows->firstWhere('employee_number', 'CP-E1')['has_active_card'] ?? null)->toBeTrue();
+});
+
+it('shows recent audited changes on the employee page only to audit viewers, without values', function (): void {
+    AuditLog::query()->create(['event_type' => AuditEventType::EmployeeUpdated, 'auditable_type' => Employee::class, 'auditable_id' => $this->employee->id, 'organization_id' => $this->mine->id, 'new_values' => ['phone' => '0911000000'], 'request_id' => (string) Str::uuid(), 'created_at' => now()]);
+
+    $auditor = corePagesUser(['employees.view', 'audit.view'], $this->mine);
+    $activity = $this->actingAs($auditor)->get(route('employees.show', $this->employee))->assertOk()->inertiaProps('recentActivity');
+    expect($activity)->toHaveCount(1)
+        ->and($activity[0]['event_type'])->toBe('employee_updated')
+        ->and($activity[0])->not->toHaveKey('new_values');
+
+    $this->flushSession();
+    $viewer = corePagesUser(['employees.view'], $this->mine);
+    expect($this->actingAs($viewer)->get(route('employees.show', $this->employee))->assertOk()->inertiaProps('recentActivity'))->toBeNull();
 });

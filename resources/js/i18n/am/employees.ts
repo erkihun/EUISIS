@@ -141,6 +141,11 @@ const employees = {
     columnPosition: 'የሥራ መደብ',
     columnFlags: 'ምልክቶች',
     duplicateFlagsTooltip: 'ለዚህ ሠራተኛ ሊደገሙ የሚችሉ መዝገቦች ተገኝተዋል',
+    activeCard: 'ንቁ የመታወቂያ ካርድ አለው',
+    noActiveCard: 'ንቁ የመታወቂያ ካርድ የለውም',
+    recentActivity: 'የቅርብ ጊዜ ለውጦች',
+    noRecentActivity: 'እስካሁን የተመዘገበ ለውጥ የለም።',
+    systemActor: 'ሥርዓቱ',
     notAvailable: 'አይገኝም',
 
     // Registry (index) page — list chrome, filters and pagination.

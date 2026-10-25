@@ -31,6 +31,11 @@ class EmployeeResource extends JsonResource
             'status' => $this->status?->value ?? $this->status,
             'employment_type' => $this->employment_type?->value ?? $this->employment_type,
             'duplicate_flags_count' => $this->whenCounted('employeeDuplicateFlags'),
+            // Only where the list loaded it (withExists), so other callers are unchanged.
+            'has_active_card' => $this->when(
+                array_key_exists('has_active_card', $this->resource->getAttributes()),
+                fn (): bool => (bool) $this->resource->getAttribute('has_active_card'),
+            ),
             'current_assignment' => $this->whenLoaded('currentAssignment', fn (): ?array => $this->currentAssignment ? [
                 'id' => $this->currentAssignment->id,
                 'assignment_status' => $this->currentAssignment->assignment_status?->value ?? $this->currentAssignment->assignment_status,

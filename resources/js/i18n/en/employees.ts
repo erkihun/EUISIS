@@ -150,6 +150,11 @@ const employees = {
     columnPosition: 'Position',
     columnFlags: 'Flags',
     duplicateFlagsTooltip: 'Possible duplicate records detected for this employee',
+    activeCard: 'Active ID card',
+    noActiveCard: 'No active ID card',
+    recentActivity: 'Recent changes',
+    noRecentActivity: 'No recorded changes yet.',
+    systemActor: 'System',
     notAvailable: 'Not available',
 
     // Registry (index) page — list chrome, filters and pagination.

@@ -17,8 +17,11 @@ use App\Http\Requests\EmployeeTransferRequest;
 use App\Http\Requests\EmployeeUpdateRequest;
 use App\Http\Resources\EmployeeDetailResource;
 use App\Http\Resources\EmployeeResource;
+use App\Models\AuditLog;
 use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
+use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
@@ -163,6 +166,8 @@ class EmployeeController extends Controller
         $employeesPaginated = Employee::query()
             ->with(['currentAssignment.organization', 'currentAssignment.organizationUnit', 'currentAssignment.position'])
             ->withCount('employeeDuplicateFlags')
+            // Card status per row in the same query (Core Stage 2 employee workspace).
+            ->withExists('activeIdCard as has_active_card')
             ->when(
                 $isOrganizationScoped,
                 fn ($query) => $query->whereHas('currentAssignment', fn ($assignmentQuery) => $assignmentQuery->whereIn('organization_id', $allowedOrganizationIds))
@@ -587,7 +592,48 @@ class EmployeeController extends Controller
                 ->orderBy('name_en')
                 ->get(['id', 'name_en']),
             'qrCodes' => $this->qrCodes($request, $employee, $feedbackTokenService, $qrRenderer),
+            'recentActivity' => $this->recentActivity($request, $employee),
         ]);
+    }
+
+    /**
+     * The latest audited changes to this employee, their assignments and cards
+     * (Core Stage 2 employee detail, Audit section). Event, time and actor only:
+     * values stay in the audit log, behind its own page and PII masking.
+     *
+     * @return list<array{event_type: string, created_at: string, actor: ?string}>|null
+     */
+    private function recentActivity(Request $request, Employee $employee): ?array
+    {
+        if (! $request->user()?->can('audit.view')) {
+            return null;
+        }
+
+        $subjects = [
+            Employee::class => [$employee->getKey()],
+            EmployeeAssignment::class => $employee->assignments->pluck('id')->all(),
+            IdCard::class => IdCard::query()->where('employee_id', $employee->getKey())->pluck('id')->all(),
+        ];
+
+        $logs = AuditLog::query()
+            ->where(function ($query) use ($subjects): void {
+                foreach ($subjects as $type => $ids) {
+                    if ($ids !== []) {
+                        $query->orWhere(fn ($q) => $q->where('auditable_type', $type)->whereIn('auditable_id', $ids));
+                    }
+                }
+            })
+            ->latest('created_at')
+            ->limit(15)
+            ->get(['id', 'event_type', 'created_at', 'actor_user_id']);
+
+        $actors = User::query()->whereIn('id', $logs->pluck('actor_user_id')->filter()->unique())->pluck('name', 'id');
+
+        return $logs->map(fn (AuditLog $log): array => [
+            'event_type' => $log->event_type->value,
+            'created_at' => $log->created_at?->toIso8601String() ?? '',
+            'actor' => $log->actor_user_id !== null ? ($actors[$log->actor_user_id] ?? null) : null,
+        ])->all();
     }
 
     /**

@@ -166,6 +166,7 @@ use App\Http\Controllers\Web\WorkStructureController;
 use App\Models\IdCard;
 use App\Services\SituationRoom\SituationCategory;
 use Illuminate\Http\Request;
+use Illuminate\Routing\RedirectController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -622,6 +623,23 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::get('/integration', CoreIntegrationCenterController::class)->name('integration');
         Route::get('/audit', CoreAuditCenterController::class)->name('audit');
         Route::get('/settings', CoreSettingsController::class)->middleware('can:system-settings.view')->name('settings');
+
+        // Core addresses for the master-data workspaces (Core Stage 2). The pages stay
+        // where they are (DUAL AVAILABLE); entering through /core sets the workspace flag,
+        // and each page still checks its own permission and organization scope.
+        foreach ([
+            'organizations' => '/organizations',
+            'units' => '/organization-units',
+            'hierarchy' => '/hierarchy-versions',
+            'positions' => '/positions',
+            'employees' => '/employees',
+            'id-cards' => '/id-cards',
+        ] as $section => $destination) {
+            Route::get('/'.$section, RedirectController::class)
+                ->defaults('destination', $destination)
+                ->defaults('status', 302)
+                ->name($section);
+        }
     });
 
     Route::prefix('system/backup-recovery')->name('backups.')->middleware('throttle:30,1')->group(function (): void {

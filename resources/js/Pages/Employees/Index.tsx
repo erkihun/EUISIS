@@ -45,6 +45,7 @@ type EmployeeRow = {
     status: string;
     employment_type: string | null;
     duplicate_flags_count?: number;
+    has_active_card?: boolean;
     current_assignment?: {
         assignment_status?: string | null;
         organization?: { id?: string; name_en: string; name_am?: string | null } | null;
@@ -460,6 +461,11 @@ export default function EmployeesIndex({
                                                 </td>
                                                 <td className={tableCellClassName}>
                                                     <StatusBadge status={employee.status} label={statusLabel(employee.status)} />
+                                                    {employee.has_active_card !== undefined && (
+                                                        <p className="mt-1 text-xs text-(--app-muted-foreground)">
+                                                            {employee.has_active_card ? t('employees.activeCard') : t('employees.noActiveCard')}
+                                                        </p>
+                                                    )}
                                                 </td>
                                                 <td className={tableCellClassName}>
                                                     {/*
