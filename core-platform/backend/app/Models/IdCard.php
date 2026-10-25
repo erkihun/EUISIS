@@ -20,6 +20,24 @@ class IdCard extends Model
 
     public const REVOKED = 'revoked';
 
+    public const PENDING_PRINT = 'pending_print';
+
+    public const PRINTED = 'printed';
+
+    public const LOST = 'lost';
+
+    public const DAMAGED = 'damaged';
+
+    public const EXPIRED = 'expired';
+
+    public const REPLACED = 'replaced';
+
+    /** A card still in the employee's hands or on its way to them (EUISIS one-live-card rule). */
+    public const LIVE = [self::PENDING_PRINT, self::PRINTED, self::ISSUED, self::ACTIVE];
+
+    /** A card that may be replaced by a new one (EUISIS ReplaceCardAction). */
+    public const REPLACEABLE = [self::LOST, self::DAMAGED, self::REVOKED, self::EXPIRED, self::SUSPENDED];
+
     protected $guarded = ['id', 'live_current_employee_id'];
 
     /** Credential secrets never leave the Core. */
@@ -30,8 +48,13 @@ class IdCard extends Model
         return [
             'is_current' => 'boolean', 'reprint_required' => 'boolean',
             'issued_at' => 'datetime', 'activated_at' => 'datetime', 'expires_at' => 'datetime', 'revoked_at' => 'datetime',
-            'printed_at' => 'datetime', 'reprint_reasons' => 'array',
+            'printed_at' => 'datetime', 'reprint_reasons' => 'array', 'display_snapshot' => 'array',
         ];
+    }
+
+    public function request(): BelongsTo
+    {
+        return $this->belongsTo(CardRequest::class, 'card_request_id');
     }
 
     public function employee(): BelongsTo

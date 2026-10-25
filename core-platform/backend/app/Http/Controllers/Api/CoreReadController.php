@@ -8,8 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Models\CoreAuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\HierarchyVersion;
 use App\Models\IdCard;
 use App\Models\Organization;
+use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Services\CoreSettings;
@@ -85,8 +87,19 @@ class CoreReadController extends Controller
     {
         abort_unless($this->scope->allows($request->user(), (string) $organization->id), 404);
 
-        return response()->json(['data' => $organization->load('type:id,code,name_en,name_am')->only(['id', 'code', 'name_en', 'name_am', 'status', 'effective_from', 'effective_to', 'type'])
-            + ['units' => $organization->units()->count(), 'positions' => $organization->positions()->count()]]);
+        // Parent and children in the published hierarchy (structural edges).
+        $version = HierarchyVersion::current();
+        $edges = $version === null ? null : OrganizationEdge::query()->where('hierarchy_version_id', $version->id)->where('relationship_type', OrganizationEdge::STRUCTURAL);
+        $parentId = $edges === null ? null : (clone $edges)->where('child_organization_id', $organization->id)->value('parent_organization_id');
+        $childIds = $edges === null ? [] : (clone $edges)->where('parent_organization_id', $organization->id)->pluck('child_organization_id')->all();
+
+        return response()->json(['data' => $organization->load('type:id,code,name_en,name_am')->only(['id', 'organization_type_id', 'code', 'name_en', 'name_am', 'status', 'effective_from', 'effective_to', 'type'])
+            + [
+                'units' => $organization->units()->count(),
+                'positions' => $organization->positions()->count(),
+                'parent' => $parentId === null ? null : Organization::query()->find($parentId, ['id', 'code', 'name_en', 'name_am']),
+                'children' => Organization::query()->whereIn('id', $childIds)->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am', 'status']),
+            ]]);
     }
 
     public function units(Request $request): JsonResponse
@@ -95,7 +108,7 @@ class CoreReadController extends Controller
             ->when($request->filled('organization_id'), fn (Builder $q) => $q->where('organization_id', $request->string('organization_id')));
         $this->search($query, $request, ['code', 'name_en', 'name_am']);
 
-        return response()->json($query->orderBy('name_en')->paginate($this->perPage(), ['id', 'organization_id', 'parent_unit_id', 'code', 'name_en', 'name_am', 'status'])->withQueryString());
+        return response()->json($query->orderBy('name_en')->paginate($this->perPage(), ['id', 'organization_id', 'organization_unit_type_id', 'parent_unit_id', 'code', 'name_en', 'name_am', 'status'])->withQueryString());
     }
 
     public function positions(Request $request): JsonResponse

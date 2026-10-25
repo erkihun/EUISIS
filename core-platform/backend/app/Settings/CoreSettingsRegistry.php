@@ -15,12 +15,16 @@ namespace App\Settings;
  */
 final class CoreSettingsRegistry
 {
-    public const GROUPS = ['general', 'localization', 'appearance', 'security', 'id_cards', 'workforce'];
+    public const GROUPS = ['general', 'localization', 'appearance', 'security', 'id_cards', 'workforce', 'numbering'];
 
     /** @return array<string, array<string, array<string, mixed>>> group => key => definition */
     public static function definitions(): array
     {
         $color = ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'];
+        // A code format: free text with {seq:N} (required) and optionally {year}.
+        $format = ['required', 'string', 'max:40', 'regex:/\{seq:[1-9]\}/'];
+        $formatHelpEn = 'Used when a code is left blank. {seq:6} is the next number padded to 6 digits; {year} is the current year.';
+        $formatHelpAm = 'ኮድ ባዶ ሲቀር ይሠራል። {seq:6} ቀጣዩ ቁጥር በ6 አሃዝ ሲሆን {year} የአሁኑ ዓመት ነው።';
 
         return [
             'general' => [
@@ -70,6 +74,14 @@ final class CoreSettingsRegistry
                 'city_name_am' => self::field('string', 'አዲስ አበባ ከተማ አስተዳደር', 'City Name (Amharic)', 'የከተማ ስም (አማርኛ)', 'City name shown on the sign-in page and the sidebar (Amharic).', 'በመግቢያ ገጹና በጎን አሞሌው ላይ የሚታይ የከተማ ስም (አማርኛ)።', true, ['required', 'string', 'max:120']),
                 'bureau_name_en' => self::field('string', 'Public Service & HRD Bureau', 'Bureau Name (English)', 'የቢሮ ስም (እንግሊዝኛ)', 'Bureau name shown on the sign-in page (English).', 'በመግቢያ ገጹ ላይ የሚታይ የቢሮ ስም (እንግሊዝኛ)።', true, ['required', 'string', 'max:120']),
                 'bureau_name_am' => self::field('string', 'የሲቪል ሰርቪስና ሰው ሀብት ልማት ቢሮ', 'Bureau Name (Amharic)', 'የቢሮ ስም (አማርኛ)', 'Bureau name shown on the sign-in page (Amharic).', 'በመግቢያ ገጹ ላይ የሚታይ የቢሮ ስም (አማርኛ)።', true, ['required', 'string', 'max:120']),
+                'validity_years' => self::field('integer', 2, 'Card Validity (Years)', 'የካርድ የአገልግሎት ዘመን (ዓመታት)', 'How long a newly approved card is valid.', 'አዲስ የጸደቀ ካርድ የሚያገለግልበት ጊዜ።', false, ['required', 'integer', 'min:1', 'max:10']),
+            ],
+            'numbering' => [
+                'organization_code_format' => self::field('string', 'ORG-{seq:5}', 'Organization Code Format', 'የተቋም ኮድ ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
+                'unit_code_format' => self::field('string', 'UNIT-{seq:5}', 'Unit Code Format', 'የሥራ ክፍል ኮድ ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
+                'position_code_format' => self::field('string', 'POS-{seq:6}', 'Position Code Format', 'የሥራ መደብ ኮድ ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
+                'employee_number_format' => self::field('string', 'EMP-{seq:6}', 'Employee Number Format', 'የሠራተኛ ቁጥር ቅርጸት', $formatHelpEn.' An issued employee number never changes.', $formatHelpAm.' የተሰጠ የሠራተኛ ቁጥር ፈጽሞ አይለወጥም።', false, $format),
+                'card_number_format' => self::field('string', 'CARD-{year}-{seq:6}', 'Card Number Format', 'የካርድ ቁጥር ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
             ],
             'workforce' => [
                 'default_seat_capacity' => self::field('integer', 1, 'Seats Without an Establishment', 'ያለ ጸደቀ መደብ የመቀመጫ ብዛት', 'How many people may hold a position that has no approved establishment in force.', 'በሥራ ላይ ያለ የጸደቀ የመደብ ብዛት የሌለውን የሥራ መደብ ስንት ሰው ሊይዘው እንደሚችል።', false, ['required', 'integer', 'min:1', 'max:50']),

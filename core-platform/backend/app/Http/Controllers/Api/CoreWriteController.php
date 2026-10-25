@@ -48,8 +48,10 @@ class CoreWriteController extends Controller
 
     public function changeCard(Request $request, IdCard $card, string $transition, ChangeCardStatus $change): JsonResponse
     {
-        $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:1000']]);
+        // Blocking or ending a card needs a written reason; the routine print, issue and activate steps do not.
+        $rules = in_array($transition, ChangeCardStatus::NEEDS_REASON, true) ? ['required', 'string', 'min:5', 'max:1000'] : ['nullable', 'string', 'max:1000'];
+        $data = $request->validate(['reason' => $rules]);
 
-        return response()->json(['data' => $change->execute($card, $transition, $data['reason'], $request->user())->only(['id', 'card_number', 'status'])]);
+        return response()->json(['data' => $change->execute($card, $transition, $data['reason'] ?? null, $request->user())->only(['id', 'card_number', 'status'])]);
     }
 }

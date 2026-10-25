@@ -1,9 +1,14 @@
 <?php
 
+use App\Actions\ChangeCardStatus;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CoreReadController;
 use App\Http\Controllers\Api\CoreWriteController;
+use App\Http\Controllers\Api\EmployeeCardController;
+use App\Http\Controllers\Api\PositionController;
 use App\Http\Controllers\Api\SettingsController;
+use App\Http\Controllers\Api\StructureController;
 use App\Settings\CoreSettingsRegistry;
 use Illuminate\Support\Facades\Route;
 
@@ -33,16 +38,45 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
         Route::get('/id-cards', [CoreReadController::class, 'cards']);
         Route::post('/cards/verify', [CoreReadController::class, 'verifyCard'])->middleware('throttle:core-verify');
         Route::get('/audit', [CoreReadController::class, 'audit']);
+        Route::get('/lookups', [StructureController::class, 'lookups']);
+        Route::get('/hierarchy', [StructureController::class, 'hierarchy']);
+        Route::get('/{kind}', [StructureController::class, 'types'])->whereIn('kind', ['organization-types', 'unit-types']);
+        Route::get('/positions/{position}', [PositionController::class, 'show']);
+        Route::get('/card-requests', [EmployeeCardController::class, 'requests']);
 
+        // Officers and administrators change master data; every action checks scope itself.
         Route::middleware('core.user:writer')->group(function (): void {
+            Route::post('/{kind}', [StructureController::class, 'saveType'])->whereIn('kind', ['organization-types', 'unit-types']);
+            Route::put('/{kind}/{id}', [StructureController::class, 'saveType'])->whereIn('kind', ['organization-types', 'unit-types']);
+            Route::post('/organizations', [StructureController::class, 'storeOrganization']);
+            Route::put('/organizations/{organization}', [StructureController::class, 'updateOrganization']);
+            Route::post('/organization-units', [StructureController::class, 'storeUnit']);
+            Route::put('/organization-units/{unit}', [StructureController::class, 'updateUnit']);
+
+            Route::post('/positions', [PositionController::class, 'store']);
+            Route::put('/positions/{position}', [PositionController::class, 'update']);
+            Route::post('/positions/{position}/establishments', [PositionController::class, 'approveEstablishment']);
+            Route::post('/establishments/{establishment}/end', [PositionController::class, 'endEstablishment']);
+
             Route::post('/employees', [CoreWriteController::class, 'registerEmployee']);
+            Route::put('/employees/{employee}', [EmployeeCardController::class, 'updateEmployee']);
+            Route::post('/employees/{employee}/status', [EmployeeCardController::class, 'changeStatus']);
             Route::post('/employees/{employee}/transfer', [CoreWriteController::class, 'transfer']);
-            Route::post('/id-cards/{card}/{transition}', [CoreWriteController::class, 'changeCard'])->whereIn('transition', ['suspend', 'reinstate', 'revoke']);
+            Route::post('/employees/{employee}/card-requests', [EmployeeCardController::class, 'submitRequest']);
+
+            Route::post('/card-requests/{cardRequest}/{decision}', [EmployeeCardController::class, 'decide'])->whereIn('decision', ['approve', 'reject', 'cancel']);
+            Route::post('/id-cards/{card}/replace', [EmployeeCardController::class, 'replace']);
+            Route::post('/id-cards/{card}/{transition}', [CoreWriteController::class, 'changeCard'])->whereIn('transition', ChangeCardStatus::transitions());
         });
 
         Route::middleware('core.user:admin')->group(function (): void {
             Route::get('/settings', [SettingsController::class, 'index']);
             Route::put('/settings/{group}', [SettingsController::class, 'update'])->whereIn('group', CoreSettingsRegistry::GROUPS);
+            Route::get('/users', [AdminController::class, 'users']);
+            Route::post('/users', [AdminController::class, 'saveUser']);
+            Route::put('/users/{user}', [AdminController::class, 'saveUser']);
+            Route::post('/users/{user}/reset-password', [AdminController::class, 'resetPassword']);
+            Route::get('/data-quality', [AdminController::class, 'dataQuality']);
         });
     });
 });
