@@ -88,7 +88,13 @@ class CoreEmployeeLifecycleTest extends TestCase
         $requestId = $this->postJson("/api/v1/employees/{$id}/card-requests", ['request_type' => 'new'])->assertCreated()->json('data.id');
         $this->as($cardApprover);
         $cardId = $this->postJson("/api/v1/card-requests/{$requestId}/approve")->assertOk()->json('data.id');
-        foreach (['print', 'issue', 'activate'] as $step) {
+        $this->postJson("/api/v1/id-cards/{$cardId}/print")->assertOk();
+        // The quality check is someone else's (ADR 0010).
+        $this->postJson("/api/v1/id-cards/{$cardId}/quality-check", ['result' => 'passed'])->assertUnprocessable();
+        $this->as($verifier);
+        $this->postJson("/api/v1/id-cards/{$cardId}/quality-check", ['result' => 'passed'])->assertOk()->assertJsonPath('data.qc_status', 'passed');
+        $this->as($cardApprover);
+        foreach (['issue', 'activate'] as $step) {
             $this->postJson("/api/v1/id-cards/{$cardId}/{$step}")->assertOk();
         }
         $client = new ApiClient(['name' => 'Cafeteria', 'scopes' => ['cards:verify'], 'scope_type' => User::SCOPE_CITYWIDE, 'is_active' => true]);

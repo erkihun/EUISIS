@@ -22,6 +22,7 @@ final class CodeGenerator
         'position' => ['numbering.position_code_format', 'positions', 'job_position_code'],
         'employee' => ['numbering.employee_number_format', 'employees', 'employee_number'],
         'card' => ['numbering.card_number_format', 'id_cards', 'card_number'],
+        'print_batch' => ['numbering.print_batch_number_format', 'card_print_batches', 'batch_number'],
     ];
 
     public function __construct(private readonly CoreSettings $settings) {}

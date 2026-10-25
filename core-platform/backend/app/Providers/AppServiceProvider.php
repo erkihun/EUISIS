@@ -45,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Record identifiers are UUIDs (accounts are numbered): anything else is a
         // 404 before it reaches the database, where PostgreSQL would reject it.
-        foreach (['organization', 'organizationUnit', 'employee', 'position', 'positionEstablishment', 'unit', 'card', 'cardRequest', 'establishment', 'hierarchyVersion', 'organizationEdge', 'document', 'duplicateReview', 'importBatch', 'apiClient', 'webhook', 'delivery', 'id'] as $parameter) {
+        foreach (['organization', 'organizationUnit', 'employee', 'position', 'positionEstablishment', 'unit', 'card', 'cardRequest', 'establishment', 'hierarchyVersion', 'organizationEdge', 'document', 'duplicateReview', 'importBatch', 'apiClient', 'webhook', 'delivery', 'id', 'printBatch', 'cardTemplate', 'version'] as $parameter) {
             Route::pattern($parameter, '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}');
         }
         Route::pattern('user', '[0-9]+');

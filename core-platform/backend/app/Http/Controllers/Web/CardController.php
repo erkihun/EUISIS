@@ -6,14 +6,19 @@ namespace App\Http\Controllers\Web;
 
 use App\Actions\CardRequests;
 use App\Actions\ChangeCardStatus;
+use App\Actions\ManageDigitalCredentials;
+use App\Actions\ManagePrintBatches;
 use App\Http\Controllers\Controller;
 use App\Models\CardRequest;
+use App\Models\CardTemplateVersion;
+use App\Models\DigitalCredential;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\CardEligibility;
+use App\Services\CardRenderer;
 use App\Services\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -95,7 +100,9 @@ class CardController extends Controller
                 'issuance' => null,
                 'previous_card' => $card->previousCard?->only(['id', 'card_number']),
                 'replacement_card' => $card->replacementCard?->only(['id', 'card_number']),
-                'qr_verification_url' => $card->public_card_uuid ? route('id-checker.show', $card->public_card_uuid) : null,
+                // The QR's own address: the credential token (ADR 0010); a card from before P3 keeps its UUID address.
+                'qr_verification_url' => ($token = app(ManageDigitalCredentials::class)->tokenFor($card)) !== null ? route('id-checker.show', $token)
+                    : ($card->public_card_uuid ? route('id-checker.show', $card->public_card_uuid) : null),
                 'feedback_qr_url' => null,
             ],
             'can' => [
@@ -114,7 +121,91 @@ class CardController extends Controller
                 'exportPng' => false,
                 'previewSvg' => false,
             ],
+            'production' => $this->production($card, $user),
         ]);
+    }
+
+    /** Core/CardPreview (ADR 0010): the card as it will print, from the one renderer. */
+    public function preview(Request $request, IdCard $card): Response
+    {
+        Gate::authorize('view', $card);
+
+        return Inertia::render('Core/CardPreview', [
+            'card' => $card->only(['id', 'card_number', 'status']),
+            'svg_url' => route('id-cards.preview-svg', $card),
+            'back_url' => route('id-cards.show', $card),
+        ]);
+    }
+
+    public function previewSvg(IdCard $card, CardRenderer $renderer): \Illuminate\Http\Response
+    {
+        Gate::authorize('view', $card);
+        $version = CardTemplateVersion::query()->find($card->card_template_version_id) ?? CardTemplateVersion::active();
+
+        return CardSvg::response($renderer->svg((array) $version?->config, $renderer->dataFor($card)));
+    }
+
+    public function qualityCheck(Request $request, IdCard $card, ManagePrintBatches $production): RedirectResponse
+    {
+        Gate::authorize('qualityCheck', $card);
+        $data = $request->validate(['result' => ['required', Rule::in(['passed', 'failed'])], 'qc_notes' => ['nullable', 'string', 'max:1000']]);
+        $production->qualityCheck($card, $data['result'] === 'passed', $data['qc_notes'] ?? null, $request->user());
+
+        return back()->with('success', __($data['result'] === 'passed' ? 'id-cards.quality_passed' : 'id-cards.quality_failed'));
+    }
+
+    public function reprint(Request $request, IdCard $card, ManagePrintBatches $production): RedirectResponse
+    {
+        Gate::authorize('reprint', $card);
+        $production->requestReprint($card, (string) $request->validate(['reason' => ['required', 'string', 'max:1000']])['reason'], $request->user());
+
+        return back()->with('success', __('id-cards.reprint_approved'));
+    }
+
+    public function credential(Request $request, IdCard $card, string $step, ManageDigitalCredentials $credentials): RedirectResponse
+    {
+        Gate::authorize('credential', [$card, $step]);
+        $reason = (string) $request->validate(['reason' => [$step === 'issue' ? 'nullable' : 'required', 'string', 'max:1000']])['reason'] ?? '';
+        match ($step) {
+            'issue' => $credentials->issueFor($card, $request->user()),
+            'rotate' => $credentials->rotate($card, $reason, $request->user()),
+            'revoke' => $credentials->revoke($card, $reason, $request->user()),
+        };
+
+        return back()->with('success', __('id-cards.credential_'.['issue' => 'issued', 'rotate' => 'rotated', 'revoke' => 'revoked'][$step]));
+    }
+
+    /**
+     * The production panel (ADR 0010): the template version, prints, the
+     * quality check and the credential, with the steps this reader may take.
+     *
+     * @return array<string, mixed>
+     */
+    private function production(IdCard $card, User $user): array
+    {
+        $version = CardTemplateVersion::query()->with('template')->find($card->card_template_version_id);
+        $credential = DigitalCredential::query()->where('id_card_id', $card->id)->orderByDesc('issued_at')->first();
+        $gate = Gate::forUser($user);
+
+        return [
+            'template' => $version === null ? null : ['code' => $version->template?->code, 'version' => $version->version, 'status' => $version->status],
+            'print_count' => (int) $card->print_count,
+            'reprint_required' => (bool) $card->reprint_required,
+            'qc' => ['status' => $card->qc_status, 'at' => $card->qc_at?->toIso8601String(), 'notes' => $card->qc_notes, 'by' => User::query()->whereKey($card->qc_by)->value('name')],
+            'credential' => $credential === null ? null : [
+                'status' => $credential->status, 'kind' => $credential->kind, 'key_version' => $credential->key_version,
+                'issued_at' => $credential->issued_at?->toIso8601String(), 'last_verified_at' => $credential->last_verified_at?->toIso8601String(),
+                'verification_count' => (int) $credential->verification_count,
+            ],
+            'preview_url' => route('id-cards.preview', $card),
+            'urls' => [
+                'quality' => $gate->allows('qualityCheck', $card) ? route('id-cards.quality-check', $card) : null,
+                'reprint' => $gate->allows('reprint', $card) ? route('id-cards.reprint', $card) : null,
+                'issue_credential' => $gate->allows('credential', [$card, 'issue']) && ($credential === null || $credential->status !== DigitalCredential::ACTIVE) ? route('id-cards.credential', [$card, 'issue']) : null,
+                'rotate_credential' => $gate->allows('credential', [$card, 'rotate']) && $credential?->status === DigitalCredential::ACTIVE ? route('id-cards.credential', [$card, 'rotate']) : null,
+                'revoke_credential' => $gate->allows('credential', [$card, 'revoke']) && $credential?->status === DigitalCredential::ACTIVE ? route('id-cards.credential', [$card, 'revoke']) : null,
+            ],
+        ];
     }
 
     /** A card transition from the detail page; back with the EUISIS message. */

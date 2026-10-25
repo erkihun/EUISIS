@@ -38,6 +38,7 @@ final readonly class CardRequests
         private CodeGenerator $codes,
         private CoreSettings $settings,
         private CardEligibility $eligibility,
+        private ManageDigitalCredentials $credentials,
     ) {}
 
     public function submit(Employee $employee, string $type, ?string $reason, User $actor): CardRequest
@@ -139,6 +140,7 @@ final readonly class CardRequests
                     throw ValidationException::withMessages(['request' => 'Only an expired card can be renewed.']);
                 }
                 $previous->update(['status' => IdCard::REPLACED, 'is_current' => false]);
+                $this->credentials->revokeForCard($previous, 'card_replaced', $actor);
             }
             if (IdCard::query()->where('employee_id', $employee->id)->whereIn('status', IdCard::LIVE)->exists()) {
                 throw ValidationException::withMessages(['request' => 'The employee already has a live card; replace it instead.']);
@@ -162,6 +164,8 @@ final readonly class CardRequests
                     'organization' => $employee->currentAssignment->organization?->name_en,
                 ],
             ]);
+            // The credential its QR will carry (ADR 0010); the public UUID stays an identifier only.
+            $this->credentials->issue($card, $actor);
             if ($request->previous_card_id !== null) {
                 DB::table('card_replacements')->where('old_card_id', $request->previous_card_id)->whereColumn('new_card_id', 'old_card_id')
                     ->update(['new_card_id' => $card->id, 'updated_at' => now()]);

@@ -15,6 +15,7 @@ use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Services\CoreSettings;
+use App\Services\CredentialVerifier;
 use App\Services\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -178,15 +179,17 @@ class CoreReadController extends Controller
     /** Privacy-minimised: validity and the holder's number and name only. */
     public function verifyCard(Request $request): JsonResponse
     {
-        $data = $request->validate(['card_uuid' => ['required', 'uuid']]);
-        $card = IdCard::query()->with('employee.currentAssignment')->where('public_card_uuid', $data['card_uuid'])->first();
+        // By the card's UUID (an identifier), or by the token its QR carries (a credential, ADR 0010).
+        $data = $request->validate(['card_uuid' => ['required_without:token', 'uuid'], 'token' => ['required_without:card_uuid', 'string', 'max:128']]);
+        [$card, $code] = isset($data['token']) ? array_values(array_intersect_key(app(CredentialVerifier::class)->check($data['token']), ['card' => 0, 'code' => 0]))
+            : [$card = IdCard::query()->with('employee.currentAssignment')->where('public_card_uuid', $data['card_uuid'])->first(), $card?->invalidReason()];
         if ($card === null || ! $this->scope->allows($request->user(), $card->employee?->currentAssignment?->organization_id)) {
-            return response()->json(['valid' => false, 'status' => 'not_found', 'code' => 'CARD_NOT_FOUND'], 404);
+            return response()->json(['valid' => false, 'status' => 'not_found', 'code' => $code === 'CREDENTIAL_UNKNOWN' || $code === null ? 'CARD_NOT_FOUND' : $code], 404);
         }
 
         return response()->json([
-            'valid' => $card->isValidCredential(),
-            ...($card->invalidReason() === null ? [] : ['code' => $card->invalidReason()]),
+            'valid' => $code === null,
+            ...($code === null ? [] : ['code' => $code]),
             'status' => $card->status,
             'employee_number' => $card->employee?->employee_number,
             'employee_name' => $card->employee?->full_name,

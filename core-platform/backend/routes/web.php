@@ -2,6 +2,7 @@
 
 use App\Actions\ManageHierarchyVersion;
 use App\Http\Controllers\Web\CardController;
+use App\Http\Controllers\Web\CardTemplateController;
 use App\Http\Controllers\Web\CoreController;
 use App\Http\Controllers\Web\DuplicateReviewController;
 use App\Http\Controllers\Web\EmployeeController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Web\MfaController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationUnitController;
 use App\Http\Controllers\Web\PositionController;
+use App\Http\Controllers\Web\PrintBatchController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\SessionController;
 use App\Http\Controllers\Web\StructureTypeController;
@@ -84,6 +86,17 @@ Route::middleware('auth')->group(function (): void {
             Route::get('/job-masters', [JobMasterController::class, 'index'])->name('job-masters');
             Route::post('/job-masters/{kind}', [JobMasterController::class, 'store'])->middleware('can:positions.master.manage')->name('job-masters.store');
             Route::patch('/job-masters/{kind}/{id}', [JobMasterController::class, 'update'])->middleware('can:positions.master.manage')->whereUuid('id')->name('job-masters.update');
+        });
+
+        // Card templates (ADR 0010): ManageCardTemplates decides each change; the preview uses the print renderer.
+        Route::middleware('can:card_templates.view')->prefix('card-templates')->name('card-templates')->group(function (): void {
+            Route::get('/', [CardTemplateController::class, 'index']);
+            Route::post('/', [CardTemplateController::class, 'store'])->name('.store');
+            Route::post('/{cardTemplate}/versions', [CardTemplateController::class, 'newVersion'])->name('.versions.store');
+            Route::put('/versions/{version}', [CardTemplateController::class, 'update'])->name('.versions.update');
+            Route::post('/versions/{version}/activate', [CardTemplateController::class, 'activate'])->name('.versions.activate');
+            Route::post('/versions/{version}/retire', [CardTemplateController::class, 'retire'])->name('.versions.retire');
+            Route::get('/versions/{version}/preview', [CardTemplateController::class, 'preview'])->middleware('throttle:60,1')->name('.versions.preview');
         });
 
         Route::middleware('can:employees.duplicates.review')->group(function (): void {
@@ -232,6 +245,13 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('can:cards.view')->group(function (): void {
         Route::get('/id-cards', [CardController::class, 'index'])->name('id-cards.index');
         Route::get('/id-cards/{card}', [CardController::class, 'show'])->name('id-cards.show');
+        // The card as it will print, from the one renderer (ADR 0010).
+        Route::get('/id-cards/{card}/preview', [CardController::class, 'preview'])->name('id-cards.preview');
+        Route::get('/id-cards/{card}/preview.svg', [CardController::class, 'previewSvg'])->middleware('throttle:60,1')->name('id-cards.preview-svg');
+        // Card production (ADR 0010): IdCardPolicy and ManagePrintBatches / ManageDigitalCredentials decide each step.
+        Route::post('/id-cards/{card}/quality-check', [CardController::class, 'qualityCheck'])->name('id-cards.quality-check');
+        Route::post('/id-cards/{card}/reprint', [CardController::class, 'reprint'])->name('id-cards.reprint');
+        Route::post('/id-cards/{card}/credential/{step}', [CardController::class, 'credential'])->whereIn('step', ['issue', 'rotate', 'revoke'])->middleware('throttle:20,1')->name('id-cards.credential');
         Route::middleware('can:cards.manage')->group(function (): void {
             // Printing is one step on the card in the Core (ADR 0006, decision 4).
             Route::post('/id-cards/{card}/prepare-print', [CardController::class, 'transition'])->defaults('transition', 'print')->name('id-cards.prepare-print');
@@ -240,6 +260,16 @@ Route::middleware('auth')->group(function (): void {
             }
             Route::post('/id-cards/{card}/replace', [CardController::class, 'replace'])->name('id-cards.replace');
         });
+    });
+    // Print batches (ADR 0010) on the EUISIS PrintBatches screens; a batch is visible when all its cards are in scope.
+    Route::middleware('can:card_print_batches.view')->group(function (): void {
+        Route::get('/print-batches', [PrintBatchController::class, 'index'])->name('print-batches.index');
+        Route::get('/print-batches/create', [PrintBatchController::class, 'create'])->middleware('can:card_print_batches.manage')->name('print-batches.create');
+        Route::post('/print-batches', [PrintBatchController::class, 'store'])->middleware('can:card_print_batches.manage')->name('print-batches.store');
+        Route::get('/print-batches/{printBatch}', [PrintBatchController::class, 'show'])->name('print-batches.show');
+        Route::get('/print-batches/{printBatch}/sheet', [PrintBatchController::class, 'sheet'])->middleware(['can:card_print_batches.manage', 'throttle:20,1'])->name('print-batches.sheet');
+        Route::post('/print-batches/{printBatch}/mark-printed', [PrintBatchController::class, 'markPrinted'])->middleware('can:card_print_batches.manage')->name('print-batches.mark-printed');
+        Route::post('/print-batches/{printBatch}/cancel', [PrintBatchController::class, 'cancel'])->middleware('can:card_print_batches.manage')->name('print-batches.cancel');
     });
     Route::middleware('can:id-cards.viewAny')->group(function (): void {
         Route::get('/card-requests', [CardController::class, 'requests'])->name('card-requests.index');

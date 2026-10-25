@@ -117,7 +117,8 @@ class CoreScreensTest extends TestCase
         $nav = collect($this->get('/core')->inertiaProps('workspace.nav'))->flatMap(fn (array $section) => collect($section['groups'])->flatMap(fn (array $g) => $g['items']))->pluck('route');
         $this->assertContains('organizations.index', $nav);
         $this->assertNotContains('users.index', $nav);
-        $this->assertNotContains('print-batches.index', $nav);
+        // Print batches are Core screens since P3 (ADR 0010).
+        $this->assertContains('print-batches.index', $nav);
     }
 
     public function test_sign_in_and_out_use_the_session(): void
@@ -210,6 +211,9 @@ class CoreScreensTest extends TestCase
         $this->post('/card-requests/'.$request->id.'/approve')->assertSessionHasNoErrors();
         $card = IdCard::query()->where('card_request_id', $request->id)->firstOrFail();
         $this->post('/id-cards/'.$card->id.'/prepare-print')->assertSessionHasNoErrors();
+        $this->signIn('core_officer');
+        $this->post('/id-cards/'.$card->id.'/quality-check', ['result' => 'passed'])->assertSessionHasNoErrors();
+        $this->signIn('core_admin');
         $this->post('/id-cards/'.$card->id.'/issue')->assertSessionHasNoErrors();
         $this->post('/id-cards/'.$card->id.'/activate')->assertSessionHasNoErrors();
         $this->assertSame(IdCard::ACTIVE, $card->fresh()->status);

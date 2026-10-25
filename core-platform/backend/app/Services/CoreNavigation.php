@@ -83,8 +83,9 @@ final class CoreNavigation
                         ['route' => 'id-cards.index', 'label_key' => 'nav.idCards', 'icon' => 'CreditCard', 'permission' => 'cards.view'],
                         ['route' => 'card-requests.index', 'label_key' => 'nav.cardRequests', 'icon' => 'CardReceiveIcon', 'permission' => 'id-cards.viewAny'],
                         ['route' => 'id-cards.reprint-required', 'label_key' => 'nav.reprintRequired', 'icon' => 'RestartIcon', 'permission' => 'cards.view'],
-                        ['route' => 'print-batches.index', 'label_key' => 'nav.printBatches', 'icon' => 'PrinterIcon', 'permission' => ['id-cards.createPrintBatch', 'cards.manage']],
-                        ['route' => 'id-card-templates.index', 'label_key' => 'nav.idCardTemplates', 'icon' => 'PaletteIcon', 'permission' => 'id_card_templates.view'],
+                        // Card production (ADR 0010): batches on the EUISIS screens, templates on a Core screen.
+                        ['route' => 'print-batches.index', 'label_key' => 'nav.printBatches', 'icon' => 'PrinterIcon', 'permission' => 'card_print_batches.view'],
+                        ['route' => 'core.card-templates', 'label_key' => 'nav.idCardTemplates', 'icon' => 'PaletteIcon', 'permission' => 'card_templates.view'],
                         ['route' => 'nfc-management.credentials.index', 'label_key' => 'nav.nfcCredentials', 'icon' => 'CardTransferIcon', 'permission' => 'nfc_credentials.view'],
                         // The public checker anyone can use; listed so staff find it, gated like the card pages.
                         ['route' => 'id-checker.index', 'label_key' => 'core.nav.verification', 'icon' => 'QrCodeIcon', 'permission' => 'cards.view'],

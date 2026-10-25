@@ -123,10 +123,10 @@ final class CorePermissions
             'card_templates.manage' => ['Design and activate card templates', 'የካርድ ቅጾችን መንደፍና ሥራ ላይ ማዋል'],
             'card_print_batches.view' => ['View print batches', 'የሕትመት ስብስቦችን ማየት'],
             'card_print_batches.manage' => ['Prepare and run print batches', 'የሕትመት ስብስቦችን ማዘጋጀትና ማካሄድ'],
-            'digital_credentials.view' => ['View digital credentials', 'ዲጂታል ማስረጃዎችን ማየት'],
-            'digital_credentials.issue' => ['Issue digital credentials', 'ዲጂታል ማስረጃዎችን መስጠት'],
-            'digital_credentials.rotate' => ['Rotate digital credentials', 'ዲጂታል ማስረጃዎችን መቀየር'],
-            'digital_credentials.revoke' => ['Revoke digital credentials', 'ዲጂታል ማስረጃዎችን መሻር'],
+            'digital_credentials.view' => ['View card credentials', 'የካርድ የማረጋገጫ መለያዎችን ማየት'],
+            'digital_credentials.issue' => ['Issue card credentials', 'የካርድ የማረጋገጫ መለያዎችን መስጠት'],
+            'digital_credentials.rotate' => ['Replace card credentials', 'የካርድ የማረጋገጫ መለያዎችን መተካት'],
+            'digital_credentials.revoke' => ['Revoke card credentials', 'የካርድ የማረጋገጫ መለያዎችን መሰረዝ'],
         ],
         'imports' => [
             'imports.view' => ['View imports', 'የገቢ ፋይሎችን ማየት'],
@@ -151,9 +151,9 @@ final class CorePermissions
             'system-settings.update' => ['Change Core settings', 'የዋና መዝገብ ቅንብሮችን መቀየር'],
             'audit.integrity.view' => ['See the audit integrity status', 'የኦዲት መዝገብ ታማኝነት ሁኔታን ማየት'],
             'audit.integrity.verify' => ['Seal and verify the audit trail', 'የኦዲት መዝገቡን ማተምና ማረጋገጥ'],
-            'break_glass.request' => ['Request emergency access', 'የአደጋ ጊዜ ፈቃድ መጠየቅ'],
-            'break_glass.approve' => ['Approve emergency access of others', 'የሌሎችን የአደጋ ጊዜ ፈቃድ ማጽደቅ'],
-            'break_glass.revoke' => ['End emergency access', 'የአደጋ ጊዜ ፈቃድን ማቋረጥ'],
+            'break_glass.request' => ['Request emergency access', 'የአደጋ ጊዜ መዳረሻ መጠየቅ'],
+            'break_glass.approve' => ['Approve emergency access of others', 'የሌሎችን የአደጋ ጊዜ መዳረሻ ማጽደቅ'],
+            'break_glass.revoke' => ['End emergency access', 'የአደጋ ጊዜ መዳረሻን ማቋረጥ'],
         ],
     ];
 

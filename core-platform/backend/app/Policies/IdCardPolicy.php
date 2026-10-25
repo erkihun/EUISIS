@@ -28,7 +28,28 @@ final class IdCardPolicy
         $permission = ChangeCardStatus::PERMISSIONS[$transition] ?? null;
 
         return $permission !== null && $this->permits($user, $permission, $this->employeeOrganization((string) $card->employee_id),
-            in_array($card->status, ChangeCardStatus::from($transition), true));
+            in_array($card->status, ChangeCardStatus::from($transition), true)
+            // printing a printed card again needs an approved reprint (ADR 0010)
+            && ! ($transition === 'print' && $card->status === IdCard::PRINTED && ! $card->reprint_required));
+    }
+
+    /** The quality check of a printed card (ADR 0010); ManagePrintBatches also refuses its printer. */
+    public function qualityCheck(User $user, IdCard $card): bool
+    {
+        return $this->permits($user, 'cards.quality_check', $this->employeeOrganization((string) $card->employee_id),
+            $card->status === IdCard::PRINTED && $card->qc_status === 'pending');
+    }
+
+    public function reprint(User $user, IdCard $card): bool
+    {
+        return $this->permits($user, 'cards.reprint', $this->employeeOrganization((string) $card->employee_id), $card->status === IdCard::PRINTED && $card->is_current);
+    }
+
+    /** issue, rotate or revoke the card's credential (ADR 0010) */
+    public function credential(User $user, IdCard $card, string $step): bool
+    {
+        return in_array($step, ['issue', 'rotate', 'revoke'], true)
+            && $this->permits($user, 'digital_credentials.'.$step, $this->employeeOrganization((string) $card->employee_id), $card->is_current);
     }
 
     public function replace(User $user, IdCard $card): bool

@@ -44,6 +44,14 @@ return [
     'national_id_hash_key' => (string) env('NATIONAL_ID_HASH_KEY', ''),
 
     /*
+     * Keys card credential tokens are hashed with (App\Services\CredentialKeys),
+     * newest first: "2:base64:...,1:base64:...@2026-12-31" — an older key is
+     * accepted until its date, then core:credentials-rekey has moved its
+     * credentials. Empty = one key derived from APP_KEY.
+     */
+    'credential_keys' => (string) env('CORE_CREDENTIAL_KEYS', ''),
+
+    /*
      * Multi-factor authentication for the categories Core settings › Security
      * require (App\Services\MfaPolicy). Off only for the test suite.
      */

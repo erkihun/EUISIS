@@ -85,6 +85,8 @@ final class CoreSettingsRegistry
                 'require_photo' => self::field('boolean', true, 'Photo Required for a Card', 'ለካርድ ፎቶ ያስፈልጋል', 'When on, a card is requested and approved only for an employee with a current photo on record.', 'ሲበራ፣ ካርድ የሚጠየቀውና የሚጸድቀው የአሁን ፎቶ ለተመዘገበለት ሠራተኛ ብቻ ነው።', false, ['required', 'boolean']),
                 'require_verified_photo' => self::field('boolean', true, 'Card Photo Must Be Verified', 'የካርድ ፎቶ መረጋገጥ አለበት', 'When on, the photo must also have been verified by someone other than the person who uploaded it.', 'ሲበራ፣ ፎቶው ከሰቀለው ሰው ውጭ በሌላ ሰው መረጋገጥም አለበት።', false, ['required', 'boolean']),
                 'require_signature' => self::field('boolean', false, 'Signature Required for a Card', 'ለካርድ ፊርማ ያስፈልጋል', 'When on, the card template uses the signature, so a verified signature must be on record.', 'ሲበራ፣ የካርድ ቅጹ ፊርማውን ስለሚጠቀም የተረጋገጠ ፊርማ መመዝገብ አለበት።', false, ['required', 'boolean']),
+                'require_quality_check' => self::field('boolean', true, 'Quality Check Before Issue', 'ከመሰጠቱ በፊት የጥራት ፍተሻ', 'When on, a printed card is issued only after someone other than its printer has passed it.', 'ሲበራ፣ የታተመ ካርድ የሚሰጠው ከአታሚው ውጭ ያለ ሰው ካለፈው በኋላ ብቻ ነው።', false, ['required', 'boolean']),
+                'max_reprints' => self::field('integer', 2, 'Most Reprints of One Card', 'የአንድ ካርድ ከፍተኛው ድጋሚ ሕትመት', 'After this many reprints a card is revoked and replaced instead.', 'ከዚህ ብዛት ድጋሚ ሕትመት በኋላ ካርዱ ይሰረዝና በምትኩ አዲስ ይሰጣል።', false, ['required', 'integer', 'min:0', 'max:10']),
                 'validity_years' => self::field('integer', 2, 'Card Validity (Years)', 'የካርድ የአገልግሎት ዘመን (ዓመታት)', 'How long a newly approved card is valid.', 'አዲስ የጸደቀ ካርድ የሚያገለግልበት ጊዜ።', false, ['required', 'integer', 'min:1', 'max:10']),
             ],
             'numbering' => [
@@ -93,6 +95,7 @@ final class CoreSettingsRegistry
                 'position_code_format' => self::field('string', 'POS-{seq:6}', 'Position Code Format', 'የሥራ መደብ ኮድ ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
                 'employee_number_format' => self::field('string', 'EMP-{seq:6}', 'Employee Number Format', 'የሠራተኛ ቁጥር ቅርጸት', $formatHelpEn.' An issued employee number never changes.', $formatHelpAm.' የተሰጠ የሠራተኛ ቁጥር ፈጽሞ አይለወጥም።', false, $format),
                 'card_number_format' => self::field('string', 'CARD-{year}-{seq:6}', 'Card Number Format', 'የካርድ ቁጥር ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
+                'print_batch_number_format' => self::field('string', 'PB-{year}-{seq:5}', 'Print Batch Number Format', 'የሕትመት ጥቅል ቁጥር ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
             ],
             'workforce' => [
                 'verification_requires_photo' => self::field('boolean', false, 'Approval Requires a Verified Photo', 'ማጽደቅ የተረጋገጠ ፎቶ ይፈልጋል', 'When on, an employee is verified and approved only with a current photo that has been verified.', 'ሲበራ፣ ሠራተኛ የሚረጋገጠውና የሚጸድቀው የተረጋገጠ የአሁን ፎቶ ሲኖረው ብቻ ነው።', false, ['required', 'boolean']),

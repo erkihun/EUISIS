@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Models\CardPrintBatch;
+use App\Models\CardTemplateVersion;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\User;
 use App\Services\AuditWriter;
+use App\Services\CoreSettings;
 use App\Services\OrganizationScope;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -23,7 +26,8 @@ final readonly class ChangeCardStatus
 {
     /** transition => [allowed from, resulting status, timestamp column] */
     private const TRANSITIONS = [
-        'print' => [[IdCard::PENDING_PRINT], IdCard::PRINTED, 'printed_at'],
+        // A printed card is printed again only after its reprint was approved (ManagePrintBatches::requestReprint).
+        'print' => [[IdCard::PENDING_PRINT, IdCard::PRINTED], IdCard::PRINTED, 'printed_at'],
         'issue' => [[IdCard::PRINTED], IdCard::ISSUED, 'issued_at'],
         'activate' => [[IdCard::ISSUED], IdCard::ACTIVE, 'activated_at'],
         'report_lost' => [[IdCard::ACTIVE, IdCard::ISSUED], IdCard::LOST, null],
@@ -43,7 +47,7 @@ final readonly class ChangeCardStatus
         'suspend' => 'id-cards.suspend', 'reinstate' => 'id-cards.suspend', 'revoke' => 'id-cards.revoke',
     ];
 
-    public function __construct(private OrganizationScope $scope, private AuditWriter $audit) {}
+    public function __construct(private OrganizationScope $scope, private AuditWriter $audit, private CoreSettings $settings, private ManageDigitalCredentials $credentials) {}
 
     /** @return list<string> */
     public static function transitions(): array
@@ -93,6 +97,12 @@ final readonly class ChangeCardStatus
 
             $old = $card->status;
             $changes = ['status' => $to];
+            if ($transition === 'print') {
+                $changes += $this->printing($card, $actor);
+            }
+            if ($transition === 'issue' && (bool) $this->settings->get('id_cards.require_quality_check') && $card->qc_status !== 'passed') {
+                throw ValidationException::withMessages(['card' => 'The printed card must pass the quality check before it is issued.']);
+            }
             if ($stamp !== null) {
                 $changes[$stamp] = now();
             }
@@ -101,10 +111,41 @@ final readonly class ChangeCardStatus
                 $changes['is_current'] = false;
             }
             $card->forceFill($changes)->save();
+            if (in_array($transition, ['revoke', 'report_lost', 'report_damaged'], true)) {
+                $this->credentials->revokeForCard($card, 'card_'.$to, $actor);
+            }
 
-            $this->audit->write('card.'.$transition, $actor, $card, $organizationId === null ? null : (string) $organizationId, ['status' => $old], ['status' => $to], $reason);
+            $this->audit->write($transition === 'print' && $old === IdCard::PRINTED ? 'card.reprinted' : 'card.'.$transition, $actor, $card, $organizationId === null ? null : (string) $organizationId, ['status' => $old], ['status' => $to], $reason);
 
             return $card->fresh();
         });
+    }
+
+    /**
+     * What printing records (ADR 0010): the template version (the batch's, else
+     * the active one), the print count, the printer, a fresh quality check, and
+     * a credential when the card has none yet.
+     *
+     * @return array<string, mixed>
+     */
+    private function printing(IdCard $card, User $actor): array
+    {
+        if ($card->status === IdCard::PRINTED && ! $card->reprint_required) {
+            throw ValidationException::withMessages(['card' => 'A printed card is printed again only after a reprint is approved.']);
+        }
+        $version = $card->current_print_batch_id !== null
+            ? CardPrintBatch::query()->whereKey($card->current_print_batch_id)->value('card_template_version_id')
+            : CardTemplateVersion::query()->where('status', CardTemplateVersion::ACTIVE)->value('id');
+        if ($version === null) {
+            throw ValidationException::withMessages(['card' => 'No card template is active: activate one first.']);
+        }
+        if ($this->credentials->tokenFor($card) === null) {
+            $this->credentials->issue($card, $actor);
+        }
+
+        return [
+            'card_template_version_id' => $version, 'print_count' => (int) $card->print_count + 1, 'printed_by' => $actor->getKey(),
+            'qc_status' => 'pending', 'qc_by' => null, 'qc_at' => null, 'qc_notes' => null, 'reprint_required' => false,
+        ];
     }
 }

@@ -18,6 +18,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\Position;
+use App\Services\CredentialVerifier;
 use App\Services\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -130,13 +131,18 @@ class IntegrationController extends Controller
      */
     public function verifyCard(Request $request): JsonResponse
     {
-        $data = $request->validate(['card_uuid' => ['required', 'uuid']]);
+        // By the card's UUID, or by the token its QR carries (ADR 0010); a credential denial names its code.
+        $data = $request->validate(['card_uuid' => ['required_without:token', 'uuid'], 'token' => ['required_without:card_uuid', 'string', 'max:128']]);
         $client = $this->client($request);
-        $card = IdCard::query()->with('employee.currentAssignment')->where('public_card_uuid', $data['card_uuid'])->first();
-        if ($card === null || ! $this->scope->allows($client, $card->employee?->currentAssignment?->organization_id)) {
-            return response()->json(['valid' => false, 'code' => 'CARD_NOT_FOUND', 'message' => 'Card verification failed.'], 404);
+        if (isset($data['token'])) {
+            ['card' => $card, 'code' => $code] = app(CredentialVerifier::class)->check($data['token']);
+        } else {
+            $card = IdCard::query()->with('employee.currentAssignment')->where('public_card_uuid', $data['card_uuid'])->first();
+            $code = $card?->invalidReason();
         }
-        $code = $card->invalidReason();
+        if ($card === null || ! $this->scope->allows($client, $card->employee?->currentAssignment?->organization_id)) {
+            return response()->json(['valid' => false, 'code' => $card === null && $code !== null && $code !== 'CREDENTIAL_UNKNOWN' ? $code : 'CARD_NOT_FOUND', 'message' => 'Card verification failed.'], 404);
+        }
 
         return response()->json([
             'valid' => $code === null,
