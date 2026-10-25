@@ -149,3 +149,12 @@ it('verifies a card with the holder\'s minimal identity and keeps the three iden
     expect($verification->verifyCardUuid($card->public_card_uuid))->toMatchArray(['valid' => false, 'status' => 'revoked'])
         ->and($verification->verify('unknown-value')->status)->toBe('not_found');
 });
+
+it('searches active organizations by code prefix or name, inside the viewer\'s scope (Stage 3 picker read)', function (): void {
+    $directory = app(OrganizationDirectory::class);
+
+    expect(collect($directory->searchActiveFor($this->insider, 'CR-B'))->pluck('code')->all())->toBe(['CR-BUREAU'])
+        ->and(collect($directory->searchActiveFor($this->insider, 'ተቋም'))->pluck('code')->all())->toBe(['CR-BUREAU'])
+        ->and($directory->searchActiveFor($this->outsider, 'CR-B'))->toBe([])
+        ->and(collect($directory->searchActiveFor($this->insider, 'CR-CLOSED'))->all())->toBe([]);
+});

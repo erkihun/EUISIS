@@ -78,7 +78,7 @@ class StoreTransportPassRequest extends FormRequest
             $employee = Employee::query()->with('currentAssignment')->find($this->input('employee_id'));
             $route = $this->filled('transport_route_id') ? TransportRoute::query()->find($this->input('transport_route_id')) : null;
 
-            if ($employee !== null && $route !== null && ! app(TransportRouteAccessService::class)->employeeCanUseRoute($employee, $route)) {
+            if ($employee !== null && $route !== null && ! app(TransportRouteAccessService::class)->organizationCanUseRoute($employee->currentAssignment?->organization_id, $route)) {
                 $validator->errors()->add('transport_route_id', __('transport.route_not_open_to_employee'));
             }
 

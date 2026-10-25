@@ -69,6 +69,7 @@ return [
     'noSlotsRemaining' => 'ምንም ክፍት የሥራ መደብ አልቀረም።',
     'destinationNotSelectable' => 'ክፍት የሥራ መደቡ በሚፀናበት ቀን ንቁ አይደለም ወይም የዚህ ተቋም አይደለም።',
     'employeeNotPlaced' => 'ሠራተኛው ንቁ ምደባ ስለሌለው ሊዛወር አይችልም።',
+    'employeeOutOfScope' => 'ማመልከት የሚችሉት ለራስዎ ወይም በተቋሞችዎ ውስጥ ላለ ሠራተኛ ብቻ ነው።',
     'alreadyApplied' => 'ቀደም ሲል ለዚህ ክፍት የሥራ መደብ አመልክተዋል።',
     'establishmentNotApproved' => 'ማስታወቂያ ከማውጣትዎ በፊት የሥራ መደቡ መጽደቅ አለበት።',
     'notDraft' => 'ረቂቅ ማስታወቂያዎች ብቻ ሊጸድቁ ይችላሉ።',

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Jobs\Transport;
 
-use App\Models\Employee;
 use App\Services\Transport\TransportEligibilityReevaluator;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -20,9 +19,6 @@ class ReevaluateTransportEligibility implements ShouldQueue
 
     public function handle(TransportEligibilityReevaluator $reevaluator): void
     {
-        $employee = Employee::query()->with('currentAssignment.organization')->find($this->employeeId);
-        if ($employee !== null) {
-            $reevaluator->reevaluate($employee);
-        }
+        $reevaluator->reevaluateById($this->employeeId);
     }
 }

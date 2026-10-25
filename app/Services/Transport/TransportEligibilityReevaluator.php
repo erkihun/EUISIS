@@ -35,6 +35,14 @@ class TransportEligibilityReevaluator
         private readonly WriteAuditLogAction $audit,
     ) {}
 
+    /** Reevaluates by employee id (queued after backbone events); 0 when the employee no longer exists. */
+    public function reevaluateById(string $employeeId): int
+    {
+        $employee = Employee::query()->with('currentAssignment.organization')->find($employeeId);
+
+        return $employee === null ? 0 : $this->reevaluate($employee);
+    }
+
     /** @return int how many assignments were suspended */
     public function reevaluate(Employee $employee): int
     {
@@ -74,7 +82,7 @@ class TransportEligibilityReevaluator
         if ($employee->currentAssignment === null) {
             return self::REASON_ASSIGNMENT;
         }
-        if ($pass->route !== null && ! $this->routeAccess->employeeCanUseRoute($employee, $pass->route)) {
+        if ($pass->route !== null && ! $this->routeAccess->organizationCanUseRoute($employee->currentAssignment?->organization_id, $pass->route)) {
             return self::REASON_ROUTE;
         }
 

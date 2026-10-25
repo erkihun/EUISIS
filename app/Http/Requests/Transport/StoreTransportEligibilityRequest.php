@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Transport;
 
+use App\Backbone\Contracts\EmployeeDirectory;
 use App\Enums\Transport\TransportEligibilityStatus;
 use App\Enums\Transport\TransportEligibilitySubject;
-use App\Models\Employee;
 use App\Rules\OrganizationInScope;
-use App\Services\OrganizationScope\OrganizationScopeService;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,8 +26,9 @@ class StoreTransportEligibilityRequest extends FormRequest
         return [
             'subject_type' => ['required', Rule::enum(TransportEligibilitySubject::class)],
             'employee_id' => ['required_if:subject_type,employee', 'nullable', 'uuid', 'exists:employees,id', function (string $attribute, mixed $value, Closure $fail): void {
-                $employee = Employee::query()->with('currentAssignment')->find($value);
-                if ($employee !== null && ! app(OrganizationScopeService::class)->canAccessEmployee($this->user(), $employee)) {
+                // Core EmployeeDirectory (Stage 3): null when the employee lies outside the user's scope.
+                if (is_string($value) && app(EmployeeDirectory::class)->findByUuid($value) !== null
+                    && app(EmployeeDirectory::class)->findFor($this->user(), $value) === null) {
                     $fail(__('transport.employee_out_of_scope'));
                 }
             }],

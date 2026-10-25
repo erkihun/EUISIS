@@ -69,9 +69,11 @@ it('lets no service module add a direct dependency on Golden Path models', funct
     // Baseline 2026-10-24. Lower a number when a module moves onto Core contracts.
     $baseline = [
         'cafeteria' => 23,
-        'transport' => 13,
+        // 2026-10-25: route access, organization lookup, eligibility request, the
+        // reevaluation job and the scan service read through Core contracts.
+        'transport' => 8,
         'grievance' => 15,
-        'discipline' => 3,
+        'discipline' => 2,
         'performance' => 16,
         'assessment' => 13,
         'daily_work' => 12,

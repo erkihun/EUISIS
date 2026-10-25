@@ -63,7 +63,7 @@ class TransportEligibilityService
             return $this->deny('route_inactive', $employee, $card, $day);
         }
 
-        if ($route !== null && ! $this->routeAccess->employeeCanUseRoute($employee, $route)) {
+        if ($route !== null && ! $this->routeAccess->organizationCanUseRoute($employee->currentAssignment?->organization_id, $route)) {
             return $this->deny('route_not_allowed_for_employee', $employee, $card, $day);
         }
 

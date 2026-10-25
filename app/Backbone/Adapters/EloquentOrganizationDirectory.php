@@ -10,6 +10,7 @@ use App\Enums\OrganizationStatus;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 /** Reads organizations from the existing table; scope comes from the one canonical OrganizationScopeService. */
@@ -44,6 +45,27 @@ final readonly class EloquentOrganizationDirectory implements OrganizationDirect
     public function activeFor(User $viewer, int $limit = 100): array
     {
         $query = Organization::query()->where('status', OrganizationStatus::Active->value)->orderBy('code')->limit(max(1, $limit));
+
+        return $this->scope->applyOrganizationScope($query, $viewer, 'id')
+            ->get()
+            ->map(fn (Organization $organization): OrganizationData => OrganizationData::fromModel($organization))
+            ->values()
+            ->all();
+    }
+
+    public function searchActiveFor(User $viewer, string $term, int $limit = 20): array
+    {
+        $like = ci_like_operator();
+        $escaped = addcslashes($term, '%_\\');
+
+        $query = Organization::query()
+            ->where('status', OrganizationStatus::Active->value)
+            ->where(fn (Builder $q) => $q
+                ->where('code', $like, $escaped.'%')
+                ->orWhere('name_en', $like, '%'.$escaped.'%')
+                ->orWhere('name_am', $like, '%'.$escaped.'%'))
+            ->orderBy('name_en')
+            ->limit(max(1, $limit));
 
         return $this->scope->applyOrganizationScope($query, $viewer, 'id')
             ->get()

@@ -80,6 +80,12 @@ final class DisciplinaryCaseService
      *
      * @param  array{track: string, severity: string, summary?: string|null, source_type?: string|null, source_id?: string|null}  $data
      */
+    /** Opens a case for an employee named by UUID (the controller reads identity through the Core EmployeeDirectory). */
+    public function openForEmployee(User $actor, string $employeeUuid, array $data): DisciplinaryCase
+    {
+        return $this->open($actor, Employee::query()->findOrFail($employeeUuid), $data);
+    }
+
     public function open(User $actor, Employee $accused, array $data): DisciplinaryCase
     {
         $assignment = $this->currentAssignment($accused);

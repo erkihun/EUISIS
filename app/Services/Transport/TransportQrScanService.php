@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Transport;
 
 use App\Enums\Transport\TransportVerificationMethod;
-use App\Models\IdCard;
 use App\Models\Provider;
 use App\Models\ProviderUser;
 use App\Models\TransportTransaction;
@@ -21,17 +20,7 @@ use App\Services\Transport\Boarding\TransportBoardingService;
  */
 class TransportQrScanService
 {
-    public function __construct(private readonly TransportBoardingService $engine, private readonly CardCredentialResolver $cards) {}
-
-    /**
-     * The card a raw scan value names, through the same parser every terminal
-     * uses (tests/Feature/IdCards/QrPayloadParserTest). QR or NFC is told
-     * apart by the value's shape.
-     */
-    public function resolveCard(string $scanValue): ?IdCard
-    {
-        return $this->cards->resolve(CardCredentialResolver::methodFor($scanValue), $scanValue)['card'];
-    }
+    public function __construct(private readonly TransportBoardingService $engine) {}
 
     /**
      * @param  array{qr_token?: string|null, verification_method?: string|null, scan_nonce?: string|null, transport_route_id?: string|null, transport_trip_id?: string|null, transport_route_stop_id?: string|null, scanned_at?: string|null, manual_employee_id?: string|null, manual_reason?: string|null}  $payload

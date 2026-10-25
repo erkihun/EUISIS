@@ -472,3 +472,30 @@ it('the closed assignment ends the day before the new one starts', function (): 
 
     expect($old->fresh()->effective_to->toDateString())->toBe('2026-05-31');
 });
+
+it('refuses an application filed for an employee outside the submitter\'s scope', function (): void {
+    $announcement = makePublishedAnnouncementForApp();
+    $positionEntry = $announcement->positions->first();
+    [$employee] = makeEmployeeWithAssignment($positionEntry->organization_id);
+
+    // A staff member who may submit, scoped to another organization, and not the employee.
+    $elsewhere = makeTestOrgForApp();
+    $staff = User::factory()->create();
+    $staff->givePermissionTo('vacancy-applications.submit');
+    $staff->organizationScopes()->create(['organization_id' => $elsewhere->id, 'scope_type' => 'self', 'is_active' => true]);
+
+    $this->actingAs($staff)->post(route('vacancy-applications.store'), [
+        'vacancy_announcement_position_id' => $positionEntry->id,
+        'employee_id' => $employee->id,
+    ])->assertSessionHasErrors('employee_id');
+
+    expect(VacancyApplication::where('employee_id', $employee->id)->exists())->toBeFalse();
+
+    // The employee themselves may apply.
+    $self = User::factory()->create(['employee_id' => $employee->id]);
+    $self->givePermissionTo('vacancy-applications.submit');
+    $this->actingAs($self)->post(route('vacancy-applications.store'), [
+        'vacancy_announcement_position_id' => $positionEntry->id,
+        'employee_id' => $employee->id,
+    ])->assertSessionHasNoErrors();
+});

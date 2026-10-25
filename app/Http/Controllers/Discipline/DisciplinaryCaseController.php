@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Discipline;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Backbone\Contracts\AssignmentContextReader;
+use App\Backbone\Contracts\EmployeeDirectory;
 use App\Enums\AuditEventType;
 use App\Enums\Discipline\DisciplinaryAppealOutcome;
 use App\Enums\Discipline\DisciplinaryCaseStatus;
@@ -19,7 +21,6 @@ use App\Http\Controllers\Controller;
 use App\Models\DisciplinaryCase;
 use App\Models\DisciplinaryCaseMember;
 use App\Models\DisciplinaryEvidence;
-use App\Models\Employee;
 use App\Services\Discipline\DisciplinaryCaseAccess;
 use App\Services\Discipline\DisciplinaryCasePresenter;
 use App\Services\Discipline\DisciplinaryCaseService;
@@ -42,6 +43,10 @@ class DisciplinaryCaseController extends Controller
         private readonly DisciplinaryCaseService $cases,
         private readonly DisciplinaryCaseAccess $access,
         private readonly DisciplinaryCasePresenter $presenter,
+        // Core contracts (Stage 3): discipline names employees by number and
+        // never reads the employee master directly.
+        private readonly EmployeeDirectory $employees,
+        private readonly AssignmentContextReader $assignments,
     ) {}
 
     public function index(Request $request): Response
@@ -90,13 +95,13 @@ class DisciplinaryCaseController extends Controller
         ]);
         // Unknown and out-of-scope employees get the same answer, so the form
         // cannot be used to discover employee numbers in other institutions.
-        $employee = Employee::query()->where('employee_number', $data['employee_number'])->first();
-        $organizationId = $employee?->currentAssignment?->organization_id;
+        $employee = $this->employees->findByNumber($data['employee_number']);
+        $organizationId = $employee?->currentAssignmentUuid === null ? null : $this->assignments->find($employee->currentAssignmentUuid)?->organizationUuid;
         if ($employee === null || ! $this->access->canCreateIn($request->user(), $organizationId)) {
             return back()->withErrors(['employee_number' => __('validation.exists', ['attribute' => 'employee number'])]);
         }
 
-        $case = $this->cases->open($request->user(), $employee, $data);
+        $case = $this->cases->openForEmployee($request->user(), $employee->employeeUuid, $data);
 
         return to_route('discipline.cases.show', $case)->with('success', __('discipline.flash.opened'));
     }
@@ -144,7 +149,12 @@ class DisciplinaryCaseController extends Controller
             'investigator_numbers' => ['nullable', 'array', 'max:5'],
             'investigator_numbers.*' => ['string', 'max:60'],
         ]);
-        $investigators = Employee::query()->whereIn('employee_number', $data['investigator_numbers'] ?? [])->pluck('id')->all();
+        $investigators = collect($data['investigator_numbers'] ?? [])
+            ->map(fn (string $number): ?string => $this->employees->findByNumber($number)?->employeeUuid)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
         $this->cases->assignPanel($case, $request->user(), $data['committee_id'] ?? null, $investigators);
 
         return back()->with('success', __('discipline.flash.panel_assigned'));
@@ -236,7 +246,7 @@ class DisciplinaryCaseController extends Controller
             'replacement_employee_number' => ['nullable', 'string', 'max:60'],
         ]);
         $replacement = isset($data['replacement_employee_number'])
-            ? Employee::query()->where('employee_number', $data['replacement_employee_number'])->value('id')
+            ? $this->employees->findByNumber($data['replacement_employee_number'])?->employeeUuid
             : null;
         if (isset($data['replacement_employee_number']) && $replacement === null) {
             return back()->withErrors(['replacement_employee_number' => __('validation.exists', ['attribute' => 'employee number'])]);
