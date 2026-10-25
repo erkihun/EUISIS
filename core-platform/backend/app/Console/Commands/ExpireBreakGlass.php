@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Actions\ManageBreakGlass;
+use App\Services\SystemHealth;
 use Illuminate\Console\Command;
 
 /** Records emergency access whose time ran out (ADR 0010); the grant already gave nothing past its end. */
@@ -16,6 +17,7 @@ class ExpireBreakGlass extends Command
 
     public function handle(ManageBreakGlass $breakGlass): int
     {
+        SystemHealth::recordRun('core:break-glass-expire');
         $this->info($breakGlass->expire().' emergency access grant(s) expired.');
 
         return self::SUCCESS;

@@ -19,4 +19,6 @@ Schedule::command('core:break-glass-expire')->everyMinute()->withoutOverlapping(
 Schedule::command('core:prune-integration-data')->dailyAt('03:15')->withoutOverlapping()->onOneServer();
 
 // Data-quality issues follow the integrity checks (ADR 0011).
+Schedule::command('core:notify-expiring')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('core:data-quality-scan')->hourlyAt(20)->withoutOverlapping()->onOneServer();
+Schedule::command('core:prune-exports')->dailyAt('03:30')->withoutOverlapping()->onOneServer();

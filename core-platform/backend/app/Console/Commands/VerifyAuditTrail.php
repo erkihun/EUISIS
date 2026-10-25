@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Services\AuditChain;
+use App\Services\AuditWriter;
+use App\Services\SystemHealth;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -21,6 +23,7 @@ class VerifyAuditTrail extends Command
 
     public function handle(AuditChain $chain): int
     {
+        SystemHealth::recordRun('core:audit-verify');
         $id = DB::table('audit_verifications')->insertGetId(['started_at' => now(), 'run_by' => $this->option('user') ?: null]);
         $result = $chain->verify();
         DB::table('audit_verifications')->where('id', $id)->update([
@@ -29,6 +32,9 @@ class VerifyAuditTrail extends Command
         ]);
         if (! $result['ok']) {
             Log::critical('Audit trail verification failed.', $result);
+            // Recorded in the trail itself, which tells the security dashboard's holders (ADR 0011).
+            app(AuditWriter::class)->writeFor('audit.verification_failed', null, 'AuditTrail', 'core_audit_logs', null, null,
+                ['first_bad_sequence' => $result['first_bad_sequence']], mb_substr($result['message'], 0, 1000));
             $this->error($result['message']);
 
             return self::FAILURE;

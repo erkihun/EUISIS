@@ -36,6 +36,13 @@ type Integrity = {
     verify_url: string | null;
 };
 
+type Dashboard = {
+    privileged: number; privileged_with_mfa: number; privileged_without_mfa: string[]; privileged_without_mfa_count: number; mfa_enforced: boolean;
+    active_sessions: number | null; failed_sign_ins_24h: number; lockouts_24h: number; break_glass_active: number;
+    api_clients: { active: number; revoked: number; expired: number }; webhooks: { failed_deliveries: number; suspended: number };
+    recent_access_changes: Array<{ action: string; actor: string | null; subject: string | null; at: string | null }>;
+};
+
 type RequestOptions = { url: string; permissions: string[]; max_minutes: number; organizations: Array<{ id: string; name_en: string; name_am: string | null }> };
 
 const TONE: Record<Grant['status'], string> = { requested: 'pending', active: 'warning', rejected: 'inactive', expired: 'inactive', revoked: 'inactive' };
@@ -45,7 +52,7 @@ const TONE: Record<Grant['status'], string> = { requested: 'pending', active: 'w
  * someone else approves and which ends by itself; and how far the audit
  * trail is sealed and what its last check found.
  */
-export default function SecurityCenter({ grants, request, integrity }: { grants: Grant[]; request: RequestOptions | null; integrity: Integrity | null }) {
+export default function SecurityCenter({ grants, request, integrity, dashboard }: { grants: Grant[]; request: RequestOptions | null; integrity: Integrity | null; dashboard?: Dashboard | null }) {
     const { t, locale } = useLocale();
     const label = (key: string) => t(`core.security.${key}`);
     const [asking, setAsking] = useState(false);
@@ -74,6 +81,28 @@ export default function SecurityCenter({ grants, request, integrity }: { grants:
             actions={request ? <Button variant="primary" onClick={() => { ask.reset(); ask.clearErrors(); setAsking(true); }}>{label('requestAccess')}</Button> : undefined} />}>
             <Head title={label('title')} />
             <div className="space-y-5">
+                {dashboard && (
+                    <Card className="p-5">
+                        <h2 className="font-semibold text-(--app-foreground)">{label('dashboardTitle')}</h2>
+                        <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-3 lg:grid-cols-6">
+                            <Figure term={label('mfaCoverage')} value={`${dashboard.privileged_with_mfa}/${dashboard.privileged}`} note={dashboard.mfa_enforced ? label('mfaEnforced') : label('mfaNotEnforced')} />
+                            <Figure term={label('withoutMfa')} value={String(dashboard.privileged_without_mfa_count)} note={dashboard.privileged_without_mfa.join(', ')} />
+                            <Figure term={label('activeSessions')} value={dashboard.active_sessions === null ? '—' : String(dashboard.active_sessions)} />
+                            <Figure term={label('failedSignIns')} value={String(dashboard.failed_sign_ins_24h)} note={`${label('lockouts')}: ${dashboard.lockouts_24h}`} />
+                            <Figure term={label('breakGlassActive')} value={String(dashboard.break_glass_active)} />
+                            <Figure term={label('apiClients')} value={String(dashboard.api_clients.active)} note={`${label('revoked')}: ${dashboard.api_clients.revoked} · ${label('expired')}: ${dashboard.api_clients.expired}`} />
+                            <Figure term={label('webhookFailures')} value={String(dashboard.webhooks.failed_deliveries)} note={`${label('suspended')}: ${dashboard.webhooks.suspended}`} />
+                        </dl>
+                        <h3 className="mt-5 text-sm font-semibold text-(--app-foreground)">{label('recentAccessChanges')}</h3>
+                        {dashboard.recent_access_changes.length === 0 ? <p className="mt-1 text-sm text-(--app-muted-foreground)">{label('none')}</p> : (
+                            <ul className="mt-2 space-y-1 text-xs">
+                                {dashboard.recent_access_changes.map((change, index) => (
+                                    <li key={index}><span className="font-mono">{change.action}</span> · {change.actor ?? '—'} · <LocalizedDateDisplay value={change.at} withTime /></li>
+                                ))}
+                            </ul>
+                        )}
+                    </Card>
+                )}
                 {integrity && (
                     <Card className="p-5">
                         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -190,5 +219,15 @@ export default function SecurityCenter({ grants, request, integrity }: { grants:
                 </form>
             </AppDialog>
         </AuthenticatedLayout>
+    );
+}
+
+function Figure({ term, value, note }: { term: string; value: string; note?: string }) {
+    return (
+        <div>
+            <dt className="text-xs text-(--app-muted-foreground)">{term}</dt>
+            <dd className="mt-1 text-xl font-semibold tabular-nums text-(--app-foreground)">{value}</dd>
+            {note && <dd className="text-xs text-(--app-muted-foreground)">{note}</dd>}
+        </div>
     );
 }

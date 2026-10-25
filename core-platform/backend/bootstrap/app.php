@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureCoreUser;
 use App\Http\Middleware\EnsureOrganizationScope;
 use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RecordSlowRequests;
 use App\Http\Middleware\RequestId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
@@ -30,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(RequestId::class);
         $middleware->append(SecurityHeaders::class);
+        // Slow requests are logged and counted for System Health (ADR 0011).
+        $middleware->append(RecordSlowRequests::class);
         $middleware->alias(['core.user' => EnsureCoreUser::class, 'core.client' => EnsureApiClient::class]);
         // The EUISIS screens: the page's language, the idle sign-out and the shared props, on the browser routes.
         $middleware->encryptCookies(except: [SetClientLocale::COOKIE]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Services\SystemHealth;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Tests\Concerns\BuildsGoldenPath;
@@ -36,8 +37,9 @@ class CoreSystemHealthTest extends TestCase
             $this->assertStringNotContainsString('"'.$sensitive.'"', (string) $response->getContent());
         }
 
-        Artisan::call('core:deliver-webhooks');
-        Artisan::call('core:expire-cards');
+        foreach (array_keys(SystemHealth::SCHEDULED) as $command) {
+            Artisan::call($command);
+        }
         $this->getJson('/api/v1/system-health')->assertJsonPath('checks.scheduler.status', 'ok');
     }
 

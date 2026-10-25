@@ -70,9 +70,11 @@ return new class extends Migration
             $table->string('subject_type', 64)->nullable();
             $table->string('subject_id', 64)->nullable();
             $table->string('url', 500)->nullable();
+            $table->uuid('audit_log_id')->nullable();
             $table->timestamp('read_at')->nullable();
             $table->timestamp('created_at');
             $table->index(['user_id', 'read_at', 'created_at'], 'core_notifications_user_idx');
+            $table->unique(['user_id', 'audit_log_id', 'event'], 'core_notifications_once_per_change');
             $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
         });
 

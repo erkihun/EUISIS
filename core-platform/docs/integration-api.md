@@ -69,7 +69,11 @@ default 50) and return Laravel pages: `data`, `links`, `meta`.
 | `GET /employees/{uuid}/assignment` | `assignments:read` | |
 | `GET /employees/{uuid}/assignment-history` | `assignments:read` | |
 | `GET /employees/{uuid}/status` | `employee-status:read` | |
-| `POST /cards/verify` | `cards:verify` | body `{"card_uuid": "<public card UUID from the QR>"}` |
+| `POST /cards/verify` | `cards:verify` | body `{"token": "<the token from the QR>"}` or `{"card_uuid": "<public card UUID>"}` |
+
+The machine-readable description of these routes is
+[`openapi/core-integration-v1.yaml`](openapi/core-integration-v1.yaml) (OpenAPI 3.1); a test keeps it in
+step with the routes, events and card codes.
 
 Dates are `YYYY-MM-DD`; timestamps are ISO 8601 with offset. Display calendars
 (Ethiopian or Gregorian) are the consumer's concern; the API is always Gregorian.
@@ -84,6 +88,19 @@ Dates are `YYYY-MM-DD`; timestamps are ISO 8601 with offset. Display calendars
 `holder` (`employee_id`, `employee_number`, `full_name`, `organization_id`) is
 given only to a client that also has `employees:basic-read`. Denial codes, in
 the order they are checked:
+
+A QR printed since P3 (ADR 0010) carries the check address and a credential
+token — send it as `token`. A credential is checked first:
+
+| Code | Meaning |
+|---|---|
+| `CREDENTIAL_UNKNOWN` (404) | no credential has this token |
+| `CREDENTIAL_REVOKED` | revoked, with its card or by hand |
+| `CREDENTIAL_SUPERSEDED` | a newer credential replaced it (the card must be reprinted) |
+| `CREDENTIAL_EXPIRED` | past the credential's own expiry |
+| `KEY_RETIRED` | issued under a key whose grace period ended |
+
+Then the card:
 
 | Code | Meaning |
 |---|---|
@@ -166,6 +183,12 @@ X-Core-Delivery: <delivery id>
 X-Core-Timestamp: <unix seconds>
 X-Core-Signature: v1=<hex HMAC-SHA256 of "<X-Core-Timestamp>.<raw body>" with the endpoint secret>
 ```
+
+For a grace period after the endpoint's secret is rotated (Core settings ›
+Integration, default 24 hours) the header carries two values, new then old:
+`v1=<new>,v1=<old>`; accept either, then switch to the new secret. After
+repeated failed attempts (default 20 in a row) the endpoint is suspended; its
+events wait and are sent once an administrator resumes it.
 
 A receiver must check the signature with a constant-time comparison, refuse
 timestamps older than five minutes, and treat `event_id` as the idempotency key

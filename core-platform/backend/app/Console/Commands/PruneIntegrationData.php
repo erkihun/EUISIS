@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\WebhookDelivery;
 use App\Services\CoreSettings;
+use App\Services\SystemHealth;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -23,6 +24,7 @@ class PruneIntegrationData extends Command
 
     public function handle(CoreSettings $settings): int
     {
+        SystemHealth::recordRun('core:prune-integration-data');
         $eventsBefore = now()->subDays($settings->int('integration.outbox_retention_days'));
         $logsBefore = now()->subDays($settings->int('integration.api_log_retention_days'));
         $events = DB::table('outbox_events')->where('occurred_at', '<', $eventsBefore)

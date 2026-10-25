@@ -55,6 +55,16 @@ return [
     'audit_seal_key' => (string) env('CORE_AUDIT_SEAL_KEY', ''),
 
     /*
+     * Backups run outside the Core (App\Services\BackupStatus): the backup tooling
+     * writes a JSON status file here, which System Health reads. Unset = "unknown".
+     */
+    'backup_status_file' => (string) env('CORE_BACKUP_STATUS_FILE', ''),
+    'backup_max_age_hours' => (int) env('CORE_BACKUP_MAX_AGE_HOURS', 26),
+
+    /* A request slower than this is logged and counted on System Health (milliseconds). */
+    'slow_request_ms' => (int) env('CORE_SLOW_REQUEST_MS', 1500),
+
+    /*
      * Multi-factor authentication for the categories Core settings › Security
      * require (App\Services\MfaPolicy). Off only for the test suite.
      */

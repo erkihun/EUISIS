@@ -18,13 +18,20 @@ use App\Models\User;
 use App\Services\BreakGlassAccess;
 use App\Services\CoreSettings;
 use App\Services\DomainEvents;
+use App\Services\Observability;
 use App\Services\OrganizationScope;
+use App\Services\SystemHealth;
 use App\Support\CorePermissions;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\ScheduledTaskFinished;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
+use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
@@ -95,5 +102,23 @@ class AppServiceProvider extends ServiceProvider
 
         // The screens' EUISIS permission names, granted by the Core role.
         Gate::before(fn (User $user, string $ability): ?bool => in_array($ability, CorePermissions::for($user), true) ? true : null);
+
+        // System Health (ADR 0011): every scheduled Core command records its run; job durations are counted.
+        Event::listen(ScheduledTaskFinished::class, function (ScheduledTaskFinished $event): void {
+            if (preg_match('/core:[a-z-]+/', (string) $event->task->command, $match) === 1) {
+                SystemHealth::recordRun($match[0]);
+            }
+        });
+        $started = [];
+        Event::listen(JobProcessing::class, function (JobProcessing $event) use (&$started): void {
+            $started[$event->job->getJobId()] = hrtime(true);
+        });
+        $finished = function (string $class, ?string $id, bool $failed) use (&$started): void {
+            $ms = isset($started[$id]) ? (int) ((hrtime(true) - $started[$id]) / 1_000_000) : 0;
+            unset($started[$id]);
+            Observability::job($class, $ms, $failed);
+        };
+        Event::listen(JobProcessed::class, fn (JobProcessed $event) => $finished((string) $event->job->resolveName(), $event->job->getJobId(), false));
+        Event::listen(JobFailed::class, fn (JobFailed $event) => $finished((string) $event->job->resolveName(), $event->job->getJobId(), true));
     }
 }

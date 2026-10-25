@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rules\Password;
@@ -45,11 +46,16 @@ class SessionController extends Controller
 
         if (RateLimiter::tooManyAttempts($key, $this->settings->int('security.max_login_attempts'))) {
             $minutes = (int) ceil(RateLimiter::availableIn($key) / 60);
+            // One audit row per lockout (ADR 0011), for the security dashboard; the e-mail is kept only as a hash.
+            if (Cache::add('core-lockout-noted:'.sha1($key), true, RateLimiter::availableIn($key))) {
+                $audit->writeFor('auth.locked_out', null, 'SignIn', substr(hash('sha256', strtolower($data['email'])), 0, 32), null, null, ['ip' => $request->ip()]);
+            }
             throw ValidationException::withMessages(['email' => __('auth.throttle', ['seconds' => $minutes * 60, 'minutes' => $minutes])]);
         }
 
         if (! Auth::guard('web')->attempt(['email' => $data['email'], 'password' => $data['password'], 'is_active' => true])) {
             RateLimiter::hit($key, $this->settings->int('security.lockout_minutes') * 60);
+            $audit->writeFor('auth.sign_in_failed', null, 'SignIn', substr(hash('sha256', strtolower($data['email'])), 0, 32), null, null, ['ip' => $request->ip()]);
             throw ValidationException::withMessages(['email' => __('auth.failed')]);
         }
 

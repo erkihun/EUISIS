@@ -165,7 +165,7 @@ final class CorePermissions
             'reports.view' => ['View Core reports', 'የዋና መዝገብ ሪፖርቶችን ማየት'],
             'reports.export' => ['Export Core reports', 'የዋና መዝገብ ሪፖርቶችን ማውጣት'],
             'reports.export_sensitive' => ['Include personal contact details in exports', 'በሚወጡ ሪፖርቶች ውስጥ የግል መገኛ መረጃን ማካተት'],
-            'system_health.view' => ['See system health, queues and backups', 'የሥርዓቱን ጤና፣ ወረፋዎችንና ምትኬዎችን ማየት'],
+            'system_health.view' => ['See system health, queues and backups', 'የሥርዓቱን ጤና፣ ወረፋዎችንና ባካፖችን ማየት'],
             'queue.manage' => ['Retry or remove failed background jobs', 'ያልተሳኩ የጀርባ ሥራዎችን እንደገና መሞከር ወይም ማስወገድ'],
             'security_dashboard.view' => ['See the security dashboard', 'የደህንነት ዳሽቦርዱን ማየት'],
         ],

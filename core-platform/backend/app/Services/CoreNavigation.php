@@ -116,8 +116,12 @@ final class CoreNavigation
                     'key' => 'coreControl', 'label_key' => 'core.nav.groupControl', 'icon' => 'EyeScanIcon',
                     'items' => [
                         ['route' => 'core.audit', 'label_key' => 'core.nav.auditCenter', 'icon' => 'EyeScanIcon', 'permission' => 'audit.view'],
+                        // Core-only (ADR 0011): health checks, queues, backups and the configuration review.
+                        ['route' => 'core.system-health', 'label_key' => 'core.nav.systemHealth', 'icon' => 'ShieldCheck', 'permission' => 'system_health.view'],
                         // Core-only (ADR 0010): emergency access and the audit trail's integrity.
                         ['route' => 'core.security', 'label_key' => 'core.nav.securityCenter', 'icon' => 'ShieldWarningIcon', 'permission' => ['break_glass.request', 'break_glass.approve', 'audit.integrity.view']],
+                        // Core-only (ADR 0011): a person's own notifications.
+                        ['route' => 'core.notifications', 'label_key' => 'core.nav.notifications', 'icon' => 'BellIcon', 'permission' => 'core.access'],
                         // Core-only (ADR 0011): scoped reports and audited exports.
                         ['route' => 'core.reports', 'label_key' => 'core.nav.reports', 'icon' => 'ChartIcon', 'permission' => 'reports.view'],
                         ['route' => 'core.data-quality', 'label_key' => 'core.nav.dataQuality', 'icon' => 'FileSearchIcon', 'permission' => 'data_quality.view'],

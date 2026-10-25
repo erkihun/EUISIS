@@ -26,7 +26,8 @@ use Throwable;
 final class SystemHealth
 {
     /** The scheduled commands whose last run is recorded (core.scheduler.<name>), with the age that is still fine. */
-    public const SCHEDULED = ['core:deliver-webhooks' => 10, 'core:expire-cards' => 60 * 26];
+    public const SCHEDULED = ['core:deliver-webhooks' => 10, 'core:expire-cards' => 60 * 26, 'core:audit-seal' => 15, 'core:audit-verify' => 60 * 26,
+        'core:break-glass-expire' => 10, 'core:notify-expiring' => 15, 'core:data-quality-scan' => 130, 'core:prune-integration-data' => 60 * 26, 'core:prune-exports' => 60 * 26];
 
     public static function recordRun(string $command): void
     {
@@ -64,7 +65,36 @@ final class SystemHealth
             'webhooks' => $this->webhooks(),
             'api' => $this->api(),
             'access' => $this->access(),
-            'backup' => ['status' => 'unknown', 'details' => ['note' => 'Backups are run outside the Core; their result is not reported here.']],
+            'audit_integrity' => $this->auditIntegrity(),
+            'backup' => $this->backup(),
+        ];
+    }
+
+    /** The backup tooling's own report (BackupStatus); unknown when it is not integrated, never assumed healthy. */
+    private function backup(): array
+    {
+        $result = app(BackupStatus::class)->check();
+        $result['status'] = ['healthy' => 'ok', 'critical' => 'error'][$result['status']] ?? $result['status'];
+
+        return $result;
+    }
+
+    /** @return array{status: string, details: array<string, mixed>} */
+    private function auditIntegrity(): array
+    {
+        $status = app(AuditChain::class)->status();
+        $last = $status['last_verification'];
+
+        return [
+            'status' => match (true) {
+                $last !== null && $last->finished_at !== null && ! $last->ok => 'error',
+                $last === null || $last->finished_at === null => 'unknown',
+                $status['unsealed'] > app(CoreSettings::class)->int('audit.unsealed_warning_rows')
+                    || now()->diffInHours($last->finished_at, true) > app(CoreSettings::class)->int('audit.verify_max_age_hours') => 'warning',
+                default => 'ok',
+            },
+            'details' => ['sealed_through' => $status['sealed_through'], 'last_sealed_at' => $status['last_sealed_at'], 'unsealed' => $status['unsealed'],
+                'last_verified_at' => $last?->finished_at, 'last_verification_ok' => $last === null ? null : (bool) $last->ok],
         ];
     }
 
@@ -85,11 +115,23 @@ final class SystemHealth
     private function queue(): array
     {
         $failed = Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->count() : null;
-        $waiting = config('queue.default') === 'database' && Schema::hasTable('jobs') ? DB::table('jobs')->count() : null;
+        $database = config('queue.default') === 'database' && Schema::hasTable('jobs');
+        $waiting = $database ? DB::table('jobs')->count() : null;
+        // A job reserved for over 15 minutes is stuck (its worker died); one tried more than once is being retried.
+        $stuck = $database ? DB::table('jobs')->whereNotNull('reserved_at')->where('reserved_at', '<', now()->subMinutes(15)->getTimestamp())->count() : null;
+        $retrying = $database ? DB::table('jobs')->where('attempts', '>', 1)->count() : null;
+        $byQueue = $database ? DB::table('jobs')->groupBy('queue')->selectRaw('queue, count(*) as total, min(created_at) as oldest')->get()
+            ->mapWithKeys(fn ($r): array => [$r->queue => ['waiting' => (int) $r->total, 'oldest_age_minutes' => (int) floor((time() - (int) $r->oldest) / 60)]])->all() : null;
+        $sync = in_array(config('queue.default'), ['sync', 'null'], true);
 
         return [
-            'status' => $failed > 0 ? 'warning' : 'ok',
-            'details' => ['connection' => config('queue.default'), 'failed_jobs' => $failed, 'waiting_jobs' => $waiting],
+            'status' => match (true) {
+                $stuck > 0 => 'error',
+                $failed > 0 || $retrying > 0 || ($sync && app()->isProduction()) => 'warning',
+                default => 'ok',
+            },
+            'details' => ['connection' => config('queue.default'), 'failed_jobs' => $failed, 'waiting_jobs' => $waiting, 'stuck_jobs' => $stuck,
+                'retrying_jobs' => $retrying, 'queues' => $byQueue],
         ];
     }
 

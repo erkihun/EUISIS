@@ -82,7 +82,7 @@ final class DataQualityScanner
             }
             $counts['opened'] = count($new);
 
-            if ($complete) {
+            if ($complete && (bool) app(CoreSettings::class)->get('data_quality.auto_resolve')) {
                 $seen = array_flip($ids);
                 foreach ($existing as $id => $issue) {
                     if (! isset($seen[$id]) && in_array($issue->status, DataQualityIssue::ACTIVE, true)) {
@@ -93,7 +93,7 @@ final class DataQualityScanner
                     }
                 }
             }
-            if ($severity === 'critical' && ($counts['opened'] + $counts['reopened']) > 0) {
+            if ($severity === 'critical' && ($counts['opened'] + $counts['reopened']) > 0 && (bool) app(CoreSettings::class)->get('data_quality.notify_critical')) {
                 $this->audit->writeFor('data_quality.critical_detected', null, 'DataQualityCheck', $code, null, null,
                     ['check_code' => $code, 'new' => $counts['opened'], 'reopened' => $counts['reopened']]);
             }

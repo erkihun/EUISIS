@@ -16,6 +16,7 @@ use App\Http\Controllers\Web\ImportController;
 use App\Http\Controllers\Web\IntegrationCenterController;
 use App\Http\Controllers\Web\JobMasterController;
 use App\Http\Controllers\Web\MfaController;
+use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationUnitController;
 use App\Http\Controllers\Web\PositionController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\SecurityCenterController;
 use App\Http\Controllers\Web\SessionController;
 use App\Http\Controllers\Web\StructureTypeController;
+use App\Http\Controllers\Web\SystemHealthController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -69,6 +71,15 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/', [CoreController::class, 'dashboard'])->middleware('can:core.access')->name('dashboard');
         Route::get('/assignments', [CoreController::class, 'assignments'])->middleware('can:employees.view')->name('assignments');
         Route::get('/audit', [CoreController::class, 'auditCenter'])->middleware('can:audit.view')->name('audit');
+        // System Health (ADR 0011): city-wide system_health.view; failed jobs are retried or removed with queue.manage.
+        Route::get('/system-health', [SystemHealthController::class, 'show'])->name('system-health');
+        Route::post('/system-health/jobs/{uuid}/retry', [SystemHealthController::class, 'retry'])->whereUuid('uuid')->middleware('throttle:30,1')->name('system-health.jobs.retry');
+        Route::post('/system-health/jobs/{uuid}/forget', [SystemHealthController::class, 'forget'])->whereUuid('uuid')->middleware('throttle:30,1')->name('system-health.jobs.forget');
+
+        // A person's own notifications (ADR 0011).
+        Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+        Route::post('/notifications/read', [NotificationController::class, 'read'])->name('notifications.read');
+
         // Core reports and exports (ADR 0011): ReportCatalog limits every report to the reader's scope; ManageExports queues and audits.
         Route::middleware('can:reports.view')->group(function (): void {
             Route::get('/reports', [ReportController::class, 'index'])->name('reports');
