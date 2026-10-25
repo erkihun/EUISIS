@@ -30,6 +30,7 @@ Small, reversible changes inside one module do not need one; the pull request is
 | [0003](0003-security-hardening-after-core-stages.md) | Security hardening: explicit organization scope, audit seals, provider-named card checks | accepted 2026-10-24 |
 | [0004](0004-go-live-gates-recovery-targets-retention-and-runtime.md) | Go-live gates, recovery targets, retention, governance roles, Node 24 | accepted 2026-10-24 |
 | [0005](0005-golden-path-rule-decisions.md) | Golden Path rule decisions: occupied moves, stable employee numbers, number sequence, card suspension, copied codes | accepted 2026-10-25 |
+| [0006](0006-standalone-core-platform.md) | The Core as a standalone platform: own API, frontend and database in `core-platform/`, copy-and-compare cutover | accepted 2026-10-25 |
 
 Decisions that are recorded elsewhere and would each merit an ADR when next
 changed: API versioning ([api-lifecycle](../../governance/api-lifecycle.md)),

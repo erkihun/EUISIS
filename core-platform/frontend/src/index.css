@@ -1,0 +1,67 @@
+@import 'tailwindcss';
+
+/* Core tokens: one teal brand, neutral surfaces, status colours. Dark mode follows the OS. */
+:root {
+    --canvas: #f6f7f9;
+    --surface: #ffffff;
+    --subtle: #f0f2f5;
+    --line: #e2e6eb;
+    --ink: #1c2430;
+    --muted: #5f6b7a;
+    --brand: #0f766e;
+    --brand-strong: #115e59;
+    --ok: #15803d;
+    --ok-soft: #e8f6ed;
+    --info: #1d4ed8;
+    --info-soft: #e8efff;
+    --warn: #a16207;
+    --warn-soft: #fdf5e1;
+    --danger: #b91c1c;
+    --danger-soft: #fdecec;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --canvas: #0f141a;
+        --surface: #161d25;
+        --subtle: #1d2630;
+        --line: #2a3541;
+        --ink: #e6ebf0;
+        --muted: #9aa6b4;
+        --brand: #2dd4bf;
+        --brand-strong: #5eead4;
+        --ok: #4ade80;
+        --ok-soft: #12291b;
+        --info: #93b4ff;
+        --info-soft: #172240;
+        --warn: #facc15;
+        --warn-soft: #2d2610;
+        --danger: #f87171;
+        --danger-soft: #331717;
+    }
+}
+
+@theme inline {
+    --color-canvas: var(--canvas);
+    --color-surface: var(--surface);
+    --color-subtle: var(--subtle);
+    --color-line: var(--line);
+    --color-ink: var(--ink);
+    --color-muted: var(--muted);
+    --color-brand: var(--brand);
+    --color-brand-strong: var(--brand-strong);
+    --color-ok: var(--ok);
+    --color-ok-soft: var(--ok-soft);
+    --color-info: var(--info);
+    --color-info-soft: var(--info-soft);
+    --color-warn: var(--warn);
+    --color-warn-soft: var(--warn-soft);
+    --color-danger: var(--danger);
+    --color-danger-soft: var(--danger-soft);
+    --font-sans: 'Segoe UI', 'Noto Sans Ethiopic', 'Nyala', 'Abyssinica SIL', system-ui, sans-serif;
+}
+
+body {
+    background: var(--canvas);
+    color: var(--ink);
+}
