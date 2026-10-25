@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Settings;
 
+use App\Models\EmployeeDocument;
+
 /**
  * Every setting the Core owns, in one place: type, default, labels in both
  * languages, validation and whether the sign-in page may read it.
@@ -15,7 +17,7 @@ namespace App\Settings;
  */
 final class CoreSettingsRegistry
 {
-    public const GROUPS = ['general', 'localization', 'appearance', 'security', 'id_cards', 'workforce', 'numbering'];
+    public const GROUPS = ['general', 'localization', 'appearance', 'security', 'id_cards', 'workforce', 'numbering', 'files'];
 
     /** @return array<string, array<string, array<string, mixed>>> group => key => definition */
     public static function definitions(): array
@@ -80,7 +82,9 @@ final class CoreSettingsRegistry
                 'city_name_am' => self::field('string', 'አዲስ አበባ ከተማ አስተዳደር', 'City Name (Amharic)', 'የከተማ ስም (አማርኛ)', 'City name shown on the sign-in page and the sidebar (Amharic).', 'በመግቢያ ገጹና በጎን አሞሌው ላይ የሚታይ የከተማ ስም (አማርኛ)።', true, ['required', 'string', 'max:120']),
                 'bureau_name_en' => self::field('string', 'Public Service & HRD Bureau', 'Bureau Name (English)', 'የቢሮ ስም (እንግሊዝኛ)', 'Bureau name shown on the sign-in page (English).', 'በመግቢያ ገጹ ላይ የሚታይ የቢሮ ስም (እንግሊዝኛ)።', true, ['required', 'string', 'max:120']),
                 'bureau_name_am' => self::field('string', 'የሲቪል ሰርቪስና ሰው ሀብት ልማት ቢሮ', 'Bureau Name (Amharic)', 'የቢሮ ስም (አማርኛ)', 'Bureau name shown on the sign-in page (Amharic).', 'በመግቢያ ገጹ ላይ የሚታይ የቢሮ ስም (አማርኛ)።', true, ['required', 'string', 'max:120']),
-                'require_photo' => self::field('boolean', false, 'Photo Required for a Card', 'ለካርድ ፎቶ ያስፈልጋል', 'When on, a card is requested and approved only for an employee with a photo on record.', 'ሲበራ፣ ካርድ የሚጠየቀውና የሚጸድቀው ፎቶ ለተመዘገበለት ሠራተኛ ብቻ ነው።', false, ['required', 'boolean']),
+                'require_photo' => self::field('boolean', true, 'Photo Required for a Card', 'ለካርድ ፎቶ ያስፈልጋል', 'When on, a card is requested and approved only for an employee with a current photo on record.', 'ሲበራ፣ ካርድ የሚጠየቀውና የሚጸድቀው የአሁን ፎቶ ለተመዘገበለት ሠራተኛ ብቻ ነው።', false, ['required', 'boolean']),
+                'require_verified_photo' => self::field('boolean', true, 'Card Photo Must Be Verified', 'የካርድ ፎቶ መረጋገጥ አለበት', 'When on, the photo must also have been verified by someone other than the person who uploaded it.', 'ሲበራ፣ ፎቶው ከሰቀለው ሰው ውጭ በሌላ ሰው መረጋገጥም አለበት።', false, ['required', 'boolean']),
+                'require_signature' => self::field('boolean', false, 'Signature Required for a Card', 'ለካርድ ፊርማ ያስፈልጋል', 'When on, the card template uses the signature, so a verified signature must be on record.', 'ሲበራ፣ የካርድ ቅጹ ፊርማውን ስለሚጠቀም የተረጋገጠ ፊርማ መመዝገብ አለበት።', false, ['required', 'boolean']),
                 'validity_years' => self::field('integer', 2, 'Card Validity (Years)', 'የካርድ የአገልግሎት ዘመን (ዓመታት)', 'How long a newly approved card is valid.', 'አዲስ የጸደቀ ካርድ የሚያገለግልበት ጊዜ።', false, ['required', 'integer', 'min:1', 'max:10']),
             ],
             'numbering' => [
@@ -91,9 +95,17 @@ final class CoreSettingsRegistry
                 'card_number_format' => self::field('string', 'CARD-{year}-{seq:6}', 'Card Number Format', 'የካርድ ቁጥር ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
             ],
             'workforce' => [
-                'verification_requires_photo' => self::field('boolean', false, 'Verification Requires a Photo', 'ማረጋገጫ ፎቶ ይፈልጋል', 'When on, an employee is verified only with the "photo verified" check ticked. Leave off until photos are managed in the Core.', 'ሲበራ፣ ሠራተኛ የሚረጋገጠው "ፎቶ ተረጋግጧል" ሲመረጥ ብቻ ነው። ፎቶዎች በCore እስኪተዳደሩ ድረስ ያጥፉት።', false, ['required', 'boolean']),
-                'verification_requires_documents' => self::field('boolean', false, 'Verification Requires Documents', 'ማረጋገጫ ሰነዶችን ይፈልጋል', 'When on, an employee is verified only with the "documents verified" check ticked. Leave off until documents are managed in the Core.', 'ሲበራ፣ ሠራተኛ የሚረጋገጠው "ሰነዶች ተረጋግጠዋል" ሲመረጥ ብቻ ነው። ሰነዶች በCore እስኪተዳደሩ ድረስ ያጥፉት።', false, ['required', 'boolean']),
+                'verification_requires_photo' => self::field('boolean', false, 'Approval Requires a Verified Photo', 'ማጽደቅ የተረጋገጠ ፎቶ ይፈልጋል', 'When on, an employee is verified and approved only with a current photo that has been verified.', 'ሲበራ፣ ሠራተኛ የሚረጋገጠውና የሚጸድቀው የተረጋገጠ የአሁን ፎቶ ሲኖረው ብቻ ነው።', false, ['required', 'boolean']),
+                'verification_requires_signature' => self::field('boolean', false, 'Approval Requires a Verified Signature', 'ማጽደቅ የተረጋገጠ ፊርማ ይፈልጋል', 'When on, an employee is verified and approved only with a current signature that has been verified.', 'ሲበራ፣ ሠራተኛ የሚረጋገጠውና የሚጸድቀው የተረጋገጠ የአሁን ፊርማ ሲኖረው ብቻ ነው።', false, ['required', 'boolean']),
+                'required_document_types' => self::field('multiselect', [], 'Documents Required for Approval and Cards', 'ለማጽደቅና ለካርድ የሚያስፈልጉ ሰነዶች', 'Each chosen document must be on record, verified and not expired before an employee is approved or a card is requested.', 'እያንዳንዱ የተመረጠ ሰነድ ሠራተኛ ከመጽደቁ ወይም ካርድ ከመጠየቁ በፊት መመዝገብ፣ መረጋገጥና ጊዜው ያላለፈ መሆን አለበት።', false, ['present', 'array'], EmployeeDocument::DOCUMENT_TYPES),
                 'default_seat_capacity' => self::field('integer', 1, 'Seats Without an Establishment', 'ያለ ጸደቀ መደብ የመቀመጫ ብዛት', 'How many people may hold a position that has no approved establishment in force.', 'በሥራ ላይ ያለ የጸደቀ የመደብ ብዛት የሌለውን የሥራ መደብ ስንት ሰው ሊይዘው እንደሚችል።', false, ['required', 'integer', 'min:1', 'max:50']),
+            ],
+            'files' => [
+                'document_max_kb' => self::field('integer', 10240, 'Largest Document (KB)', 'ትልቁ የሰነድ መጠን (ኪባ)', 'PDF, JPEG or PNG documents up to this size are accepted.', 'እስከዚህ መጠን ያሉ PDF፣ JPEG ወይም PNG ሰነዶች ይቀበላሉ።', false, ['required', 'integer', 'min:100', 'max:51200']),
+                'photo_max_kb' => self::field('integer', 5120, 'Largest Photo (KB)', 'ትልቁ የፎቶ መጠን (ኪባ)', 'JPEG or PNG photos up to this size are accepted.', 'እስከዚህ መጠን ያሉ JPEG ወይም PNG ፎቶዎች ይቀበላሉ።', false, ['required', 'integer', 'min:100', 'max:20480']),
+                'photo_min_pixels' => self::field('integer', 300, 'Smallest Photo Side (Pixels)', 'የፎቶ ትንሹ ጎን (ፒክሰል)', 'A photo narrower or shorter than this is refused as too small to print.', 'ከዚህ ያነሰ ስፋት ወይም ቁመት ያለው ፎቶ ለማተም በጣም ትንሽ ስለሆነ ውድቅ ይሆናል።', false, ['required', 'integer', 'min:100', 'max:2000']),
+                'photo_portrait_only' => self::field('boolean', true, 'Portrait Photos Only', 'በቁመት የተነሱ ፎቶዎች ብቻ', 'When on, a photo must be at least as tall as it is wide, as on an ID card.', 'ሲበራ፣ ፎቶው እንደ መታወቂያ ካርድ ቁመቱ ቢያንስ ከስፋቱ እኩል መሆን አለበት።', false, ['required', 'boolean']),
+                'signature_max_kb' => self::field('integer', 2048, 'Largest Signature Image (KB)', 'ትልቁ የፊርማ ምስል መጠን (ኪባ)', 'PNG or JPEG signature images up to this size are accepted.', 'እስከዚህ መጠን ያሉ PNG ወይም JPEG የፊርማ ምስሎች ይቀበላሉ።', false, ['required', 'integer', 'min:50', 'max:5120']),
             ],
         ];
     }

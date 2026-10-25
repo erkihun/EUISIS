@@ -4,6 +4,7 @@ use App\Actions\ManageHierarchyVersion;
 use App\Http\Controllers\Web\CardController;
 use App\Http\Controllers\Web\CoreController;
 use App\Http\Controllers\Web\EmployeeController;
+use App\Http\Controllers\Web\EmployeeEvidenceController;
 use App\Http\Controllers\Web\HierarchyController;
 use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCheckerController;
@@ -188,6 +189,13 @@ Route::middleware('auth')->group(function (): void {
         Route::patch('/employees/{employee}', [EmployeeController::class, 'update'])->middleware('can:employees.update')->name('employees.update');
         // The verified-employee stage (ADR 0008); EmployeeVerification checks the permission of each step.
         Route::post('/employees/{employee}/workflow/{step}', [EmployeeController::class, 'workflowStep'])->whereIn('step', ['submit', 'verify', 'return', 'approve'])->name('employees.workflow');
+        // Documents, photo and signature (ADR 0009); EmployeeDocumentPolicy decides each step.
+        Route::post('/employees/{employee}/documents', [EmployeeEvidenceController::class, 'store'])->middleware('throttle:30,1')->name('employees.documents.store');
+        Route::post('/employees/{employee}/documents/{document}/replace', [EmployeeEvidenceController::class, 'replace'])->middleware('throttle:30,1')->name('employees.documents.replace');
+        Route::post('/employees/{employee}/documents/{document}/{decision}', [EmployeeEvidenceController::class, 'decide'])->whereIn('decision', ['verify', 'reject'])->name('employees.documents.decide');
+        Route::post('/employees/{employee}/documents/{document}/archive', [EmployeeEvidenceController::class, 'archive'])->name('employees.documents.archive');
+        Route::delete('/employees/{employee}/documents/{document}', [EmployeeEvidenceController::class, 'discard'])->name('employees.documents.discard');
+        Route::get('/employees/{employee}/documents/{document}/file', [EmployeeEvidenceController::class, 'file'])->middleware('throttle:120,1')->name('employees.documents.file');
     });
 
     // ID cards and card requests

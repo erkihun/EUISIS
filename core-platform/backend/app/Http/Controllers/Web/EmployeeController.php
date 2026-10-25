@@ -18,6 +18,7 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\CoreSettings;
+use App\Services\EvidenceView;
 use App\Services\OrganizationScope;
 use App\Services\SeatCapacity;
 use Illuminate\Database\Eloquent\Builder;
@@ -193,11 +194,12 @@ class EmployeeController extends Controller
         $user = $request->user();
 
         return Inertia::render('Employees/Show', [
-            'employee' => $this->detail($employee),
+            'employee' => ['photo_url' => app(EvidenceView::class)->photoUrl($employee, $user)] + $this->detail($employee),
             'organizations' => $this->scope->apply(Organization::query()->orderBy('name_en'), $user, 'id')->get(['id', 'name_en']),
             'qrCodes' => ['canViewIdQr' => false, 'canManageFeedbackQr' => false, 'idCard' => null, 'feedback' => null],
             'recentActivity' => $user->can('audit.view') ? $this->activity($employee) : null,
             'workflow' => $this->workflow($employee, $user, $verification),
+            'evidence' => app(EvidenceView::class)->for($employee, $user),
         ]);
     }
 

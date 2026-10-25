@@ -38,6 +38,26 @@ return [
             'report' => false,
         ],
 
+        // Employee documents, photos and signatures (ADR 0009): never public, read through the authorized download.
+        'evidence' => [
+            'driver' => 'local',
+            'root' => env('CORE_EVIDENCE_ROOT', storage_path('app/private/employee-evidence')),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
+        // Business import source files (ADR 0009): private, kept for the batch's audit trail.
+        'imports' => [
+            'driver' => 'local',
+            'root' => env('CORE_IMPORTS_ROOT', storage_path('app/private/imports')),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

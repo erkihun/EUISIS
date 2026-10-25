@@ -13,6 +13,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\AuditWriter;
+use App\Services\CardEligibility;
 use App\Services\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -159,24 +160,17 @@ class CardController extends Controller
         ]);
     }
 
-    public function createRequest(Request $request): Response
+    /** The picker lists only employees CardEligibility allows, in one bounded query (ADR 0009). */
+    public function createRequest(Request $request, CardEligibility $eligibility): Response
     {
         $term = mb_substr(trim((string) $request->query('q', '')), 0, 60);
         $limit = 1000;
-        $employees = $this->inScope(Employee::query(), $request->user(), 'id')->with('currentAssignment.organization')->where('status', Employee::ACTIVE)
-            ->when($term !== '', fn ($q) => $q->where(fn ($inner) => $inner->where('employee_number', 'like', $term.'%')->orWhere('full_name', 'like', "%{$term}%")->orWhere('name_en', 'like', "%{$term}%")))
-            ->orderBy('full_name')->orderBy('id')->limit($limit + 1)->get(['id', 'employee_number', 'full_name', 'status', 'current_assignment_id']);
-        $truncated = $employees->count() > $limit;
-        $employees = $employees->take($limit)->values();
-        $cards = IdCard::query()->whereIn('employee_id', $employees->modelKeys())->where('is_current', true)->latest('created_at')->get()->groupBy('employee_id');
-        $pending = CardRequest::query()->whereIn('employee_id', $employees->modelKeys())->whereIn('status', CardRequest::PENDING)->pluck('employee_id')->flip();
-        $employees->each(fn (Employee $employee) => $employee->setAttribute('eligible_request_types', $pending->has($employee->id) ? []
-            : $this->eligibleTypes($cards->get($employee->id)?->first())));
+        $employees = $eligibility->eligibleEmployees($request->user(), $term, $limit + 1);
 
         return Inertia::render('CardRequests/Create', [
-            'employees' => $employees->map(fn (Employee $employee): array => $employee->only(['id', 'employee_number', 'full_name', 'status', 'current_assignment_id', 'eligible_request_types'])
-                + ['current_assignment' => $employee->currentAssignment === null ? null : ['organization' => $employee->currentAssignment->organization?->only(['id', 'name_en', 'name_am'])]])->values(),
-            'employeesTruncated' => $truncated,
+            'employees' => $employees->take($limit)->map(fn (array $employee): array => array_diff_key($employee, ['organization' => true])
+                + ['current_assignment' => $employee['organization'] === null ? null : ['organization' => $employee['organization']]])->values(),
+            'employeesTruncated' => $employees->count() > $limit,
             'filters' => ['q' => $term],
             'requestTypes' => CardRequest::TYPES,
         ]);
@@ -200,7 +194,7 @@ class CardController extends Controller
                 try {
                     if (in_array($type, ['lost', 'damaged', 'replacement'], true)) {
                         $card = IdCard::query()->where('employee_id', $employee->id)->where('is_current', true)->latest('created_at')->first();
-                        if ($card === null || ! in_array($type, $this->eligibleTypes($card), true)) {
+                        if ($card === null || ! in_array($type, CardEligibility::typesFor($card->status), true)) {
                             throw ValidationException::withMessages([$field => __('id-cards.request_type_ineligible')]);
                         }
                         $requests->replace($card, $data['reason'] ?? null, $request->user());
@@ -262,28 +256,6 @@ class CardController extends Controller
         $requests->close($cardRequest, 'cancel', $request->string('cancellation_reason')->toString(), $request->user());
 
         return back()->with('success', __('id-cards.request_cancelled'));
-    }
-
-    /**
-     * Request types an employee can get, from their current card (EUISIS CardRequestEligibility).
-     *
-     * @return list<string>
-     */
-    private function eligibleTypes(?IdCard $card): array
-    {
-        if ($card === null || ! in_array($card->status, IdCard::LIVE, true) && ! in_array($card->status, IdCard::REPLACEABLE, true)) {
-            return ['new'];
-        }
-        if (in_array($card->status, [IdCard::ACTIVE, IdCard::ISSUED], true)) {
-            return ['renewal', 'correction'];
-        }
-
-        return match ($card->status) {
-            IdCard::LOST => ['lost'],
-            IdCard::DAMAGED => ['damaged'],
-            IdCard::REVOKED, IdCard::EXPIRED, IdCard::SUSPENDED => ['replacement'],
-            default => [],
-        };
     }
 
     /** Rows whose employee is placed inside the reader's organizations (all rows for a citywide reader). */

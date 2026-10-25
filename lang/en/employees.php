@@ -97,4 +97,12 @@ return [
             'approve' => 'The employee was approved and is now active.',
         ],
     ],
+    'evidence_done' => [
+        'uploaded' => 'The file was uploaded and waits for verification.',
+        'replaced' => 'A new version was uploaded; the earlier one is kept in the history.',
+        'verify' => 'The file was verified.',
+        'reject' => 'The file was rejected.',
+        'archived' => 'The file was archived; it stays in the history.',
+        'discarded' => 'The unused upload was removed.',
+    ],
 ];

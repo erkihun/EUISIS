@@ -62,6 +62,12 @@ class Employee extends Model
         return $this->hasMany(IdCard::class);
     }
 
+    /** Every stored version of the employee's documents, photo and signature (ADR 0009). */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(EmployeeDocument::class);
+    }
+
     /** The card the employee carries now: current and active. */
     public function activeIdCard(): HasOne
     {

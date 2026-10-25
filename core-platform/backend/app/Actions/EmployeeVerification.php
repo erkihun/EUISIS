@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\CoreSettings;
 use App\Services\DuplicateEmployees;
+use App\Services\EmployeeEvidence;
 use App\Services\OrganizationScope;
 use App\Services\SeatCapacity;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,7 @@ final readonly class EmployeeVerification
         private SeatCapacity $seats,
         private CoreSettings $settings,
         private DuplicateEmployees $duplicates,
+        private EmployeeEvidence $evidence,
     ) {}
 
     /**
@@ -57,8 +59,6 @@ final readonly class EmployeeVerification
         return array_fill_keys(self::BASE_CHECKS, true) + [
             'date_of_birth_checked' => $employee->date_of_birth !== null,
             'national_id_checked' => $employee->national_id_hash !== null,
-            'photo_verified' => (bool) $this->settings->get('workforce.verification_requires_photo'),
-            'documents_verified' => (bool) $this->settings->get('workforce.verification_requires_documents'),
         ];
     }
 
@@ -91,6 +91,7 @@ final readonly class EmployeeVerification
             if ($missing !== []) {
                 throw ValidationException::withMessages(['checks' => 'Confirm every required check: '.implode(', ', $missing).'.']);
             }
+            $this->assertEvidence($employee);
             $open = $this->unreviewedMatches($employee, $actor);
             if ($open !== []) {
                 throw ValidationException::withMessages(['employee' => 'Possible duplicates must be reviewed first: '.implode(', ', $open).'.']);
@@ -140,6 +141,7 @@ final readonly class EmployeeVerification
             if ($position === null || ! $position->is_active || $position->organization?->status !== Organization::ACTIVE) {
                 throw ValidationException::withMessages(['employee' => 'The position must still be active and in an organization in service.']);
             }
+            $this->assertEvidence($employee);
             if (! $this->seats->hasFreeSeat((string) $position->id)) {
                 throw ValidationException::withMessages(['employee' => 'This position is already occupied: it has no free seat.']);
             }
@@ -173,6 +175,18 @@ final readonly class EmployeeVerification
 
             return $employee->fresh(['currentAssignment']);
         });
+    }
+
+    /**
+     * The identity evidence approval needs (EmployeeEvidence, Core settings): each
+     * missing item is its own error, keyed by its code (evidence.PHOTO_REQUIRED, …).
+     */
+    private function assertEvidence(Employee $employee): void
+    {
+        $failures = $this->evidence->failures($employee, $this->evidence->forApproval());
+        if ($failures !== []) {
+            throw ValidationException::withMessages(collect($failures)->mapWithKeys(fn (string $message, string $code): array => ['evidence.'.$code => $message])->all());
+        }
     }
 
     private function expect(Employee $employee, string $status, string $message): void

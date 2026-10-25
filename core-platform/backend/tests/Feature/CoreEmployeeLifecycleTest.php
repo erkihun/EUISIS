@@ -83,6 +83,7 @@ class CoreEmployeeLifecycleTest extends TestCase
         }
 
         // Then the card path: request, a second person approves, print, issue, activate, verify.
+        $this->giveVerifiedPhoto($id);
         $this->as($clerk);
         $requestId = $this->postJson("/api/v1/employees/{$id}/card-requests", ['request_type' => 'new'])->assertCreated()->json('data.id');
         $this->as($cardApprover);

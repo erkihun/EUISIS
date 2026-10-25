@@ -7,6 +7,7 @@ namespace Tests\Concerns;
 use App\Actions\EmployeeVerification;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\EmployeeDocument;
 use App\Models\HierarchyVersion;
 use App\Models\IdCard;
 use App\Models\Organization;
@@ -106,8 +107,31 @@ trait BuildsGoldenPath
             'effective_from' => $from,
         ]);
         $employee->forceFill(['current_assignment_id' => $assignment->id])->save();
+        // The EUISIS source database of the import tests has no evidence table.
+        if ($employee->getConnection()->getSchemaBuilder()->hasTable('employee_documents')) {
+            $this->giveVerifiedPhoto($employee->id);
+        }
 
         return $employee->fresh();
+    }
+
+    /**
+     * A verified current photo on record (ADR 0009), as a card needs by default.
+     * Only the evidence row: eligibility reads the record, not the file.
+     */
+    protected function giveVerifiedPhoto(string $employeeId): EmployeeDocument
+    {
+        $id = (string) Str::uuid7();
+        $photo = new EmployeeDocument;
+        $photo->forceFill([
+            'id' => $id, 'employee_id' => $employeeId, 'kind' => EmployeeDocument::PHOTO, 'document_type' => EmployeeDocument::PHOTO,
+            'lineage_id' => $id, 'version' => 1, 'is_current' => true, 'status' => EmployeeDocument::VERIFIED,
+            'storage_disk' => 'evidence', 'storage_path' => "{$employeeId}/photo/{$id}.jpg", 'original_filename' => 'photo.jpg',
+            'mime_type' => 'image/jpeg', 'file_size' => 1, 'checksum' => hash('sha256', $id), 'width' => 400, 'height' => 500,
+            'uploaded_by' => 1, 'verified_by' => 2, 'verified_at' => now(),
+        ])->save();
+
+        return $photo;
     }
 
     /**

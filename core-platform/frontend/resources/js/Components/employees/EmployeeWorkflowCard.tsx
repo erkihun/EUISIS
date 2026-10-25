@@ -127,6 +127,10 @@ export default function EmployeeWorkflowCard({ workflow }: { workflow: EmployeeW
                     {(errors.employee || errors.reason) && (
                         <p className="text-sm text-red-600 dark:text-red-400" role="alert">{errors.employee ?? errors.reason}</p>
                     )}
+                    {/* Missing identity evidence comes back one error per code (evidence.PHOTO_REQUIRED, …). */}
+                    {Object.entries(errors).filter(([key]) => key.startsWith('evidence.')).map(([key, message]) => (
+                        <p key={key} className="text-sm text-red-600 dark:text-red-400" role="alert">{message}</p>
+                    ))}
                     <div className="flex flex-wrap gap-2">
                         {workflow.can.submit && (
                             <button type="button" className={buttonClassName({ variant: 'primary', size: 'sm' })} disabled={form.processing} onClick={() => post('submit')}>

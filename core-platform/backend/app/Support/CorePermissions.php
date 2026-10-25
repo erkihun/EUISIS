@@ -21,6 +21,8 @@ final class CorePermissions
         'positions.viewAny', 'position-establishments.viewAny',
         'employees.view',
         'cards.view', 'id-cards.viewAny',
+        // Evidence metadata and the photo (ADR 0009); documents and signatures themselves need more.
+        'employee_documents.view', 'employee_photos.view',
     ];
 
     private const OFFICER = [
@@ -33,6 +35,9 @@ final class CorePermissions
         'employees.create', 'employees.update', 'employees.manage',
         // The verified-employee stage (ADR 0008): officers submit, verify and return; approval is an administrator's.
         'employees.submit', 'employees.verify', 'employees.return',
+        'employee_documents.upload', 'employee_documents.verify', 'employee_documents.download', 'employee_documents.archive',
+        'employee_photos.upload', 'employee_photos.verify',
+        'employee_signatures.view', 'employee_signatures.upload', 'employee_signatures.verify',
         'card-requests.create', 'card-requests.approve',
         'id-cards.issue', 'id-cards.activate', 'id-cards.revoke', 'cards.manage',
     ];

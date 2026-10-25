@@ -10,6 +10,7 @@ use App\Settings\CoreSettingsRegistry;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -76,6 +77,9 @@ final class CoreSettings
         $rules = [];
         foreach (array_keys($input) as $key) {
             $rules[$key] = $fields[$key]['rules'];
+            if ($fields[$key]['type'] === 'multiselect') {
+                $rules[$key.'.*'] = ['string', 'distinct', Rule::in($fields[$key]['options'] ?? [])];
+            }
         }
         $valid = Validator::make($input, $rules)->validate();
 
@@ -121,6 +125,7 @@ final class CoreSettings
             'boolean' => filter_var($value, FILTER_VALIDATE_BOOL),
             'integer' => (int) $value,
             'color' => strtoupper((string) $value),
+            'multiselect' => array_values(array_filter((array) (is_string($value) ? (json_decode($value, true) ?? []) : $value), 'is_string')),
             default => (string) $value,
         };
     }

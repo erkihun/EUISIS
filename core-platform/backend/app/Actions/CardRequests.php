@@ -7,9 +7,9 @@ namespace App\Actions;
 use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\IdCard;
-use App\Models\Organization;
 use App\Models\User;
 use App\Services\AuditWriter;
+use App\Services\CardEligibility;
 use App\Services\CodeGenerator;
 use App\Services\CoreSettings;
 use App\Services\OrganizationScope;
@@ -37,6 +37,7 @@ final readonly class CardRequests
         private OrganizationScope $scope,
         private CodeGenerator $codes,
         private CoreSettings $settings,
+        private CardEligibility $eligibility,
     ) {}
 
     public function submit(Employee $employee, string $type, ?string $reason, User $actor): CardRequest
@@ -61,37 +62,14 @@ final readonly class CardRequests
 
     /**
      * Why the employee cannot have a card request of this type now, as reason
-     * code => message; empty when eligible. The same rules hold at approval.
+     * code => message; empty when eligible. The rules are CardEligibility's, the
+     * same ones the request picker filters with.
      *
      * @return array<string, string>
      */
-    public function eligibility(Employee $employee, string $type = 'new', bool $forApproval = false): array
+    public function eligibility(Employee $employee, ?string $type = 'new', bool $forApproval = false): array
     {
-        $employee->loadMissing('currentAssignment.organization', 'currentAssignment.position');
-        $assignment = $employee->currentAssignment;
-        $current = IdCard::query()->where('employee_id', $employee->id)->where('is_current', true)->latest('created_at')->first();
-        $live = IdCard::query()->where('employee_id', $employee->id)->whereIn('status', IdCard::LIVE)->exists();
-
-        return array_filter([
-            'EMPLOYEE_NOT_APPROVED' => ! $employee->isApproved() ? 'The employee has not been approved yet: a card follows verification and approval.' : null,
-            'EMPLOYEE_INACTIVE' => $employee->isApproved() && $employee->status !== Employee::ACTIVE ? 'Cards are requested only for active employees.' : null,
-            'NO_EFFECTIVE_ASSIGNMENT' => $assignment === null || (string) $assignment->employee_id !== (string) $employee->id || ! $assignment->isEffective()
-                ? 'The employee has no placement in force.' : null,
-            'ORGANIZATION_INACTIVE' => $assignment !== null && $assignment->organization?->status !== Organization::ACTIVE
-                ? 'The employee\'s organization is not in service.' : null,
-            'POSITION_INACTIVE' => $assignment !== null && ($assignment->position === null || ! $assignment->position->is_active)
-                ? 'The employee\'s position is retired.' : null,
-            'IDENTITY_INCOMPLETE' => trim((string) $employee->first_name) === '' || trim((string) $employee->last_name) === ''
-                ? 'The employee\'s first and last names are required on a card.' : null,
-            'PHOTO_MISSING' => $this->settings->get('id_cards.require_photo') && $employee->photo_path === null
-                ? 'The employee has no photo for the card.' : null,
-            'PENDING_REQUEST' => ! $forApproval && CardRequest::query()->where('employee_id', $employee->id)->whereIn('status', CardRequest::PENDING)->exists()
-                ? 'This employee already has a card request waiting for a decision.' : null,
-            'LIVE_CARD_EXISTS' => $type === 'new' && $live
-                ? 'The employee already has a live card; request a correction, or replace it when lost or damaged.' : null,
-            'NO_CURRENT_CARD' => in_array($type, ['renewal', 'correction'], true) && $current === null
-                ? 'Renewal and correction require an existing current card.' : null,
-        ]);
+        return $this->eligibility->decide($employee, $type, $forApproval);
     }
 
     public function replace(IdCard $old, ?string $reason, User $actor): CardRequest
@@ -102,7 +80,15 @@ final readonly class CardRequests
             if (! in_array($old->status, IdCard::REPLACEABLE, true)) {
                 throw ValidationException::withMessages(['card' => 'Only a lost, damaged, revoked, expired or suspended card can be replaced.']);
             }
-            $this->assertNoPendingRequest($employee);
+            $type = match ($old->status) {
+                IdCard::LOST => 'lost',
+                IdCard::DAMAGED => 'damaged',
+                default => 'replacement',
+            };
+            $problems = $this->eligibility($employee, $type);
+            if ($problems !== []) {
+                throw ValidationException::withMessages(['employee' => array_values($problems)]);
+            }
 
             $before = $old->status;
             $old->update(['status' => IdCard::REPLACED, 'is_current' => false]);
@@ -138,7 +124,7 @@ final readonly class CardRequests
             if ((int) $request->requested_by === (int) $actor->getKey()) {
                 throw ValidationException::withMessages(['request' => 'A card request must be approved by someone other than the person who submitted it.']);
             }
-            $problems = array_diff_key($this->eligibility($employee, 'replacement', forApproval: true), ['LIVE_CARD_EXISTS' => true, 'NO_CURRENT_CARD' => true]);
+            $problems = $this->eligibility($employee, null, forApproval: true);
             if ($problems !== []) {
                 throw ValidationException::withMessages(['request' => array_values($problems)]);
             }
