@@ -42,7 +42,9 @@ function pick(exclude) {
 function forward(req, res, body, attempt, exclude) {
     const b = pick(exclude);
     if (!b) { stats.noBackend++; res.writeHead(503, { 'content-type': 'text/plain' }); return res.end('no healthy backend'); }
-    const headers = { ...req.headers, 'x-forwarded-for': req.socket.remoteAddress, 'x-forwarded-proto': 'https',
+    // Appends the caller like nginx's $proxy_add_x_forwarded_for, so a load client can present one address per virtual user.
+    const forwarded = req.headers['x-forwarded-for'] ? `${req.headers['x-forwarded-for']}, ${req.socket.remoteAddress}` : req.socket.remoteAddress;
+    const headers = { ...req.headers, 'x-forwarded-for': forwarded, 'x-forwarded-proto': 'https',
         'x-forwarded-host': (req.headers.host || '').split(':')[0], 'x-forwarded-port': String(port) };
     const up = http.request({ host: b.url.hostname, port: b.url.port, method: req.method, path: req.url, headers, agent, timeout: 120000 }, (ur) => {
         b.served++;

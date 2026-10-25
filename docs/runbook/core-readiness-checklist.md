@@ -1,16 +1,17 @@
 # Core platform — production readiness checklist
 
-Status as of 2026-10-25, after the P4/P5 gate (ADR 0011) and the production
-certification pass that followed it. Every item is
-**Pass**, **Fail**, **Not Tested** or **Not Applicable**, with its evidence.
-Nothing is marked Pass without a test, a command result or a measurement. An
-item that needs infrastructure, a person or a decision outside the code stays
-Not Tested until that happens; update this file with the evidence when it does.
+Status as of **2026-10-26**, after the go-live blocker closure (ADR 0012).
+Every item is **Pass**, **Fail**, **Not Tested** or **Not Applicable**, with
+its evidence. Nothing is marked Pass without a test, a command result or a
+measurement. **Pass (rehearsed)** means it passed on the workstation staging
+rehearsal, not on production infrastructure.
 
-Evidence abbreviations: **S** = backend suite on SQLite (212 tests),
-**P** = the same suite on PostgreSQL 18.6 (212 tests), **UAT** =
-`tests/Feature/CoreGoldenPathUatTest.php`, **Perf** = the scale review in ADR
-0011 §9.
+Evidence abbreviations:
+
+- **S / P / M**: the backend suite on SQLite, PostgreSQL 18.6 and MariaDB 10.4.
+- **UAT**: `CoreGoldenPathUatTest`.
+- **E§n**: [core-go-live-evidence.md](../go-live/core/core-go-live-evidence.md), section n.
+- **R-nn**: the [risk register](../go-live/core/core-owner-matrix-and-risks.md).
 
 ## Security
 
@@ -18,131 +19,92 @@ Evidence abbreviations: **S** = backend suite on SQLite (212 tests),
 |---|---|---|
 | Organization scope fails closed; cross-organization UUIDs answer 404 | Pass | S, P (`CoreScopeFailClosedTest`, UAT negative) |
 | Granular permissions and policies (permission + scope + state) | Pass | S, P (`CorePermissionsAndPoliciesTest`) |
-| Web Integration Center writes need `integrations.manage` | Pass | S, P (`CoreSecurityHardeningTest`) — fixed in P3 |
-| Two-step sign-in enforced for privileged accounts | Pass in code | S, UAT (enforced → redirected). **Production must set `CORE_MFA_ENFORCE=true`** (`core:config-audit` fails otherwise) |
-| Sessions end on role, scope, deactivation, password reset, MFA reset | Pass | S (`CoreOperationsTest`, existing account tests) |
-| Sign-in throttled, failures and lockouts audited without the e-mail | Pass | S (`CoreOperationsTest`) |
-| API per-client rate limits and scopes | Pass | S, P (`CoreIntegrationTest`) |
-| Break-glass: second-person approval, time limit, audited | Pass | S, P (`CoreSecurityHardeningTest`) |
-| Card credentials: hashed tokens, key versions, revocation, QR without personal data | Pass | S, P (`CoreCardProductionTest`) |
-| `db:seed` creates no account and no default password; `core:seed-uat` refuses production | Pass | `CoreDeploymentSafetyTest` — fixed in certification |
-| Security headers (nosniff, frame DENY, no-referrer, HSTS over HTTPS) | Pass | `CoreDeploymentSafetyTest` |
-| Content security policy enforced | Not Tested | sent as `Content-Security-Policy-Report-Only`; enforce after a browser pass shows no violation |
-| Dependency advisories | Pass | `composer audit`: none; `npm audit --omit=dev`: 0 vulnerabilities (2026-10-25) |
-| Independent penetration test | Not Tested | needs a security tester |
-| Production configuration (`core:config-audit`) on the live server | Not Tested | run on the server; the local `.env` is a development one |
+| Two-step sign-in enforced; session id renewed at sign-in and after MFA | Pass | S (`CorePrePenTest`, `CoreOperationsTest`); E§6 restore drill |
+| CSRF, XSS escaping, SQL in search, mass assignment, role escalation, upload content checks, X-Forwarded-For throttle spoofing | Pass (internal) | `CorePrePenTest`, 8 checks; **not** a penetration test |
+| Trusted proxies honoured (HTTPS and client address behind TLS) | Pass (rehearsed) | `CoreGoLiveOperationsTest`; E§7: redirects stay https after 2e8e8042 |
+| Separate, independent keys (credentials, seal, national ID, monitor) | Pass (rehearsed) | `core:config-audit` KEY_INDEPENDENCE; E§3 |
+| Credential key rotation (add, rekey, retire) | Pass (rehearsed) | E§3: 4/4 credentials valid at each step |
+| Audit seal key rotation | Fail (by design today) | not versioned (R-07); rotate only on compromise |
+| Content security policy | See E§7a | nonce for the one inline script (2c8518fe); enforcement is a switch (`CORE_CSP_ENFORCE`) |
+| Dependency advisories | Pass | `composer audit`: none; `npm audit --omit=dev`: 0 (2026-10-25) |
+| Independent penetration test | Not Tested | pack ready: `core-pentest-pack.md` (R-05) |
+| Production configuration (`core:config-audit`) on a production-like server | Pass (rehearsed) | E§2: 26/26 on staging with APP_ENV=production. Not yet on Linux (R-01) |
 
-## Data integrity
+## Data integrity and migration
 
 | Item | Result | Evidence |
 |---|---|---|
-| Database invariants (one current placement, one live card, one active template, append-only audit) | Pass | S, P (constraint tests across gates) |
-| Data-quality checks, severity and issue lifecycle | Pass | S, P (`CoreOversightTest`) |
-| EUISIS → Core import keeps identifiers and backfills masters | Pass | S (`CoreImportTest`) |
-| Import of production EUISIS data, compared with `core:snapshot` | Not Tested | needs the production data and an operator |
+| Database invariants | Pass | S, P, M |
+| Every migration applies on SQLite, PostgreSQL and MariaDB; 9 roll back and re-apply on MariaDB | Pass | S, P, M; ADR 0012 §9 |
+| Rollback and re-apply of the P3–P5 migrations on 300,000 employees | Pass | readiness review 2026-10-25 (`emscoredb_perf`) |
+| Go-live sequence (empty schema, then import), reconciled | Pass | E§8: 0 rejected, 0 duplicates, 0 orphans on 28 and 220,000 employees |
+| Imported cards keep verifying (legacy credentials) | Pass | `CoreImportTest`; E§8 (220,000 credentials); staging remediation E§8 |
+| Import of a sanitized production copy | Not Tested | R-09 |
 
-## Migrations
-
-| Item | Result | Evidence |
-|---|---|---|
-| Every migration applies to an empty database on SQLite and PostgreSQL | Pass | S, P (`RefreshDatabase` on every test) |
-| The P3–P5 migrations roll back and re-apply on 300,000 employees without losing a row | Pass | `emscoredb_perf` (synthetic): `migrate:rollback --step=9` in 1 s, `migrate` in 160 s (credentials backfill 2 min 6 s for 245,000 cards, provenance 29 s); employees, placements, positions, audit rows and cards counted equal before and after |
-| Placement backfill links each employee's placements in date order | Pass | S, P (`CoreAssignmentProvenanceTest`) |
-| Rehearsal on a copy of the production database | Not Tested | needs the production data and an operator |
-
-## Golden Path
+## Golden Path and UAT
 
 | Item | Result | Evidence |
 |---|---|---|
-| Positive path, organization → verified credential, every stage authorized, scoped and audited | Pass | UAT positive (S, P) |
-| Negative path (19 refusals) | Pass | UAT negative (S, P) |
-| UAT by business users on the synthetic dataset (`core:seed-uat`) | Not Tested | needs the users; the dataset command is ready and tested |
-| Business sign-off | Not Tested | a person's decision; not recorded here |
+| Automated UAT, positive and 19 refusals | Pass | UAT (S, P, M) |
+| The Golden Path over HTTPS on a deployed release | Pass (rehearsed) | E§7: 5 runs, 23.7–36.7 s, 36 checks each |
+| UAT with business users | Not Tested | `core-uat-package.md` (R-06) |
+| Business sign-off | Not Tested | `core-uat-signoff.csv` is blank |
 
-## APIs
-
-| Item | Result | Evidence |
-|---|---|---|
-| OpenAPI matches the routes, events and card codes | Pass | `CoreOpenApiTest` |
-| API dates canonical ISO whatever the language | Pass | `CoreOperationsTest` |
-| Partner systems integrated against the contract | Not Tested | needs the partner teams |
-
-## Audit
+## Deployment and rollback
 
 | Item | Result | Evidence |
 |---|---|---|
-| Hash-chained seals; changed or removed rows detected | Pass | S, P (`CoreSecurityHardeningTest`) |
-| Sensitive downloads, exports, settings, roles, scopes, MFA reset, credential rotation audited | Pass | S (per-feature tests) |
-| Seal heads kept off the database server (log shipping) | Not Tested | needs the log pipeline |
-| Separate `CORE_AUDIT_SEAL_KEY` in production | Not Tested | a secret to provision |
+| Artifact build, deploy, configuration gate, smoke | Pass (rehearsed) | E§7 |
+| A deployment the configuration review refuses leaves the previous release serving | Pass (rehearsed) | E§7: efcf13c1 and 982aa159 refused |
+| Application rollback (code and assets; database left additive) | Pass (rehearsed) | E§7: 17 s; Golden Path passed on N after the rollback |
+| Fix forward | Pass (rehearsed) | E§7: 49 s |
+| On Linux/Nginx/PHP-FPM | Not Tested | R-01 |
 
 ## Backups
 
 | Item | Result | Evidence |
 |---|---|---|
-| Health shows "unknown" when backups are not integrated, never healthy | Pass | `CoreOperationsTest` |
-| Database and storage backups running, with their status file | Not Tested | infrastructure |
-| Restore drill | Not Tested | infrastructure and an operator |
+| Backup run: encrypted, checksummed, copied, status file | Pass (rehearsed) | E§5 (pg_dump path; the off-host copy is on the same disk) |
+| Restore drill on a real restored instance | Pass (rehearsed) | E§6: 120 s, fingerprints identical, MFA sign-in, documents, credentials |
+| pgBackRest, WAL, PITR, off-site repository | Not Tested | R-03 |
+| RPO / RTO | Not Tested | BUSINESS DECISION REQUIRED (D-01) |
 
 ## Queues and scheduler
 
 | Item | Result | Evidence |
 |---|---|---|
-| Failed, stuck and retrying jobs visible; retry/remove audited, no payloads shown | Pass | `CoreOperationsTest` |
-| Scheduled commands record their runs | Pass | `CoreSystemHealthTest` |
-| A queue worker and the scheduler running in production | Not Tested | infrastructure (`QUEUE_CONNECTION` must not be `sync`; `core:config-audit` fails otherwise) |
-
-## Storage
-
-| Item | Result | Evidence |
-|---|---|---|
-| Evidence, imports and exports on private disks; exports expire | Pass | S (evidence, import, export tests) |
-| Production disks, permissions and capacity | Not Tested | infrastructure |
-
-## Notifications
-
-| Item | Result | Evidence |
-|---|---|---|
-| In-app notifications after commit, scoped, in both languages | Pass | `CoreOperationsTest` |
-| A failing e-mail never undoes a change | Pass | `CoreOperationsTest` |
-| E-mail delivery through a real mailer | Not Tested | needs mail configuration |
-| SMS | Not Applicable | the Core has no SMS gateway (recorded as skipped, never pretended) |
+| Scheduler running, every task overlap-protected | Pass (rehearsed) | E§11; `CoreGoLiveOperationsTest` |
+| Workers serve every queue (`notifications`, `default`) | Pass (rehearsed) | E§11: 45 waiting jobs found and processed after the fix (15c095aa) |
+| A queue nobody serves shows as a warning | Pass | `CoreGoLiveOperationsTest` |
 
 ## Monitoring
 
 | Item | Result | Evidence |
 |---|---|---|
-| System Health from real measurements; slow requests and job timings counted | Pass | `CoreSystemHealthTest`, `CoreOperationsTest` |
-| External monitoring and alerting on the logs | Not Tested | needs the monitoring stack |
-
-## Localization
-
-| Item | Result | Evidence |
-|---|---|---|
-| Amharic and English keys complete; glossary terms | Pass | `npm run i18n:audit` (strict): 0 blocking findings |
-| Ethiopian calendar for Amharic, ISO for English, in exports and e-mail | Pass | `CoreOperationsTest` |
-| Review of the Amharic wording by a native speaker | Not Tested | needs a reviewer |
-
-## Reports
-
-| Item | Result | Evidence |
-|---|---|---|
-| Scope-safe reports, sensitive columns withheld, historical structure | Pass | `CoreOversightTest` |
-| Exports queued, audited, formula-safe, requester-only | Pass | `CoreOversightTest` |
-| Server-rendered PDF with embedded Amharic fonts | Not Applicable | exports offer a printable page instead (ADR 0011 §2) |
+| Probes and monitor endpoint (19 metrics, no personal data) | Pass | `CoreGoLiveOperationsTest`; E§7 smoke |
+| External monitoring and alerting connected; alerts proven to fire | Not Tested | D-09; `core-monitoring-and-alerts.md` |
 
 ## Performance
 
 | Item | Result | Evidence |
 |---|---|---|
-| Lists, searches, verification and reports at 300,000 employees (single user) | Pass | Perf: lists 27–69 ms, search ≤ 214 ms, card check ≤ 2 ms, scan 8.5 s |
-| Load test at production concurrency on production-like hardware | Not Tested | needs the environment |
+| Single user at 300,000 employees | Pass | ADR 0011 §9 |
+| Concurrency (workstation rig) | See E§9 | measured capacity, no invented threshold |
+| Load on production-like hardware against agreed targets | Not Tested | R-02, D-02 |
 
-## UAT
+## Localization
 
 | Item | Result | Evidence |
 |---|---|---|
-| Automated UAT (positive and negative) | Pass | UAT |
-| Staging deployment rehearsal | Not Tested | needs a staging server |
-| Application rollback to the previous release on a server | Not Tested | needs a staging server; the database side is rehearsed (Migrations) |
-| UAT with business users and their sign-off | Not Tested | people |
+| Keys complete, glossary | Pass | `npm run i18n:audit`: 0 blocking |
+| Native Amharic review | Not Tested | `core-amharic-review.csv` (R-11) |
+| Times shown in Addis Ababa time | Fail (today UTC) | R-15, D-06 |
+
+## Notifications and reports
+
+| Item | Result | Evidence |
+|---|---|---|
+| In-app notifications delivered by the workers | Pass (rehearsed) | E§11: 118 delivered |
+| E-mail through a real mailer | Not Tested | D-03 |
+| SMS | Not Applicable (pending approval) | D-04 |
+| Server-generated PDF | Not Applicable (pending approval) | D-05 |
