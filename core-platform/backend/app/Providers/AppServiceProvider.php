@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Services\CoreSettings;
+use App\Services\DomainEvents;
 use App\Services\OrganizationScope;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // One scope cache per request or job.
         $this->app->scoped(OrganizationScope::class);
+        $this->app->scoped(DomainEvents::class);
     }
 
     public function boot(): void

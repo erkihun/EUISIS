@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\CoreReadController;
 use App\Http\Controllers\Api\CoreWriteController;
 use App\Http\Controllers\Api\EmployeeCardController;
 use App\Http\Controllers\Api\HierarchyVersionController;
+use App\Http\Controllers\Api\IntegrationAdminController;
+use App\Http\Controllers\Api\IntegrationController;
 use App\Http\Controllers\Api\PositionController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StructureController;
@@ -23,6 +25,25 @@ use Illuminate\Support\Facades\Route;
  */
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:20,1');
 Route::get('/settings/public', [SettingsController::class, 'public'])->middleware('throttle:120,1');
+
+/*
+ * The integration API for the systems that consume the Core: an API client's
+ * token, one scope per route, the client's organizations, its own rate limit
+ * and a log row per call (EnsureApiClient). Read-only plus the card check;
+ * external systems never write Core master data (core-platform/docs/integration-api.md).
+ */
+Route::prefix('v1/integration')->middleware('auth:sanctum')->group(function (): void {
+    Route::get('/organizations', [IntegrationController::class, 'organizations'])->middleware('core.client:organizations:read');
+    Route::get('/organizations/{organization}', [IntegrationController::class, 'organization'])->middleware('core.client:organizations:read');
+    Route::get('/positions', [IntegrationController::class, 'positions'])->middleware('core.client:positions:read');
+    Route::get('/positions/{position}', [IntegrationController::class, 'position'])->middleware('core.client:positions:read');
+    Route::get('/employees', [IntegrationController::class, 'employees'])->middleware('core.client:employees:basic-read');
+    Route::get('/employees/{employee}', [IntegrationController::class, 'employee'])->middleware('core.client:employees:basic-read');
+    Route::get('/employees/{employee}/assignment', [IntegrationController::class, 'assignment'])->middleware('core.client:assignments:read');
+    Route::get('/employees/{employee}/assignment-history', [IntegrationController::class, 'assignmentHistory'])->middleware('core.client:assignments:read');
+    Route::get('/employees/{employee}/status', [IntegrationController::class, 'employeeStatus'])->middleware('core.client:employee-status:read');
+    Route::post('/cards/verify', [IntegrationController::class, 'verifyCard'])->middleware('core.client:cards:verify');
+});
 
 Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(function (): void {
     Route::get('/auth/me', [AuthController::class, 'me']);
@@ -73,6 +94,23 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
             Route::post('/card-requests/{cardRequest}/{decision}', [EmployeeCardController::class, 'decide'])->whereIn('decision', ['approve', 'reject', 'cancel']);
             Route::post('/id-cards/{card}/replace', [EmployeeCardController::class, 'replace']);
             Route::post('/id-cards/{card}/{transition}', [CoreWriteController::class, 'changeCard'])->whereIn('transition', ChangeCardStatus::transitions());
+        });
+
+        // The Integration Center: API clients, webhooks, deliveries, events and call logs.
+        Route::middleware('core.user:city-admin')->group(function (): void {
+            Route::get('/api-clients', [IntegrationAdminController::class, 'clients']);
+            Route::post('/api-clients', [IntegrationAdminController::class, 'storeClient']);
+            Route::put('/api-clients/{apiClient}', [IntegrationAdminController::class, 'updateClient']);
+            Route::post('/api-clients/{apiClient}/rotate', [IntegrationAdminController::class, 'rotateClient']);
+            Route::post('/api-clients/{apiClient}/revoke', [IntegrationAdminController::class, 'revokeClient']);
+            Route::get('/api-logs', [IntegrationAdminController::class, 'logs']);
+            Route::get('/webhooks', [IntegrationAdminController::class, 'webhooks']);
+            Route::post('/webhooks', [IntegrationAdminController::class, 'storeWebhook']);
+            Route::put('/webhooks/{webhook}', [IntegrationAdminController::class, 'updateWebhook']);
+            Route::post('/webhooks/{webhook}/rotate-secret', [IntegrationAdminController::class, 'rotateWebhook']);
+            Route::get('/webhook-deliveries', [IntegrationAdminController::class, 'deliveries']);
+            Route::post('/webhook-deliveries/{delivery}/retry', [IntegrationAdminController::class, 'retryDelivery']);
+            Route::get('/integration-events', [IntegrationAdminController::class, 'events']);
         });
 
         // The governed hierarchy lifecycle is the city's: city-wide administrators only.

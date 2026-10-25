@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\ApiClient;
 use App\Models\HierarchyVersion;
 use App\Models\OrganizationEdge;
 use App\Models\User;
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class OrganizationScope
 {
-    /** @var array<int, list<string>> per-request cache */
+    /** @var array<string, list<string>> per-request cache */
     private array $cache = [];
 
     public function clearCache(): void
@@ -25,19 +26,25 @@ final class OrganizationScope
         $this->cache = [];
     }
 
-    /** @return list<string>|null null = the whole city */
-    public function organizationIds(User $user): ?array
+    /**
+     * A person's scope is their account's organization; an integration
+     * client's is its owner organization. None means the whole city.
+     *
+     * @return list<string>|null null = the whole city
+     */
+    public function organizationIds(User|ApiClient $principal): ?array
     {
-        if ($user->isCityWide()) {
+        $root = $principal instanceof User ? $principal->scope_organization_id : $principal->owner_organization_id;
+        if ($root === null) {
             return null;
         }
 
-        return $this->cache[$user->id] ??= $this->subtree((string) $user->scope_organization_id);
+        return $this->cache[$principal::class.':'.$principal->getKey()] ??= $this->subtree((string) $root);
     }
 
-    public function allows(User $user, ?string $organizationId): bool
+    public function allows(User|ApiClient $principal, ?string $organizationId): bool
     {
-        $ids = $this->organizationIds($user);
+        $ids = $this->organizationIds($principal);
 
         return $ids === null || ($organizationId !== null && in_array($organizationId, $ids, true));
     }
@@ -48,7 +55,7 @@ final class OrganizationScope
      * @param  Builder<T>  $query
      * @return Builder<T>
      */
-    public function apply(Builder $query, User $user, string $column = 'organization_id'): Builder
+    public function apply(Builder $query, User|ApiClient $user, string $column = 'organization_id'): Builder
     {
         $ids = $this->organizationIds($user);
 

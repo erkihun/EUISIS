@@ -1,11 +1,17 @@
 <?php
 
+use App\Http\Middleware\EnsureApiClient;
 use App\Http\Middleware\EnsureCoreUser;
 use App\Http\Middleware\RequestId;
+use App\Http\Middleware\SecurityHeaders;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -16,10 +22,22 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->prepend(RequestId::class);
-        $middleware->alias(['core.user' => EnsureCoreUser::class]);
+        $middleware->append(SecurityHeaders::class);
+        $middleware->alias(['core.user' => EnsureCoreUser::class, 'core.client' => EnsureApiClient::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // The integration API error contract: {message, code, errors}, never internals.
+        $integration = fn (Request $request): bool => $request->is('api/v1/integration/*');
+        $exceptions->render(fn (ValidationException $e, Request $request) => $integration($request)
+            ? response()->json(['message' => $e->getMessage(), 'code' => 'VALIDATION_FAILED', 'errors' => $e->errors()], 422) : null);
+        $exceptions->render(fn (NotFoundHttpException $e, Request $request) => $integration($request)
+            ? response()->json(['message' => 'Not found.', 'code' => 'NOT_FOUND', 'errors' => (object) []], 404) : null);
+        $exceptions->render(fn (AuthenticationException $e, Request $request) => $integration($request)
+            ? response()->json(['message' => 'Unauthenticated.', 'code' => 'UNAUTHENTICATED', 'errors' => (object) []], 401) : null);
+        $exceptions->render(fn (ThrottleRequestsException $e, Request $request) => $integration($request)
+            ? response()->json(['message' => 'Too many requests.', 'code' => 'RATE_LIMITED', 'errors' => (object) []], 429, $e->getHeaders()) : null);
     })->create();

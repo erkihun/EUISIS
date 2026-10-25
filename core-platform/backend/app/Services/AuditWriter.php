@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class AuditWriter
 {
+    public function __construct(private readonly DomainEvents $events) {}
+
     /**
      * @param  array<string, mixed>|null  $old
      * @param  array<string, mixed>|null  $new
@@ -37,7 +39,7 @@ final class AuditWriter
         $request = app()->runningInConsole() && ! app()->runningUnitTests() ? null : (app()->bound('request') ? request() : null);
         $client = $request?->attributes->get('api_client');
 
-        return CoreAuditLog::query()->create([
+        $log = CoreAuditLog::query()->create([
             'actor_user_id' => $actor?->getKey(),
             'action' => $action,
             'subject_type' => $subjectType,
@@ -54,9 +56,13 @@ final class AuditWriter
                 $request === null => 'console',
                 default => 'frontend',
             },
-            'api_client_id' => $client?->getKey(),
+            'api_client_id' => $client?->uuid,
             'created_at' => now(),
         ]);
+        // The integration event of the same change, in the same transaction (outbox).
+        $this->events->publish($log);
+
+        return $log;
     }
 
     /** Keys whose values never go into an audit row, whatever a caller passes. */
