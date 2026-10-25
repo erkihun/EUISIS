@@ -60,12 +60,16 @@ composer install
 cp .env.example .env          # set DB_* and, for the import, EUISIS_DB_*
 php artisan key:generate
 php artisan migrate
-php artisan core:create-user admin@example.org Core Administrator --role=core_admin
+php artisan core:create-user admin@example.org Core Administrator --role=core_admin --citywide
 php artisan serve --port=8100
 ```
 
-The last command but one prints a one-time password. Scoped accounts:
-`--organization=<organization code>`.
+The last command but one prints a one-time password. Every account needs an
+explicit scope (ADR 0008): `--citywide`, or `--organization=<organization code>`
+(with everything under it; add `--self` for that organization only). An account
+without one signs in but reaches nothing. Administrators and officers set up an
+authenticator app (TOTP) at their first sign-in; `core:reset-mfa <email>
+--reason=...` resets a lost one from the server.
 
 Screens (Node 24). The build goes into `backend/public/build`; the backend
 serves the pages at http://127.0.0.1:8100:
