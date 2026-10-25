@@ -127,7 +127,7 @@ final readonly class RegisterEmployee
                 'employee_number' => $employee->employee_number, 'position_id' => $position->id, 'assignment_id' => $assignment->id,
             ]);
             // The registrar's "a different person" is a statement, not the decision: a reviewer decides (ADR 0009).
-            $this->reviews->record($employee, $matches, 'registration', $data['duplicate_reason'] ?? null, $actor);
+            $this->reviews->record($employee, $matches, ($data['duplicate_source'] ?? null) === 'import' ? 'import' : 'registration', $data['duplicate_reason'] ?? null, $actor);
             if ($matches !== []) {
                 $this->audit->write('employee.duplicate_override', $actor, $employee, (string) $position->organization_id, null, [
                     'matched_employee_numbers' => array_column($matches, 'employee_number'),

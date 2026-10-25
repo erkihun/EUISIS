@@ -143,6 +143,16 @@ class CoreCardEligibilityTest extends TestCase
             ->where('employees', fn ($employees) => collect($employees)->every(fn ($row) => $row['current_assignment']['organization']['id'] === $this->bureauA->id)));
     }
 
+    public function test_the_database_refuses_a_second_waiting_request_for_one_employee(): void
+    {
+        $open = ['employee_id' => $this->employee->id, 'requested_by' => 1, 'status' => CardRequest::SUBMITTED, 'request_type' => 'renewal', 'submitted_at' => now()];
+        CardRequest::query()->create($open);
+        CardRequest::query()->create(['status' => CardRequest::REJECTED] + $open);
+
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        CardRequest::query()->create(['status' => 'verified'] + $open);
+    }
+
     public function test_a_normal_card_needs_a_verified_photo_from_request_to_approval(): void
     {
         $person = $this->placedEmployee('EMP-0400', $this->positionB, '2024-01-01');

@@ -106,6 +106,8 @@ final class CoreSettingsRegistry
                 'photo_min_pixels' => self::field('integer', 300, 'Smallest Photo Side (Pixels)', 'የፎቶ ትንሹ ጎን (ፒክሰል)', 'A photo narrower or shorter than this is refused as too small to print.', 'ከዚህ ያነሰ ስፋት ወይም ቁመት ያለው ፎቶ ለማተም በጣም ትንሽ ስለሆነ ውድቅ ይሆናል።', false, ['required', 'integer', 'min:100', 'max:2000']),
                 'photo_portrait_only' => self::field('boolean', true, 'Portrait Photos Only', 'በቁመት የተነሱ ፎቶዎች ብቻ', 'When on, a photo must be at least as tall as it is wide, as on an ID card.', 'ሲበራ፣ ፎቶው እንደ መታወቂያ ካርድ ቁመቱ ቢያንስ ከስፋቱ እኩል መሆን አለበት።', false, ['required', 'boolean']),
                 'signature_max_kb' => self::field('integer', 2048, 'Largest Signature Image (KB)', 'ትልቁ የፊርማ ምስል መጠን (ኪባ)', 'PNG or JPEG signature images up to this size are accepted.', 'እስከዚህ መጠን ያሉ PNG ወይም JPEG የፊርማ ምስሎች ይቀበላሉ።', false, ['required', 'integer', 'min:50', 'max:5120']),
+                'import_max_kb' => self::field('integer', 10240, 'Largest Import File (KB)', 'ትልቁ የገቢ ፋይል መጠን (ኪባ)', 'CSV or Excel (.xlsx) import files up to this size are accepted.', 'እስከዚህ መጠን ያሉ CSV ወይም Excel (.xlsx) የገቢ ፋይሎች ይቀበላሉ።', false, ['required', 'integer', 'min:100', 'max:102400']),
+                'import_max_rows' => self::field('integer', 5000, 'Most Rows in One Import', 'በአንድ ገቢ ፋይል ከፍተኛው የረድፍ ብዛት', 'A larger file is refused: split it into several imports.', 'ከዚህ የሚበልጥ ፋይል ውድቅ ይሆናል፤ ወደ ብዙ ገቢ ፋይሎች ይክፈሉት።', false, ['required', 'integer', 'min:10', 'max:50000']),
             ],
         ];
     }

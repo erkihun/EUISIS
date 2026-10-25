@@ -9,6 +9,7 @@ use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\EmployeeDuplicateReview;
 use App\Models\IdCard;
+use App\Models\ImportBatch;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
@@ -44,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Record identifiers are UUIDs (accounts are numbered): anything else is a
         // 404 before it reaches the database, where PostgreSQL would reject it.
-        foreach (['organization', 'organizationUnit', 'employee', 'position', 'positionEstablishment', 'unit', 'card', 'cardRequest', 'establishment', 'hierarchyVersion', 'organizationEdge', 'document', 'duplicateReview', 'apiClient', 'webhook', 'delivery', 'id'] as $parameter) {
+        foreach (['organization', 'organizationUnit', 'employee', 'position', 'positionEstablishment', 'unit', 'card', 'cardRequest', 'establishment', 'hierarchyVersion', 'organizationEdge', 'document', 'duplicateReview', 'importBatch', 'apiClient', 'webhook', 'delivery', 'id'] as $parameter) {
             Route::pattern($parameter, '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}');
         }
         Route::pattern('user', '[0-9]+');
@@ -81,6 +82,8 @@ class AppServiceProvider extends ServiceProvider
         Route::bind('card', $inScope(IdCard::class, $byPlacement('employee.currentAssignment')));
         Route::bind('cardRequest', $inScope(CardRequest::class, $byPlacement('employee.currentAssignment')));
         Route::bind('duplicateReview', $inScope(EmployeeDuplicateReview::class, $byPlacement('employee.currentAssignment')));
+        // An import uploaded city-wide is out of every scoped reader's reach.
+        Route::bind('importBatch', $inScope(ImportBatch::class, fn (Builder $query, array $ids) => $query->whereIn('scope_organization_id', $ids)));
 
         // Per-account limits from Core settings › Security.
         RateLimiter::for('core-api', fn (Request $request): Limit => Limit::perMinute(app(CoreSettings::class)->int('security.api_rate_limit_per_minute'))

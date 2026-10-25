@@ -27,7 +27,7 @@ class CardRequest extends Model
 
     public const TYPES = ['new', 'renewal', 'replacement', 'lost', 'damaged', 'correction'];
 
-    protected $guarded = ['id'];
+    protected $guarded = ['id', 'pending_employee_id'];
 
     protected function casts(): array
     {

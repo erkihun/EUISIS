@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\EmployeeEvidenceController;
 use App\Http\Controllers\Web\HierarchyController;
 use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCheckerController;
+use App\Http\Controllers\Web\ImportController;
 use App\Http\Controllers\Web\IntegrationCenterController;
 use App\Http\Controllers\Web\MfaController;
 use App\Http\Controllers\Web\OrganizationController;
@@ -66,6 +67,17 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/exit', [SessionController::class, 'exitCore'])->name('exit');
 
         // The duplicate review queue (ADR 0009); the review binding is scoped by the flagged employee.
+        // Business imports (ADR 0009): ManageImports and ImportBatchPolicy decide each step.
+        Route::middleware('can:imports.view')->prefix('imports')->name('imports')->group(function (): void {
+            Route::get('/', [ImportController::class, 'index']);
+            Route::post('/', [ImportController::class, 'store'])->middleware('throttle:20,1')->name('.store');
+            Route::get('/template/{type}', [ImportController::class, 'template'])->name('.template');
+            Route::get('/{importBatch}', [ImportController::class, 'show'])->name('.show');
+            Route::post('/{importBatch}/approve', [ImportController::class, 'approve'])->name('.approve');
+            Route::post('/{importBatch}/cancel', [ImportController::class, 'cancel'])->name('.cancel');
+            Route::get('/{importBatch}/errors', [ImportController::class, 'errors'])->name('.errors');
+        });
+
         Route::middleware('can:employees.duplicates.review')->group(function (): void {
             Route::get('/duplicates', [DuplicateReviewController::class, 'index'])->name('duplicates');
             Route::post('/duplicates/{duplicateReview}/decide', [DuplicateReviewController::class, 'decide'])->name('duplicates.decide');
