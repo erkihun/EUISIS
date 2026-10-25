@@ -10,7 +10,7 @@ to Core.
 
 | Setting | Default | Purpose |
 | --- | --- | --- |
-| `CORE_MASTER_DATA_WRITES` | `core` | Write mode (`AppnumsMasterDataWriteMode`): `core` or `legacy` write; `cutover` and `rollback` (and the old `frozen`) refuse every master-data change (organizations, units, positions, employees, cards, code rules…) with a clear message; reads keep working. Used during cutovers and restores. |
+| `CORE_MASTER_DATA_WRITES` | `core` | Write mode (`App\Enums\MasterDataWriteMode`): `core` or `legacy` write; `cutover` and `rollback` (and the old `frozen`) refuse every master-data change (organizations, units, positions, employees, cards, code rules…) with a clear message; reads keep working. Used during cutovers and restores. |
 | `INTEGRATION_EVENTS_ENABLED` | `true` | Outbox recording |
 | `INTEGRATION_DISABLED_EVENT_TYPES` | empty | Switch off individual event types (for example the new `position.*` and `id_card.*` types) without a release |
 | `INTEGRATION_CHANGE_FEED_ENABLED`, `INTEGRATION_WEBHOOKS_ENABLED` | `false` | Partner delivery channels; switch on per environment |
