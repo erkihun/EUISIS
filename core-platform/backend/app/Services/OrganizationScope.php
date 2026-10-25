@@ -61,7 +61,7 @@ final class OrganizationScope
 
         $children = OrganizationEdge::query()
             ->where('hierarchy_version_id', $version->id)
-            ->where('relationship_type', OrganizationEdge::STRUCTURAL)
+            ->whereIn('relationship_type', OrganizationEdge::TREE_TYPES)
             ->get(['parent_organization_id', 'child_organization_id'])
             ->groupBy('parent_organization_id');
 

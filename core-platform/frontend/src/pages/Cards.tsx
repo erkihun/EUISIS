@@ -14,18 +14,35 @@ import { Link } from '../router';
 import type { IdCard } from '../types';
 import { Alert, AppDialog, Button, Card, EmptyState, FilterField, FilterPanel, FormField, Input, Table, TBody, THead, Td, Textarea, Th, Tr, actionLinkClassName, selectClassName } from '../ui';
 
-export type Transition = 'suspend' | 'reinstate' | 'revoke';
+export type Transition = 'print' | 'issue' | 'activate' | 'report_lost' | 'report_damaged' | 'suspend' | 'reinstate' | 'revoke' | 'replace';
 
-/** Which change each status allows; the API enforces the same table (ChangeCardStatus). */
+/**
+ * What each card status allows, as the API enforces it (ChangeCardStatus and
+ * CardRequests::replace): pending print → printed → issued → active, the
+ * reversible suspension, lost/damaged reports, final revocation, replacement.
+ */
 export const ALLOWED: Record<string, Transition[]> = {
-    active: ['suspend', 'revoke'],
-    issued: ['suspend', 'revoke'],
-    suspended: ['reinstate', 'revoke'],
-    printed: ['revoke'],
-    pending_print: ['revoke'],
+    pending_print: ['print', 'revoke'],
+    printed: ['issue', 'revoke'],
+    issued: ['activate', 'suspend', 'report_lost', 'report_damaged', 'revoke'],
+    active: ['suspend', 'report_lost', 'report_damaged', 'revoke'],
+    suspended: ['reinstate', 'replace', 'revoke'],
+    lost: ['replace', 'revoke'],
+    damaged: ['replace', 'revoke'],
+    revoked: ['replace'],
+    expired: ['replace'],
 };
 
-const STATUSES = ['active', 'issued', 'printed', 'pending_print', 'suspended', 'revoked'];
+/** Changes that need a written reason; the production steps and a replacement may carry one. */
+const NEEDS_REASON: Transition[] = ['report_lost', 'report_damaged', 'suspend', 'reinstate', 'revoke'];
+
+export function transitionTone(transition: Transition): 'primary' | 'success' | 'danger' {
+    if (['reinstate', 'activate', 'issue', 'print'].includes(transition)) return 'success';
+    if (['revoke', 'report_lost', 'report_damaged'].includes(transition)) return 'danger';
+    return 'primary';
+}
+
+const STATUSES = ['pending_print', 'printed', 'issued', 'active', 'suspended', 'lost', 'damaged', 'replaced', 'expired', 'revoked'];
 
 export default function CardsPage() {
     const { t } = useLocale();
@@ -80,14 +97,7 @@ export default function CardsPage() {
                                         <Td><StatusBadge status={row.status} /></Td>
                                         {canChange && (
                                             <Td align="right">
-                                                <span className="inline-flex flex-wrap justify-end gap-3">
-                                                    {(ALLOWED[row.status] ?? []).map((transition) => (
-                                                        <button key={transition} type="button" onClick={() => setPending({ card: row, transition })}
-                                                            className={actionLinkClassName({ tone: transition === 'reinstate' ? 'success' : transition === 'revoke' ? 'danger' : 'primary' })}>
-                                                            {t(`platform.cards.${transition}`)}
-                                                        </button>
-                                                    ))}
-                                                </span>
+                                                <CardActions card={row} onChoose={(transition) => setPending({ card: row, transition })} />
                                             </Td>
                                         )}
                                     </Tr>
@@ -101,33 +111,49 @@ export default function CardsPage() {
                 </Card>
             </div>
 
-            <CardChangeDialog
-                pending={pending}
-                onClose={() => setPending(null)}
-                onDone={() => { setPending(null); toast.success(t('platform.cards.done')); list.reload(); }}
-            />
+            <CardChangeDialog pending={pending} onClose={() => setPending(null)} onDone={() => { setPending(null); list.reload(); }} />
         </AuthenticatedLayout>
     );
 }
 
-/** Suspend, reinstate or revoke, with the reason the audit log keeps. */
+/** The changes a card's status allows, as inline actions. */
+export function CardActions({ card, onChoose }: { card: IdCard; onChoose: (transition: Transition) => void }) {
+    const { t } = useLocale();
+
+    return (
+        <span className="inline-flex flex-wrap justify-end gap-x-3 gap-y-1">
+            {(ALLOWED[card.status] ?? []).map((transition) => (
+                <button key={transition} type="button" onClick={() => onChoose(transition)} className={actionLinkClassName({ tone: transitionTone(transition) })}>
+                    {t(`platform.cards.${transition}`)}
+                </button>
+            ))}
+        </span>
+    );
+}
+
+/** One card change with its reason (required where the change blocks or ends the card). */
 export function CardChangeDialog({ pending, onClose, onDone }: { pending: { card: IdCard; transition: Transition } | null; onClose: () => void; onDone: () => void }) {
     const { t } = useLocale();
     const [reason, setReason] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
     const action = pending ? t(`platform.cards.${pending.transition}`) : '';
+    const required = pending !== null && NEEDS_REASON.includes(pending.transition);
+    const close = () => { setReason(''); setError(null); onClose(); };
 
     async function submit() {
         if (!pending) return;
         setBusy(true);
         setError(null);
         try {
-            await api(`/v1/id-cards/${pending.card.id}/${pending.transition}`, { method: 'POST', body: { reason } });
+            const path = pending.transition === 'replace' ? `/v1/id-cards/${pending.card.id}/replace` : `/v1/id-cards/${pending.card.id}/${pending.transition}`;
+            await api(path, { method: 'POST', body: { reason: reason.trim() === '' ? null : reason } });
+            toast.success(pending.transition === 'replace' ? t('platform.cards.replaced') : t('platform.cards.done'));
             setReason('');
             onDone();
         } catch (caught) {
-            setError(fieldErrors(caught).reason ?? firstError(caught) ?? t('platform.error'));
+            const fields = fieldErrors(caught);
+            setError(fields.reason ?? fields.card ?? firstError(caught) ?? t('platform.error'));
         } finally {
             setBusy(false);
         }
@@ -136,16 +162,17 @@ export function CardChangeDialog({ pending, onClose, onDone }: { pending: { card
     return (
         <AppDialog
             open={pending !== null}
-            onClose={() => { if (!busy) { setReason(''); setError(null); onClose(); } }}
+            onClose={() => { if (!busy) close(); }}
             title={pending ? t('platform.cards.confirmTitle', { action, number: pending.card.card_number }) : ''}
+            description={pending?.transition === 'replace' ? t('platform.cards.replaceHelp') : undefined}
             footer={(
                 <>
-                    <Button variant="outline" onClick={() => { setReason(''); setError(null); onClose(); }} disabled={busy}>{t('common.cancel')}</Button>
-                    <Button variant={pending?.transition === 'reinstate' ? 'primary' : 'destructive'} onClick={() => void submit()} loading={busy} disabled={reason.trim().length < 5}>{action}</Button>
+                    <Button variant="outline" onClick={close} disabled={busy}>{t('common.cancel')}</Button>
+                    <Button variant={pending && transitionTone(pending.transition) === 'danger' ? 'destructive' : 'primary'} onClick={() => void submit()} loading={busy} disabled={required && reason.trim().length < 5}>{action}</Button>
                 </>
             )}
         >
-            <FormField label={t('platform.employee.reason')} required description={t('platform.cards.reasonHelp')} error={error}>
+            <FormField label={required ? t('platform.employee.reason') : t('platform.cards.optionalReason')} required={required} description={required ? t('platform.cards.reasonHelp') : undefined} error={error}>
                 {({ id, describedBy, invalid }) => (
                     <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid || undefined} value={reason} maxLength={1000} onChange={(e) => setReason(e.target.value)} />
                 )}

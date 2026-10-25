@@ -99,7 +99,7 @@ class StructureController extends Controller
             ->when($ids !== null, fn ($q) => $q->whereIn('id', $ids))
             ->get(['id', 'code', 'name_en', 'name_am', 'status', 'organization_type_id'])->keyBy('id');
         $edges = $version === null ? collect() : OrganizationEdge::query()
-            ->where('hierarchy_version_id', $version->id)->where('relationship_type', OrganizationEdge::STRUCTURAL)
+            ->where('hierarchy_version_id', $version->id)->whereIn('relationship_type', OrganizationEdge::TREE_TYPES)
             ->get(['parent_organization_id', 'child_organization_id']);
 
         $parentOf = [];

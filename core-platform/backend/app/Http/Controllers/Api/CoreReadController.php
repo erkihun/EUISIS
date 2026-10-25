@@ -89,7 +89,7 @@ class CoreReadController extends Controller
 
         // Parent and children in the published hierarchy (structural edges).
         $version = HierarchyVersion::current();
-        $edges = $version === null ? null : OrganizationEdge::query()->where('hierarchy_version_id', $version->id)->where('relationship_type', OrganizationEdge::STRUCTURAL);
+        $edges = $version === null ? null : OrganizationEdge::query()->where('hierarchy_version_id', $version->id)->whereIn('relationship_type', OrganizationEdge::TREE_TYPES);
         $parentId = $edges === null ? null : (clone $edges)->where('child_organization_id', $organization->id)->value('parent_organization_id');
         $childIds = $edges === null ? [] : (clone $edges)->where('parent_organization_id', $organization->id)->pluck('child_organization_id')->all();
 

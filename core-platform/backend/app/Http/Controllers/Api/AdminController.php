@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Actions\SaveUser;
 use App\Http\Controllers\Controller;
+use App\Models\IdCard;
 use App\Models\User;
 use App\Services\IntegrityChecks;
 use Illuminate\Http\JsonResponse;
@@ -48,13 +49,24 @@ class AdminController extends Controller
         return response()->json(['one_time_password' => $save->resetPassword($user, $request->user())]);
     }
 
-    /** Each check's count and its first findings (ids for drill-down). */
+    /**
+     * Each check's count and its first findings (ids for drill-down). A card
+     * finding also names its holder, whose page lists the card.
+     */
     public function dataQuality(IntegrityChecks $checks): JsonResponse
     {
         $counts = $checks->counts();
         $results = [];
         foreach (IntegrityChecks::SUBJECTS as $key => [, $kind]) {
-            $results[] = ['key' => $key, 'kind' => $kind, 'count' => $counts[$key], 'samples' => $counts[$key] > 0 ? $checks->samples($key) : []];
+            $samples = $counts[$key] > 0 ? $checks->samples($key) : [];
+            $holders = $kind === 'card' ? IdCard::query()->whereIn('id', $samples)->pluck('employee_id', 'id') : collect();
+            $results[] = [
+                'key' => $key,
+                'kind' => $kind,
+                'count' => $counts[$key],
+                'samples' => $samples,
+                'records' => array_map(fn (string $id): array => ['id' => $id, 'employee_id' => $holders[$id] ?? null], $samples),
+            ];
         }
 
         return response()->json(['checks' => $results]);

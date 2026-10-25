@@ -65,21 +65,21 @@ final readonly class SaveOrganization
 
             $oldParent = $version === null ? null : OrganizationEdge::query()
                 ->where('hierarchy_version_id', $version->id)
-                ->where('relationship_type', OrganizationEdge::STRUCTURAL)
+                ->whereIn('relationship_type', OrganizationEdge::TREE_TYPES)
                 ->where('child_organization_id', $organization->id)
                 ->value('parent_organization_id');
             if ($version !== null && (string) $oldParent !== (string) $parentId) {
                 if ($oldParent !== null && $actor->scope_organization_id === $organization->id) {
                     throw ValidationException::withMessages(['parent_organization_id' => 'You cannot move the organization your account is scoped to.']);
                 }
-                OrganizationEdge::query()->where('hierarchy_version_id', $version->id)->where('relationship_type', OrganizationEdge::STRUCTURAL)
+                OrganizationEdge::query()->where('hierarchy_version_id', $version->id)->whereIn('relationship_type', OrganizationEdge::TREE_TYPES)
                     ->where('child_organization_id', $organization->id)->delete();
                 if ($parentId !== null) {
                     OrganizationEdge::query()->create([
                         'hierarchy_version_id' => $version->id,
                         'parent_organization_id' => $parentId,
                         'child_organization_id' => $organization->id,
-                        'relationship_type' => OrganizationEdge::STRUCTURAL,
+                        'relationship_type' => OrganizationEdge::REPORTS_TO,
                         'effective_from' => now()->toDateString(),
                     ]);
                 }

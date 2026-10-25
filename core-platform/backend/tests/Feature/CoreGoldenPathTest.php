@@ -181,6 +181,29 @@ class CoreGoldenPathTest extends TestCase
         $this->putJson('/api/v1/users/'.$admin->id, ['name' => $admin->name, 'email' => $admin->email, 'role' => 'core_viewer'])->assertUnprocessable();
     }
 
+    public function test_the_citys_reports_to_edges_make_the_tree_and_the_scope(): void
+    {
+        $woreda = $this->organization($this->city->type()->firstOrFail(), 'WOREDA-1');
+        OrganizationEdge::query()->create([
+            'hierarchy_version_id' => HierarchyVersion::current()->id,
+            'parent_organization_id' => $this->bureauA->id,
+            'child_organization_id' => $woreda->id,
+            'relationship_type' => 'reports_to',
+        ]);
+        OrganizationEdge::query()->create([
+            'hierarchy_version_id' => HierarchyVersion::current()->id,
+            'parent_organization_id' => $this->bureauB->id,
+            'child_organization_id' => $woreda->id,
+            'relationship_type' => 'oversight',
+        ]);
+
+        $this->actingAsCore('core_viewer', $this->bureauA);
+        $this->getJson('/api/v1/organizations')->assertOk()->assertJsonPath('total', 2);
+
+        $this->actingAsCore('core_viewer', $this->bureauB);
+        $this->getJson('/api/v1/organizations')->assertOk()->assertJsonPath('total', 1);
+    }
+
     public function test_the_hierarchy_tree_is_cut_to_the_scope(): void
     {
         $this->actingAsCore('core_viewer', $this->bureauA);

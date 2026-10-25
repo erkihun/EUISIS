@@ -23,15 +23,32 @@ core-platform/
 
 | Rule | Where |
 |---|---|
-| Organization scope = WHERE: a scoped account sees its organization and everything under it in the published hierarchy; an account with no scope organization sees the whole city | `app/Services/OrganizationScope.php`, every read and write |
-| A position takes holders up to its approved seats (1 when no establishment is approved) | `app/Services/SeatCapacity.php` |
+| Organization scope = WHERE: a scoped account sees its organization and everything under it in the published hierarchy (the `reports_to` / `structural_parent` edges, as the city's hierarchy is recorded); an account with no scope organization sees the whole city | `app/Services/OrganizationScope.php`, every read and write |
+| Organizations: a blank code is numbered; the parent is the edge in the published hierarchy; no organization under its own descendant; a scoped account works inside its subtree and cannot move its own top organization | `app/Actions/SaveOrganization.php` |
+| Units: inside the organization, parent unit in the same organization and never below itself, code unique per organization; a unit with active positions stays active | `app/Actions/SaveOrganizationUnit.php` |
+| Positions: organization from the unit, unit in that organization; a held position cannot be retired or moved to another organization; holders follow their seat to a new unit (ADR 0005) | `app/Actions/SavePosition.php` |
+| A position takes holders up to its approved seats in force (the Workforce setting when none is approved); an establishment ends, never below its holders | `app/Services/SeatCapacity.php`, `app/Actions/SaveEstablishment.php` |
 | One current placement per employee; a transfer closes the old one the day before the new one starts; a separated employee cannot be transferred | `app/Actions/TransferEmployee.php` |
-| Card changes follow suspend / reinstate / revoke from allowed states only, with a reason; reinstating needs an active employee and no other active card | `app/Actions/ChangeCardStatus.php` |
+| The employee number never changes. Ending employment (retired, terminated, deceased, transferred out) closes the placement today and suspends the employee's active cards; returning reopens the last position if it has a free seat (ADR 0002) | `app/Actions/UpdateEmployee.php` |
+| Cards: one pending request per active employee; approval by someone other than the requester; one live card per employee; approval gives the number, public reference and expiry; then print → issue → activate; lost/damaged/suspended/revoked/expired cards are replaced and linked | `app/Actions/CardRequests.php`, `app/Actions/ChangeCardStatus.php` |
 | A card is valid only when active, current, QR active, not revoked, not expired and the employee is not separated | `app/Models/IdCard.php` |
 | Every change is audited with actor, request id, IP and user agent | `app/Services/AuditWriter.php`, table `core_audit_logs` |
 | Personal fields never leave through the API; card verification answers validity, status, number and name only | `app/Models/Employee.php`, `CoreReadController::verifyCard` |
+| The nine EUISIS integrity checks (Data Quality) run over the Core tables | `app/Services/IntegrityChecks.php` |
 
-Roles: `core_viewer` (read), `core_officer` and `core_admin` (read and change).
+Roles: `core_viewer` (read), `core_officer` (read and change master data), `core_admin` (also accounts, data quality and settings).
+
+### Screens
+
+Organization Structure (organizations with detail and children, organization
+types, units, unit types, the hierarchy tree), Positions (with seats,
+holders and establishments), Employees (register, details, employment
+status, transfer, card request), Assignments, ID Cards (the full card
+lifecycle), Card Requests (approve, reject, cancel), Card Verification,
+Users, Audit Logs, Data Quality and Settings. Not in the Core: organizational
+change requests, grade levels, occupations, employee import and self-service
+corrections, print batches and card templates, NFC credentials and the
+integration center; they stay in EUISIS.
 
 ## Run it locally
 

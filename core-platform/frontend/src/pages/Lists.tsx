@@ -2,16 +2,16 @@ import { useState, type JSX, type ReactNode, type SVGProps } from 'react';
 import type { Page } from '../api';
 import { useAuth } from '../auth';
 import ListPagination from '../components/ListPagination';
-import { Briefcase, Building2, ClipboardClockIcon, ClipboardListIcon, GitBranchIcon, UserPlusIcon, Users } from '../components/NavIcons';
+import { ClipboardClockIcon, ClipboardListIcon, UserPlusIcon, Users } from '../components/NavIcons';
 import PageHeader from '../components/PageHeader';
 import StatusBadge from '../components/StatusBadge';
 import { useLocale } from '../i18n';
 import AuthenticatedLayout from '../layouts/AuthenticatedLayout';
 import { auditLabel } from '../lib/auditLabel';
-import { formatDate, formatDateTime, localized } from '../lib/format';
+import { formatDate, formatDateTime } from '../lib/format';
 import { useList } from '../lib/useList';
 import { Link } from '../router';
-import type { Assignment, AuditEntry, Employee, Organization, Position, Unit } from '../types';
+import type { Assignment, AuditEntry, Employee } from '../types';
 import { Alert, Card, EmptyState, FilterField, FilterPanel, Input, Table, TBody, THead, Td, Th, Tr, buttonClassName, selectClassName } from '../ui';
 
 /**
@@ -22,7 +22,7 @@ import { Alert, Card, EmptyState, FilterField, FilterPanel, Input, Table, TBody,
 
 type Icon = (p: SVGProps<SVGSVGElement>) => JSX.Element;
 
-function ListFrame<T>({ result, loading, error, hasFilters, icon: IconComponent, empty, noMatch, onPage, children }: {
+export function ListFrame<T>({ result, loading, error, hasFilters, icon: IconComponent, empty, noMatch, onPage, children }: {
     result: Page<T> | null;
     loading: boolean;
     error: boolean;
@@ -57,143 +57,10 @@ function ListFrame<T>({ result, loading, error, hasFilters, icon: IconComponent,
 }
 
 /** Search box + optional selects, applied together on Filter. */
-function useFilterForm<F extends Record<string, string>>(initial: F) {
+export function useFilterForm<F extends Record<string, string>>(initial: F) {
     const [form, setForm] = useState<F>(initial);
     const set = (name: keyof F) => (event: { target: { value: string } }) => setForm((current) => ({ ...current, [name]: event.target.value }));
     return { form, setForm, set };
-}
-
-export function OrganizationsPage() {
-    const { t, locale } = useLocale();
-    const list = useList<Organization>('/v1/organizations');
-    const { form, setForm, set } = useFilterForm({ search: '' });
-    const hasFilters = Boolean(list.filters.search);
-
-    return (
-        <AuthenticatedLayout header={<PageHeader title={t('platform.organizations.title')} description={t('platform.organizations.description')} />}>
-            <div className="space-y-4">
-                <FilterPanel label={t('platform.organizations.title')} onSubmit={() => list.apply(form)} onReset={() => { setForm({ search: '' }); list.apply({}); }} hasActiveFilters={hasFilters}>
-                    <FilterField label={t('platform.filters.search')} htmlFor="organization-search" wide>
-                        <Input id="organization-search" type="search" placeholder={t('platform.organizations.searchPlaceholder')} value={form.search} onChange={set('search')} />
-                    </FilterField>
-                </FilterPanel>
-                <ListFrame {...list} onPage={list.setPage} hasFilters={hasFilters} icon={Building2} empty={t('platform.organizations.empty')} noMatch={t('platform.organizations.noMatch')}>
-                    <Table>
-                        <THead>
-                            <Tr>
-                                <Th>{t('common.name')}</Th>
-                                <Th>{t('common.code')}</Th>
-                                <Th>{t('platform.organizations.type')}</Th>
-                                <Th>{t('common.status')}</Th>
-                            </Tr>
-                        </THead>
-                        <TBody>
-                            {list.result?.data.map((row) => (
-                                <Tr key={row.id}>
-                                    <Td className="font-medium">{localized(locale, row.name_en, row.name_am)}</Td>
-                                    <Td muted className="font-mono text-xs">{row.code}</Td>
-                                    <Td muted>{row.type ? localized(locale, row.type.name_en, row.type.name_am) : '—'}</Td>
-                                    <Td><StatusBadge status={row.status} /></Td>
-                                </Tr>
-                            ))}
-                        </TBody>
-                    </Table>
-                </ListFrame>
-            </div>
-        </AuthenticatedLayout>
-    );
-}
-
-export function UnitsPage() {
-    const { t, locale } = useLocale();
-    const list = useList<Unit>('/v1/organization-units');
-    const { form, setForm, set } = useFilterForm({ search: '' });
-    const hasFilters = Boolean(list.filters.search);
-
-    return (
-        <AuthenticatedLayout header={<PageHeader title={t('platform.units.title')} description={t('platform.units.description')} />}>
-            <div className="space-y-4">
-                <FilterPanel label={t('platform.units.title')} onSubmit={() => list.apply(form)} onReset={() => { setForm({ search: '' }); list.apply({}); }} hasActiveFilters={hasFilters}>
-                    <FilterField label={t('platform.filters.search')} htmlFor="unit-search" wide>
-                        <Input id="unit-search" type="search" placeholder={t('platform.units.searchPlaceholder')} value={form.search} onChange={set('search')} />
-                    </FilterField>
-                </FilterPanel>
-                <ListFrame {...list} onPage={list.setPage} hasFilters={hasFilters} icon={GitBranchIcon} empty={t('platform.units.empty')} noMatch={t('platform.units.noMatch')}>
-                    <Table>
-                        <THead>
-                            <Tr>
-                                <Th>{t('common.name')}</Th>
-                                <Th>{t('common.code')}</Th>
-                                <Th>{t('platform.units.organization')}</Th>
-                                <Th>{t('common.status')}</Th>
-                            </Tr>
-                        </THead>
-                        <TBody>
-                            {list.result?.data.map((row) => (
-                                <Tr key={row.id}>
-                                    <Td className="font-medium">{localized(locale, row.name_en, row.name_am)}</Td>
-                                    <Td muted className="font-mono text-xs">{row.code}</Td>
-                                    <Td muted>{row.organization?.name_en ?? '—'}</Td>
-                                    <Td><StatusBadge status={row.status} /></Td>
-                                </Tr>
-                            ))}
-                        </TBody>
-                    </Table>
-                </ListFrame>
-            </div>
-        </AuthenticatedLayout>
-    );
-}
-
-export function PositionsPage() {
-    const { t, locale } = useLocale();
-    const list = useList<Position>('/v1/positions');
-    const { form, setForm, set } = useFilterForm({ search: '', occupancy: '' });
-    const hasFilters = Boolean(list.filters.search || list.filters.occupancy);
-
-    return (
-        <AuthenticatedLayout header={<PageHeader title={t('platform.positions.title')} description={t('platform.positions.description')} />}>
-            <div className="space-y-4">
-                <FilterPanel label={t('platform.positions.title')} onSubmit={() => list.apply(form)} onReset={() => { setForm({ search: '', occupancy: '' }); list.apply({}); }} hasActiveFilters={hasFilters}>
-                    <FilterField label={t('platform.filters.search')} htmlFor="position-search" wide>
-                        <Input id="position-search" type="search" placeholder={t('platform.positions.searchPlaceholder')} value={form.search} onChange={set('search')} />
-                    </FilterField>
-                    <FilterField label={t('platform.positions.occupancy')} htmlFor="position-occupancy">
-                        <select id="position-occupancy" className={selectClassName} value={form.occupancy} onChange={set('occupancy')}>
-                            <option value="">{t('platform.positions.anyOccupancy')}</option>
-                            <option value="vacant">{t('platform.positions.vacant')}</option>
-                            <option value="held">{t('platform.positions.held')}</option>
-                        </select>
-                    </FilterField>
-                </FilterPanel>
-                <ListFrame {...list} onPage={list.setPage} hasFilters={hasFilters} icon={Briefcase} empty={t('platform.positions.empty')} noMatch={t('platform.positions.noMatch')}>
-                    <Table>
-                        <THead>
-                            <Tr>
-                                <Th>{t('core.assignments.position')}</Th>
-                                <Th>{t('platform.positions.organization')}</Th>
-                                <Th align="right">{t('platform.positions.holders')}</Th>
-                                <Th>{t('common.status')}</Th>
-                            </Tr>
-                        </THead>
-                        <TBody>
-                            {list.result?.data.map((row) => (
-                                <Tr key={row.id}>
-                                    <Td>
-                                        <span className="font-medium">{localized(locale, row.title_en, row.title_am)}</span>
-                                        <div className="font-mono text-xs text-(--app-muted-foreground)">{row.job_position_code}</div>
-                                    </Td>
-                                    <Td muted>{row.organization?.name_en ?? '—'}</Td>
-                                    <Td numeric>{row.holders_count}</Td>
-                                    <Td><StatusBadge status={row.is_active ? 'active' : 'inactive'} /></Td>
-                                </Tr>
-                            ))}
-                        </TBody>
-                    </Table>
-                </ListFrame>
-            </div>
-        </AuthenticatedLayout>
-    );
 }
 
 export function EmployeesPage() {

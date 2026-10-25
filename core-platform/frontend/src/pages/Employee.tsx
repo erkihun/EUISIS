@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import { ApiError, api, fieldErrors, firstError } from '../api';
 import { useAuth } from '../auth';
-import { ArrowLeftRightIcon, CreditCard } from '../components/NavIcons';
+import FormDialog from '../components/FormDialog';
+import { ArrowLeftRightIcon, CardReceiveIcon, CreditCard, PenIcon, UserCheckIcon } from '../components/NavIcons';
 import PageHeader from '../components/PageHeader';
 import PositionSelect from '../components/PositionSelect';
 import StatusBadge from '../components/StatusBadge';
@@ -11,8 +12,8 @@ import AuthenticatedLayout from '../layouts/AuthenticatedLayout';
 import { formatDate } from '../lib/format';
 import { navigate } from '../router';
 import type { Assignment, IdCard } from '../types';
-import { Alert, AppDialog, Button, Card, CardHeader, CardTitle, EmptyState, FormField, Input, Select, Table, TBody, THead, Td, Textarea, Th, Tr, actionLinkClassName } from '../ui';
-import { ALLOWED, CardChangeDialog, type Transition } from './Cards';
+import { Alert, AppDialog, Button, Card, CardHeader, CardTitle, EmptyState, FormField, Input, Select, Table, TBody, THead, Td, Textarea, Th, Tr } from '../ui';
+import { CardActions, CardChangeDialog, type Transition } from './Cards';
 
 type EmployeeDetail = {
     employee: { id: string; employee_number: string; full_name: string; first_name: string; middle_name: string | null; last_name: string; gender: string | null; status: string };
@@ -38,6 +39,9 @@ export function EmployeeDetailPage({ id }: { id: string }) {
     const [detail, setDetail] = useState<EmployeeDetail | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [transferring, setTransferring] = useState(false);
+    const [editing, setEditing] = useState(false);
+    const [changingStatus, setChangingStatus] = useState(false);
+    const [requestingCard, setRequestingCard] = useState(false);
     const [cardChange, setCardChange] = useState<{ card: IdCard; transition: Transition } | null>(null);
 
     const load = useCallback(() => {
@@ -50,9 +54,14 @@ export function EmployeeDetailPage({ id }: { id: string }) {
 
     const canChange = Boolean(user?.can_change_master_data);
     const placement = detail?.current_assignment ?? null;
-    const transfer = canChange && placement?.assignment_status === 'active'
-        ? <Button variant="primary" icon={<ArrowLeftRightIcon className="h-4 w-4" />} onClick={() => setTransferring(true)}>{t('platform.employee.transfer')}</Button>
-        : undefined;
+    const actions = canChange && detail ? (
+        <>
+            <Button variant="outline" icon={<PenIcon className="h-4 w-4" />} onClick={() => setEditing(true)}>{t('platform.employeeEdit.edit')}</Button>
+            <Button variant="outline" icon={<UserCheckIcon className="h-4 w-4" />} onClick={() => setChangingStatus(true)}>{t('platform.employeeEdit.changeStatus')}</Button>
+            {detail.employee.status === 'active' && <Button variant="outline" icon={<CardReceiveIcon className="h-4 w-4" />} onClick={() => setRequestingCard(true)}>{t('platform.employeeEdit.requestCard')}</Button>}
+            {placement?.assignment_status === 'active' && <Button variant="primary" icon={<ArrowLeftRightIcon className="h-4 w-4" />} onClick={() => setTransferring(true)}>{t('platform.employee.transfer')}</Button>}
+        </>
+    ) : undefined;
 
     return (
         <AuthenticatedLayout header={(
@@ -60,7 +69,7 @@ export function EmployeeDetailPage({ id }: { id: string }) {
                 title={detail?.employee.full_name ?? t('platform.employee.details')}
                 description={detail?.employee.employee_number}
                 backHref="/employees"
-                actions={transfer}
+                actions={actions}
             />
         )}>
             {error && <Alert tone="danger">{error}</Alert>}
@@ -144,14 +153,7 @@ export function EmployeeDetailPage({ id }: { id: string }) {
                                             <Td><StatusBadge status={card.status} /></Td>
                                             {canChange && (
                                                 <Td align="right">
-                                                    <span className="inline-flex flex-wrap justify-end gap-3">
-                                                        {(ALLOWED[card.status] ?? []).map((transition) => (
-                                                            <button key={transition} type="button" onClick={() => setCardChange({ card, transition })}
-                                                                className={actionLinkClassName({ tone: transition === 'reinstate' ? 'success' : transition === 'revoke' ? 'danger' : 'primary' })}>
-                                                                {t(`platform.cards.${transition}`)}
-                                                            </button>
-                                                        ))}
-                                                    </span>
+                                                    <CardActions card={card} onChoose={(transition) => setCardChange({ card, transition })} />
                                                 </Td>
                                             )}
                                         </Tr>
@@ -175,11 +177,72 @@ export function EmployeeDetailPage({ id }: { id: string }) {
             <CardChangeDialog
                 pending={cardChange}
                 onClose={() => setCardChange(null)}
-                onDone={() => { setCardChange(null); toast.success(t('platform.cards.done')); load(); }}
+                onDone={() => { setCardChange(null); load(); }}
             />
+            {detail && (
+                <>
+                    <FormDialog
+                        open={editing}
+                        title={t('platform.employeeEdit.edit')}
+                        description={t('platform.employeeEdit.numberFixed')}
+                        fields={[
+                            { name: 'first_name', label: t('platform.employee.firstName'), required: true },
+                            { name: 'middle_name', label: t('platform.employee.middleName') },
+                            { name: 'last_name', label: t('platform.employee.lastName'), required: true },
+                            { name: 'gender', label: t('platform.employee.gender'), type: 'select', options: [{ value: 'female', label: t('platform.employee.female') }, { value: 'male', label: t('platform.employee.male') }] },
+                        ]}
+                        initial={{ first_name: detail.employee.first_name, middle_name: detail.employee.middle_name, last_name: detail.employee.last_name, gender: detail.employee.gender }}
+                        submitLabel={t('platform.actions.save')}
+                        onClose={() => setEditing(false)}
+                        onSubmit={async (values) => {
+                            await api(`/v1/employees/${detail.employee.id}`, { method: 'PUT', body: values });
+                            toast.success(t('platform.employeeEdit.saved'));
+                            setEditing(false);
+                            load();
+                        }}
+                    />
+                    <FormDialog
+                        open={changingStatus}
+                        title={t('platform.employeeEdit.changeStatusTitle')}
+                        description={t('platform.employeeEdit.statusHelp')}
+                        fields={[
+                            { name: 'status', label: t('platform.employeeEdit.newStatus'), type: 'select', required: true, emptyOption: null, options: EMPLOYMENT_STATUSES.filter((status) => status !== detail.employee.status).map((status) => ({ value: status, label: t(`platform.status.${status}`) })) },
+                            { name: 'reason', label: t('platform.employee.reason'), type: 'textarea', required: true },
+                        ]}
+                        initial={{ status: EMPLOYMENT_STATUSES.find((status) => status !== detail.employee.status) ?? null, reason: null }}
+                        submitLabel={t('platform.employeeEdit.changeStatus')}
+                        onClose={() => setChangingStatus(false)}
+                        onSubmit={async (values) => {
+                            await api(`/v1/employees/${detail.employee.id}/status`, { method: 'POST', body: values });
+                            toast.success(t('platform.employeeEdit.statusChanged'));
+                            setChangingStatus(false);
+                            load();
+                        }}
+                    />
+                    <FormDialog
+                        open={requestingCard}
+                        title={t('platform.employeeEdit.requestCard')}
+                        fields={[
+                            { name: 'request_type', label: t('platform.employeeEdit.requestType'), type: 'select', required: true, emptyOption: null, options: ['new', 'renewal', 'correction'].map((type) => ({ value: type, label: t(`platform.requestTypes.${type}`) })) },
+                            { name: 'reason', label: t('platform.cards.optionalReason'), type: 'textarea' },
+                        ]}
+                        initial={{ request_type: 'new', reason: null }}
+                        submitLabel={t('platform.employeeEdit.requestCard')}
+                        onClose={() => setRequestingCard(false)}
+                        onSubmit={async (values) => {
+                            await api(`/v1/employees/${detail.employee.id}/card-requests`, { method: 'POST', body: values });
+                            toast.success(t('platform.employeeEdit.requested'));
+                            setRequestingCard(false);
+                        }}
+                    />
+                </>
+            )}
         </AuthenticatedLayout>
     );
 }
+
+/** The statuses an employee can be given (EUISIS EmploymentStatusTransition). */
+const EMPLOYMENT_STATUSES = ['active', 'suspended', 'retired', 'terminated', 'deceased', 'transferred'];
 
 function TransferDialog({ open, employeeId, minimumDate, onClose, onDone }: { open: boolean; employeeId: string; minimumDate: string | null; onClose: () => void; onDone: () => void }) {
     const { t } = useLocale();

@@ -32,6 +32,30 @@ EUISIS keeps writing master data until the cutover below. Service modules are
 not moved; they keep reading the Core tables inside EUISIS until each one is
 switched to the Core API.
 
+### Golden Path rules carried into the Core (2026-10-25)
+
+The Core platform runs the whole Golden Path with the EUISIS rules
+(organization structure, positions and establishments, employment, the card
+request and card lifecycle, the integrity checks). Four points needed a
+decision, taken under the owner's delegation:
+
+1. **The tree is the reports_to edges.** The city's published hierarchy is
+   recorded as `reports_to` edges; EUISIS builds its tree and closure paths
+   from the published version's edges. The Core treats `reports_to` and
+   `structural_parent` as the tree (scope, hierarchy page, parents) and
+   creates new parent edges as `reports_to`. Oversight, coordination and the
+   other relationship kinds do not place an organization in the tree.
+2. **Ending employment suspends the cards.** Besides closing the placement
+   (ADR 0002), separation suspends the employee's active and issued cards in
+   the same transaction. EUISIS only refuses such cards at verification and
+   reports them as a data-quality finding; suspension (reversible) stops them
+   at the source without the finality of revocation.
+3. **Numbering rules are formats.** EUISIS code rules become one format per
+   kind in Core settings › Numbering (`{seq:N}`, `{year}`), with one counter
+   per rendered pattern; a typed code is kept as given.
+4. **Production steps per card.** Print batches stay in EUISIS; the Core marks
+   one card printed, then issued, then active.
+
 ## Consequences
 - The Core can be deployed, scaled, backed up and secured on its own.
 - Two copies of the master data exist during the transition. Only one may be

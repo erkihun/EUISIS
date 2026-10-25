@@ -1,17 +1,24 @@
 import type { JSX, SVGProps } from 'react';
 import {
+    BoxesIcon,
     Briefcase,
     Building2,
+    CardReceiveIcon,
     CityIcon,
     ClipboardClockIcon,
     ClipboardListIcon,
     CreditCard,
     EyeScanIcon,
+    FileSearchIcon,
     GitBranchIcon,
+    GitForkIcon,
     IdCardIcon,
     LayoutDashboard,
     QrCodeIcon,
     SettingsIcon,
+    ShieldUserIcon,
+    TagsIcon,
+    UserCircleIcon,
     UserPlusIcon,
     Users,
     UsersTwoIcon,
@@ -39,7 +46,10 @@ export const SECTIONS: NavSection[] = [
                 key: 'coreOrganization', labelKey: 'nav.groupOrganization', icon: CityIcon,
                 items: [
                     { path: '/organizations', labelKey: 'nav.organizations', icon: Building2 },
+                    { path: '/organization-types', labelKey: 'nav.organizationTypes', icon: TagsIcon },
                     { path: '/organization-units', labelKey: 'nav.organizationUnits', icon: GitBranchIcon },
+                    { path: '/unit-types', labelKey: 'nav.organizationUnitTypes', icon: BoxesIcon },
+                    { path: '/hierarchy', labelKey: 'nav.hierarchy', icon: GitForkIcon },
                 ],
             },
             {
@@ -60,6 +70,7 @@ export const SECTIONS: NavSection[] = [
                 key: 'coreCredentials', labelKey: 'core.nav.groupIdentity', icon: IdCardIcon,
                 items: [
                     { path: '/id-cards', labelKey: 'nav.idCards', icon: CreditCard },
+                    { path: '/card-requests', labelKey: 'nav.cardRequests', icon: CardReceiveIcon },
                     { path: '/verify', labelKey: 'core.nav.verification', icon: QrCodeIcon },
                 ],
             },
@@ -69,9 +80,16 @@ export const SECTIONS: NavSection[] = [
         labelKey: 'core.nav.sectionGovernance',
         groups: [
             {
+                key: 'coreAccess', labelKey: 'nav.adminAccess', icon: ShieldUserIcon,
+                items: [
+                    { path: '/users', labelKey: 'nav.users', icon: UserCircleIcon, admin: true },
+                ],
+            },
+            {
                 key: 'coreControl', labelKey: 'core.nav.groupControl', icon: EyeScanIcon,
                 items: [
                     { path: '/audit', labelKey: 'nav.auditLogs', icon: ClipboardClockIcon },
+                    { path: '/data-quality', labelKey: 'nav.dataQuality', icon: FileSearchIcon, admin: true },
                 ],
             },
             {
