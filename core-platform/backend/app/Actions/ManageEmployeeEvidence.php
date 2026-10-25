@@ -203,7 +203,12 @@ final readonly class ManageEmployeeEvidence
         if ($file->getSize() > $maxKb * 1024) {
             throw ValidationException::withMessages(['file' => "The file is larger than {$maxKb} KB."]);
         }
-        $mime = (string) (new \finfo(FILEINFO_MIME_TYPE))->file($file->getRealPath());
+        // A file the server cannot read (an antivirus scanner may lock or remove an upload) is refused, not a 500 (ADR 0012).
+        $path = $file->getRealPath();
+        $mime = $path === false ? false : @(new \finfo(FILEINFO_MIME_TYPE))->file($path);
+        if (! is_string($mime)) {
+            throw ValidationException::withMessages(['file' => 'The file could not be read. Upload it again.']);
+        }
         $extension = mb_strtolower($file->getClientOriginalExtension());
         $allowed = $kind === EmployeeDocument::DOCUMENT ? self::TYPES : array_diff_key(self::TYPES, ['application/pdf' => true]);
         if (! isset($allowed[$mime]) || ! in_array($extension, $allowed[$mime], true)) {

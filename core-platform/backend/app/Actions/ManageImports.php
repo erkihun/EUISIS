@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 /**
  * The business import lifecycle (ADR 0009): upload → (queued) validation and
@@ -70,7 +71,9 @@ final readonly class ManageImports
         if (! isset(self::FILES[$extension]) || ! in_array($mime, self::FILES[$extension], true) || ($extension === 'xlsx' && ! $this->isWorkbook($file))) {
             throw ValidationException::withMessages(['file' => 'Upload a CSV file or an Excel workbook (.xlsx) without macros.']);
         }
-        $header = rescue(fn () => ImportReader::header($file->getRealPath(), $extension), [], false);
+        // An unreadable file is the uploader's problem ("lacks these columns"); anything else (a missing class, a
+        // broken disk) is reported, so it is not hidden behind that message (ADR 0012).
+        $header = rescue(fn () => ImportReader::header($file->getRealPath(), $extension), [], fn (Throwable $e): bool => ! str_starts_with($e::class, 'OpenSpout\\'));
         $missing = array_diff(self::definition($type)->columns(), $header);
         if ($missing !== []) {
             throw ValidationException::withMessages(['file' => 'The file lacks these columns: '.implode(', ', $missing).'. Start from the template.']);

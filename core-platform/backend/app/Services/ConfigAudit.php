@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
+
 /**
  * The production configuration review (ADR 0011): each setting the Core
  * relies on, read from the running configuration (never a secret's value),
@@ -31,7 +33,10 @@ final class ConfigAudit
         $nationalKey = (string) config('core.national_id_hash_key');
         $headDisk = (string) config('core.audit_head_disk');
         $backup = app(BackupStatus::class)->check();
-        $scheduler = app(SystemHealth::class)->scheduler();
+        // The scheduler's heartbeat: its most recent run of any task. Every task's own lateness is System Health's
+        // concern; requiring them all here would refuse every release that adds a task (ADR 0012).
+        $lastRun = collect(array_keys(SystemHealth::SCHEDULED))->map(fn (string $c): ?string => Cache::get('core.scheduler.'.$c))->filter()->max();
+        $heartbeat = $lastRun === null ? null : (int) now()->diffInMinutes($lastRun, true);
         $shared = $this->sharedKeys($credentials, $sealKey, $nationalKey);
         $exposed = $this->exposedDisks();
         $check = fn (string $key, bool $ok, string $value, string $advice, bool $warnOnly = false): array => [
@@ -75,8 +80,8 @@ final class ConfigAudit
                 'Have the backup tooling write its status file and point CORE_BACKUP_STATUS_FILE at it.', ! $production),
             $check('BACKUP_STATUS', $backup['status'] === 'healthy', $backup['status'],
                 'The last backup must have succeeded within CORE_BACKUP_MAX_AGE_HOURS and its restore test passed (System Health › Backups).', ! $production || $backup['status'] === 'warning'),
-            $check('SCHEDULER', $scheduler['status'] === 'ok', $scheduler['status'],
-                'Run the scheduler every minute (schedule:run from cron or schedule:work under a supervisor); every scheduled command must have run recently.', ! $production),
+            $check('SCHEDULER', $heartbeat !== null && $heartbeat <= 10, $heartbeat === null ? 'never ran' : "last task {$heartbeat} min ago",
+                'Run the scheduler every minute (schedule:run from cron or schedule:work under a supervisor).', ! $production),
             $check('PRIVATE_STORAGE', $exposed === [], $exposed === [] ? 'private' : 'exposed: '.implode(', ', $exposed),
                 'Evidence, imports, exports and seal heads must stay on private disks outside the public web root.'),
             $check('CORE_MONITOR_TOKEN', strlen((string) config('core.monitor_token')) >= 32, (string) config('core.monitor_token') === '' ? '(not set)' : (strlen((string) config('core.monitor_token')) >= 32 ? 'set' : 'too short'),

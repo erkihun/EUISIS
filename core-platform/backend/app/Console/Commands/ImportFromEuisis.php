@@ -76,7 +76,7 @@ class ImportFromEuisis extends Command
             foreach (self::MASTERS as $table) {
                 if ($source->getSchemaBuilder()->hasTable($table) && ! DB::table($table)->exists()) {
                     $columns = array_values(array_intersect(Schema::getColumnListing($table), $source->getSchemaBuilder()->getColumnListing($table)));
-                    $source->table($table)->select($columns)->orderBy('id')->chunk($chunk, fn ($batch) => DB::table($table)->insert($batch->map(fn ($row): array => (array) $row)->all()));
+                    $source->table($table)->select($columns)->chunkById($this->rowsPerInsert($chunk, $columns), fn ($batch) => DB::table($table)->insert($batch->map(fn ($row): array => (array) $row)->all()));
                     $rows[] = [$table, DB::table($table)->count()];
                 }
             }
@@ -94,7 +94,7 @@ class ImportFromEuisis extends Command
 
                 $deferred = array_values(array_intersect(self::DEFERRED[$table] ?? [], $columns));
                 $copied = 0;
-                $source->table($table)->select($columns)->orderBy('id')->chunk($chunk, function ($batch) use ($table, $deferred, &$copied): void {
+                $source->table($table)->select($columns)->chunkById($this->rowsPerInsert($chunk, $columns), function ($batch) use ($table, $deferred, &$copied): void {
                     DB::table($table)->insert($batch->map(fn ($row): array => array_merge((array) $row, array_fill_keys($deferred, null)))->all());
                     $copied += $batch->count();
                 });
@@ -124,5 +124,17 @@ class ImportFromEuisis extends Command
         $this->info('Done. Compare fingerprints with core:snapshot before any switch.');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Rows per insert: the --chunk asked for, but never more bound values than the
+     * database takes in one statement (PostgreSQL: 65,535). A wide table such as
+     * id_cards (35 columns) with --chunk=2000 would otherwise fail part-way (ADR 0012).
+     *
+     * @param  list<string>  $columns
+     */
+    private function rowsPerInsert(int $chunk, array $columns): int
+    {
+        return max(1, min($chunk, intdiv(60000, max(1, count($columns)))));
     }
 }

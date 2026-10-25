@@ -58,8 +58,10 @@ class CoreGoLiveOperationsTest extends TestCase
             'core.national_id_hash_key' => Str::random(48),
             'core.audit_head_disk' => 'audit_heads',
         ]);
+        // The scheduler counts as running on its heartbeat: one task that ran lately, even if a new task has not run yet.
+        SystemHealth::recordRun('core:deliver-webhooks');
         $audit = $this->audit();
-        foreach (['CORE_CREDENTIAL_KEYS', 'CORE_AUDIT_SEAL_KEY', 'NATIONAL_ID_HASH_KEY', 'KEY_INDEPENDENCE', 'CORE_AUDIT_HEAD_DISK', 'PRIVATE_STORAGE'] as $key) {
+        foreach (['CORE_CREDENTIAL_KEYS', 'CORE_AUDIT_SEAL_KEY', 'NATIONAL_ID_HASH_KEY', 'KEY_INDEPENDENCE', 'CORE_AUDIT_HEAD_DISK', 'PRIVATE_STORAGE', 'SCHEDULER'] as $key) {
             $this->assertSame('pass', $audit[$key], $key);
         }
 
