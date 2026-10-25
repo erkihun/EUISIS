@@ -1,9 +1,11 @@
 <?php
 
+use App\Actions\ManageHierarchyVersion;
 use App\Http\Controllers\Web\CardController;
 use App\Http\Controllers\Web\CoreController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\HierarchyController;
+use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCheckerController;
 use App\Http\Controllers\Web\MfaController;
 use App\Http\Controllers\Web\OrganizationController;
@@ -120,11 +122,24 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/organization-units/{organizationUnit}/restore', [OrganizationUnitController::class, 'restore'])->middleware('can:organization-units.restore')->name('organization-units.restore');
     });
 
-    // The published hierarchy (versions are prepared in EUISIS)
+    // The hierarchy: every reader sees the versions; city-wide administrators govern drafts (ADR 0008)
     Route::middleware('can:hierarchy-versions.viewAny')->group(function (): void {
         Route::get('/hierarchy-versions', [HierarchyController::class, 'index'])->name('hierarchy-versions.index');
+        Route::get('/hierarchy-versions/create', [HierarchyVersionController::class, 'create'])->name('hierarchy-versions.create');
+        Route::post('/hierarchy-versions', [HierarchyVersionController::class, 'store'])->name('hierarchy-versions.store');
         Route::get('/hierarchy-versions/{hierarchyVersion}', [HierarchyController::class, 'show'])->name('hierarchy-versions.show');
+        Route::get('/hierarchy-versions/{hierarchyVersion}/edit', [HierarchyVersionController::class, 'edit'])->name('hierarchy-versions.edit');
+        Route::match(['put', 'patch'], '/hierarchy-versions/{hierarchyVersion}', [HierarchyVersionController::class, 'update'])->name('hierarchy-versions.update');
+        foreach (ManageHierarchyVersion::TRANSITIONS as $transition) {
+            Route::post("/hierarchy-versions/{hierarchyVersion}/{$transition}", [HierarchyVersionController::class, 'transition'])
+                ->defaults('transition', $transition)->name("hierarchy-versions.{$transition}");
+        }
         Route::get('/hierarchy-versions/{hierarchyVersion}/tree', [HierarchyController::class, 'tree'])->name('hierarchy-versions.tree');
+        Route::get('/hierarchy-versions/{hierarchyVersion}/tree/edit', [HierarchyVersionController::class, 'editTree'])->name('hierarchy-versions.tree.edit');
+        Route::get('/hierarchy-versions/{hierarchyVersion}/organization-options', [HierarchyVersionController::class, 'organizationOptions'])->name('hierarchy-versions.organization-options');
+        Route::post('/hierarchy-versions/{hierarchyVersion}/edges', [HierarchyVersionController::class, 'storeEdge'])->name('hierarchy-versions.edges.store');
+        Route::patch('/hierarchy-versions/{hierarchyVersion}/edges/{organizationEdge}', [HierarchyVersionController::class, 'updateEdge'])->name('hierarchy-versions.edges.update');
+        Route::delete('/hierarchy-versions/{hierarchyVersion}/edges/{organizationEdge}', [HierarchyVersionController::class, 'destroyEdge'])->name('hierarchy-versions.edges.destroy');
     });
 
     // Positions and establishments

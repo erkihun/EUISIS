@@ -25,7 +25,7 @@ export const PAGES = [
     'OrganizationTypes/Index', 'OrganizationTypes/Show', 'OrganizationTypes/Create', 'OrganizationTypes/Edit',
     'OrganizationUnits/Index', 'OrganizationUnits/Show', 'OrganizationUnits/Create', 'OrganizationUnits/Edit',
     'OrganizationUnitTypes/Index', 'OrganizationUnitTypes/Show', 'OrganizationUnitTypes/Create', 'OrganizationUnitTypes/Edit',
-    'HierarchyVersions/Index', 'HierarchyVersions/Show', 'HierarchyVersions/Tree',
+    'HierarchyVersions/Index', 'HierarchyVersions/Show', 'HierarchyVersions/Tree', 'HierarchyVersions/Create', 'HierarchyVersions/Edit', 'HierarchyVersions/EditTree',
     'Positions/Index', 'Positions/Show', 'Positions/Create', 'Positions/Edit', 'Positions/Status',
     'PositionEstablishments/Index', 'PositionEstablishments/Show', 'PositionEstablishments/Edit',
     'Employees/Index', 'Employees/Show', 'Employees/Create', 'Employees/Edit',

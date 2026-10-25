@@ -15,15 +15,16 @@ use Illuminate\Support\Facades\DB;
 /**
  * A hierarchy version as the node tree of EUISIS HierarchyTreeService
  * (organizations, their child organizations by edge, then their units),
- * cut to the reader's organizations. Read only: the Core does not edit
- * versions (ADR 0006), so no node offers edit, remove or add.
+ * cut to the reader's organizations. Nodes and edges offer edit, remove and
+ * add only for a draft a city-wide administrator is editing (ADR 0008); the
+ * changes themselves go through ManageHierarchyVersion.
  */
 final class HierarchyTree
 {
     public function __construct(private readonly OrganizationScope $scope) {}
 
     /** @return list<array<string, mixed>> */
-    public function build(HierarchyVersion $version, User $user, bool $includeUnits = true, bool $includeInactive = false): array
+    public function build(HierarchyVersion $version, User $user, bool $includeUnits = true, bool $includeInactive = false, bool $editable = false): array
     {
         $edges = OrganizationEdge::query()->where('hierarchy_version_id', $version->id)
             ->get(['id', 'parent_organization_id', 'child_organization_id', 'relationship_type', 'effective_from', 'effective_to']);
@@ -74,7 +75,7 @@ final class HierarchyTree
             ];
         };
 
-        $orgNode = function (string $id, int $depth, ?OrganizationEdge $edge, array $path) use (&$orgNode, $organizations, $childrenByParent, $unitsByOrg, $positionsByOrg, $employeesByOrg, $rootUnitCount, $unitNode, $none): array {
+        $orgNode = function (string $id, int $depth, ?OrganizationEdge $edge, array $path) use (&$orgNode, $organizations, $childrenByParent, $unitsByOrg, $positionsByOrg, $employeesByOrg, $rootUnitCount, $unitNode, $none, $editable): array {
             $organization = $organizations->get($id);
             if ($organization === null || in_array($id, $path, true)) {
                 return [];
@@ -98,7 +99,7 @@ final class HierarchyTree
                 'organization_type' => $type ? $type->only(['code', 'name_en', 'name_am']) : null,
                 'logo_url' => null, 'depth' => $depth, 'child_count' => count($children),
                 'relationship_type' => $edge?->relationship_type, 'effective_from' => $edge?->effective_from?->toDateString(), 'effective_to' => $edge?->effective_to?->toDateString(),
-                'can' => $none,
+                'can' => $editable ? ['edit' => $edge !== null, 'remove' => $edge !== null, 'addChild' => true] : $none,
             ];
         };
 
@@ -132,7 +133,7 @@ final class HierarchyTree
      *
      * @return list<array<string, mixed>>
      */
-    public function edges(HierarchyVersion $version, ?User $reader = null): array
+    public function edges(HierarchyVersion $version, ?User $reader = null, bool $editable = false): array
     {
         $allowed = $reader === null ? null : $this->scope->organizationIds($reader);
         $edges = OrganizationEdge::query()->where('hierarchy_version_id', $version->id)
@@ -153,7 +154,7 @@ final class HierarchyTree
             'effective_to' => $edge->effective_to?->toDateString(),
             'parent_organization' => $side($organizations->get($edge->parent_organization_id)),
             'child_organization' => $side($organizations->get($edge->child_organization_id)),
-            'can' => ['view' => true, 'update' => false, 'remove' => false],
+            'can' => ['view' => true, 'update' => $editable, 'remove' => $editable],
         ])->values()->all();
     }
 

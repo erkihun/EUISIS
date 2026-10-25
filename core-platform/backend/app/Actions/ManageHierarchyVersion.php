@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Models\CoreAuditLog;
 use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
@@ -23,7 +24,8 @@ use Illuminate\Validation\ValidationException;
  * administrator, and publication on its effective date (the version in force
  * becomes archived and stays queryable; history is never rewritten). Each step
  * records the impact on organizations, units, positions, placements and scoped
- * accounts. A review or approval can be sent back to draft.
+ * accounts. A review or approval can be sent back to draft. The approver is a
+ * city-wide administrator who did not prepare, change or submit the version.
  *
  * The immediate parent change of the organization form is kept for daily work:
  * it publishes a snapshot of the structure with the change, once per day.
@@ -51,6 +53,24 @@ final readonly class ManageHierarchyVersion
                 $this->copyEdges($base, $version);
             }
             $this->audit->write('hierarchy.created', $actor, $version, null, null, $version->only(['version_name', 'base_version_id', 'status']));
+
+            return $version;
+        }, 3);
+    }
+
+    /** The draft's own details (name, effective date, legal basis, source, notes); its relationships change with changeParent. */
+    public function updateDraft(HierarchyVersion $version, array $data, User $actor): HierarchyVersion
+    {
+        $this->authorize($actor);
+
+        return DB::transaction(function () use ($version, $data, $actor): HierarchyVersion {
+            $this->lockVersions();
+            $version = HierarchyVersion::query()->findOrFail($version->id);
+            $this->requireStatus($version, 'draft');
+            $fields = array_keys($data);
+            $old = $version->only($fields);
+            $version->fill($data)->save();
+            $this->audit->write('hierarchy.updated', $actor, $version, null, $old, $version->only($fields));
 
             return $version;
         }, 3);
@@ -97,18 +117,14 @@ final readonly class ManageHierarchyVersion
                 $version->fill(['status' => 'review', 'reviewed_by' => $actor->id, 'reviewed_at' => now()]);
             } elseif ($transition === 'approve') {
                 $this->requireStatus($version, 'review');
-                if ((int) $version->created_by === (int) $actor->id) {
-                    throw ValidationException::withMessages(['status' => 'A different administrator must approve the hierarchy.']);
+                if (($refusal = $this->approvalRefusal($version, $actor)) !== null) {
+                    throw ValidationException::withMessages(['status' => $refusal]);
                 }
                 $version->fill(['status' => 'approved', 'approved_by' => $actor->id, 'approval_date' => now()]);
             } elseif ($transition === 'publish') {
                 $this->requireStatus($version, 'approved');
-                if ($version->effective_from === null || ! $version->effective_from->isToday()) {
-                    throw ValidationException::withMessages(['effective_from' => 'Publish on the effective date; retrospective and scheduled publication are not supported.']);
-                }
-                $current = HierarchyVersion::current();
-                if ((string) $version->base_version_id !== (string) $current?->id) {
-                    throw ValidationException::withMessages(['status' => 'The published hierarchy changed. Create and review a new version from the current hierarchy.']);
+                if (($refusal = $this->publicationRefusal($version)) !== null) {
+                    throw ValidationException::withMessages([$refusal[0] => $refusal[1]]);
                 }
                 $this->archivePublished();
                 $version->status = HierarchyVersion::PUBLISHED;
@@ -185,9 +201,42 @@ final readonly class ManageHierarchyVersion
         ];
     }
 
+    /** Why this administrator may not approve the version (separation of duties), or null; the screens show the same answer. */
+    public function approvalRefusal(HierarchyVersion $version, User $actor): ?string
+    {
+        $prepared = (int) $version->created_by === (int) $actor->id || (int) $version->reviewed_by === (int) $actor->id
+            || CoreAuditLog::query()->where('subject_type', class_basename($version))->where('subject_id', (string) $version->id)
+                ->whereIn('action', ['hierarchy.parent_changed', 'hierarchy.updated'])->where('actor_user_id', $actor->id)->exists();
+
+        return $prepared ? 'A different administrator must approve the hierarchy: one who did not prepare, change or submit it.' : null;
+    }
+
+    /**
+     * Why an approved version cannot be published now, as [field, message], or null.
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    public function publicationRefusal(HierarchyVersion $version): ?array
+    {
+        if ($version->effective_from === null || ! $version->effective_from->isToday()) {
+            return ['effective_from', 'Publish on the effective date; retrospective and scheduled publication are not supported.'];
+        }
+        if ((string) $version->base_version_id !== (string) HierarchyVersion::current()?->id) {
+            return ['status', 'The published hierarchy changed. Create and review a new version from the current hierarchy.'];
+        }
+
+        return null;
+    }
+
+    /** Only a city-wide administrator governs the hierarchy. */
+    public static function governs(?User $user): bool
+    {
+        return $user !== null && $user->is_active && $user->role === 'core_admin' && $user->isCityWide();
+    }
+
     private function authorize(User $actor): void
     {
-        abort_unless($actor->is_active && $actor->role === 'core_admin' && $actor->isCityWide(), 403);
+        abort_unless(self::governs($actor), 403);
     }
 
     private function lockVersions(): void
