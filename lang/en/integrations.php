@@ -29,4 +29,12 @@ return [
         'test_failed' => 'Test event failed (HTTP :status, :category).',
         'replayed' => ':count event(s) queued for replay.',
     ],
+    'client_created' => 'API client registered. Copy its secret now; it is not shown again.',
+    'client_updated' => 'API client updated.',
+    'client_rotated' => 'A new secret was issued and the old one stopped working. Copy it now; it is not shown again.',
+    'client_revoked' => 'API client revoked. It can no longer call the Core.',
+    'webhook_created' => 'Webhook registered. Copy its signing secret now; it is not shown again.',
+    'webhook_updated' => 'Webhook updated.',
+    'webhook_rotated' => 'A new signing secret was issued. Copy it now; it is not shown again.',
+    'delivery_retried' => 'The delivery is queued to be sent again.',
 ];

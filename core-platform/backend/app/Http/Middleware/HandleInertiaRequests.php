@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\Web\IntegrationCenterController;
 use App\Http\Controllers\Web\MfaController;
 use App\Models\User;
 use App\Services\CoreNavigation;
@@ -84,6 +85,8 @@ class HandleInertiaRequests extends Middleware
                 'temporary_password' => session('flash.temporary_password'),
                 // Shown once on the MFA page right after enrolment; never kept in the session longer.
                 'mfa_recovery_codes_once' => session(MfaController::SESSION_RECOVERY_CODES),
+                // A created or rotated integration secret, on the page the action returns to; never again.
+                'integration_secret_once' => session(IntegrationCenterController::SECRET_FLASH),
             ],
             'password_policy' => fn (): array => ['min_length' => app(CoreSettings::class)->int('security.password_min_length'), 'max_length' => 128, 'history_count' => app(CoreSettings::class)->int('security.password_history_count'), 'blocks_personal_information' => true, 'blocks_common_passwords' => false, 'checks_breaches' => false],
         ];

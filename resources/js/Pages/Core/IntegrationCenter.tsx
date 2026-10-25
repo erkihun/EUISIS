@@ -9,6 +9,8 @@ import { buttonClassName } from '@/Components/ui';
 import { Card, EmptyState, Table, TBody, THead, Td, Th, Tr } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { formatNumber } from '@/utils/displayFormat';
+import IntegrationWorkspace from '@/Components/coreIntegration/IntegrationWorkspace';
+import type { IntegrationCenterData } from '@/Components/coreIntegration/types';
 
 interface ApplicationRow {
     id: string;
@@ -28,20 +30,23 @@ interface Props {
     applications: ApplicationRow[] | null;
     events: EventFigures | null;
     can: { applications: boolean; events: boolean };
+    /** The standalone Core's own center (API clients, webhooks, deliveries, events, API calls), where the server offers it. */
+    center?: IntegrationCenterData | null;
 }
 
 /**
  * Core › Integration Center: partner applications and the event pipeline on one page.
  * No secret or token is ever sent here; details open on the existing screens.
  */
-export default function CoreIntegrationCenter({ applications, events, can }: Props) {
+export default function CoreIntegrationCenter({ applications, events, can, center = null }: Props) {
     const { t } = useLocale();
     const figure = (value: number | string | null | undefined) => (value === null || value === undefined ? t('core.none') : typeof value === 'number' ? formatNumber(value) : value);
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('core.integration.title')} description={t('core.integration.description')} />}>
+        <AuthenticatedLayout header={<PageHeader title={t('core.integration.title')} description={t(center ? 'core.integration.center.description' : 'core.integration.description')} />}>
             <Head title={t('core.integration.title')} />
 
+            {center ? <IntegrationWorkspace center={center} /> : (
             <div className="space-y-6">
                 {events && (
                     <section aria-labelledby="integration-events" className="space-y-3">
@@ -109,6 +114,7 @@ export default function CoreIntegrationCenter({ applications, events, can }: Pro
                     <Card><EmptyState icon={<NetworkIcon className="h-8 w-8" />} title={t('core.emptyTitle')} description={t('core.emptyDescription')} /></Card>
                 )}
             </div>
+            )}
         </AuthenticatedLayout>
     );
 }

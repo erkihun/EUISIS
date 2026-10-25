@@ -43,8 +43,8 @@ final class CorePermissions
         'audit.view',
     ];
 
-    /** Core-wide settings and deleting organizations: a city-wide administrator only (EnsureCoreUser city-admin). */
-    private const CITY_ADMIN = ['system-settings.view', 'system-settings.update', 'organizations.delete'];
+    /** Core-wide settings, the Integration Center and deleting organizations: a city-wide administrator only (EnsureCoreUser city-admin). */
+    private const CITY_ADMIN = ['system-settings.view', 'system-settings.update', 'organizations.delete', 'integrations.view', 'api_management.view'];
 
     /** @return list<string> */
     public static function for(?User $user): array

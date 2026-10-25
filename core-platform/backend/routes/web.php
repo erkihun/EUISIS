@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\HierarchyController;
 use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCheckerController;
+use App\Http\Controllers\Web\IntegrationCenterController;
 use App\Http\Controllers\Web\MfaController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationUnitController;
@@ -60,6 +61,19 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/data-quality', [CoreController::class, 'dataQuality'])->middleware('can:audit.view')->name('data-quality');
         Route::get('/settings', [CoreController::class, 'settings'])->middleware('can:system-settings.view')->name('settings');
         Route::post('/exit', [SessionController::class, 'exitCore'])->name('exit');
+
+        // The Integration Center: city-wide administrators only (CorePermissions CITY_ADMIN).
+        Route::middleware('can:integrations.view')->prefix('integration')->name('integration')->group(function (): void {
+            Route::get('/', [IntegrationCenterController::class, 'show']);
+            Route::post('/clients', [IntegrationCenterController::class, 'storeClient'])->name('.clients.store');
+            Route::put('/clients/{apiClient}', [IntegrationCenterController::class, 'updateClient'])->name('.clients.update');
+            Route::post('/clients/{apiClient}/rotate', [IntegrationCenterController::class, 'rotateClient'])->middleware('throttle:10,1')->name('.clients.rotate');
+            Route::post('/clients/{apiClient}/revoke', [IntegrationCenterController::class, 'revokeClient'])->name('.clients.revoke');
+            Route::post('/webhooks', [IntegrationCenterController::class, 'storeWebhook'])->name('.webhooks.store');
+            Route::put('/webhooks/{webhook}', [IntegrationCenterController::class, 'updateWebhook'])->name('.webhooks.update');
+            Route::post('/webhooks/{webhook}/rotate-secret', [IntegrationCenterController::class, 'rotateWebhook'])->middleware('throttle:10,1')->name('.webhooks.rotate');
+            Route::post('/deliveries/{delivery}/retry', [IntegrationCenterController::class, 'retryDelivery'])->middleware('throttle:30,1')->name('.deliveries.retry');
+        });
     });
 
     Route::middleware('can:system-settings.view')->group(function (): void {

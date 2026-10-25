@@ -47,7 +47,9 @@ return [
     |
     */
 
-    'encrypt' => env('SESSION_ENCRYPT', false),
+    // On by default (ADR 0008): a one-time secret (recovery codes, an API or webhook secret) passes
+    // through the session between the action and the page that shows it.
+    'encrypt' => env('SESSION_ENCRYPT', true),
 
     /*
     |--------------------------------------------------------------------------
