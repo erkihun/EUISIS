@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -27,6 +28,10 @@ class RequestCorrelationId
 
         // Make it available globally for the current request cycle.
         app()->instance('correlation_id', $correlationId);
+
+        // Every log line of this request carries it, and so do the queued jobs it
+        // dispatches (Laravel Context is restored in the worker): HTTP -> job -> log.
+        Context::add('request_id', $correlationId);
 
         $response = $next($request);
 

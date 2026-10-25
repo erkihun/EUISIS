@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands\Core;
 
 use Illuminate\Console\Command;
+use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use JsonException;
@@ -16,14 +18,22 @@ use JsonException;
  * database engine are identical; any added, missing or changed identifier,
  * status or pointer shows up as a different checksum.
  *
- * Read-only. Prints identifiers' hashes only, never values.
+ * Each table also records its status distribution (counts per status value), so
+ * a difference can be read as "3 more active cards" rather than only "changed".
+ *
+ * Read-only. Prints identifiers' hashes and status counts only, never values.
  *
  *   php artisan core:snapshot --output=before.json
  *   php artisan core:snapshot --compare=before.json   (exit 1 on any difference)
+ *   php artisan core:snapshot --connection=core_target --compare=source.json
+ *     (Stage 4 physical separation: fingerprint the copy on another database)
  */
 class CoreSnapshot extends Command
 {
-    protected $signature = 'core:snapshot {--output= : Write the snapshot JSON to this file} {--compare= : Compare with a snapshot file and fail on any difference}';
+    protected $signature = 'core:snapshot {--output= : Write the snapshot JSON to this file} {--compare= : Compare with a snapshot file and fail on any difference} {--connection= : Database connection to read (default: the application connection)}';
+
+    /** Columns whose value distribution is recorded per table. */
+    private const STATUS_COLUMNS = ['status', 'assignment_status'];
 
     protected $description = 'Fingerprint the Golden Path tables (counts and checksums) for migration and cutover validation; read-only';
 
@@ -47,11 +57,22 @@ class CoreSnapshot extends Command
 
     private const CHUNK = 2000;
 
+    private ConnectionInterface $db;
+
     public function handle(): int
     {
-        $snapshot = ['taken_at' => now()->toIso8601String(), 'tables' => []];
+        $connection = $this->option('connection');
+        if ($connection !== null && config('database.connections.'.$connection) === null) {
+            $this->error('Unknown database connection '.$connection.'.');
+
+            return self::FAILURE;
+        }
+        $this->db = DB::connection($connection);
+        $schema = Schema::connection($connection);
+
+        $snapshot = ['taken_at' => now()->toIso8601String(), 'connection' => $this->db->getName(), 'tables' => []];
         foreach (self::TABLES as $table => $columns) {
-            $snapshot['tables'][$table] = Schema::hasTable($table) ? $this->fingerprint($table, $columns) : null;
+            $snapshot['tables'][$table] = $schema->hasTable($table) ? $this->fingerprint($table, $columns, $schema) : null;
         }
 
         $json = (string) json_encode($snapshot, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -73,18 +94,18 @@ class CoreSnapshot extends Command
 
     /**
      * @param  list<string>  $columns
-     * @return array{count: int, sha256: string}
+     * @return array{count: int, sha256: string, statuses?: array<string, array<string, int>>}
      */
-    private function fingerprint(string $table, array $columns): array
+    private function fingerprint(string $table, array $columns, Builder $schema): array
     {
-        $columns = array_values(array_filter($columns, fn (string $column): bool => Schema::hasColumn($table, $column)));
+        $columns = array_values(array_filter($columns, fn (string $column): bool => $schema->hasColumn($table, $column)));
         $hash = hash_init('sha256');
         $count = 0;
         $lastId = null;
 
         // Keyset paging by id: the same order on every engine, constant memory at any size.
         do {
-            $rows = DB::table($table)->select($columns)
+            $rows = $this->db->table($table)->select($columns)
                 ->when($lastId !== null, fn ($query) => $query->where('id', '>', $lastId))
                 ->orderBy('id')
                 ->limit(self::CHUNK)
@@ -97,7 +118,20 @@ class CoreSnapshot extends Command
             }
         } while ($rows->count() === self::CHUNK);
 
-        return ['count' => $count, 'sha256' => hash_final($hash)];
+        $result = ['count' => $count, 'sha256' => hash_final($hash)];
+
+        foreach (array_intersect(self::STATUS_COLUMNS, $columns) as $statusColumn) {
+            $distribution = $this->db->table($table)
+                ->selectRaw($statusColumn.' as value, count(*) as total')
+                ->groupBy($statusColumn)
+                ->get()
+                ->mapWithKeys(fn ($row): array => [$this->normalise($row->value) => (int) $row->total])
+                ->sortKeys()
+                ->all();
+            $result['statuses'][$statusColumn] = $distribution;
+        }
+
+        return $result;
     }
 
     /** One spelling per value on every engine: booleans as 0/1, dates as Y-m-d, null as empty. */
@@ -123,15 +157,33 @@ class CoreSnapshot extends Command
         }
 
         $rows = [];
+        $statusRows = [];
         $differences = 0;
         foreach (self::TABLES as $table => $columns) {
             $before = $previous['tables'][$table] ?? null;
             $after = $current['tables'][$table] ?? null;
-            $same = $before == $after;
+            // Count and checksum decide; the status distribution explains a difference
+            // (and is absent from snapshots taken before it was recorded).
+            $same = ($before['count'] ?? null) === ($after['count'] ?? null) && ($before['sha256'] ?? null) === ($after['sha256'] ?? null);
             $differences += $same ? 0 : 1;
             $rows[] = [$table, $before['count'] ?? '-', $after['count'] ?? '-', $same ? 'same' : 'DIFFERENT'];
+
+            foreach ($after['statuses'] ?? [] as $column => $distribution) {
+                $was = $before['statuses'][$column] ?? null;
+                if ($was === null) {
+                    continue;
+                }
+                foreach (array_unique([...array_keys($was), ...array_keys($distribution)]) as $value) {
+                    if (($was[$value] ?? 0) !== ($distribution[$value] ?? 0)) {
+                        $statusRows[] = [$table, $column, $value === '' ? '(none)' : $value, $was[$value] ?? 0, $distribution[$value] ?? 0];
+                    }
+                }
+            }
         }
         $this->table(['Table', 'Before', 'Now', 'Checksum'], $rows);
+        if ($statusRows !== []) {
+            $this->table(['Table', 'Column', 'Value', 'Before', 'Now'], $statusRows);
+        }
 
         if ($differences > 0) {
             $this->error($differences.' table(s) differ from '.$path.'.');

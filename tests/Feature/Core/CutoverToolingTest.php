@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Console\Commands\Core\CoreSnapshot;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Context;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 /*
@@ -65,4 +68,50 @@ it('fingerprints the Golden Path tables and detects any change against an earlie
         ->and(Artisan::output())->toContain('DIFFERENT');
 
     @unlink($file);
+});
+
+it('rehearses a database move: the copy on another connection matches, and a drift is explained by status', function (): void {
+    if (DB::getDriverName() !== 'sqlite') {
+        $this->markTestSkipped('The rehearsal copies tables through SQLite DDL.');
+    }
+    Employee::query()->create(['employee_number' => 'CT-R1', 'first_name' => 'Re', 'last_name' => 'Hearsal', 'full_name' => 'Re Hearsal', 'status' => EmployeeStatus::Active->value]);
+    Employee::query()->create(['employee_number' => 'CT-R2', 'first_name' => 'Co', 'last_name' => 'Py', 'full_name' => 'Co Py', 'status' => EmployeeStatus::Active->value]);
+
+    // The target database: a separate SQLite file holding a copy of every Golden Path table.
+    $target = storage_path('framework/testing/core-target-'.getmypid().'.sqlite');
+    @unlink($target);
+    touch($target);
+    config(['database.connections.core_target' => ['driver' => 'sqlite', 'database' => $target, 'foreign_key_constraints' => false]]);
+    foreach (array_keys(CoreSnapshot::TABLES) as $table) {
+        $ddl = DB::selectOne("select sql from sqlite_master where type = 'table' and name = ?", [$table])?->sql;
+        if ($ddl === null) {
+            continue;
+        }
+        DB::connection('core_target')->statement($ddl);
+        foreach (DB::table($table)->get() as $row) {
+            DB::connection('core_target')->table($table)->insert((array) $row);
+        }
+    }
+
+    $source = storage_path('framework/testing/core-source-'.getmypid().'.json');
+    expect(Artisan::call('core:snapshot', ['--output' => $source]))->toBe(0);
+    expect(json_decode((string) file_get_contents($source), true)['tables']['employees']['statuses']['status'])->toBe(['active' => 2]);
+    expect(Artisan::call('core:snapshot', ['--connection' => 'core_target', '--compare' => $source]))->toBe(0);
+
+    DB::connection('core_target')->table('employees')->where('employee_number', 'CT-R2')->update(['status' => EmployeeStatus::Suspended->value]);
+    expect(Artisan::call('core:snapshot', ['--connection' => 'core_target', '--compare' => $source]))->toBe(1)
+        ->and(Artisan::output())->toContain('DIFFERENT')->toContain('suspended');
+
+    expect(Artisan::call('core:snapshot', ['--connection' => 'nowhere']))->toBe(1);
+
+    DB::purge('core_target');
+    @unlink($target);
+    @unlink($source);
+});
+
+it('carries the request id into the log context of the request', function (): void {
+    $response = $this->withHeader('X-Request-ID', 'cutover-trace-1')->get('/health/live');
+
+    expect($response->headers->get('X-Request-ID'))->toBe('cutover-trace-1')
+        ->and(Context::get('request_id'))->toBe('cutover-trace-1');
 });
