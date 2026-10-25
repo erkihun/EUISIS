@@ -3,6 +3,7 @@
 use App\Actions\ManageHierarchyVersion;
 use App\Http\Controllers\Web\CardController;
 use App\Http\Controllers\Web\CoreController;
+use App\Http\Controllers\Web\DuplicateReviewController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeEvidenceController;
 use App\Http\Controllers\Web\HierarchyController;
@@ -62,6 +63,12 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/data-quality', [CoreController::class, 'dataQuality'])->middleware('can:audit.view')->name('data-quality');
         Route::get('/settings', [CoreController::class, 'settings'])->middleware('can:system-settings.view')->name('settings');
         Route::post('/exit', [SessionController::class, 'exitCore'])->name('exit');
+
+        // The duplicate review queue (ADR 0009); the review binding is scoped by the flagged employee.
+        Route::middleware('can:employees.duplicates.review')->group(function (): void {
+            Route::get('/duplicates', [DuplicateReviewController::class, 'index'])->name('duplicates');
+            Route::post('/duplicates/{duplicateReview}/decide', [DuplicateReviewController::class, 'decide'])->name('duplicates.decide');
+        });
 
         // The Integration Center: city-wide administrators only (CorePermissions CITY_ADMIN).
         Route::middleware('can:integrations.view')->prefix('integration')->name('integration')->group(function (): void {

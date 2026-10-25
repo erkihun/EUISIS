@@ -67,6 +67,8 @@ final class CoreNavigation
                     'items' => [
                         ['route' => 'employees.index', 'label_key' => 'nav.employees', 'icon' => 'Users', 'permission' => 'employees.view'],
                         ['route' => 'core.assignments', 'label_key' => 'core.nav.assignments', 'icon' => 'ClipboardListIcon', 'permission' => 'employees.view'],
+                        // Core-only (ADR 0009): the duplicate review queue.
+                        ['route' => 'core.duplicates', 'label_key' => 'core.nav.duplicateReviews', 'icon' => 'FileSearchIcon', 'permission' => 'employees.duplicates.review'],
                         ['route' => 'employees.import.create', 'label_key' => 'nav.employeeImport', 'icon' => 'ImportIcon', 'permission' => 'employees.import.view'],
                         ['route' => 'employee-corrections.index', 'label_key' => 'nav.employeeCorrections', 'icon' => 'PenIcon', 'permission' => 'employees.manage'],
                     ],

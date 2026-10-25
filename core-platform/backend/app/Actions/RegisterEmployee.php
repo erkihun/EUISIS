@@ -17,7 +17,6 @@ use App\Services\SeatCapacity;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -40,6 +39,7 @@ final readonly class RegisterEmployee
         private AuditWriter $audit,
         private CodeGenerator $codes,
         private DuplicateEmployees $duplicates,
+        private ReviewEmployeeDuplicates $reviews,
     ) {}
 
     /**
@@ -126,21 +126,8 @@ final readonly class RegisterEmployee
             $this->audit->write('employee.registered', $actor, $employee, (string) $position->organization_id, null, [
                 'employee_number' => $employee->employee_number, 'position_id' => $position->id, 'assignment_id' => $assignment->id,
             ]);
-            foreach ($matches as $match) {
-                DB::table('employee_duplicate_reviews')->insert([
-                    'id' => (string) Str::uuid7(),
-                    'employee_id' => $employee->id,
-                    'matched_employee_id' => $match['employee_id'],
-                    'match_level' => $match['level'],
-                    'reasons' => json_encode($match['reasons']),
-                    'decision' => 'distinct',
-                    'reason' => $data['duplicate_reason'],
-                    'decided_by' => $actor->getKey(),
-                    'decided_at' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
+            // The registrar's "a different person" is a statement, not the decision: a reviewer decides (ADR 0009).
+            $this->reviews->record($employee, $matches, 'registration', $data['duplicate_reason'] ?? null, $actor);
             if ($matches !== []) {
                 $this->audit->write('employee.duplicate_override', $actor, $employee, (string) $position->organization_id, null, [
                     'matched_employee_numbers' => array_column($matches, 'employee_number'),

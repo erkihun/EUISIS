@@ -35,6 +35,8 @@ final class CorePermissions
         'employees.create', 'employees.update', 'employees.manage',
         // The verified-employee stage (ADR 0008): officers submit, verify and return; approval is an administrator's.
         'employees.submit', 'employees.verify', 'employees.return',
+        // The duplicate review queue (ADR 0009).
+        'employees.duplicates.review',
         'employee_documents.upload', 'employee_documents.verify', 'employee_documents.download', 'employee_documents.archive',
         'employee_photos.upload', 'employee_photos.verify',
         'employee_signatures.view', 'employee_signatures.upload', 'employee_signatures.verify',

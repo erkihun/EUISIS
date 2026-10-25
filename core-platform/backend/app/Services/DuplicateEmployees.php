@@ -54,7 +54,7 @@ final readonly class DuplicateEmployees
      * @param  array{full_name: string, date_of_birth?: ?string, phone?: ?string, email?: ?string}  $person
      * @return list<array{employee_id: string, employee_number: string, full_name: string, status: string, level: string, reasons: list<string>, in_scope: bool}>
      */
-    public function matches(array $person, User $actor): array
+    public function matches(array $person, User $actor, ?string $except = null): array
     {
         $name = self::normalizedName($person['full_name']);
         $dob = $person['date_of_birth'] ?? null;
@@ -72,6 +72,7 @@ final readonly class DuplicateEmployees
                     $q->orWhereRaw('lower(email) = ?', [$email]);
                 }
             })
+            ->when($except !== null, fn ($q) => $q->whereKeyNot($except))
             ->limit(20)
             ->get(['id', 'employee_number', 'full_name', 'status', 'date_of_birth', 'phone', 'email', 'current_assignment_id']);
 

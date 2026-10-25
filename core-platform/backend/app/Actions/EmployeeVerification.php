@@ -47,6 +47,7 @@ final readonly class EmployeeVerification
         private CoreSettings $settings,
         private DuplicateEmployees $duplicates,
         private EmployeeEvidence $evidence,
+        private ReviewEmployeeDuplicates $reviews,
     ) {}
 
     /**
@@ -92,10 +93,7 @@ final readonly class EmployeeVerification
                 throw ValidationException::withMessages(['checks' => 'Confirm every required check: '.implode(', ', $missing).'.']);
             }
             $this->assertEvidence($employee);
-            $open = $this->unreviewedMatches($employee, $actor);
-            if ($open !== []) {
-                throw ValidationException::withMessages(['employee' => 'Possible duplicates must be reviewed first: '.implode(', ', $open).'.']);
-            }
+            $this->assertNoOpenDuplicates($employee, $actor);
             $employee->forceFill([
                 'status' => Employee::VERIFIED, 'verification_status' => 'verified',
                 'verified_by' => $actor->getKey(), 'verified_at' => now(), 'verification_notes' => $notes,
@@ -142,6 +140,7 @@ final readonly class EmployeeVerification
                 throw ValidationException::withMessages(['employee' => 'The position must still be active and in an organization in service.']);
             }
             $this->assertEvidence($employee);
+            $this->assertNoOpenDuplicates($employee, $actor);
             if (! $this->seats->hasFreeSeat((string) $position->id)) {
                 throw ValidationException::withMessages(['employee' => 'This position is already occupied: it has no free seat.']);
             }
@@ -196,21 +195,31 @@ final readonly class EmployeeVerification
         }
     }
 
-    /** @return list<string> numbers of possible duplicates with no reviewer decision about the pair */
-    private function unreviewedMatches(Employee $employee, User $actor): array
+    /**
+     * Every possible duplicate is reviewed and none is confirmed (ADR 0009): a
+     * match with no review yet, an open review, or a confirmed duplicate stops it.
+     */
+    private function assertNoOpenDuplicates(Employee $employee, User $actor): void
     {
         $matches = $this->duplicates->matches([
             'full_name' => (string) $employee->full_name,
             'date_of_birth' => $employee->date_of_birth?->toDateString(),
             'phone' => $employee->phone,
             'email' => $employee->email,
-        ], $actor);
-        $decided = DB::table('employee_duplicate_reviews')
+        ], $actor, (string) $employee->id);
+        $reviewed = DB::table('employee_duplicate_reviews')
             ->where(fn ($q) => $q->where('employee_id', $employee->id)->orWhere('matched_employee_id', $employee->id))
             ->get(['employee_id', 'matched_employee_id'])
             ->flatMap(fn ($row): array => [(string) $row->employee_id, (string) $row->matched_employee_id])->all();
-
-        return array_values(array_map(fn (array $match): string => $match['employee_number'], array_filter($matches,
-            fn (array $match): bool => $match['employee_id'] !== (string) $employee->id && ! in_array($match['employee_id'], $decided, true))));
+        $unreviewed = array_values(array_map(fn (array $match): string => $match['employee_number'],
+            array_filter($matches, fn (array $match): bool => ! in_array($match['employee_id'], $reviewed, true))));
+        $blocking = $this->reviews->blocking($employee);
+        if ($blocking['confirmed'] !== []) {
+            throw ValidationException::withMessages(['employee' => 'This record is a confirmed duplicate of '.implode(', ', $blocking['confirmed']).'; it waits for a controlled merge.']);
+        }
+        $open = array_values(array_unique([...$unreviewed, ...$blocking['open']]));
+        if ($open !== []) {
+            throw ValidationException::withMessages(['employee' => 'Possible duplicates must be reviewed first: '.implode(', ', $open).'.']);
+        }
     }
 }

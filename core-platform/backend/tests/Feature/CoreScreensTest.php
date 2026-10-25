@@ -162,7 +162,7 @@ class CoreScreensTest extends TestCase
         $this->post('/employees', $person + ['reason' => 'A different person: other date of birth on file'])->assertSessionHasNoErrors()->assertRedirect();
 
         $this->assertSame(2, Employee::query()->where('full_name', 'Abebe EMP-0001')->count());
-        $this->assertDatabaseHas('employee_duplicate_reviews', ['matched_employee_id' => $this->employee->id, 'decision' => 'distinct']);
+        $this->assertDatabaseHas('employee_duplicate_reviews', ['matched_employee_id' => $this->employee->id, 'decision' => 'pending']);
     }
 
     public function test_settings_belong_to_a_city_wide_administrator(): void

@@ -105,4 +105,9 @@ return [
         'archived' => 'The file was archived; it stays in the history.',
         'discarded' => 'The unused upload was removed.',
     ],
+    'duplicate_review_done' => [
+        'not_duplicate' => 'Recorded: the two records are different people.',
+        'confirmed_duplicate' => 'Recorded: a duplicate. The flagged record is blocked until it is merged.',
+        'needs_more_information' => 'Recorded: more information is needed; the review stays open.',
+    ],
 ];

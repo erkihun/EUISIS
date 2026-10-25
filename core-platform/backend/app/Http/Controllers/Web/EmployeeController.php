@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CoreAuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\EmployeeDuplicateReview;
 use App\Models\HierarchyVersion;
 use App\Models\IdCard;
 use App\Models\Organization;
@@ -236,7 +237,7 @@ class EmployeeController extends Controller
     {
         $data = $request->validate([...$this->personRules(), 'status' => ['sometimes', Rule::in(UpdateEmployee::STATUSES)], 'status_reason' => ['nullable', 'string', 'max:1000']]);
         $status = $data['status'] ?? null;
-        unset($data['status'], $data['status_reason'], $data['national_id']);
+        unset($data['status'], $data['status_reason']);
         $update->details($employee, $data, $request->user());
         if ($status !== null && $status !== $employee->fresh()->status) {
             $update->status($employee, $status, $request->string('status_reason')->toString() ?: __('Employment status changed on the employee form.'), $request->user());
@@ -381,7 +382,20 @@ class EmployeeController extends Controller
                 'organization' => $a->organization?->only(['id', 'name_en', 'name_am']),
                 'position' => $a->position?->only(['id', 'title_en', 'title_am']),
             ])->values()->all() : [],
-            'duplicate_flags' => [],
+            // Open and confirmed duplicate reviews of this record (ADR 0009), in the EUISIS flag shape.
+            'duplicate_flags' => EmployeeDuplicateReview::query()
+                ->where(fn ($q) => $q->where('employee_id', $employee->id)->orWhere('matched_employee_id', $employee->id))
+                ->whereIn('decision', [...EmployeeDuplicateReview::OPEN, EmployeeDuplicateReview::CONFIRMED])->with(['employee:id,employee_number,full_name', 'matchedEmployee:id,employee_number,full_name'])->get()
+                ->map(function (EmployeeDuplicateReview $review) use ($employee): array {
+                    $other = (string) $review->employee_id === (string) $employee->id ? $review->matchedEmployee : $review->employee;
+
+                    return [
+                        'id' => $review->id,
+                        'risk_score' => $review->match_level === 'strong_match' ? 90 : 60,
+                        'matched_fields' => [...($review->reasons ?? []), $review->decision],
+                        'matched_employee' => $other?->only(['employee_number', 'full_name']),
+                    ];
+                })->values()->all(),
             'documents' => [],
             'transfers' => [],
         ];

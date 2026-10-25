@@ -54,7 +54,9 @@ class CoreRegistrationAndCardRulesTest extends TestCase
         $id = $this->postJson('/api/v1/employees', $person + ['confirm_not_duplicate' => true, 'duplicate_reason' => 'Different father and birth place on file'])
             ->assertCreated()->json('data.id');
 
-        $this->assertDatabaseHas('employee_duplicate_reviews', ['employee_id' => $id, 'matched_employee_id' => $this->employee->id, 'decision' => 'distinct']);
+        // The registrar's statement opens a review; a reviewer decides (ADR 0009).
+        $this->assertDatabaseHas('employee_duplicate_reviews', ['employee_id' => $id, 'matched_employee_id' => $this->employee->id, 'decision' => 'pending',
+            'registration_reason' => 'Different father and birth place on file', 'source' => 'registration']);
         $this->assertDatabaseHas('core_audit_logs', ['action' => 'employee.duplicate_override', 'subject_id' => $id]);
     }
 

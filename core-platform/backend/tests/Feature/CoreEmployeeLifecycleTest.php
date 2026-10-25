@@ -163,7 +163,8 @@ class CoreEmployeeLifecycleTest extends TestCase
             ->assertJsonPath('errors.employee.0', 'Possible duplicates must be reviewed first: EMP-TWIN.');
 
         DB::table('employee_duplicate_reviews')->insert(['id' => (string) Str::uuid7(), 'employee_id' => $id, 'matched_employee_id' => Employee::query()->where('employee_number', 'EMP-TWIN')->value('id'),
-            'match_level' => 'possible_match', 'decision' => 'distinct', 'reason' => 'Different parents on file', 'created_at' => now(), 'updated_at' => now()]);
+            'match_level' => 'possible_match', 'decision' => 'not_duplicate', 'reason' => 'Different parents on file', 'decided_by' => $this->person('core_officer')->id, 'decided_at' => now(),
+            'created_at' => now(), 'updated_at' => now()]);
         $this->postJson("/api/v1/employees/{$id}/verify", ['checks' => self::ALL_CHECKS])->assertOk();
 
         // Meanwhile someone else took the only seat: approval refuses rather than over-filling it.
