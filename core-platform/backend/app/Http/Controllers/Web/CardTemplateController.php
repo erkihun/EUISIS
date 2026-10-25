@@ -8,50 +8,18 @@ use App\Actions\ManageCardTemplates;
 use App\Http\Controllers\Controller;
 use App\Models\CardTemplate;
 use App\Models\CardTemplateVersion;
-use App\Models\User;
 use App\Services\CardRenderer;
-use App\Support\CardTemplateConfig;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
-use Inertia\Inertia;
-use Inertia\Response;
 
 /**
- * Core/CardTemplates (ADR 0010): the templates, their versions and the one
- * renderer's preview. Changes go through ManageCardTemplates.
+ * The print record of card templates (ADR 0010): versions and the one renderer's
+ * preview. Changes go through ManageCardTemplates; the designer page is the EUISIS
+ * one (IdCardTemplateController), mirrored into these versions.
  */
 class CardTemplateController extends Controller
 {
-    public function index(Request $request): Response
-    {
-        /** @var User $user */
-        $user = $request->user();
-        $templates = CardTemplate::query()->with('versions')->orderBy('code')->get();
-        $names = User::query()->whereIn('id', $templates->flatMap(fn (CardTemplate $t) => $t->versions->flatMap(fn ($v) => [$v->created_by, $v->activated_by]))->filter()->unique())->pluck('name', 'id');
-        $manage = $user->can('card_templates.manage');
-
-        return Inertia::render('Core/CardTemplates', [
-            'templates' => $templates->map(fn (CardTemplate $template): array => [
-                'id' => $template->id, 'code' => $template->code, 'name_en' => $template->name_en, 'name_am' => $template->name_am,
-                'new_version_url' => $manage && ! $template->versions->contains('status', CardTemplateVersion::DRAFT) ? route('core.card-templates.versions.store', $template) : null,
-                'versions' => $template->versions->map(fn (CardTemplateVersion $version): array => [
-                    'id' => $version->id, 'version' => $version->version, 'status' => $version->status, 'config' => $version->config,
-                    'created_by' => $names->get($version->created_by), 'activated_by' => $names->get($version->activated_by),
-                    'activated_at' => $version->activated_at?->toIso8601String(), 'retired_at' => $version->retired_at?->toIso8601String(),
-                    'preview_url' => route('core.card-templates.versions.preview', $version),
-                    'save_url' => $manage && $version->status === CardTemplateVersion::DRAFT ? route('core.card-templates.versions.update', $version) : null,
-                    'activate_url' => $manage && $version->status === CardTemplateVersion::DRAFT && (int) $version->created_by !== (int) $user->getKey() ? route('core.card-templates.versions.activate', $version) : null,
-                    'retire_url' => $manage && $version->status !== CardTemplateVersion::RETIRED ? route('core.card-templates.versions.retire', $version) : null,
-                ])->values(),
-            ])->values(),
-            'fields' => CardTemplateConfig::FIELDS,
-            'required_fields' => CardTemplateConfig::REQUIRED_FIELDS,
-            'orientations' => CardTemplateConfig::ORIENTATIONS,
-            'store_url' => $manage ? route('core.card-templates.store') : null,
-        ]);
-    }
-
     public function store(Request $request, ManageCardTemplates $templates): RedirectResponse
     {
         $templates->create($request->only(['code', 'name_en', 'name_am', 'description']), $request->user());

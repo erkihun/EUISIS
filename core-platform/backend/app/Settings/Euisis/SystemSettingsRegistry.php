@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Settings\Euisis;
 
+use App\Enums\IdCardTemplate;
+
 class SystemSettingsRegistry
 {
     public const GROUP_GENERAL = 'general';

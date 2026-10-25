@@ -123,6 +123,12 @@ final class CorePermissions
             'cards.reprint' => ['Reprint cards (with a reason)', 'ካርዶችን እንደገና ማተም (ከምክንያት ጋር)'],
             'card_templates.view' => ['View card templates', 'የካርድ ቅጾችን ማየት'],
             'card_templates.manage' => ['Design and activate card templates', 'የካርድ ቅጾችን መንደፍና ሥራ ላይ ማዋል'],
+            // The EUISIS ID card template designer (the screens); card_templates.* is the print record.
+            'id_card_templates.view' => ['View ID card templates', 'የመታወቂያ ካርድ ቅጾችን ማየት'],
+            'id_card_templates.create' => ['Create ID card templates', 'የመታወቂያ ካርድ ቅጾችን መፍጠር'],
+            'id_card_templates.update' => ['Change ID card templates', 'የመታወቂያ ካርድ ቅጾችን መቀየር'],
+            'id_card_templates.delete' => ['Delete ID card templates', 'የመታወቂያ ካርድ ቅጾችን መሰረዝ'],
+            'id_card_templates.set_default' => ['Choose the default ID card template', 'ነባሪውን የመታወቂያ ካርድ ቅጽ መምረጥ'],
             'card_print_batches.view' => ['View print batches', 'የሕትመት ስብስቦችን ማየት'],
             'card_print_batches.manage' => ['Prepare and run print batches', 'የሕትመት ስብስቦችን ማዘጋጀትና ማካሄድ'],
             'digital_credentials.view' => ['View card credentials', 'የካርድ የማረጋገጫ መለያዎችን ማየት'],
@@ -197,7 +203,7 @@ final class CorePermissions
         'employees.view', 'assignments.view',
         'cards.view', 'id-cards.viewAny',
         'employee_documents.view', 'employee_photos.view',
-        'card_templates.view', 'card_print_batches.view', 'digital_credentials.view',
+        'card_templates.view', 'card_print_batches.view', 'digital_credentials.view', 'id_card_templates.view',
         'data_quality.view', 'reports.view',
     ];
 
@@ -232,6 +238,7 @@ final class CorePermissions
         'hierarchy-versions.manage', 'hierarchy-versions.approve', 'hierarchy-versions.publish',
         // P3 (ADR 0010)
         'positions.master.manage', 'cards.reprint', 'card_templates.manage', 'digital_credentials.rotate',
+        'id_card_templates.create', 'id_card_templates.update', 'id_card_templates.delete', 'id_card_templates.set_default',
         'audit.integrity.view', 'audit.integrity.verify', 'break_glass.approve', 'break_glass.revoke',
         // P4/P5 (ADR 0011)
         'data_quality.accept_risk', 'reports.export_sensitive', 'system_health.view', 'queue.manage', 'security_dashboard.view',

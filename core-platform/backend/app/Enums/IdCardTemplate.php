@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Settings\Euisis;
+namespace App\Enums;
 
 enum IdCardTemplate: string
 {

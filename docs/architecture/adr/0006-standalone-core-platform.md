@@ -106,6 +106,16 @@ Inertia, under the EUISIS route names. Decisions taken under the delegation:
     lists, password breach and common-password checks, forced HTTPS (done by
     the web server), audit retention and the landing-page choice. E-mail
     settings saved on the page replace the `.env` mail values.
+15. **The card template designer is the EUISIS one (2026-10-26).** The
+    templates page is EUISIS `SystemSettings/IdCardTemplates`, run by the
+    EUISIS model, rules, action, request and controller copied by the sync
+    script (backgrounds, logos, seal, signature, layout boxes, text styles,
+    header, back photo, default per orientation). The card pages get the
+    designed template through the EUISIS `idCardTemplate(s)` props. The
+    Core's print record (ADR 0010 template versions, batches, credentials)
+    stays; `CardTemplateMirror` makes the default active designed template
+    the active print version, so nothing is activated in a second place.
+    The server-side print SVG keeps the Core's own drawing for now.
 
 ## Consequences
 - The Core can be deployed, scaled, backed up and secured on its own.

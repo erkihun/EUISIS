@@ -48,7 +48,7 @@ class SettingsController extends Controller
         'appearance' => ['system-settings.index', 'appearance', 'system-settings.view'],
         'security' => ['system-settings.index', 'security', 'system-settings.view'],
         'id_cards' => ['system-settings.index', 'id_cards', 'system-settings.view'],
-        'card_templates' => ['core.card-templates', null, 'card_templates.view'],
+        'card_templates' => ['id-card-templates.index', null, 'id_card_templates.view'],
         // Numbering formats are the Core's code rules; they sit on the General tab.
         'code_rules' => ['system-settings.index', 'general', 'system-settings.view'],
         'api' => ['core.integration', null, 'integrations.view'],
@@ -111,7 +111,7 @@ class SettingsController extends Controller
                 'manageGeneral' => $can, 'manageLocalization' => $can, 'manageNotifications' => $can, 'manageEmail' => $can,
                 'manageSms' => false, 'manageTelegram' => false, 'manageSecurity' => $can, 'manageAppearance' => $can,
                 'manageIdCards' => $can, 'manageFieldWorkGps' => false, 'manageSituationRoom' => false, 'manageIntelligence' => false,
-                'viewIdCardTemplates' => $request->user()->can('card_templates.view'), 'clearCache' => false,
+                'viewIdCardTemplates' => $request->user()->can('id_card_templates.view'), 'clearCache' => false,
                 'apiManagement' => false, 'integrations' => false,
             ],
         ]);

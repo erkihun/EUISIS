@@ -47,8 +47,7 @@ status, transfer, card request), Assignments, ID Cards (the full card
 lifecycle), Card Requests (approve, reject, cancel), Card Verification,
 Users, Audit Logs, Data Quality and Settings. Not in the Core: organizational
 change requests, grade levels, occupations, employee import and self-service
-corrections, print batches and card templates, NFC credentials and the
-integration center; they stay in EUISIS.
+corrections and NFC credentials; they stay in EUISIS.
 
 ## Run it locally
 
@@ -122,6 +121,7 @@ it, read from the Core tables.
 | Positions, position status, establishments | `Positions/*`, `PositionEstablishments/*` |
 | Employees | `Employees/*` |
 | ID cards, card requests, card check | `IdCards/*`, `CardRequests/*`, `Public/IdChecker` |
+| ID card templates (the designer, with its model, rules and controller copied too) | `SystemSettings/IdCardTemplates` |
 | Users, Audit Logs, profile, sign-in | `Users/*`, `AuditLogs/Index`, `Profile/Edit`, `Auth/Login` |
 
 "Exit Core" opens `EUISIS_APP_URL` when set, otherwise it signs out.

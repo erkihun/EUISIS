@@ -21,7 +21,7 @@ const targetJs = path.join(here, 'resources', 'js');
 /** The EUISIS pages the Core backend renders (Inertia::render names). */
 export const PAGES = [
     'Auth/Login', 'Auth/ForcedPasswordChange', 'Auth/MfaSetup', 'Auth/MfaChallenge', 'Profile/Edit',
-    'Core/Dashboard', 'Core/Assignments', 'Core/DataQuality', 'Core/Settings', 'Core/AuditCenter', 'Core/IntegrationCenter', 'Core/DuplicateReviews', 'Core/Imports', 'Core/ImportBatch', 'Core/JobMasters', 'Core/CardTemplates', 'Core/CardPreview', 'Core/SecurityCenter', 'Core/Reports', 'Core/Notifications', 'Core/SystemHealth', 'PrintBatches/Index', 'PrintBatches/Create', 'PrintBatches/Show', 'Roles/Index', 'Roles/Create', 'Roles/Edit',
+    'Core/Dashboard', 'Core/Assignments', 'Core/DataQuality', 'Core/Settings', 'Core/AuditCenter', 'Core/IntegrationCenter', 'Core/DuplicateReviews', 'Core/Imports', 'Core/ImportBatch', 'Core/JobMasters', 'Core/CardPreview', 'Core/SecurityCenter', 'Core/Reports', 'Core/Notifications', 'Core/SystemHealth', 'PrintBatches/Index', 'PrintBatches/Create', 'PrintBatches/Show', 'Roles/Index', 'Roles/Create', 'Roles/Edit',
     'Organizations/Index', 'Organizations/Show', 'Organizations/Create', 'Organizations/Edit', 'Organizations/Organogram',
     'OrganizationTypes/Index', 'OrganizationTypes/Show', 'OrganizationTypes/Create', 'OrganizationTypes/Edit',
     'OrganizationUnits/Index', 'OrganizationUnits/Show', 'OrganizationUnits/Create', 'OrganizationUnits/Edit',
@@ -33,7 +33,7 @@ export const PAGES = [
     'IdCards/Index', 'IdCards/Show',
     'CardRequests/Index', 'CardRequests/Show', 'CardRequests/Create',
     'Users/Index', 'Users/Create', 'Users/Edit',
-    'AuditLogs/Index', 'SystemSettings/Index',
+    'AuditLogs/Index', 'SystemSettings/Index', 'SystemSettings/IdCardTemplates',
     'Public/IdChecker',
 ];
 
@@ -42,9 +42,34 @@ const WHOLE = ['i18n', 'types'];
 
 /** EUISIS backend files the Core reads as they are; only the namespace differs. */
 const BACKEND_COPIES = [
+    // The System Settings registry, under its own namespace so it sits beside the Core's registry.
     { from: 'app/Services/SystemSettings/SystemSettingsRegistry.php', to: 'app/Settings/Euisis/SystemSettingsRegistry.php', namespace: 'App\\Settings\\Euisis' },
-    { from: 'app/Enums/IdCardTemplate.php', to: 'app/Settings/Euisis/IdCardTemplate.php', namespace: 'App\\Settings\\Euisis' },
+    // The ID card template designer: model, rules, action, request and controller, as in EUISIS.
+    { from: 'app/Enums/IdCardTemplate.php' },
+    { from: 'app/Models/IdCardTemplate.php' },
+    { from: 'app/Models/Concerns/HasUuidPrimaryKey.php' },
+    { from: 'app/Services/IdCards/IdCardTemplateService.php' },
+    { from: 'app/Services/IdCards/IdCardBackPhoto.php' },
+    { from: 'app/Services/IdCards/IdCardHeaderContent.php' },
+    { from: 'app/Services/IdCards/IdCardLayoutElement.php' },
+    { from: 'app/Services/IdCards/IdCardTextStyle.php' },
+    { from: 'app/Services/IdCards/IdCardLayoutSettings.php' },
+    { from: 'app/Services/IdCards/IdCardLayoutSettingsService.php' },
+    { from: 'app/Actions/IdCards/SaveIdCardTemplateAction.php' },
+    { from: 'app/Http/Controllers/Web/IdCardTemplateController.php' },
+    // The printed-field list lives in a service the Core does not have (it reads EUISIS print snapshots).
+    {
+        from: 'app/Http/Requests/IdCards/SaveIdCardTemplateRequest.php',
+        replace: [
+            ['use App\\Services\\IdCards\\IdCardFieldImpactService;\n', ''],
+            ['use App\\Services\\SystemSettings\\SystemSettingsService;\n', 'use App\\Services\\SystemSettings\\SystemSettingsService;\nuse App\\Support\\IdCardFields;\n'],
+            ['IdCardFieldImpactService::ROW_FIELDS', 'IdCardFields::ROW_FIELDS'],
+        ],
+    },
 ];
+
+/** Where the backend copies land (relative to backend/); CI checks them for drift. */
+export const BACKEND_COPY_PATHS = [...new Set(BACKEND_COPIES.map(({ from, to }) => to ?? from))];
 
 /**
  * The Core's only changes to the copied files. The Core has fewer routes than
@@ -135,15 +160,21 @@ for (const locale of ['en', 'am']) {
     fs.rmSync(target, { recursive: true, force: true });
     copyTree(path.join(euisis, 'lang', locale), target);
 }
-// The EUISIS System Settings definitions, so the Core's settings page offers the same fields
-// (CoreSettingsRegistry reads them). Only the namespace lines change: both files share one namespace.
-for (const { from, to, namespace } of BACKEND_COPIES) {
-    const source = fs.readFileSync(path.join(euisis, from), 'utf8');
-    const target = path.join(here, '..', 'backend', to);
+// EUISIS backend files the Core runs as they are (the settings registry, the card template designer):
+// the same path and namespace unless the entry says otherwise, with its listed replacements only.
+for (const { from, to, namespace, replace = [] } of BACKEND_COPIES) {
+    let source = fs.readFileSync(path.join(euisis, from), 'utf8');
+    if (namespace) source = source.replace(/^namespace [^;]+;/m, `namespace ${namespace};`);
+    for (const [search, replacement] of replace) {
+        if (!source.includes(search)) {
+            console.error(`Replacement in ${from} no longer applies: EUISIS changed "${search.trim()}"`);
+            process.exit(1);
+        }
+        source = source.replace(search, replacement);
+    }
+    const target = path.join(here, '..', 'backend', to ?? from);
     fs.mkdirSync(path.dirname(target), { recursive: true });
-    fs.writeFileSync(target, source
-        .replace(/^namespace [^;]+;/m, `namespace ${namespace};`)
-        .replace(/^use App\\Enums\\IdCardTemplate;\r?\n\r?\n/m, ''));
+    fs.writeFileSync(target, source);
 }
 
 for (const patch of PATCHES) {

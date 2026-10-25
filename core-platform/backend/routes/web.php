@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeEvidenceController;
 use App\Http\Controllers\Web\HierarchyController;
 use App\Http\Controllers\Web\HierarchyVersionController;
+use App\Http\Controllers\Web\IdCardTemplateController;
 use App\Http\Controllers\Web\IdCheckerController;
 use App\Http\Controllers\Web\ImportController;
 use App\Http\Controllers\Web\IntegrationCenterController;
@@ -125,9 +126,10 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/audit/verify', [SecurityCenterController::class, 'verifyAudit'])->middleware('throttle:3,10')->name('.audit.verify');
         });
 
-        // Card templates (ADR 0010): ManageCardTemplates decides each change; the preview uses the print renderer.
+        // The print record of card templates (ADR 0010): versions a batch prints with, kept in step with the
+        // EUISIS designer by CardTemplateMirror. The page itself is the EUISIS designer (id-card-templates.index).
         Route::middleware('can:card_templates.view')->prefix('card-templates')->name('card-templates')->group(function (): void {
-            Route::get('/', [CardTemplateController::class, 'index']);
+            Route::get('/', fn () => redirect()->route('id-card-templates.index'));
             Route::post('/', [CardTemplateController::class, 'store'])->name('.store');
             Route::post('/{cardTemplate}/versions', [CardTemplateController::class, 'newVersion'])->name('.versions.store');
             Route::put('/versions/{version}', [CardTemplateController::class, 'update'])->name('.versions.update');
@@ -166,8 +168,16 @@ Route::middleware('auth')->group(function (): void {
         }
         Route::post('/system-settings/test-email', [SettingsController::class, 'testEmail'])->middleware(['can:system-settings.update', 'throttle:5,1'])->name('system-settings.test-email');
     });
-    // The EUISIS settings page's "ID card templates" button: the Core's templates live under /core/card-templates.
-    Route::get('/id-card-templates', fn () => redirect()->route('core.card-templates'))->middleware('can:card_templates.view')->name('id-card-templates.index');
+    // The EUISIS ID card template designer (SystemSettings/IdCardTemplates), the EUISIS routes.
+    Route::middleware('can:id_card_templates.view')->prefix('system-settings/id-card-templates')->name('id-card-templates.')->group(function (): void {
+        Route::get('/', [IdCardTemplateController::class, 'index'])->name('index');
+        Route::post('/', [IdCardTemplateController::class, 'store'])->middleware('can:id_card_templates.create')->name('store');
+        Route::patch('/{template}', [IdCardTemplateController::class, 'update'])->middleware('can:id_card_templates.update')->name('update');
+        Route::delete('/{template}', [IdCardTemplateController::class, 'destroy'])->middleware('can:id_card_templates.delete')->name('destroy');
+        Route::post('/{template}/default', [IdCardTemplateController::class, 'setDefault'])->middleware('can:id_card_templates.set_default')->name('set-default');
+        Route::get('/{template}/background/{side}', [IdCardTemplateController::class, 'background'])
+            ->whereIn('side', ['front', 'back', 'logo-primary', 'logo-secondary', 'seal', 'signature'])->name('background');
+    });
 
     Route::get('/audit-logs', [CoreController::class, 'auditLogs'])->middleware('can:audit.view')->name('audit-logs.index');
     Route::post('/code-rules/preview-code', [OrganizationController::class, 'previewCode'])->name('code-rules.preview-code');

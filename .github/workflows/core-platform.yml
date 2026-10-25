@@ -6,10 +6,10 @@ name: Core platform
 on:
   push:
     branches: [ "main" ]
-    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", "app/Services/SystemSettings/SystemSettingsRegistry.php", "app/Enums/IdCardTemplate.php", ".github/workflows/core-platform.yml" ]
+    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", "app/Services/SystemSettings/SystemSettingsRegistry.php", "app/Enums/IdCardTemplate.php", "app/Models/IdCardTemplate.php", "app/Models/Concerns/HasUuidPrimaryKey.php", "app/Services/IdCards/**", "app/Actions/IdCards/**", "app/Http/Requests/IdCards/**", "app/Http/Controllers/Web/IdCardTemplateController.php", ".github/workflows/core-platform.yml" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", "app/Services/SystemSettings/SystemSettingsRegistry.php", "app/Enums/IdCardTemplate.php", ".github/workflows/core-platform.yml" ]
+    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", "app/Services/SystemSettings/SystemSettingsRegistry.php", "app/Enums/IdCardTemplate.php", "app/Models/IdCardTemplate.php", "app/Models/Concerns/HasUuidPrimaryKey.php", "app/Services/IdCards/**", "app/Actions/IdCards/**", "app/Http/Requests/IdCards/**", "app/Http/Controllers/Web/IdCardTemplateController.php", ".github/workflows/core-platform.yml" ]
 
 jobs:
   core-backend:
@@ -99,7 +99,7 @@ jobs:
     - name: The screens are an unchanged copy of EUISIS
       run: |
         node scripts/sync-from-euisis.mjs ../..
-        git diff --exit-code -- . ../backend/lang ../backend/app/Settings/Euisis
+        git diff --exit-code -- . ../backend/lang ../backend/app/Settings/Euisis ../backend/app/Enums ../backend/app/Models/IdCardTemplate.php ../backend/app/Models/Concerns ../backend/app/Services/IdCards ../backend/app/Actions/IdCards ../backend/app/Http/Requests/IdCards ../backend/app/Http/Controllers/Web/IdCardTemplateController.php
     - name: Dependency audit
       run: npm audit --audit-level=high
     - name: Type check

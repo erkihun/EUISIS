@@ -9,6 +9,7 @@ use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\EmployeeDuplicateReview;
 use App\Models\IdCard;
+use App\Models\IdCardTemplate;
 use App\Models\ImportBatch;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
@@ -16,6 +17,7 @@ use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Services\BreakGlassAccess;
+use App\Services\CardTemplateMirror;
 use App\Services\CoreSettings;
 use App\Services\DomainEvents;
 use App\Services\MailSettings;
@@ -52,6 +54,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // migrate:fresh / refresh / reset and db:wipe refuse to run in production.
         DB::prohibitDestructiveCommands($this->app->isProduction());
+
+        // The default active ID card template (the EUISIS designer) becomes the active print template version.
+        IdCardTemplate::saved(fn (IdCardTemplate $template) => app(CardTemplateMirror::class)->sync($template));
 
         // Settings › Email replaces the .env mail values, read when mail is first sent.
         $this->app->afterResolving('mail.manager', fn () => rescue(fn () => $this->app->make(MailSettings::class)->apply(), null, false));
