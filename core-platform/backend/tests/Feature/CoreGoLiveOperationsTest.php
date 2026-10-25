@@ -69,6 +69,16 @@ class CoreGoLiveOperationsTest extends TestCase
         $this->assertSame(['warning', 'warning', 'warning'], [$this->audit()['CORE_CREDENTIAL_KEYS'], $this->audit()['CORE_AUDIT_SEAL_KEY'], $this->audit()['CORE_AUDIT_HEAD_DISK']]);
     }
 
+    public function test_a_trusted_proxy_makes_https_and_the_client_address_visible(): void
+    {
+        $headers = ['X-Forwarded-Proto' => 'https', 'X-Forwarded-For' => '203.0.113.9'];
+        $this->get('/login', $headers)->assertOk()->assertHeaderMissing('Strict-Transport-Security');
+
+        config(['trustedproxy.proxies' => '127.0.0.1']);
+        $this->get('/login', $headers)->assertOk()->assertHeader('Strict-Transport-Security');
+        $this->assertSame('pass', $this->audit()['TRUSTED_PROXIES']);
+    }
+
     public function test_a_disk_inside_the_web_root_is_exposed(): void
     {
         config(['filesystems.disks.exports.root' => public_path('exports')]);

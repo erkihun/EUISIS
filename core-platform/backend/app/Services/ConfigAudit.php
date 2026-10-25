@@ -56,7 +56,8 @@ final class ConfigAudit
                 (string) config('logging.channels.'.config('logging.default').'.level', 'debug'), 'Log at info or above in production.', true),
             $check('CORE_FRONTEND_ORIGINS', $origins !== [] && array_filter($origins, fn (string $o): bool => ! str_starts_with($o, 'https://')) === [],
                 implode(',', array_map(fn (string $o): string => parse_url($o, PHP_URL_SCHEME).'://…', $origins)), 'Allow only https origins for browser API calls.', true),
-            $check('TRUSTED_PROXIES', (string) env('TRUSTED_PROXIES', '') !== '', (string) env('TRUSTED_PROXIES', '') === '' ? '(none)' : 'set',
+            // Read from the configuration, not env(): with the configuration cached, env() is empty (ADR 0012).
+            $check('TRUSTED_PROXIES', (string) config('trustedproxy.proxies') !== '', (string) config('trustedproxy.proxies') === '' ? '(none)' : 'set',
                 'Behind a load balancer, set TRUSTED_PROXIES so client addresses and HTTPS are seen correctly.', true),
             $check('CORE_MFA_ENFORCE', (bool) config('core.mfa_enforce'), config('core.mfa_enforce') ? 'true' : 'false', 'Keep two-step sign-in enforced (CORE_MFA_ENFORCE=true).'),
             $check('CORE_CREDENTIAL_KEYS', ! $credentials->derived(), $credentials->derived() ? 'derived from APP_KEY' : 'configured (version '.$credentials->current().')',
