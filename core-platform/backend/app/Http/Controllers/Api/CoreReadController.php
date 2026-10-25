@@ -118,7 +118,7 @@ class CoreReadController extends Controller
             ->when(! $request->boolean('history'), fn (Builder $q) => $q->where('is_current', true));
         if ($request->filled('search')) {
             $term = '%'.addcslashes(mb_substr(trim((string) $request->input('search')), 0, 80), '%_\\').'%';
-            $query->whereHas('employee', fn (Builder $q) => $q->where('employee_number', 'like', $term)->orWhere('full_name', 'like', $term));
+            $query->whereHas('employee', fn (Builder $q) => $q->whereLike('employee_number', $term)->orWhereLike('full_name', $term));
         }
 
         return response()->json($query->orderByDesc('effective_from')->paginate(self::PER_PAGE, ['id', 'employee_id', 'organization_id', 'position_id', 'assignment_status', 'is_current', 'effective_from', 'effective_to'])->withQueryString());
@@ -177,7 +177,8 @@ class CoreReadController extends Controller
         $like = '%'.addcslashes(mb_substr($term, 0, 80), '%_\\').'%';
         $query->where(function (Builder $q) use ($columns, $like): void {
             foreach ($columns as $column) {
-                $q->orWhere($column, 'like', $like);
+                // Case-insensitive on every engine (ilike on PostgreSQL).
+                $q->orWhereLike($column, $like);
             }
         });
     }

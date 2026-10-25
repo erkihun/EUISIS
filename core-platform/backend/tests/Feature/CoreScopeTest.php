@@ -47,6 +47,15 @@ class CoreScopeTest extends TestCase
         $this->getJson('/api/v1/employees')->assertOk()->assertJsonPath('total', 2);
     }
 
+    public function test_search_ignores_letter_case(): void
+    {
+        $this->actingAsCore('core_viewer');
+
+        $this->getJson('/api/v1/employees?search=abebe%20emp-0002')->assertOk()
+            ->assertJsonPath('total', 1)
+            ->assertJsonPath('data.0.employee_number', 'EMP-0002');
+    }
+
     public function test_an_employee_outside_the_scope_is_not_found(): void
     {
         $this->actingAsCore('core_viewer', $this->bureauB);
