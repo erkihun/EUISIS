@@ -47,6 +47,11 @@ final readonly class TransferAssignment
         if (! $current->is_current) {
             throw new LogicException('The assignment to close is no longer the employee\'s current assignment.');
         }
+        // A closed current row means employment ended (ADR 0002): transferring it would
+        // seat a separated employee again. A resumed placement goes through StartAssignment.
+        if ($current->assignment_status !== AssignmentStatus::Active) {
+            throw new LogicException('Only an active assignment can be transferred; an ended placement is resumed with StartAssignment.');
+        }
         // The closed assignment ends the day before the new one starts; a date on or
         // before its own start would leave it with an end before its beginning.
         if ($current->effective_from !== null && $effectiveDate->toDateString() <= $current->effective_from->toDateString()) {

@@ -21,5 +21,6 @@ return [
         'id_card_suspended' => 'This employee cannot receive service because the ID card is suspended.',
         'id_card_not_active' => 'This employee cannot receive service because the ID card is not active.',
         'employee_inactive' => 'This employee cannot receive service because the employee record is not active.',
+        'outside_organization_scope' => 'This application is not authorized to serve employees of this organization.',
     ],
 ];

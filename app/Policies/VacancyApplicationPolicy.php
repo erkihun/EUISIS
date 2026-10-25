@@ -48,22 +48,39 @@ readonly class VacancyApplicationPolicy
 
     public function screen(User $user, VacancyApplication $application): bool
     {
-        return $user->can('vacancy-applications.screen') && $this->view($user, $application);
+        return $user->can('vacancy-applications.screen') && $this->staffCanAccess($user, $application);
     }
 
     public function select(User $user, VacancyApplication $application): bool
     {
-        return $user->can('vacancy-applications.select') && $this->view($user, $application);
+        return $user->can('vacancy-applications.select') && $this->staffCanAccess($user, $application);
     }
 
     public function reject(User $user, VacancyApplication $application): bool
     {
-        return $user->can('vacancy-applications.reject') && $this->view($user, $application);
+        return $user->can('vacancy-applications.reject') && $this->staffCanAccess($user, $application);
     }
 
     public function initiateTransfer(User $user, VacancyApplication $application): bool
     {
-        return $user->can('vacancy-applications.initiateTransfer') && $this->view($user, $application);
+        return $user->can('vacancy-applications.initiateTransfer') && $this->staffCanAccess($user, $application);
+    }
+
+    /**
+     * Staff access for a workflow step: never the applicant (no one screens,
+     * selects or moves their own application), and only within scope. view()
+     * keeps the applicant shortcut for reading only.
+     */
+    private function staffCanAccess(User $user, VacancyApplication $application): bool
+    {
+        if ($this->isApplicant($user, $application) || ! $user->can('vacancy-applications.view')) {
+            return false;
+        }
+
+        return $this->organizationScopeService->canAccessOrganization(
+            $user,
+            $application->positionEntry?->organization_id,
+        );
     }
 
     private function isApplicant(User $user, VacancyApplication $application): bool

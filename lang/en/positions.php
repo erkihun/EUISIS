@@ -39,4 +39,5 @@ return [
     'move_reason_required' => 'A move reason is required.',
     'archived_position_cannot_move' => 'An archived or inactive position cannot be moved.',
     'archive_blocked_active_assignments' => 'This position cannot be archived: :count active assignment(s) still occupy it. Transfer or end those assignments first.',
+    'organization_required' => 'Select the organization this position belongs to.',
 ];

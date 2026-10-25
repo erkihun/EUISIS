@@ -618,3 +618,15 @@ it('falls back to the English names when no Amharic name is recorded', function 
         ->assertJsonPath('employee.organization_unit', 'Checker Unit')
         ->assertJsonPath('employee.position', 'Checker Position');
 });
+
+it('treats an issued card that was never activated as not checkable', function (): void {
+    // Core credential rule (CardCredentialStatus): only an active, current card is valid.
+    $this->card->update(['status' => CardStatus::Issued->value]);
+
+    $this->get(route('id-checker.show', $this->uuid))
+        ->assertInertia(fn (Assert $page) => $page->where('card.checkable', false)->where('card.status_code', 'inactive'));
+
+    Notification::fake();
+    $this->postJson(route('id-checker.send-otp', $this->uuid))->assertStatus(422);
+    Notification::assertNothingSent();
+});

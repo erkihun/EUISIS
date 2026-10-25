@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Actions\Audit\WriteAuditLogAction;
-use App\Actions\CodeRules\GenerateCodeAction;
 use App\Actions\Employees\RegisterEmployeeAction;
+use App\Actions\Positions\CreatePositionAction;
 use App\Actions\Transfers\RequestEmployeeTransferAction;
 use App\Enums\AuditEventType;
-use App\Enums\CodeRuleEntityType;
 use App\Enums\EmploymentType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
@@ -657,7 +656,7 @@ class EmployeeController extends Controller
     public function store(
         EmployeeStoreRequest $request,
         RegisterEmployeeAction $registerEmployeeAction,
-        GenerateCodeAction $generateCodeAction,
+        CreatePositionAction $createPositionAction,
     ): RedirectResponse {
         $this->authorize('create', Employee::class);
 
@@ -675,31 +674,25 @@ class EmployeeController extends Controller
         }
 
         if ($positionId === null && $request->string('position_title')->toString() !== '') {
+            // Naming a position by title may create one, so it needs the position
+            // permission and goes through the Core action (code rules, owner/host
+            // checks, audit); only an active position is reused.
+            $this->authorize('create', Position::class);
+
             $position = Position::query()->where([
                 'organization_id' => $request->string('organization_id')->toString(),
                 'organization_unit_id' => $organizationUnitId,
                 'title_en' => $request->string('position_title')->toString(),
+                'is_active' => true,
             ])->first();
 
-            if ($position === null) {
-                $position = Position::query()->create([
-                    'organization_id' => $request->string('organization_id')->toString(),
-                    'organization_unit_id' => $organizationUnitId,
-                    'title_en' => $request->string('position_title')->toString(),
-                    'job_position_code' => $generateCodeAction->execute(
-                        CodeRuleEntityType::Position,
-                        [
-                            'organization_id' => $request->string('organization_id')->toString(),
-                            'organization_unit_id' => $organizationUnitId,
-                        ],
-                        $request->user(),
-                        null,
-                        'job_position_code',
-                    ),
-                    'is_active' => true,
-                    'effective_from' => now()->toDateString(),
-                ]);
-            }
+            $position ??= $createPositionAction->execute([
+                'organization_id' => $request->string('organization_id')->toString(),
+                'organization_unit_id' => $organizationUnitId,
+                'title_en' => $request->string('position_title')->toString(),
+                'is_active' => true,
+                'effective_from' => now()->toDateString(),
+            ], $request->user());
 
             $positionId = $position->id;
         }
@@ -761,8 +754,6 @@ class EmployeeController extends Controller
     ): RedirectResponse {
         $this->authorize('update', $employee);
 
-        $oldValues = $employee->toArray();
-
         $attributes = $request->safe()->except(['photo', 'remove_photo']);
         $attributes['full_name'] = trim(implode(' ', array_filter([
             $request->string('first_name')->toString(),
@@ -782,13 +773,29 @@ class EmployeeController extends Controller
             $attributes['photo_path'] = $newPhoto;
         }
 
-        $previousStatus = $employee->status;
-
         try {
-            DB::transaction(function () use ($employee, $attributes, $previousStatus, $statusTransition, $request): void {
-                $employee->update($attributes);
+            DB::transaction(function () use ($employee, $attributes, $statusTransition, $request, $writeAuditLogAction): void {
+                // Re-read under a row lock: a concurrent status change must not be
+                // overwritten from the stale route-bound model.
+                $locked = Employee::query()->lockForUpdate()->findOrFail($employee->getKey());
+                $oldValues = $locked->toArray();
+                $previousStatus = $locked->status;
+
+                $locked->update($attributes);
                 // Ending or resuming employment ends or restores the placement (ADR 0002).
-                $statusTransition->apply($employee, $previousStatus, $employee->status, $request->user(), $request);
+                $statusTransition->apply($locked, $previousStatus, $locked->status, $request->user(), $request);
+
+                // Same transaction as the change, so no change commits without its audit row.
+                $fresh = $locked->fresh();
+                $writeAuditLogAction->execute(
+                    AuditEventType::EmployeeUpdated,
+                    $request->user(),
+                    $fresh,
+                    $fresh->currentAssignment?->organization_id,
+                    oldValues: $oldValues,
+                    newValues: $fresh->toArray(),
+                    request: $request,
+                );
             });
         } catch (Throwable $exception) {
             // Nothing was saved: keep the old photo and drop the new upload.
@@ -802,16 +809,6 @@ class EmployeeController extends Controller
         if ($previousPhoto && ($newPhoto !== null || $request->boolean('remove_photo'))) {
             EmployeePhotoStorage::delete($previousPhoto);
         }
-
-        $writeAuditLogAction->execute(
-            AuditEventType::EmployeeUpdated,
-            $request->user(),
-            $employee->fresh(),
-            $employee->currentAssignment?->organization_id,
-            oldValues: $oldValues,
-            newValues: $employee->fresh()->toArray(),
-            request: $request,
-        );
 
         return to_route('employees.show', $employee)
             ->with('flash', ['message' => __('employees.updated_successfully'), 'type' => 'success']);

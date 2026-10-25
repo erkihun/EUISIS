@@ -39,4 +39,5 @@ return [
     'move_reason_required' => 'የማንቀሳቀስ ምክንያት ያስፈልጋል።',
     'archived_position_cannot_move' => 'በማህደር የተቀመጠ ወይም ንቁ ያልሆነ የሥራ መደብ ሊንቀሳቀስ አይችልም።',
     'archive_blocked_active_assignments' => 'ይህ የሥራ መደብ በማህደር ሊቀመጥ አይችልም፦ :count ንቁ ምደባ(ዎች) አሁንም በላዩ ላይ አሉ። መጀመሪያ እነዚያን ምደባዎች ያዛውሩ ወይም ያጠናቅቁ።',
+    'organization_required' => 'ይህ የሥራ መደብ የሚገኝበትን ተቋም ይምረጡ።',
 ];

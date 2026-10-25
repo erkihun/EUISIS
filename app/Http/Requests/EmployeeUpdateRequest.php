@@ -23,6 +23,16 @@ class EmployeeUpdateRequest extends FormRequest
             'name_en' => filled($this->input('name_en')) ? trim((string) $this->input('name_en')) : null,
         ]);
 
+        // The edit form receives a blank national ID when the editor may not see it
+        // (EmployeeDetailResource), so a blank from such an editor is not a deliberate
+        // clear: drop the field and keep the stored value and its uniqueness hash.
+        if (! ($this->user()?->can('employees.viewPii') ?? false)) {
+            $this->offsetUnset('national_id');
+            $this->offsetUnset('national_id_hash');
+
+            return;
+        }
+
         if ($this->has('national_id')) {
             $nid = filled($this->input('national_id')) ? trim((string) $this->input('national_id')) : null;
             $this->merge([

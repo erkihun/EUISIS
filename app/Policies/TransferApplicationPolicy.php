@@ -48,14 +48,14 @@ readonly class TransferApplicationPolicy
     {
         // Only a submitted application moves to review (ScreenTransferApplicationAction).
         return ($user->can('transfers.applications.screen') || $user->can('transfers.update'))
-            && $this->view($user, $application)
+            && $this->staffCanAccess($user, $application)
             && $application->status === TransferApplicationStatus::Submitted;
     }
 
     public function select(User $user, TransferApplication $application): bool
     {
         return $user->can('transfers.approve')
-            && $this->view($user, $application)
+            && $this->staffCanAccess($user, $application)
             && in_array($application->status, [
                 TransferApplicationStatus::UnderReview,
                 TransferApplicationStatus::Verified,
@@ -65,13 +65,14 @@ readonly class TransferApplicationPolicy
     public function reject(User $user, TransferApplication $application): bool
     {
         return $user->can('transfers.reject')
-            && $this->view($user, $application)
+            && $this->staffCanAccess($user, $application)
             && ! $application->status->isFinal();
     }
 
     public function approveRelease(User $user, TransferApplication $application): bool
     {
         return $user->can('transfers.release.approve')
+            && ! $this->isApplicant($user, $application)
             && $this->organizationScopeService->canAccessOrganization($user, $application->releasing_organization_id)
             && $application->status === TransferApplicationStatus::ReleasePending;
     }
@@ -79,6 +80,7 @@ readonly class TransferApplicationPolicy
     public function approveReceiving(User $user, TransferApplication $application): bool
     {
         return $user->can('transfers.receiving.approve')
+            && ! $this->isApplicant($user, $application)
             && $this->organizationScopeService->canAccessOrganization($user, $application->receiving_organization_id)
             && $application->status === TransferApplicationStatus::ReceivingPending;
     }
@@ -86,18 +88,38 @@ readonly class TransferApplicationPolicy
     public function approveFinal(User $user, TransferApplication $application): bool
     {
         return $user->can('transfers.final.approve')
-            && $this->view($user, $application)
+            && $this->staffCanAccess($user, $application)
             && $application->status === TransferApplicationStatus::FinalApprovalPending;
     }
 
     public function complete(User $user, TransferApplication $application): bool
     {
         return $user->can('transfers.complete')
-            && $this->view($user, $application)
+            && $this->staffCanAccess($user, $application)
             && in_array($application->status, [
                 TransferApplicationStatus::Approved,
                 TransferApplicationStatus::ImplementationFailed,
             ], true);
+    }
+
+    /**
+     * Staff access to an application for a workflow step: never the applicant
+     * (no one screens, selects or approves their own transfer), and only within
+     * the staff member's organization scope. view() keeps the applicant shortcut
+     * for reading; it must not lift scope for a decision.
+     */
+    private function staffCanAccess(User $user, TransferApplication $application): bool
+    {
+        if ($this->isApplicant($user, $application)) {
+            return false;
+        }
+
+        if (! ($user->can('transfers.applications.view') || $user->can('transfers.viewAny'))) {
+            return false;
+        }
+
+        return $this->organizationScopeService->canAccessOrganization($user, $application->releasing_organization_id)
+            || $this->organizationScopeService->canAccessOrganization($user, $application->receiving_organization_id);
     }
 
     private function isApplicant(User $user, TransferApplication $application): bool

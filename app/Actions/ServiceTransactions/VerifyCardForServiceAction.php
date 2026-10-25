@@ -12,10 +12,12 @@ use App\Enums\AuditEventType;
 use App\Enums\EntitlementStatus;
 use App\Models\CardVerification;
 use App\Models\Entitlement;
+use App\Models\ExternalApplication;
 use App\Models\IdCard;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
+use App\Services\Integration\IntegrationAccessService;
 use Illuminate\Http\Request;
 
 readonly class VerifyCardForServiceAction
@@ -24,6 +26,7 @@ readonly class VerifyCardForServiceAction
         private WriteAuditLogAction $writeAuditLogAction,
         private ServiceEligibility $serviceEligibility,
         private CredentialLookup $credentials,
+        private IntegrationAccessService $integrationAccess,
     ) {}
 
     public function execute(string $token, ServiceType $serviceType, ?ServiceProvider $provider, ?User $actor = null, ?Request $request = null): array
@@ -59,6 +62,17 @@ readonly class VerifyCardForServiceAction
 
         if ($card->employee->currentAssignment === null) {
             return $this->deny('no_active_assignment', $card, $serviceType, $provider, $actor, $request);
+        }
+
+        // Organization scope = WHERE: a registered application serves only the
+        // organizations it is granted (organization_access and grants), as on the
+        // integration routes. The card's state is withheld from an out-of-scope caller.
+        $principal = $request?->user();
+        if ($principal instanceof ExternalApplication && ! $this->integrationAccess->principalCanAccessOrganization(
+            $principal,
+            (string) $card->employee->currentAssignment->organization_id,
+        )) {
+            return $this->deny('outside_organization_scope', $card, $serviceType, $provider, $actor, $request, withholdStatus: true);
         }
 
         if ($provider !== null && $provider->service_type_id !== $serviceType->id) {
@@ -140,7 +154,7 @@ readonly class VerifyCardForServiceAction
         return $response;
     }
 
-    private function deny(string $resultCode, ?IdCard $card, ServiceType $serviceType, ?ServiceProvider $provider, ?User $actor, ?Request $request): array
+    private function deny(string $resultCode, ?IdCard $card, ServiceType $serviceType, ?ServiceProvider $provider, ?User $actor, ?Request $request, bool $withholdStatus = false): array
     {
         $messageKey = "service-eligibility.reasons.{$resultCode}";
         $localizedMessage = __($messageKey);
@@ -150,8 +164,8 @@ readonly class VerifyCardForServiceAction
             'denial_reason' => $localizedMessage === $messageKey
                 ? str_replace('_', ' ', $resultCode)
                 : $localizedMessage,
-            'card_status' => $card?->status?->value,
-            'employee_status' => $card?->employee?->status?->value,
+            'card_status' => $withholdStatus ? null : $card?->status?->value,
+            'employee_status' => $withholdStatus ? null : $card?->employee?->status?->value,
             'service_type' => $serviceType->code,
         ];
 

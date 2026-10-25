@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Backbone\Contracts\CardCredentialStatus;
 use App\Contracts\SmsGateway;
 use App\Enums\AuditEventType;
 use App\Enums\CardStatus;
@@ -44,6 +45,7 @@ class PublicIdCheckerService
     public function __construct(
         private readonly WriteAuditLogAction $writeAuditLogAction,
         private readonly SmsGateway $smsGateway,
+        private readonly CardCredentialStatus $cardCredentialStatus,
     ) {}
 
     /**
@@ -291,14 +293,18 @@ class PublicIdCheckerService
             return 'invalid';
         }
 
-        $isExpired = $card->expires_at !== null && $card->expires_at->isPast();
+        $isExpired = $card->status === CardStatus::Expired
+            || ($card->expires_at !== null && $card->expires_at->isPast());
 
+        // 'active' only when the card is a valid credential under the one Core rule
+        // (CardCredentialStatus): an issued card that was never activated, a card that
+        // is no longer the employee's current one, or a revoked one is not checkable.
         return match (true) {
             $card->status === CardStatus::Revoked => 'revoked',
             $card->status === CardStatus::Replaced => 'replaced',
             $card->status === CardStatus::Lost => 'lost',
             $isExpired => 'expired',
-            in_array($card->status, [CardStatus::Active, CardStatus::Issued], true) => 'active',
+            $this->cardCredentialStatus->evaluate($card)->valid => 'active',
             default => 'inactive',
         };
     }
