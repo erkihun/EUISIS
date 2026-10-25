@@ -10,6 +10,7 @@ use App\Models\EmployeeDocument;
 use App\Models\Position;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Concerns\BuildsGoldenPath;
 use Tests\TestCase;
@@ -75,6 +76,21 @@ class CoreAssignmentProvenanceTest extends TestCase
         $transfer(['external_reference' => 'HR-1'])->assertOk();
         $this->postJson('/api/v1/employees/'.$stranger->id.'/transfer', ['position_id' => $this->positionA->id, 'effective_date' => '2025-03-01', 'external_reference' => 'HR-1'])
             ->assertJsonValidationErrors('external_reference');
+    }
+
+    public function test_the_backfill_links_each_employees_placements_in_date_order_and_leaves_first_ones_alone(): void
+    {
+        $this->actingAsCore('core_officer');
+        $first = $this->employee->current_assignment_id;
+        $this->postJson('/api/v1/employees/'.$this->employee->id.'/transfer', ['position_id' => $this->positionB->id, 'effective_date' => '2025-03-01'])->assertOk();
+        $second = $this->employee->fresh()->current_assignment_id;
+        DB::table('employee_assignments')->update(['previous_assignment_id' => null]);
+
+        (require database_path('migrations/2026_10_28_100200_add_assignment_provenance.php'))->linkPlacements();
+
+        $this->assertNull(DB::table('employee_assignments')->where('id', $first)->value('previous_assignment_id'));
+        $this->assertSame((string) $first, (string) DB::table('employee_assignments')->where('id', $second)->value('previous_assignment_id'));
+        $this->assertSame(1, DB::table('employee_assignments')->whereNotNull('previous_assignment_id')->count());
     }
 
     public function test_a_registered_placement_is_the_initial_one_and_approval_names_its_approver(): void

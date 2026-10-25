@@ -1,13 +1,14 @@
 # Core platform — production readiness checklist
 
-Status as of 2026-10-25, after the P4/P5 gate (ADR 0011). Every item is
+Status as of 2026-10-25, after the P4/P5 gate (ADR 0011) and the production
+certification pass that followed it. Every item is
 **Pass**, **Fail**, **Not Tested** or **Not Applicable**, with its evidence.
 Nothing is marked Pass without a test, a command result or a measurement. An
 item that needs infrastructure, a person or a decision outside the code stays
 Not Tested until that happens; update this file with the evidence when it does.
 
-Evidence abbreviations: **S** = backend suite on SQLite (209 tests),
-**P** = the same suite on PostgreSQL 18.6 (209 tests), **UAT** =
+Evidence abbreviations: **S** = backend suite on SQLite (212 tests),
+**P** = the same suite on PostgreSQL 18.6 (212 tests), **UAT** =
 `tests/Feature/CoreGoldenPathUatTest.php`, **Perf** = the scale review in ADR
 0011 §9.
 
@@ -24,6 +25,9 @@ Evidence abbreviations: **S** = backend suite on SQLite (209 tests),
 | API per-client rate limits and scopes | Pass | S, P (`CoreIntegrationTest`) |
 | Break-glass: second-person approval, time limit, audited | Pass | S, P (`CoreSecurityHardeningTest`) |
 | Card credentials: hashed tokens, key versions, revocation, QR without personal data | Pass | S, P (`CoreCardProductionTest`) |
+| `db:seed` creates no account and no default password; `core:seed-uat` refuses production | Pass | `CoreDeploymentSafetyTest` — fixed in certification |
+| Security headers (nosniff, frame DENY, no-referrer, HSTS over HTTPS) | Pass | `CoreDeploymentSafetyTest` |
+| Content security policy enforced | Not Tested | sent as `Content-Security-Policy-Report-Only`; enforce after a browser pass shows no violation |
 | Dependency advisories | Pass | `composer audit`: none; `npm audit --omit=dev`: 0 vulnerabilities (2026-10-25) |
 | Independent penetration test | Not Tested | needs a security tester |
 | Production configuration (`core:config-audit`) on the live server | Not Tested | run on the server; the local `.env` is a development one |
@@ -36,6 +40,15 @@ Evidence abbreviations: **S** = backend suite on SQLite (209 tests),
 | Data-quality checks, severity and issue lifecycle | Pass | S, P (`CoreOversightTest`) |
 | EUISIS → Core import keeps identifiers and backfills masters | Pass | S (`CoreImportTest`) |
 | Import of production EUISIS data, compared with `core:snapshot` | Not Tested | needs the production data and an operator |
+
+## Migrations
+
+| Item | Result | Evidence |
+|---|---|---|
+| Every migration applies to an empty database on SQLite and PostgreSQL | Pass | S, P (`RefreshDatabase` on every test) |
+| The P3–P5 migrations roll back and re-apply on 300,000 employees without losing a row | Pass | `emscoredb_perf` (synthetic): `migrate:rollback --step=9` in 1 s, `migrate` in 160 s (credentials backfill 2 min 6 s for 245,000 cards, provenance 29 s); employees, placements, positions, audit rows and cards counted equal before and after |
+| Placement backfill links each employee's placements in date order | Pass | S, P (`CoreAssignmentProvenanceTest`) |
+| Rehearsal on a copy of the production database | Not Tested | needs the production data and an operator |
 
 ## Golden Path
 
@@ -131,4 +144,5 @@ Evidence abbreviations: **S** = backend suite on SQLite (209 tests),
 |---|---|---|
 | Automated UAT (positive and negative) | Pass | UAT |
 | Staging deployment rehearsal | Not Tested | needs a staging server |
+| Application rollback to the previous release on a server | Not Tested | needs a staging server; the database side is rehearsed (Migrations) |
 | UAT with business users and their sign-off | Not Tested | people |
