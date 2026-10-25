@@ -19,10 +19,10 @@ Any one of these during or after a cutover window:
 
 Nothing has been written to the target, so the source is still the truth.
 
-1. Keep `CORE_MASTER_DATA_WRITES=frozen`.
+1. Set `CORE_MASTER_DATA_WRITES=rollback` (read-only, like `cutover`).
 2. Point the application back at the source database (restore the previous `.env` database settings), `php artisan config:cache`.
 3. `php artisan core:snapshot --compare=before.json` against the source must exit 0.
-4. Open writes (`CORE_MASTER_DATA_WRITES=open`, `config:cache`), start workers, run smoke tests.
+4. Open writes (`CORE_MASTER_DATA_WRITES=core`, `config:cache`), start workers, run smoke tests.
 5. Record the incident and keep the target for analysis; do not drop it.
 
 ## After writes were reopened on the target

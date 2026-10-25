@@ -16,14 +16,14 @@ restore ([../backup-recovery-architecture.md](../backup-recovery-architecture.md
 | 1 | Announce the master-data window; service modules keep running | — | release manager |
 | 2 | Confirm the latest backup and its restore test | backup page, `backup:*` reports | operations |
 | 3 | Integrity baseline must be clean (or every finding accepted in writing) | `php artisan backbone:audit-integrity --strict` | Core data steward |
-| 4 | Freeze master-data writes | set `CORE_MASTER_DATA_WRITES=frozen`, `php artisan config:cache` | operations |
+| 4 | Freeze master-data writes | set `CORE_MASTER_DATA_WRITES=cutover` (old spelling `frozen`), `php artisan config:cache` | operations |
 | 5 | Let in-flight jobs finish; stop workers | `php artisan queue:work --stop-when-empty` per queue, then stop supervisors | operations |
 | 6 | Publish what the outbox still holds | `php artisan integrations:publish`, then `php artisan integrations:deliver`, until Integration Center shows 0 events waiting | operations |
 | 7 | Snapshot the source | `php artisan core:snapshot --output=before.json` | operations |
 | 8 | Copy / restore / switch the data (the scope-specific step) | per plan | DBA |
 | 9 | Compare the target | `php artisan core:snapshot --compare=before.json` must exit 0. Before switching, the target can be read through a second connection: `php artisan core:snapshot --connection=<target> --compare=before.json`. A difference also prints the status counts that changed (e.g. one more `suspended` employee). Rehearsed by `CutoverToolingTest` (copy to another database, match, then a detected drift). | operations |
 | 10 | Integrity on the target | `php artisan backbone:audit-integrity --strict` | Core data steward |
-| 11 | Point the application at the target, then open writes | `CORE_MASTER_DATA_WRITES=open`, `php artisan config:cache` | operations |
+| 11 | Point the application at the target, then open writes | `CORE_MASTER_DATA_WRITES=core` (old spelling `open`), `php artisan config:cache` | operations |
 | 12 | Start workers | supervisors on | operations |
 | 13 | Smoke tests | `php artisan core:smoke` and the go-live smoke list | QA |
 | 14 | Watch for one hour: error rate, 403s, card verification failures, outbox backlog | Intelligence system health, Integration Center | operations |

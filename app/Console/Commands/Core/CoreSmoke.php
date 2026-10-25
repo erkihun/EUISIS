@@ -14,6 +14,7 @@ use App\Backbone\Contracts\ServiceEligibility;
 use App\Backbone\Contracts\UnitDirectory;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
+use App\Enums\MasterDataWriteMode;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\Organization;
@@ -94,7 +95,7 @@ class CoreSmoke extends Command
             && __('backbone.master_data_frozen', [], 'am') !== 'backbone.master_data_frozen'
             && __('backbone.master_data_frozen', [], 'am') !== __('backbone.master_data_frozen', [], 'en'));
         $this->check('Ethiopian calendar converts (11 Sep 2026 = 1/1/2019)', fn (): bool => EthiopianCalendar::toEthiopian(new DateTimeImmutable('2026-09-11')) === ['year' => 2019, 'month' => 1, 'day' => 1]);
-        $this->check('Master-data writes are open', fn (): bool => config('core.master_data_writes') !== 'frozen');
+        $this->check('Master-data writes are open (mode: '.MasterDataWriteMode::current()->value.')', fn (): bool => MasterDataWriteMode::current()->allowsWrites());
 
         if ($this->failures > 0) {
             $this->components->error($this->failures.' smoke check(s) failed.');

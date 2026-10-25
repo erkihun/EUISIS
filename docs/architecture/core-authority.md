@@ -29,7 +29,7 @@ Service modules own their own records (see [database-ownership.md](database-owne
 | No service module writes Golden Path models | static scan | `tests/Unit/BackboneBoundaryTest.php` |
 | No machine principal writes master data | API exposes reads and verification only | `tests/Feature/Backbone/MachineWriteBoundaryTest.php` |
 | No new direct reads in service modules | per-module ratchet | `tests/Unit/ServiceModuleCoreDependencyTest.php` |
-| One writer during cutovers and restores | `CORE_MASTER_DATA_WRITES=frozen` | `tests/Feature/Core/CutoverToolingTest.php` |
+| One writer during cutovers, rollbacks and restores | `CORE_MASTER_DATA_WRITES` = core / legacy / cutover / rollback (fails closed) | `tests/Feature/Core/CutoverToolingTest.php` |
 | Every change audited with actor, organization and request ID | Core actions | Audit Center, `audit_logs.request_id` |
 | Data stays consistent | `backbone:audit-integrity --strict`; `production:readiness` Core section; foreign keys on the assignment pointer and card lineage | `BackboneStageTwoTest`, `CoreOperationalSafeguardsTest` |
 | An organization-level role reaches only its scope (its own organization when it has no scope record) | `OrganizationScopeService::requiresExplicitScope` (ADR 0003) | `OrganizationScopeServiceTest`, `AuditSealAndScopeGapsTest` |

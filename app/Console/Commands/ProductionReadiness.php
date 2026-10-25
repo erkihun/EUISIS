@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Enums\MasterDataWriteMode;
 use App\Models\Employee;
 use App\Models\Integration\IntegrationEvent;
 use App\Models\Integration\WebhookDelivery;
@@ -188,7 +189,9 @@ class ProductionReadiness extends Command
         try {
             $findings = array_filter(app(BackboneIntegrityChecks::class)->counts());
             $this->check('Golden Path integrity', $findings === [], $production, 'backbone:audit-integrity reports: '.implode('; ', array_map(fn (string $key, int $count): string => BackboneIntegrityChecks::LABELS[$key].' ('.$count.')', array_keys($findings), $findings)));
-            $this->check('Master-data writes are open', config('core.master_data_writes') !== 'frozen', $production, 'CORE_MASTER_DATA_WRITES=frozen refuses every organization, position, employee and card change; open it once the cutover or restore is done.');
+            $writeSetting = (string) config('core.master_data_writes', 'core');
+            $this->check('Master-data write mode is a known value', MasterDataWriteMode::isKnownSetting($writeSetting), $production, 'CORE_MASTER_DATA_WRITES="'.$writeSetting.'" is not core, legacy, cutover or rollback; master data stays read-only until it is.');
+            $this->check('Master-data writes are open (mode: '.MasterDataWriteMode::current()->value.')', MasterDataWriteMode::current()->allowsWrites(), $production, 'CORE_MASTER_DATA_WRITES='.$writeSetting.' refuses every organization, position, employee and card change; set it to core once the cutover, rollback or restore is done.');
             if (Schema::hasTable('integration_events')) {
                 $stuck = IntegrationEvent::query()->where('status', IntegrationEvent::STATUS_PENDING)->where('created_at', '<', now()->subMinutes(15))->count();
                 $this->check('Integration outbox is draining', $stuck === 0, false, $stuck.' event(s) waiting longer than 15 minutes: check the scheduler runs integrations:publish.');

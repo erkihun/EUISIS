@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Console\Commands\Core\CoreSnapshot;
 use App\Enums\EmployeeStatus;
+use App\Enums\MasterDataWriteMode;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationType;
@@ -115,3 +116,21 @@ it('carries the request id into the log context of the request', function (): vo
     expect($response->headers->get('X-Request-ID'))->toBe('cutover-trace-1')
         ->and(Context::get('request_id'))->toBe('cutover-trace-1');
 });
+
+it('allows master-data writes only in the core and legacy modes, failing closed on an unknown value', function (string $setting, bool $writes): void {
+    config(['core.master_data_writes' => $setting]);
+    $this->actingAs($this->admin);
+
+    $response = $this->postJson(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Mode org', 'status' => 'active']);
+
+    expect($response->status() === 423)->toBe(! $writes)
+        ->and(MasterDataWriteMode::fromSetting($setting)->allowsWrites())->toBe($writes);
+})->with([
+    'core' => ['core', true],
+    'legacy' => ['legacy', true],
+    'open (old spelling)' => ['open', true],
+    'cutover' => ['cutover', false],
+    'rollback' => ['rollback', false],
+    'frozen (old spelling)' => ['frozen', false],
+    'a typo' => ['coer', false],
+]);

@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 use App\Actions\IdCards\ApproveCardRequestAction;
+use App\Actions\IdCards\ReinstateCardAction;
 use App\Actions\IdCards\ReplaceCardAction;
+use App\Actions\IdCards\ReportLostOrDamagedCardAction;
+use App\Actions\IdCards\SuspendCardAction;
 use App\Backbone\Adapters\CardBasedServiceEligibility;
 use App\Backbone\Adapters\ClosurePathOrganizationHierarchy;
 use App\Backbone\Adapters\EloquentAssignmentContextReader;
@@ -249,4 +252,27 @@ it('reports unlinked historical replacement records and repairs them only when a
 
     $this->artisan('cards:audit-replacement-links', ['--repair' => true])->expectsOutputToContain('Linked 1 record(s).')->assertSuccessful();
     expect($record->fresh()->new_card_id)->toBe($successor->id);
+});
+
+it('keeps one employee identity through suspension, reinstatement, loss and replacement (Stage 5 scenario)', function (): void {
+    [$employee, , $card] = backboneEmployee();
+    $officer = User::factory()->create();
+    $eligibility = app(ServiceEligibility::class);
+
+    app(SuspendCardAction::class)->execute($card->fresh(), $officer, 'Under investigation');
+    expect($eligibility->check($employee->id, 'cafeteria')->eligible)->toBeFalse();
+
+    app(ReinstateCardAction::class)->execute($card->fresh(), $officer, 'Investigation closed');
+    expect($card->fresh()->status)->toBe(CardStatus::Active);
+
+    app(ReportLostOrDamagedCardAction::class)->execute($card->fresh(), 'lost', $officer, 'Lost on the bus');
+    $request = app(ReplaceCardAction::class)->execute($card->fresh(), User::factory()->create(), 'Lost on the bus');
+    $replacement = app(ApproveCardRequestAction::class)->execute($request, User::factory()->create())['card'];
+
+    expect($replacement->employee_id)->toBe($employee->id)
+        ->and($replacement->id)->not->toBe($card->id)
+        ->and($replacement->public_card_uuid)->not->toBe($card->fresh()->public_card_uuid)
+        ->and($card->fresh()->status)->toBe(CardStatus::Replaced)
+        ->and(Employee::query()->whereKey($employee->id)->value('employee_number'))->toBe($employee->employee_number)
+        ->and(Employee::query()->count())->toBe(1);
 });
