@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -104,6 +105,9 @@ class ApiManagementController extends Controller
                 'name' => $externalApplication->name,
                 'code' => $externalApplication->code,
                 'owner_institution' => $externalApplication->owner_institution,
+                'expires_at' => $externalApplication->expires_at?->toDateString(),
+                'revoked_at' => $externalApplication->revoked_at?->toDateTimeString(),
+                'revocation_reason' => $externalApplication->revocation_reason,
                 'contact_person' => $externalApplication->contact_person,
                 'contact_email' => $externalApplication->contact_email,
                 'callback_url' => $externalApplication->callback_url,
@@ -191,6 +195,7 @@ class ApiManagementController extends Controller
         // application would be assigned an endpoint its token can never call.
         $data['allowed_scopes'] = $this->withRequiredScopes($data['allowed_scopes'] ?? [], $endpointIds);
         $data['created_by'] = Auth::id();
+        unset($data['revocation_reason']);
         $grants = $this->pullOrganizationGrants($data);
 
         $application = DB::transaction(function () use ($data, $endpointIds, $grants) {
@@ -225,8 +230,26 @@ class ApiManagementController extends Controller
         $grants = $this->pullOrganizationGrants($data);
         $accessBefore = $externalApplication->organization_access.'/'.($externalApplication->service_provider_id ?? '-');
 
-        DB::transaction(function () use ($externalApplication, $data, $endpointIds, $grants): void {
+        // Revocation is final (suspension is the reversible block): a revoked
+        // application keeps its revocation record and cannot be switched back on.
+        if ($externalApplication->revoked_at !== null && $data['status'] !== 'revoked') {
+            throw ValidationException::withMessages(['status' => __('apiManagement.revoked_is_final')]);
+        }
+        $revoking = $data['status'] === 'revoked' && $externalApplication->revoked_at === null;
+        $revocationReason = $data['revocation_reason'] ?? null;
+        unset($data['revocation_reason']);
+
+        DB::transaction(function () use ($externalApplication, $data, $endpointIds, $grants, $revoking, $revocationReason): void {
             $externalApplication->update($data);
+            if ($revoking) {
+                $externalApplication->forceFill([
+                    'revoked_at' => now(),
+                    'revoked_by' => Auth::id(),
+                    'revocation_reason' => $revocationReason,
+                ])->save();
+                // No live credential survives a revocation.
+                $externalApplication->tokens()->delete();
+            }
             $this->syncEndpointAssignments($externalApplication, $endpointIds);
             $this->syncOrganizationGrants($externalApplication, $grants);
         });
@@ -663,6 +686,10 @@ class ApiManagementController extends Controller
             // Organization bound (F2) and provider binding (F16).
             'organization_access' => ['sometimes', 'required', Rule::in(ExternalApplication::ORGANIZATION_ACCESS)],
             'service_provider_id' => ['nullable', 'uuid', Rule::exists('service_providers', 'id')],
+            // Lifecycle (Golden Path Stage 1): approval expiry, owner organization, revocation reason.
+            'expires_at' => ['nullable', 'date', 'after:today'],
+            'owner_organization_id' => ['nullable', 'uuid', Rule::exists('organizations', 'id')],
+            'revocation_reason' => ['nullable', 'string', 'max:1000'],
             'organization_scopes' => ['sometimes', 'array', 'max:500'],
             'organization_scopes.*.organization_id' => ['required', 'uuid', 'distinct', Rule::exists('organizations', 'id')],
             'organization_scopes.*.scope_type' => ['required', Rule::in(ExternalApplicationOrganizationScope::TYPES)],

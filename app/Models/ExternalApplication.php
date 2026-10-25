@@ -87,6 +87,10 @@ class ExternalApplication extends Model implements AuthenticatableContract
         'last_used_at',
         'organization_access',
         'service_provider_id',
+        'expires_at',
+        'owner_organization_id',
+        // revoked_at, revoked_by and revocation_reason are set only by the
+        // revocation step (forceFill), never mass-assigned from a request.
     ];
 
     protected function casts(): array
@@ -99,12 +103,39 @@ class ExternalApplication extends Model implements AuthenticatableContract
             // set by migration only and must never be settable from a request.
             'unrestricted_endpoints' => 'boolean',
             'last_used_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'revoked_at' => 'datetime',
         ];
     }
 
+    /**
+     * Active means approved, not revoked and not past its approval expiry. The
+     * gate, the NFC gate, signed photo links and webhook deliveries all ask this.
+     */
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return $this->status === 'active' && $this->revoked_at === null && ! $this->isExpired();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    /** The reason a request from this application is refused, for the gate's error code. */
+    public function inactiveReason(): string
+    {
+        return match (true) {
+            $this->revoked_at !== null => 'application_revoked',
+            $this->status !== 'active' => 'application_'.$this->status,
+            $this->isExpired() => 'application_expired',
+            default => 'application_active',
+        };
+    }
+
+    public function ownerOrganization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'owner_organization_id');
     }
 
     /**

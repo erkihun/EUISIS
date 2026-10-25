@@ -528,3 +528,39 @@ it('flags applications that need an access review', function (): void {
     $this->actingAs(apiManager())->get(route('api-management.index'))
         ->assertInertia(fn (Assert $page) => $page->where('applications.0.access_findings', fn ($value) => collect($value)->contains('UNREVIEWED')));
 });
+
+it('records a final revocation with who, when and why, and deletes the tokens', function (): void {
+    $this->application->createToken('partner', ['id_cards.verify']);
+    $manager = apiManager();
+    $payload = ['name' => 'Partner System', 'code' => 'PARTNER-1', 'rate_limit_per_minute' => 60, 'allowed_scopes' => ['id_cards.verify']];
+
+    $this->actingAs($manager)
+        ->patch(route('api-management.update', $this->application), [...$payload, 'status' => 'revoked', 'revocation_reason' => 'Contract ended'])
+        ->assertSessionHasNoErrors();
+
+    $application = $this->application->fresh();
+    expect($application->revoked_at)->not->toBeNull()
+        ->and($application->revoked_by)->toBe($manager->id)
+        ->and($application->revocation_reason)->toBe('Contract ended')
+        ->and($application->tokens()->count())->toBe(0)
+        ->and($application->isActive())->toBeFalse();
+
+    // Revocation is final: suspension is the reversible block.
+    $this->patch(route('api-management.update', $this->application), [...$payload, 'status' => 'active'])
+        ->assertSessionHasErrors('status');
+    expect($this->application->fresh()->status)->toBe('revoked');
+});
+
+it('treats an application past its approval expiry as inactive', function (): void {
+    $this->actingAs(apiManager())
+        ->patch(route('api-management.update', $this->application), [
+            'name' => 'Partner System', 'code' => 'PARTNER-1', 'status' => 'active', 'rate_limit_per_minute' => 60,
+            'allowed_scopes' => ['id_cards.verify'], 'expires_at' => now()->addMonth()->toDateString(),
+        ])->assertSessionHasNoErrors();
+
+    expect($this->application->fresh()->isActive())->toBeTrue();
+
+    $this->travel(2)->months();
+    expect($this->application->fresh()->isActive())->toBeFalse()
+        ->and($this->application->fresh()->inactiveReason())->toBe('application_expired');
+});

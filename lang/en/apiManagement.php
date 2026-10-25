@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'application_created' => 'External application created.',
     'application_updated' => 'External application updated.',
+    'revoked_is_final' => 'A revoked application stays revoked. Register a new application to restore access.',
     'application_deleted' => 'External application deleted.',
     'token_generated' => 'API token generated. Copy it now — it will not be shown again.',
     'token_revoked' => 'API token revoked.',

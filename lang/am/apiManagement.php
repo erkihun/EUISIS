@@ -5,6 +5,7 @@ declare(strict_types=1);
 return [
     'application_created' => 'የውጭ መተግበሪያ ተፈጥሯል።',
     'application_updated' => 'የውጭ መተግበሪያ ተሻሽሏል።',
+    'revoked_is_final' => 'የተሻረ መተግበሪያ እንደተሻረ ይቆያል። መዳረሻ ለመመለስ አዲስ መተግበሪያ ይመዝግቡ።',
     'application_deleted' => 'የውጭ መተግበሪያ ተሰርዟል።',
     'token_generated' => 'የAPI ቶከን ተመንጭቷል። አሁን ይቅዱት — እንደገና አይታይም።',
     'token_revoked' => 'የAPI ቶከን ተሽሯል።',

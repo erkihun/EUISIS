@@ -86,6 +86,9 @@ readonly class RegisterEmployeeAction
 
             $employee->update(['current_assignment_id' => $assignment->id]);
 
+            // The seat on the establishment ledger too, under the position lock above.
+            app(PositionCapacityService::class)->recordOccupancyForPlacement($assignment);
+
             EmploymentStatusHistory::query()->create([
                 'employee_id' => $employee->id,
                 'status' => $employee->status,

@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Actions\Employees\RegisterEmployeeAction;
 use App\Actions\Positions\UpdatePositionAction;
 use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Backbone\Commands\EndAssignment;
+use App\Backbone\Commands\StartAssignment;
 use App\Backbone\Commands\TransferAssignment;
 use App\Enums\AssignmentStatus;
 use App\Enums\CardStatus;
@@ -17,6 +19,8 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Position;
+use App\Models\PositionEstablishment;
+use App\Models\PositionOccupancy;
 use App\Models\ServiceType;
 use App\Models\TransferApplication;
 use App\Models\User;
@@ -183,4 +187,24 @@ it('bounds card verification for a service to the application organizations', fu
     $inside->organizationScopes()->create(['organization_id' => $this->organization->id, 'scope_type' => 'self']);
     expect($verify($inside)['result_code'])->not->toBe('outside_organization_scope')
         ->and($verify($application('city'))['result_code'])->not->toBe('outside_organization_scope');
+});
+
+it('records a registered placement on the establishment ledger and holds it again when employment resumes', function (): void {
+    $position = Position::query()->create(['organization_id' => $this->organization->id, 'job_position_code' => 'GP1-LEDGER', 'title_en' => 'Ledger officer', 'is_active' => true]);
+    PositionEstablishment::query()->create(['establishment_number' => 'GP1-EST', 'organization_id' => $this->organization->id, 'position_id' => $position->id, 'approved_slots' => 1, 'effective_from' => '2025-01-01', 'status' => 'approved']);
+
+    $employee = app(RegisterEmployeeAction::class)->execute(
+        ['employee_number' => 'GP1-LEDGER-E', 'first_name' => 'Lidya', 'last_name' => 'Alemu', 'full_name' => 'Lidya Alemu', 'status' => EmployeeStatus::Active],
+        ['organization_id' => $this->organization->id, 'position_id' => $position->id, 'effective_from' => '2026-10-21'],
+        User::factory()->create(),
+    );
+    $activeRows = fn () => PositionOccupancy::query()->where('employee_id', $employee->id)->where('status', 'active')->count();
+
+    expect($activeRows())->toBe(1);
+
+    DB::transaction(fn () => app(EndAssignment::class)->execute($employee->fresh(), Carbon::parse('2026-10-21'), 'terminated'));
+    expect($activeRows())->toBe(0);
+
+    DB::transaction(fn () => app(StartAssignment::class)->execute($employee->fresh(), Carbon::parse('2026-10-21'), 'reinstated'));
+    expect($activeRows())->toBe(1);
 });
