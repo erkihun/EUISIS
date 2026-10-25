@@ -10,6 +10,12 @@ export default defineConfig(({ mode }) => {
 
     return {
         plugins: [react(), tailwindcss()],
+        resolve: { dedupe: ['react', 'react-dom'] },
+        // Pre-bundled together at start-up, so a dependency found later can never
+        // bring a second copy of React into a running dev server.
+        optimizeDeps: {
+            include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@headlessui/react', 'sonner', 'cmdk', '@tanstack/react-table'],
+        },
         server: {
             port: 5174,
             strictPort: true,
