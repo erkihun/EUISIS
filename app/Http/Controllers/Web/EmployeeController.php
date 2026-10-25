@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Employees\RegisterEmployeeAction;
+use App\Actions\Employees\UpdateEmployeeAction;
 use App\Actions\Positions\CreatePositionAction;
 use App\Actions\Transfers\RequestEmployeeTransferAction;
-use App\Enums\AuditEventType;
 use App\Enums\EmploymentType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
@@ -24,7 +23,6 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
-use App\Services\Employees\EmploymentStatusTransition;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
@@ -33,7 +31,6 @@ use App\Support\EmployeePhotoStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -749,8 +746,7 @@ class EmployeeController extends Controller
     public function update(
         EmployeeUpdateRequest $request,
         Employee $employee,
-        WriteAuditLogAction $writeAuditLogAction,
-        EmploymentStatusTransition $statusTransition,
+        UpdateEmployeeAction $updateEmployeeAction,
     ): RedirectResponse {
         $this->authorize('update', $employee);
 
@@ -774,29 +770,8 @@ class EmployeeController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($employee, $attributes, $statusTransition, $request, $writeAuditLogAction): void {
-                // Re-read under a row lock: a concurrent status change must not be
-                // overwritten from the stale route-bound model.
-                $locked = Employee::query()->lockForUpdate()->findOrFail($employee->getKey());
-                $oldValues = $locked->toArray();
-                $previousStatus = $locked->status;
-
-                $locked->update($attributes);
-                // Ending or resuming employment ends or restores the placement (ADR 0002).
-                $statusTransition->apply($locked, $previousStatus, $locked->status, $request->user(), $request);
-
-                // Same transaction as the change, so no change commits without its audit row.
-                $fresh = $locked->fresh();
-                $writeAuditLogAction->execute(
-                    AuditEventType::EmployeeUpdated,
-                    $request->user(),
-                    $fresh,
-                    $fresh->currentAssignment?->organization_id,
-                    oldValues: $oldValues,
-                    newValues: $fresh->toArray(),
-                    request: $request,
-                );
-            });
+            // Core action: row lock, status transition (ADR 0002) and audit in one transaction.
+            $updateEmployeeAction->execute($employee, $attributes, $request->user(), $request);
         } catch (Throwable $exception) {
             // Nothing was saved: keep the old photo and drop the new upload.
             if ($newPhoto !== null) {

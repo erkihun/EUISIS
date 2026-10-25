@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\Employees\UpdateEmployeeAction;
 use App\Enums\AuditEventType;
 use App\Enums\EmploymentType;
 use App\Http\Controllers\Controller;
@@ -117,8 +118,14 @@ class EmployeePortalReviewController extends Controller
                 if (in_array($correction->field, ['full_name', 'national_id'], true)) {
                     abort_unless($employee->getAttribute($correction->field) === $correction->requested_value, 422, __('employee-portal.complete_master_edit'));
                 } else {
-                    $employee->setAttribute($correction->field, $correction->requested_value);
-                    $employee->save();
+                    // Through the Core employee write, so the audit keeps the old and new value.
+                    app(UpdateEmployeeAction::class)->execute(
+                        $employee,
+                        [$correction->field => $correction->requested_value],
+                        $request->user(),
+                        $request,
+                        reason: 'employee_correction:'.$correction->id,
+                    );
                 }
             }
             $correction->update(['status' => $data['decision'], 'reviewed_by' => $request->user()->id, 'reviewed_at' => now()]);
