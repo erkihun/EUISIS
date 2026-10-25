@@ -133,7 +133,8 @@ class HierarchyVersionController extends Controller
     /** Submit for review, approve, send back to draft, or publish. */
     public function transition(Request $request, HierarchyVersion $hierarchyVersion, string $transition): RedirectResponse
     {
-        $this->versions->transition($hierarchyVersion, $transition, $this->governor($request));
+        // Each step's own permission is the action's to check (approve and publish are not drafting).
+        $this->versions->transition($hierarchyVersion, $transition, $request->user());
         $message = match ($transition) {
             'review' => 'hierarchy-versions.submitted_for_review',
             'approve' => 'hierarchy-versions.approved_successfully',

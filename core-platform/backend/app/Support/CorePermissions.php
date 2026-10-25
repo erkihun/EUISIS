@@ -4,79 +4,291 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Models\CoreRole;
 use App\Models\User;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Cache;
 
 /**
- * The EUISIS permission names a Core role holds. The screens are the EUISIS
+ * The Core's granular permissions (ADR 0009). The screens are the EUISIS
  * screens and check these names (useCan, the Core navigation); the backend
- * checks them through the gate (AppServiceProvider), so `$user->can()` and
- * the `can:` middleware answer as they do in EUISIS.
+ * checks them through the gate (AppServiceProvider), the policies and the
+ * actions, so `$user->can()` answers as in EUISIS.
+ *
+ * Roles live in `core_roles`: the three system roles (viewer, officer,
+ * administrator) start with the permissions they always had, and an
+ * administrator may change them or add roles. A user's effective permissions
+ * are their role's, except that the city-wide permissions below count only
+ * for an account whose scope is the whole city. Permission alone is never
+ * access: policies add the organization scope and the record's state.
  */
 final class CorePermissions
 {
+    /**
+     * Every permission, grouped as the role editor shows them: name => [English, Amharic].
+     *
+     * @var array<string, array<string, array{0: string, 1: string}>>
+     */
+    public const CATALOG = [
+        'core' => [
+            'core.access' => ['Open the Core workspace', 'የዋና መዝገቡን የሥራ ቦታ መክፈት'],
+            'core.write' => ['Change master data through the API', 'ዋና መረጃን በኤፒአይ መቀየር'],
+            'core.administer' => ['Administer the Core through the API', 'ዋና መዝገቡን በኤፒአይ ማስተዳደር'],
+        ],
+        'organizations' => [
+            'organizations.view' => ['View organizations', 'ተቋማትን ማየት'],
+            'organizations.create' => ['Create organizations', 'ተቋማትን መፍጠር'],
+            'organizations.update' => ['Edit organizations', 'ተቋማትን ማስተካከል'],
+            'organizations.archive' => ['Deactivate organizations', 'ተቋማትን ከአገልግሎት ማውጣት'],
+            'organizations.delete' => ['Delete unused organizations', 'ጥቅም ላይ ያልዋሉ ተቋማትን መሰረዝ'],
+            'organization-types.viewAny' => ['View organization types', 'የተቋም ዓይነቶችን ማየት'],
+            'organization-types.create' => ['Create organization types', 'የተቋም ዓይነቶችን መፍጠር'],
+            'organization-types.update' => ['Edit organization types', 'የተቋም ዓይነቶችን ማስተካከል'],
+        ],
+        'organization_units' => [
+            'organization-units.viewAny' => ['View units', 'የሥራ ክፍሎችን ማየት'],
+            'organization-units.create' => ['Create units', 'የሥራ ክፍሎችን መፍጠር'],
+            'organization-units.update' => ['Edit units', 'የሥራ ክፍሎችን ማስተካከል'],
+            'organization-units.archive' => ['Archive units', 'የሥራ ክፍሎችን ወደ ማህደር ማስገባት'],
+            'organization-units.restore' => ['Restore units', 'የሥራ ክፍሎችን መመለስ'],
+            'organization-unit-types.viewAny' => ['View unit types', 'የሥራ ክፍል ዓይነቶችን ማየት'],
+            'organization-unit-types.create' => ['Create unit types', 'የሥራ ክፍል ዓይነቶችን መፍጠር'],
+            'organization-unit-types.update' => ['Edit unit types', 'የሥራ ክፍል ዓይነቶችን ማስተካከል'],
+            'organization-unit-types.archive' => ['Archive unit types', 'የሥራ ክፍል ዓይነቶችን ወደ ማህደር ማስገባት'],
+            'organization-unit-types.restore' => ['Restore unit types', 'የሥራ ክፍል ዓይነቶችን መመለስ'],
+        ],
+        'hierarchy' => [
+            'hierarchy-versions.viewAny' => ['View hierarchy versions', 'የተዋረድ ስሪቶችን ማየት'],
+            'hierarchy-versions.manage' => ['Prepare and submit hierarchy drafts', 'የተዋረድ ረቂቆችን ማዘጋጀትና ማቅረብ'],
+            'hierarchy-versions.approve' => ['Approve or send back hierarchy versions', 'የተዋረድ ስሪቶችን ማጽደቅ ወይም መመለስ'],
+            'hierarchy-versions.publish' => ['Publish approved hierarchy versions', 'የጸደቁ የተዋረድ ስሪቶችን ይፋ ማድረግ'],
+        ],
+        'positions' => [
+            'positions.viewAny' => ['View positions', 'የሥራ መደቦችን ማየት'],
+            'positions.create' => ['Create positions', 'የሥራ መደቦችን መፍጠር'],
+            'positions.update' => ['Edit positions', 'የሥራ መደቦችን ማስተካከል'],
+            'positions.archive' => ['Retire positions', 'የሥራ መደቦችን ከአገልግሎት ማውጣት'],
+            'positions.restore' => ['Restore positions', 'የሥራ መደቦችን መመለስ'],
+            'position-establishments.viewAny' => ['View establishments', 'የጸደቁ መደቦችን ማየት'],
+            'position-establishments.update' => ['Edit establishments', 'የጸደቁ መደቦችን ማስተካከል'],
+            'position-establishments.approve' => ['Approve establishments', 'የጸደቁ መደቦችን ማጽደቅ'],
+            'position-establishments.archive' => ['Archive establishments', 'የጸደቁ መደቦችን ወደ ማህደር ማስገባት'],
+        ],
+        'employees' => [
+            'employees.view' => ['View employees', 'ሠራተኞችን ማየት'],
+            'employees.create' => ['Register employees', 'ሠራተኞችን መመዝገብ'],
+            'employees.update' => ['Edit employee details', 'የሠራተኛ መረጃን ማስተካከል'],
+            'employees.manage' => ['Change employment status', 'የቅጥር ሁኔታን መቀየር'],
+            'employees.submit' => ['Submit employees for verification', 'ሠራተኞችን ለማረጋገጫ ማቅረብ'],
+            'employees.verify' => ['Verify employees', 'ሠራተኞችን ማረጋገጥ'],
+            'employees.return' => ['Return employees for correction', 'ሠራተኞችን ለማስተካከያ መመለስ'],
+            'employees.approve' => ['Approve employees', 'ሠራተኞችን ማጽደቅ'],
+            'employees.duplicates.review' => ['Review possible duplicates', 'ሊደጋገሙ የሚችሉ መዝገቦችን መገምገም'],
+        ],
+        'employee_documents' => [
+            'employee_documents.view' => ['See which documents an employee has', 'የሠራተኛ ሰነዶችን ዝርዝር ማየት'],
+            'employee_documents.upload' => ['Upload and replace documents', 'ሰነዶችን መስቀልና መተካት'],
+            'employee_documents.verify' => ['Verify or reject documents', 'ሰነዶችን ማረጋገጥ ወይም ውድቅ ማድረግ'],
+            'employee_documents.download' => ['Download documents', 'ሰነዶችን ማውረድ'],
+            'employee_documents.archive' => ['Archive documents, photos and signatures', 'ሰነዶችን፣ ፎቶዎችንና ፊርማዎችን ወደ ማህደር ማስገባት'],
+            'employee_photos.view' => ['See employee photos', 'የሠራተኛ ፎቶዎችን ማየት'],
+            'employee_photos.upload' => ['Upload and replace photos', 'ፎቶዎችን መስቀልና መተካት'],
+            'employee_photos.verify' => ['Verify or reject photos', 'ፎቶዎችን ማረጋገጥ ወይም ውድቅ ማድረግ'],
+            'employee_signatures.view' => ['See employee signatures', 'የሠራተኛ ፊርማዎችን ማየት'],
+            'employee_signatures.upload' => ['Upload and replace signatures', 'ፊርማዎችን መስቀልና መተካት'],
+            'employee_signatures.verify' => ['Verify or reject signatures', 'ፊርማዎችን ማረጋገጥ ወይም ውድቅ ማድረግ'],
+        ],
+        'assignments' => [
+            'assignments.view' => ['View placements', 'ምደባዎችን ማየት'],
+            'assignments.change' => ['Transfer employees and change placements', 'ሠራተኞችን ማዛወርና ምደባዎችን መቀየር'],
+        ],
+        'cards' => [
+            'cards.view' => ['View ID cards', 'የመታወቂያ ካርዶችን ማየት'],
+            'id-cards.viewAny' => ['View card requests', 'የካርድ ጥያቄዎችን ማየት'],
+            'cards.manage' => ['Work on the card lifecycle', 'በካርድ የሕይወት ዑደት ላይ መሥራት'],
+            'card-requests.create' => ['Request cards', 'ካርድ መጠየቅ'],
+            'card-requests.verify' => ['Verify card requests', 'የካርድ ጥያቄዎችን ማረጋገጥ'],
+            'card-requests.approve' => ['Approve, reject or cancel card requests', 'የካርድ ጥያቄዎችን ማጽደቅ፣ ውድቅ ማድረግ ወይም መሰረዝ'],
+            'id-cards.print' => ['Print cards', 'ካርዶችን ማተም'],
+            'id-cards.issue' => ['Issue cards', 'ካርዶችን መስጠት'],
+            'id-cards.activate' => ['Activate cards', 'ካርዶችን ማንቃት'],
+            'id-cards.replace' => ['Report lost or damaged cards and replace them', 'የጠፉ ወይም የተጎዱ ካርዶችን ሪፖርት ማድረግና መተካት'],
+            'id-cards.suspend' => ['Suspend and reinstate cards', 'ካርዶችን ማገድና መመለስ'],
+            'id-cards.revoke' => ['Revoke cards', 'ካርዶችን መሻር'],
+        ],
+        'imports' => [
+            'imports.view' => ['View imports', 'የገቢ ፋይሎችን ማየት'],
+            'imports.create' => ['Upload imports', 'የገቢ ፋይሎችን መስቀል'],
+            'imports.approve' => ['Approve imports', 'የገቢ ፋይሎችን ማጽደቅ'],
+        ],
+        'integrations' => [
+            'integrations.view' => ['Open the Integration Center', 'የትስስር ማዕከልን መክፈት'],
+            'integrations.manage' => ['Manage API clients and webhooks', 'የኤፒአይ ደንበኞችንና ዌብሁኮችን ማስተዳደር'],
+            'api_management.view' => ['View API usage', 'የኤፒአይ አጠቃቀምን ማየት'],
+        ],
+        'administration' => [
+            'users.viewAny' => ['View accounts', 'መለያዎችን ማየት'],
+            'users.create' => ['Create accounts', 'መለያዎችን መፍጠር'],
+            'users.update' => ['Edit accounts and their scope', 'መለያዎችንና ወሰናቸውን ማስተካከል'],
+            'users.restore' => ['Reactivate accounts', 'መለያዎችን እንደገና ማንቃት'],
+            'users.manageUsersWithinScope' => ['Manage accounts within one\'s organizations', 'በራስ ተቋማት ውስጥ ያሉ መለያዎችን ማስተዳደር'],
+            'roles.viewAny' => ['View roles', 'ሚናዎችን ማየት'],
+            'roles.manage' => ['Create and change roles', 'ሚናዎችን መፍጠርና መቀየር'],
+            'audit.view' => ['View the audit trail', 'የኦዲት መዝገቡን ማየት'],
+            'system-settings.view' => ['View Core settings', 'የዋና መዝገብ ቅንብሮችን ማየት'],
+            'system-settings.update' => ['Change Core settings', 'የዋና መዝገብ ቅንብሮችን መቀየር'],
+        ],
+    ];
+
+    /** Permissions that count only for an account whose scope is the whole city. */
+    public const CITYWIDE_ONLY = [
+        'system-settings.view', 'system-settings.update', 'organizations.delete',
+        'integrations.view', 'integrations.manage', 'api_management.view',
+        'hierarchy-versions.manage', 'hierarchy-versions.approve', 'hierarchy-versions.publish',
+        'roles.manage',
+    ];
+
+    /** Permissions only a city-wide holder of roles.manage may put in a role. */
+    public const SENSITIVE = [
+        ...self::CITYWIDE_ONLY,
+        'core.administer', 'users.create', 'users.update', 'users.restore', 'users.manageUsersWithinScope', 'roles.viewAny',
+        'employee_signatures.view', 'employee_signatures.upload', 'employee_signatures.verify', 'audit.view',
+    ];
+
     private const VIEWER = [
         'core.access',
         'organizations.view', 'organization-types.viewAny', 'organization-units.viewAny', 'organization-unit-types.viewAny',
         'hierarchy-versions.viewAny',
         'positions.viewAny', 'position-establishments.viewAny',
-        'employees.view',
+        'employees.view', 'assignments.view',
         'cards.view', 'id-cards.viewAny',
-        // Evidence metadata and the photo (ADR 0009); documents and signatures themselves need more.
         'employee_documents.view', 'employee_photos.view',
     ];
 
     private const OFFICER = [
+        'core.write',
         'organizations.create', 'organizations.update', 'organizations.archive',
         'organization-types.create', 'organization-types.update',
         'organization-units.create', 'organization-units.update', 'organization-units.archive', 'organization-units.restore',
         'organization-unit-types.create', 'organization-unit-types.update', 'organization-unit-types.archive', 'organization-unit-types.restore',
         'positions.create', 'positions.update', 'positions.archive', 'positions.restore',
         'position-establishments.update', 'position-establishments.approve', 'position-establishments.archive',
-        'employees.create', 'employees.update', 'employees.manage',
-        // The verified-employee stage (ADR 0008): officers submit, verify and return; approval is an administrator's.
-        'employees.submit', 'employees.verify', 'employees.return',
-        // The duplicate review queue (ADR 0009).
-        'employees.duplicates.review',
+        'employees.create', 'employees.update', 'employees.manage', 'employees.submit', 'employees.verify', 'employees.return', 'employees.duplicates.review',
         'employee_documents.upload', 'employee_documents.verify', 'employee_documents.download', 'employee_documents.archive',
         'employee_photos.upload', 'employee_photos.verify',
         'employee_signatures.view', 'employee_signatures.upload', 'employee_signatures.verify',
-        'card-requests.create', 'card-requests.approve',
-        'id-cards.issue', 'id-cards.activate', 'id-cards.revoke', 'cards.manage',
+        'assignments.change',
+        'cards.manage', 'card-requests.create', 'card-requests.verify', 'card-requests.approve',
+        'id-cards.print', 'id-cards.issue', 'id-cards.activate', 'id-cards.replace', 'id-cards.suspend', 'id-cards.revoke',
+        'imports.view', 'imports.create',
     ];
 
     private const ADMIN = [
+        'core.administer',
         'users.viewAny', 'users.create', 'users.update', 'users.restore', 'users.manageUsersWithinScope',
-        'employees.approve',
-        'audit.view',
+        'roles.viewAny', 'roles.manage',
+        'employees.approve', 'audit.view', 'imports.approve',
+        'system-settings.view', 'system-settings.update', 'organizations.delete',
+        'integrations.view', 'integrations.manage', 'api_management.view',
+        'hierarchy-versions.manage', 'hierarchy-versions.approve', 'hierarchy-versions.publish',
     ];
 
-    /** Core-wide settings, the Integration Center and deleting organizations: a city-wide administrator only (EnsureCoreUser city-admin). */
-    private const CITY_ADMIN = ['system-settings.view', 'system-settings.update', 'organizations.delete', 'integrations.view', 'api_management.view'];
+    /**
+     * The system roles as first seeded: key => [English name, Amharic name, permissions].
+     *
+     * @return array<string, array{0: string, 1: string, 2: list<string>}>
+     */
+    public static function systemRoles(): array
+    {
+        return [
+            'core_viewer' => ['Core Viewer', 'የዋና መዝገብ ተመልካች', self::VIEWER],
+            'core_officer' => ['Core Officer', 'የዋና መዝገብ ባለሙያ', [...self::VIEWER, ...self::OFFICER]],
+            'core_admin' => ['Core Administrator', 'የዋና መዝገብ አስተዳዳሪ', [...self::VIEWER, ...self::OFFICER, ...self::ADMIN]],
+        ];
+    }
 
-    /** @return list<string> */
+    /** @return list<string> every permission the catalog knows */
+    public static function all(): array
+    {
+        return array_merge(...array_map(fn (array $group): array => array_keys($group), array_values(self::CATALOG)));
+    }
+
+    /** @return list<string> the permissions a user holds now */
     public static function for(?User $user): array
     {
         if ($user === null || ! $user->is_active) {
             return [];
         }
+        $permissions = self::rolePermissions((string) $user->role);
 
-        return match ($user->role) {
-            'core_admin' => [...self::VIEWER, ...self::OFFICER, ...self::ADMIN, ...($user->isCityWide() ? self::CITY_ADMIN : [])],
-            'core_officer' => [...self::VIEWER, ...self::OFFICER],
-            'core_viewer' => self::VIEWER,
-            default => [],
-        };
+        return $user->isCityWide() ? $permissions : array_values(array_diff($permissions, self::CITYWIDE_ONLY));
     }
 
-    /** The EUISIS role names shown for a Core role; a city-wide grant (ADR 0008) is named as such. */
-    public static function roleName(User $user): string
+    /** @return list<string> a role's permissions (cached; flushed on every role change) */
+    public static function rolePermissions(string $role): array
     {
-        $name = match ($user->role) {
-            'core_admin' => 'Core Administrator',
-            'core_officer' => 'Core Officer',
-            default => 'Core Viewer',
-        };
+        return self::roles()[$role]['permissions'] ?? [];
+    }
 
-        return $user->isCityWide() ? 'City-wide '.$name : $name;
+    public static function roleHas(string $role, string $permission): bool
+    {
+        return in_array($permission, self::rolePermissions($role), true);
+    }
+
+    /** @return list<string> the keys of the roles holding a permission */
+    public static function rolesWith(string $permission): array
+    {
+        return array_keys(array_filter(self::roles(), fn (array $role): bool => in_array($permission, $role['permissions'], true)));
+    }
+
+    /** Whether the user's role holds anything beyond reading (MFA's officer category, ADR 0008). */
+    public static function changesData(User $user): bool
+    {
+        return array_diff(self::for($user), self::VIEWER) !== [];
+    }
+
+    /** The role name shown for a user; a city-wide grant (ADR 0008) is named as such. */
+    public static function roleName(User $user, ?string $locale = null): string
+    {
+        $role = self::roles()[(string) $user->role] ?? null;
+        $am = ($locale ?? app()->getLocale()) === 'am';
+        $name = $role === null ? (string) $user->role : (string) ($am && $role['name_am'] ? $role['name_am'] : $role['name_en']);
+
+        return $user->isCityWide() ? ($am ? 'የመላው ከተማ '.$name : 'City-wide '.$name) : $name;
+    }
+
+    public static function flush(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+        app()->forgetInstance(self::CACHE_KEY);
+    }
+
+    private const CACHE_KEY = 'core.roles';
+
+    /**
+     * Read once per request (the container), and from the cache between requests.
+     *
+     * @return array<string, array{name_en: string, name_am: ?string, permissions: list<string>}>
+     */
+    private static function roles(): array
+    {
+        if (app()->bound(self::CACHE_KEY)) {
+            return app(self::CACHE_KEY);
+        }
+        $catalog = self::all();
+        try {
+            $roles = Cache::remember(self::CACHE_KEY, 600, fn (): array => CoreRole::query()->with('permissions:core_role_id,permission')->get()
+                ->mapWithKeys(fn (CoreRole $role): array => [$role->key => [
+                    'name_en' => $role->name_en,
+                    'name_am' => $role->name_am,
+                    // A permission no longer in the catalog grants nothing.
+                    'permissions' => array_values(array_intersect($role->permissions->pluck('permission')->all(), $catalog)),
+                ]])->all());
+        } catch (QueryException) {
+            return []; // before the roles table exists (fresh install mid-migration): nothing is granted
+        }
+        app()->instance(self::CACHE_KEY, $roles);
+
+        return $roles;
     }
 }

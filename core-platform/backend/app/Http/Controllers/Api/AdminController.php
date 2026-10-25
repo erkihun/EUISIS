@@ -36,7 +36,7 @@ class AdminController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            'role' => ['required', Rule::in(User::ROLES)],
+            'role' => ['required', Rule::exists('core_roles', 'key')],
             'scope_type' => ['nullable', Rule::in([User::SCOPE_CITYWIDE, ...User::ORGANIZATION_SCOPES])],
             'scope_organization_id' => ['nullable', 'uuid'],
             'is_active' => ['sometimes', 'boolean'],

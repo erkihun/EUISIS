@@ -48,10 +48,10 @@ class EnsureCoreUser
                 'code' => 'NO_ORGANIZATION_SCOPE',
             ], 403));
         }
-        abort_if($level === 'writer' && ! $user->canChangeMasterData(), 403, 'Your Core role may not change master data.');
-        abort_if($level === 'admin' && $user->role !== 'core_admin', 403, 'Only a Core administrator may change Core settings.');
-
-        abort_if($level === 'city-admin' && ($user->role !== 'core_admin' || ! $user->isCityWide()), 403, 'This operation requires a city-wide Core administrator.');
+        // The API's levels are permissions too (ADR 0009); each endpoint's action checks its own as well.
+        abort_if($level === 'writer' && ! $user->can('core.write'), 403, 'Your Core role may not change master data.');
+        abort_if($level === 'admin' && ! $user->can('core.administer'), 403, 'Only a Core administrator may change Core settings.');
+        abort_if($level === 'city-admin' && (! $user->can('core.administer') || ! $user->isCityWide()), 403, 'This operation requires a city-wide Core administrator.');
 
         return $next($request);
     }

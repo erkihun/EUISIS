@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -189,6 +190,7 @@ class EmployeeController extends Controller
 
     public function show(Request $request, Employee $employee, EmployeeVerification $verification): Response
     {
+        Gate::authorize('view', $employee);
         $this->authorizeScope($request->user(), $employee);
         $employee->load(['currentAssignment.organization', 'currentAssignment.position', 'assignments.organization', 'assignments.position', 'activeIdCard']);
         /** @var User $user */
@@ -207,6 +209,7 @@ class EmployeeController extends Controller
     /** One step of the verified-employee stage (submit, verify, return, approve); EmployeeVerification decides. */
     public function workflowStep(Request $request, Employee $employee, string $step, EmployeeVerification $verification): RedirectResponse
     {
+        Gate::authorize($step, $employee);
         $checks = array_keys($verification->checklist($employee));
         $data = $request->validate([
             'notes' => ['nullable', 'string', 'max:1000'],
@@ -235,6 +238,7 @@ class EmployeeController extends Controller
 
     public function update(Request $request, Employee $employee, UpdateEmployee $update): RedirectResponse
     {
+        Gate::authorize('update', $employee);
         $data = $request->validate([...$this->personRules(), 'status' => ['sometimes', Rule::in(UpdateEmployee::STATUSES)], 'status_reason' => ['nullable', 'string', 'max:1000']]);
         $status = $data['status'] ?? null;
         unset($data['status'], $data['status_reason']);

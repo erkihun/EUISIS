@@ -36,6 +36,13 @@ final readonly class ChangeCardStatus
     /** Changes that need a written reason (the routine production steps do not). */
     public const NEEDS_REASON = ['report_lost', 'report_damaged', 'suspend', 'reinstate', 'revoke'];
 
+    /** The permission each step needs (ADR 0009): printing, issuing and revoking are different jobs. */
+    public const PERMISSIONS = [
+        'print' => 'id-cards.print', 'issue' => 'id-cards.issue', 'activate' => 'id-cards.activate',
+        'report_lost' => 'id-cards.replace', 'report_damaged' => 'id-cards.replace',
+        'suspend' => 'id-cards.suspend', 'reinstate' => 'id-cards.suspend', 'revoke' => 'id-cards.revoke',
+    ];
+
     public function __construct(private OrganizationScope $scope, private AuditWriter $audit) {}
 
     /** @return list<string> */
@@ -44,9 +51,16 @@ final readonly class ChangeCardStatus
         return array_keys(self::TRANSITIONS);
     }
 
+    /** @return list<string> the statuses a step may start from */
+    public static function from(string $transition): array
+    {
+        return self::TRANSITIONS[$transition][0] ?? [];
+    }
+
     public function execute(IdCard $card, string $transition, ?string $reason, User $actor): IdCard
     {
         [$from, $to, $stamp] = self::TRANSITIONS[$transition] ?? throw ValidationException::withMessages(['transition' => 'Unknown card change.']);
+        abort_unless($actor->is_active && $actor->can(self::PERMISSIONS[$transition]), 403, 'Your role may not take this step on a card.');
 
         return DB::transaction(function () use ($card, $transition, $reason, $actor, $from, $to, $stamp): IdCard {
             // Serialize all credential changes with requests and employee lifecycle changes.

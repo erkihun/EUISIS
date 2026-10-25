@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Actions\EmployeeVerification;
 use App\Actions\UpdateEmployee;
+use App\Models\CoreAuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeDuplicateReview;
 use App\Models\Organization;
@@ -148,6 +149,7 @@ class CoreDuplicateReviewTest extends TestCase
         $update->details($other->fresh(), ['national_id' => '1111 2222 3333'], $officer);
         $this->assertSame('A person with this national ID is already registered.',
             rescue(fn () => $update->details($this->employee->fresh(), ['national_id' => '111122223333'], $officer) && '', fn (ValidationException $e) => $e->errors()['national_id'][0], false));
-        $this->assertDatabaseMissing('core_audit_logs', ['new_values' => json_encode(['national_id_hash' => $other->fresh()->national_id_hash])]);
+        // The national ID's hash never reaches the audit trail.
+        $this->assertStringNotContainsString((string) $other->fresh()->national_id_hash, (string) CoreAuditLog::query()->get()->toJson());
     }
 }

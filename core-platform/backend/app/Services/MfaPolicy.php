@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\User;
+use App\Support\CorePermissions;
 
 /**
  * Who must use multi-factor authentication (ADR 0008), by category, from Core
@@ -32,9 +33,9 @@ final readonly class MfaPolicy
     public function requires(User $user): bool
     {
         $category = match (true) {
-            $user->role === 'core_admin' && $user->isCityWide() => 'security.mfa_city_administrators',
-            $user->role === 'core_admin' => 'security.mfa_organization_administrators',
-            $user->role === 'core_officer' => 'security.mfa_officers',
+            $user->can('users.update') && $user->isCityWide() => 'security.mfa_city_administrators',
+            $user->can('users.update') => 'security.mfa_organization_administrators',
+            CorePermissions::changesData($user) => 'security.mfa_officers',
             default => 'security.mfa_viewers',
         };
 

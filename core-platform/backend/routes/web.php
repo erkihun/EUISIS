@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\MfaController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationUnitController;
 use App\Http\Controllers\Web\PositionController;
+use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\SessionController;
 use App\Http\Controllers\Web\StructureTypeController;
 use App\Http\Controllers\Web\UserController;
@@ -241,6 +242,16 @@ Route::middleware('auth')->group(function (): void {
         Route::post('/users/{user}/organization-scopes', [UserController::class, 'storeScope'])->middleware('can:users.update')->name('users.organization-scopes.store');
         Route::put('/users/{user}/organization-scopes/{scope}', [UserController::class, 'storeScope'])->middleware('can:users.update')->name('users.organization-scopes.update');
         Route::delete('/users/{user}/organization-scopes/{scope}', [UserController::class, 'destroyScope'])->middleware('can:users.update')->name('users.organization-scopes.destroy');
+    });
+
+    // Roles and their permissions (ADR 0009); changes are city-wide (ManageRoles checks roles.manage).
+    Route::middleware('can:roles.viewAny')->group(function (): void {
+        Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
+        Route::get('/roles/create', [RoleController::class, 'create'])->middleware('can:roles.manage')->name('roles.create');
+        Route::post('/roles', [RoleController::class, 'store'])->middleware('can:roles.manage')->name('roles.store');
+        Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])->middleware('can:roles.manage')->name('roles.edit');
+        Route::patch('/roles/{role}', [RoleController::class, 'update'])->middleware('can:roles.manage')->name('roles.update');
+        Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->middleware('can:roles.manage')->name('roles.destroy');
     });
 });
 

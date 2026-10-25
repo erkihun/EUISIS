@@ -22,6 +22,7 @@ use App\Services\SeatCapacity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -234,6 +235,7 @@ class PositionController extends Controller
 
     public function show(Request $request, Position $position): Response
     {
+        Gate::authorize('view', $position);
         abort_unless($this->scope->allows($request->user(), (string) $position->organization_id), 403);
         $position->load('organization:id,name_en,name_am', 'unit:id,name_en,name_am,code')->loadCount('assignments');
 
@@ -264,6 +266,7 @@ class PositionController extends Controller
 
     public function update(Request $request, Position $position, SavePosition $save): RedirectResponse
     {
+        Gate::authorize('update', $position);
         $save->execute($position, $this->validated($request, false), $request->user());
 
         return to_route('positions.show', $position)->with('flash', ['message' => __('positions.updated_successfully'), 'type' => 'success']);
@@ -271,6 +274,7 @@ class PositionController extends Controller
 
     public function archive(Request $request, Position $position, AuditWriter $audit): RedirectResponse
     {
+        Gate::authorize('archive', $position);
         if (! $this->scope->allows($request->user(), (string) $position->organization_id)) {
             throw ValidationException::withMessages(['organization_id' => 'The organization is outside your organizations.']);
         }

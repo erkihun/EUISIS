@@ -105,7 +105,8 @@ final readonly class ManageHierarchyVersion
 
     public function transition(HierarchyVersion $version, string $transition, User $actor): HierarchyVersion
     {
-        $this->authorize($actor);
+        // Preparing, approving and publishing are separate permissions (ADR 0009), all city-wide.
+        abort_unless($actor->is_active && $actor->can(self::permissionFor($transition)), 403);
 
         return DB::transaction(function () use ($version, $transition, $actor): HierarchyVersion {
             $this->lockVersions();
@@ -231,7 +232,17 @@ final readonly class ManageHierarchyVersion
     /** Only a city-wide administrator governs the hierarchy. */
     public static function governs(?User $user): bool
     {
-        return $user !== null && $user->is_active && $user->role === 'core_admin' && $user->isCityWide();
+        return $user !== null && $user->is_active && $user->can('hierarchy-versions.manage');
+    }
+
+    /** The permission a step needs. */
+    public static function permissionFor(string $transition): string
+    {
+        return match ($transition) {
+            'approve', 'reject' => 'hierarchy-versions.approve',
+            'publish' => 'hierarchy-versions.publish',
+            default => 'hierarchy-versions.manage',
+        };
     }
 
     private function authorize(User $actor): void

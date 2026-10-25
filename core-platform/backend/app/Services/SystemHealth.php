@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Actions\SaveUser;
 use App\Models\ApiClient;
 use App\Models\ApiRequestLog;
 use App\Models\User;
 use App\Models\WebhookDelivery;
+use App\Support\CorePermissions;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -140,7 +142,7 @@ final class SystemHealth
     /** @return array{status: string, details: array<string, mixed>} */
     private function access(): array
     {
-        $cityAdmins = User::query()->where('role', 'core_admin')->where('scope_type', User::SCOPE_CITYWIDE)->where('is_active', true)->count();
+        $cityAdmins = User::query()->whereIn('role', SaveUser::administratorRoles())->where('scope_type', User::SCOPE_CITYWIDE)->where('is_active', true)->count();
         $clients = ApiClient::query()->where('is_active', true)->whereNull('revoked_at');
 
         return [
@@ -152,7 +154,7 @@ final class SystemHealth
                 'live_sign_ins' => DB::table('personal_access_tokens')->where('tokenable_type', User::class)
                     ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))->count(),
                 'mfa_enforced' => MfaPolicy::enforced(),
-                'privileged_without_mfa' => User::query()->where('is_active', true)->whereIn('role', ['core_admin', 'core_officer'])
+                'privileged_without_mfa' => User::query()->where('is_active', true)->whereIn('role', CorePermissions::rolesWith('core.write'))
                     ->where(fn ($q) => $q->where('two_factor_enabled', false)->orWhereNull('two_factor_confirmed_at'))->count(),
                 'active_api_clients' => (clone $clients)->count(),
                 'api_clients_expiring_30_days' => (clone $clients)->whereNotNull('expires_at')->whereBetween('expires_at', [now(), now()->addDays(30)])->count(),

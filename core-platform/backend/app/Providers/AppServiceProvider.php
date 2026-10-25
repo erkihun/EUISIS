@@ -48,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
             Route::pattern($parameter, '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}');
         }
         Route::pattern('user', '[0-9]+');
+        Route::pattern('role', '[0-9]+');
 
         // A record outside the signed-in person's organization scope is never loaded:
         // its route answers 404, whatever page or API reached it (ADR 0008).

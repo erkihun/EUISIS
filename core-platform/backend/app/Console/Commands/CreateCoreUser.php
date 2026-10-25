@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\CoreRole;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\AuditWriter;
@@ -27,8 +28,8 @@ class CreateCoreUser extends Command
     {
         $email = (string) $this->argument('email');
         $role = (string) $this->option('role');
-        if (! in_array($role, User::ROLES, true)) {
-            $this->error('Role must be one of: '.implode(', ', User::ROLES).'.');
+        if (! CoreRole::query()->where('key', $role)->exists()) {
+            $this->error('Role must be one of: '.CoreRole::query()->orderBy('id')->pluck('key')->implode(', ').'.');
 
             return self::FAILURE;
         }

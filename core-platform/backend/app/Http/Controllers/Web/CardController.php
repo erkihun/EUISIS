@@ -20,6 +20,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -70,13 +71,14 @@ class CardController extends Controller
 
     public function show(Request $request, IdCard $card): Response
     {
+        Gate::authorize('view', $card);
         /** @var User $user */
         $user = $request->user();
         $this->authorizeCard($user, $card);
         $card->load(['employee.currentAssignment.organization', 'employee.currentAssignment.position', 'employee.currentAssignment.unit',
             'request.requester', 'request.reviewer', 'request.approver', 'previousCard', 'replacementCard']);
-        $manage = $user->can('cards.manage');
-        $status = $card->status;
+        // Each button follows IdCardPolicy: the step's permission, the holder's organization, the card's status.
+        $may = fn (string $transition): bool => Gate::forUser($user)->allows('transition', [$card, $transition]);
 
         return Inertia::render('IdCards/Show', [
             'portal_labels' => [
@@ -99,16 +101,16 @@ class CardController extends Controller
             'can' => [
                 'view' => true,
                 'update' => false,
-                'print' => $manage && $status === IdCard::PENDING_PRINT,
+                'print' => $may('print'),
                 'reprint' => false,
-                'issue' => $manage && $status === IdCard::PRINTED,
-                'activate' => $manage && $status === IdCard::ISSUED,
-                'reportLost' => $manage && in_array($status, [IdCard::ACTIVE, IdCard::ISSUED], true),
-                'reportDamaged' => $manage && in_array($status, [IdCard::ACTIVE, IdCard::ISSUED], true),
-                'replace' => $manage && in_array($status, IdCard::REPLACEABLE, true),
-                'revoke' => $manage && ! in_array($status, [IdCard::REVOKED, IdCard::REPLACED, IdCard::EXPIRED], true),
-                'suspend' => $manage && in_array($status, [IdCard::ACTIVE, IdCard::ISSUED], true),
-                'reinstate' => $manage && $status === IdCard::SUSPENDED,
+                'issue' => $may('issue'),
+                'activate' => $may('activate'),
+                'reportLost' => $may('report_lost'),
+                'reportDamaged' => $may('report_damaged'),
+                'replace' => Gate::forUser($user)->allows('replace', $card),
+                'revoke' => $may('revoke'),
+                'suspend' => $may('suspend'),
+                'reinstate' => $may('reinstate'),
                 'exportPng' => false,
                 'previewSvg' => false,
             ],
@@ -118,6 +120,7 @@ class CardController extends Controller
     /** A card transition from the detail page; back with the EUISIS message. */
     public function transition(Request $request, IdCard $card, ChangeCardStatus $change, string $transition): RedirectResponse
     {
+        Gate::authorize('transition', [$card, $transition]);
         $reason = $request->input('reason') ?? $request->input('notes');
         if (in_array($transition, ChangeCardStatus::NEEDS_REASON, true)) {
             $request->validate(['reason' => ['required', 'string', 'max:1000']]);
@@ -134,6 +137,7 @@ class CardController extends Controller
 
     public function replace(Request $request, IdCard $card, CardRequests $requests): RedirectResponse
     {
+        Gate::authorize('replace', $card);
         $request->validate(['reason' => ['required', 'string', 'max:1000']]);
         $requests->replace($card, $request->string('reason')->toString(), $request->user());
 
@@ -212,6 +216,7 @@ class CardController extends Controller
 
     public function showRequest(Request $request, CardRequest $cardRequest): Response
     {
+        Gate::authorize('view', $cardRequest);
         /** @var User $user */
         $user = $request->user();
         abort_unless($this->inScope(CardRequest::query()->whereKey($cardRequest->id), $user)->exists(), 403);
@@ -228,7 +233,7 @@ class CardController extends Controller
 
     public function verifyRequest(Request $request, CardRequest $cardRequest, AuditWriter $audit): RedirectResponse
     {
-        abort_unless($this->requestCan($request->user(), $cardRequest)['verify'], 403);
+        Gate::authorize('verify', $cardRequest);
         $cardRequest->update(['status' => 'verified', 'reviewed_by' => $request->user()->id, 'verified_at' => now(), 'verification_notes' => $request->input('notes')]);
         $audit->write('card_request.verified', $request->user(), $cardRequest, $cardRequest->employee?->currentAssignment?->organization_id, null, ['status' => 'verified'], $request->input('notes'));
 
@@ -237,6 +242,7 @@ class CardController extends Controller
 
     public function approveRequest(Request $request, CardRequest $cardRequest, CardRequests $requests): RedirectResponse
     {
+        Gate::authorize('approve', $cardRequest);
         $requests->approve($cardRequest, $request->user(), $request->input('notes'));
 
         return back()->with('success', __('id-cards.request_approved'));
@@ -244,6 +250,7 @@ class CardController extends Controller
 
     public function rejectRequest(Request $request, CardRequest $cardRequest, CardRequests $requests): RedirectResponse
     {
+        Gate::authorize('reject', $cardRequest);
         $request->validate(['rejection_reason' => ['required', 'string', 'max:1000']]);
         $requests->close($cardRequest, 'reject', $request->string('rejection_reason')->toString(), $request->user());
 
@@ -252,6 +259,7 @@ class CardController extends Controller
 
     public function cancelRequest(Request $request, CardRequest $cardRequest, CardRequests $requests): RedirectResponse
     {
+        Gate::authorize('cancel', $cardRequest);
         $request->validate(['cancellation_reason' => ['required', 'string', 'max:1000']]);
         $requests->close($cardRequest, 'cancel', $request->string('cancellation_reason')->toString(), $request->user());
 
@@ -378,15 +386,14 @@ class CardController extends Controller
     /** @return array{view: bool, verify: bool, approve: bool, reject: bool, cancel: bool} */
     private function requestCan(User $user, CardRequest $cardRequest): array
     {
-        $pending = in_array($cardRequest->status, CardRequest::PENDING, true);
-        $other = (int) $cardRequest->requested_by !== (int) $user->id;
+        $gate = Gate::forUser($user);
 
         return [
-            'view' => true,
-            'verify' => $pending && $cardRequest->status !== 'verified' && $user->can('card-requests.approve'),
-            'approve' => $pending && $other && $user->can('card-requests.approve'),
-            'reject' => $pending && $user->can('card-requests.approve'),
-            'cancel' => $pending && $user->can('card-requests.create'),
+            'view' => $gate->allows('view', $cardRequest),
+            'verify' => $gate->allows('verify', $cardRequest),
+            'approve' => $gate->allows('approve', $cardRequest),
+            'reject' => $gate->allows('reject', $cardRequest),
+            'cancel' => $gate->allows('cancel', $cardRequest),
         ];
     }
 

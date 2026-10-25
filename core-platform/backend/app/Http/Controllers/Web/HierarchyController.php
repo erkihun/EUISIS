@@ -66,7 +66,8 @@ class HierarchyController extends Controller
             'summary' => $this->tree->summary($tree),
             // Publishing is a step of the governance panel, after approval.
             'can' => ['edit' => $editable, 'archive' => false, 'publish' => false, 'manageTree' => $editable, 'createEdge' => $editable],
-            'governance' => ManageHierarchyVersion::governs($request->user()) ? $this->governance($hierarchyVersion, $request->user()) : null,
+            'governance' => collect(['manage', 'approve', 'publish'])->contains(fn (string $step): bool => (bool) $request->user()?->can('hierarchy-versions.'.$step))
+                ? $this->governance($hierarchyVersion, $request->user()) : null,
         ]);
     }
 
@@ -123,10 +124,10 @@ class HierarchyController extends Controller
             'approval_blocked' => $approvalRefusal !== null,
             'publication_blocked' => $publicationRefusal === null ? null : ($publicationRefusal[0] === 'effective_from' ? 'effective_date' : 'structure_changed'),
             'can' => [
-                'review' => $version->status === 'draft',
-                'approve' => $version->status === 'review' && $approvalRefusal === null,
-                'reject' => in_array($version->status, ['review', 'approved'], true),
-                'publish' => $version->status === 'approved' && $publicationRefusal === null,
+                'review' => $version->status === 'draft' && $user->can('hierarchy-versions.manage'),
+                'approve' => $version->status === 'review' && $approvalRefusal === null && $user->can('hierarchy-versions.approve'),
+                'reject' => in_array($version->status, ['review', 'approved'], true) && $user->can('hierarchy-versions.approve'),
+                'publish' => $version->status === 'approved' && $publicationRefusal === null && $user->can('hierarchy-versions.publish'),
             ],
             'urls' => collect(ManageHierarchyVersion::TRANSITIONS)->mapWithKeys(fn (string $transition): array => [
                 $transition => route('hierarchy-versions.'.$transition, $version),

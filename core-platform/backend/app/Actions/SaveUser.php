@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Models\CoreRole;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\OrganizationScope;
+use App\Support\CorePermissions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -33,7 +35,10 @@ final readonly class SaveUser
     public function execute(?User $user, array $data, User $actor): array
     {
         return DB::transaction(function () use ($user, $data, $actor): array {
-            abort_unless($actor->is_active && $actor->role === 'core_admin', 403);
+            abort_unless($actor->is_active && $actor->can($user === null ? 'users.create' : 'users.update'), 403);
+            if (isset($data['role']) && ! CoreRole::query()->where('key', $data['role'])->exists()) {
+                throw ValidationException::withMessages(['role' => 'Choose an existing role.']);
+            }
             if ($user !== null) {
                 $user = User::query()->lockForUpdate()->findOrFail($user->id);
                 abort_unless($this->manages($actor, $user), 403);
@@ -48,13 +53,13 @@ final readonly class SaveUser
             if (User::query()->where('email', $data['email'])->when($user, fn ($q) => $q->whereKeyNot($user->id))->exists()) {
                 throw ValidationException::withMessages(['email' => 'An account with this e-mail already exists.']);
             }
-            if ($user !== null && $user->is($actor) && (($data['role'] ?? $user->role) !== 'core_admin' || ($data['is_active'] ?? true) === false
+            if ($user !== null && $user->is($actor) && (($data['role'] ?? $user->role) !== $user->role || ($data['is_active'] ?? true) === false
                 || $type !== $user->scope_type || (string) $organizationId !== (string) $user->scope_organization_id)) {
                 throw ValidationException::withMessages(['role' => 'You cannot remove or narrow your own administrator access.']);
             }
             if ($user !== null && $this->isCityAdministrator($user)
                 && ! $this->isCityAdministrator(new User(['role' => $data['role'] ?? $user->role, 'scope_type' => $type, 'is_active' => $data['is_active'] ?? $user->is_active]))
-                && ! User::query()->whereKeyNot($user->id)->where('role', 'core_admin')->where('scope_type', User::SCOPE_CITYWIDE)
+                && ! User::query()->whereKeyNot($user->id)->whereIn('role', self::administratorRoles())->where('scope_type', User::SCOPE_CITYWIDE)
                     ->where('is_active', true)->lockForUpdate()->exists()) {
                 throw ValidationException::withMessages(['role' => 'This is the last active city-wide administrator; appoint another one first.']);
             }
@@ -83,7 +88,7 @@ final readonly class SaveUser
     public function resetPassword(User $user, User $actor): string
     {
         return DB::transaction(function () use ($user, $actor): string {
-            abort_unless($actor->is_active && $actor->role === 'core_admin', 403);
+            abort_unless($actor->is_active && $actor->can('users.update'), 403);
             $user = User::query()->lockForUpdate()->findOrFail($user->id);
             abort_unless($this->manages($actor, $user), 403);
             $password = Str::password(16);
@@ -135,8 +140,18 @@ final readonly class SaveUser
         return [$type, null];
     }
 
+    /**
+     * A city-wide account that can still administer accounts and roles: the
+     * Core must always keep one (ADR 0009).
+     */
     private function isCityAdministrator(User $user): bool
     {
-        return $user->role === 'core_admin' && $user->isCityWide() && (bool) $user->is_active;
+        return in_array((string) $user->role, self::administratorRoles(), true) && $user->isCityWide() && (bool) $user->is_active;
+    }
+
+    /** @return list<string> the roles that can administer accounts and roles */
+    public static function administratorRoles(): array
+    {
+        return array_values(array_intersect(CorePermissions::rolesWith('users.update'), CorePermissions::rolesWith('roles.manage')));
     }
 }

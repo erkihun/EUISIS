@@ -352,7 +352,8 @@ class CoreController extends Controller
             'positions_without_holder' => max(0, $activePositions()->count() - $held),
             'employees_active' => $ofEmployees(Employee::query()->where('status', Employee::ACTIVE), 'id')->count(),
             'assignments_current' => $inScope(EmployeeAssignment::query()->where('is_current', true)->where('assignment_status', EmployeeAssignment::ACTIVE))->count(),
-            'employees_unplaced' => Employee::query()->where('status', Employee::ACTIVE)->whereNull('current_assignment_id')->count(),
+            // An unplaced employee belongs to no organization, so only a city-wide reader may count them (ADR 0009).
+            'employees_unplaced' => $ids === null ? Employee::query()->where('status', Employee::ACTIVE)->whereNull('current_assignment_id')->count() : null,
             'cards_active' => $ofEmployees(IdCard::query()->where('status', IdCard::ACTIVE)->where('is_current', true))->count(),
             'cards_expiring' => $ofEmployees(IdCard::query()->where('status', IdCard::ACTIVE)->where('is_current', true)->whereBetween('expires_at', [$now, $now->copy()->addDays(self::EXPIRY_WINDOW_DAYS)]))->count(),
             'card_requests_open' => $ofEmployees(CardRequest::query()->where('status', CardRequest::SUBMITTED))->count(),

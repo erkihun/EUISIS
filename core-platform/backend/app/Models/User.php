@@ -99,7 +99,7 @@ class User extends Authenticatable
 
     public function canChangeMasterData(): bool
     {
-        return in_array($this->role, ['core_officer', 'core_admin'], true);
+        return $this->can('core.write');
     }
 
     /** Only an explicit city-wide grant reaches the whole city; an empty scope never does. */

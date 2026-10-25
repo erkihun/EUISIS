@@ -203,7 +203,8 @@ class CoreScreensTest extends TestCase
         $this->post('/card-requests', ['employee_ids' => [$this->employee->id], 'request_type' => 'new'])->assertRedirect('/card-requests');
         $request = CardRequest::query()->where('employee_id', $this->employee->id)->where('status', 'submitted')->firstOrFail();
 
-        $this->post('/card-requests/'.$request->id.'/approve')->assertSessionHasErrors('request');
+        // CardRequestPolicy refuses the requester before the action would (ADR 0009).
+        $this->post('/card-requests/'.$request->id.'/approve')->assertForbidden();
 
         $this->signIn('core_admin');
         $this->post('/card-requests/'.$request->id.'/approve')->assertSessionHasNoErrors();
@@ -220,7 +221,7 @@ class CoreScreensTest extends TestCase
     {
         $this->signIn('core_admin');
 
-        $this->post('/users', ['name' => 'Hana', 'email' => 'hana@core.test', 'status' => 'active', 'role_ids' => [1, 2], 'organization_scope_ids' => [$this->bureauA->id]])
+        $this->post('/users', ['name' => 'Hana', 'email' => 'hana@core.test', 'status' => 'active', 'role_ids' => [11, 21], 'organization_scope_ids' => [$this->bureauA->id]])
             ->assertRedirect('/users')->assertSessionHas('flash.temporary_password');
 
         $user = User::query()->where('email', 'hana@core.test')->firstOrFail();
