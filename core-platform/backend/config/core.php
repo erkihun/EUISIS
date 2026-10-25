@@ -36,6 +36,13 @@ return [
         'id_cards' => ['live_current_employee_id'],
     ],
 
+    /*
+     * Key of the national ID lookup hash. Set it to the EUISIS NATIONAL_ID_HASH_KEY
+     * so imported hashes and new ones compare; empty = derived from APP_KEY.
+     * The Core keeps only this hash, never the national ID itself.
+     */
+    'national_id_hash_key' => (string) env('NATIONAL_ID_HASH_KEY', ''),
+
     /* Origins of the Core frontend allowed to call the API from a browser. */
     'frontend_origins' => array_filter(explode(',', (string) env('CORE_FRONTEND_ORIGINS', 'http://localhost:5174'))),
 ];

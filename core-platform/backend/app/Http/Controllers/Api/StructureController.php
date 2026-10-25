@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\DeleteOrganization;
 use App\Actions\SaveOrganization;
 use App\Actions\SaveOrganizationUnit;
 use App\Actions\SaveStructureType;
@@ -15,6 +16,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Services\OrganizationScope;
+use App\Services\OrganizationUsage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -80,6 +82,26 @@ class StructureController extends Controller
         return response()->json(['data' => $save->execute($organization, $this->organizationData($request, false), $request->user())]);
     }
 
+    /** Why the organization could not leave service or be deleted now, before anyone tries. */
+    public function organizationUsage(Request $request, Organization $organization, OrganizationUsage $usage): JsonResponse
+    {
+        abort_unless($this->scope->allows($request->user(), (string) $organization->id), 404);
+
+        return response()->json([
+            'deactivation_blockers' => $usage->deactivationBlockers($organization),
+            'deletion_blockers' => $usage->deletionBlockers($organization),
+        ]);
+    }
+
+    public function deleteOrganization(Request $request, Organization $organization, DeleteOrganization $delete): JsonResponse
+    {
+        abort_unless($this->scope->allows($request->user(), (string) $organization->id), 404);
+        $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:1000']]);
+        $delete->execute($organization, $data['reason'], $request->user());
+
+        return response()->json(['deleted' => true]);
+    }
+
     public function storeUnit(Request $request, SaveOrganizationUnit $save): JsonResponse
     {
         return response()->json(['data' => $save->execute(null, $this->unitData($request, true), $request->user())], 201);
@@ -90,10 +112,14 @@ class StructureController extends Controller
         return response()->json(['data' => $save->execute($unit, $this->unitData($request, false), $request->user())]);
     }
 
-    /** The published hierarchy as a tree of organizations, cut to the reader's scope. */
+    /**
+     * The published hierarchy as a tree of organizations, cut to the reader's
+     * scope (today's scope); with `on`, the structure that was in force that day.
+     */
     public function hierarchy(Request $request): JsonResponse
     {
-        $version = HierarchyVersion::current();
+        $request->validate(['on' => ['nullable', 'date', 'before_or_equal:today']]);
+        $version = $request->filled('on') ? HierarchyVersion::inForceOn($request->date('on')->toDateString()) : HierarchyVersion::current();
         $ids = $this->scope->organizationIds($request->user());
         $organizations = Organization::query()->with('type:id,name_en,name_am')
             ->when($ids !== null, fn ($q) => $q->whereIn('id', $ids))

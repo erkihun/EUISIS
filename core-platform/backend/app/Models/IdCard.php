@@ -62,18 +62,41 @@ class IdCard extends Model
         return $this->belongsTo(Employee::class);
     }
 
-    /**
-     * The one validity rule: active, current, QR active, not revoked, not expired,
-     * and held by an employee whose employment has not ended.
-     */
+    /** The shared, machine-readable reason a credential cannot be accepted. */
+    public function invalidReason(): ?string
+    {
+        if ($this->employee === null || $this->employee->status !== Employee::ACTIVE) {
+            return 'EMPLOYEE_INACTIVE';
+        }
+        if ($this->revoked_at !== null || $this->status === self::REVOKED) {
+            return 'CARD_REVOKED';
+        }
+        if ($this->status === self::REPLACED || ! $this->is_current) {
+            return 'CARD_REPLACED';
+        }
+        if ($this->status === self::EXPIRED || ($this->expires_at !== null && ! $this->expires_at->isFuture())) {
+            return 'CARD_EXPIRED';
+        }
+        if ($this->status === self::SUSPENDED) {
+            return 'CARD_SUSPENDED';
+        }
+        if ($this->status !== self::ACTIVE) {
+            return 'CARD_INACTIVE';
+        }
+        if (($this->qr_status ?? 'active') !== 'active') {
+            return 'CREDENTIAL_INVALID';
+        }
+
+        $assignment = $this->employee->currentAssignment;
+        if ($assignment === null || $assignment->employee_id !== $this->employee_id || ! $assignment->isEffective()) {
+            return 'ASSIGNMENT_INACTIVE';
+        }
+
+        return null;
+    }
+
     public function isValidCredential(): bool
     {
-        return $this->status === self::ACTIVE
-            && $this->is_current
-            && ($this->qr_status ?? 'active') === 'active'
-            && $this->revoked_at === null
-            && ($this->expires_at === null || $this->expires_at->isFuture())
-            && $this->employee !== null
-            && ! $this->employee->isSeparated();
+        return $this->invalidReason() === null;
     }
 }

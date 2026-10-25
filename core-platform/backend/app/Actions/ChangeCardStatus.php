@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions;
 
+use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\User;
 use App\Services\AuditWriter;
@@ -48,7 +49,10 @@ final readonly class ChangeCardStatus
         [$from, $to, $stamp] = self::TRANSITIONS[$transition] ?? throw ValidationException::withMessages(['transition' => 'Unknown card change.']);
 
         return DB::transaction(function () use ($card, $transition, $reason, $actor, $from, $to, $stamp): IdCard {
-            $card = IdCard::query()->with('employee.currentAssignment')->lockForUpdate()->findOrFail($card->id);
+            // Serialize all credential changes with requests and employee lifecycle changes.
+            $employee = Employee::query()->lockForUpdate()->findOrFail($card->employee_id);
+            $card = IdCard::query()->lockForUpdate()->findOrFail($card->id);
+            $card->setRelation('employee', $employee->load('currentAssignment'));
             $organizationId = $card->employee?->currentAssignment?->organization_id;
 
             if (! $this->scope->allows($actor, $organizationId === null ? null : (string) $organizationId)) {
@@ -58,6 +62,15 @@ final readonly class ChangeCardStatus
                 throw ValidationException::withMessages(['card' => 'A '.str_replace('_', ' ', $card->status).' card cannot be changed this way ('.str_replace('_', ' ', $transition).').']);
             }
             if (in_array($transition, ['activate', 'reinstate'], true)) {
+                if (! $card->is_current || $card->revoked_at !== null
+                    || ($card->expires_at !== null && ! $card->expires_at->isFuture())
+                    || ($card->qr_status ?? 'active') !== 'active') {
+                    throw ValidationException::withMessages(['card' => 'Only a current, unexpired, unrevoked credential with an active QR can be activated.']);
+                }
+                $assignment = $employee->currentAssignment;
+                if ($assignment === null || $assignment->employee_id !== $employee->id || ! $assignment->isEffective()) {
+                    throw ValidationException::withMessages(['card' => 'An effective current assignment is required to activate a card.']);
+                }
                 $otherActive = IdCard::query()->where('employee_id', $card->employee_id)->whereKeyNot($card->id)->where('status', IdCard::ACTIVE)->exists();
                 if ($card->employee === null || $card->employee->status !== 'active' || $otherActive) {
                     throw ValidationException::withMessages(['card' => 'Only an active employee\'s only card can be made active.']);

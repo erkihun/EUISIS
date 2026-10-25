@@ -1,11 +1,13 @@
 <?php
 
 use App\Actions\ChangeCardStatus;
+use App\Actions\ManageHierarchyVersion;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CoreReadController;
 use App\Http\Controllers\Api\CoreWriteController;
 use App\Http\Controllers\Api\EmployeeCardController;
+use App\Http\Controllers\Api\HierarchyVersionController;
 use App\Http\Controllers\Api\PositionController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\StructureController;
@@ -25,6 +27,7 @@ Route::get('/settings/public', [SettingsController::class, 'public'])->middlewar
 Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(function (): void {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::post('/auth/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
 
     Route::prefix('v1')->group(function (): void {
         Route::get('/dashboard', [CoreReadController::class, 'dashboard']);
@@ -43,6 +46,7 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
         Route::get('/{kind}', [StructureController::class, 'types'])->whereIn('kind', ['organization-types', 'unit-types']);
         Route::get('/positions/{position}', [PositionController::class, 'show']);
         Route::get('/card-requests', [EmployeeCardController::class, 'requests']);
+        Route::get('/employees/{employee}/card-eligibility', [EmployeeCardController::class, 'eligibility']);
 
         // Officers and administrators change master data; every action checks scope itself.
         Route::middleware('core.user:writer')->group(function (): void {
@@ -50,6 +54,8 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
             Route::put('/{kind}/{id}', [StructureController::class, 'saveType'])->whereIn('kind', ['organization-types', 'unit-types']);
             Route::post('/organizations', [StructureController::class, 'storeOrganization']);
             Route::put('/organizations/{organization}', [StructureController::class, 'updateOrganization']);
+            Route::get('/organizations/{organization}/usage', [StructureController::class, 'organizationUsage']);
+            Route::delete('/organizations/{organization}', [StructureController::class, 'deleteOrganization']);
             Route::post('/organization-units', [StructureController::class, 'storeUnit']);
             Route::put('/organization-units/{unit}', [StructureController::class, 'updateUnit']);
 
@@ -69,14 +75,23 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
             Route::post('/id-cards/{card}/{transition}', [CoreWriteController::class, 'changeCard'])->whereIn('transition', ChangeCardStatus::transitions());
         });
 
+        // The governed hierarchy lifecycle is the city's: city-wide administrators only.
+        Route::middleware('core.user:city-admin')->prefix('hierarchy-versions')->group(function (): void {
+            Route::get('/', [HierarchyVersionController::class, 'index']);
+            Route::post('/', [HierarchyVersionController::class, 'store']);
+            Route::get('/{hierarchyVersion}', [HierarchyVersionController::class, 'show']);
+            Route::put('/{hierarchyVersion}/parent', [HierarchyVersionController::class, 'changeParent']);
+            Route::post('/{hierarchyVersion}/{transition}', [HierarchyVersionController::class, 'transition'])->whereIn('transition', ManageHierarchyVersion::TRANSITIONS);
+        });
+
         Route::middleware('core.user:admin')->group(function (): void {
-            Route::get('/settings', [SettingsController::class, 'index']);
-            Route::put('/settings/{group}', [SettingsController::class, 'update'])->whereIn('group', CoreSettingsRegistry::GROUPS);
+            Route::get('/settings', [SettingsController::class, 'index'])->middleware('core.user:city-admin');
+            Route::put('/settings/{group}', [SettingsController::class, 'update'])->whereIn('group', CoreSettingsRegistry::GROUPS)->middleware('core.user:city-admin');
             Route::get('/users', [AdminController::class, 'users']);
             Route::post('/users', [AdminController::class, 'saveUser']);
             Route::put('/users/{user}', [AdminController::class, 'saveUser']);
             Route::post('/users/{user}/reset-password', [AdminController::class, 'resetPassword']);
-            Route::get('/data-quality', [AdminController::class, 'dataQuality']);
+            Route::get('/data-quality', [AdminController::class, 'dataQuality'])->middleware('core.user:city-admin');
         });
     });
 });

@@ -20,6 +20,11 @@ final class OrganizationScope
     /** @var array<int, list<string>> per-request cache */
     private array $cache = [];
 
+    public function clearCache(): void
+    {
+        $this->cache = [];
+    }
+
     /** @return list<string>|null null = the whole city */
     public function organizationIds(User $user): ?array
     {

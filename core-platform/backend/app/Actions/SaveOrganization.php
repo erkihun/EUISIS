@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\CodeGenerator;
 use App\Services\OrganizationScope;
+use App\Services\OrganizationUsage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -19,21 +20,33 @@ use Illuminate\Validation\ValidationException;
  * UpdateOrganizationAction): a blank code is generated, and the parent is the
  * structural edge in the published hierarchy. A scoped account works only
  * inside its own subtree, may not move its own top organization, and no
- * organization may sit under one of its own descendants.
+ * organization may sit under one of its own descendants. An organization
+ * leaves service only when nothing active remains under it (OrganizationUsage).
+ * A parent change is a new published hierarchy version (one per day for these
+ * immediate edits), so the structure in force before stays queryable.
  */
 final readonly class SaveOrganization
 {
     public const STATUSES = ['draft', 'active', 'inactive', 'merged', 'dissolved', 'archived'];
 
-    public function __construct(private AuditWriter $audit, private OrganizationScope $scope, private CodeGenerator $codes) {}
+    public function __construct(private AuditWriter $audit, private OrganizationScope $scope, private CodeGenerator $codes, private OrganizationUsage $usage) {}
 
     /** @param array<string, mixed> $data organization_type_id, code, name_en, name_am, status, effective_from, parent_organization_id */
     public function execute(?Organization $organization, array $data, User $actor): Organization
     {
         return DB::transaction(function () use ($organization, $data, $actor): Organization {
+            $parentProvided = array_key_exists('parent_organization_id', $data);
             $parentId = $data['parent_organization_id'] ?? null;
             unset($data['parent_organization_id']);
+            HierarchyVersion::query()->orderBy('id')->lockForUpdate()->get(['id']);
             $version = HierarchyVersion::current();
+            if (! $parentProvided && $organization !== null && $version !== null) {
+                $parentId = OrganizationEdge::query()
+                    ->where('hierarchy_version_id', $version->id)
+                    ->whereIn('relationship_type', OrganizationEdge::TREE_TYPES)
+                    ->where('child_organization_id', $organization->id)
+                    ->value('parent_organization_id');
+            }
 
             if ($organization !== null && ! $this->scope->allows($actor, (string) $organization->id)) {
                 throw ValidationException::withMessages(['organization' => 'This organization is outside your organizations.']);
@@ -59,6 +72,17 @@ final readonly class SaveOrganization
                 }
             }
 
+            if ($organization !== null && in_array($data['status'] ?? $organization->status, OrganizationUsage::ENDED, true)
+                && ! in_array($organization->status, OrganizationUsage::ENDED, true)) {
+                $blockers = $this->usage->deactivationBlockers($organization);
+                if ($blockers !== []) {
+                    throw ValidationException::withMessages(['status' => array_values($blockers)]);
+                }
+            }
+            if ($parentId !== null && in_array(Organization::query()->whereKey($parentId)->value('status'), OrganizationUsage::ENDED, true)) {
+                throw ValidationException::withMessages(['parent_organization_id' => 'The parent organization is out of service.']);
+            }
+
             $old = $organization?->only(array_keys($data));
             $organization ??= new Organization;
             $organization->fill($data + ($organization->exists ? [] : ['status' => 'active', 'effective_from' => now()->toDateString()]))->save();
@@ -72,6 +96,7 @@ final readonly class SaveOrganization
                 if ($oldParent !== null && $actor->scope_organization_id === $organization->id) {
                     throw ValidationException::withMessages(['parent_organization_id' => 'You cannot move the organization your account is scoped to.']);
                 }
+                $version = app(ManageHierarchyVersion::class)->forkPublished($actor);
                 OrganizationEdge::query()->where('hierarchy_version_id', $version->id)->whereIn('relationship_type', OrganizationEdge::TREE_TYPES)
                     ->where('child_organization_id', $organization->id)->delete();
                 if ($parentId !== null) {

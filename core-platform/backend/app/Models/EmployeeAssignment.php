@@ -23,6 +23,14 @@ class EmployeeAssignment extends Model
         return ['is_current' => 'boolean', 'effective_from' => 'date', 'effective_to' => 'date'];
     }
 
+    public function isEffective(): bool
+    {
+        return $this->assignment_status === self::ACTIVE
+            && $this->is_current
+            && ($this->effective_from === null || $this->effective_from->lte(today()))
+            && ($this->effective_to === null || $this->effective_to->gte(today()));
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);

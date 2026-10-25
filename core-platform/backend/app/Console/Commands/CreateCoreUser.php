@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\AuditWriter;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -45,7 +46,7 @@ class CreateCoreUser extends Command
         }
 
         $password = Str::password(16);
-        User::query()->create([
+        $user = new User([
             'name' => implode(' ', (array) $this->argument('name')),
             'email' => $email,
             'password' => $password,
@@ -53,6 +54,9 @@ class CreateCoreUser extends Command
             'scope_organization_id' => $scope,
             'is_active' => true,
         ]);
+        $user->must_change_password = true;
+        $user->save();
+        app(AuditWriter::class)->writeFor('user.created', null, 'User', (string) $user->id, null, null, $user->only(['name', 'email', 'role', 'scope_organization_id', 'is_active']));
 
         $this->info("Created {$role} {$email}. One-time password (shown once): {$password}");
 

@@ -181,11 +181,12 @@ class CoreReadController extends Controller
         $data = $request->validate(['card_uuid' => ['required', 'uuid']]);
         $card = IdCard::query()->with('employee.currentAssignment')->where('public_card_uuid', $data['card_uuid'])->first();
         if ($card === null || ! $this->scope->allows($request->user(), $card->employee?->currentAssignment?->organization_id)) {
-            return response()->json(['valid' => false, 'status' => 'not_found'], 404);
+            return response()->json(['valid' => false, 'status' => 'not_found', 'code' => 'CARD_NOT_FOUND'], 404);
         }
 
         return response()->json([
             'valid' => $card->isValidCredential(),
+            ...($card->invalidReason() === null ? [] : ['code' => $card->invalidReason()]),
             'status' => $card->status,
             'employee_number' => $card->employee?->employee_number,
             'employee_name' => $card->employee?->full_name,

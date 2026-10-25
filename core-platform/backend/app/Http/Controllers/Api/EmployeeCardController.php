@@ -57,6 +57,17 @@ class EmployeeCardController extends Controller
             ['id', 'employee_id', 'request_type', 'status', 'request_reason', 'requested_by', 'submitted_at', 'approved_at', 'rejection_reason', 'cancellation_reason'])->withQueryString());
     }
 
+    /** Whether a card request of a type would be accepted now, and every reason it would not. */
+    public function eligibility(Request $request, Employee $employee, CardRequests $cards): JsonResponse
+    {
+        $employee->load('currentAssignment');
+        abort_unless($this->scope->allows($request->user(), $employee->currentAssignment?->organization_id), 404);
+        $type = $request->validate(['type' => ['sometimes', Rule::in(['new', 'renewal', 'correction'])]])['type'] ?? 'new';
+        $problems = $cards->eligibility($employee, $type);
+
+        return response()->json(['eligible' => $problems === [], 'problems' => $problems]);
+    }
+
     public function submitRequest(Request $request, Employee $employee, CardRequests $cards): JsonResponse
     {
         $data = $request->validate([

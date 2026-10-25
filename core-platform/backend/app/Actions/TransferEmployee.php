@@ -6,6 +6,7 @@ namespace App\Actions;
 
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\Organization;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\AuditWriter;
@@ -34,9 +35,10 @@ final readonly class TransferEmployee
             $effective = Carbon::parse($effectiveDate)->startOfDay();
 
             $problem = match (true) {
+                $effective->isFuture() => ['effective_date' => 'Future transfers require scheduled activation and are not yet supported.'],
                 $employee->isSeparated() => ['employee' => 'The employment has ended; it cannot be transferred.'],
-                $current === null || $current->assignment_status !== EmployeeAssignment::ACTIVE => ['employee' => 'Only an active placement can be transferred.'],
-                $target === null || ! $target->is_active || $target->organization_id === null => ['position_id' => 'The target position must exist, be active and belong to an organization.'],
+                $current === null || (string) $current->employee_id !== (string) $employee->id || ! $current->is_current || $current->assignment_status !== EmployeeAssignment::ACTIVE => ['employee' => 'Only an active placement can be transferred.'],
+                $target === null || ! $target->is_active || $target->organization?->status !== Organization::ACTIVE => ['position_id' => 'The target position must exist, be active and belong to an organization.'],
                 (string) $target->id === (string) $current->position_id => ['position_id' => 'The employee already holds this position.'],
                 ! $this->scope->allows($actor, (string) $current->organization_id) || ! $this->scope->allows($actor, (string) $target->organization_id) => ['position_id' => 'Both placements must be inside your organizations.'],
                 $current->effective_from !== null && $effective->lte($current->effective_from) => ['effective_date' => 'The transfer must start after the current placement began.'],

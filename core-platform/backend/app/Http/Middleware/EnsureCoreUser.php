@@ -4,23 +4,35 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * An authenticated Core user who is still active; with `writer`, one whose role
- * may change master data (core_officer or core_admin); with `admin`, a
- * core_admin (Core settings).
+ * An authenticated Core user who is still active and has replaced any one-time
+ * password; with `writer`, one whose role may change master data (core_officer
+ * or core_admin); with `admin`, a core_admin; with `city-admin`, a core_admin
+ * for the whole city (settings, hierarchy versions, integrations).
  */
 class EnsureCoreUser
 {
     public function handle(Request $request, Closure $next, ?string $level = null): Response
     {
         $user = $request->user();
-        abort_if($user === null || ! $user->is_active, 403, 'This Core account is not active.');
+        // An integration client's token is not a person's sign-in: it reaches the /integration routes only.
+        abort_if(! $user instanceof User || ! $user->is_active, 403, 'This Core account is not active.');
+        if ($user->must_change_password && ! $request->is('api/auth/me', 'api/auth/password', 'api/auth/logout')) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'Choose a new password before continuing.',
+                'code' => 'PASSWORD_CHANGE_REQUIRED',
+            ], 403));
+        }
         abort_if($level === 'writer' && ! $user->canChangeMasterData(), 403, 'Your Core role may not change master data.');
         abort_if($level === 'admin' && $user->role !== 'core_admin', 403, 'Only a Core administrator may change Core settings.');
+
+        abort_if($level === 'city-admin' && ($user->role !== 'core_admin' || ! $user->isCityWide()), 403, 'This operation requires a city-wide Core administrator.');
 
         return $next($request);
     }

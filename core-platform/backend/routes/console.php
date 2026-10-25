@@ -1,8 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+// Cards past their expiry date say so (verification refuses them already).
+Schedule::command('core:expire-cards')->dailyAt('00:15')->withoutOverlapping()->onOneServer();

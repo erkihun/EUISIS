@@ -23,13 +23,21 @@ class CoreWriteController extends Controller
     public function registerEmployee(Request $request, RegisterEmployee $register): JsonResponse
     {
         $data = $request->validate([
-            'employee_number' => ['required', 'string', 'max:255', Rule::unique('employees', 'employee_number')],
+            // Blank = the next number from Core settings › Numbering.
+            'employee_number' => ['nullable', 'string', 'max:64', Rule::unique('employees', 'employee_number')],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
             'gender' => ['nullable', Rule::in(['male', 'female'])],
+            'date_of_birth' => ['nullable', 'date', 'before:today', 'after:1900-01-01'],
+            'phone' => ['nullable', 'string', 'max:32', 'regex:/^\+?[0-9 ]{7,20}$/'],
+            'email' => ['nullable', 'email', 'max:255'],
+            // Used for the duplicate check and kept only as a keyed hash.
+            'national_id' => ['nullable', 'string', 'max:32', 'regex:/^[0-9A-Za-z ]{4,32}$/'],
             'position_id' => ['required', 'uuid'],
             'effective_from' => ['required', 'date'],
+            'confirm_not_duplicate' => ['sometimes', 'boolean'],
+            'duplicate_reason' => ['nullable', 'string', 'max:1000'],
         ]);
 
         return response()->json(['data' => $register->execute($data, $request->user())], 201);

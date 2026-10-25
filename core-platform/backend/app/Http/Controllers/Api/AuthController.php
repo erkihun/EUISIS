@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\ChangePassword;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\CoreSettings;
@@ -40,6 +41,7 @@ class AuthController extends Controller
         RateLimiter::clear($key);
 
         $token = $user->createToken('core-frontend', ['*'], now()->addMinutes($this->settings->int('security.session_timeout_minutes')));
+        $user->forceFill(['last_login_at' => now()])->save();
 
         return response()->json(['token' => $token->plainTextToken, 'user' => $this->profile($user)]);
     }
@@ -47,6 +49,16 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return response()->json(['user' => $this->profile($request->user())]);
+    }
+
+    /** The signed-in person's own password; this sign-in stays, every other one ends. */
+    public function changePassword(Request $request, ChangePassword $change): JsonResponse
+    {
+        $data = $request->validate(['current_password' => ['required', 'string'], 'password' => ['required', 'string', 'confirmed']]);
+        $user = $request->user();
+        $change->execute($user, $data['current_password'], $data['password'], $user->currentAccessToken()?->getKey());
+
+        return response()->json(['user' => $this->profile($user->fresh())]);
     }
 
     public function logout(Request $request): JsonResponse
@@ -66,6 +78,7 @@ class AuthController extends Controller
             'role' => $user->role,
             'scope_organization_id' => $user->scope_organization_id,
             'can_change_master_data' => $user->canChangeMasterData(),
+            'must_change_password' => (bool) $user->must_change_password,
         ];
     }
 }

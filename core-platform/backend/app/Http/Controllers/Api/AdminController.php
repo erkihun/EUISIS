@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\IdCard;
 use App\Models\User;
 use App\Services\IntegrityChecks;
+use App\Services\OrganizationScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,12 +17,14 @@ use Illuminate\Validation\Rule;
 /** Administrator screens: Core accounts and the data-quality checks. */
 class AdminController extends Controller
 {
-    public function users(Request $request): JsonResponse
+    public function users(Request $request, OrganizationScope $scope): JsonResponse
     {
         $term = trim((string) $request->input('search', ''));
         $query = User::query()->leftJoin('organizations', 'organizations.id', '=', 'users.scope_organization_id')
             ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->whereLike('users.name', '%'.$term.'%')->orWhereLike('users.email', '%'.$term.'%')))
             ->orderBy('users.name');
+
+        $scope->apply($query, $request->user(), 'users.scope_organization_id');
 
         return response()->json($query->paginate(25, ['users.id', 'users.name', 'users.email', 'users.role', 'users.scope_organization_id', 'users.is_active', 'organizations.name_en as scope_organization_name'])->withQueryString());
     }

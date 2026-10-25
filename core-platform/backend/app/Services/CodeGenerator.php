@@ -38,13 +38,10 @@ final class CodeGenerator
         $pattern = str_replace(['{year}', $match[0]], [now()->format('Y'), '{seq}'], $format);
 
         return DB::transaction(function () use ($pattern, $match, $table, $column): string {
-            $row = DB::table('code_sequences')->where('pattern', $pattern)->lockForUpdate()->first();
-            if ($row === null) {
-                DB::table('code_sequences')->insert(['pattern' => $pattern, 'last_value' => 0, 'created_at' => now(), 'updated_at' => now()]);
-                $last = 0;
-            } else {
-                $last = (int) $row->last_value;
-            }
+            // The first number of a pattern: two requests may both find no row, so the
+            // row is created without failing on the other's insert, then locked by both.
+            DB::table('code_sequences')->insertOrIgnore(['pattern' => $pattern, 'last_value' => 0, 'created_at' => now(), 'updated_at' => now()]);
+            $last = (int) DB::table('code_sequences')->where('pattern', $pattern)->lockForUpdate()->value('last_value');
 
             do {
                 $last++;

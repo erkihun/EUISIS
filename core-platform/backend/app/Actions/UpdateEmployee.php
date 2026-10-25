@@ -7,6 +7,7 @@ namespace App\Actions;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\IdCard;
+use App\Models\Organization;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\AuditWriter;
@@ -91,7 +92,7 @@ final readonly class UpdateEmployee
             throw ValidationException::withMessages(['status' => 'There is no earlier placement to return to; register a transfer instead.']);
         }
         $position = Position::query()->lockForUpdate()->find($latest->position_id);
-        if ($position === null || ! $position->is_active || ! $this->seats->hasFreeSeat((string) $position->id)) {
+        if ($position === null || ! $position->is_active || $position->organization?->status !== Organization::ACTIVE || ! $this->seats->hasFreeSeat((string) $position->id)) {
             throw ValidationException::withMessages(['status' => 'The last position is retired or full; place the employee with a transfer.']);
         }
         $today = now()->toDateString();

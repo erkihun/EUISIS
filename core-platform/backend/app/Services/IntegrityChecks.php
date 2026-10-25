@@ -27,6 +27,13 @@ final class IntegrityChecks
         'separated_card_active' => ['id_cards.id', 'card'],
         'employees_multiple_active_cards' => ['employees.id', 'employee'],
         'positions_over_capacity' => ['positions.id', 'position'],
+        'placed_in_inactive_position' => ['employee_assignments.employee_id', 'employee'],
+        'placed_in_ended_organization' => ['employee_assignments.employee_id', 'employee'],
+        'active_without_placement' => ['employees.id', 'employee'],
+        'overlapping_assignments' => ['a.employee_id', 'employee'],
+        'possible_duplicate_employees' => ['employees.id', 'employee'],
+        'expired_card_still_active' => ['id_cards.id', 'card'],
+        'active_without_card' => ['employees.id', 'employee'],
     ];
 
     public function __construct(private readonly CoreSettings $settings) {}
@@ -101,6 +108,45 @@ final class IntegrityChecks
                     'approved', $today, $today,
                     $this->settings->int('workforce.default_seat_capacity'),
                 ]),
+            'placed_in_inactive_position' => DB::table('employee_assignments')
+                ->join('positions', 'positions.id', '=', 'employee_assignments.position_id')
+                ->where('employee_assignments.is_current', true)->where('employee_assignments.assignment_status', 'active')
+                ->where(fn (Builder $q) => $q->where('positions.is_active', false)->orWhereNotNull('positions.deleted_at')),
+            'placed_in_ended_organization' => DB::table('employee_assignments')
+                ->join('organizations', 'organizations.id', '=', 'employee_assignments.organization_id')
+                ->where('employee_assignments.is_current', true)->where('employee_assignments.assignment_status', 'active')
+                ->where(fn (Builder $q) => $q->whereIn('organizations.status', OrganizationUsage::ENDED)->orWhereNotNull('organizations.deleted_at')),
+            'active_without_placement' => DB::table('employees')
+                ->where('employees.status', Employee::ACTIVE)
+                ->whereNotExists(fn (Builder $q) => $q->selectRaw('1')->from('employee_assignments')
+                    ->whereColumn('employee_assignments.id', 'employees.current_assignment_id')
+                    ->where('employee_assignments.assignment_status', 'active')),
+            // Two placements of one employee whose periods overlap (a transfer closes the old one the day before).
+            'overlapping_assignments' => DB::table('employee_assignments as a')
+                ->join('employee_assignments as b', fn ($join) => $join->on('b.employee_id', '=', 'a.employee_id')->whereColumn('b.id', '>', 'a.id'))
+                ->whereRaw("a.effective_from <= coalesce(b.effective_to, '9999-12-31')")
+                ->whereRaw("b.effective_from <= coalesce(a.effective_to, '9999-12-31')"),
+            // Same name and date of birth as another employee, with no reviewer decision about the pair.
+            'possible_duplicate_employees' => DB::table('employees')
+                ->whereNotNull('employees.date_of_birth')
+                ->whereExists(fn (Builder $q) => $q->selectRaw('1')->from('employees as other')
+                    ->whereColumn('other.id', '!=', 'employees.id')
+                    ->whereColumn('other.date_of_birth', 'employees.date_of_birth')
+                    ->whereRaw('lower(other.full_name) = lower(employees.full_name)')
+                    ->whereNotExists(fn (Builder $r) => $r->selectRaw('1')->from('employee_duplicate_reviews')
+                        ->where(fn (Builder $pair) => $pair->where(fn (Builder $x) => $x->whereColumn('employee_duplicate_reviews.employee_id', 'employees.id')->whereColumn('employee_duplicate_reviews.matched_employee_id', 'other.id'))
+                            ->orWhere(fn (Builder $x) => $x->whereColumn('employee_duplicate_reviews.employee_id', 'other.id')->whereColumn('employee_duplicate_reviews.matched_employee_id', 'employees.id'))))),
+            'expired_card_still_active' => DB::table('id_cards')
+                ->whereIn('id_cards.status', [IdCard::ACTIVE, IdCard::ISSUED])
+                ->whereNotNull('id_cards.expires_at')->where('id_cards.expires_at', '<=', now()),
+            'active_without_card' => DB::table('employees')
+                ->where('employees.status', Employee::ACTIVE)
+                ->whereExists(fn (Builder $q) => $q->selectRaw('1')->from('employee_assignments')
+                    ->whereColumn('employee_assignments.id', 'employees.current_assignment_id')
+                    ->where('employee_assignments.assignment_status', 'active'))
+                ->whereNotExists(fn (Builder $q) => $q->selectRaw('1')->from('id_cards')
+                    ->whereColumn('id_cards.employee_id', 'employees.id')
+                    ->whereIn('id_cards.status', IdCard::LIVE)),
         ];
     }
 
