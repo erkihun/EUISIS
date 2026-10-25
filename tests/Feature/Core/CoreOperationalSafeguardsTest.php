@@ -8,6 +8,7 @@ use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\IdCard;
+use App\Models\Integration\IntegrationEvent;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Position;
@@ -88,4 +89,18 @@ it('reports an employee holding two active cards and a position held beyond its 
     // Two approved seats make the same placements legitimate.
     PositionEstablishment::query()->create(['establishment_number' => 'OS-EST', 'organization_id' => $this->organization->id, 'position_id' => $this->employee->currentAssignment->position_id, 'approved_slots' => 2, 'effective_from' => '2025-01-01', 'status' => 'approved']);
     expect($checks->counts()['positions_over_capacity'])->toBe(0);
+});
+
+it('fails the post-go-live smoke test while integration events are stuck in the outbox', function (): void {
+    $this->artisan('core:smoke')->assertSuccessful();
+
+    IntegrationEvent::query()->create([
+        'event_id' => (string) Str::uuid7(), 'event_type' => 'employee.updated', 'event_version' => 1, 'aggregate_type' => 'employee',
+        'aggregate_uuid' => $this->employee->id, 'sequence' => 999, 'organization_id' => $this->organization->id,
+        'occurred_at' => now()->subHour(), 'payload' => ['employee_uuid' => $this->employee->id], 'status' => 'pending',
+        'available_at' => now()->subHour(),
+    ]);
+    $this->travel(20)->minutes();
+
+    $this->artisan('core:smoke')->expectsOutputToContain('No integration event has waited longer than 15 minutes')->assertFailed();
 });

@@ -17,6 +17,7 @@ use App\Enums\EmployeeStatus;
 use App\Enums\MasterDataWriteMode;
 use App\Models\Employee;
 use App\Models\IdCard;
+use App\Models\Integration\IntegrationEvent;
 use App\Models\Organization;
 use App\Support\EthiopianCalendar;
 use DateTimeImmutable;
@@ -46,9 +47,11 @@ class CoreSmoke extends Command
     ];
 
     private const ROUTES = [
-        'core.dashboard', 'core.login', 'core.assignments', 'core.integration', 'core.audit', 'core.settings',
-        'organizations.index', 'positions.index', 'employees.index', 'id-cards.index', 'public.verify',
-        'api.v1.organizations.show', 'api.v1.id-cards.verify', 'api.v1.employees.service-eligibility',
+        'login', 'core.dashboard', 'core.login', 'core.assignments', 'core.integration', 'core.audit', 'core.settings',
+        'core.employees', 'core.positions', 'core.id-cards',
+        'organizations.index', 'positions.index', 'employees.index', 'id-cards.index', 'id-cards.suspend', 'public.verify',
+        'api.v1.organizations.show', 'api.v1.employees.assignment', 'api.v1.id-cards.verify', 'api.v1.cards.verify',
+        'api.v1.employees.service-eligibility', 'api.v1.changes.index',
     ];
 
     private const TABLES = ['organizations', 'organization_units', 'positions', 'employees', 'employee_assignments', 'id_cards', 'audit_logs', 'integration_events'];
@@ -96,6 +99,11 @@ class CoreSmoke extends Command
             && __('backbone.master_data_frozen', [], 'am') !== __('backbone.master_data_frozen', [], 'en'));
         $this->check('Ethiopian calendar converts (11 Sep 2026 = 1/1/2019)', fn (): bool => EthiopianCalendar::toEthiopian(new DateTimeImmutable('2026-09-11')) === ['year' => 2019, 'month' => 1, 'day' => 1]);
         $this->check('Master-data writes are open (mode: '.MasterDataWriteMode::current()->value.')', fn (): bool => MasterDataWriteMode::current()->allowsWrites());
+        // Post-go-live smoke (Core Stage 7): events reach partners, so the outbox must drain.
+        $this->check('No integration event has waited longer than 15 minutes', fn (): bool => ! IntegrationEvent::query()
+            ->where('status', IntegrationEvent::STATUS_PENDING)
+            ->where('created_at', '<', now()->subMinutes(15))
+            ->exists());
 
         if ($this->failures > 0) {
             $this->components->error($this->failures.' smoke check(s) failed.');
