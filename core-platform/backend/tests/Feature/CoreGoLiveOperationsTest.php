@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\CoreSetting;
 use App\Services\AuditHeads;
 use App\Services\AuditWriter;
 use App\Services\ConfigAudit;
@@ -80,6 +81,18 @@ class CoreGoLiveOperationsTest extends TestCase
         config(['trustedproxy.proxies' => '127.0.0.1']);
         $this->get('/login', $headers)->assertOk()->assertHeader('Strict-Transport-Security');
         $this->assertSame('pass', $this->audit()['TRUSTED_PROXIES']);
+    }
+
+    public function test_the_review_judges_the_mailer_the_settings_page_put_in_effect(): void
+    {
+        config(['mail.default' => 'log']);
+        CoreSetting::query()->create(['group' => 'notifications', 'key' => 'email_enabled', 'value' => true]);
+        Cache::forget('core.settings.values');
+        $this->assertSame('fail', $this->audit()['MAIL_MAILER']);
+
+        CoreSetting::query()->create(['group' => 'email', 'key' => 'mail_mailer', 'value' => 'smtp']);
+        Cache::forget('core.settings.values');
+        $this->assertSame('pass', $this->audit()['MAIL_MAILER']);
     }
 
     public function test_a_disk_inside_the_web_root_is_exposed(): void

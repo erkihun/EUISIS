@@ -25,7 +25,8 @@ final class ConfigAudit
         $env = (string) app()->environment();
         $url = (string) config('app.url');
         $origins = (array) config('core.frontend_origins');
-        $mail = (string) config('mail.default');
+        // The mailer in effect: Settings › Email replaces the .env value when mail is sent (MailSettings).
+        $mail = (string) (app(CoreSettings::class)->configured('email.mail_mailer') ? app(CoreSettings::class)->get('email.mail_mailer') : config('mail.default'));
         $emailOn = (bool) app(CoreSettings::class)->get('notifications.email_enabled');
         $production = $env === 'production';
         $credentials = new CredentialKeys;
