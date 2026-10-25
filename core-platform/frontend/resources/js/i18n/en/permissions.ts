@@ -60,6 +60,7 @@ const permissions = {
         'assignments': 'Placements',
         'cards': 'ID Cards',
         'imports': 'Imports',
+        'oversight': 'Data Quality, Reports and System Oversight',
         'administration': 'Accounts, Roles and Settings',
         'assessment_assignments': 'Assessment assignments',
         'assessment_exclusions': 'Assessment exclusions',

@@ -84,13 +84,11 @@ class CoreController extends Controller
 
     private const AUDIT_WINDOW_DAYS = 30;
 
-    private const DATA_QUALITY_ROUTES = ['position' => 'positions.show', 'employee' => 'employees.show', 'card' => 'id-cards.show'];
-
     /** Settings sections of the EUISIS settings page that the Core keeps (Core settings groups). */
     private const SETTINGS_SECTIONS = ['general', 'localization', 'appearance', 'security', 'id_cards'];
 
     /** Core-only groups, shown and saved with the General section. */
-    private const GENERAL_EXTRAS = ['numbering', 'workforce', 'files', 'integration'];
+    private const GENERAL_EXTRAS = ['numbering', 'workforce', 'files', 'integration', 'reports'];
 
     public function __construct(private readonly OrganizationScope $scope) {}
 
@@ -180,29 +178,6 @@ class CoreController extends Controller
                 'href' => route('audit-logs.index', [...$filter, 'from' => $from]),
             ])->values(),
             'windowDays' => self::AUDIT_WINDOW_DAYS,
-        ]);
-    }
-
-    public function dataQuality(Request $request, IntegrityChecks $checks): Response
-    {
-        abort_unless($request->user()->isCityWide(), 403);
-        $counts = $checks->counts();
-
-        return Inertia::render('Core/DataQuality', [
-            'checks' => collect(IntegrityChecks::SUBJECTS)->map(function (array $subject, string $key) use ($checks, $counts): array {
-                [, $kind] = $subject;
-
-                return [
-                    'key' => $key,
-                    'count' => $counts[$key] ?? 0,
-                    'kind' => $kind,
-                    'records' => ($counts[$key] ?? 0) === 0 ? [] : array_map(
-                        fn (string $id): array => ['id' => $id, 'href' => route(self::DATA_QUALITY_ROUTES[$kind], $id)],
-                        $checks->samples($key, 20),
-                    ),
-                ];
-            })->values(),
-            'sample' => 20,
         ]);
     }
 

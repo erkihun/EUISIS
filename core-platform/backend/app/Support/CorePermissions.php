@@ -157,6 +157,18 @@ final class CorePermissions
             'break_glass.approve' => ['Approve emergency access of others', 'የሌሎችን የአደጋ ጊዜ መዳረሻ ማጽደቅ'],
             'break_glass.revoke' => ['End emergency access', 'የአደጋ ጊዜ መዳረሻን ማቋረጥ'],
         ],
+        // P4/P5 (ADR 0011)
+        'oversight' => [
+            'data_quality.view' => ['See data-quality issues', 'የመረጃ ጥራት ችግሮችን ማየት'],
+            'data_quality.manage' => ['Work on data-quality issues', 'የመረጃ ጥራት ችግሮችን መከታተል'],
+            'data_quality.accept_risk' => ['Accept a data-quality risk', 'የመረጃ ጥራት ስጋትን መቀበል'],
+            'reports.view' => ['View Core reports', 'የዋና መዝገብ ሪፖርቶችን ማየት'],
+            'reports.export' => ['Export Core reports', 'የዋና መዝገብ ሪፖርቶችን ማውጣት'],
+            'reports.export_sensitive' => ['Include personal contact details in exports', 'በሚወጡ ሪፖርቶች ውስጥ የግል መገኛ መረጃን ማካተት'],
+            'system_health.view' => ['See system health, queues and backups', 'የሥርዓቱን ጤና፣ ወረፋዎችንና ምትኬዎችን ማየት'],
+            'queue.manage' => ['Retry or remove failed background jobs', 'ያልተሳኩ የጀርባ ሥራዎችን እንደገና መሞከር ወይም ማስወገድ'],
+            'security_dashboard.view' => ['See the security dashboard', 'የደህንነት ዳሽቦርዱን ማየት'],
+        ],
     ];
 
     /** Permissions that count only for an account whose scope is the whole city. */
@@ -166,6 +178,7 @@ final class CorePermissions
         'hierarchy-versions.manage', 'hierarchy-versions.approve', 'hierarchy-versions.publish',
         'roles.manage', 'card_templates.manage', 'digital_credentials.rotate', 'audit.integrity.verify',
         'break_glass.approve', 'break_glass.revoke', 'positions.master.manage',
+        'system_health.view', 'queue.manage', 'security_dashboard.view',
     ];
 
     /** Permissions only a city-wide holder of roles.manage may put in a role. */
@@ -173,7 +186,7 @@ final class CorePermissions
         ...self::CITYWIDE_ONLY,
         'core.administer', 'users.create', 'users.update', 'users.restore', 'users.manageUsersWithinScope', 'roles.viewAny',
         'employee_signatures.view', 'employee_signatures.upload', 'employee_signatures.verify', 'audit.view',
-        'audit.integrity.view', 'cards.reprint',
+        'audit.integrity.view', 'cards.reprint', 'reports.export_sensitive', 'data_quality.accept_risk',
     ];
 
     private const VIEWER = [
@@ -185,6 +198,7 @@ final class CorePermissions
         'cards.view', 'id-cards.viewAny',
         'employee_documents.view', 'employee_photos.view',
         'card_templates.view', 'card_print_batches.view', 'digital_credentials.view',
+        'data_quality.view', 'reports.view',
     ];
 
     private const OFFICER = [
@@ -205,6 +219,7 @@ final class CorePermissions
         'imports.view', 'imports.create',
         'positions.approve', 'cards.quality_check', 'card_print_batches.manage', 'digital_credentials.issue', 'digital_credentials.revoke',
         'break_glass.request',
+        'data_quality.manage', 'reports.export',
     ];
 
     private const ADMIN = [
@@ -218,6 +233,8 @@ final class CorePermissions
         // P3 (ADR 0010)
         'positions.master.manage', 'cards.reprint', 'card_templates.manage', 'digital_credentials.rotate',
         'audit.integrity.view', 'audit.integrity.verify', 'break_glass.approve', 'break_glass.revoke',
+        // P4/P5 (ADR 0011)
+        'data_quality.accept_risk', 'reports.export_sensitive', 'system_health.view', 'queue.manage', 'security_dashboard.view',
     ];
 
     /**

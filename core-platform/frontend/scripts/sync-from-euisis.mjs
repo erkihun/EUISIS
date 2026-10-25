@@ -20,7 +20,7 @@ const targetJs = path.join(here, 'resources', 'js');
 /** The EUISIS pages the Core backend renders (Inertia::render names). */
 export const PAGES = [
     'Auth/Login', 'Auth/ForcedPasswordChange', 'Auth/MfaSetup', 'Auth/MfaChallenge', 'Profile/Edit',
-    'Core/Dashboard', 'Core/Assignments', 'Core/DataQuality', 'Core/Settings', 'Core/AuditCenter', 'Core/IntegrationCenter', 'Core/DuplicateReviews', 'Core/Imports', 'Core/ImportBatch', 'Core/JobMasters', 'Core/CardTemplates', 'Core/CardPreview', 'Core/SecurityCenter', 'PrintBatches/Index', 'PrintBatches/Create', 'PrintBatches/Show', 'Roles/Index', 'Roles/Create', 'Roles/Edit',
+    'Core/Dashboard', 'Core/Assignments', 'Core/DataQuality', 'Core/Settings', 'Core/AuditCenter', 'Core/IntegrationCenter', 'Core/DuplicateReviews', 'Core/Imports', 'Core/ImportBatch', 'Core/JobMasters', 'Core/CardTemplates', 'Core/CardPreview', 'Core/SecurityCenter', 'Core/Reports', 'PrintBatches/Index', 'PrintBatches/Create', 'PrintBatches/Show', 'Roles/Index', 'Roles/Create', 'Roles/Edit',
     'Organizations/Index', 'Organizations/Show', 'Organizations/Create', 'Organizations/Edit', 'Organizations/Organogram',
     'OrganizationTypes/Index', 'OrganizationTypes/Show', 'OrganizationTypes/Create', 'OrganizationTypes/Edit',
     'OrganizationUnits/Index', 'OrganizationUnits/Show', 'OrganizationUnits/Create', 'OrganizationUnits/Edit',

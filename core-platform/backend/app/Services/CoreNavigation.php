@@ -118,7 +118,9 @@ final class CoreNavigation
                         ['route' => 'core.audit', 'label_key' => 'core.nav.auditCenter', 'icon' => 'EyeScanIcon', 'permission' => 'audit.view'],
                         // Core-only (ADR 0010): emergency access and the audit trail's integrity.
                         ['route' => 'core.security', 'label_key' => 'core.nav.securityCenter', 'icon' => 'ShieldWarningIcon', 'permission' => ['break_glass.request', 'break_glass.approve', 'audit.integrity.view']],
-                        ['route' => 'core.data-quality', 'label_key' => 'core.nav.dataQuality', 'icon' => 'FileSearchIcon', 'permission' => 'audit.view'],
+                        // Core-only (ADR 0011): scoped reports and audited exports.
+                        ['route' => 'core.reports', 'label_key' => 'core.nav.reports', 'icon' => 'ChartIcon', 'permission' => 'reports.view'],
+                        ['route' => 'core.data-quality', 'label_key' => 'core.nav.dataQuality', 'icon' => 'FileSearchIcon', 'permission' => 'data_quality.view'],
                         ['route' => 'audit-logs.index', 'label_key' => 'nav.auditLogs', 'icon' => 'ClipboardClockIcon', 'permission' => 'audit.view'],
                         ['route' => 'code-rules.index', 'label_key' => 'nav.codeRules', 'icon' => 'HashIcon', 'permission' => 'code-rules.viewAny'],
                     ],

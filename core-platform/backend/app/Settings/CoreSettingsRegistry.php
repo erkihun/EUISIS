@@ -110,6 +110,10 @@ final class CoreSettingsRegistry
                 'outbox_retention_days' => self::field('integer', 90, 'Keep Delivered Events (Days)', 'የደረሱ ክስተቶች የሚቀመጡበት (ቀናት)', 'Events every webhook has received are removed after this many days. An event not yet delivered everywhere is never removed.', 'ሁሉም ዌብሁኮች የተቀበሏቸው ክስተቶች ከዚህ ቀናት በኋላ ይወገዳሉ። በሁሉም ያልደረሰ ክስተት በፍጹም አይወገድም።', false, ['required', 'integer', 'min:7', 'max:3650']),
                 'api_log_retention_days' => self::field('integer', 90, 'Keep API Call Logs (Days)', 'የAPI ጥሪ መዝገቦች የሚቀመጡበት (ቀናት)', 'Records of calls by connected applications are removed after this many days.', 'የተገናኙ መተግበሪያዎች ጥሪ መዝገቦች ከዚህ ቀናት በኋላ ይወገዳሉ።', false, ['required', 'integer', 'min:7', 'max:3650']),
             ],
+            'reports' => [
+                'max_export_rows' => self::field('integer', 100000, 'Most Rows in One Export', 'በአንድ የሚወጣ ፋይል ከፍተኛው የረድፍ ብዛት', 'A larger export is refused; narrow its filters.', 'ከዚህ የሚበልጥ የሚወጣ ፋይል ውድቅ ይሆናል፤ ማጣሪያዎቹን ያጥብቡ።', false, ['required', 'integer', 'min:100', 'max:1000000']),
+                'export_retention_days' => self::field('integer', 7, 'Keep Export Files (Days)', 'የሚወጡ ፋይሎች የሚቀመጡበት (ቀናት)', 'An export file can be downloaded for this long, then it is deleted (its record stays).', 'የሚወጣ ፋይል ለዚህ ጊዜ ሊወርድ ይችላል፤ ከዚያ ይሰረዛል (መዝገቡ ይቀራል)።', false, ['required', 'integer', 'min:1', 'max:90']),
+            ],
             'files' => [
                 'document_max_kb' => self::field('integer', 10240, 'Largest Document (KB)', 'ትልቁ የሰነድ መጠን (ኪባ)', 'PDF, JPEG or PNG documents up to this size are accepted.', 'እስከዚህ መጠን ያሉ PDF፣ JPEG ወይም PNG ሰነዶች ይቀበላሉ።', false, ['required', 'integer', 'min:100', 'max:51200']),
                 'photo_max_kb' => self::field('integer', 5120, 'Largest Photo (KB)', 'ትልቁ የፎቶ መጠን (ኪባ)', 'JPEG or PNG photos up to this size are accepted.', 'እስከዚህ መጠን ያሉ JPEG ወይም PNG ፎቶዎች ይቀበላሉ።', false, ['required', 'integer', 'min:100', 'max:20480']),

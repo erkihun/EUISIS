@@ -60,6 +60,7 @@ const permissions = {
         'assignments': 'ምደባዎች',
         'cards': 'የመታወቂያ ካርዶች',
         'imports': 'የገቢ ፋይሎች',
+        'oversight': 'የመረጃ ጥራት፣ ሪፖርቶችና የሥርዓት ቁጥጥር',
         'administration': 'መለያዎች፣ ሚናዎችና ቅንብሮች',
         'assessment_assignments': 'የምዘና ምደባዎች',
         'assessment_exclusions': 'የምዘና ማግለያዎች',

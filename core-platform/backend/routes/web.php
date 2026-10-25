@@ -1,9 +1,11 @@
 <?php
 
+use App\Actions\ManageDataQualityIssues;
 use App\Actions\ManageHierarchyVersion;
 use App\Http\Controllers\Web\CardController;
 use App\Http\Controllers\Web\CardTemplateController;
 use App\Http\Controllers\Web\CoreController;
+use App\Http\Controllers\Web\DataQualityController;
 use App\Http\Controllers\Web\DuplicateReviewController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeEvidenceController;
@@ -18,6 +20,7 @@ use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationUnitController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PrintBatchController;
+use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\SecurityCenterController;
 use App\Http\Controllers\Web\SessionController;
@@ -66,7 +69,19 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/', [CoreController::class, 'dashboard'])->middleware('can:core.access')->name('dashboard');
         Route::get('/assignments', [CoreController::class, 'assignments'])->middleware('can:employees.view')->name('assignments');
         Route::get('/audit', [CoreController::class, 'auditCenter'])->middleware('can:audit.view')->name('audit');
-        Route::get('/data-quality', [CoreController::class, 'dataQuality'])->middleware('can:audit.view')->name('data-quality');
+        // Core reports and exports (ADR 0011): ReportCatalog limits every report to the reader's scope; ManageExports queues and audits.
+        Route::middleware('can:reports.view')->group(function (): void {
+            Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+            Route::post('/reports/{report}/export', [ReportController::class, 'export'])->middleware('throttle:20,10')->where('report', '[a-z_]+')->name('reports.export');
+            Route::get('/reports/exports/{exportRun}', [ReportController::class, 'download'])->middleware('throttle:60,1')->name('reports.download');
+        });
+
+        // Data-quality issues (ADR 0011): scoped list and workflow; the scan itself runs hourly or on request.
+        Route::middleware('can:data_quality.view')->group(function (): void {
+            Route::get('/data-quality', [DataQualityController::class, 'index'])->name('data-quality');
+            Route::post('/data-quality/issues/{issue}/{step}', [DataQualityController::class, 'step'])->whereIn('step', ManageDataQualityIssues::STEPS)->name('data-quality.step');
+            Route::post('/data-quality/scan', [DataQualityController::class, 'scan'])->middleware('throttle:3,10')->name('data-quality.scan');
+        });
         Route::get('/settings', [CoreController::class, 'settings'])->middleware('can:system-settings.view')->name('settings');
         Route::post('/exit', [SessionController::class, 'exitCore'])->name('exit');
 

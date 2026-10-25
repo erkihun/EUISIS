@@ -17,3 +17,6 @@ Schedule::command('core:break-glass-expire')->everyMinute()->withoutOverlapping(
 
 // Delivered integration events and old API call logs leave after their retention (Core settings › Integration).
 Schedule::command('core:prune-integration-data')->dailyAt('03:15')->withoutOverlapping()->onOneServer();
+
+// Data-quality issues follow the integrity checks (ADR 0011).
+Schedule::command('core:data-quality-scan')->hourlyAt(20)->withoutOverlapping()->onOneServer();

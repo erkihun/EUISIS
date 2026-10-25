@@ -49,6 +49,16 @@ return [
         ],
 
         // Business import source files (ADR 0009): private, kept for the batch's audit trail.
+        // Report exports (ADR 0011): private, downloaded only by the person who asked, removed after their retention.
+        'exports' => [
+            'driver' => 'local',
+            'root' => env('CORE_EXPORTS_ROOT', storage_path('app/private/exports')),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
         'imports' => [
             'driver' => 'local',
             'root' => env('CORE_IMPORTS_ROOT', storage_path('app/private/imports')),
