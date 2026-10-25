@@ -140,7 +140,7 @@ final class SystemHealth
     /** @return array{status: string, details: array<string, mixed>} */
     private function access(): array
     {
-        $cityAdmins = User::query()->where('role', 'core_admin')->whereNull('scope_organization_id')->where('is_active', true)->count();
+        $cityAdmins = User::query()->where('role', 'core_admin')->where('scope_type', User::SCOPE_CITYWIDE)->where('is_active', true)->count();
         $clients = ApiClient::query()->where('is_active', true)->whereNull('revoked_at');
 
         return [

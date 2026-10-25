@@ -55,7 +55,7 @@ class CoreAccessHardeningTest extends TestCase
 
     public function test_the_last_active_city_wide_administrator_cannot_be_removed(): void
     {
-        $other = User::query()->create(['name' => 'Other', 'email' => 'other@core.test', 'password' => 'x', 'role' => 'core_admin', 'is_active' => true]);
+        $other = User::query()->create(['name' => 'Other', 'email' => 'other@core.test', 'password' => 'x', 'role' => 'core_admin', 'scope_type' => User::SCOPE_CITYWIDE, 'is_active' => true]);
         $actor = $this->actingAsCore('core_admin');
         // The acting account itself has just been switched off elsewhere: the other is the last one.
         User::query()->whereKey($actor->id)->update(['is_active' => false]);
@@ -67,7 +67,7 @@ class CoreAccessHardeningTest extends TestCase
     public function test_a_one_time_password_must_be_replaced_under_the_password_policy(): void
     {
         $this->actingAsCore('core_admin');
-        $oneTime = $this->postJson('/api/v1/users', ['name' => 'Hana Tesfaye', 'email' => 'hana@core.test', 'role' => 'core_officer'])->json('one_time_password');
+        $oneTime = $this->postJson('/api/v1/users', ['name' => 'Hana Tesfaye', 'email' => 'hana@core.test', 'role' => 'core_officer', 'scope_type' => User::SCOPE_CITYWIDE])->json('one_time_password');
         Auth::forgetGuards();
 
         $token = $this->postJson('/api/auth/login', ['email' => 'hana@core.test', 'password' => $oneTime])->assertOk()

@@ -11,8 +11,9 @@ use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
  * A system that consumes the Core (Recruitment, EPMS, Cafeteria, …). Its
- * scopes say what it may read or do, its owner organization what part of the
- * city it may see (none = the whole city). Its secret is a Sanctum token,
+ * scopes say what it may read or do; its scope type and owner organization say
+ * what part of the city it may see (citywide only when chosen; none = nothing,
+ * ADR 0008). Its secret is a Sanctum token,
  * hashed at rest and shown once; the UUID is its public reference.
  */
 class ApiClient extends Model
@@ -30,7 +31,7 @@ class ApiClient extends Model
         'cards:verify',
     ];
 
-    protected $fillable = ['name', 'description', 'owner_organization_id', 'scopes', 'allowed_ips', 'rate_limit_per_minute', 'is_active', 'expires_at'];
+    protected $fillable = ['name', 'description', 'owner_organization_id', 'scope_type', 'scopes', 'allowed_ips', 'rate_limit_per_minute', 'is_active', 'expires_at'];
 
     protected $hidden = ['id'];
 
@@ -66,6 +67,8 @@ class ApiClient extends Model
             $this->revoked_at !== null => 'CLIENT_REVOKED',
             ! $this->is_active => 'CLIENT_INACTIVE',
             $this->expires_at !== null && ! $this->expires_at->isFuture() => 'CLIENT_EXPIRED',
+            // Fails closed like a person: no explicit scope, no data (ADR 0008).
+            $this->scope_type !== User::SCOPE_CITYWIDE && ($this->owner_organization_id === null || ! in_array($this->scope_type, User::ORGANIZATION_SCOPES, true)) => 'NO_ORGANIZATION_SCOPE',
             ! empty($this->allowed_ips) && ! IpUtils::checkIp((string) $ip, $this->allowed_ips) => 'IP_NOT_ALLOWED',
             default => null,
         };

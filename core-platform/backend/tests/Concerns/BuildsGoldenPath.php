@@ -117,6 +117,8 @@ trait BuildsGoldenPath
             'password' => 'secret-password',
             'role' => $role,
             'scope_organization_id' => $scope?->id,
+            // Explicit scope (ADR 0008): an organization and everything under it, or the whole city.
+            'scope_type' => $scope === null ? User::SCOPE_CITYWIDE : User::SCOPE_SUBTREE,
             'is_active' => $active,
         ]);
         Sanctum::actingAs($user);

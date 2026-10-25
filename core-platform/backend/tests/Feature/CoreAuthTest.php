@@ -19,6 +19,7 @@ class CoreAuthTest extends TestCase
             'email' => 'officer@core.test',
             'password' => 'secret-password',
             'role' => 'core_officer',
+            'scope_type' => User::SCOPE_CITYWIDE,
             'is_active' => $active,
         ]);
     }

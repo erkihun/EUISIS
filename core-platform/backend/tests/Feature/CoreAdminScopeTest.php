@@ -27,12 +27,13 @@ class CoreAdminScopeTest extends TestCase
     public function test_scoped_admin_cannot_grant_citywide_or_other_bureau_access(): void
     {
         $actor = $this->actingAsCore('core_admin', $this->bureauA);
-        foreach ([null, $this->bureauB->id] as $scope) {
-            $this->postJson('/api/v1/users', $this->payload($scope))->assertForbidden();
-        }
+        $this->postJson('/api/v1/users', [...$this->payload(null), 'scope_type' => User::SCOPE_CITYWIDE])->assertForbidden();
+        $this->postJson('/api/v1/users', $this->payload($this->bureauB->id))->assertForbidden();
         $this->putJson('/api/v1/users/'.$actor->id, [
-            ...$this->payload(null), 'email' => $actor->email, 'role' => 'core_admin',
+            ...$this->payload(null), 'scope_type' => User::SCOPE_CITYWIDE, 'email' => $actor->email, 'role' => 'core_admin',
         ])->assertForbidden();
+        // Leaving the scope out is not the whole city any more: the account reaches nothing (ADR 0008).
+        $this->postJson('/api/v1/users', $this->payload(null))->assertCreated()->assertJsonPath('data.scope_type', null);
         $this->assertSame($this->bureauA->id, $actor->fresh()->scope_organization_id);
     }
 
@@ -40,7 +41,7 @@ class CoreAdminScopeTest extends TestCase
     {
         $outside = User::query()->create([
             'name' => 'Outside account', 'email' => 'outside@core.test', 'password' => 'original-password',
-            'role' => 'core_admin', 'scope_organization_id' => $this->bureauB->id, 'is_active' => true,
+            'role' => 'core_admin', 'scope_organization_id' => $this->bureauB->id, 'scope_type' => User::SCOPE_SUBTREE, 'is_active' => true,
         ]);
         $password = $outside->password;
         $this->actingAsCore('core_admin', $this->bureauA);

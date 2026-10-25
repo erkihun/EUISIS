@@ -52,7 +52,7 @@ class HierarchyController extends Controller
 
         return Inertia::render('HierarchyVersions/Show', [
             'version' => $this->tree->version($hierarchyVersion),
-            'edges' => $this->tree->edges($hierarchyVersion),
+            'edges' => $this->tree->edges($hierarchyVersion, $request->user()),
             'tree' => $tree,
             'summary' => $this->tree->summary($tree),
             'can' => ['edit' => false, 'archive' => false, 'publish' => false, 'manageTree' => false, 'createEdge' => false],
@@ -70,7 +70,7 @@ class HierarchyController extends Controller
         return Inertia::render('HierarchyVersions/Tree', [
             'version' => $this->tree->version($hierarchyVersion),
             'tree' => $tree,
-            'edges' => $this->tree->edges($hierarchyVersion),
+            'edges' => $this->tree->edges($hierarchyVersion, $request->user()),
             'summary' => $this->tree->summary($tree),
             'filters' => $filters,
             'can' => ['manageTree' => false, 'createEdge' => false],

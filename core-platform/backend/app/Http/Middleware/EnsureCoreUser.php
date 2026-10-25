@@ -29,6 +29,13 @@ class EnsureCoreUser
                 'code' => 'PASSWORD_CHANGE_REQUIRED',
             ], 403));
         }
+        // No organization scope, no organizational data (ADR 0008): said plainly, not as empty lists.
+        if (! $user->hasOrganizationScope() && $request->is('api/v1/*')) {
+            throw new HttpResponseException(response()->json([
+                'message' => EnsureOrganizationScope::MESSAGE,
+                'code' => 'NO_ORGANIZATION_SCOPE',
+            ], 403));
+        }
         abort_if($level === 'writer' && ! $user->canChangeMasterData(), 403, 'Your Core role may not change master data.');
         abort_if($level === 'admin' && $user->role !== 'core_admin', 403, 'Only a Core administrator may change Core settings.');
 

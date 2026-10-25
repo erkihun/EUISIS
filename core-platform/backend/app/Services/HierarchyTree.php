@@ -127,10 +127,17 @@ final class HierarchyTree
         return $summary;
     }
 
-    /** @return list<array<string, mixed>> */
-    public function edges(HierarchyVersion $version): array
+    /**
+     * The version's edges; for a reader, only those with both ends inside their scope (ADR 0008).
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function edges(HierarchyVersion $version, ?User $reader = null): array
     {
-        $edges = OrganizationEdge::query()->where('hierarchy_version_id', $version->id)->orderBy('parent_organization_id')->orderBy('child_organization_id')->get();
+        $allowed = $reader === null ? null : $this->scope->organizationIds($reader);
+        $edges = OrganizationEdge::query()->where('hierarchy_version_id', $version->id)
+            ->when($allowed !== null, fn ($q) => $q->whereIn('parent_organization_id', $allowed)->whereIn('child_organization_id', $allowed))
+            ->orderBy('parent_organization_id')->orderBy('child_organization_id')->get();
         $organizations = Organization::query()->whereIn('id', $edges->pluck('parent_organization_id')->merge($edges->pluck('child_organization_id'))->unique())
             ->with('type:id,code,name_en,name_am')->get(['id', 'organization_type_id', 'name_en', 'name_am', 'code', 'status'])->keyBy('id');
         $side = fn (?Organization $organization): ?array => $organization === null ? null : $organization->only(['id', 'code', 'name_en', 'name_am', 'status'])

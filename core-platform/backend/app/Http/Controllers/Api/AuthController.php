@@ -76,6 +76,7 @@ class AuthController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,
+            'scope_type' => $user->scope_type,
             'scope_organization_id' => $user->scope_organization_id,
             'can_change_master_data' => $user->canChangeMasterData(),
             'must_change_password' => (bool) $user->must_change_password,

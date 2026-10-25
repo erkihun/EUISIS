@@ -58,13 +58,15 @@ final class CorePermissions
         };
     }
 
-    /** The EUISIS role names shown for a Core role. */
+    /** The EUISIS role names shown for a Core role; a city-wide grant (ADR 0008) is named as such. */
     public static function roleName(User $user): string
     {
-        return match ($user->role) {
+        $name = match ($user->role) {
             'core_admin' => 'Core Administrator',
             'core_officer' => 'Core Officer',
             default => 'Core Viewer',
         };
+
+        return $user->isCityWide() ? 'City-wide '.$name : $name;
     }
 }

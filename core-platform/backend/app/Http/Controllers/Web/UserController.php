@@ -20,15 +20,23 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * EUISIS Users/* over Core accounts. A Core account has one role and at most
- * one scope organization (ADR 0006): the role list offers the three Core
- * roles, the highest one chosen wins, and the scope card holds one
- * organization (the account then sees it and everything under it).
+ * EUISIS Users/* over Core accounts. A Core account has one role and one
+ * explicit scope (ADR 0008). The role list offers the three Core roles twice:
+ * as organization roles (EUISIS scope "organization"), which need an
+ * organization in the scope card (the organization alone, or with everything
+ * under it), and as city-wide roles (EUISIS scope "global"), the only way to
+ * grant the whole city, and only by a city-wide administrator. Removing the
+ * scope leaves the account without organizational access.
  */
 class UserController extends Controller
 {
-    /** Role id (the form's numeric id) => Core role, lowest to highest. */
-    private const ROLES = [1 => 'core_viewer', 2 => 'core_officer', 3 => 'core_admin'];
+    /** Role id (the form's numeric id) => [Core role, EUISIS role scope], lowest to highest. */
+    private const ROLES = [
+        1 => ['core_viewer', 'organization'], 2 => ['core_officer', 'organization'], 3 => ['core_admin', 'organization'],
+        4 => ['core_viewer', 'global'], 5 => ['core_officer', 'global'], 6 => ['core_admin', 'global'],
+    ];
+
+    public function __construct(private readonly OrganizationScope $scope) {}
 
     public function index(Request $request): Response
     {
@@ -37,13 +45,15 @@ class UserController extends Controller
         $search = trim($request->string('search')->toString());
         $status = $request->string('status')->toString();
         $role = $request->string('role')->toString();
-        $roleKey = array_search($role, array_map(fn (string $r): string => $this->roleName($r), self::ROLES), true);
+        $roleKey = array_search($role, $this->roleNames(), true);
 
         $page = User::query()
-            ->when(! $actor->isCityWide(), fn ($q) => $q->where('scope_organization_id', $actor->scope_organization_id))
+            ->when(! $actor->isCityWide(), fn ($q) => $q->whereIn('scope_type', User::ORGANIZATION_SCOPES)
+                ->whereIn('scope_organization_id', $this->scope->organizationIds($actor) ?? []))
             ->when($search !== '', fn ($q) => $q->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")))
             ->when(in_array($status, ['active', 'inactive'], true), fn ($q) => $q->where('is_active', $status === 'active'))
-            ->when($roleKey !== false, fn ($q) => $q->where('role', self::ROLES[$roleKey]))
+            ->when($roleKey !== false, fn ($q) => $q->where('role', self::ROLES[$roleKey][0])
+                ->when(self::ROLES[$roleKey][1] === 'global', fn ($g) => $g->where('scope_type', User::SCOPE_CITYWIDE), fn ($o) => $o->where(fn ($w) => $w->whereNull('scope_type')->orWhere('scope_type', '!=', User::SCOPE_CITYWIDE))))
             ->orderBy('name')->orderBy('id')->paginate(50)->withQueryString();
 
         return Inertia::render('Users/Index', [
@@ -67,7 +77,7 @@ class UserController extends Controller
             ])->values(),
             'users_pagination' => ['current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'per_page' => $page->perPage(), 'total' => $page->total()],
             'filters' => ['search' => $search, 'status' => in_array($status, ['active', 'inactive'], true) ? $status : '', 'role' => $role],
-            'roleOptions' => array_values(array_map(fn (string $r): string => $this->roleName($r), self::ROLES)),
+            'roleOptions' => array_values($this->roleNames()),
             'scopedUserManagement' => ! $actor->isCityWide(),
             'can' => ['create' => $actor->can('users.create')],
         ]);
@@ -76,7 +86,7 @@ class UserController extends Controller
     public function create(Request $request): Response
     {
         return Inertia::render('Users/Create', [
-            'roles' => $this->roles(),
+            'roles' => $this->roles($request->user()),
             'statusOptions' => ['active', 'inactive'],
             'requiresOrganizationScope' => ! $request->user()->isCityWide(),
             'organizations' => $this->organizations($request->user()),
@@ -91,16 +101,17 @@ class UserController extends Controller
             'password' => ['nullable', 'confirmed', Password::min(12)],
             'status' => ['required', 'in:active,inactive'],
             'role_ids' => ['required', 'array', 'min:1'],
-            'role_ids.*' => ['integer', 'in:1,2,3'],
+            'role_ids.*' => ['integer', 'in:'.implode(',', array_keys(self::ROLES))],
             'organization_scope_ids' => ['nullable', 'array', 'max:1'],
             'organization_scope_ids.*' => ['uuid'],
+            'scope_type' => ['nullable', 'in:self,subtree'],
         ]);
-        $scope = $this->scopeFor($request->user(), $data['organization_scope_ids'][0] ?? null);
+        [$role, $kind] = self::ROLES[max($data['role_ids'])];
         $result = $save->execute(null, [
             'name' => $data['name'],
             'email' => $data['email'],
-            'role' => self::ROLES[max($data['role_ids'])],
-            'scope_organization_id' => $scope,
+            'role' => $role,
+            ...$this->scopeFor($request->user(), $kind, $data['organization_scope_ids'][0] ?? null, $data['scope_type'] ?? null),
             'is_active' => $data['status'] === 'active',
         ], $request->user());
         $temporary = $result['password'];
@@ -112,26 +123,27 @@ class UserController extends Controller
         return $this->withTemporaryPassword(to_route('users.index'), $temporary, __('users.created'));
     }
 
-    public function edit(Request $request, User $user): Response
+    public function edit(Request $request, User $user, SaveUser $save): Response
     {
-        $this->assertManageable($request->user(), $user);
+        abort_unless($save->manages($request->user(), $user), 403);
         $scope = $user->scope_organization_id === null ? null : Organization::query()->find($user->scope_organization_id, ['id', 'name_en', 'name_am']);
 
         return Inertia::render('Users/Edit', [
             'user' => [
                 'id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'status' => $user->is_active ? 'active' : 'inactive',
                 'national_id' => null, 'phone_number' => null, 'gender' => null, 'profile_photo_url' => null,
-                'organization_scopes' => $scope === null ? [] : [[
+                // A city-wide account has no organization row: its city-wide role says so.
+                'organization_scopes' => $user->isCityWide() || $scope === null ? [] : [[
                     'id' => $scope->id,
                     'organization' => $scope->only(['id', 'name_en', 'name_am']),
-                    'scope_type' => 'subtree',
+                    'scope_type' => $user->scope_type === User::SCOPE_SELF ? 'self' : 'subtree',
                     'effective_from' => null,
                     'effective_to' => null,
                     'is_active' => true,
                 ]],
             ],
-            'roles' => $this->roles(),
-            'userRoles' => [$this->roleName($user->role)],
+            'roles' => $this->roles($request->user()),
+            'userRoles' => [CorePermissions::roleName($user)],
             'organizations' => $this->organizations($request->user())->map(fn (Organization $o): array => $o->only(['id', 'name_en', 'name_am']) + ['status' => 'active'])->values(),
             'can' => ['assignOrganizationScopes' => $request->user()->can('users.update')],
             'organizationScopeUnavailable' => false,
@@ -140,7 +152,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user, SaveUser $save): RedirectResponse
     {
-        $this->assertManageable($request->user(), $user);
+        abort_unless($save->manages($request->user(), $user), 403);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
@@ -150,15 +162,22 @@ class UserController extends Controller
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string'],
         ]);
-        $names = array_map(fn (string $r): string => $this->roleName($r), self::ROLES);
-        $chosen = array_keys(array_intersect($names, $data['roles']));
+        $chosen = array_keys(array_intersect($this->roleNames(), $data['roles']));
         if ($chosen === []) {
             throw ValidationException::withMessages(['roles' => __('validation.required', ['attribute' => 'roles'])]);
         }
+        [$role, $kind] = self::ROLES[max($chosen)];
+        $scope = match (true) {
+            $kind === 'global' => ['scope_type' => User::SCOPE_CITYWIDE, 'scope_organization_id' => null],
+            ! $user->isCityWide() => [],
+            // From city-wide to an organization role: the organization comes from the scope card first.
+            default => throw ValidationException::withMessages(['roles' => __('Add an organization scope before choosing an organization role.')]),
+        };
         $save->execute($user, [
             'name' => $data['name'],
             'email' => $data['email'],
-            'role' => self::ROLES[max($chosen)],
+            'role' => $role,
+            ...$scope,
             'is_active' => $data['status'] === 'active',
         ], $request->user());
         $temporary = null;
@@ -174,7 +193,7 @@ class UserController extends Controller
 
     public function deactivate(Request $request, User $user, SaveUser $save): RedirectResponse
     {
-        $this->assertManageable($request->user(), $user);
+        abort_unless($save->manages($request->user(), $user), 403);
         $save->execute($user, ['email' => $user->email, 'is_active' => false], $request->user());
 
         return back()->with('flash', ['message' => __('users.deactivated'), 'type' => 'success']);
@@ -182,68 +201,89 @@ class UserController extends Controller
 
     public function restore(Request $request, User $user, SaveUser $save): RedirectResponse
     {
-        $this->assertManageable($request->user(), $user);
+        abort_unless($save->manages($request->user(), $user), 403);
         $save->execute($user, ['email' => $user->email, 'is_active' => true], $request->user());
 
         return back()->with('flash', ['message' => __('users.restored'), 'type' => 'success']);
     }
 
-    /** The scope card: the one organization the account is scoped to. */
+    /** The scope card: the one organization the account is scoped to, alone or with everything under it. */
     public function storeScope(Request $request, User $user, SaveUser $save): RedirectResponse
     {
-        $this->assertManageable($request->user(), $user);
-        $data = $request->validate(['organization_id' => ['required', 'uuid']]);
-        $save->execute($user, ['email' => $user->email, 'scope_organization_id' => $this->scopeFor($request->user(), $data['organization_id'])], $request->user());
+        abort_unless($save->manages($request->user(), $user), 403);
+        $data = $request->validate(['organization_id' => ['required', 'uuid'], 'scope_type' => ['nullable', 'in:self,subtree']]);
+        $save->execute($user, [
+            'email' => $user->email,
+            ...$this->scopeFor($request->user(), 'organization', $data['organization_id'], $data['scope_type'] ?? null),
+        ], $request->user());
 
         return back()->with('flash', ['message' => __('users.userOrganizationScopes.saved'), 'type' => 'success']);
     }
 
+    /** Removing the scope leaves the account without organizational access (never the whole city). */
     public function destroyScope(Request $request, User $user, SaveUser $save): RedirectResponse
     {
-        $this->assertManageable($request->user(), $user);
-        if (! $request->user()->isCityWide()) {
-            throw ValidationException::withMessages(['organization_id' => __('Only a citywide administrator can make an account citywide.')]);
-        }
-        $save->execute($user, ['email' => $user->email, 'scope_organization_id' => null], $request->user());
+        abort_unless($save->manages($request->user(), $user), 403);
+        $save->execute($user, ['email' => $user->email, 'scope_type' => null, 'scope_organization_id' => null], $request->user());
 
         return back()->with('flash', ['message' => __('users.userOrganizationScopes.removed'), 'type' => 'success']);
     }
 
-    /** @return list<array{id: int, name: string, scope: string}> */
-    private function roles(): array
+    /**
+     * The roles a form offers; the city-wide ones only to a city-wide administrator.
+     *
+     * @return list<array{id: int, name: string, scope: string}>
+     */
+    private function roles(User $actor): array
     {
-        return array_values(array_map(fn (int $id, string $role): array => ['id' => $id, 'name' => $this->roleName($role), 'scope' => 'organization'], array_keys(self::ROLES), self::ROLES));
+        $roles = [];
+        foreach (self::ROLES as $id => [$role, $kind]) {
+            if ($kind === 'organization' || $actor->isCityWide()) {
+                $roles[] = ['id' => $id, 'name' => $this->roleNames()[$id], 'scope' => $kind];
+            }
+        }
+
+        return $roles;
     }
 
-    private function roleName(string $role): string
+    /** @return array<int, string> role id => the name the forms show */
+    private function roleNames(): array
     {
-        return CorePermissions::roleName(new User(['role' => $role]));
+        return array_map(fn (array $definition): string => CorePermissions::roleName(new User([
+            'role' => $definition[0],
+            'scope_type' => $definition[1] === 'global' ? User::SCOPE_CITYWIDE : User::SCOPE_SUBTREE,
+        ])), self::ROLES);
     }
 
     /** @return Collection<int, Organization> */
     private function organizations(User $actor)
     {
         return Organization::query()->where('status', 'active')
-            ->when(! $actor->isCityWide(), fn ($q) => $q->whereIn('id', app(OrganizationScope::class)->organizationIds($actor) ?? []))
+            ->when(! $actor->isCityWide(), fn ($q) => $q->whereIn('id', $this->scope->organizationIds($actor) ?? []))
             ->orderBy('name_en')->get(['id', 'name_en', 'name_am']);
     }
 
-    /** A scoped administrator places accounts inside their own organizations only. */
-    private function scopeFor(User $actor, ?string $organizationId): ?string
+    /**
+     * The explicit scope a form asks for: a city-wide role is the whole city;
+     * an organization role needs an organization (a scoped administrator's own
+     * when none is chosen), alone (self) or with everything under it (subtree).
+     *
+     * @return array{scope_type: ?string, scope_organization_id: ?string}
+     */
+    private function scopeFor(User $actor, string $kind, ?string $organizationId, ?string $type): array
     {
+        if ($kind === 'global') {
+            return ['scope_type' => User::SCOPE_CITYWIDE, 'scope_organization_id' => null];
+        }
+        $organizationId ??= $actor->isCityWide() ? null : $actor->scope_organization_id;
         if ($organizationId === null) {
-            return $actor->isCityWide() ? null : $actor->scope_organization_id;
+            throw ValidationException::withMessages(['organization_scope_ids' => __('Choose the organization of the scope, or a city-wide role.')]);
         }
-        if (! app(OrganizationScope::class)->allows($actor, $organizationId)) {
-            throw ValidationException::withMessages(['organization_scope_ids' => __('The organization is outside your organizations.')]);
+        if (! $this->scope->allows($actor, $organizationId)) {
+            throw ValidationException::withMessages(['organization_scope_ids' => __('You do not have access to this organization.')]);
         }
 
-        return $organizationId;
-    }
-
-    private function assertManageable(User $actor, User $user): void
-    {
-        abort_unless($actor->isCityWide() || ($user->scope_organization_id !== null && app(OrganizationScope::class)->allows($actor, (string) $user->scope_organization_id)), 403);
+        return ['scope_type' => $type === 'self' ? User::SCOPE_SELF : User::SCOPE_SUBTREE, 'scope_organization_id' => $organizationId];
     }
 
     private function withTemporaryPassword(RedirectResponse $redirect, ?string $temporary, string $message): RedirectResponse

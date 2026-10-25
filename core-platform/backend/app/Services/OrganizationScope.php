@@ -11,10 +11,12 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Organization scope = WHERE: a scoped user reaches their organization and every
- * organization under it through structural edges of the published hierarchy;
- * a user with no scope organization reaches the whole city. One rule for every
- * read and write in the Core.
+ * Organization scope = WHERE, always explicit and failing closed (ADR 0008):
+ * citywide reaches every organization, subtree an organization and every one
+ * under it through the structural edges of the hierarchy in force, self that
+ * organization alone. Anything else (no scope type, or a type without its
+ * organization) reaches nothing: an empty scope is never the whole city. One
+ * rule for every read and write in the Core, for people and API clients.
  */
 final class OrganizationScope
 {
@@ -27,19 +29,32 @@ final class OrganizationScope
     }
 
     /**
-     * A person's scope is their account's organization; an integration
-     * client's is its owner organization. None means the whole city.
+     * A person's scope is their account's; an integration client's is its
+     * owner organization's.
      *
-     * @return list<string>|null null = the whole city
+     * @return list<string>|null null = the whole city; [] = nothing at all
      */
     public function organizationIds(User|ApiClient $principal): ?array
     {
-        $root = $principal instanceof User ? $principal->scope_organization_id : $principal->owner_organization_id;
-        if ($root === null) {
+        [$type, $root] = $principal instanceof User
+            ? [$principal->scope_type, $principal->scope_organization_id]
+            : [$principal->scope_type, $principal->owner_organization_id];
+        if ($type === User::SCOPE_CITYWIDE) {
             return null;
         }
+        if ($root === null || ! in_array($type, User::ORGANIZATION_SCOPES, true)) {
+            return [];
+        }
 
-        return $this->cache[$principal::class.':'.$principal->getKey()] ??= $this->subtree((string) $root);
+        return $this->cache[$principal::class.':'.$principal->getKey().':'.$type.':'.$root] ??= $type === User::SCOPE_SELF
+            ? [(string) $root]
+            : $this->subtree((string) $root);
+    }
+
+    /** Whether the principal reaches any organizational data at all. */
+    public function hasAny(User|ApiClient $principal): bool
+    {
+        return $this->organizationIds($principal) !== [];
     }
 
     public function allows(User|ApiClient $principal, ?string $organizationId): bool

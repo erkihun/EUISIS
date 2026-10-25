@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ApiClient;
 use App\Models\ApiRequestLog;
 use App\Models\OutboxEvent;
+use App\Models\User;
 use App\Models\WebhookDelivery;
 use App\Models\WebhookEndpoint;
 use App\Services\AuditWriter;
@@ -28,7 +29,7 @@ use Illuminate\Validation\ValidationException;
  */
 class IntegrationAdminController extends Controller
 {
-    private const CLIENT_FIELDS = ['uuid', 'name', 'description', 'owner_organization_id', 'scopes', 'allowed_ips', 'rate_limit_per_minute', 'is_active',
+    private const CLIENT_FIELDS = ['uuid', 'name', 'description', 'scope_type', 'owner_organization_id', 'scopes', 'allowed_ips', 'rate_limit_per_minute', 'is_active',
         'expires_at', 'revoked_at', 'revocation_reason', 'secret_rotated_at', 'last_used_at', 'last_used_ip', 'created_at'];
 
     public function __construct(private readonly AuditWriter $audit) {}
@@ -211,6 +212,18 @@ class IntegrationAdminController extends Controller
         ]);
         if (isset($data['scopes'])) {
             $data['scopes'] = array_values(array_unique($data['scopes']));
+        }
+
+        // The part of the city the client reads is explicit (ADR 0008): an organization (with
+        // everything under it, or alone) or the whole city when chosen; never by omission.
+        $scope = $request->validate(['scope_type' => ['nullable', Rule::in([User::SCOPE_CITYWIDE, ...User::ORGANIZATION_SCOPES])]]);
+        if ($creating || array_key_exists('scope_type', $scope) || array_key_exists('owner_organization_id', $data)) {
+            $type = $scope['scope_type'] ?? (($data['owner_organization_id'] ?? null) !== null ? User::SCOPE_SUBTREE : null);
+            if ($type === null || ($type !== User::SCOPE_CITYWIDE && ($data['owner_organization_id'] ?? null) === null)) {
+                throw ValidationException::withMessages(['owner_organization_id' => 'Choose the organization the client may read, or the whole city.']);
+            }
+            $data['scope_type'] = $type;
+            $data['owner_organization_id'] = $type === User::SCOPE_CITYWIDE ? null : $data['owner_organization_id'];
         }
 
         return $data;

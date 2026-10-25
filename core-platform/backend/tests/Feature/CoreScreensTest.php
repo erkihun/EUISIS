@@ -34,7 +34,7 @@ class CoreScreensTest extends TestCase
     {
         $user = User::query()->create([
             'name' => $role, 'email' => $role.'-'.Str::random(6).'@core.test', 'password' => 'secret-password-1',
-            'role' => $role, 'scope_organization_id' => $scope?->id, 'is_active' => true,
+            'role' => $role, 'scope_organization_id' => $scope?->id, 'scope_type' => $scope === null ? User::SCOPE_CITYWIDE : User::SCOPE_SUBTREE, 'is_active' => true,
         ]);
         $this->actingAs($user, 'web');
 
@@ -108,7 +108,7 @@ class CoreScreensTest extends TestCase
 
         $this->get('/core')->assertInertia(fn (Assert $page) => $page
             ->where('workspace.name', 'core')
-            ->where('auth.roles.0', 'Core Officer')
+            ->where('auth.roles.0', 'City-wide Core Officer')
             ->where('auth.isSuperAdmin', false)
             ->where('communication', null)
             ->where('assistant.enabled', false)
@@ -122,8 +122,8 @@ class CoreScreensTest extends TestCase
 
     public function test_sign_in_and_out_use_the_session(): void
     {
-        User::query()->create(['name' => 'Hana', 'email' => 'hana@core.test', 'password' => 'secret-password-1', 'role' => 'core_viewer', 'is_active' => true]);
-        User::query()->create(['name' => 'Off', 'email' => 'off@core.test', 'password' => 'secret-password-1', 'role' => 'core_viewer', 'is_active' => false]);
+        User::query()->create(['name' => 'Hana', 'email' => 'hana@core.test', 'password' => 'secret-password-1', 'role' => 'core_viewer', 'scope_type' => User::SCOPE_CITYWIDE, 'is_active' => true]);
+        User::query()->create(['name' => 'Off', 'email' => 'off@core.test', 'password' => 'secret-password-1', 'role' => 'core_viewer', 'scope_type' => User::SCOPE_CITYWIDE, 'is_active' => false]);
 
         $this->get('/core')->assertRedirect('/login');
         $this->get('/login')->assertInertia(fn (Assert $page) => $page->component('Auth/Login')->where('entry', 'core'));

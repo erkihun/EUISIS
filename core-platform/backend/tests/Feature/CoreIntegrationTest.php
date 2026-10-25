@@ -37,7 +37,7 @@ class CoreIntegrationTest extends TestCase
     private function client(array $scopes, array $extra = []): array
     {
         $this->actingAsCore('core_admin');
-        $response = $this->postJson('/api/v1/api-clients', ['name' => 'Cafeteria', 'scopes' => $scopes] + $extra)->assertCreated();
+        $response = $this->postJson('/api/v1/api-clients', ['name' => 'Cafeteria', 'scopes' => $scopes] + $extra + ['scope_type' => isset($extra['owner_organization_id']) ? 'subtree' : 'citywide'])->assertCreated();
         Auth::forgetGuards();
 
         return [$response->json('data.uuid'), $response->json('secret')];

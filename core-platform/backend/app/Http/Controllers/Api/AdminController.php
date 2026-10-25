@@ -27,7 +27,7 @@ class AdminController extends Controller
 
         $scope->apply($query, $request->user(), 'users.scope_organization_id');
 
-        return response()->json($query->paginate(25, ['users.id', 'users.name', 'users.email', 'users.role', 'users.scope_organization_id', 'users.is_active', 'organizations.name_en as scope_organization_name'])->withQueryString());
+        return response()->json($query->paginate(25, ['users.id', 'users.name', 'users.email', 'users.role', 'users.scope_type', 'users.scope_organization_id', 'users.is_active', 'organizations.name_en as scope_organization_name'])->withQueryString());
     }
 
     public function saveUser(Request $request, SaveUser $save, ?User $user = null): JsonResponse
@@ -36,13 +36,14 @@ class AdminController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'role' => ['required', Rule::in(User::ROLES)],
+            'scope_type' => ['nullable', Rule::in([User::SCOPE_CITYWIDE, ...User::ORGANIZATION_SCOPES])],
             'scope_organization_id' => ['nullable', 'uuid'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
         $result = $save->execute($user, $data, $request->user());
 
         return response()->json([
-            'data' => $result['user']->only(['id', 'name', 'email', 'role', 'scope_organization_id', 'is_active']),
+            'data' => $result['user']->only(['id', 'name', 'email', 'role', 'scope_type', 'scope_organization_id', 'is_active']),
             // Shown once to the administrator who hands it over; never stored in clear.
             'one_time_password' => $result['password'],
         ], $user === null ? 201 : 200);
