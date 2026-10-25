@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
+use App\Actions\MultiFactor;
 use App\Actions\SaveUser;
 use App\Http\Controllers\Controller;
 use App\Models\IdCard;
@@ -47,6 +48,16 @@ class AdminController extends Controller
             // Shown once to the administrator who hands it over; never stored in clear.
             'one_time_password' => $result['password'],
         ], $user === null ? 201 : 200);
+    }
+
+    /** A lost authenticator: the holder enrols again at the next sign-in; every sign-in of the account ends (audited as mfa.reset). */
+    public function resetMfa(Request $request, User $user, SaveUser $save, MultiFactor $mfa): JsonResponse
+    {
+        abort_unless($save->manages($request->user(), $user), 403);
+        $data = $request->validate(['reason' => ['required', 'string', 'min:5', 'max:1000']]);
+        $mfa->reset($user, $request->user(), $data['reason']);
+
+        return response()->json(['reset' => true]);
     }
 
     public function resetPassword(Request $request, User $user, SaveUser $save): JsonResponse

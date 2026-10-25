@@ -132,6 +132,7 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
             Route::post('/users', [AdminController::class, 'saveUser']);
             Route::put('/users/{user}', [AdminController::class, 'saveUser']);
             Route::post('/users/{user}/reset-password', [AdminController::class, 'resetPassword']);
+            Route::post('/users/{user}/mfa-reset', [AdminController::class, 'resetMfa']);
             Route::get('/data-quality', [AdminController::class, 'dataQuality'])->middleware('core.user:city-admin');
         });
     });

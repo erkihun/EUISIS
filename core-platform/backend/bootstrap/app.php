@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureOrganizationScope;
 use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequestId;
+use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetClientLocale;
 use App\Http\Middleware\TrackSessionActivity;
@@ -32,9 +33,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(['core.user' => EnsureCoreUser::class, 'core.client' => EnsureApiClient::class]);
         // The EUISIS screens: the page's language, the idle sign-out and the shared props, on the browser routes.
         $middleware->encryptCookies(except: [SetClientLocale::COOKIE]);
-        $middleware->web(append: [SetClientLocale::class, TrackSessionActivity::class, EnsurePasswordChanged::class, EnsureOrganizationScope::class, HandleInertiaRequests::class]);
+        $middleware->web(append: [SetClientLocale::class, TrackSessionActivity::class, EnsurePasswordChanged::class, RequireMfa::class, EnsureOrganizationScope::class, HandleInertiaRequests::class]);
         // An account without a scope is told so (403) before any record is resolved by its route.
         $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: EnsureCoreUser::class);
+        $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: RequireMfa::class);
         $middleware->prependToPriorityList(before: SubstituteBindings::class, prepend: EnsureOrganizationScope::class);
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('core.dashboard'));

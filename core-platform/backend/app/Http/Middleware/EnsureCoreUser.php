@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\Api\AuthController;
 use App\Models\User;
+use App\Services\MfaPolicy;
 use Closure;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -27,6 +30,15 @@ class EnsureCoreUser
             throw new HttpResponseException(response()->json([
                 'message' => 'Choose a new password before continuing.',
                 'code' => 'PASSWORD_CHANGE_REQUIRED',
+            ], 403));
+        }
+        // A sign-in token issued before the second factor applied (or without it) reaches nothing but sign-out (ADR 0008).
+        $token = $user->currentAccessToken();
+        if (app(MfaPolicy::class)->applies($user) && ! $request->is('api/auth/logout')
+            && ! ($token instanceof PersonalAccessToken && str_ends_with((string) $token->name, AuthController::MFA_TOKEN_SUFFIX))) {
+            throw new HttpResponseException(response()->json([
+                'message' => 'Multi-factor authentication is required for this account: sign in again with your authentication code.',
+                'code' => $user->hasMfaEnabled() ? 'MFA_REQUIRED' : 'MFA_ENROLLMENT_REQUIRED',
             ], 403));
         }
         // No organization scope, no organizational data (ADR 0008): said plainly, not as empty lists.

@@ -144,13 +144,16 @@ final class SystemHealth
         $clients = ApiClient::query()->where('is_active', true)->whereNull('revoked_at');
 
         return [
-            'status' => $cityAdmins === 0 ? 'error' : ($cityAdmins === 1 ? 'warning' : 'ok'),
+            'status' => $cityAdmins === 0 || (app()->isProduction() && ! MfaPolicy::enforced()) ? 'error' : ($cityAdmins === 1 ? 'warning' : 'ok'),
             'details' => [
                 'active_accounts' => User::query()->where('is_active', true)->count(),
                 'city_wide_administrators' => $cityAdmins,
                 'awaiting_password_change' => User::query()->where('is_active', true)->where('must_change_password', true)->count(),
                 'live_sign_ins' => DB::table('personal_access_tokens')->where('tokenable_type', User::class)
                     ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))->count(),
+                'mfa_enforced' => MfaPolicy::enforced(),
+                'privileged_without_mfa' => User::query()->where('is_active', true)->whereIn('role', ['core_admin', 'core_officer'])
+                    ->where(fn ($q) => $q->where('two_factor_enabled', false)->orWhereNull('two_factor_confirmed_at'))->count(),
                 'active_api_clients' => (clone $clients)->count(),
                 'api_clients_expiring_30_days' => (clone $clients)->whereNotNull('expires_at')->whereBetween('expires_at', [now(), now()->addDays(30)])->count(),
             ],

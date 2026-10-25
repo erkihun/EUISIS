@@ -10,6 +10,7 @@ use App\Http\Middleware\TrackSessionActivity;
 use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\CoreSettings;
+use App\Services\MfaPolicy;
 use App\Support\CorePermissions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -128,7 +129,12 @@ class SessionController extends Controller
                 'last_login_at' => $user->last_login_at?->toDateTimeString(),
                 'created_at' => $user->created_at?->toIso8601String(),
             ],
-            'security' => ['two_factor_enabled' => false, 'two_factor_required' => false, 'two_factor_confirmed_at' => null, 'two_factor_last_used_at' => null],
+            'security' => [
+                'two_factor_enabled' => $user->hasMfaEnabled(),
+                'two_factor_required' => app(MfaPolicy::class)->requires($user),
+                'two_factor_confirmed_at' => $user->two_factor_confirmed_at?->toIso8601String(),
+                'two_factor_last_used_at' => $user->two_factor_last_used_at?->toIso8601String(),
+            ],
             'devices' => [
                 'supported' => config('session.driver') === 'database',
                 'sessions' => $sessions->map(fn (object $session): array => [

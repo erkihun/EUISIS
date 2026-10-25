@@ -43,6 +43,12 @@ return [
      */
     'national_id_hash_key' => (string) env('NATIONAL_ID_HASH_KEY', ''),
 
+    /*
+     * Multi-factor authentication for the categories Core settings › Security
+     * require (App\Services\MfaPolicy). Off only for the test suite.
+     */
+    'mfa_enforce' => (bool) env('CORE_MFA_ENFORCE', true),
+
     /* Browser origins allowed to call the API (other systems' pages; the Core's own screens are same-origin). */
     'frontend_origins' => array_filter(explode(',', (string) env('CORE_FRONTEND_ORIGINS', 'http://localhost:5174'))),
 

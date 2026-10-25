@@ -8,6 +8,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -35,7 +36,8 @@ class User extends Authenticatable
 
     protected $fillable = ['name', 'email', 'password', 'role', 'scope_organization_id', 'scope_type', 'is_active'];
 
-    protected $hidden = ['password', 'remember_token'];
+    /** Credentials and second-factor secrets never leave the Core. */
+    protected $hidden = ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'];
 
     protected function casts(): array
     {
@@ -46,7 +48,53 @@ class User extends Authenticatable
             'must_change_password' => 'boolean',
             'password_changed_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted',
+            'two_factor_confirmed_at' => 'datetime',
+            'two_factor_last_used_at' => 'datetime',
+            'two_factor_enabled' => 'boolean',
         ];
+    }
+
+    /** Enrolment finished: a secret saved and confirmed with a first code. */
+    public function hasMfaEnabled(): bool
+    {
+        return (bool) $this->two_factor_enabled && $this->two_factor_secret !== null && $this->two_factor_confirmed_at !== null;
+    }
+
+    /**
+     * A fresh set of one-time recovery codes, returned in clear to be shown
+     * once; only their hashes are kept (and encrypted at rest).
+     *
+     * @return list<string>
+     */
+    public function regenerateMfaRecoveryCodes(int $count = 8): array
+    {
+        $codes = [];
+        for ($i = 0; $i < $count; $i++) {
+            $raw = bin2hex(random_bytes(5));
+            $codes[] = strtoupper(substr($raw, 0, 5).'-'.substr($raw, 5, 5));
+        }
+        $this->two_factor_recovery_codes = (string) json_encode(array_map(fn (string $code): string => Hash::make($code), $codes));
+
+        return $codes;
+    }
+
+    /** Accepts a recovery code once: it is removed as it is used. The caller holds the row lock. */
+    public function consumeMfaRecoveryCode(string $code): bool
+    {
+        $codes = json_decode((string) $this->two_factor_recovery_codes, true) ?: [];
+        foreach ($codes as $index => $hashed) {
+            if (Hash::check(strtoupper(trim($code)), $hashed)) {
+                unset($codes[$index]);
+                $this->two_factor_recovery_codes = (string) json_encode(array_values($codes));
+                $this->save();
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function canChangeMasterData(): bool

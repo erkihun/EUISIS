@@ -5,6 +5,7 @@ use App\Http\Controllers\Web\CoreController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\HierarchyController;
 use App\Http\Controllers\Web\IdCheckerController;
+use App\Http\Controllers\Web\MfaController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationUnitController;
 use App\Http\Controllers\Web\PositionController;
@@ -27,6 +28,12 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
+    // Multi-factor authentication (ADR 0008), the EUISIS routes; RequireMfa sends privileged accounts here first.
+    Route::get('/mfa/setup', [MfaController::class, 'showSetup'])->name('mfa.setup');
+    Route::post('/mfa/setup/confirm', [MfaController::class, 'confirmSetup'])->middleware('throttle:6,1')->name('mfa.setup.confirm');
+    Route::get('/mfa/challenge', [MfaController::class, 'showChallenge'])->name('mfa.challenge');
+    Route::post('/mfa/challenge', [MfaController::class, 'verifyChallenge'])->middleware('throttle:6,1')->name('mfa.challenge.verify');
+    Route::post('/mfa/disable', [MfaController::class, 'disable'])->middleware('throttle:6,1')->name('mfa.disable');
     Route::get('/change-password', [SessionController::class, 'forcedPassword'])->name('password.forced');
     Route::post('/change-password', [SessionController::class, 'updateForcedPassword'])->middleware('throttle:6,1')->name('password.forced.update');
     Route::post('/session/activity', [SessionController::class, 'activity'])->name('session.activity');

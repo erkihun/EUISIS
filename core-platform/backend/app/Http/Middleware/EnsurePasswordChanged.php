@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsurePasswordChanged
 {
-    private const ALLOWED = ['password.forced', 'password.forced.update', 'logout', 'session.*', 'notifications.*'];
+    private const ALLOWED = ['password.forced', 'password.forced.update', 'logout', 'session.*', 'notifications.*', 'mfa.*'];
 
     public function handle(Request $request, Closure $next): Response
     {
