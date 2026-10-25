@@ -6,17 +6,17 @@ as its own system: a separate backend, frontend and database. Decision record:
 
 ```
 core-platform/
-├── backend/    Laravel 13 API, /api/v1, token sign-in, database euisis_core
-└── frontend/   Vite + React single-page app in the EUISIS layout (English / Amharic), talks only to the API
+├── backend/    Laravel 13: the screens (Inertia, session sign-in) and the API (/api/v1, tokens); database euisis_core
+└── frontend/   the EUISIS screens, copied unchanged (React, Inertia, English / Amharic), built into backend/public/build
 ```
 
 ```
- browser ──► frontend (static files, :5174 in dev)
-                │  /api (Bearer token)
+ browser ──► backend (:8100 in dev) ── EUISIS pages, EUISIS route names, session sign-in
+                │                   └─ /api/v1 for EUISIS and partner systems (Bearer token)
                 ▼
-            backend (:8100 in dev) ──► euisis_core database (MariaDB/MySQL or PostgreSQL)
-                │
-                └─ core:import-from-euisis (read only) ──► EUISIS database
+            euisis_core database (MariaDB/MySQL or PostgreSQL)
+                ▲
+                └─ core:import-from-euisis (read only) ◄── EUISIS database
 ```
 
 ## What the Core enforces
@@ -67,13 +67,16 @@ php artisan serve --port=8100
 The last command but one prints a one-time password. Scoped accounts:
 `--organization=<organization code>`.
 
-Frontend (Node 24):
+Screens (Node 24). The build goes into `backend/public/build`; the backend
+serves the pages at http://127.0.0.1:8100:
 
 ```bash
 cd core-platform/frontend
 npm install
-npm run dev                   # http://localhost:5174, proxies /api to :8100
+npm run build                 # or: npm run dev (hot reload through backend/public/hot)
 ```
+
+Sign in at http://127.0.0.1:8100/login with the account from `core:create-user`.
 
 Tests and checks:
 
@@ -84,29 +87,45 @@ cd core-platform/frontend && npm run typecheck && npm run build
 
 CI runs the same in `.github/workflows/core-platform.yml`.
 
-## The frontend is the EUISIS layout
+## The screens are the EUISIS screens
 
-The Core frontend looks and behaves like the EUISIS Core workspace: the same
-sign-in stage, sidebar (sections, groups, menu filter, icon rail), header (page
-search with Ctrl K, theme, EN/አማ, account menu), heading band with
-breadcrumbs, tonal cards, tables, filters, dialogs and toasts. It is a copy,
-not a link, so the Core builds and deploys on its own:
+Every Core screen is the EUISIS page itself, not a look-alike: the same React
+files, layout, sidebar, header, tables, forms, dialogs and translations. The
+backend renders them with Inertia under the EUISIS route names, paths and
+permission names, and gives each page the props its EUISIS controller gives
+it, read from the Core tables.
 
-| Core frontend | Copied from EUISIS |
+- `frontend/scripts/sync-from-euisis.mjs` copies them: it follows the Core
+  pages (its `PAGES` list) and the EUISIS entry through every import and copies
+  each file from `resources/js` unchanged, with `resources/css`,
+  `packages/euisis-ui` and `lang/` (into `backend/lang`). Run `npm run sync`
+  after EUISIS changes; CI fails when the copy has drifted.
+- The one difference is a patch the script applies to `app.tsx`: a link to a
+  page that stays in EUISIS (print batches, transfers, NFC…) resolves to `#`
+  instead of failing, because the Core route list does not have it.
+- `backend/routes/web.php` holds the routes, `app/Http/Controllers/Web` the
+  page controllers, `app/Http/Middleware/HandleInertiaRequests.php` the shared
+  props (the Core workspace navigation, the settings in the EUISIS keys).
+- Core roles carry EUISIS permission names (`app/Support/CorePermissions.php`),
+  so the pages show the same buttons EUISIS shows for the same rights.
+- `php artisan ziggy:generate ../frontend/resources/js/ziggy.js` after a
+  route change.
+
+| Core screen | EUISIS page |
 |---|---|
-| `src/ui/` | `packages/euisis-ui/src/` (the shared UI kit and `tokens.css`) |
-| `src/index.css`, `src/fonts.css` | `resources/css/app.css`, `resources/css/fonts.css` (paths adjusted) |
-| `src/components/NavIcons.tsx`, `UserAvatar.tsx`, `auth/LoginStage.tsx`, `src/lib/theme.ts` | the files of the same name, unchanged |
-| `src/components/AppSidebar.tsx`, `AppHeader.tsx`, `Breadcrumbs.tsx`, `PageHeader.tsx`, `AppCommandPalette.tsx`, `src/layouts/AuthenticatedLayout.tsx`, `src/pages/Login.tsx`, `src/pages/Dashboard.tsx` | the EUISIS components, with Inertia routing and System Settings replaced by the Core's hash routes and the shipped defaults |
-| `src/i18n/en.ts`, `am.ts` (`nav`, `common`, `auth`, `core`) | `resources/js/i18n/{en,am}/` |
-| `src/navigation.ts` | `App\Services\Core\CoreNavigation`, limited to the Core pages |
+| Dashboard, Assignments, Audit Center, Data Quality, Settings | `Core/*`, `SystemSettings/Index` |
+| Organizations, types, units, unit types, hierarchy (read only) | `Organizations/*`, `OrganizationTypes/*`, `OrganizationUnits/*`, `OrganizationUnitTypes/*`, `HierarchyVersions/*` |
+| Positions, position status, establishments | `Positions/*`, `PositionEstablishments/*` |
+| Employees | `Employees/*` |
+| ID cards, card requests, card check | `IdCards/*`, `CardRequests/*`, `Public/IdChecker` |
+| Users, Audit Logs, profile, sign-in | `Users/*`, `AuditLogs/Index`, `Profile/Edit`, `Auth/Login` |
 
-When the EUISIS design changes, copy the changed files again; the unchanged
-ones can be copied over as they are.
+"Exit Core" opens `EUISIS_APP_URL` when set, otherwise it signs out.
 
 ## API
 
-All routes are under `/api`, JSON, `Authorization: Bearer <token>` except sign-in.
+For EUISIS and partner systems. All routes are under `/api` (`GET /api`
+describes the service), JSON, `Authorization: Bearer <token>` except sign-in.
 
 | Method | Path | Who |
 |---|---|---|
@@ -150,7 +169,8 @@ snapshot.
 
 ## Core settings
 
-Administrators (`core_admin`) change the Core from **Governance › Settings**.
+Administrators (`core_admin`) change the Core from **Governance › Settings**
+(the EUISIS System Settings page; Numbering and Workforce are on its General tab).
 Every change is validated, applies at once and is audited (`settings.updated`
 with the old and new values). Keys, labels, defaults and limits follow the
 EUISIS System Settings wherever EUISIS has the same setting
@@ -172,11 +192,12 @@ origins, `APP_KEY`).
 
 ## Production notes
 
-- Serve `frontend/dist` and the backend under one host (`/api` to Laravel) or
-  set `VITE_API_BASE_URL` at build time and `CORE_FRONTEND_ORIGINS` on the
-  backend for CORS.
+- Build the screens (`npm ci && npm run build` in `frontend/`, after
+  `composer install` in `backend/`) and serve `backend/public` as the web root.
+  Sessions are in the database (`SESSION_DRIVER=database`).
 - `APP_ENV=production`, `APP_DEBUG=false`, HTTPS only. `migrate:fresh`,
   `db:wipe` and friends refuse to run in production.
 - Back up `euisis_core` from the cutover on; EUISIS backups no longer cover it.
-- Sign-in tokens last 8 hours; deactivating an account (`is_active = false`)
-  stops it at the next request.
+- Browser sessions end after Core settings › Security › session length
+  without activity; API tokens last 8 hours. Deactivating an account
+  (`is_active = false`) stops it at the next request.

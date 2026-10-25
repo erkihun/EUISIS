@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Services\CoreSettings;
 use App\Services\OrganizationScope;
+use App\Support\CorePermissions;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,5 +33,8 @@ class AppServiceProvider extends ServiceProvider
             ->by((string) ($request->user()?->getKey() ?? $request->ip())));
         RateLimiter::for('core-verify', fn (Request $request): Limit => Limit::perMinute(app(CoreSettings::class)->int('security.verification_rate_limit_per_minute'))
             ->by('verify:'.($request->user()?->getKey() ?? $request->ip())));
+
+        // The screens' EUISIS permission names, granted by the Core role.
+        Gate::before(fn (User $user, string $ability): ?bool => in_array($ability, CorePermissions::for($user), true) ? true : null);
     }
 }

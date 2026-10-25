@@ -31,6 +31,8 @@ final readonly class SaveOrganization
     public function execute(?Organization $organization, array $data, User $actor): Organization
     {
         return DB::transaction(function () use ($organization, $data, $actor): Organization {
+            // A change that does not name the parent (a status change, an edit of the details) leaves the edge alone.
+            $parentGiven = array_key_exists('parent_organization_id', $data);
             $parentId = $data['parent_organization_id'] ?? null;
             unset($data['parent_organization_id']);
             $version = HierarchyVersion::current();
@@ -68,6 +70,9 @@ final readonly class SaveOrganization
                 ->whereIn('relationship_type', OrganizationEdge::TREE_TYPES)
                 ->where('child_organization_id', $organization->id)
                 ->value('parent_organization_id');
+            if (! $parentGiven) {
+                $parentId = $oldParent;
+            }
             if ($version !== null && (string) $oldParent !== (string) $parentId) {
                 if ($oldParent !== null && $actor->scope_organization_id === $organization->id) {
                     throw ValidationException::withMessages(['parent_organization_id' => 'You cannot move the organization your account is scoped to.']);

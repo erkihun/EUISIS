@@ -1,0 +1,82 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'title' => 'Employee Transfers',
+    'new_transfer' => 'New Transfer',
+    'create_transfer' => 'Create Transfer',
+    'transfer_details' => 'Transfer Details',
+    'edit_transfer' => 'Edit Transfer',
+    'from_organization' => 'From Organization',
+    'to_organization' => 'To Organization',
+    'from_position' => 'From Position',
+    'to_position' => 'To Position',
+    'effective_date' => 'Effective Date',
+    'transfer_reason' => 'Transfer Reason',
+    'rejection_reason' => 'Rejection Reason',
+
+    // Announcement flash / domain messages
+    'announcementCreated' => 'Transfer announcement created.',
+    'announcementUpdated' => 'Transfer announcement updated.',
+    'announcementPublished' => 'Transfer announcement published.',
+    'announcementClosed' => 'Transfer announcement closed.',
+    'announcementCancelled' => 'Transfer announcement cancelled.',
+    'announcementDeleted' => 'Transfer announcement deleted.',
+
+    // Application flash messages
+    'applicationSubmitted' => 'Your transfer application has been submitted successfully.',
+    'applicationScreened' => 'Application screened.',
+    'applicationSelected' => 'Candidate selected.',
+    'applicationRejected' => 'Application rejected.',
+    'applicationWithdrawn' => 'Application withdrawn.',
+    'releaseApproved' => 'Release approved.',
+    'releaseRejected' => 'Release rejected.',
+    'receivingApproved' => 'Receiving approved.',
+    'receivingRejected' => 'Receiving rejected.',
+    'finalApproved' => 'Final approval granted.',
+    'finalRejected' => 'Final approval rejected.',
+    'noEmployeeProfile' => 'No employee profile is linked to your account. Please contact HR.',
+    'alreadyApplied' => 'You have already applied for this transfer announcement.',
+    'notAcceptingApplications' => 'This announcement is not currently accepting applications.',
+
+    // Application refusals shown to the applicant
+    'requiredDocumentMissing' => 'Required document missing: :type.',
+    'documentUnavailable' => 'A selected employee document is no longer available.',
+    'notEligible' => 'You do not meet the eligibility criteria configured for this transfer.',
+    'noCurrentAssignment' => 'Your employee record has no current assignment.',
+
+    // Status transition errors
+    'cancelNotAllowed' => 'Only draft or published announcements can be cancelled.',
+
+    // Publish validation errors
+    'announcementNotDraft' => 'Only draft announcements can be published.',
+    'announcementNotPublished' => 'Only published announcements can be closed.',
+    'publishMissingOrganization' => 'The announcement must have an organization before it can be published.',
+    'publishMissingPosition' => 'The announcement must have a position before it can be published.',
+    'publishNoVacancies' => 'The announcement must have at least one vacancy.',
+    'publishMissingDates' => 'Opening date and closing date are required before publishing.',
+    'publishInvalidDateRange' => 'Closing date must be after opening date.',
+    'publishNoEstablishment' => 'No approved establishment found for the selected position and organization.',
+    'transferCompleted' => 'Transfer implemented.',
+    'settingsUpdated' => 'Transfer settings saved.',
+    'announcements' => 'Transfer announcements',
+
+    // Field names in validation messages ("The organization field is required."), not the input keys.
+    'attributes' => [
+        'positions' => 'positions',
+        'positions.*.organization_id' => 'organization',
+        'positions.*.position_id' => 'position',
+        'positions.*.grade_level' => 'grade level',
+        'positions.*.salary_min' => 'minimum salary',
+        'positions.*.salary_max' => 'maximum salary',
+        'positions.*.vacancy_count' => 'number of vacancies',
+        'eligibility_rules.*.type' => 'rule type',
+        'eligibility_rules.*.value' => 'rule value',
+        'required_documents.*' => 'document name',
+        'opening_date' => 'opening date',
+        'closing_date' => 'closing date',
+        'override_approver_roles.*' => 'override approver role',
+        'minimum_service_months' => 'minimum service',
+    ],
+];

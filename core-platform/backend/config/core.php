@@ -36,6 +36,9 @@ return [
         'id_cards' => ['live_current_employee_id'],
     ],
 
-    /* Origins of the Core frontend allowed to call the API from a browser. */
+    /* Browser origins allowed to call the API (other systems' pages; the Core's own screens are same-origin). */
     'frontend_origins' => array_filter(explode(',', (string) env('CORE_FRONTEND_ORIGINS', 'http://localhost:5174'))),
+
+    /* Where "Exit Core" goes: the full EUISIS application. Blank signs the person out instead. */
+    'euisis_url' => env('EUISIS_APP_URL'),
 ];

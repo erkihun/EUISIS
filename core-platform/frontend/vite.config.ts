@@ -1,28 +1,55 @@
-import tailwindcss from '@tailwindcss/vite';
+import path from 'node:path';
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
-import { defineConfig, loadEnv } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
-// The Core frontend talks only to the Core API. In development /api is proxied
-// to the Core backend (php artisan serve --port=8100); in production set
-// VITE_API_BASE_URL, or serve both behind one host so /api resolves.
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
+/*
+ * The EUISIS screens (copied by scripts/sync-from-euisis.mjs), built into the
+ * Core backend's public folder. In development the backend reads
+ * ../backend/public/hot and loads the pages from this server.
+ */
+const devServerHost = process.env.VITE_DEV_SERVER_HOST ?? '127.0.0.1';
+const devServerPort = Number(process.env.VITE_DEV_SERVER_PORT ?? 5174);
 
-    return {
-        plugins: [react(), tailwindcss()],
-        resolve: { dedupe: ['react', 'react-dom'] },
-        // Pre-bundled together at start-up, so a dependency found later can never
-        // bring a second copy of React into a running dev server.
-        optimizeDeps: {
-            include: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@headlessui/react', 'sonner', 'cmdk', '@tanstack/react-table'],
+export default defineConfig({
+    server: {
+        host: devServerHost,
+        port: devServerPort,
+        strictPort: true,
+        hmr: { host: devServerHost, port: devServerPort, clientPort: devServerPort },
+    },
+    resolve: {
+        alias: {
+            // Ziggy's route() helper ships with the backend's Composer package, as in EUISIS.
+            'ziggy-js': path.resolve('../backend/vendor/tightenco/ziggy'),
         },
-        server: {
-            port: 5174,
-            strictPort: true,
-            proxy: {
-                '/api': { target: env.CORE_API_PROXY ?? 'http://127.0.0.1:8100', changeOrigin: true },
+        dedupe: ['react', 'react-dom', '@inertiajs/react', '@inertiajs/core'],
+    },
+    plugins: [
+        tailwindcss(),
+        laravel({
+            input: 'resources/js/app.tsx',
+            publicDirectory: '../backend/public',
+            refresh: ['../backend/resources/views/**', '../backend/routes/**'],
+        }),
+        react(),
+    ],
+    build: {
+        chunkSizeWarningLimit: 600,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    const file = id.replace(/\\/g, '/');
+                    if (file.endsWith('/resources/js/ziggy.js')) {
+                        return 'ziggy';
+                    }
+                    // One copy of the React context providers (see the EUISIS vite.config.js).
+                    if (id.includes('ConfirmProvider') || id.includes('ToastProvider')) {
+                        return 'providers';
+                    }
+                },
             },
         },
-        preview: { port: 5174 },
-    };
+    },
 });

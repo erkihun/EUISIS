@@ -17,7 +17,7 @@ class HierarchyVersion extends Model
 
     protected function casts(): array
     {
-        return ['effective_from' => 'date', 'effective_to' => 'date'];
+        return ['effective_from' => 'date', 'effective_to' => 'date', 'approval_date' => 'datetime'];
     }
 
     /** The structure in force: the latest published version. */

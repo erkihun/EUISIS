@@ -37,4 +37,9 @@ class Organization extends Model
     {
         return $this->hasMany(Position::class);
     }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(EmployeeAssignment::class);
+    }
 }

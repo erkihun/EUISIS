@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Employee extends Model
 {
@@ -41,6 +42,12 @@ class Employee extends Model
     public function cards(): HasMany
     {
         return $this->hasMany(IdCard::class);
+    }
+
+    /** The card the employee carries now: current and active. */
+    public function activeIdCard(): HasOne
+    {
+        return $this->hasOne(IdCard::class)->where('is_current', true)->where('status', IdCard::ACTIVE);
     }
 
     public function isSeparated(): bool
