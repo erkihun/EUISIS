@@ -14,6 +14,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\DataQualityScanner;
+use App\Services\IntegrityChecks;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -85,6 +86,22 @@ class CoreOversightTest extends TestCase
         $this->post("/core/data-quality/issues/{$issue->id}/false_positive", ['note' => 'Status sync from the HR system pending'])->assertSessionHasNoErrors();
         app(DataQualityScanner::class)->scan();
         $this->assertSame(DataQualityIssue::FALSE_POSITIVE, $issue->fresh()->status);
+    }
+
+    public function test_a_position_over_its_seats_is_found_and_its_seats_count(): void
+    {
+        $checks = app(IntegrityChecks::class);
+        $this->assertSame([], $checks->subjects('positions_over_capacity', 10));
+        // A second holder of a position with the default single seat.
+        EmployeeAssignment::query()->create(['employee_id' => $this->placedEmployee('EMP-0003', $this->positionB, '2024-01-01')->id,
+            'organization_id' => $this->bureauA->id, 'position_id' => $this->positionA->id, 'assignment_status' => 'active', 'is_current' => false, 'effective_from' => '2024-01-01']);
+        $this->assertSame([], $checks->subjects('positions_over_capacity', 10), 'A closed placement holds no seat.');
+        DB::table('employee_assignments')->where('position_id', $this->positionB->id)->update(['position_id' => $this->positionA->id]);
+        $this->assertSame([(string) $this->positionA->id], $checks->subjects('positions_over_capacity', 10));
+        // Two approved seats in force: no longer over.
+        $this->positionA->establishments()->create(['establishment_number' => 'EST-A2', 'organization_id' => $this->bureauA->id, 'approved_slots' => 2,
+            'effective_from' => '2020-01-01', 'status' => 'approved']);
+        $this->assertSame([], $checks->subjects('positions_over_capacity', 10));
     }
 
     public function test_reports_are_limited_to_the_scope_and_leave_out_personal_details(): void

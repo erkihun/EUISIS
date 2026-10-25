@@ -363,7 +363,8 @@ class CoreController extends Controller
             'cards_revoked' => $ofEmployees(IdCard::query()->where('status', IdCard::REVOKED))->count(),
             'users_active' => User::query()->where('is_active', true)->when($ids !== null, fn ($q) => $q->whereIn('scope_organization_id', $ids))->count(),
             'audit_events_24h' => CoreAuditLog::query()->where('created_at', '>=', $now->copy()->subDay())->count(),
-            'data_quality_findings' => $ids === null ? array_sum($checks->counts()) : null,
+            // From the last scan (core:data-quality-scan), never the checks themselves on a page load (ADR 0011).
+            'data_quality_findings' => $ids === null ? DB::table('data_quality_issues')->whereIn('status', ['open', 'investigating'])->count() : null,
         ] + $this->operationalMetrics($ids);
     }
 

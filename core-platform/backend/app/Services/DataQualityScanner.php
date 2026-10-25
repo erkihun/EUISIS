@@ -58,6 +58,7 @@ final class DataQualityScanner
         DB::transaction(function () use ($code, $kind, $ids, $complete, $now, $severity, $organizations, &$counts): void {
             $existing = DataQualityIssue::query()->where('check_code', $code)->where('entity_type', $kind)->get()->keyBy('entity_id');
             $new = [];
+            $seen = [];
             foreach ($ids as $id) {
                 $issue = $existing->get($id);
                 if ($issue === null) {
@@ -74,11 +75,18 @@ final class DataQualityScanner
                     $this->audit->write('data_quality.reopened', null, $issue, $issue->organization_id, null, ['status' => DataQualityIssue::OPEN], 'Found again by the scan');
                     $counts['reopened']++;
                 } else {
-                    $issue->forceFill(['last_detected_at' => $now, 'organization_id' => $organizations[$id] ?? $issue->organization_id])->save();
+                    $seen[] = $issue->id;
+                    if (($organizations[$id] ?? null) !== null && (string) $issue->organization_id !== $organizations[$id]) {
+                        $issue->forceFill(['organization_id' => $organizations[$id]])->save();
+                    }
                 }
             }
             foreach (array_chunk($new, 500) as $chunk) {
                 DataQualityIssue::query()->insert($chunk);
+            }
+            // Seen again: one update per thousand, not per issue (a check can find thousands).
+            foreach (array_chunk($seen, 1000) as $chunk) {
+                DataQualityIssue::query()->whereKey($chunk)->update(['last_detected_at' => $now, 'updated_at' => $now]);
             }
             $counts['opened'] = count($new);
 

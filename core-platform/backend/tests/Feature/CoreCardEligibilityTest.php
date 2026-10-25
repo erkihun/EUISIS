@@ -11,6 +11,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\CardEligibility;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -149,7 +150,7 @@ class CoreCardEligibilityTest extends TestCase
         CardRequest::query()->create($open);
         CardRequest::query()->create(['status' => CardRequest::REJECTED] + $open);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         CardRequest::query()->create(['status' => 'verified'] + $open);
     }
 

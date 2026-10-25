@@ -175,13 +175,14 @@ final class IntegrityChecks
                     ->groupBy('id_cards.employee_id')
                     ->havingRaw('count(*) > 1')),
             // The SeatCapacity rule in SQL: approved seats in force today, else the Workforce setting.
+            // Holders and seats per position in one grouped pass each, not two subqueries per position (ADR 0011 performance review).
             'positions_over_capacity' => DB::table('positions')
-                ->whereRaw('('.$this->holders().') > (case when ('.$this->seats().') > 0 then ('.$this->seats().') else ? end)', [
-                    true, 'active',
-                    'approved', $today, $today,
-                    'approved', $today, $today,
-                    $this->settings->int('workforce.default_seat_capacity'),
-                ]),
+                ->joinSub(DB::table('employee_assignments')->where('is_current', true)->where('assignment_status', 'active')->whereNotNull('position_id')
+                    ->groupBy('position_id')->selectRaw('position_id, count(*) as holders'), 'h', 'h.position_id', '=', 'positions.id')
+                ->leftJoinSub(DB::table('position_establishments')->where('status', 'approved')->whereNull('deleted_at')->where('effective_from', '<=', $today)
+                    ->where(fn (Builder $q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', $today))
+                    ->groupBy('position_id')->selectRaw('position_id, sum(approved_slots) as seats'), 's', 's.position_id', '=', 'positions.id')
+                ->whereRaw('h.holders > (case when coalesce(s.seats, 0) > 0 then s.seats else ? end)', [$this->settings->int('workforce.default_seat_capacity')]),
             'placed_in_inactive_position' => DB::table('employee_assignments')
                 ->join('positions', 'positions.id', '=', 'employee_assignments.position_id')
                 ->where('employee_assignments.is_current', true)->where('employee_assignments.assignment_status', 'active')
@@ -275,19 +276,5 @@ final class IntegrityChecks
                 ->whereExists(fn (Builder $q) => $edges($q->selectRaw('1')->from('organization_edges'))
                     ->where(fn (Builder $e) => $e->whereColumn('organization_edges.child_organization_id', 'organizations.id')->orWhereColumn('organization_edges.parent_organization_id', 'organizations.id'))),
         ];
-    }
-
-    private function holders(): string
-    {
-        return 'select count(*) from employee_assignments where employee_assignments.position_id = positions.id'
-            .' and employee_assignments.is_current = ? and employee_assignments.assignment_status = ?';
-    }
-
-    private function seats(): string
-    {
-        return 'select coalesce(sum(approved_slots), 0) from position_establishments where position_establishments.position_id = positions.id'
-            .' and position_establishments.status = ? and position_establishments.deleted_at is null'
-            .' and position_establishments.effective_from <= ?'
-            .' and (position_establishments.effective_to is null or position_establishments.effective_to >= ?)';
     }
 }

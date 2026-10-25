@@ -11,6 +11,7 @@ use App\Services\AuditWriter;
 use App\Services\CoreSettings;
 use App\Services\SystemHealth;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 /**
  * What runs out soon (ADR 0011): an active card expiring within
@@ -32,7 +33,7 @@ class NotifyExpiring extends Command
         IdCard::query()->with('employee.currentAssignment')->whereIn('status', [IdCard::ACTIVE, IdCard::ISSUED])->where('is_current', true)
             ->whereNotNull('expires_at')->whereBetween('expires_at', [now(), now()->addDays($days)])
             ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('core_audit_logs')->where('core_audit_logs.action', 'card.expiring')
-                ->where('core_audit_logs.subject_type', 'IdCard')->whereColumn('core_audit_logs.subject_id', 'id_cards.id')
+                ->where('core_audit_logs.subject_type', 'IdCard')->whereRaw('core_audit_logs.subject_id = '.(DB::getDriverName() === 'pgsql' ? 'id_cards.id::text' : 'id_cards.id')) // subject ids are text
                 ->where('core_audit_logs.created_at', '>=', now()->subDays($days + 1)))
             ->orderBy('id')->each(function (IdCard $card) use ($audit, &$cards): void {
                 $organization = $card->employee?->currentAssignment?->organization_id;

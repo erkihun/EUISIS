@@ -77,7 +77,7 @@ final readonly class ChangeCardStatus
                 throw ValidationException::withMessages(['card' => 'The card holder is outside your organizations.']);
             }
             if (! in_array($card->status, $from, true)) {
-                throw ValidationException::withMessages(['card' => 'A '.str_replace('_', ' ', $card->status).' card cannot be changed this way ('.str_replace('_', ' ', $transition).').']);
+                throw ValidationException::withMessages(['card' => 'The card is '.str_replace('_', ' ', $card->status).', so it cannot be changed this way ('.str_replace('_', ' ', $transition).').']);
             }
             if (in_array($transition, ['activate', 'reinstate'], true)) {
                 if (! $card->is_current || $card->revoked_at !== null

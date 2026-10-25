@@ -216,8 +216,9 @@ final class ReportCatalog
             'card_coverage' => $limit(DB::table('organizations')
                 ->whereNull('organizations.deleted_at')
                 ->select(['organizations.code', 'organizations.name_en as organization',
-                    DB::raw("(select count(*) from employees join employee_assignments a on a.id = employees.current_assignment_id where a.organization_id = organizations.id and employees.status = 'active' and a.assignment_status = 'active') as active_employees"),
-                    DB::raw("(select count(*) from employees join employee_assignments a on a.id = employees.current_assignment_id where a.organization_id = organizations.id and employees.status = 'active' and a.assignment_status = 'active' and exists (select 1 from id_cards where id_cards.employee_id = employees.id and id_cards.is_current = ".$this->true()." and id_cards.status in ('pending_print','printed','issued','active'))) as with_card"),
+                    // Driven by the organization's current placements (their organization index), not by every employee.
+                    DB::raw('(select count(*) from employee_assignments a join employees on employees.current_assignment_id = a.id where a.organization_id = organizations.id and a.is_current = '.$this->true()." and a.assignment_status = 'active' and employees.status = 'active') as active_employees"),
+                    DB::raw('(select count(*) from employee_assignments a join employees on employees.current_assignment_id = a.id where a.organization_id = organizations.id and a.is_current = '.$this->true()." and a.assignment_status = 'active' and employees.status = 'active' and exists (select 1 from id_cards where id_cards.employee_id = employees.id and id_cards.is_current = ".$this->true()." and id_cards.status in ('pending_print','printed','issued','active'))) as with_card"),
                     DB::raw('null as coverage'), 'organizations.id as _key'])->orderBy('organizations.code'), 'organizations.id'),
             'credential_status' => $limit(DB::table('digital_credentials as d')
                 ->join('id_cards', 'id_cards.id', '=', 'd.id_card_id')
