@@ -90,7 +90,8 @@ class CoreSettingsTest extends TestCase
         $register('EMP-0200')->assertUnprocessable();
 
         $this->putJson('/api/v1/settings/workforce', ['values' => ['default_seat_capacity' => 2]])->assertOk();
-        $register('EMP-0200')->assertCreated();
+        // A draft holds no seat; approval takes it (ADR 0008).
+        $this->approveEmployee($register('EMP-0200')->assertCreated()->json('data.id'));
         $this->assertSame(2, Position::query()->findOrFail($this->positionA->id)->holders()->count());
     }
 

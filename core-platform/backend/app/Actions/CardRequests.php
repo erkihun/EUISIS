@@ -73,7 +73,8 @@ final readonly class CardRequests
         $live = IdCard::query()->where('employee_id', $employee->id)->whereIn('status', IdCard::LIVE)->exists();
 
         return array_filter([
-            'EMPLOYEE_INACTIVE' => $employee->status !== Employee::ACTIVE ? 'Cards are requested only for active employees.' : null,
+            'EMPLOYEE_NOT_APPROVED' => ! $employee->isApproved() ? 'The employee has not been approved yet: a card follows verification and approval.' : null,
+            'EMPLOYEE_INACTIVE' => $employee->isApproved() && $employee->status !== Employee::ACTIVE ? 'Cards are requested only for active employees.' : null,
             'NO_EFFECTIVE_ASSIGNMENT' => $assignment === null || (string) $assignment->employee_id !== (string) $employee->id || ! $assignment->isEffective()
                 ? 'The employee has no placement in force.' : null,
             'ORGANIZATION_INACTIVE' => $assignment !== null && $assignment->organization?->status !== Organization::ACTIVE

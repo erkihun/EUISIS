@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Concerns;
 
+use App\Actions\EmployeeVerification;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
@@ -107,6 +108,24 @@ trait BuildsGoldenPath
         $employee->forceFill(['current_assignment_id' => $assignment->id])->save();
 
         return $employee->fresh();
+    }
+
+    /**
+     * Takes a registered (draft) employee through the verified-employee stage with
+     * three different people, as the separation of duties requires (ADR 0008).
+     */
+    protected function approveEmployee(string $employeeId): Employee
+    {
+        $person = fn (string $role): User => User::query()->create([
+            'name' => $role, 'email' => $role.'-'.Str::random(6).'@core.test', 'password' => 'secret-password',
+            'role' => $role, 'scope_type' => User::SCOPE_CITYWIDE, 'is_active' => true,
+        ]);
+        $verification = app(EmployeeVerification::class);
+        $employee = Employee::query()->findOrFail($employeeId);
+        $verification->submit($employee, $person('core_officer'));
+        $verification->verify($employee, $person('core_officer'), array_fill_keys(array_keys($verification->checklist($employee)), true));
+
+        return $verification->approve($employee, $person('core_admin'));
     }
 
     protected function actingAsCore(string $role = 'core_viewer', ?Organization $scope = null, bool $active = true): User

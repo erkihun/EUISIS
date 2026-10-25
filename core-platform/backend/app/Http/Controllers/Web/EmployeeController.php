@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\EmployeeVerification;
 use App\Actions\RegisterEmployee;
 use App\Actions\UpdateEmployee;
 use App\Http\Controllers\Controller;
@@ -36,6 +37,9 @@ use Inertia\Response;
 class EmployeeController extends Controller
 {
     private const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation'];
+
+    /** The status filter: the verified-employee stage first (ADR 0008), then the employment statuses. */
+    private const STATUS_OPTIONS = ['draft', 'submitted', 'verified', 'active', 'suspended', 'retired', 'terminated', 'deceased', 'transferred'];
 
     /** Session key: the person the registration form last warned about as a possible duplicate. */
     private const DUPLICATE_WARNING = 'core.employee-duplicate-warning';
@@ -96,6 +100,7 @@ class EmployeeController extends Controller
                 'position_id' => $positionId ?? '', 'employment_type' => in_array($employmentType, self::EMPLOYMENT_TYPES, true) ? $employmentType : '',
             ],
             'sort' => ['column' => $sort, 'direction' => $direction],
+            'statusOptions' => self::STATUS_OPTIONS,
             'can' => ['create' => $user->can('employees.create'), 'update' => $user->can('employees.manage')],
         ]);
     }
@@ -180,7 +185,7 @@ class EmployeeController extends Controller
         return to_route('employees.show', $employee)->with('flash', ['message' => __('employees.created_successfully'), 'type' => 'success']);
     }
 
-    public function show(Request $request, Employee $employee): Response
+    public function show(Request $request, Employee $employee, EmployeeVerification $verification): Response
     {
         $this->authorizeScope($request->user(), $employee);
         $employee->load(['currentAssignment.organization', 'currentAssignment.position', 'assignments.organization', 'assignments.position', 'activeIdCard']);
@@ -192,7 +197,29 @@ class EmployeeController extends Controller
             'organizations' => $this->scope->apply(Organization::query()->orderBy('name_en'), $user, 'id')->get(['id', 'name_en']),
             'qrCodes' => ['canViewIdQr' => false, 'canManageFeedbackQr' => false, 'idCard' => null, 'feedback' => null],
             'recentActivity' => $user->can('audit.view') ? $this->activity($employee) : null,
+            'workflow' => $this->workflow($employee, $user, $verification),
         ]);
+    }
+
+    /** One step of the verified-employee stage (submit, verify, return, approve); EmployeeVerification decides. */
+    public function workflowStep(Request $request, Employee $employee, string $step, EmployeeVerification $verification): RedirectResponse
+    {
+        $checks = array_keys($verification->checklist($employee));
+        $data = $request->validate([
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'reason' => [$step === 'return' ? 'required' : 'nullable', 'string', 'min:5', 'max:1000'],
+            'checks' => ['nullable', 'array'],
+            'checks.*' => ['boolean'],
+        ]);
+        $user = $request->user();
+        match ($step) {
+            'submit' => $verification->submit($employee, $user, $data['notes'] ?? null),
+            'verify' => $verification->verify($employee, $user, array_intersect_key(array_map('boolval', $data['checks'] ?? []), array_flip($checks)), $data['notes'] ?? null),
+            'return' => $verification->returnForCorrection($employee, $user, (string) $data['reason']),
+            'approve' => $verification->approve($employee, $user, $data['notes'] ?? null),
+        };
+
+        return to_route('employees.show', $employee)->with('flash', ['message' => __('employees.workflow.done.'.$step), 'type' => 'success']);
     }
 
     public function edit(Request $request, Employee $employee): Response
@@ -234,6 +261,43 @@ class EmployeeController extends Controller
             'employment_type' => ['nullable', Rule::in(self::EMPLOYMENT_TYPES)],
             'emergency_contact_name' => ['nullable', 'string', 'max:255'],
             'emergency_contact_phone' => ['nullable', 'string', 'max:50'],
+        ];
+    }
+
+    /**
+     * The verified-employee stage for the EUISIS employee page (its optional
+     * workflow card): who did each step and when, the checklist, the notes, and
+     * only the actions this reader may take now. EmployeeVerification decides again.
+     *
+     * @return array<string, mixed>
+     */
+    private function workflow(Employee $employee, User $user, EmployeeVerification $verification): array
+    {
+        $actors = User::query()->whereIn('id', array_filter([$employee->registered_by, $employee->submitted_by, $employee->verified_by, $employee->approved_by]))->pluck('name', 'id');
+        $step = fn (string $key, mixed $by, mixed $at): array => ['key' => $key, 'by' => $by === null ? null : $actors->get($by), 'at' => $at?->toIso8601String()];
+        $own = in_array((int) $user->id, array_map('intval', array_filter([$employee->registered_by, $employee->submitted_by, $employee->verified_by])), true);
+        $checked = $employee->verification_checklist ?? [];
+
+        return [
+            'status' => $employee->status,
+            'verification_status' => $employee->verification_status,
+            'steps' => [
+                $step('registered', $employee->registered_by, $employee->created_at),
+                $step('submitted', $employee->submitted_by, $employee->submitted_at),
+                $step('verified', $employee->verified_by, $employee->verified_at),
+                $step('approved', $employee->approved_by, $employee->approved_at),
+            ],
+            'notes' => $employee->verification_notes,
+            'checklist' => array_map(fn (string $key, bool $required): array => ['key' => $key, 'required' => $required, 'checked' => (bool) ($checked[$key] ?? false)],
+                array_keys($verification->checklist($employee)), $verification->checklist($employee)),
+            'can' => [
+                'submit' => $employee->status === Employee::DRAFT && $user->can('employees.submit'),
+                'verify' => $employee->status === Employee::SUBMITTED && $user->can('employees.verify') && (int) $employee->submitted_by !== (int) $user->id,
+                'return' => in_array($employee->status, [Employee::SUBMITTED, Employee::VERIFIED], true) && $user->can('employees.return'),
+                'approve' => $employee->status === Employee::VERIFIED && $user->can('employees.approve') && ! $own,
+            ],
+            'urls' => array_combine(['submit', 'verify', 'return', 'approve'], array_map(
+                fn (string $step): string => route('employees.workflow', ['employee' => $employee->id, 'step' => $step]), ['submit', 'verify', 'return', 'approve'])),
         ];
     }
 

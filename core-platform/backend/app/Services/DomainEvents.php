@@ -36,7 +36,8 @@ final class DomainEvents
         'unit.updated' => ['unit.updated'],
         'position.created' => ['position.created'],
         'position.updated' => ['position.updated'],
-        'employee.registered' => ['employee.created', 'assignment.created'],
+        // An employee exists for other systems once approved (ADR 0008): drafts are not published.
+        'employee.approved' => ['employee.created', 'assignment.created'],
         'employee.updated' => ['employee.updated'],
         'employee.status_changed' => ['employee.status.changed'],
         'assignment.transferred' => ['assignment.changed'],

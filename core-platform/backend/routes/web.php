@@ -150,6 +150,8 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/employees/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
         Route::get('/employees/{employee}/edit', [EmployeeController::class, 'edit'])->middleware('can:employees.update')->name('employees.edit');
         Route::patch('/employees/{employee}', [EmployeeController::class, 'update'])->middleware('can:employees.update')->name('employees.update');
+        // The verified-employee stage (ADR 0008); EmployeeVerification checks the permission of each step.
+        Route::post('/employees/{employee}/workflow/{step}', [EmployeeController::class, 'workflowStep'])->whereIn('step', ['submit', 'verify', 'return', 'approve'])->name('employees.workflow');
     });
 
     // ID cards and card requests

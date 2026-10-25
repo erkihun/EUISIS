@@ -87,6 +87,8 @@ final class CoreSettingsRegistry
                 'card_number_format' => self::field('string', 'CARD-{year}-{seq:6}', 'Card Number Format', 'የካርድ ቁጥር ቅርጸት', $formatHelpEn, $formatHelpAm, false, $format),
             ],
             'workforce' => [
+                'verification_requires_photo' => self::field('boolean', false, 'Verification Requires a Photo', 'ማረጋገጫ ፎቶ ይፈልጋል', 'When on, an employee is verified only with the "photo verified" check ticked. Leave off until photos are managed in the Core.', 'ሲበራ፣ ሠራተኛ የሚረጋገጠው "ፎቶ ተረጋግጧል" ሲመረጥ ብቻ ነው። ፎቶዎች በCore እስኪተዳደሩ ድረስ ያጥፉት።', false, ['required', 'boolean']),
+                'verification_requires_documents' => self::field('boolean', false, 'Verification Requires Documents', 'ማረጋገጫ ሰነዶችን ይፈልጋል', 'When on, an employee is verified only with the "documents verified" check ticked. Leave off until documents are managed in the Core.', 'ሲበራ፣ ሠራተኛ የሚረጋገጠው "ሰነዶች ተረጋግጠዋል" ሲመረጥ ብቻ ነው። ሰነዶች በCore እስኪተዳደሩ ድረስ ያጥፉት።', false, ['required', 'boolean']),
                 'default_seat_capacity' => self::field('integer', 1, 'Seats Without an Establishment', 'ያለ ጸደቀ መደብ የመቀመጫ ብዛት', 'How many people may hold a position that has no approved establishment in force.', 'በሥራ ላይ ያለ የጸደቀ የመደብ ብዛት የሌለውን የሥራ መደብ ስንት ሰው ሊይዘው እንደሚችል።', false, ['required', 'integer', 'min:1', 'max:50']),
             ],
         ];

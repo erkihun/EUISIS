@@ -92,4 +92,12 @@ return [
             'employeeNumberDuplicatedInFile' => 'የሠራተኛ ቁጥር :number በዚህ ፋይል ውስጥ ከአንድ ጊዜ በላይ ተጠቅሷል።',
         ],
     ],
+    'workflow' => [
+        'done' => [
+            'submit' => 'ሠራተኛው ለማረጋገጫ ቀርቧል።',
+            'verify' => 'ሠራተኛው ተረጋግጧል።',
+            'return' => 'ሠራተኛው ለማስተካከያ ተመልሷል።',
+            'approve' => 'ሠራተኛው ጸድቆ አሁን ንቁ ነው።',
+        ],
+    ],
 ];

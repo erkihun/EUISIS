@@ -37,6 +37,10 @@ final readonly class UpdateEmployee
     {
         return DB::transaction(function () use ($employee, $data, $actor): Employee {
             $employee = $this->lock($employee, $actor);
+            // What was submitted or verified is what gets approved: correct it after returning it to draft.
+            if (in_array($employee->status, [Employee::SUBMITTED, Employee::VERIFIED], true)) {
+                throw ValidationException::withMessages(['employee' => 'Return the employee to draft before correcting their details.']);
+            }
             $old = $employee->only(array_keys($data));
             $employee->fill($data);
             $employee->full_name = trim(implode(' ', array_filter([$employee->first_name, $employee->middle_name, $employee->last_name])));
@@ -52,6 +56,9 @@ final readonly class UpdateEmployee
         return DB::transaction(function () use ($employee, $to, $reason, $actor): Employee {
             $employee = $this->lock($employee, $actor);
             $from = $employee->status;
+            if (! $employee->isApproved()) {
+                throw ValidationException::withMessages(['status' => 'This employee has not been approved yet: submit, verify and approve it first.']);
+            }
             if ($from === $to) {
                 throw ValidationException::withMessages(['status' => 'The employee already has this status.']);
             }

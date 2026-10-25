@@ -31,12 +31,15 @@ final class CorePermissions
         'positions.create', 'positions.update', 'positions.archive', 'positions.restore',
         'position-establishments.update', 'position-establishments.approve', 'position-establishments.archive',
         'employees.create', 'employees.update', 'employees.manage',
+        // The verified-employee stage (ADR 0008): officers submit, verify and return; approval is an administrator's.
+        'employees.submit', 'employees.verify', 'employees.return',
         'card-requests.create', 'card-requests.approve',
         'id-cards.issue', 'id-cards.activate', 'id-cards.revoke', 'cards.manage',
     ];
 
     private const ADMIN = [
         'users.viewAny', 'users.create', 'users.update', 'users.restore', 'users.manageUsersWithinScope',
+        'employees.approve',
         'audit.view',
     ];
 

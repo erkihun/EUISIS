@@ -6,6 +6,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useCan } from '@/hooks/useCan';
 import EmployeeQrCards, { type QrCodesProp } from '@/Components/employees/EmployeeQrCards';
+import EmployeeWorkflowCard, { type EmployeeWorkflow } from '@/Components/employees/EmployeeWorkflowCard';
 import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
@@ -93,10 +94,13 @@ export default function EmployeesShow({
     employee,
     qrCodes,
     recentActivity = null,
+    workflow = null,
 }: {
     employee: EmployeeDetail;
     qrCodes?: QrCodesProp;
     recentActivity?: RecentActivity | null;
+    /** The verified-employee stage, when the server runs one (the Core does). */
+    workflow?: EmployeeWorkflow | null;
 }) {
     const { t, locale } = useLocale();
     const { can } = useCan();
@@ -155,6 +159,8 @@ export default function EmployeesShow({
             <Head title={employee.full_name} />
 
             <div className="space-y-5">
+
+                {workflow && <EmployeeWorkflowCard workflow={workflow} />}
 
                 {/* ── Profile card ─────────────────────────────────────── */}
                 <div className="overflow-hidden rounded-panel border border-(--app-border) bg-(--app-surface)">

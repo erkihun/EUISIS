@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Actions\CardRequests;
+use App\Actions\EmployeeVerification;
 use App\Actions\UpdateEmployee;
 use App\Http\Controllers\Controller;
 use App\Models\CardRequest;
@@ -41,6 +42,26 @@ class EmployeeCardController extends Controller
         ]);
 
         return response()->json(['data' => $update->status($employee, $data['status'], $data['reason'], $request->user())->only(['id', 'status'])]);
+    }
+
+    /** One step of the verified-employee stage (ADR 0008): submit, verify (with the checklist), return (with a reason), approve. */
+    public function workflowStep(Request $request, Employee $employee, string $step, EmployeeVerification $verification): JsonResponse
+    {
+        $data = $request->validate([
+            'notes' => ['nullable', 'string', 'max:1000'],
+            'reason' => [$step === 'return' ? 'required' : 'nullable', 'string', 'min:5', 'max:1000'],
+            'checks' => ['nullable', 'array'],
+            'checks.*' => ['boolean'],
+        ]);
+        $user = $request->user();
+        $employee = match ($step) {
+            'submit' => $verification->submit($employee, $user, $data['notes'] ?? null),
+            'verify' => $verification->verify($employee, $user, array_map('boolval', $data['checks'] ?? []), $data['notes'] ?? null),
+            'return' => $verification->returnForCorrection($employee, $user, (string) $data['reason']),
+            'approve' => $verification->approve($employee, $user, $data['notes'] ?? null),
+        };
+
+        return response()->json(['data' => $employee->only(['id', 'employee_number', 'status', 'verification_status', 'submitted_at', 'verified_at', 'approved_at'])]);
     }
 
     /** Card requests in the reader's scope, newest first. */

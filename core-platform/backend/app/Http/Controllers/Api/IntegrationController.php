@@ -157,7 +157,8 @@ class IntegrationController extends Controller
     {
         $ids = $this->scope->organizationIds($this->client($request));
 
-        return Employee::query()->with('currentAssignment')
+        // Approved employees only: drafts and records under verification are not authoritative yet (ADR 0008).
+        return Employee::query()->with('currentAssignment')->whereNotIn('status', Employee::PRE_APPROVAL)
             ->when($ids !== null, fn (Builder $q) => $q->whereHas('currentAssignment', fn (Builder $a) => $a->whereIn('organization_id', $ids)));
     }
 

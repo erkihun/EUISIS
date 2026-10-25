@@ -89,6 +89,7 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
             Route::post('/employees', [CoreWriteController::class, 'registerEmployee']);
             Route::put('/employees/{employee}', [EmployeeCardController::class, 'updateEmployee']);
             Route::post('/employees/{employee}/status', [EmployeeCardController::class, 'changeStatus']);
+            Route::post('/employees/{employee}/{step}', [EmployeeCardController::class, 'workflowStep'])->whereIn('step', ['submit', 'verify', 'return', 'approve']);
             Route::post('/employees/{employee}/transfer', [CoreWriteController::class, 'transfer']);
             Route::post('/employees/{employee}/card-requests', [EmployeeCardController::class, 'submitRequest']);
 

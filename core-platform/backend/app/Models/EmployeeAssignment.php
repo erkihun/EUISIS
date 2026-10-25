@@ -14,6 +14,9 @@ class EmployeeAssignment extends Model
 
     public const ACTIVE = 'active';
 
+    /** The first placement of an employee not yet approved: it holds no seat until approval activates it. */
+    public const PENDING = 'pending';
+
     public const CLOSED = 'closed';
 
     protected $guarded = ['id', 'current_employee_id'];

@@ -89,4 +89,12 @@ return [
             'employeeNumberDuplicatedInFile' => 'Employee number :number appears more than once in this file.',
         ],
     ],
+    'workflow' => [
+        'done' => [
+            'submit' => 'The employee was submitted for verification.',
+            'verify' => 'The employee was verified.',
+            'return' => 'The employee was returned for correction.',
+            'approve' => 'The employee was approved and is now active.',
+        ],
+    ],
 ];

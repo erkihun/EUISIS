@@ -28,7 +28,9 @@ use Illuminate\Validation\ValidationException;
  * among every employee first (DuplicateEmployees) — the same national ID is
  * refused, a name/phone/e-mail match stops the registration until the officer
  * records that it is a different person; the employee points at the new
- * current assignment; everything is audited.
+ * current assignment; everything is audited. The employee starts as a draft
+ * with a pending placement: it becomes active only through submission,
+ * verification and approval by others (EmployeeVerification, ADR 0008).
  */
 final readonly class RegisterEmployee
 {
@@ -102,7 +104,10 @@ final readonly class RegisterEmployee
                 'phone' => $data['phone'] ?? null,
                 'email' => $data['email'] ?? null,
                 'national_id_hash' => $nationalIdHash,
-                'status' => Employee::ACTIVE,
+                // A draft until it is submitted, verified and approved (EmployeeVerification, ADR 0008).
+                'status' => Employee::DRAFT,
+                'verification_status' => Employee::DRAFT,
+                'registered_by' => $actor->getKey(),
             ]);
 
             $assignment = EmployeeAssignment::query()->create([
@@ -110,7 +115,8 @@ final readonly class RegisterEmployee
                 'organization_id' => $position->organization_id,
                 'organization_unit_id' => $position->organization_unit_id,
                 'position_id' => $position->id,
-                'assignment_status' => EmployeeAssignment::ACTIVE,
+                // Holds no seat until approval activates it; the seat is checked again then.
+                'assignment_status' => EmployeeAssignment::PENDING,
                 'is_current' => true,
                 'effective_from' => $data['effective_from'],
                 'reason' => 'registered',
