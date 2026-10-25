@@ -168,6 +168,8 @@ const auditLogs = {
         user_deactivation_blocked_self: 'Self-Deactivation Blocked',
         user_deactivation_blocked_last_super_admin: 'Last Admin Deactivation Blocked',
         user_last_super_admin_role_removal_blocked: 'Last Admin Role Removal Blocked',
+        temporary_role_granted: 'Temporary Role Granted (break-glass)',
+        temporary_role_ended: 'Temporary Role Ended',
         // Roles & Permissions
         role_created: 'Role Created',
         role_updated: 'Role Updated',

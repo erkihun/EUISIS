@@ -164,6 +164,8 @@ enum AuditEventType: string
     case UserDeactivationBlockedSelf = 'user_deactivation_blocked_self';
     case UserDeactivationBlockedLastSuperAdmin = 'user_deactivation_blocked_last_super_admin';
     case UserLastSuperAdminRoleRemovalBlocked = 'user_last_super_admin_role_removal_blocked';
+    case TemporaryRoleGranted = 'temporary_role_granted';
+    case TemporaryRoleEnded = 'temporary_role_ended';
     case RoleCreated = 'role_created';
     case RoleUpdated = 'role_updated';
     case RoleDeleted = 'role_deleted';

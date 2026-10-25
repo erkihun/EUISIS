@@ -247,6 +247,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Core Stage 6 deployment safety: migrate:fresh, migrate:refresh,
+        // migrate:reset and db:wipe refuse to run in production, whoever types them.
+        DB::prohibitDestructiveCommands($this->app->isProduction());
+
         // Formatted text in server-rendered output (PDF, email): `@richtext($value)`
         // sanitizes against config/richtext.php and prints it; legacy plain text
         // becomes escaped paragraphs. The only sanctioned way to echo stored HTML.

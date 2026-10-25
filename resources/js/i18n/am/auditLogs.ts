@@ -168,6 +168,8 @@ const auditLogs = {
         user_deactivation_blocked_self: 'ራስን ማቋረጥ ታግዷል',
         user_deactivation_blocked_last_super_admin: 'ለመጨረሻ አስተዳዳሪ ማቋረጥ ታግዷል',
         user_last_super_admin_role_removal_blocked: 'ለመጨረሻ አስተዳዳሪ ሚና ማስወገድ ታግዷል',
+        temporary_role_granted: 'ጊዜያዊ ሚና ተሰጥቷል (የአስቸኳይ መዳረሻ)',
+        temporary_role_ended: 'ጊዜያዊ ሚና አብቅቷል',
         // Roles & Permissions
         role_created: 'ሚና ተፈጥሯል',
         role_updated: 'ሚና ተዘምኗል',

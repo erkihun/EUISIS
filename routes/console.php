@@ -21,6 +21,9 @@ Schedule::command('data:prune-retention')->dailyAt('03:15')->withoutOverlapping(
 // Audit-log tamper evidence: seal each finished day shortly after midnight.
 Schedule::command('audit:seal')->dailyAt('00:20')->withoutOverlapping()->onOneServer();
 
+// Break-glass elevations end on time (access:elevate, Core Stage 6).
+Schedule::command('access:expire-elevations')->everyMinute()->withoutOverlapping()->onOneServer();
+
 // Cafeteria policy status bookkeeping (approved → active, ended → expired).
 // Scans follow policy dates, so this only keeps the labels current.
 Schedule::command('cafeteria:sync-policy-statuses')->dailyAt('00:05')->withoutOverlapping()->onOneServer();

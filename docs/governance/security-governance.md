@@ -62,7 +62,15 @@ needed role, with: the reason in the change ticket, approval by the Incident
 Manager (or after the fact within two working days when no one can be
 reached), the change visible in the audit log, removal of the role when the
 incident is closed, and review of what was done (Audit Center) in the incident
-review. Automatic expiry of such grants is part of TD-17.
+review.
+
+Since 25 October 2026 the grant is made with
+`php artisan access:elevate <email> "<role>" --minutes=<1-480> --reason="…" --approved-by=<second person's email>`:
+the approver must be another account, the reason is required, and the role is
+removed automatically when the time is up (`access:expire-elevations`, every
+minute). Both the grant and the removal are audit events
+(`temporary_role_granted`, `temporary_role_ended`); a role the account already
+held is never granted or removed this way.
 
 ## Secrets
 
@@ -115,7 +123,7 @@ G4). No penetration test has been performed yet.
 | Penetration test of Core and `/api/v1` | not performed | Information Security Lead |
 | Accounts given permissions directly without a role | still unscoped; listed by `access:scope-gaps` as DIRECT_PERMISSIONS_UNSCOPED; give them a role and a scope | Information Security Lead |
 | Partner tokens live 8 hours (global `SANCTUM_TOKEN_EXPIRATION_MINUTES`) with no per-application lifetime | decide a lifetime and rotation per application ([technical-debt.md](technical-debt.md) TD-16) | Integration/API Owner |
-| Time-limited elevation and break-glass expiry | not built ([technical-debt.md](technical-debt.md) TD-17) | Information Security Lead |
+| Time-limited elevation and break-glass expiry | built 2026-10-25 (`access:elevate`, `access:expire-elevations`); a web screen for it is not built | Information Security Lead |
 
 ## Incidents
 
