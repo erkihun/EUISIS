@@ -22,6 +22,8 @@ final class CredentialKeys
 
     private int $current;
 
+    private bool $derived = false;
+
     public function __construct()
     {
         foreach (array_filter(array_map('trim', explode(',', (string) config('core.credential_keys')))) as $entry) {
@@ -39,7 +41,20 @@ final class CredentialKeys
         if ($this->keys === []) {
             $this->keys[1] = ['key' => hash('sha256', 'core-credential|'.config('app.key'), true), 'accept_until' => null];
             $this->current = 1;
+            $this->derived = true;
         }
+    }
+
+    /** No usable key is configured, so the one in use comes from APP_KEY (refused in production by core:config-audit). */
+    public function derived(): bool
+    {
+        return $this->derived;
+    }
+
+    /** @return list<string> the raw keys, for the configuration review's independence check only — never shown or logged */
+    public function materials(): array
+    {
+        return array_values(array_map(fn (array $key): string => $key['key'], $this->keys));
     }
 
     public function current(): int

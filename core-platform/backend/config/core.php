@@ -55,6 +55,17 @@ return [
     'audit_seal_key' => (string) env('CORE_AUDIT_SEAL_KEY', ''),
 
     /*
+     * The filesystem disk every audit seal's head is copied to, off the database
+     * server (App\Services\AuditHeads, ADR 0012): "audit_heads" (a mounted log
+     * host) or an S3 bucket with object lock. core:audit-verify compares the
+     * database's seals with it. Empty = not shipped.
+     */
+    'audit_head_disk' => (string) env('CORE_AUDIT_HEAD_DISK', ''),
+
+    /* The external monitor's bearer token for GET /health/monitor (ADR 0012); empty = that endpoint answers 404. */
+    'monitor_token' => (string) env('CORE_MONITOR_TOKEN', ''),
+
+    /*
      * Backups run outside the Core (App\Services\BackupStatus): the backup tooling
      * writes a JSON status file here, which System Health reads. Unset = "unknown".
      */

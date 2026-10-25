@@ -10,6 +10,8 @@ Schedule::command('core:deliver-webhooks')->everyMinute()->withoutOverlapping()-
 
 // The audit trail's tamper evidence (ADR 0010): new rows are sealed every few minutes, the whole chain checked nightly.
 Schedule::command('core:audit-seal --all')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+// Each seal's head is also copied off the database server (ADR 0012); a failed run is caught up by the next.
+Schedule::command('core:audit-ship-heads')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 Schedule::command('core:audit-verify')->dailyAt('02:30')->withoutOverlapping()->onOneServer();
 
 // Break-glass access ends on time even if nobody looks (ADR 0010).

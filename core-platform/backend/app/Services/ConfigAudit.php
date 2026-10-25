@@ -9,6 +9,11 @@ namespace App\Services;
  * relies on, read from the running configuration (never a secret's value),
  * with pass, warning or fail and what to do. core:config-audit prints it and
  * fails in production when anything fails; System Health shows it.
+ *
+ * In production (ADR 0012) the separate keys, the off-server seal heads, the
+ * backup status, a running scheduler and private storage are required, not
+ * advised: each fails there and only warns elsewhere. Keys must also be
+ * independent of APP_KEY, of the database password and of each other.
  */
 final class ConfigAudit
 {
@@ -20,6 +25,15 @@ final class ConfigAudit
         $origins = (array) config('core.frontend_origins');
         $mail = (string) config('mail.default');
         $emailOn = (bool) app(CoreSettings::class)->get('notifications.email_enabled');
+        $production = $env === 'production';
+        $credentials = new CredentialKeys;
+        $sealKey = (string) config('core.audit_seal_key');
+        $nationalKey = (string) config('core.national_id_hash_key');
+        $headDisk = (string) config('core.audit_head_disk');
+        $backup = app(BackupStatus::class)->check();
+        $scheduler = app(SystemHealth::class)->scheduler();
+        $shared = $this->sharedKeys($credentials, $sealKey, $nationalKey);
+        $exposed = $this->exposedDisks();
         $check = fn (string $key, bool $ok, string $value, string $advice, bool $warnOnly = false): array => [
             'key' => $key, 'status' => $ok ? 'pass' : ($warnOnly ? 'warning' : 'fail'), 'value' => $value, 'advice' => $ok ? '' : $advice,
         ];
@@ -45,12 +59,75 @@ final class ConfigAudit
             $check('TRUSTED_PROXIES', (string) env('TRUSTED_PROXIES', '') !== '', (string) env('TRUSTED_PROXIES', '') === '' ? '(none)' : 'set',
                 'Behind a load balancer, set TRUSTED_PROXIES so client addresses and HTTPS are seen correctly.', true),
             $check('CORE_MFA_ENFORCE', (bool) config('core.mfa_enforce'), config('core.mfa_enforce') ? 'true' : 'false', 'Keep two-step sign-in enforced (CORE_MFA_ENFORCE=true).'),
-            $check('CORE_CREDENTIAL_KEYS', (string) config('core.credential_keys') !== '', (string) config('core.credential_keys') === '' ? 'derived from APP_KEY' : 'configured',
-                'Give card credentials their own key (CORE_CREDENTIAL_KEYS), apart from APP_KEY.', true),
-            $check('CORE_AUDIT_SEAL_KEY', (string) config('core.audit_seal_key') !== '', (string) config('core.audit_seal_key') === '' ? 'derived from APP_KEY' : 'configured',
-                'Give audit seals their own key (CORE_AUDIT_SEAL_KEY), kept apart from APP_KEY.', true),
+            $check('CORE_CREDENTIAL_KEYS', ! $credentials->derived(), $credentials->derived() ? 'derived from APP_KEY' : 'configured (version '.$credentials->current().')',
+                'Give card credentials their own random key of 32 bytes or more (CORE_CREDENTIAL_KEYS="1:base64:…"), apart from APP_KEY.', ! $production),
+            $check('CORE_AUDIT_SEAL_KEY', strlen($this->keyBytes($sealKey)) >= 32, $sealKey === '' ? 'derived from APP_KEY' : (strlen($this->keyBytes($sealKey)) >= 32 ? 'configured' : 'too short'),
+                'Give audit seals their own random key of 32 bytes or more (CORE_AUDIT_SEAL_KEY), apart from APP_KEY.', ! $production),
+            $check('NATIONAL_ID_HASH_KEY', $nationalKey !== '', $nationalKey === '' ? 'derived from APP_KEY' : 'configured',
+                'Set NATIONAL_ID_HASH_KEY to the EUISIS key, so imported national ID hashes match and do not depend on APP_KEY.', ! $production),
+            $check('KEY_INDEPENDENCE', $shared === [], $shared === [] ? 'independent' : 'shared: '.implode(', ', $shared),
+                'Every secret must be its own random value: never APP_KEY, the database password or another Core key.'),
+            $check('CORE_AUDIT_HEAD_DISK', $headDisk !== '' && config("filesystems.disks.{$headDisk}") !== null,
+                $headDisk === '' ? '(not shipped)' : $headDisk.' ('.(string) config("filesystems.disks.{$headDisk}.driver", 'unknown disk').')',
+                'Copy seal heads off the database server: set CORE_AUDIT_HEAD_DISK to a disk on another host or an object-locked bucket.', ! $production),
             $check('CORE_BACKUP_STATUS_FILE', (string) config('core.backup_status_file') !== '', (string) config('core.backup_status_file') === '' ? '(not integrated)' : 'configured',
-                'Have the backup tooling write its status file and point CORE_BACKUP_STATUS_FILE at it.', true),
+                'Have the backup tooling write its status file and point CORE_BACKUP_STATUS_FILE at it.', ! $production),
+            $check('BACKUP_STATUS', $backup['status'] === 'healthy', $backup['status'],
+                'The last backup must have succeeded within CORE_BACKUP_MAX_AGE_HOURS and its restore test passed (System Health › Backups).', ! $production || $backup['status'] === 'warning'),
+            $check('SCHEDULER', $scheduler['status'] === 'ok', $scheduler['status'],
+                'Run the scheduler every minute (schedule:run from cron or schedule:work under a supervisor); every scheduled command must have run recently.', ! $production),
+            $check('PRIVATE_STORAGE', $exposed === [], $exposed === [] ? 'private' : 'exposed: '.implode(', ', $exposed),
+                'Evidence, imports, exports and seal heads must stay on private disks outside the public web root.'),
+            $check('CORE_MONITOR_TOKEN', strlen((string) config('core.monitor_token')) >= 32, (string) config('core.monitor_token') === '' ? '(not set)' : (strlen((string) config('core.monitor_token')) >= 32 ? 'set' : 'too short'),
+                'Give the external monitor a random token of 32 characters or more (CORE_MONITOR_TOKEN) for GET /health/monitor.', true),
         ];
+    }
+
+    /** @return list<string> the pairs of secrets that hold the same value (names only) */
+    private function sharedKeys(CredentialKeys $credentials, string $sealKey, string $nationalKey): array
+    {
+        $secrets = ['APP_KEY' => (string) config('app.key'), 'DB_PASSWORD' => (string) config('database.connections.'.config('database.default').'.password'),
+            'CORE_AUDIT_SEAL_KEY' => $sealKey, 'NATIONAL_ID_HASH_KEY' => $nationalKey, 'CORE_MONITOR_TOKEN' => (string) config('core.monitor_token')];
+        if (! $credentials->derived()) {
+            foreach ($credentials->materials() as $i => $key) {
+                $secrets['CORE_CREDENTIAL_KEYS#'.($i + 1)] = $key;
+            }
+        }
+        $values = [];
+        foreach (array_filter($secrets, fn (string $value): bool => $value !== '') as $name => $value) {
+            $values[$name] = array_unique([$value, $this->keyBytes($value)]);
+        }
+        $shared = [];
+        $names = array_keys($values);
+        foreach ($names as $i => $a) {
+            foreach (array_slice($names, $i + 1) as $b) {
+                if (array_intersect($values[$a], $values[$b]) !== []) {
+                    $shared[] = "{$a}={$b}";
+                }
+            }
+        }
+
+        return $shared;
+    }
+
+    /** @return list<string> the private disks that are public or inside the web root */
+    private function exposedDisks(): array
+    {
+        $public = str_replace('\\', '/', public_path());
+        $exposed = [];
+        foreach (['local', 'evidence', 'imports', 'exports', 'audit_heads'] as $name) {
+            $disk = (array) config("filesystems.disks.{$name}", []);
+            $root = str_replace('\\', '/', (string) ($disk['root'] ?? ''));
+            if (($disk['visibility'] ?? 'private') === 'public' || (($disk['driver'] ?? '') === 'local' && $root !== '' && str_starts_with($root, $public))) {
+                $exposed[] = $name;
+            }
+        }
+
+        return $exposed;
+    }
+
+    private function keyBytes(string $key): string
+    {
+        return str_starts_with($key, 'base64:') ? (string) base64_decode(substr($key, 7), true) : $key;
     }
 }

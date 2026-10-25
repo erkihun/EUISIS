@@ -59,6 +59,17 @@ return [
             'report' => true,
         ],
 
+        // Audit seal heads off the database server (ADR 0012): the root is a mount of another host,
+        // or set CORE_AUDIT_HEAD_DISK=s3 to an object-locked bucket instead.
+        'audit_heads' => [
+            'driver' => 'local',
+            'root' => env('CORE_AUDIT_HEAD_ROOT', storage_path('app/private/audit-heads')),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
         'imports' => [
             'driver' => 'local',
             'root' => env('CORE_IMPORTS_ROOT', storage_path('app/private/imports')),

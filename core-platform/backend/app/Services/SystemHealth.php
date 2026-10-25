@@ -26,7 +26,7 @@ use Throwable;
 final class SystemHealth
 {
     /** The scheduled commands whose last run is recorded (core.scheduler.<name>), with the age that is still fine. */
-    public const SCHEDULED = ['core:deliver-webhooks' => 10, 'core:expire-cards' => 60 * 26, 'core:audit-seal' => 15, 'core:audit-verify' => 60 * 26,
+    public const SCHEDULED = ['core:deliver-webhooks' => 10, 'core:expire-cards' => 60 * 26, 'core:audit-seal' => 15, 'core:audit-ship-heads' => 15, 'core:audit-verify' => 60 * 26,
         'core:break-glass-expire' => 10, 'core:notify-expiring' => 15, 'core:data-quality-scan' => 130, 'core:prune-integration-data' => 60 * 26, 'core:prune-exports' => 60 * 26];
 
     public static function recordRun(string $command): void
@@ -84,17 +84,22 @@ final class SystemHealth
     {
         $status = app(AuditChain::class)->status();
         $last = $status['last_verification'];
+        $offServer = app(AuditHeads::class)->configured();
+        $shipFailedAt = Cache::get('core.audit_heads.failed_at');
 
         return [
             'status' => match (true) {
                 $last !== null && $last->finished_at !== null && ! $last->ok => 'error',
+                $shipFailedAt !== null => 'error',
+                ! $offServer && app()->isProduction() => 'warning',
                 $last === null || $last->finished_at === null => 'unknown',
                 $status['unsealed'] > app(CoreSettings::class)->int('audit.unsealed_warning_rows')
                     || now()->diffInHours($last->finished_at, true) > app(CoreSettings::class)->int('audit.verify_max_age_hours') => 'warning',
                 default => 'ok',
             },
             'details' => ['sealed_through' => $status['sealed_through'], 'last_sealed_at' => $status['last_sealed_at'], 'unsealed' => $status['unsealed'],
-                'last_verified_at' => $last?->finished_at, 'last_verification_ok' => $last === null ? null : (bool) $last->ok],
+                'last_verified_at' => $last?->finished_at, 'last_verification_ok' => $last === null ? null : (bool) $last->ok,
+                'heads_off_server' => $offServer, 'heads_shipped_through' => Cache::get('core.audit_heads.shipped_through'), 'heads_ship_failed_at' => $shipFailedAt],
         ];
     }
 
@@ -136,7 +141,7 @@ final class SystemHealth
     }
 
     /** @return array{status: string, details: array<string, mixed>} */
-    private function scheduler(): array
+    public function scheduler(): array
     {
         $details = [];
         $status = 'ok';

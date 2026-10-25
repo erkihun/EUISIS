@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Services\AuditChain;
+use App\Services\AuditHeads;
 use App\Services\AuditWriter;
 use App\Services\SystemHealth;
 use Illuminate\Console\Command;
@@ -21,11 +22,17 @@ class VerifyAuditTrail extends Command
 
     protected $description = 'Verify every sealed audit row, the chain and the seals';
 
-    public function handle(AuditChain $chain): int
+    public function handle(AuditChain $chain, AuditHeads $heads): int
     {
         SystemHealth::recordRun('core:audit-verify');
         $id = DB::table('audit_verifications')->insertGetId(['started_at' => now(), 'run_by' => $this->option('user') ?: null]);
         $result = $chain->verify();
+        // The chain matches itself; its seals must also match the copies kept off the server (ADR 0012).
+        if ($result['ok']) {
+            $copies = $heads->verify();
+            $result = $copies['ok'] ? [...$result, 'message' => $result['message'].' '.$copies['message']]
+                : [...$copies, 'checked' => $result['checked']];
+        }
         DB::table('audit_verifications')->where('id', $id)->update([
             'finished_at' => now(), 'ok' => $result['ok'], 'checked_rows' => $result['checked'],
             'first_bad_sequence' => $result['first_bad_sequence'], 'message' => mb_substr($result['message'], 0, 1000),
