@@ -102,14 +102,18 @@ class HierarchyController extends Controller
     private function governance(HierarchyVersion $version, User $user): array
     {
         $names = User::query()->whereIn('id', array_filter([$version->created_by, $version->reviewed_by, $version->approved_by]))->pluck('name', 'id');
-        $publishedAt = CoreAuditLog::query()->where('action', 'hierarchy.publish')->where('subject_id', (string) $version->id)->latest('id')->value('created_at');
+        $inForce = in_array($version->status, [HierarchyVersion::PUBLISHED, HierarchyVersion::ARCHIVED], true);
+        // A version published before the governed steps (an import or a snapshot) has no publish row: its own dates stand in.
+        $publishedAt = CoreAuditLog::query()->where('action', 'hierarchy.publish')->where('subject_id', (string) $version->id)->latest('id')->value('created_at')
+            ?? ($inForce ? ($version->approval_date ?? $version->effective_from ?? $version->created_at) : null);
         $approvalRefusal = $version->status === 'review' ? $this->versions->approvalRefusal($version, $user) : null;
         $publicationRefusal = $version->status === 'approved' ? $this->versions->publicationRefusal($version) : null;
         $step = fn (string $key, mixed $by, mixed $at): array => ['key' => $key, 'by' => $by === null ? null : $names->get($by), 'at' => $at === null ? null : Carbon::parse($at)->format('Y-m-d H:i')];
 
         return [
             'status' => $version->status,
-            'impact' => $this->versions->impact($version),
+            // What a pending version would change; a version in force or archived has nothing left to weigh.
+            'impact' => $inForce ? null : $this->versions->impact($version),
             'steps' => [
                 $step('created', $version->created_by, $version->created_at),
                 $step('submitted', $version->reviewed_by, $version->reviewed_at),

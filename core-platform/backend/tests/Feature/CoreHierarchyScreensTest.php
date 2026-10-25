@@ -112,7 +112,8 @@ class CoreHierarchyScreensTest extends TestCase
         $this->patch("/hierarchy-versions/{$current->id}/edges/{$edge->id}", $relation)->assertSessionHasErrors('status');
         $this->delete("/hierarchy-versions/{$current->id}/edges/{$edge->id}")->assertSessionHasErrors('status');
         $this->get("/hierarchy-versions/{$current->id}")->assertInertia(fn ($page) => $page->where('can.edit', false)->where('can.manageTree', false)
-            ->where('governance.can.review', false)->where('governance.can.reject', false));
+            ->where('governance.can.review', false)->where('governance.can.reject', false)->where('governance.impact', null)
+            ->where('governance.steps.3.at', fn ($at) => $at !== null));
         $this->assertSame($this->city->id, $edge->fresh()->parent_organization_id);
 
         $draft = $this->draft();

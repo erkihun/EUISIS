@@ -15,7 +15,8 @@ type GovernanceStep = 'review' | 'approve' | 'reject' | 'publish';
  */
 export type HierarchyGovernance = {
     status: string;
-    impact: Record<'organizations' | 'units' | 'positions' | 'employees' | 'assignments' | 'users', number>;
+    /** What a pending version would change; null once it is in force or archived. */
+    impact: Record<'organizations' | 'units' | 'positions' | 'employees' | 'assignments' | 'users', number> | null;
     steps: Array<{ key: 'created' | 'submitted' | 'approved' | 'published'; by: string | null; at: string | null }>;
     approval_blocked: boolean;
     publication_blocked: 'effective_date' | 'structure_changed' | null;
@@ -72,17 +73,19 @@ export default function HierarchyGovernancePanel({ governance }: { governance: H
                 ))}
             </ol>
 
-            <div className="mt-4">
-                <p className="text-xs font-medium text-(--app-muted-foreground)">{t('hierarchyVersions.governance.impactTitle')}</p>
-                <dl className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                    {IMPACT_KEYS.map((key) => (
-                        <div key={key} className="rounded-card bg-(--app-surface-muted) px-3 py-2">
-                            <dt className="text-xs text-(--app-muted-foreground)">{t(`hierarchyVersions.governance.impact.${key}`)}</dt>
-                            <dd className="mt-0.5 text-lg font-semibold text-(--app-foreground)">{governance.impact[key]}</dd>
-                        </div>
-                    ))}
-                </dl>
-            </div>
+            {governance.impact && (
+                <div className="mt-4">
+                    <p className="text-xs font-medium text-(--app-muted-foreground)">{t('hierarchyVersions.governance.impactTitle')}</p>
+                    <dl className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                        {IMPACT_KEYS.map((key) => (
+                            <div key={key} className="rounded-card bg-(--app-surface-muted) px-3 py-2">
+                                <dt className="text-xs text-(--app-muted-foreground)">{t(`hierarchyVersions.governance.impact.${key}`)}</dt>
+                                <dd className="mt-0.5 text-lg font-semibold text-(--app-foreground)">{governance.impact?.[key]}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </div>
+            )}
 
             {governance.approval_blocked && (
                 <p className="mt-4 rounded-card bg-(--app-surface-muted) px-3 py-2 text-sm text-(--app-foreground)">{t('hierarchyVersions.governance.approvalBlocked')}</p>
