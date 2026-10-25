@@ -40,23 +40,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .finally(() => setReady(true));
     }, []);
 
-    const value = useMemo<Auth>(
-        () => ({
-            user,
-            ready,
-            login: async (email, password) => {
-                const response = await api<{ token: string; user: CoreUser }>('/auth/login', { method: 'POST', body: { email, password } });
-                setToken(response.token);
-                setUser(response.user);
-            },
-            logout: async () => {
-                await api('/auth/logout', { method: 'POST' }).catch(() => undefined);
-                setToken(null);
-                setUser(null);
-            },
-        }),
-        [user, ready],
-    );
+    const value = useMemo<Auth>(() => ({
+        user,
+        ready,
+        login: async (email, password) => {
+            const response = await api<{ token: string; user: CoreUser }>('/auth/login', { method: 'POST', body: { email, password } });
+            setToken(response.token);
+            setUser(response.user);
+        },
+        logout: async () => {
+            await api('/auth/logout', { method: 'POST' }).catch(() => undefined);
+            setToken(null);
+            setUser(null);
+        },
+    }), [user, ready]);
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

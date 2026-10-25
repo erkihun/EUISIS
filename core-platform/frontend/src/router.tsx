@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type AnchorHTMLAttributes } from 'react';
 
 // Hash routes keep the frontend a plain static bundle: any web server can host it.
 
@@ -6,6 +6,7 @@ function current(): string {
     return window.location.hash.slice(1) || '/';
 }
 
+/** The current path, without its query. */
 export function useRoute(): string {
     const [route, setRoute] = useState(current);
 
@@ -15,7 +16,7 @@ export function useRoute(): string {
         return () => window.removeEventListener('hashchange', onChange);
     }, []);
 
-    return route;
+    return route.split('?')[0];
 }
 
 export function navigate(path: string): void {
@@ -25,7 +26,7 @@ export function navigate(path: string): void {
 /** "/employees/:id" against "/employees/abc" gives { id: "abc" }; null when it does not match. */
 export function match(pattern: string, route: string): Record<string, string> | null {
     const want = pattern.split('/');
-    const have = route.split('?')[0].split('/');
+    const have = route.split('/');
     if (want.length !== have.length) return null;
 
     const params: Record<string, string> = {};
@@ -35,4 +36,9 @@ export function match(pattern: string, route: string): Record<string, string> | 
     }
 
     return params;
+}
+
+/** The app's Link: a hash href, so it behaves like any link (new tab, keyboard). */
+export function Link({ href, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string }) {
+    return <a href={`#${href}`} {...props} />;
 }

@@ -14,10 +14,12 @@ export class ApiError extends Error {
     }
 }
 
+/** A Laravel length-aware page. */
 export type Page<T> = {
     data: T[];
     current_page: number;
     last_page: number;
+    per_page: number;
     total: number;
     from: number | null;
     to: number | null;
@@ -48,7 +50,7 @@ export function setUnauthorizedHandler(handler: () => void): void {
     onUnauthorized = handler;
 }
 
-export async function api<T>(path: string, options: { method?: string; body?: unknown; query?: Query } = {}): Promise<T> {
+export async function api<T>(path: string, options: { method?: string; body?: unknown; query?: Query; signal?: AbortSignal } = {}): Promise<T> {
     const url = new URL(BASE + path, window.location.origin);
     for (const [key, value] of Object.entries(options.query ?? {})) {
         if (value !== undefined && value !== '' && value !== false) url.searchParams.set(key, String(value));
@@ -63,6 +65,7 @@ export async function api<T>(path: string, options: { method?: string; body?: un
         method: options.method ?? 'GET',
         headers,
         body: options.body === undefined ? undefined : JSON.stringify(options.body),
+        signal: options.signal,
     });
     const data = response.status === 204 ? null : await response.json().catch(() => null);
 
@@ -74,9 +77,17 @@ export async function api<T>(path: string, options: { method?: string; body?: un
     return data as T;
 }
 
+/** The first field message, else the error message. */
 export function firstError(error: unknown): string | null {
     if (!(error instanceof ApiError)) return error instanceof Error ? error.message : null;
     const fields = Object.values(error.errors);
 
     return fields.length > 0 ? fields[0][0] : error.message;
+}
+
+/** Field → first message, for FormField errors. */
+export function fieldErrors(error: unknown): Record<string, string> {
+    if (!(error instanceof ApiError)) return {};
+
+    return Object.fromEntries(Object.entries(error.errors).map(([field, messages]) => [field, messages[0]]));
 }

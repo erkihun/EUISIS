@@ -7,7 +7,7 @@ as its own system: a separate backend, frontend and database. Decision record:
 ```
 core-platform/
 ├── backend/    Laravel 13 API, /api/v1, token sign-in, database euisis_core
-└── frontend/   Vite + React single-page app (English / Amharic), talks only to the API
+└── frontend/   Vite + React single-page app in the EUISIS layout (English / Amharic), talks only to the API
 ```
 
 ```
@@ -66,6 +66,26 @@ cd core-platform/frontend && npm run typecheck && npm run build
 ```
 
 CI runs the same in `.github/workflows/core-platform.yml`.
+
+## The frontend is the EUISIS layout
+
+The Core frontend looks and behaves like the EUISIS Core workspace: the same
+sign-in stage, sidebar (sections, groups, menu filter, icon rail), header (page
+search with Ctrl K, theme, EN/አማ, account menu), heading band with
+breadcrumbs, tonal cards, tables, filters, dialogs and toasts. It is a copy,
+not a link, so the Core builds and deploys on its own:
+
+| Core frontend | Copied from EUISIS |
+|---|---|
+| `src/ui/` | `packages/euisis-ui/src/` (the shared UI kit and `tokens.css`) |
+| `src/index.css`, `src/fonts.css` | `resources/css/app.css`, `resources/css/fonts.css` (paths adjusted) |
+| `src/components/NavIcons.tsx`, `UserAvatar.tsx`, `auth/LoginStage.tsx`, `src/lib/theme.ts` | the files of the same name, unchanged |
+| `src/components/AppSidebar.tsx`, `AppHeader.tsx`, `Breadcrumbs.tsx`, `PageHeader.tsx`, `AppCommandPalette.tsx`, `src/layouts/AuthenticatedLayout.tsx`, `src/pages/Login.tsx`, `src/pages/Dashboard.tsx` | the EUISIS components, with Inertia routing and System Settings replaced by the Core's hash routes and the shipped defaults |
+| `src/i18n/en.ts`, `am.ts` (`nav`, `common`, `auth`, `core`) | `resources/js/i18n/{en,am}/` |
+| `src/navigation.ts` | `App\Services\Core\CoreNavigation`, limited to the Core pages |
+
+When the EUISIS design changes, copy the changed files again; the unchanged
+ones can be copied over as they are.
 
 ## API
 

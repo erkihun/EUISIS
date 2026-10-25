@@ -1,58 +1,74 @@
+import { Suspense, lazy, useEffect } from 'react';
 import { useAuth } from './auth';
-import { Layout } from './components/Layout';
-import { useI18n } from './i18n';
-import { Cards } from './pages/Cards';
-import { Dashboard } from './pages/Dashboard';
-import { EmployeeDetailPage, RegisterEmployee } from './pages/Employee';
-import { Assignments, Audit, Employees, Organizations, Positions, Units } from './pages/Lists';
-import { Login } from './pages/Login';
-import { VerifyCard } from './pages/VerifyCard';
+import { useLocale } from './i18n';
 import { match, useRoute } from './router';
+
+// Each screen is its own chunk, as Inertia pages are in EUISIS.
+const LoginPage = lazy(() => import('./pages/Login'));
+const DashboardPage = lazy(() => import('./pages/Dashboard'));
+const CardsPage = lazy(() => import('./pages/Cards'));
+const VerifyCardPage = lazy(() => import('./pages/VerifyCard'));
+const EmployeeDetailPage = lazy(() => import('./pages/Employee').then((m) => ({ default: m.EmployeeDetailPage })));
+const RegisterEmployeePage = lazy(() => import('./pages/Employee').then((m) => ({ default: m.RegisterEmployeePage })));
+const OrganizationsPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.OrganizationsPage })));
+const UnitsPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.UnitsPage })));
+const PositionsPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.PositionsPage })));
+const EmployeesPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.EmployeesPage })));
+const AssignmentsPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.AssignmentsPage })));
+const AuditPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.AuditPage })));
 
 function Screen({ route }: { route: string }) {
     const { user } = useAuth();
-    const path = route.split('?')[0];
 
-    switch (path) {
+    switch (route) {
         case '/':
-            return <Dashboard />;
+            return <DashboardPage />;
         case '/organizations':
-            return <Organizations />;
-        case '/units':
-            return <Units />;
+            return <OrganizationsPage />;
+        case '/organization-units':
+            return <UnitsPage />;
         case '/positions':
-            return <Positions />;
+            return <PositionsPage />;
         case '/employees':
-            return <Employees />;
+            return <EmployeesPage />;
         case '/employees/new':
-            return user?.can_change_master_data ? <RegisterEmployee /> : <Employees />;
+            return user?.can_change_master_data ? <RegisterEmployeePage /> : <EmployeesPage />;
         case '/assignments':
-            return <Assignments />;
-        case '/cards':
-            return <Cards />;
+            return <AssignmentsPage />;
+        case '/id-cards':
+            return <CardsPage />;
         case '/verify':
-            return <VerifyCard />;
+            return <VerifyCardPage />;
         case '/audit':
-            return <Audit />;
+            return <AuditPage />;
     }
 
-    const employee = match('/employees/:id', path);
+    const employee = match('/employees/:id', route);
     if (employee) return <EmployeeDetailPage key={employee.id} id={employee.id} />;
 
-    return <Dashboard />;
+    return <DashboardPage />;
+}
+
+function Loading() {
+    const { t } = useLocale();
+    return <div className="flex min-h-screen items-center justify-center bg-(--app-background) text-sm text-(--app-muted-foreground)">{t('common.loading')}</div>;
 }
 
 export function App() {
     const { user, ready } = useAuth();
-    const { t } = useI18n();
+    const { t } = useLocale();
     const route = useRoute();
 
-    if (!ready) return <div className="flex min-h-screen items-center justify-center text-muted">{t('common.loading')}</div>;
-    if (!user) return <Login />;
+    // The tab title, as EUISIS's <Head> sets it.
+    useEffect(() => {
+        document.title = t('core.title');
+    }, [t]);
+
+    if (!ready) return <Loading />;
 
     return (
-        <Layout route={route}>
-            <Screen route={route} />
-        </Layout>
+        <Suspense fallback={<Loading />}>
+            {user ? <Screen route={route} /> : <LoginPage />}
+        </Suspense>
     );
 }

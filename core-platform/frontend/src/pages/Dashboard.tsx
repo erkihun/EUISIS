@@ -1,45 +1,119 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type JSX, type SVGProps } from 'react';
 import { api } from '../api';
-import { Notice } from '../components/ui';
-import { useI18n } from '../i18n';
-import type { MessageKey } from '../lang/en';
+import AppMetricCard from '../components/AppMetricCard';
+import { Briefcase, CityIcon, ClipboardClockIcon, IdCardIcon, UsersTwoIcon } from '../components/NavIcons';
+import PageHeader from '../components/PageHeader';
+import { useLocale } from '../i18n';
+import AuthenticatedLayout from '../layouts/AuthenticatedLayout';
+import { auditLabel } from '../lib/auditLabel';
+import { formatDateTime, formatNumber } from '../lib/format';
+import { Link } from '../router';
+import { Alert, Card, buttonClassName } from '../ui';
 
-type Metrics = Record<'organizations' | 'organizations_active' | 'units' | 'positions_active' | 'positions_held' | 'employees_placed' | 'cards_active' | 'cards_suspended', number>;
+type MetricKey = 'organizations_active' | 'units_active' | 'positions_active' | 'positions_held' | 'positions_without_holder'
+    | 'employees_active' | 'assignments_current' | 'cards_active' | 'cards_suspended' | 'cards_revoked';
 
-const tiles: { key: keyof Metrics; href: string }[] = [
-    { key: 'organizations', href: '#/organizations' },
-    { key: 'organizations_active', href: '#/organizations' },
-    { key: 'units', href: '#/units' },
-    { key: 'positions_active', href: '#/positions' },
-    { key: 'positions_held', href: '#/positions' },
-    { key: 'employees_placed', href: '#/employees' },
-    { key: 'cards_active', href: '#/cards' },
-    { key: 'cards_suspended', href: '#/cards' },
+type Dashboard = {
+    citywide: boolean;
+    organization_count: number;
+    metrics: Record<MetricKey, number>;
+    recent: { action: string; created_at: string; actor_name: string | null }[];
+};
+
+/** The EUISIS Core dashboard's domains, limited to the figures this platform keeps. */
+const DOMAINS: { key: string; href: string; icon: (p: SVGProps<SVGSVGElement>) => JSX.Element; metrics: MetricKey[] }[] = [
+    { key: 'organization', href: '/organizations', icon: CityIcon, metrics: ['organizations_active', 'units_active'] },
+    { key: 'positions', href: '/positions', icon: Briefcase, metrics: ['positions_active', 'positions_held', 'positions_without_holder'] },
+    { key: 'employees', href: '/employees', icon: UsersTwoIcon, metrics: ['employees_active', 'assignments_current'] },
+    { key: 'credentials', href: '/id-cards', icon: IdCardIcon, metrics: ['cards_active', 'cards_suspended', 'cards_revoked'] },
 ];
 
-export function Dashboard() {
-    const { t } = useI18n();
-    const [metrics, setMetrics] = useState<Metrics | null>(null);
+/** Figures that ask for someone's attention when they are above zero. */
+const ATTENTION = new Set<MetricKey>(['cards_suspended']);
+
+/** EUISIS Pages/Core/Dashboard.tsx: master-record counts in the viewer's scope, by domain, and the latest changes. */
+export default function DashboardPage() {
+    const { t } = useLocale();
+    const [data, setData] = useState<Dashboard | null>(null);
     const [error, setError] = useState(false);
 
     useEffect(() => {
-        api<{ metrics: Metrics }>('/v1/dashboard')
-            .then((response) => setMetrics(response.metrics))
-            .catch(() => setError(true));
+        api<Dashboard>('/v1/dashboard').then(setData).catch(() => setError(true));
     }, []);
 
+    const actionLabel = (action: string) => auditLabel(t, action);
+
     return (
-        <div className="space-y-4">
-            <h1 className="text-xl font-semibold text-ink">{t('dash.title')}</h1>
-            {error && <Notice kind="error">{t('common.error')}</Notice>}
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                {tiles.map((tile) => (
-                    <a key={tile.key} href={tile.href} className="rounded-lg border border-line bg-surface p-4 hover:border-brand/50">
-                        <div className="text-xs text-muted">{t(`dash.${tile.key}` as MessageKey)}</div>
-                        <div className="mt-1 text-2xl font-semibold text-ink tabular-nums">{metrics ? metrics[tile.key].toLocaleString() : '—'}</div>
-                    </a>
-                ))}
+        <AuthenticatedLayout header={<PageHeader title={t('core.title')} description={t('core.description')} />}>
+            <div className="space-y-6">
+                {error && <Alert tone="danger">{t('platform.error')}</Alert>}
+                {data && (
+                    <p className="text-sm text-(--app-muted-foreground)">
+                        {data.citywide ? t('core.scopeCitywide') : t('core.scopeOrganizations', { count: formatNumber(data.organization_count) })}
+                    </p>
+                )}
+
+                {DOMAINS.map((domain) => {
+                    const Icon = domain.icon;
+                    return (
+                        <section key={domain.key} aria-labelledby={`core-domain-${domain.key}`} className="space-y-3">
+                            <div className="flex flex-wrap items-end justify-between gap-2">
+                                <div className="flex min-w-0 items-start gap-3">
+                                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-(--app-surface) text-primary ring-1 ring-(--app-border)">
+                                        <Icon className="h-5 w-5" aria-hidden="true" />
+                                    </span>
+                                    <div className="min-w-0">
+                                        <h2 id={`core-domain-${domain.key}`} className="text-base font-semibold text-(--app-foreground)">{t(`core.domains.${domain.key}.title`)}</h2>
+                                        <p className="text-sm text-(--app-muted-foreground)">{t(`core.domains.${domain.key}.description`)}</p>
+                                    </div>
+                                </div>
+                                <Link href={domain.href} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
+                                    {t(`core.domains.${domain.key}.open`)}
+                                </Link>
+                            </div>
+                            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                                {domain.metrics.map((key) => {
+                                    const value = data?.metrics[key] ?? 0;
+                                    return (
+                                        <AppMetricCard
+                                            key={key}
+                                            loading={!data && !error}
+                                            label={t(`core.metrics.${key}.label`)}
+                                            value={formatNumber(value)}
+                                            detail={t(`core.metrics.${key}.hint`)}
+                                            variant={ATTENTION.has(key) ? (value > 0 ? 'warning' : 'neutral') : 'primary'}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    );
+                })}
+
+                {data && data.recent.length > 0 && (
+                    <section aria-labelledby="core-recent" className="space-y-3">
+                        <div className="flex items-start gap-3">
+                            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-(--app-surface) text-primary ring-1 ring-(--app-border)">
+                                <ClipboardClockIcon className="h-5 w-5" aria-hidden="true" />
+                            </span>
+                            <div className="min-w-0">
+                                <h2 id="core-recent" className="text-base font-semibold text-(--app-foreground)">{t('core.recent.title')}</h2>
+                                <p className="text-sm text-(--app-muted-foreground)">{t('core.recent.description')}</p>
+                            </div>
+                        </div>
+                        <Card className="p-0">
+                            <ul className="divide-y divide-(--app-border)">
+                                {data.recent.map((entry, index) => (
+                                    <li key={index} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-sm">
+                                        <span className="font-medium text-(--app-foreground)">{actionLabel(entry.action)}</span>
+                                        <span className="text-(--app-muted-foreground)">{entry.actor_name ?? '—'} · {formatDateTime(entry.created_at)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </Card>
+                    </section>
+                )}
             </div>
-        </div>
+        </AuthenticatedLayout>
     );
 }

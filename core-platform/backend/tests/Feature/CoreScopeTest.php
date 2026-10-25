@@ -95,8 +95,13 @@ class CoreScopeTest extends TestCase
         $this->actingAsCore('core_viewer', $this->bureauA);
 
         $this->getJson('/api/v1/dashboard')->assertOk()
-            ->assertJsonPath('metrics.organizations', 1)
-            ->assertJsonPath('metrics.employees_placed', 1)
-            ->assertJsonPath('metrics.cards_active', 1);
+            ->assertJsonPath('citywide', false)
+            ->assertJsonPath('organization_count', 1)
+            ->assertJsonPath('metrics.organizations_active', 1)
+            ->assertJsonPath('metrics.positions_held', 1)
+            ->assertJsonPath('metrics.positions_without_holder', 0)
+            ->assertJsonPath('metrics.assignments_current', 1)
+            ->assertJsonPath('metrics.cards_active', 1)
+            ->assertJsonPath('recent', []);
     }
 }

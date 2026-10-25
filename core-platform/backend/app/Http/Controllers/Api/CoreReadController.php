@@ -28,24 +28,44 @@ class CoreReadController extends Controller
 
     public function __construct(private readonly OrganizationScope $scope) {}
 
+    /**
+     * The Core dashboard: the same metric keys as the EUISIS Core dashboard,
+     * counted inside the reader's scope, and the latest audited changes.
+     */
     public function dashboard(Request $request): JsonResponse
     {
         $user = $request->user();
         $organizations = $this->scope->apply(Organization::query(), $user, 'id');
-        $positions = $this->scope->apply(Position::query(), $user);
+        $positions = $this->scope->apply(Position::query()->where('is_active', true), $user);
         $assignments = $this->scope->apply(EmployeeAssignment::query()->where('is_current', true)->where('assignment_status', EmployeeAssignment::ACTIVE), $user);
         $placed = (clone $assignments)->select('employee_id');
+        $cards = fn (string $status): int => IdCard::query()->where('status', $status)->whereIn('employee_id', $placed)->count();
+        $ids = $this->scope->organizationIds($user);
 
-        return response()->json(['metrics' => [
-            'organizations' => (clone $organizations)->count(),
-            'organizations_active' => (clone $organizations)->where('status', Organization::ACTIVE)->count(),
-            'units' => $this->scope->apply(OrganizationUnit::query(), $user)->count(),
-            'positions_active' => (clone $positions)->where('is_active', true)->count(),
-            'positions_held' => (clone $positions)->whereHas('holders')->count(),
-            'employees_placed' => (clone $assignments)->count(),
-            'cards_active' => IdCard::query()->where('status', IdCard::ACTIVE)->whereIn('employee_id', $placed)->count(),
-            'cards_suspended' => IdCard::query()->where('status', IdCard::SUSPENDED)->whereIn('employee_id', $placed)->count(),
-        ]]);
+        $recent = CoreAuditLog::query()
+            ->leftJoin('users', 'users.id', '=', 'core_audit_logs.actor_user_id')
+            ->when($ids !== null, fn ($q) => $q->whereIn('core_audit_logs.organization_id', $ids))
+            ->orderByDesc('core_audit_logs.created_at')
+            ->limit(8)
+            ->get(['core_audit_logs.action', 'core_audit_logs.created_at', 'users.name as actor_name']);
+
+        return response()->json([
+            'citywide' => $ids === null,
+            'organization_count' => (clone $organizations)->count(),
+            'metrics' => [
+                'organizations_active' => (clone $organizations)->where('status', Organization::ACTIVE)->count(),
+                'units_active' => $this->scope->apply(OrganizationUnit::query()->where('status', 'active'), $user)->count(),
+                'positions_active' => (clone $positions)->count(),
+                'positions_held' => (clone $positions)->whereHas('holders')->count(),
+                'positions_without_holder' => (clone $positions)->whereDoesntHave('holders')->count(),
+                'employees_active' => Employee::query()->where('status', Employee::ACTIVE)->whereIn('id', $placed)->count(),
+                'assignments_current' => (clone $assignments)->count(),
+                'cards_active' => $cards(IdCard::ACTIVE),
+                'cards_suspended' => $cards(IdCard::SUSPENDED),
+                'cards_revoked' => $cards(IdCard::REVOKED),
+            ],
+            'recent' => $recent,
+        ]);
     }
 
     public function organizations(Request $request): JsonResponse
