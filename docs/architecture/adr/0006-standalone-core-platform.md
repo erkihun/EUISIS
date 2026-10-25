@@ -81,12 +81,17 @@ Inertia, under the EUISIS route names. Decisions taken under the delegation:
    these fields.
 9. **Public card check.** The holder's code goes by e-mail only; the Core has
    no SMS gateway.
-10. **Hierarchy versions are read only in the Core.** Versions are drafted
-    and published in EUISIS; the Core shows them and places organizations in
-    the published one.
+10. **Hierarchy versions are read only on the screens.** The draft, review,
+    approval and publication workflow (ADR 0007) runs through the Core API;
+    the EUISIS version pages show the versions and their trees.
 11. **Core-only settings.** Numbering formats and the workforce seat default
     appear on the General tab of the EUISIS settings page.
-12. **Exit Core** opens `EUISIS_APP_URL` when it is set, otherwise it signs
+12. **Rules from the Golden Path audit (ADR 0007) hold on the screens too.**
+    A one-time password is replaced on the EUISIS forced-password page before
+    any other screen; settings and deleting organizations are for a city-wide
+    administrator; a possible duplicate employee is refused on the EUISIS
+    form, which has no confirmation step (the API takes the confirmation).
+13. **Exit Core** opens `EUISIS_APP_URL` when it is set, otherwise it signs
     the person out.
 
 ## Consequences
