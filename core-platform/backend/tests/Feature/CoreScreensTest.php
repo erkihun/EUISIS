@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\CardRequest;
+use App\Models\Employee;
 use App\Models\HierarchyVersion;
 use App\Models\IdCard;
 use App\Models\Organization;
@@ -147,6 +148,21 @@ class CoreScreensTest extends TestCase
         $this->assertFalse($user->fresh()->must_change_password);
         // A real request reloads the account from the session; the test's signed-in model is refreshed by hand.
         $this->actingAs($user->fresh(), 'web')->get('/organizations')->assertOk();
+    }
+
+    public function test_a_possible_duplicate_is_registered_only_after_the_warning_and_a_reason(): void
+    {
+        $this->signIn('core_officer');
+        $person = ['first_name' => 'Abebe', 'last_name' => 'EMP-0001', 'position_id' => $this->positionB->id];
+
+        $this->post('/employees', $person + ['reason' => 'Transferred in from the zone'])->assertSessionHasErrors('reason');
+        $this->assertSame(1, Employee::query()->where('full_name', 'Abebe EMP-0001')->count());
+
+        $this->post('/employees', $person + ['reason' => 'abc'])->assertSessionHasErrors('reason');
+        $this->post('/employees', $person + ['reason' => 'A different person: other date of birth on file'])->assertSessionHasNoErrors()->assertRedirect();
+
+        $this->assertSame(2, Employee::query()->where('full_name', 'Abebe EMP-0001')->count());
+        $this->assertDatabaseHas('employee_duplicate_reviews', ['matched_employee_id' => $this->employee->id, 'decision' => 'distinct']);
     }
 
     public function test_settings_belong_to_a_city_wide_administrator(): void

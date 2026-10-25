@@ -37,6 +37,9 @@ class EmployeeController extends Controller
 {
     private const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation'];
 
+    /** Session key: the person the registration form last warned about as a possible duplicate. */
+    private const DUPLICATE_WARNING = 'core.employee-duplicate-warning';
+
     public function __construct(private readonly OrganizationScope $scope, private readonly SeatCapacity $seats) {}
 
     public function index(Request $request): Response
@@ -144,16 +147,31 @@ class EmployeeController extends Controller
             'employee_number' => ['nullable', 'string', 'max:64'],
             'position_id' => ['required', 'uuid', Rule::exists('positions', 'id')],
             'effective_from' => ['nullable', 'date'],
+            'reason' => ['nullable', 'string', 'max:1000'],
             ...$this->personRules(),
         ]);
+        $reason = trim((string) ($data['reason'] ?? ''));
+        unset($data['reason']);
+        // The person as typed: a confirmation given after the warning holds only for the same person.
+        $person = sha1(implode('|', array_map(fn (string $key): string => mb_strtolower(trim((string) ($data[$key] ?? ''))), ['first_name', 'middle_name', 'last_name', 'date_of_birth', 'phone', 'email'])));
+        $warned = $request->session()->get(self::DUPLICATE_WARNING) === $person;
         try {
             // A blank number is generated; the national id is kept only as its keyed hash.
-            $employee = $register->execute([...$data, 'effective_from' => $data['effective_from'] ?? now()->toDateString()], $request->user());
+            $employee = $register->execute([
+                ...$data,
+                'effective_from' => $data['effective_from'] ?? now()->toDateString(),
+                // RegisterEmployee's confirmation step on the EUISIS form: after the warning, the reason field says why this is a different person.
+                'confirm_not_duplicate' => $warned && mb_strlen($reason) >= 5,
+                'duplicate_reason' => $warned ? $reason : null,
+            ], $request->user());
         } catch (HttpResponseException $exception) {
-            // A possible duplicate (409 POSSIBLE_DUPLICATE): the EUISIS form has no confirmation step, so it is refused here.
+            // 409 POSSIBLE_DUPLICATE: warn once, naming the matches the reader may see.
+            $request->session()->put(self::DUPLICATE_WARNING, $person);
             $matches = collect($exception->getResponse()->getData(true)['matches'] ?? [])->pluck('employee_number')->filter()->implode(', ');
-            throw ValidationException::withMessages(['first_name' => __('This person may already be registered').($matches !== '' ? " ({$matches})." : '.')]);
+            throw ValidationException::withMessages(['reason' => __('This person may already be registered').($matches !== '' ? " ({$matches})" : '')
+                .'. '.__('If this is a different person, write here why, then save again.')]);
         }
+        $request->session()->forget(self::DUPLICATE_WARNING);
         $details = array_filter(array_intersect_key($data, array_flip(['name_en', 'nationality', 'employment_type', 'address', 'emergency_contact_name', 'emergency_contact_phone'])), fn ($v) => $v !== null);
         if ($details !== []) {
             $update->details($employee, $details, $request->user());

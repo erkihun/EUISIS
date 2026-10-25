@@ -89,8 +89,10 @@ Inertia, under the EUISIS route names. Decisions taken under the delegation:
 12. **Rules from the Golden Path audit (ADR 0007) hold on the screens too.**
     A one-time password is replaced on the EUISIS forced-password page before
     any other screen; settings and deleting organizations are for a city-wide
-    administrator; a possible duplicate employee is refused on the EUISIS
-    form, which has no confirmation step (the API takes the confirmation).
+    administrator. A possible duplicate employee is not saved at first: the
+    EUISIS form warns under its reason field and names the matches; saving the
+    same person again with a reason (5+ characters) gives RegisterEmployee its
+    confirmation, and the decision is recorded as a duplicate review.
 13. **Exit Core** opens `EUISIS_APP_URL` when it is set, otherwise it signs
     the person out.
 
