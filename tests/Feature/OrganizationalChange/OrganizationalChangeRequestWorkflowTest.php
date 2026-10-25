@@ -913,3 +913,27 @@ test('34. establishment figures are reported when the records do exist', functio
         // With a real ceiling the projection uses it, not the row count.
         ->and($impact['expected_total_after_approval'])->toBe(7);
 });
+
+test('an approved move of an occupied position takes its holder\'s placement to the new unit (ADR 0005)', function (): void {
+    $employee = Employee::query()->create(['employee_number' => 'OCR-HOLDER', 'first_name' => 'Seat', 'last_name' => 'Holder', 'full_name' => 'Seat Holder', 'status' => 'active']);
+    $assignment = EmployeeAssignment::query()->create([
+        'employee_id' => $employee->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id,
+        'position_id' => $this->position->id, 'is_current' => true, 'assignment_status' => 'active', 'effective_from' => '2025-01-01',
+    ]);
+    $employee->forceFill(['current_assignment_id' => $assignment->id])->save();
+
+    $request = ocrCreateDraft($this->requester, $this->org, 'move_position', [
+        'entity_id' => $this->position->id,
+        'organization_unit_id' => $this->otherUnit->id,
+    ]);
+    $request = ocrApprove($request, $this->requester, $this->reviewer);
+
+    $this->actingAs($this->implementer)
+        ->post(route('organizational-change-requests.implement', $request), ['note' => 'Moved with holder.'])
+        ->assertRedirect();
+
+    expect($this->position->fresh()->organization_unit_id)->toBe($this->otherUnit->id)
+        ->and($assignment->fresh()->organization_unit_id)->toBe($this->otherUnit->id)
+        ->and($assignment->fresh()->id)->toBe($employee->fresh()->current_assignment_id)
+        ->and(EmployeeAssignment::query()->where('employee_id', $employee->id)->count())->toBe(1);
+});

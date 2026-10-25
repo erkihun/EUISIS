@@ -302,7 +302,8 @@ test('portal pages send labels in both languages so the browser can switch witho
         ->where('labels.en.reprint_required', 'Reprint Required')
         ->where('labels.am.reprint_required', 'እንደገና ማተም ያስፈልጋል')
         ->where('labels.en.section_intro.profile', trans('employee-portal.section_intro.profile', [], 'en'))
-        ->has('correction_fields', 7));
+        // Six: the employee number is not correctable (ADR 0005).
+        ->has('correction_fields', 6));
     $this->get('/my-portal')->assertOk()->assertInertia(fn (Assert $page) => $page->where('portal_labels.am.profile', trans('employee-portal.profile', [], 'am')));
 });
 

@@ -105,6 +105,10 @@ class EmployeePortalReviewController extends Controller
             $correction = EmployeeCorrectionRequest::query()->lockForUpdate()->findOrFail($correction->id);
             abort_unless($correction->status === 'pending', 409);
             if ($data['decision'] === 'approved') {
+                // An issued employee number is a stable identifier (ADR 0005): a request
+                // filed before that rule can be rejected, never approved.
+                abort_if($correction->field === 'employee_number', 422, __('employee-portal.employee_number_stable'));
+
                 $rules = match ($correction->field) {
                     'date_of_birth' => ['required', 'date_format:Y-m-d', 'before:today'],
                     'employment_type' => ['required', Rule::enum(EmploymentType::class)],

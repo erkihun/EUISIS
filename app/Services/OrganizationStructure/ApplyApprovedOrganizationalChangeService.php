@@ -6,12 +6,14 @@ namespace App\Services\OrganizationStructure;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\CodeRules\GenerateCodeAction;
+use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\OrganizationalChangeAction;
 use App\Enums\OrganizationalChangeEntityType;
 use App\Enums\OrganizationalChangeRequestStatus;
 use App\Enums\OrganizationUnitStatus;
+use App\Models\EmployeeAssignment;
 use App\Models\OrganizationalChangeRequest;
 use App\Models\OrganizationalChangeRequestItem;
 use App\Models\OrganizationUnit;
@@ -466,6 +468,18 @@ final readonly class ApplyApprovedOrganizationalChangeService
                 'reason' => $this->provenanceReason($request),
                 'moved_at' => now(),
             ]);
+
+            // ADR 0005: an approved restructuring may move an occupied position, and
+            // its holders' current placements follow it to the new unit (same position,
+            // same organization), so no placement points at a unit the seat left.
+            // Saved row by row: each records assignment.updated in this transaction.
+            EmployeeAssignment::query()
+                ->where('position_id', $position->getKey())
+                ->where('is_current', true)
+                ->where('assignment_status', AssignmentStatus::Active->value)
+                ->where(fn ($query) => $query->whereNull('organization_unit_id')->orWhere('organization_unit_id', '!=', $toUnitId))
+                ->get()
+                ->each(fn (EmployeeAssignment $assignment) => $assignment->update(['organization_unit_id' => $toUnitId]));
         } else {
             $position->forceFill($updates)->save();
         }

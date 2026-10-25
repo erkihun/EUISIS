@@ -29,6 +29,7 @@ Small, reversible changes inside one module do not need one; the pull request is
 | [0002](0002-core-write-authority-assignment-ending-and-sign-in.md) | Core write authority, ending an assignment, Core sign-in | accepted 2026-10-24 |
 | [0003](0003-security-hardening-after-core-stages.md) | Security hardening: explicit organization scope, audit seals, provider-named card checks | accepted 2026-10-24 |
 | [0004](0004-go-live-gates-recovery-targets-retention-and-runtime.md) | Go-live gates, recovery targets, retention, governance roles, Node 24 | accepted 2026-10-24 |
+| [0005](0005-golden-path-rule-decisions.md) | Golden Path rule decisions: occupied moves, stable employee numbers, number sequence, card suspension, copied codes | accepted 2026-10-25 |
 
 Decisions that are recorded elsewhere and would each merit an ADR when next
 changed: API versioning ([api-lifecycle](../../governance/api-lifecycle.md)),
