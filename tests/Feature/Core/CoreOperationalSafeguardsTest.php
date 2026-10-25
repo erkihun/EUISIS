@@ -11,6 +11,8 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\Position;
+use App\Models\PositionEstablishment;
+use App\Services\Core\BackboneIntegrityChecks;
 use Illuminate\Support\Str;
 
 /*
@@ -65,4 +67,25 @@ it('checks the Core platform in the go-live gate', function (): void {
         ->expectsOutputToContain('Golden Path integrity')
         ->expectsOutputToContain('Master-data writes are open')
         ->expectsOutputToContain('Integration outbox is draining');
+});
+
+it('reports an employee holding two active cards and a position held beyond its seats (Stage 6 data quality)', function (): void {
+    $checks = app(BackboneIntegrityChecks::class);
+    expect($checks->counts()['employees_multiple_active_cards'])->toBe(0)
+        ->and($checks->counts()['positions_over_capacity'])->toBe(0);
+
+    // Written straight to the tables, as only old data or a database edit could.
+    IdCard::query()->create(['employee_id' => $this->employee->id, 'card_number' => 'OS-C2', 'public_card_uuid' => (string) Str::uuid(), 'status' => CardStatus::Active->value, 'is_current' => false, 'expires_at' => now()->addYear()]);
+    $second = Employee::query()->create(['employee_number' => 'OS-E2', 'first_name' => 'Second', 'last_name' => 'Holder', 'full_name' => 'Second Holder', 'status' => EmployeeStatus::Active->value]);
+    EmployeeAssignment::query()->create([
+        'employee_id' => $second->id, 'organization_id' => $this->organization->id, 'position_id' => $this->employee->currentAssignment->position_id,
+        'is_current' => true, 'assignment_status' => AssignmentStatus::Active->value, 'effective_from' => '2025-04-01',
+    ]);
+
+    expect($checks->counts()['employees_multiple_active_cards'])->toBe(1)
+        ->and($checks->counts()['positions_over_capacity'])->toBe(1);
+
+    // Two approved seats make the same placements legitimate.
+    PositionEstablishment::query()->create(['establishment_number' => 'OS-EST', 'organization_id' => $this->organization->id, 'position_id' => $this->employee->currentAssignment->position_id, 'approved_slots' => 2, 'effective_from' => '2025-01-01', 'status' => 'approved']);
+    expect($checks->counts()['positions_over_capacity'])->toBe(0);
 });

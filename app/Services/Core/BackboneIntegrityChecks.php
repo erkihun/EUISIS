@@ -6,6 +6,7 @@ namespace App\Services\Core;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\CardStatus;
+use App\Enums\EstablishmentStatus;
 use App\Services\Employees\EmploymentStatusTransition;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,8 @@ final class BackboneIntegrityChecks
         'replacements_unlinked' => 'Card replacement records not linked to the new card',
         'separated_still_placed' => 'Separated employees whose placement is still open',
         'separated_card_active' => 'Separated employees whose current ID card is still active',
+        'employees_multiple_active_cards' => 'Employees holding more than one active ID card',
+        'positions_over_capacity' => 'Positions held by more employees than their approved seats (one without an establishment)',
     ];
 
     /** @return array<string, int> check key => findings */
@@ -72,6 +75,35 @@ final class BackboneIntegrityChecks
                 ->whereIn('employees.status', array_map(fn ($status): string => $status->value, EmploymentStatusTransition::SEPARATED))
                 ->where('id_cards.status', CardStatus::Active->value)
                 ->where('id_cards.is_current', true),
+            // One trusted credential per employee: activation and replacement refuse a
+            // second active card, so any finding is old data or a direct database edit.
+            'employees_multiple_active_cards' => DB::table('employees')
+                ->whereExists(fn (Builder $q) => $q->selectRaw('1')->from('id_cards')
+                    ->whereColumn('id_cards.employee_id', 'employees.id')
+                    ->where('id_cards.status', CardStatus::Active->value)
+                    ->groupBy('id_cards.employee_id')
+                    ->havingRaw('count(*) > 1')),
+            // The PositionCapacityService rule in SQL: approved seats in force today, or one.
+            'positions_over_capacity' => DB::table('positions')
+                ->whereRaw('('.$this->holders().') > (case when ('.$this->seats().') > 0 then ('.$this->seats().') else 1 end)', [
+                    true, AssignmentStatus::Active->value,
+                    EstablishmentStatus::Approved->value, $today = now()->toDateString(), $today,
+                    EstablishmentStatus::Approved->value, $today, $today,
+                ]),
         ];
+    }
+
+    private function holders(): string
+    {
+        return 'select count(*) from employee_assignments where employee_assignments.position_id = positions.id'
+            .' and employee_assignments.is_current = ? and employee_assignments.assignment_status = ?';
+    }
+
+    private function seats(): string
+    {
+        return 'select coalesce(sum(approved_slots), 0) from position_establishments where position_establishments.position_id = positions.id'
+            .' and position_establishments.status = ? and position_establishments.deleted_at is null'
+            .' and position_establishments.effective_from <= ?'
+            .' and (position_establishments.effective_to is null or position_establishments.effective_to >= ?)';
     }
 }
