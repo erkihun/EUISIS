@@ -42,6 +42,9 @@ link_shared() {  # link_shared <release dir>
   mkdir -p "$CORE_ROOT/shared/storage"/{app/private,framework/{cache,sessions,views},logs}
   link_dir "$CORE_ROOT/shared/storage" "$1/backend/storage"
   link_file "$CORE_ROOT/shared/.env" "$1/backend/.env"
+  # public/storage -> the shared public disk (Settings › General images); the private disks stay unlinked.
+  mkdir -p "$CORE_ROOT/shared/storage/app/public"
+  (cd "$1/backend" && "$PHP" artisan storage:link --force > /dev/null) || fail "storage:link"
 }
 
 switch_current() {  # switch_current <release id>

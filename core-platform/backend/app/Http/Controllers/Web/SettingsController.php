@@ -280,9 +280,11 @@ class SettingsController extends Controller
         foreach (self::ASSETS as $key) {
             $file = $request->file($key);
             if ($file instanceof UploadedFile) {
+                // No SVG: these files are served from the public disk outside the application's CSP,
+                // where an SVG's script would run in the Core's origin (release review, ADR 0012).
                 $request->validate([$key => $key === 'favicon'
-                    ? ['file', 'max:512', 'mimes:ico,png,svg']
-                    : ['image', 'max:2048', 'mimes:png,jpg,jpeg,webp,svg']]);
+                    ? ['file', 'max:512', 'mimes:ico,png']
+                    : ['image', 'max:2048', 'mimes:png,jpg,jpeg,webp']]);
                 $old = $this->settings->get("general.{$key}");
                 $this->settings->setAsset('general', $key, $file->store('settings', 'public'), $actor);
                 if (is_string($old) && $old !== '') {

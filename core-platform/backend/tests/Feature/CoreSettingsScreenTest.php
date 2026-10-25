@@ -124,6 +124,19 @@ class CoreSettingsScreenTest extends TestCase
         Storage::disk('public')->assertMissing($path);
     }
 
+    public function test_an_svg_is_refused_for_the_public_images_because_it_can_carry_script(): void
+    {
+        // The settings images are served from the public disk (/storage), outside the application's CSP:
+        // an SVG there would run its script in the Core's origin (release review, ADR 0012).
+        Storage::fake('public');
+        $this->admin();
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.cookie)</script></svg>';
+        foreach (['favicon' => 'icon.svg', 'identity_system_logo' => 'logo.svg'] as $key => $name) {
+            $this->post('/system-settings/general', ['_method' => 'patch', $key => UploadedFile::fake()->createWithContent($name, $svg)])->assertSessionHasErrors($key);
+        }
+        $this->assertSame([], Storage::disk('public')->allFiles());
+    }
+
     public function test_the_hub_lists_the_euisis_sections(): void
     {
         $this->admin();
