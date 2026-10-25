@@ -51,6 +51,9 @@ return [
      */
     'credential_keys' => (string) env('CORE_CREDENTIAL_KEYS', ''),
 
+    /* The key audit seals are signed with (App\Services\AuditChain); empty = derived from APP_KEY. Keep it apart from APP_KEY in production. */
+    'audit_seal_key' => (string) env('CORE_AUDIT_SEAL_KEY', ''),
+
     /*
      * Multi-factor authentication for the categories Core settings › Security
      * require (App\Services\MfaPolicy). Off only for the test suite.

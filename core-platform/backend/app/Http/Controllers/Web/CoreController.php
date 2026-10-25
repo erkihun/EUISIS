@@ -90,7 +90,7 @@ class CoreController extends Controller
     private const SETTINGS_SECTIONS = ['general', 'localization', 'appearance', 'security', 'id_cards'];
 
     /** Core-only groups, shown and saved with the General section. */
-    private const GENERAL_EXTRAS = ['numbering', 'workforce', 'files'];
+    private const GENERAL_EXTRAS = ['numbering', 'workforce', 'files', 'integration'];
 
     public function __construct(private readonly OrganizationScope $scope) {}
 

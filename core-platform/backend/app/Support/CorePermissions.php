@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Actions\ManageBreakGlass;
 use App\Models\CoreRole;
 use App\Models\User;
+use App\Services\BreakGlassAccess;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Cache;
 
@@ -245,8 +247,13 @@ final class CorePermissions
             return [];
         }
         $permissions = self::rolePermissions((string) $user->role);
+        // Break-glass (ADR 0010): an approved grant in force adds its permissions; a city-wide grant counts as city-wide.
+        $grant = BreakGlassAccess::for($user);
+        if ($grant !== null) {
+            $permissions = array_values(array_unique([...$permissions, ...array_intersect((array) $grant->permissions, ManageBreakGlass::grantable())]));
+        }
 
-        return $user->isCityWide() ? $permissions : array_values(array_diff($permissions, self::CITYWIDE_ONLY));
+        return $user->isCityWide() || $grant?->scope_type === User::SCOPE_CITYWIDE ? $permissions : array_values(array_diff($permissions, self::CITYWIDE_ONLY));
     }
 
     /** @return list<string> a role's permissions (cached; flushed on every role change) */

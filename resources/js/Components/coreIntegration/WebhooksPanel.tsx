@@ -69,7 +69,13 @@ export default function WebhooksPanel({ webhooks, options, storeUrl }: { webhook
                                         <div className="font-medium text-(--app-foreground)">{webhook.name}</div>
                                         <div className="max-w-xs truncate font-mono text-xs text-(--app-muted-foreground)" title={webhook.url}>{webhook.url}</div>
                                     </Td>
-                                    <Td><StatusBadge status={webhook.is_active ? 'active' : 'inactive'} label={label(webhook.is_active ? 'on' : 'off')} /></Td>
+                                    <Td>
+                                        {webhook.suspended_at
+                                            ? <span title={webhook.suspended_reason ?? undefined}><StatusBadge status="danger" label={label('suspended')} /></span>
+                                            : <StatusBadge status={webhook.is_active ? 'active' : 'inactive'} label={label(webhook.is_active ? 'on' : 'off')} />}
+                                        {(webhook.consecutive_failures ?? 0) > 0 && <div className="mt-1 text-xs text-(--app-muted-foreground)">{label('failuresInARow')}: {webhook.consecutive_failures}</div>}
+                                        {webhook.previous_secret_expires_at && <div className="mt-1 text-xs text-(--app-muted-foreground)">{label('oldSecretUntil')} <LocalizedDateDisplay value={webhook.previous_secret_expires_at} withTime /></div>}
+                                    </Td>
                                     <Td>
                                         <div className="flex max-w-xs flex-wrap gap-1">
                                             {webhook.event_types.map((type) => <code key={type} className="rounded-sm bg-(--app-surface-muted) px-1.5 py-0.5 text-xs">{type === ALL_EVENTS ? label('allEvents') : type}</code>)}
@@ -85,7 +91,9 @@ export default function WebhooksPanel({ webhooks, options, storeUrl }: { webhook
                                     <Td align="right">
                                         <div className="flex justify-end gap-1">
                                             <Button size="xs" variant="outline" onClick={() => open(webhook)}>{label('edit')}</Button>
-                                            <Button size="xs" variant="outline" onClick={() => toggle(webhook)}>{label(webhook.is_active ? 'disable' : 'enable')}</Button>
+                                            {webhook.urls.resume
+                                                ? <Button size="xs" variant="primary" onClick={() => router.post(webhook.urls.resume as string, {}, { preserveScroll: true })}>{label('resume')}</Button>
+                                                : <Button size="xs" variant="outline" onClick={() => toggle(webhook)}>{label(webhook.is_active ? 'disable' : 'enable')}</Button>}
                                             <Button size="xs" variant="outline" onClick={() => setRotating(webhook)}>{label('rotate')}</Button>
                                         </div>
                                     </Td>

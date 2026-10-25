@@ -57,6 +57,8 @@ final class AuditWriter
                 default => 'frontend',
             },
             'api_client_id' => $client?->uuid,
+            // Everything done under emergency access names the grant (ADR 0010).
+            'break_glass_grant_id' => $actor === null ? null : BreakGlassAccess::for($actor)?->id,
             'created_at' => now(),
         ]);
         // The integration event of the same change, in the same transaction (outbox).

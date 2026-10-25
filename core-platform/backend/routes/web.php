@@ -19,6 +19,7 @@ use App\Http\Controllers\Web\OrganizationUnitController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PrintBatchController;
 use App\Http\Controllers\Web\RoleController;
+use App\Http\Controllers\Web\SecurityCenterController;
 use App\Http\Controllers\Web\SessionController;
 use App\Http\Controllers\Web\StructureTypeController;
 use App\Http\Controllers\Web\UserController;
@@ -88,6 +89,15 @@ Route::middleware('auth')->group(function (): void {
             Route::patch('/job-masters/{kind}/{id}', [JobMasterController::class, 'update'])->middleware('can:positions.master.manage')->whereUuid('id')->name('job-masters.update');
         });
 
+        // The Security Center (ADR 0010): break-glass access (ManageBreakGlass decides) and the audit trail's integrity.
+        Route::middleware('can:core.access')->prefix('security')->name('security')->group(function (): void {
+            Route::get('/', [SecurityCenterController::class, 'show']);
+            Route::post('/break-glass', [SecurityCenterController::class, 'store'])->middleware('throttle:10,1')->name('.break-glass.store');
+            Route::post('/break-glass/{grant}/decide', [SecurityCenterController::class, 'decide'])->name('.break-glass.decide');
+            Route::post('/break-glass/{grant}/end', [SecurityCenterController::class, 'end'])->name('.break-glass.end');
+            Route::post('/audit/verify', [SecurityCenterController::class, 'verifyAudit'])->middleware('throttle:3,10')->name('.audit.verify');
+        });
+
         // Card templates (ADR 0010): ManageCardTemplates decides each change; the preview uses the print renderer.
         Route::middleware('can:card_templates.view')->prefix('card-templates')->name('card-templates')->group(function (): void {
             Route::get('/', [CardTemplateController::class, 'index']);
@@ -114,6 +124,7 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/webhooks', [IntegrationCenterController::class, 'storeWebhook'])->name('.webhooks.store');
             Route::put('/webhooks/{webhook}', [IntegrationCenterController::class, 'updateWebhook'])->name('.webhooks.update');
             Route::post('/webhooks/{webhook}/rotate-secret', [IntegrationCenterController::class, 'rotateWebhook'])->middleware('throttle:10,1')->name('.webhooks.rotate');
+            Route::post('/webhooks/{webhook}/resume', [IntegrationCenterController::class, 'resumeWebhook'])->name('.webhooks.resume');
             Route::post('/deliveries/{delivery}/retry', [IntegrationCenterController::class, 'retryDelivery'])->middleware('throttle:30,1')->name('.deliveries.retry');
         });
     });

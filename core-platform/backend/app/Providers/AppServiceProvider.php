@@ -15,6 +15,7 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
+use App\Services\BreakGlassAccess;
 use App\Services\CoreSettings;
 use App\Services\DomainEvents;
 use App\Services\OrganizationScope;
@@ -36,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         // One scope cache per request or job.
         $this->app->scoped(OrganizationScope::class);
         $this->app->scoped(DomainEvents::class);
+        $this->app->scoped(BreakGlassAccess::class);
     }
 
     public function boot(): void
@@ -45,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Record identifiers are UUIDs (accounts are numbered): anything else is a
         // 404 before it reaches the database, where PostgreSQL would reject it.
-        foreach (['organization', 'organizationUnit', 'employee', 'position', 'positionEstablishment', 'unit', 'card', 'cardRequest', 'establishment', 'hierarchyVersion', 'organizationEdge', 'document', 'duplicateReview', 'importBatch', 'apiClient', 'webhook', 'delivery', 'id', 'printBatch', 'cardTemplate', 'version'] as $parameter) {
+        foreach (['organization', 'organizationUnit', 'employee', 'position', 'positionEstablishment', 'unit', 'card', 'cardRequest', 'establishment', 'hierarchyVersion', 'organizationEdge', 'document', 'duplicateReview', 'importBatch', 'apiClient', 'webhook', 'delivery', 'id', 'printBatch', 'cardTemplate', 'version', 'grant'] as $parameter) {
             Route::pattern($parameter, '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}');
         }
         Route::pattern('user', '[0-9]+');

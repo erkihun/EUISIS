@@ -7,3 +7,13 @@ Schedule::command('core:expire-cards')->dailyAt('00:15')->withoutOverlapping()->
 
 // Core events reach their webhook receivers; failures retry with back-off.
 Schedule::command('core:deliver-webhooks')->everyMinute()->withoutOverlapping()->onOneServer();
+
+// The audit trail's tamper evidence (ADR 0010): new rows are sealed every few minutes, the whole chain checked nightly.
+Schedule::command('core:audit-seal --all')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+Schedule::command('core:audit-verify')->dailyAt('02:30')->withoutOverlapping()->onOneServer();
+
+// Break-glass access ends on time even if nobody looks (ADR 0010).
+Schedule::command('core:break-glass-expire')->everyMinute()->withoutOverlapping()->onOneServer();
+
+// Delivered integration events and old API call logs leave after their retention (Core settings › Integration).
+Schedule::command('core:prune-integration-data')->dailyAt('03:15')->withoutOverlapping()->onOneServer();

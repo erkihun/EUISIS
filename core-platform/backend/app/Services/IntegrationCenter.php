@@ -23,12 +23,19 @@ final class IntegrationCenter
     /** @return list<array<string, mixed>> */
     public function clients(): array
     {
-        $calls = ApiRequestLog::query()->where('created_at', '>=', now()->subDay())->groupBy('api_client_id')
-            ->selectRaw('api_client_id, count(*) as calls, sum(case when status >= 400 then 1 else 0 end) as errors')->get()->keyBy('api_client_id');
+        // Usage per client (ADR 0010): the last day and the last week, errors, denials and the mean time per call.
+        $usage = fn (\DateTimeInterface $since) => ApiRequestLog::query()->where('created_at', '>=', $since)->groupBy('api_client_id')
+            ->selectRaw('api_client_id, count(*) as calls, sum(case when status >= 400 then 1 else 0 end) as errors, sum(case when denial_code is not null then 1 else 0 end) as denials, avg(duration_ms) as mean_ms')
+            ->get()->keyBy('api_client_id');
+        [$day, $week] = [$usage(now()->subDay()), $usage(now()->subDays(7))];
 
         return ApiClient::query()->orderBy('name')->get()->map(fn (ApiClient $client): array => $client->only(ManageIntegrations::CLIENT_FIELDS) + [
-            'calls_24h' => (int) ($calls[$client->id]->calls ?? 0),
-            'errors_24h' => (int) ($calls[$client->id]->errors ?? 0),
+            'calls_24h' => (int) ($day[$client->id]->calls ?? 0),
+            'errors_24h' => (int) ($day[$client->id]->errors ?? 0),
+            'calls_7d' => (int) ($week[$client->id]->calls ?? 0),
+            'errors_7d' => (int) ($week[$client->id]->errors ?? 0),
+            'denials_7d' => (int) ($week[$client->id]->denials ?? 0),
+            'mean_ms_7d' => isset($week[$client->id]) ? (int) round((float) $week[$client->id]->mean_ms) : null,
         ])->values()->all();
     }
 
@@ -40,7 +47,8 @@ final class IntegrationCenter
 
         return WebhookEndpoint::query()->orderBy('name')->get()->map(fn (WebhookEndpoint $endpoint): array => $endpoint->only([
             'id', 'name', 'url', 'event_types', 'scope_organization_id', 'is_active', 'secret_rotated_at', 'last_success_at', 'last_failure_at', 'created_at',
-        ]) + ['deliveries' => ($counts[$endpoint->id] ?? collect())->pluck('total', 'status')->map(fn ($n): int => (int) $n)])->values()->all();
+            'consecutive_failures', 'suspended_at', 'suspended_reason', 'previous_secret_expires_at',
+        ]) + ['resume_url' => $endpoint->suspended_at !== null ? route('core.integration.webhooks.resume', $endpoint) : null] + ['deliveries' => ($counts[$endpoint->id] ?? collect())->pluck('total', 'status')->map(fn ($n): int => (int) $n)])->values()->all();
     }
 
     /** @param array{status?: string, webhook?: string} $filters */

@@ -14,12 +14,13 @@ class WebhookEndpoint extends Model
 
     protected $fillable = ['name', 'url', 'event_types', 'scope_organization_id', 'is_active'];
 
-    protected $hidden = ['secret'];
+    protected $hidden = ['secret', 'previous_secret'];
 
     protected function casts(): array
     {
         return [
-            'secret' => 'encrypted', 'event_types' => 'array', 'is_active' => 'boolean',
+            'secret' => 'encrypted', 'previous_secret' => 'encrypted', 'event_types' => 'array', 'is_active' => 'boolean',
+            'consecutive_failures' => 'integer', 'suspended_at' => 'datetime', 'previous_secret_expires_at' => 'datetime',
             'secret_rotated_at' => 'datetime', 'last_success_at' => 'datetime', 'last_failure_at' => 'datetime',
         ];
     }
