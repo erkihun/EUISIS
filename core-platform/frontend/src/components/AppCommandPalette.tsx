@@ -15,7 +15,7 @@ export default function AppCommandPalette({ open, onClose }: { open: boolean; on
     const inputRef = useRef<HTMLInputElement>(null);
     const groups = [
         { labelKey: 'core.workspaceName', items: [HOME] },
-        ...visibleSections(Boolean(user?.can_change_master_data)).flatMap((section) => section.groups),
+        ...visibleSections(Boolean(user?.can_change_master_data), user?.role === 'core_admin').flatMap((section) => section.groups),
     ];
 
     useEffect(() => {

@@ -10,11 +10,13 @@ use Illuminate\Support\Carbon;
 
 /**
  * The one capacity rule: a position seats the approved slots of its establishments
- * in force on the day, or one person when it has none; holders are the active
- * current placements.
+ * in force on the day, or, when it has none, the number set in Core settings ›
+ * Workforce (one by default); holders are the active current placements.
  */
 final class SeatCapacity
 {
+    public function __construct(private readonly CoreSettings $settings) {}
+
     public function capacity(string $positionId, ?Carbon $on = null): int
     {
         $day = ($on ?? now())->toDateString();
@@ -25,7 +27,7 @@ final class SeatCapacity
             ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $day))
             ->sum('approved_slots');
 
-        return $approved > 0 ? $approved : 1;
+        return $approved > 0 ? $approved : $this->settings->int('workforce.default_seat_capacity');
     }
 
     public function holders(string $positionId): int

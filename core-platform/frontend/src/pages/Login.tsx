@@ -6,7 +6,8 @@ import { FlowBridge, FlowStepper, IdentityOrbit, NetworkFlow, type FlowService, 
 import AppToaster from '../components/AppToaster';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import ThemeToggle from '../components/ThemeToggle';
-import { BRAND, useLocale } from '../i18n';
+import { useLocale } from '../i18n';
+import { useBranding, useSettings } from '../settings';
 
 /**
  * EUISIS Pages/Auth/Login.tsx as opened at /core/login: the same stage (city →
@@ -25,11 +26,11 @@ export default function LoginPage() {
     const cardRef = useRef<HTMLDivElement>(null);
     const motion = useMotionAllowed();
 
-    const brandName = BRAND[locale];
+    const { getString } = useSettings();
+    const { brandName, officialName, orgName, bureauName } = useBranding(locale);
     const systemName = t('core.title');
-    const officialName = t('platform.officialName');
-    const orgName = t('platform.orgName');
-    const bureauName = t('platform.bureauName');
+    // Only an administrator's own sign-in message (Core settings › General), when one is set.
+    const customMsg = getString(locale === 'am' ? 'general.login_page_message_am' : 'general.login_page_message_en');
 
     // Every rejected attempt shakes the card once. The class is restarted in place, so the form keeps its focus and values.
     const shakeCard = () => {
@@ -249,6 +250,11 @@ export default function LoginPage() {
                         {t('auth.stage.headline')}{' '}
                         <span className="bg-linear-to-r from-orange-200 via-orange-400 to-amber-300 bg-clip-text text-transparent">{t('auth.stage.headlineAccent')}</span>
                     </h1>
+                    {customMsg && (
+                        <p className="login-rise mx-auto mt-3 max-w-3xl text-[15px] leading-relaxed text-white/70 [@media(max-height:820px)]:lg:hidden" style={{ animationDelay: '280ms' }}>
+                            {customMsg}
+                        </p>
+                    )}
                 </div>
 
                 {/* One row: the organisation network on the left, its single line into the employee

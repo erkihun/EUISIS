@@ -3,9 +3,10 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import ApplicationLogo from './ApplicationLogo';
 import { ChevronDown, ChevronRight, SearchIcon, X } from './NavIcons';
 import { useAuth } from '../auth';
-import { BRAND, useLocale } from '../i18n';
+import { useLocale } from '../i18n';
 import { HOME, activeItem, visibleSections, type NavGroup, type NavItem } from '../navigation';
 import { Link } from '../router';
+import { useBranding, useSettings } from '../settings';
 
 const SIDEBAR_GROUPS_STORAGE_KEY = 'core-sidebar-open-groups';
 
@@ -33,7 +34,12 @@ export default function AppSidebar({ route, onClose, collapsed = false, onToggle
     const [query, setQuery] = useState('');
     const normalizedQuery = query.trim().toLocaleLowerCase();
 
-    const sections = visibleSections(Boolean(user?.can_change_master_data));
+    const { getString } = useSettings();
+    const { brandName, orgName } = useBranding(locale);
+    const environmentLabel = getString('general.system_environment_label');
+    const logoCentered = getString('appearance.logo_position', 'start') === 'center';
+
+    const sections = visibleSections(Boolean(user?.can_change_master_data), user?.role === 'core_admin');
     const allGroups = sections.flatMap((section) => section.groups);
     const currentItem = activeItem(route, [HOME, ...allGroups.flatMap((group) => group.items)]);
     const activeGroupKeys = allGroups.filter((group) => currentItem && group.items.includes(currentItem)).map((group) => group.key);
@@ -216,18 +222,18 @@ export default function AppSidebar({ route, onClose, collapsed = false, onToggle
                     <Link
                         href="/"
                         onClick={onClose}
-                        aria-label={BRAND[locale]}
-                        title={collapsed ? BRAND[locale] : undefined}
-                        className={['flex min-w-0 flex-1 items-center gap-3 rounded-md', focusRing].join(' ')}
+                        aria-label={brandName}
+                        title={collapsed ? brandName : undefined}
+                        className={['flex min-w-0 flex-1 gap-3 rounded-md', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
                     >
                         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-(--sidebar-bg) p-1 ring-1 ring-(--sidebar-border)">
                             <ApplicationLogo className="h-full w-full object-contain fill-current" />
                         </span>
                         {!collapsed && (
                             <div className="min-w-0">
-                                <p className="whitespace-normal wrap-break-word text-[15px] font-medium leading-snug">{BRAND[locale]}</p>
+                                <p className="whitespace-normal wrap-break-word text-[15px] font-medium leading-snug">{brandName}</p>
                                 <p className="whitespace-normal wrap-break-word text-[11px] font-semibold uppercase tracking-wide text-(--sidebar-muted)">{t('core.workspaceName')}</p>
-                                <p className="mt-1 whitespace-normal wrap-break-word text-xs leading-relaxed text-(--sidebar-muted)">{t('platform.orgName')}</p>
+                                <p className="mt-1 whitespace-normal wrap-break-word text-xs leading-relaxed text-(--sidebar-muted)">{orgName}</p>
                             </div>
                         )}
                     </Link>
@@ -281,6 +287,16 @@ export default function AppSidebar({ route, onClose, collapsed = false, onToggle
                         {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
                     </button>
                 ) : <p className="px-3 py-2 text-xs text-(--sidebar-muted)">{t('core.workspaceName')}</p>}
+                {/* Non-production environments are flagged where every page shows it, so test data is never mistaken for live. */}
+                {environmentLabel && environmentLabel.toLowerCase() !== 'production' && (collapsed
+                    ? <span title={environmentLabel} aria-label={environmentLabel} className="mx-auto mb-1 mt-1 block h-2 w-2 rounded-full bg-amber-400" />
+                    : (
+                        <p className="px-3 pb-1 pt-1">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 ring-1 ring-inset ring-amber-400/40 dark:text-amber-300">
+                                <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true" />{environmentLabel}
+                            </span>
+                        </p>
+                    ))}
             </div>
         </div>
     );

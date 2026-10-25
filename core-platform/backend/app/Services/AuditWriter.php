@@ -21,13 +21,24 @@ final class AuditWriter
      */
     public function write(string $action, ?User $actor, Model $subject, ?string $organizationId, ?array $old = null, ?array $new = null, ?string $reason = null): CoreAuditLog
     {
+        return $this->writeFor($action, $actor, class_basename($subject), (string) $subject->getKey(), $organizationId, $old, $new, $reason);
+    }
+
+    /**
+     * The same row for a subject that is not one model (a settings group).
+     *
+     * @param  array<string, mixed>|null  $old
+     * @param  array<string, mixed>|null  $new
+     */
+    public function writeFor(string $action, ?User $actor, string $subjectType, string $subjectId, ?string $organizationId, ?array $old = null, ?array $new = null, ?string $reason = null): CoreAuditLog
+    {
         $request = app()->bound('request') ? request() : null;
 
         return CoreAuditLog::query()->create([
             'actor_user_id' => $actor?->getKey(),
             'action' => $action,
-            'subject_type' => class_basename($subject),
-            'subject_id' => (string) $subject->getKey(),
+            'subject_type' => $subjectType,
+            'subject_id' => $subjectId,
             'organization_id' => $organizationId,
             'old_values' => $old,
             'new_values' => $new,

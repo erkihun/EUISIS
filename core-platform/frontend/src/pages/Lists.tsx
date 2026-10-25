@@ -306,7 +306,7 @@ export function AssignmentsPage() {
     );
 }
 
-const AUDIT_ACTIONS = ['employee.registered', 'assignment.transferred', 'card.suspend', 'card.reinstate', 'card.revoke'];
+const AUDIT_ACTIONS = ['employee.registered', 'assignment.transferred', 'card.suspend', 'card.reinstate', 'card.revoke', 'settings.updated'];
 
 export function AuditPage() {
     const { t } = useLocale();

@@ -1,8 +1,12 @@
 import { useLocale } from '../i18n';
+import { useSettings } from '../settings';
 
-/** EUISIS Components/LanguageSwitcher.tsx: EN | አማ. */
+/** EUISIS Components/LanguageSwitcher.tsx: EN | አማ, hidden when Core settings say so. */
 export default function LanguageSwitcher({ variant = 'default' }: { variant?: 'default' | 'toolbar' }) {
     const { locale, setLocale, localeOptions, t } = useLocale();
+    const { getBoolean } = useSettings();
+
+    if (!getBoolean('appearance.show_language_switcher', true)) return null;
 
     return (
         <div

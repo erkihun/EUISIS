@@ -16,6 +16,7 @@ const PositionsPage = lazy(() => import('./pages/Lists').then((m) => ({ default:
 const EmployeesPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.EmployeesPage })));
 const AssignmentsPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.AssignmentsPage })));
 const AuditPage = lazy(() => import('./pages/Lists').then((m) => ({ default: m.AuditPage })));
+const SettingsPage = lazy(() => import('./pages/Settings'));
 
 function Screen({ route }: { route: string }) {
     const { user } = useAuth();
@@ -41,6 +42,8 @@ function Screen({ route }: { route: string }) {
             return <VerifyCardPage />;
         case '/audit':
             return <AuditPage />;
+        case '/settings':
+            return user?.role === 'core_admin' ? <SettingsPage /> : <DashboardPage />;
     }
 
     const employee = match('/employees/:id', route);

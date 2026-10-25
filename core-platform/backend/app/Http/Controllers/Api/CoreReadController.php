@@ -12,6 +12,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Services\CoreSettings;
 use App\Services\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -24,9 +25,13 @@ use Illuminate\Http\Request;
  */
 class CoreReadController extends Controller
 {
-    private const PER_PAGE = 25;
+    public function __construct(private readonly OrganizationScope $scope, private readonly CoreSettings $settings) {}
 
-    public function __construct(private readonly OrganizationScope $scope) {}
+    /** Rows per page: Core settings › Appearance › Default Page Size. */
+    private function perPage(): int
+    {
+        return $this->settings->int('appearance.default_page_size');
+    }
 
     /**
      * The Core dashboard: the same metric keys as the EUISIS Core dashboard,
@@ -73,7 +78,7 @@ class CoreReadController extends Controller
         $query = $this->scope->apply(Organization::query()->with('type:id,code,name_en,name_am'), $request->user(), 'id');
         $this->search($query, $request, ['code', 'name_en', 'name_am']);
 
-        return response()->json($query->orderBy('name_en')->paginate(self::PER_PAGE, ['id', 'organization_type_id', 'code', 'name_en', 'name_am', 'status', 'effective_from'])->withQueryString());
+        return response()->json($query->orderBy('name_en')->paginate($this->perPage(), ['id', 'organization_type_id', 'code', 'name_en', 'name_am', 'status', 'effective_from'])->withQueryString());
     }
 
     public function organization(Request $request, Organization $organization): JsonResponse
@@ -90,7 +95,7 @@ class CoreReadController extends Controller
             ->when($request->filled('organization_id'), fn (Builder $q) => $q->where('organization_id', $request->string('organization_id')));
         $this->search($query, $request, ['code', 'name_en', 'name_am']);
 
-        return response()->json($query->orderBy('name_en')->paginate(self::PER_PAGE, ['id', 'organization_id', 'parent_unit_id', 'code', 'name_en', 'name_am', 'status'])->withQueryString());
+        return response()->json($query->orderBy('name_en')->paginate($this->perPage(), ['id', 'organization_id', 'parent_unit_id', 'code', 'name_en', 'name_am', 'status'])->withQueryString());
     }
 
     public function positions(Request $request): JsonResponse
@@ -101,7 +106,7 @@ class CoreReadController extends Controller
             ->when($request->input('occupancy') === 'held', fn (Builder $q) => $q->whereHas('holders'));
         $this->search($query, $request, ['job_position_code', 'title_en', 'title_am']);
 
-        return response()->json($query->orderBy('job_position_code')->paginate(self::PER_PAGE, ['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am', 'is_active'])->withQueryString());
+        return response()->json($query->orderBy('job_position_code')->paginate($this->perPage(), ['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am', 'is_active'])->withQueryString());
     }
 
     public function employees(Request $request): JsonResponse
@@ -116,7 +121,7 @@ class CoreReadController extends Controller
         }
         $this->search($query, $request, ['employee_number', 'full_name', 'name_en']);
 
-        return response()->json($query->orderBy('employee_number')->paginate(self::PER_PAGE, ['id', 'employee_number', 'full_name', 'name_en', 'gender', 'status', 'current_assignment_id'])->withQueryString());
+        return response()->json($query->orderBy('employee_number')->paginate($this->perPage(), ['id', 'employee_number', 'full_name', 'name_en', 'gender', 'status', 'current_assignment_id'])->withQueryString());
     }
 
     public function employee(Request $request, Employee $employee): JsonResponse
@@ -141,7 +146,7 @@ class CoreReadController extends Controller
             $query->whereHas('employee', fn (Builder $q) => $q->whereLike('employee_number', $term)->orWhereLike('full_name', $term));
         }
 
-        return response()->json($query->orderByDesc('effective_from')->paginate(self::PER_PAGE, ['id', 'employee_id', 'organization_id', 'position_id', 'assignment_status', 'is_current', 'effective_from', 'effective_to'])->withQueryString());
+        return response()->json($query->orderByDesc('effective_from')->paginate($this->perPage(), ['id', 'employee_id', 'organization_id', 'position_id', 'assignment_status', 'is_current', 'effective_from', 'effective_to'])->withQueryString());
     }
 
     public function cards(Request $request): JsonResponse
@@ -154,7 +159,7 @@ class CoreReadController extends Controller
         }
         $this->search($query, $request, ['card_number']);
 
-        return response()->json($query->orderByDesc('created_at')->paginate(self::PER_PAGE, ['id', 'employee_id', 'card_number', 'status', 'is_current', 'issued_at', 'expires_at'])->withQueryString());
+        return response()->json($query->orderByDesc('created_at')->paginate($this->perPage(), ['id', 'employee_id', 'card_number', 'status', 'is_current', 'issued_at', 'expires_at'])->withQueryString());
     }
 
     /** Privacy-minimised: validity and the holder's number and name only. */
@@ -184,7 +189,7 @@ class CoreReadController extends Controller
             $query->whereIn('organization_id', $ids);
         }
 
-        return response()->json($query->orderByDesc('created_at')->paginate(self::PER_PAGE, ['id', 'actor_user_id', 'action', 'subject_type', 'subject_id', 'organization_id', 'reason', 'request_id', 'created_at'])->withQueryString());
+        return response()->json($query->orderByDesc('created_at')->paginate($this->perPage(), ['id', 'actor_user_id', 'action', 'subject_type', 'subject_id', 'organization_id', 'reason', 'request_id', 'created_at'])->withQueryString());
     }
 
     /** @param list<string> $columns */

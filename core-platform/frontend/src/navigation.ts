@@ -11,6 +11,7 @@ import {
     IdCardIcon,
     LayoutDashboard,
     QrCodeIcon,
+    SettingsIcon,
     UserPlusIcon,
     Users,
     UsersTwoIcon,
@@ -19,7 +20,7 @@ import {
 type Icon = (p: SVGProps<SVGSVGElement>) => JSX.Element;
 
 /** A page: the hash path it opens and its label key. */
-export type NavItem = { path: string; labelKey: string; icon: Icon; writer?: boolean };
+export type NavItem = { path: string; labelKey: string; icon: Icon; writer?: boolean; admin?: boolean };
 export type NavGroup = { key: string; labelKey: string; icon: Icon; items: NavItem[] };
 export type NavSection = { labelKey: string; groups: NavGroup[] };
 
@@ -73,17 +74,23 @@ export const SECTIONS: NavSection[] = [
                     { path: '/audit', labelKey: 'nav.auditLogs', icon: ClipboardClockIcon },
                 ],
             },
+            {
+                key: 'coreSettings', labelKey: 'core.nav.settings', icon: SettingsIcon,
+                items: [
+                    { path: '/settings', labelKey: 'core.nav.settings', icon: SettingsIcon, admin: true },
+                ],
+            },
         ],
     },
 ];
 
-/** The sections an account may see: register is for officers and admins. */
-export function visibleSections(canWrite: boolean): NavSection[] {
+/** The sections an account may see: register is for officers and admins, settings for admins. */
+export function visibleSections(canWrite: boolean, isAdmin = false): NavSection[] {
     return SECTIONS
         .map((section) => ({
             ...section,
             groups: section.groups
-                .map((group) => ({ ...group, items: group.items.filter((item) => !item.writer || canWrite) }))
+                .map((group) => ({ ...group, items: group.items.filter((item) => (!item.writer || canWrite) && (!item.admin || isAdmin)) }))
                 .filter((group) => group.items.length > 0),
         }))
         .filter((section) => section.groups.length > 0);

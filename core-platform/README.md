@@ -131,6 +131,28 @@ Checked on 2026-10-25: the local EUISIS PostgreSQL database copied into a
 MariaDB `euisis_core` with every one of the 14 tables matching the EUISIS
 snapshot.
 
+## Core settings
+
+Administrators (`core_admin`) change the Core from **Governance › Settings**.
+Every change is validated, applies at once and is audited (`settings.updated`
+with the old and new values). Keys, labels, defaults and limits follow the
+EUISIS System Settings wherever EUISIS has the same setting
+(`app/Settings/CoreSettingsRegistry.php`).
+
+| Group | Settings | Used by |
+|---|---|---|
+| General | brand name (English, Amharic), official short name, official names, organization name, environment label, sign-in messages | sign-in page, sidebar, page titles, the environment badge |
+| Language | default language | first visit on a device |
+| Appearance | default theme, colours (primary, secondary, accent, sidebar), button style, card radius, table density, sticky headers, animations, breadcrumbs, language switcher, theme switching, compact sidebar, logo position, page size | the whole shell; page size sizes every API list |
+| Security | session length, wrong-password allowance and lockout, API and card-check limits per minute, maintenance banner | sign-in, rate limits, the banner on every page |
+| ID cards | city and bureau names | sign-in page, sidebar |
+| Workforce | seats for a position without an approved establishment | registration and transfer seat checks |
+
+Values not changed stay on their defaults (no seeding). `GET /api/settings/public`
+gives the frontend the public ones before sign-in; security and workforce
+values are never public. Infrastructure stays in `.env` (database, CORS
+origins, `APP_KEY`).
+
 ## Production notes
 
 - Serve `frontend/dist` and the backend under one host (`/api` to Laravel) or

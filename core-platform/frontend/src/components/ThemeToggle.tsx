@@ -2,16 +2,22 @@ import { useMemo, useState } from 'react';
 import { Moon, Sun } from './NavIcons';
 import { useLocale } from '../i18n';
 import { getActiveTheme, getStoredThemePreference, setThemePreference, type ThemePreference } from '../lib/theme';
+import { useSettings } from '../settings';
 
 const order: ThemePreference[] = ['system', 'light', 'dark'];
 
-/** EUISIS Components/ThemeToggle.tsx: system → light → dark. */
+/** EUISIS Components/ThemeToggle.tsx: system → light → dark, hidden when Core settings forbid switching. */
 export default function ThemeToggle({ variant = 'default' }: { variant?: 'default' | 'toolbar' }) {
     const { t } = useLocale();
-    const [preference, setPreference] = useState<ThemePreference>(() => getStoredThemePreference() ?? 'system');
+    const { getBoolean, getString } = useSettings();
+    const allowSwitching = getBoolean('appearance.allow_user_theme_switching', true);
+    const defaultTheme = getString('appearance.default_theme', 'system') as ThemePreference;
+    const [preference, setPreference] = useState<ThemePreference>(() => getStoredThemePreference() ?? defaultTheme);
 
     const nextPreference = useMemo(() => order[(order.indexOf(preference) + 1) % order.length], [preference]);
     const activeTheme = getActiveTheme(preference);
+
+    if (!allowSwitching) return null;
 
     const cycleTheme = () => {
         setThemePreference(nextPreference);

@@ -122,6 +122,18 @@ export const en = {
             groupControl: 'Rules & Audit',
             assignments: 'Assignments',
             verification: 'Card Verification',
+            settings: 'Settings',
+        },
+        settings: {
+            title: 'Settings',
+            sections: {
+                general: { title: 'General', description: 'Product and institution names, the environment label and the sign-in message.' },
+                localization: { title: 'Language', description: 'The language a person sees until they choose one.' },
+                appearance: { title: 'Appearance', description: 'Colours, layout density and the sidebar.' },
+                security: { title: 'Security', description: 'Sign-in sessions, the lockout after wrong passwords, request limits and the maintenance banner.' },
+                id_cards: { title: 'ID cards', description: 'The city and bureau names shown at sign-in and in the sidebar.' },
+                workforce: { title: 'Workforce', description: 'Rules for holding positions.' },
+            },
         },
         recent: {
             title: 'Recent master-data changes',
@@ -171,9 +183,12 @@ export const en = {
         wholeCity: 'Whole city',
         ownOrganizations: 'Own organizations',
         roles: { core_viewer: 'Viewer', core_officer: 'Officer', core_admin: 'Administrator' },
-        orgName: 'Addis Ababa City Administration',
-        bureauName: 'Public Service & HRD Bureau',
-        officialName: 'Addis Ababa Integrated Employee Management & Service System',
+        settings: {
+            description: 'Everything the Core can be set to. Changes apply at once and are kept in the audit log.',
+            save: 'Save changes',
+            saved: 'Settings saved.',
+            nothingChanged: 'Nothing changed.',
+        },
         filters: {
             search: 'Search',
             status: 'Status',
@@ -299,6 +314,7 @@ export const en = {
                 card_suspend: 'Card suspended',
                 card_reinstate: 'Card reinstated',
                 card_revoke: 'Card revoked',
+                settings_updated: 'Settings changed',
             },
         },
         status: {

@@ -1,11 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useBranding, useSettings } from '../settings';
 import { am } from './am';
 import { en } from './en';
 
 export type Locale = 'en' | 'am';
-
-/** The product name, as EUISIS shows it (lib/branding.ts fallbacks). */
-export const BRAND: Record<Locale, string> = { en: 'Agelgay', am: 'አገልጋይ' };
 
 const dictionaries: Record<Locale, object> = { en, am };
 const LOCALE_KEY = 'core.locale';
@@ -27,43 +25,52 @@ function lookup(dictionary: object, key: string): string | undefined {
     return typeof value === 'string' ? value : undefined;
 }
 
-function storedLocale(): Locale {
+/** The person's choice on this device, else Core settings › Language › Default Locale. */
+function initialLocale(fallback: string): Locale {
     try {
-        return localStorage.getItem(LOCALE_KEY) === 'am' ? 'am' : 'en';
+        const stored = localStorage.getItem(LOCALE_KEY);
+        if (stored === 'am' || stored === 'en') return stored;
     } catch {
-        return 'en';
+        // Storage is optional.
     }
+    return fallback === 'am' ? 'am' : 'en';
 }
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-    const [locale, setLocale] = useState<Locale>(storedLocale);
+    const { getString } = useSettings();
+    const [locale, setLocaleState] = useState<Locale>(() => initialLocale(getString('localization.default_locale', 'en')));
+    const { brandName } = useBranding(locale);
 
     useEffect(() => {
         // The typography tokens switch on <html lang>, exactly as in EUISIS.
         document.documentElement.lang = locale;
         document.body.classList.toggle('locale-am', locale === 'am');
+    }, [locale]);
+
+    const setLocale = useCallback((next: Locale) => {
+        setLocaleState(next);
         try {
-            localStorage.setItem(LOCALE_KEY, locale);
+            localStorage.setItem(LOCALE_KEY, next);
         } catch {
             // Remembering the language is a convenience only.
         }
-    }, [locale]);
+    }, []);
 
     const t = useCallback<LocaleContext['t']>((key, params) => {
         let text = lookup(dictionaries[locale], key) ?? lookup(en, key) ?? key;
-        text = text.replace(/\{brand\}/g, BRAND[locale]);
+        text = text.replace(/\{brand\}/g, brandName);
         for (const [name, value] of Object.entries(params ?? {})) {
             text = text.replaceAll(`{${name}}`, String(value)).replace(new RegExp(`:${name}\\b`, 'g'), String(value));
         }
         return text;
-    }, [locale]);
+    }, [locale, brandName]);
 
     const value = useMemo<LocaleContext>(() => ({
         locale,
         setLocale,
         localeOptions: [{ value: 'en', label: 'EN' }, { value: 'am', label: 'አማ' }],
         t,
-    }), [locale, t]);
+    }), [locale, setLocale, t]);
 
     return <Context.Provider value={value}>{children}</Context.Provider>;
 }

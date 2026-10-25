@@ -120,6 +120,18 @@ export const am: Messages = {
             groupControl: 'ደንቦችና ኦዲት',
             assignments: 'ምደባዎች',
             verification: 'የካርድ ማረጋገጫ',
+            settings: 'ማስተካከያዎች',
+        },
+        settings: {
+            title: 'ማስተካከያዎች',
+            sections: {
+                general: { title: 'አጠቃላይ', description: 'የምርቱና የተቋሙ ስሞች፣ የአካባቢ መለያና የመግቢያ መልዕክት።' },
+                localization: { title: 'ቋንቋ', description: 'ሰውየው ቋንቋ እስኪመርጥ ድረስ የሚያየው ቋንቋ።' },
+                appearance: { title: 'ገጽታ', description: 'ቀለሞች፣ የአቀማመጥ ጥግግትና የጎን ምናሌ።' },
+                security: { title: 'ደኅንነት', description: 'የመግቢያ ክፍለ ጊዜዎች፣ ከተሳሳቱ የይለፍ ቃሎች በኋላ የሚደረግ መቆለፍ፣ የጥያቄ ገደቦችና የጥገና ባነር።' },
+                id_cards: { title: 'መታወቂያ ካርዶች', description: 'በመግቢያ ገጹና በጎን ምናሌው የሚታዩ የከተማና የቢሮ ስሞች።' },
+                workforce: { title: 'የሰው ኃይል', description: 'የሥራ መደቦችን የመያዝ ደንቦች።' },
+            },
         },
         recent: {
             title: 'የቅርብ ጊዜ የዋና መዝገብ ለውጦች',
@@ -169,9 +181,12 @@ export const am: Messages = {
         wholeCity: 'መላው ከተማ',
         ownOrganizations: 'የራስ ተቋማት',
         roles: { core_viewer: 'ተመልካች', core_officer: 'ባለሙያ', core_admin: 'አስተዳዳሪ' },
-        orgName: 'አዲስ አበባ ከተማ አስተዳደር',
-        bureauName: 'የሲቪል ሰርቪስና ሰው ሀብት ልማት ቢሮ',
-        officialName: 'የአዲስ አበባ የተቀናጀ የሰራተኛ አስተዳደርና አገልግሎት ሥርዓት',
+        settings: {
+            description: 'ዋና መዝገቡ ሊስተካከልባቸው የሚችሉ ሁሉም ነገሮች። ለውጦች ወዲያውኑ ይሠራሉ፤ በኦዲት መዝገብም ይቀመጣሉ።',
+            save: 'ለውጦቹን ያስቀምጡ',
+            saved: 'ማስተካከያዎቹ ተቀምጠዋል።',
+            nothingChanged: 'ምንም አልተለወጠም።',
+        },
         filters: {
             search: 'ይፈልጉ',
             status: 'ሁኔታ',
@@ -296,6 +311,7 @@ export const am: Messages = {
                 card_suspend: 'ካርድ ታግዷል',
                 card_reinstate: 'ካርድ ተመልሷል',
                 card_revoke: 'ካርድ ተሰርዟል',
+                settings_updated: 'ማስተካከያዎች ተለውጠዋል',
             },
         },
         status: {
