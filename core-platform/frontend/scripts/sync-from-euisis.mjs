@@ -5,7 +5,8 @@
 // The Core pages (PAGES) and the EUISIS entry are followed through every
 // import; each file they reach is copied from EUISIS resources/js as it is,
 // with the translations, type declarations, styles and the shared UI kit, and
-// the EUISIS lang/ files go to the backend (its flash and validation messages).
+// the EUISIS lang/ files go to the backend (its flash and validation messages),
+// with the EUISIS System Settings registry (BACKEND_COPIES).
 // Nothing is edited by hand here: the only differences from EUISIS are the
 // PATCHES below, applied by this script. Run it again whenever EUISIS changes.
 import fs from 'node:fs';
@@ -38,6 +39,12 @@ export const PAGES = [
 
 /** Copied whole: every language file and type declaration. */
 const WHOLE = ['i18n', 'types'];
+
+/** EUISIS backend files the Core reads as they are; only the namespace differs. */
+const BACKEND_COPIES = [
+    { from: 'app/Services/SystemSettings/SystemSettingsRegistry.php', to: 'app/Settings/Euisis/SystemSettingsRegistry.php', namespace: 'App\\Settings\\Euisis' },
+    { from: 'app/Enums/IdCardTemplate.php', to: 'app/Settings/Euisis/IdCardTemplate.php', namespace: 'App\\Settings\\Euisis' },
+];
 
 /**
  * The Core's only changes to the copied files. The Core has fewer routes than
@@ -127,6 +134,16 @@ for (const locale of ['en', 'am']) {
     const target = path.join(here, '..', 'backend', 'lang', locale);
     fs.rmSync(target, { recursive: true, force: true });
     copyTree(path.join(euisis, 'lang', locale), target);
+}
+// The EUISIS System Settings definitions, so the Core's settings page offers the same fields
+// (CoreSettingsRegistry reads them). Only the namespace lines change: both files share one namespace.
+for (const { from, to, namespace } of BACKEND_COPIES) {
+    const source = fs.readFileSync(path.join(euisis, from), 'utf8');
+    const target = path.join(here, '..', 'backend', to);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, source
+        .replace(/^namespace [^;]+;/m, `namespace ${namespace};`)
+        .replace(/^use App\\Enums\\IdCardTemplate;\r?\n\r?\n/m, ''));
 }
 
 for (const patch of PATCHES) {

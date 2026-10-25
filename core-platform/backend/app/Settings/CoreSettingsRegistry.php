@@ -5,22 +5,123 @@ declare(strict_types=1);
 namespace App\Settings;
 
 use App\Models\EmployeeDocument;
+use App\Settings\Euisis\SystemSettingsRegistry as EuisisRegistry;
 
 /**
  * Every setting the Core owns, in one place: type, default, labels in both
  * languages, validation and whether the sign-in page may read it.
  *
- * Keys, labels, defaults and rules are the EUISIS System Settings ones
- * (App\Services\SystemSettings\SystemSettingsRegistry) wherever EUISIS has the
- * same setting, so a value means the same thing in both systems. `workforce`
- * holds the Core's own rules. Public settings carry no secrets.
+ * The sections EUISIS has (EUISIS_GROUPS) take their fields from the EUISIS
+ * System Settings registry itself, so the settings page offers the same fields
+ * with the same meaning in both systems. `workforce`, `numbering` and the other
+ * Core-only groups hold the Core's own rules. Public settings carry no secrets.
  */
 final class CoreSettingsRegistry
 {
     public const GROUPS = ['general', 'localization', 'appearance', 'security', 'id_cards', 'workforce', 'numbering', 'files'];
 
+    /**
+     * The EUISIS System Settings sections the Core offers. Their fields are the
+     * EUISIS ones (App\Settings\Euisis\SystemSettingsRegistry, copied from EUISIS
+     * by the sync script): same keys, types, labels, descriptions, options and
+     * order. A Core default or rule wins where the Core had the same key.
+     */
+    public const EUISIS_GROUPS = ['general', 'localization', 'appearance', 'id_cards', 'notifications', 'email', 'security'];
+
+    /**
+     * EUISIS fields the Core leaves out because it does not do what they control
+     * (ADR 0006 addendum). The MFA fields are shown on the settings page but kept
+     * as the Core's per-role switches (the settings controller maps them).
+     */
+    public const NOT_IN_CORE = [
+        'general' => ['default_dashboard_route'],
+        'notifications' => ['database_notifications_enabled', 'telegram_notifications_enabled', 'notification_retry_attempts', 'notification_queue_name',
+            'notify_admin_on_security_event', 'notify_user_on_card_ready', 'notify_user_on_transfer_approved'],
+        'security' => ['password_max_length', 'password_block_personal_info', 'password_block_common', 'password_breach_check', 'max_upload_size_mb',
+            'allowed_file_types', 'allowed_upload_mime_types', 'require_mfa_for_admins', 'default_password_enabled', 'default_password_hash', 'force_https',
+            'audit_retention_days', 'sensitive_export_requires_reason', 'mfa_enabled', 'mfa_required_for_all', 'mfa_required_role_ids'],
+    ];
+
+    /** EUISIS fields kept under the Core's own key: group => EUISIS key => Core key. */
+    public const STORED_AS = [
+        'notifications' => ['email_notifications_enabled' => 'email_enabled', 'sms_notifications_enabled' => 'sms_enabled'],
+    ];
+
+    /** @var array<string, array<string, array<string, mixed>>>|null */
+    private static ?array $definitions = null;
+
     /** @return array<string, array<string, array<string, mixed>>> group => key => definition */
     public static function definitions(): array
+    {
+        return self::$definitions ??= self::merged();
+    }
+
+    /**
+     * The EUISIS sections with their fields first, then the Core's own fields of
+     * the same section, then the Core's own sections.
+     *
+     * @return array<string, array<string, array<string, mixed>>>
+     */
+    private static function merged(): array
+    {
+        $core = self::coreDefinitions();
+        $euisis = EuisisRegistry::definitions();
+        $merged = [];
+        foreach (self::EUISIS_GROUPS as $group) {
+            $fields = [];
+            $storedAs = self::STORED_AS[$group] ?? [];
+            foreach ($euisis[$group] as $key => $definition) {
+                if ($definition['template_managed'] || in_array($key, self::NOT_IN_CORE[$group] ?? [], true)) {
+                    continue;
+                }
+                $coreKey = $storedAs[$key] ?? $key;
+                $own = $core[$group][$coreKey] ?? null;
+                $fields[$coreKey] = [
+                    'type' => $definition['type'],
+                    'default' => $own !== null ? $own['default'] : $definition['default'],
+                    'label_en' => $definition['label_en'],
+                    'label_am' => $definition['label_am'],
+                    'description_en' => $definition['description_en'],
+                    'description_am' => $definition['description_am'],
+                    'is_public' => $own['is_public'] ?? $definition['is_public'],
+                    'options' => $definition['options'],
+                    'rules' => $own['rules'] ?? $definition['validation_rules'],
+                    'is_encrypted' => $definition['is_encrypted'],
+                    'is_required' => $definition['is_required'],
+                    'sort_order' => $definition['sort_order'],
+                    'page_key' => $key,
+                ];
+            }
+            foreach ($core[$group] ?? [] as $key => $definition) {
+                $fields[$key] ??= self::own($definition, $key, 1000 + count($fields));
+            }
+            $merged[$group] = $fields;
+        }
+        foreach ($core as $group => $fields) {
+            if (! isset($merged[$group])) {
+                $order = 0;
+                foreach ($fields as $key => $definition) {
+                    $merged[$group][$key] = self::own($definition, $key, ++$order * 10);
+                }
+            }
+        }
+
+        return $merged;
+    }
+
+    /**
+     * A Core-only field in the merged shape.
+     *
+     * @param  array<string, mixed>  $definition
+     * @return array<string, mixed>
+     */
+    private static function own(array $definition, string $key, int $order): array
+    {
+        return $definition + ['is_encrypted' => false, 'is_required' => in_array('required', $definition['rules'], true), 'sort_order' => $order, 'page_key' => $key];
+    }
+
+    /** @return array<string, array<string, array<string, mixed>>> the Core's own definitions */
+    private static function coreDefinitions(): array
     {
         $color = ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'];
         // A code format: free text with {seq:N} (required) and optionally {year}.

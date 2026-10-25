@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Services\BreakGlassAccess;
 use App\Services\CoreSettings;
 use App\Services\DomainEvents;
+use App\Services\MailSettings;
 use App\Services\Observability;
 use App\Services\OrganizationScope;
 use App\Services\SystemHealth;
@@ -51,6 +52,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // migrate:fresh / refresh / reset and db:wipe refuse to run in production.
         DB::prohibitDestructiveCommands($this->app->isProduction());
+
+        // Settings › Email replaces the .env mail values, read when mail is first sent.
+        $this->app->afterResolving('mail.manager', fn () => rescue(fn () => $this->app->make(MailSettings::class)->apply(), null, false));
 
         // Record identifiers are UUIDs (accounts are numbered): anything else is a
         // 404 before it reaches the database, where PostgreSQL would reject it.

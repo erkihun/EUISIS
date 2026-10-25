@@ -95,6 +95,17 @@ Inertia, under the EUISIS route names. Decisions taken under the delegation:
     confirmation, and the decision is recorded as a duplicate review.
 13. **Exit Core** opens `EUISIS_APP_URL` when it is set, otherwise it signs
     the person out.
+14. **Settings are the EUISIS settings (2026-10-26).** The settings page is
+    the EUISIS System Settings page with the EUISIS tabs and fields; the
+    definitions are the EUISIS registry, copied by the sync script. The Core
+    keeps its stricter defaults where it had the same key (for example the
+    12-character password minimum and the 8-hour session), shows its own rules
+    in the matching tab's "Other settings" card, and maps the EUISIS MFA card
+    onto its per-class MFA switches. It leaves out what it does not do: SMS
+    and Telegram (no gateway), EUISIS-only notification events, upload type
+    lists, password breach and common-password checks, forced HTTPS (done by
+    the web server), audit retention and the landing-page choice. E-mail
+    settings saved on the page replace the `.env` mail values.
 
 ## Consequences
 - The Core can be deployed, scaled, backed up and secured on its own.

@@ -173,26 +173,36 @@ snapshot.
 
 ## Core settings
 
-Administrators (`core_admin`) change the Core from **Governance › Settings**
-(the EUISIS System Settings page; Numbering and Workforce are on its General tab).
-Every change is validated, applies at once and is audited (`settings.updated`
-with the old and new values). Keys, labels, defaults and limits follow the
-EUISIS System Settings wherever EUISIS has the same setting
-(`app/Settings/CoreSettingsRegistry.php`).
+Administrators change the Core from **Governance › Settings**: the EUISIS
+settings sections, then the EUISIS **System Settings** page with the EUISIS
+tabs, cards and fields. The field definitions are the EUISIS registry itself
+(`backend/app/Settings/Euisis`, copied by `npm run sync`; CI fails when the
+copy drifts). Every change is validated, applies at once and is audited
+(`settings.updated`; secrets as "[set]", never their value).
 
-| Group | Settings | Used by |
+| Tab | Fields | The Core's own rules on the tab ("Other settings") |
 |---|---|---|
-| General | brand name (English, Amharic), official short name, official names, organization name, environment label, sign-in messages | sign-in page, sidebar, page titles, the environment badge |
-| Language | default language | first visit on a device |
-| Appearance | default theme, colours (primary, secondary, accent, sidebar), button style, card radius, table density, sticky headers, animations, breadcrumbs, language switcher, theme switching, compact sidebar, logo position, page size | the whole shell; page size sizes every API list |
-| Security | session length, wrong-password allowance and lockout, API and card-check limits per minute, maintenance banner | sign-in, rate limits, the banner on every page |
-| ID cards | city and bureau names | sign-in page, sidebar |
-| Workforce | seats for a position without an approved establishment | registration and transfer seat checks |
+| General | names, logo, favicon and seal, support and policy links, sign-in page messages and photos | seats and verification rules (workforce), numbering formats, reports, data quality |
+| Localization | language, date, time and calendar, how names and numbers are shown | |
+| Appearance | colours, theme, layout, dashboards and tables | |
+| ID cards | header text, what the card shows, back-side text, QR and verification | photo, signature and quality-check rules, reprints, validity |
+| Notifications | the e-mail and SMS channel switches | card-expiry notice, break-glass warning |
+| Email | mailer, server, credentials, sender, test recipient; **Send test** really sends | |
+| Security | password length and history, sign-in and sessions, the MFA card (by account class), maintenance banner, rate limits | upload limits (files), audit seal checks, integration retention |
 
-Values not changed stay on their defaults (no seeding). `GET /api/settings/public`
-gives the frontend the public ones before sign-in; security and workforce
-values are never public. Infrastructure stays in `.env` (database, CORS
-origins, `APP_KEY`).
+- A value saved on the Email tab replaces the `.env` mail value; a blank
+  field keeps `.env` (`app/Services/MailSettings.php`). Passwords and keys
+  are stored encrypted and never sent back to the page.
+- The MFA card's "roles" are the Core's account classes (city-wide
+  administrators, organization administrators, officers, viewers); it saves
+  the per-class switches MfaPolicy reads.
+- Left out, because the Core does not do what they control (ADR 0006,
+  decision 14): the SMS and Telegram tabs, EUISIS-only notification events,
+  upload type lists, password breach and common-password checks, forced HTTPS,
+  audit retention and the landing-page choice.
+- Values not changed stay on their defaults (no seeding). `GET /api/settings/public`
+  gives the public ones before sign-in; secrets are never public.
+  Infrastructure stays in `.env` (database, CORS origins, `APP_KEY`).
 
 ## Production notes
 

@@ -6,10 +6,10 @@ name: Core platform
 on:
   push:
     branches: [ "main" ]
-    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", ".github/workflows/core-platform.yml" ]
+    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", "app/Services/SystemSettings/SystemSettingsRegistry.php", "app/Enums/IdCardTemplate.php", ".github/workflows/core-platform.yml" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", ".github/workflows/core-platform.yml" ]
+    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", "app/Services/SystemSettings/SystemSettingsRegistry.php", "app/Enums/IdCardTemplate.php", ".github/workflows/core-platform.yml" ]
 
 jobs:
   core-backend:
@@ -99,7 +99,7 @@ jobs:
     - name: The screens are an unchanged copy of EUISIS
       run: |
         node scripts/sync-from-euisis.mjs ../..
-        git diff --exit-code -- . ../backend/lang
+        git diff --exit-code -- . ../backend/lang ../backend/app/Settings/Euisis
     - name: Dependency audit
       run: npm audit --audit-level=high
     - name: Type check

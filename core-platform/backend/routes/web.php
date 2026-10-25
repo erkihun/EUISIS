@@ -25,6 +25,7 @@ use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\SecurityCenterController;
 use App\Http\Controllers\Web\SessionController;
+use App\Http\Controllers\Web\SettingsController;
 use App\Http\Controllers\Web\StructureTypeController;
 use App\Http\Controllers\Web\SystemHealthController;
 use App\Http\Controllers\Web\UserController;
@@ -93,7 +94,7 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/data-quality/issues/{issue}/{step}', [DataQualityController::class, 'step'])->whereIn('step', ManageDataQualityIssues::STEPS)->name('data-quality.step');
             Route::post('/data-quality/scan', [DataQualityController::class, 'scan'])->middleware('throttle:3,10')->name('data-quality.scan');
         });
-        Route::get('/settings', [CoreController::class, 'settings'])->middleware('can:system-settings.view')->name('settings');
+        Route::get('/settings', [SettingsController::class, 'hub'])->middleware('can:system-settings.view')->name('settings');
         Route::post('/exit', [SessionController::class, 'exitCore'])->name('exit');
 
         // The duplicate review queue (ADR 0009); the review binding is scoped by the flagged employee.
@@ -155,13 +156,18 @@ Route::middleware('auth')->group(function (): void {
         });
     });
 
+    // The EUISIS System Settings page over the Core settings (SettingsController::TABS).
     Route::middleware('can:system-settings.view')->group(function (): void {
-        Route::get('/system-settings', [CoreController::class, 'systemSettings'])->name('system-settings.index');
-        foreach (['general' => 'general', 'localization' => 'localization', 'appearance' => 'appearance', 'security' => 'security', 'id-cards' => 'id_cards'] as $path => $section) {
-            Route::patch("/system-settings/{$path}", [CoreController::class, 'updateSettings'])->defaults('section', $section)
+        Route::get('/system-settings', [SettingsController::class, 'index'])->name('system-settings.index');
+        foreach (['general' => 'general', 'localization' => 'localization', 'appearance' => 'appearance', 'security' => 'security', 'id-cards' => 'id_cards',
+            'notifications' => 'notifications', 'email' => 'email'] as $path => $section) {
+            Route::patch("/system-settings/{$path}", [SettingsController::class, 'update'])->defaults('section', $section)
                 ->middleware('can:system-settings.update')->name("system-settings.{$path}.update");
         }
+        Route::post('/system-settings/test-email', [SettingsController::class, 'testEmail'])->middleware(['can:system-settings.update', 'throttle:5,1'])->name('system-settings.test-email');
     });
+    // The EUISIS settings page's "ID card templates" button: the Core's templates live under /core/card-templates.
+    Route::get('/id-card-templates', fn () => redirect()->route('core.card-templates'))->middleware('can:card_templates.view')->name('id-card-templates.index');
 
     Route::get('/audit-logs', [CoreController::class, 'auditLogs'])->middleware('can:audit.view')->name('audit-logs.index');
     Route::post('/code-rules/preview-code', [OrganizationController::class, 'previewCode'])->name('code-rules.preview-code');

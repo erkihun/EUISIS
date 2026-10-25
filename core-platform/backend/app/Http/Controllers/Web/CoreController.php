@@ -19,10 +19,8 @@ use App\Models\User;
 use App\Services\CoreSettings;
 use App\Services\IntegrityChecks;
 use App\Services\OrganizationScope;
-use App\Settings\CoreSettingsRegistry;
 use App\Support\CorePermissions;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -107,12 +105,6 @@ class CoreController extends Controller
     ];
 
     private const AUDIT_WINDOW_DAYS = 30;
-
-    /** Settings sections of the EUISIS settings page that the Core keeps (Core settings groups). */
-    private const SETTINGS_SECTIONS = ['general', 'localization', 'appearance', 'security', 'id_cards'];
-
-    /** Core-only groups, shown and saved with the General section. */
-    private const GENERAL_EXTRAS = ['numbering', 'workforce', 'files', 'integration', 'reports', 'notifications', 'audit', 'data_quality'];
 
     public function __construct(private readonly OrganizationScope $scope) {}
 
@@ -203,82 +195,6 @@ class CoreController extends Controller
             ])->values(),
             'windowDays' => self::AUDIT_WINDOW_DAYS,
         ]);
-    }
-
-    public function settings(): Response
-    {
-        return Inertia::render('Core/Settings', [
-            'sections' => collect(self::SETTINGS_SECTIONS)->map(fn (string $key): array => [
-                'key' => $key,
-                'href' => route('system-settings.index').'?tab='.$key,
-            ])->values(),
-        ]);
-    }
-
-    /** EUISIS SystemSettings/Index over the Core settings registry. */
-    public function systemSettings(Request $request, CoreSettings $settings): Response
-    {
-        $definitions = CoreSettingsRegistry::definitions();
-        $values = $settings->values();
-        $field = fn (string $group, string $key, array $definition, int $order): array => [
-            'key' => $key,
-            'group' => $group,
-            'type' => $definition['type'],
-            'value' => $values[$group][$key],
-            'is_encrypted' => false,
-            'is_public' => $definition['is_public'],
-            'configured' => true,
-            'options' => $definition['options'],
-            'validation_rules' => $definition['rules'],
-            'description_en' => $definition['description_en'],
-            'description_am' => $definition['description_am'],
-            'label_en' => $definition['label_en'],
-            'label_am' => $definition['label_am'],
-            'sort_order' => $order,
-            'default' => $definition['default'],
-            'is_required' => in_array('required', $definition['rules'], true),
-            'asset_url' => null,
-        ];
-
-        $groups = [];
-        foreach (self::SETTINGS_SECTIONS as $group) {
-            $fields = [];
-            $order = 0;
-            foreach ([$group, ...($group === 'general' ? self::GENERAL_EXTRAS : [])] as $source) {
-                foreach ($definitions[$source] as $key => $definition) {
-                    $fields[] = $field($source, $key, $definition, $order++);
-                }
-            }
-            $groups[$group] = ['fields' => $fields, 'can_manage' => $request->user()->can('system-settings.update')];
-        }
-        $can = $request->user()->can('system-settings.update');
-
-        return Inertia::render('SystemSettings/Index', [
-            'settingGroups' => $groups,
-            'emailInEffect' => null,
-            'roles' => [],
-            'can' => [
-                'view' => true, 'update' => $can,
-                'manageGeneral' => $can, 'manageLocalization' => $can, 'manageNotifications' => false, 'manageEmail' => false,
-                'manageSms' => false, 'manageTelegram' => false, 'manageSecurity' => $can, 'manageAppearance' => $can,
-                'manageIdCards' => $can, 'manageFieldWorkGps' => false, 'manageSituationRoom' => false, 'manageIntelligence' => false,
-                'viewIdCardTemplates' => false, 'clearCache' => false,
-            ],
-        ]);
-    }
-
-    public function updateSettings(Request $request, CoreSettings $settings, string $section): RedirectResponse
-    {
-        abort_unless(in_array($section, self::SETTINGS_SECTIONS, true), 404);
-        $definitions = CoreSettingsRegistry::definitions();
-        foreach ([$section, ...($section === 'general' ? self::GENERAL_EXTRAS : [])] as $group) {
-            $input = array_intersect_key($request->all(), $definitions[$group]);
-            if ($input !== []) {
-                $settings->update($group, $input, $request->user());
-            }
-        }
-
-        return back()->with('flash', ['message' => __('Settings saved.'), 'type' => 'success']);
     }
 
     public function auditLogs(Request $request): Response
