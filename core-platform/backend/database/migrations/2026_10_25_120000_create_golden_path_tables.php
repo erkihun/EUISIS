@@ -15,8 +15,10 @@ use Illuminate\Support\Facades\Schema;
  * UUIDs, numbers and card references) and the same core:snapshot fingerprint
  * can be compared between the two databases. Foreign keys exist only between
  * Core tables; columns that named an EUISIS user (created_by, approved_by, …)
- * stay plain references. Two generated columns back the "one current
- * placement / one live card per employee" unique indexes on every engine.
+ * stay plain references. "One current placement / one live card per employee"
+ * is a partial unique index on PostgreSQL (as in EUISIS) and a unique index on
+ * a generated column elsewhere: MySQL/MariaDB have no partial indexes, and
+ * PostgreSQL cannot index a virtual generated column.
  */
 return new class extends Migration
 {
@@ -288,7 +290,9 @@ return new class extends Migration
             $table->text('reason')->nullable();
             $table->timestamp('created_at')->nullable();
             $table->timestamp('updated_at')->nullable();
-            $table->uuid('current_employee_id')->nullable()->virtualAs($this->currentEmployeeExpression('employee_id', 'is_current'));
+            if (! $this->partialIndexes()) {
+                $table->uuid('current_employee_id')->nullable()->virtualAs($this->currentEmployeeExpression(self::CURRENT_PLACEMENT));
+            }
             $table->uuid('job_description_id')->nullable();
             $table->index(['employee_id', 'is_current'], 'ea_employee_current_idx');
             $table->index(['organization_id', 'is_current'], 'ea_organization_current_idx');
@@ -298,7 +302,9 @@ return new class extends Migration
             $table->index(['effective_to'], 'employee_assignments_effective_to_index');
             $table->index(['is_current'], 'employee_assignments_is_current_index');
             $table->index(['job_description_id'], 'employee_assignments_job_description_idx');
-            $table->unique(['current_employee_id'], 'employee_assignments_one_current_per_employee');
+            if (! $this->partialIndexes()) {
+                $table->unique(['current_employee_id'], 'employee_assignments_one_current_per_employee');
+            }
             $table->index(['organization_unit_id'], 'employee_assignments_organization_unit_id_index');
             $table->foreign('employee_id')->references('id')->on('employees')->restrictOnDelete();
             $table->foreign('organization_id')->references('id')->on('organizations')->restrictOnDelete();
@@ -390,12 +396,16 @@ return new class extends Migration
             $table->boolean('reprint_required')->default(false);
             $table->longText('reprint_reasons')->nullable();
             $table->timestamp('reprint_required_at')->nullable();
-            $table->uuid('live_current_employee_id')->nullable()->virtualAs($this->currentEmployeeExpression('employee_id', 'is_current'));
+            if (! $this->partialIndexes()) {
+                $table->uuid('live_current_employee_id')->nullable()->virtualAs($this->currentEmployeeExpression(self::LIVE_CARD));
+            }
             $table->unique(['card_number'], 'id_cards_card_number_unique');
             $table->index(['employee_id', 'is_current'], 'id_cards_employee_idx');
             $table->index(['expires_at'], 'id_cards_expires_at_index');
             $table->index(['is_current'], 'id_cards_is_current_index');
-            $table->unique(['live_current_employee_id'], 'id_cards_one_live_current_per_employee');
+            if (! $this->partialIndexes()) {
+                $table->unique(['live_current_employee_id'], 'id_cards_one_live_current_per_employee');
+            }
             $table->index(['previous_card_id'], 'id_cards_previous_card_id_index');
             $table->unique(['public_card_uuid'], 'id_cards_public_card_uuid_unique');
             $table->index(['reprint_required'], 'id_cards_reprint_required_index');
@@ -424,6 +434,11 @@ return new class extends Migration
         Schema::table('id_cards', function (Blueprint $table): void {
             $table->foreign('previous_card_id')->references('id')->on('id_cards')->nullOnDelete();
         });
+
+        if ($this->partialIndexes()) {
+            DB::statement('CREATE UNIQUE INDEX employee_assignments_one_current_per_employee ON employee_assignments (employee_id) WHERE '.$this->condition(self::CURRENT_PLACEMENT));
+            DB::statement('CREATE UNIQUE INDEX id_cards_one_live_current_per_employee ON id_cards (employee_id) WHERE '.$this->condition(self::LIVE_CARD));
+        }
     }
 
     public function down(): void
@@ -446,12 +461,30 @@ return new class extends Migration
         Schema::enableForeignKeyConstraints();
     }
 
-    /** The employee id while the row is current, else null, in each engine's syntax. */
-    private function currentEmployeeExpression(string $employee, string $current): string
+    /** A current placement: one per employee. */
+    private const CURRENT_PLACEMENT = 'current';
+
+    /** A live current card (the EUISIS definition): one per employee; revoked, suspended and expired cards do not count. */
+    private const LIVE_CARD = 'live_card';
+
+    private function partialIndexes(): bool
     {
-        return match (DB::getDriverName()) {
-            'pgsql' => "case when {$current} then {$employee} end",
-            default => "case when {$current} = 1 then {$employee} end",
+        return DB::getDriverName() === 'pgsql';
+    }
+
+    private function condition(string $rule): string
+    {
+        $true = DB::getDriverName() === 'pgsql' ? 'true' : '1';
+
+        return match ($rule) {
+            self::CURRENT_PLACEMENT => "is_current = {$true}",
+            self::LIVE_CARD => "is_current = {$true} and status in ('pending_print', 'printed', 'issued', 'active')",
         };
+    }
+
+    /** The employee id while the rule holds, else null: what the generated column carries. */
+    private function currentEmployeeExpression(string $rule): string
+    {
+        return "case when {$this->condition($rule)} then employee_id end";
     }
 };
