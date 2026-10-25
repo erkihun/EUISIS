@@ -90,6 +90,6 @@ foreach ($schedule as [$command, $cron, $overlap, $one]) {
 $out[] = '';
 $out[] = '## Workers';
 $out[] = '';
-$out[] = '- `php artisan queue:work database --queue=default --tries=3 --max-time=3600 --memory=256`, at least 2 processes under systemd/supervisor; `queue:restart` on every deploy.';
+$out[] = '- `php artisan queue:work database --queue=notifications,default --tries=3 --max-time=3600 --memory=256`, at least 2 processes under systemd/supervisor; `queue:restart` on every deploy.';
 $out[] = '- No Horizon (no Redis). The cache, sessions and queue use the database.';
 echo implode("\n", $out)."\n";

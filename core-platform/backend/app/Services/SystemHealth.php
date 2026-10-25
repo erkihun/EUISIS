@@ -129,10 +129,14 @@ final class SystemHealth
             ->mapWithKeys(fn ($r): array => [$r->queue => ['waiting' => (int) $r->total, 'oldest_age_minutes' => (int) floor((time() - (int) $r->oldest) / 60)]])->all() : null;
         $sync = in_array(config('queue.default'), ['sync', 'null'], true);
 
+        // A job waiting long without being picked up means no worker serves its queue (ADR 0012: the rehearsal's
+        // workers listened to "default" only and the notifications queue grew unseen).
+        $oldestWaiting = $byQueue === null || $byQueue === [] ? 0 : max(array_column($byQueue, 'oldest_age_minutes'));
+
         return [
             'status' => match (true) {
                 $stuck > 0 => 'error',
-                $failed > 0 || $retrying > 0 || ($sync && app()->isProduction()) => 'warning',
+                $failed > 0 || $retrying > 0 || ($sync && app()->isProduction()) || $oldestWaiting > 15 => 'warning',
                 default => 'ok',
             },
             'details' => ['connection' => config('queue.default'), 'failed_jobs' => $failed, 'waiting_jobs' => $waiting, 'stuck_jobs' => $stuck,

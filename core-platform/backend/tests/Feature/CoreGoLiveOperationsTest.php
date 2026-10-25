@@ -11,6 +11,7 @@ use App\Services\SystemHealth;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -151,6 +152,17 @@ class CoreGoLiveOperationsTest extends TestCase
             ->getContent();
         $this->assertStringNotContainsString('@', (string) $body);
         $this->assertSame('unknown', json_decode((string) $body, true)['checks']['backup']);
+    }
+
+    public function test_a_queue_nobody_works_on_shows_as_a_warning(): void
+    {
+        config(['queue.default' => 'database']);
+        $this->assertSame('ok', app(SystemHealth::class)->checks()['queue']['status']);
+        DB::table('jobs')->insert(['queue' => 'notifications', 'payload' => '{}', 'attempts' => 0, 'reserved_at' => null,
+            'available_at' => now()->subMinutes(20)->getTimestamp(), 'created_at' => now()->subMinutes(20)->getTimestamp()]);
+        $queue = app(SystemHealth::class)->checks()['queue'];
+        $this->assertSame('warning', $queue['status']);
+        $this->assertSame(20, $queue['details']['queues']['notifications']['oldest_age_minutes']);
     }
 
     public function test_every_scheduled_command_is_protected_from_overlap_and_runs_on_one_server(): void

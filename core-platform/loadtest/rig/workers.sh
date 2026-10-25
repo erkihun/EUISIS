@@ -24,7 +24,7 @@ start() {
   : > "$PIDS"
   cd "$CORE_ROOT/current/backend"
   for i in $(seq 1 "$COUNT"); do
-    nohup php artisan queue:work database --name=core-staging-$i --sleep=1 --tries=3 --max-time=3600 --memory=256 < /dev/null >> "$LOGS/worker-$i.log" 2>&1 &
+    nohup php artisan queue:work database --queue=notifications,default --name=core-staging-$i --sleep=1 --tries=3 --max-time=3600 --memory=256 < /dev/null >> "$LOGS/worker-$i.log" 2>&1 &
     echo $! >> "$PIDS"
   done
   nohup php artisan schedule:work --whisper < /dev/null >> "$LOGS/scheduler.log" 2>&1 &
