@@ -77,6 +77,7 @@ enum AuditEventType: string
     case CardLost = 'card_lost';
     case CardDamaged = 'card_damaged';
     case CardSuspended = 'card_suspended';
+    case CardReinstated = 'card_reinstated';
     case CardReplaced = 'card_replaced';
     case CardRevoked = 'card_revoked';
     case CardExpired = 'card_expired';

@@ -99,6 +99,7 @@ const auditLogs = {
         card_lost: 'ካርድ እንደጠፋ ተዘግቧል',
         card_damaged: 'ካርድ እንደተበላሸ ተዘግቧል',
         card_suspended: 'ካርድ ታግዷል',
+        card_reinstated: 'ካርድ መልሶ ነቅቷል',
         card_replaced: 'ካርድ ተተክቷል',
         card_revoked: 'ካርድ ተሽሯል',
         card_expired: 'ካርድ ጊዜ አልቆበታል',

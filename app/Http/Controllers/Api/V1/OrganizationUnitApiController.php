@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\AssignmentStatus;
 use App\Http\Controllers\Api\V1\Concerns\FiltersOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
@@ -75,7 +76,7 @@ class OrganizationUnitApiController extends Controller
         $query = Position::query()
             ->where('organization_unit_id', $unit->getKey())
             ->withCount(['assignments as current_assignments_count' => fn ($assignments) => $assignments
-                ->where('is_current', true)]);
+                ->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value)]);
 
         $this->applyCodeFilter($query, $request, 'position_code', 'job_position_code');
         $this->applyUpdatedAfter($query, $request);

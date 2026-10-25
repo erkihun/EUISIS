@@ -67,6 +67,8 @@ return [
     'transferCompleted' => 'የክፍት የሥራ መደብ ዝውውር ተጠናቋል።',
     'notAcceptingApplications' => 'ይህ ክፍት የሥራ መደብ አሁን ማመልከቻ አይቀበልም።',
     'noSlotsRemaining' => 'ምንም ክፍት የሥራ መደብ አልቀረም።',
+    'destinationNotSelectable' => 'ክፍት የሥራ መደቡ በሚፀናበት ቀን ንቁ አይደለም ወይም የዚህ ተቋም አይደለም።',
+    'employeeNotPlaced' => 'ሠራተኛው ንቁ ምደባ ስለሌለው ሊዛወር አይችልም።',
     'alreadyApplied' => 'ቀደም ሲል ለዚህ ክፍት የሥራ መደብ አመልክተዋል።',
     'establishmentNotApproved' => 'ማስታወቂያ ከማውጣትዎ በፊት የሥራ መደቡ መጽደቅ አለበት።',
     'notDraft' => 'ረቂቅ ማስታወቂያዎች ብቻ ሊጸድቁ ይችላሉ።',

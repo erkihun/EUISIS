@@ -35,6 +35,8 @@ return [
     'reported_damaged' => 'ካርዱ እንደተበላሸ ተመዝግቧል።',
     'replacement_submitted' => 'የምትክ ካርድ ጥያቄ ቀርቧል።',
     'revoked_successfully' => 'ካርዱ በተሳካ ሁኔታ ተሽሯል።',
+    'suspended_successfully' => 'ካርዱ ታግዷል።',
+    'reinstated_successfully' => 'ካርዱ መልሶ ነቅቷል።',
     'request_submitted' => 'የካርድ ጥያቄ ቀርቧል።',
     'request_verified' => 'የካርድ ጥያቄ መረጃ ተረጋግጧል።',
     'request_approved' => 'የካርድ ጥያቄ ጸድቋል። ካርዱ ለሕትመት ዝግጁ ነው።',

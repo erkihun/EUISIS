@@ -932,6 +932,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/id-cards/{card}/report-damaged', [IdCardController::class, 'reportDamaged'])->name('id-cards.report-damaged');
     Route::post('/id-cards/{card}/replace', [IdCardController::class, 'replace'])->name('id-cards.replace');
     Route::post('/id-cards/{card}/revoke', [IdCardController::class, 'revoke'])->name('id-cards.revoke');
+    Route::post('/id-cards/{card}/suspend', [IdCardController::class, 'suspend'])->name('id-cards.suspend');
+    Route::post('/id-cards/{card}/reinstate', [IdCardController::class, 'reinstate'])->name('id-cards.reinstate');
     Route::post('/id-cards/{card}/export/audit', [IdCardController::class, 'exportAudit'])->name('id-cards.export.audit');
 
     // Server-side SVG preview + PNG export (no status change, all actions audited)

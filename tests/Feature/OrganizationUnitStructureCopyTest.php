@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -76,6 +77,8 @@ function copyTestAdminUser(): User
         'organization-units.update',
         'organization-units.delete',
         'organization-units.restore',
+        // Copying positions creates positions (Golden Path Stage 1).
+        'positions.create',
     ];
 
     foreach ($perms as $perm) {
@@ -449,4 +452,29 @@ test('target_parent_unit_id must belong to target org', function (): void {
             'status' => 'active',
         ])
         ->assertSessionHasErrors(['target_parent_unit_id']);
+});
+
+test('copying positions needs the position create permission', function (): void {
+    bindFakeCodeGenerator();
+    $sourceOrg = copyTestOrg('NOPOS-SRC');
+    $targetOrg = copyTestOrg('NOPOS-TGT');
+    copyTestUnit($sourceOrg, 'NOPOS-U1');
+
+    $actor = copyTestAdminUser();
+    $actor->roles()->first()->revokePermissionTo('positions.create');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $payload = [
+        'source_organization_id' => $sourceOrg->id,
+        'source_unit_id' => null,
+        'target_organization_id' => $targetOrg->id,
+        'target_parent_unit_id' => null,
+        'copy_child_units' => true,
+        'copy_functional_relationships' => false,
+        'status' => 'active',
+    ];
+
+    $this->actingAs($actor->fresh())
+        ->post(route('organization-units.copy-structure'), [...$payload, 'copy_positions' => true])
+        ->assertForbidden();
 });

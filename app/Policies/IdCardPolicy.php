@@ -101,6 +101,22 @@ readonly class IdCardPolicy
             && $this->organizationScopeService->canAccessEmployee($user, $idCard->employee);
     }
 
+    /** A reversible block; whoever may revoke a card may suspend it (no separate permission yet). */
+    public function suspend(User $user, IdCard $idCard): bool
+    {
+        return in_array($idCard->status, [CardStatus::Active, CardStatus::Issued], true)
+            && ($user->can('id-cards.revoke') || $user->can('cards.manage'))
+            && $this->organizationScopeService->canAccessEmployee($user, $idCard->employee);
+    }
+
+    /** Lifting a suspension activates the card again, so it needs the activation permission. */
+    public function reinstate(User $user, IdCard $idCard): bool
+    {
+        return $idCard->status === CardStatus::Suspended
+            && ($user->can('id-cards.activate') || $user->can('cards.manage'))
+            && $this->organizationScopeService->canAccessEmployee($user, $idCard->employee);
+    }
+
     public function exportPng(User $user, IdCard $idCard): bool
     {
         $employee = $idCard->employee;

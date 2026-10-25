@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Positions;
 
+use App\Enums\AssignmentStatus;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
@@ -131,6 +132,8 @@ readonly class ScopedPositionStructureService
         return EmployeeAssignment::query()
             ->whereIn('position_id', $positionIds)
             ->where('is_current', true)
+            // A closed current row means employment ended (ADR 0002): the seat is free.
+            ->where('assignment_status', AssignmentStatus::Active->value)
             ->pluck('position_id')
             ->flip()
             ->map(static fn (): bool => true)

@@ -99,6 +99,7 @@ const auditLogs = {
         card_lost: 'Card Reported Lost',
         card_damaged: 'Card Reported Damaged',
         card_suspended: 'Card Suspended',
+        card_reinstated: 'Card Reinstated',
         card_replaced: 'Card Replaced',
         card_revoked: 'Card Revoked',
         card_expired: 'Card Expired',

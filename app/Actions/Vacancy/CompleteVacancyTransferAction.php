@@ -7,12 +7,14 @@ namespace App\Actions\Vacancy;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Entitlements\RecalculateEntitlementsAction;
 use App\Backbone\Commands\TransferAssignment;
+use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\TransferStatus;
 use App\Models\EmployeeTransfer;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\VacancyApplication;
+use App\Services\Employees\EmploymentStatusTransition;
 use App\Services\Integration\Events\TransferEvents;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\Positions\PositionCapacityService;
@@ -60,6 +62,23 @@ readonly class CompleteVacancyTransferAction
                 throw ValidationException::withMessages(['slots' => __('vacancies.noSlotsRemaining')]);
             }
 
+            // The destination must be a selectable position of the vacancy's organization,
+            // and the employee must hold an active placement: an ended one means the
+            // employment ended (ADR 0002) and is resumed, not transferred.
+            if ($destinationPosition === null
+                || ! $destinationPosition->isSelectable($effectiveDate)
+                || (string) $destinationPosition->organization_id !== (string) $positionEntry->organization_id) {
+                throw ValidationException::withMessages(['position' => __('vacancies.destinationNotSelectable')]);
+            }
+
+            if ($currentAssignment->assignment_status !== AssignmentStatus::Active
+                || (string) $employee->current_assignment_id !== (string) $currentAssignment->id
+                || in_array($employee->status, EmploymentStatusTransition::SEPARATED, true)) {
+                throw ValidationException::withMessages(['employee' => __('vacancies.employeeNotPlaced')]);
+            }
+
+            $sourceSnapshot = $currentAssignment->toArray();
+
             // The old placement ends the day before the new one starts, so the
             // two intervals never overlap; the backbone command does the move.
             $newAssignment = $this->transferAssignment->execute(
@@ -99,7 +118,13 @@ readonly class CompleteVacancyTransferAction
                 'to_organization_id' => $positionEntry->organization_id,
                 'from_position_id' => $currentAssignment->position_id,
                 'to_position_id' => $positionEntry->position_id,
+                'from_organization_unit_id' => $sourceSnapshot['organization_unit_id'] ?? null,
+                'to_organization_unit_id' => $newAssignment->organization_unit_id,
                 'current_assignment_id' => $newAssignment->id,
+                // Both placements as they were, so the record keeps its history (as CompleteTransferAction).
+                'destination_assignment_id' => $newAssignment->id,
+                'source_assignment_snapshot' => $sourceSnapshot,
+                'destination_assignment_snapshot' => $newAssignment->toArray(),
                 'requested_by' => $actor->id,
                 'approved_by' => $actor->id,
                 'transfer_reason' => __('vacancies.transferReason'),

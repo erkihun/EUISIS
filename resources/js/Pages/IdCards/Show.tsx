@@ -76,6 +76,8 @@ type Can = {
     reportDamaged?: boolean;
     replace?: boolean;
     revoke?: boolean;
+    suspend?: boolean;
+    reinstate?: boolean;
     exportPng?: boolean;
 };
 
@@ -282,6 +284,8 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
     const damagedForm  = useForm({ reason: '' });
     const replaceForm  = useForm({ reason: '' });
     const revokeForm   = useForm({ reason: '' });
+    const suspendForm  = useForm({ reason: '' });
+    const reinstateForm = useForm({ reason: '' });
 
     // The ID face is always bilingual: Ethiopian on the Amharic row and
     // Gregorian on the English row. It must not follow the viewer's calendar
@@ -289,7 +293,7 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
     const fmtDate = (v?: string | null) =>
         v ? (formatDateDisplay(v.slice(0, 10), 'gregorian', 'en') || v.slice(0, 10)) : undefined;
 
-    const hasAnyAction = can.issue || can.activate || can.reportLost || can.reportDamaged || can.replace || can.revoke;
+    const hasAnyAction = can.issue || can.activate || can.reportLost || can.reportDamaged || can.replace || can.revoke || can.suspend || can.reinstate;
 
     return (
         <AuthenticatedLayout
@@ -621,6 +625,22 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
                                         onClick={() => setModal('damaged')}
                                     />
                                 )}
+                                {can.reinstate && (
+                                    <ActionButton
+                                        label={t('idCards.reinstateCard')}
+                                        variant="success"
+                                        icon={Icon.check}
+                                        onClick={() => setModal('reinstate')}
+                                    />
+                                )}
+                                {can.suspend && (
+                                    <ActionButton
+                                        label={t('idCards.suspendCard')}
+                                        variant="warning"
+                                        icon={Icon.damaged}
+                                        onClick={() => setModal('suspend')}
+                                    />
+                                )}
                                 {(can.replace || can.revoke) && (
                                     <div className="my-1 border-t border-gray-100 dark:border-slate-800" />
                                 )}
@@ -833,6 +853,40 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
                     </FormField>
                 </Modal>
             )}
+
+            {(modal === 'suspend' || modal === 'reinstate') && (() => {
+                const suspending = modal === 'suspend';
+                const form = suspending ? suspendForm : reinstateForm;
+
+                return (
+                    <Modal
+                        title={t(suspending ? 'idCards.suspendCard' : 'idCards.reinstateCard')}
+                        description={t(suspending ? 'idCards.confirmSuspend' : 'idCards.confirmReinstate')}
+                        variant={suspending ? 'warning' : 'primary'}
+                        confirmLabel={t(suspending ? 'idCards.suspendCard' : 'idCards.reinstateCard')}
+                        processing={form.processing}
+                        onClose={() => setModal(null)}
+                        onConfirm={() => {
+                            form.post(route(suspending ? 'id-cards.suspend' : 'id-cards.reinstate', card.id), {
+                                onSuccess: () => setModal(null),
+                            });
+                        }}
+                    >
+                        <FormField label={t('idCards.suspensionReason')}>
+                            <textarea
+                                className={inputCls}
+                                placeholder={t('idCards.suspensionReasonPlaceholder')}
+                                rows={3}
+                                value={form.data.reason}
+                                onChange={(e) => form.setData('reason', e.target.value)}
+                            />
+                            {form.errors.reason && (
+                                <p className="mt-1 text-xs text-red-500">{form.errors.reason}</p>
+                            )}
+                        </FormField>
+                    </Modal>
+                );
+            })()}
 
             <CardPortraitPrintExportModal
                 card={{

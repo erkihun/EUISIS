@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\AssignmentStatus;
 use App\Http\Controllers\Api\V1\Concerns\FiltersOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
@@ -97,7 +98,7 @@ class OrganizationApiController extends Controller
             // Occupancy is part of the position payload; counting here keeps a
             // page of positions to one extra query instead of one per row.
             ->withCount(['assignments as current_assignments_count' => fn ($assignments) => $assignments
-                ->where('is_current', true)]);
+                ->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value)]);
 
         $this->applyCodeFilter($query, $request, 'position_code', 'job_position_code');
         $this->applyUpdatedAfter($query, $request);
@@ -186,7 +187,7 @@ class OrganizationApiController extends Controller
             $positions = Position::query()
                 ->where('organization_id', $organization->getKey())
                 ->withCount(['assignments as current_assignments_count' => fn ($assignments) => $assignments
-                    ->where('is_current', true)])
+                    ->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value)])
                 ->orderBy('title_en')
                 ->get();
 
@@ -199,7 +200,8 @@ class OrganizationApiController extends Controller
                     ->select(OrganizationDataPresenter::EMPLOYEE_COLUMNS)
                     ->with(['currentAssignment:id,employee_id,organization_id,organization_unit_id,position_id'])
                     ->whereHas('currentAssignment', fn ($assignment) => $assignment
-                        ->where('organization_id', $organization->getKey()))
+                        ->where('organization_id', $organization->getKey())
+                        ->where('assignment_status', AssignmentStatus::Active->value))
                     ->get()
                     ->groupBy(fn (Employee $employee): string => (string) $employee->currentAssignment?->position_id);
             }

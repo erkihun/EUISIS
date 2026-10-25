@@ -34,6 +34,8 @@ return [
     'reported_damaged' => 'Card reported as damaged.',
     'replacement_submitted' => 'Replacement request submitted.',
     'revoked_successfully' => 'Card revoked.',
+    'suspended_successfully' => 'Card suspended.',
+    'reinstated_successfully' => 'Card reinstated.',
     // Card request flash messages
     'request_submitted' => 'Card request submitted.',
     'request_verified' => 'Card request data verified.',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Api;
 
 use App\Backbone\Data\AssignmentContext;
+use App\Enums\AssignmentStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Organization;
@@ -92,7 +93,7 @@ class OrganizationDataPresenter
     {
         $occupied = $position->current_assignments_count !== null
             ? $position->current_assignments_count > 0
-            : $position->assignments()->where('is_current', true)->exists();
+            : $position->assignments()->where('is_current', true)->where('assignment_status', AssignmentStatus::Active->value)->exists();
 
         return [
             'id' => $position->id,
