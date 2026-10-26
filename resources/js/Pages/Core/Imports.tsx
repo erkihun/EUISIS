@@ -5,7 +5,8 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { Button, Card, cx, EmptyState, FormField, Pagination, Select, Table, TBody, Td, Th, THead, Tr, type PaginationMeta } from '@euisis/ui';
+import { AppTabNav, Table, TableCard, TBody, Td, Th, THead, Tr, actionLinkClassName } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, EmptyState, FileUpload, FormField, Pagination, Select, type PaginationMeta } from '@euisis/ui';
 
 type Tab = 'validation' | 'ready' | 'processing' | 'completed' | 'failed';
 
@@ -62,9 +63,9 @@ export default function Imports({ tab, counts, batches, types, urls }: {
 
             <div className="space-y-6">
                 {uploadable.length > 0 && (
-                    <Card className="p-5">
-                        <h2 className="text-base font-semibold text-(--app-foreground)">{label('newImport')}</h2>
-                        <form onSubmit={submit} className="mt-4 grid gap-4 md:grid-cols-[14rem_1fr_auto] md:items-end">
+                    <Card>
+                        <CardHeader><CardTitle>{label('newImport')}</CardTitle></CardHeader>
+                        <form onSubmit={submit} className="grid gap-4 md:grid-cols-[14rem_1fr_auto] md:items-start">
                             <FormField label={label('type')} required error={form.errors.type}>
                                 {({ id }) => (
                                     <Select id={id} value={form.data.type} onChange={(event) => form.setData('type', event.target.value)}>
@@ -72,33 +73,31 @@ export default function Imports({ tab, counts, batches, types, urls }: {
                                     </Select>
                                 )}
                             </FormField>
-                            <FormField label={label('file')} required description={label('fileHint')} error={form.errors.file}>
-                                {({ id, describedBy }) => (
-                                    <input id={id} aria-describedby={describedBy} type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                                        className="block w-full text-sm" onChange={(event) => form.setData('file', event.target.files?.[0] ?? null)} />
-                                )}
-                            </FormField>
-                            <Button type="submit" variant="primary" loading={form.processing}>{label('upload')}</Button>
+                            <FileUpload
+                                id="import-file"
+                                label={label('file')}
+                                accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                value={form.data.file}
+                                error={form.errors.file}
+                                onChange={(file) => form.setData('file', file)}
+                            />
+                            <Button type="submit" variant="primary" loading={form.processing} className="md:mt-6">{label('upload')}</Button>
                         </form>
-                        {chosen && (
-                            <p className="mt-3 text-xs text-(--app-muted-foreground)">
-                                {label('columns')} <code className="text-xs">{chosen.columns.join(', ')}</code> ·{' '}
-                                <a href={chosen.template_url} className="text-primary hover:underline">{label('template')}</a>
-                            </p>
-                        )}
+                        <p className="mt-3 text-xs text-(--app-muted-foreground)">
+                            {label('fileHint')}
+                            {chosen && (
+                                <>
+                                    {' · '}{label('columns')} <code className="text-xs">{chosen.columns.join(', ')}</code> ·{' '}
+                                    <a href={chosen.template_url} className={actionLinkClassName()}>{label('template')}</a>
+                                </>
+                            )}
+                        </p>
                     </Card>
                 )}
 
-                <nav aria-label={label('tabsLabel')} className="flex gap-1 overflow-x-auto border-b border-(--app-border)">
-                    {TABS.map((name) => (
-                        <Link key={name} href={urls.page} data={{ tab: name }} preserveScroll aria-current={tab === name ? 'page' : undefined}
-                            className={cx('-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm', tab === name ? 'border-primary font-medium text-primary' : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
-                            {label(`tabs.${name}`)} <span className="tabular-nums">({counts[name]})</span>
-                        </Link>
-                    ))}
-                </nav>
+                <AppTabNav label={label('tabsLabel')} current={tab} items={TABS.map((name) => ({ key: name, label: label(`tabs.${name}`), count: counts[name], href: urls.page, data: { tab: name } }))} />
 
-                <Card className="overflow-hidden p-0">
+                <TableCard footer={batches.meta.total > 0 ? <Pagination meta={batches.meta} onPageChange={(page) => router.get(urls.page, { tab, page }, { preserveScroll: true, preserveState: true })} /> : undefined}>
                     {batches.data.length === 0 ? <EmptyState title={label('empty')} /> : (
                         <Table>
                             <THead>
@@ -127,10 +126,7 @@ export default function Imports({ tab, counts, batches, types, urls }: {
                             </TBody>
                         </Table>
                     )}
-                    <div className="border-t border-(--app-border) px-4 py-3">
-                        <Pagination meta={batches.meta} onPageChange={(page) => router.get(urls.page, { tab, page }, { preserveScroll: true, preserveState: true })} />
-                    </div>
-                </Card>
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

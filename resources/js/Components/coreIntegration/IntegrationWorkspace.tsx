@@ -1,9 +1,8 @@
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
-import AppMetricCard from '@/Components/ui/AppMetricCard';
+import { AppMetricCard, AppTabNav } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { formatNumber } from '@/utils/displayFormat';
-import { cx } from '@euisis/ui';
 import ApiClientsPanel from './ApiClientsPanel';
 import { ApiCallsPanel, DeliveriesPanel, EventLogPanel } from './ActivityPanels';
 import WebhooksPanel from './WebhooksPanel';
@@ -34,21 +33,11 @@ export default function IntegrationWorkspace({ center }: { center: IntegrationCe
                 <AppMetricCard label={t('core.integration.center.summary.failed_deliveries')} value={formatNumber(figures.failed_deliveries)} variant={figures.failed_deliveries > 0 ? 'danger' : 'neutral'} />
             </div>
 
-            <nav aria-label={t('core.integration.center.sections')} className="flex gap-1 overflow-x-auto border-b border-(--app-border)">
-                {TABS.map((tab) => (
-                    <Link
-                        key={tab}
-                        href={center.urls.page}
-                        data={{ tab }}
-                        preserveScroll
-                        aria-current={center.tab === tab ? 'page' : undefined}
-                        className={cx('-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm transition-colors',
-                            center.tab === tab ? 'border-primary font-medium text-primary' : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)')}
-                    >
-                        {t(`core.integration.center.tabs.${tab}`)}
-                    </Link>
-                ))}
-            </nav>
+            <AppTabNav
+                label={t('core.integration.center.sections')}
+                current={center.tab}
+                items={TABS.map((tab) => ({ key: tab, label: t(`core.integration.center.tabs.${tab}`), href: center.urls.page, data: { tab } }))}
+            />
 
             {center.tab === 'clients' && center.clients && <ApiClientsPanel clients={center.clients} options={center.options} storeUrl={center.urls.store_client} />}
             {center.tab === 'webhooks' && center.webhooks && <WebhooksPanel webhooks={center.webhooks} options={center.options} storeUrl={center.urls.store_webhook} />}

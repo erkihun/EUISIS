@@ -4,7 +4,8 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { Button, Card, EmptyState } from '@euisis/ui';
+import { Table, TableCard, TBody, Td, Th, THead, Tr } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, EmptyState } from '@euisis/ui';
 
 type Check = { key: string; status: 'ok' | 'warning' | 'error' | 'unknown'; details: Record<string, unknown> };
 type FailedJob = { uuid: string; queue: string; connection: string; failed_at: string; job: string; error: string; retry_url: string | null; forget_url: string | null };
@@ -43,12 +44,12 @@ export default function SystemHealth({ checks, failed_jobs, observability, confi
             <div className="space-y-5">
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {checks.map((check) => (
-                        <Card key={check.key} className="p-4">
-                            <div className="flex items-center justify-between gap-2">
-                                <h2 className="font-semibold text-(--app-foreground)">{label(`checks.${check.key}`)}</h2>
+                        <Card key={check.key}>
+                            <CardHeader className="mb-3 items-center">
+                                <CardTitle>{label(`checks.${check.key}`)}</CardTitle>
                                 <StatusBadge status={LEVEL[check.status].tone} label={label(`levels.${LEVEL[check.status].key}`)} />
-                            </div>
-                            <dl className="mt-3 space-y-1 text-xs">
+                            </CardHeader>
+                            <dl className="space-y-1 text-xs">
                                 {Object.entries(check.details).map(([key, value]) => (
                                     <div key={key} className="flex justify-between gap-3"><dt className="text-(--app-muted-foreground)">{key}</dt><dd className="text-right font-mono">{show(value)}</dd></div>
                                 ))}
@@ -57,12 +58,11 @@ export default function SystemHealth({ checks, failed_jobs, observability, confi
                     ))}
                 </div>
 
-                <Card>
-                    <div className="border-b border-(--app-border) px-5 py-3"><h2 className="font-semibold text-(--app-foreground)">{label('failedJobs')}</h2></div>
+                <TableCard title={label('failedJobs')}>
                     {failed_jobs.length === 0 ? <EmptyState title={label('noFailedJobs')} /> : (
                         <ul className="divide-y divide-(--app-border) text-sm">
                             {failed_jobs.map((job) => (
-                                <li key={job.uuid} className="flex flex-wrap items-start justify-between gap-3 px-5 py-3">
+                                <li key={job.uuid} className="flex flex-wrap items-start justify-between gap-3 px-4 py-3">
                                     <span className="min-w-0"><span className="font-medium">{job.job}</span> · {job.queue} · <LocalizedDateDisplay value={job.failed_at} withTime />
                                         <span className="block truncate text-xs text-(--app-muted-foreground)">{job.error}</span></span>
                                     <span className="flex gap-2">
@@ -73,58 +73,50 @@ export default function SystemHealth({ checks, failed_jobs, observability, confi
                             ))}
                         </ul>
                     )}
-                </Card>
+                </TableCard>
 
                 <div className="grid gap-4 lg:grid-cols-2">
-                    <Card className="p-4">
-                        <h2 className="font-semibold text-(--app-foreground)">{label('slowRequests')} (≥ {observability.threshold_ms} ms)</h2>
+                    <TableCard title={`${label('slowRequests')} (≥ ${observability.threshold_ms} ms)`}>
                         <Figures rows={observability.slow_requests} empty={label('none')} />
-                    </Card>
-                    <Card className="p-4">
-                        <h2 className="font-semibold text-(--app-foreground)">{label('jobs')}</h2>
+                    </TableCard>
+                    <TableCard title={label('jobs')}>
                         <Figures rows={observability.jobs} empty={label('none')} />
-                    </Card>
-                    <Card className="p-4 lg:col-span-2">
-                        <h2 className="font-semibold text-(--app-foreground)">{label('apiRoutes')}</h2>
-                        <p className="mt-1 text-xs text-(--app-muted-foreground)">{label('verification')}: {observability.verification.calls} · {observability.verification.mean_ms} ms · max {observability.verification.max_ms} ms</p>
-                        {observability.api_routes.length === 0 ? <p className="mt-2 text-sm text-(--app-muted-foreground)">{label('none')}</p> : (
-                            <table className="mt-2 w-full text-left text-xs">
-                                <thead><tr className="text-(--app-muted-foreground)"><th className="py-1">{label('route')}</th><th>{label('calls')}</th><th>{label('mean')}</th><th>{label('max')}</th><th>{label('errors')}</th></tr></thead>
-                                <tbody>{observability.api_routes.map((r) => <tr key={r.route}><td className="py-1 font-mono">{r.route}</td><td>{r.calls}</td><td>{r.mean_ms}</td><td>{r.max_ms}</td><td>{r.errors}</td></tr>)}</tbody>
-                            </table>
+                    </TableCard>
+                    <TableCard className="lg:col-span-2" title={label('apiRoutes')} description={`${label('verification')}: ${observability.verification.calls} · ${observability.verification.mean_ms} ms · max ${observability.verification.max_ms} ms`}>
+                        {observability.api_routes.length === 0 ? <EmptyState title={label('none')} /> : (
+                            <Table>
+                                <THead><Tr><Th>{label('route')}</Th><Th align="right">{label('calls')}</Th><Th align="right">{label('mean')}</Th><Th align="right">{label('max')}</Th><Th align="right">{label('errors')}</Th></Tr></THead>
+                                <TBody>{observability.api_routes.map((r) => <Tr key={r.route}><Td className="font-mono text-xs">{r.route}</Td><Td numeric>{r.calls}</Td><Td numeric>{r.mean_ms}</Td><Td numeric>{r.max_ms}</Td><Td numeric>{r.errors}</Td></Tr>)}</TBody>
+                            </Table>
                         )}
-                    </Card>
+                    </TableCard>
                 </div>
 
-                <Card className="overflow-x-auto">
-                    <div className="border-b border-(--app-border) px-5 py-3">
-                        <h2 className="font-semibold text-(--app-foreground)">{label('configuration')}</h2>
-                        <p className="mt-1 text-xs text-(--app-muted-foreground)">{label('configurationNote')}</p>
-                    </div>
-                    <table className="w-full min-w-[40rem] text-left text-sm">
-                        <tbody className="divide-y divide-(--app-border)">
+                <TableCard title={label('configuration')} description={label('configurationNote')}>
+                    <Table className="min-w-[40rem]">
+                        <TBody>
                             {configuration.map((row) => (
-                                <tr key={row.key}>
-                                    <td className="px-5 py-2 font-mono text-xs">{row.key}</td>
-                                    <td className="px-2 py-2"><StatusBadge status={row.status === 'pass' ? 'active' : row.status === 'fail' ? 'danger' : 'warning'} label={label(`config.${row.status}`)} /></td>
-                                    <td className="px-2 py-2 font-mono text-xs">{row.value}</td>
-                                    <td className="px-2 py-2 text-xs text-(--app-muted-foreground)">{row.advice}</td>
-                                </tr>
+                                <Tr key={row.key}>
+                                    <Td className="font-mono text-xs">{row.key}</Td>
+                                    <Td><StatusBadge status={row.status === 'pass' ? 'active' : row.status === 'fail' ? 'danger' : 'warning'} label={label(`config.${row.status}`)} /></Td>
+                                    <Td className="font-mono text-xs">{row.value}</Td>
+                                    <Td muted className="text-xs">{row.advice}</Td>
+                                </Tr>
                             ))}
-                        </tbody>
-                    </table>
-                </Card>
+                        </TBody>
+                    </Table>
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );
 }
 
 function Figures({ rows, empty }: { rows: Figure[]; empty: string }) {
-    if (rows.length === 0) return <p className="mt-2 text-sm text-(--app-muted-foreground)">{empty}</p>;
+    if (rows.length === 0) return <EmptyState title={empty} />;
 
     return (
-        <table className="mt-2 w-full text-left text-xs">
-            <tbody>{rows.map((row) => <tr key={row.name}><td className="py-1 font-mono">{row.name}</td><td className="text-right">{row.count}×</td><td className="text-right">{row.mean_ms} ms</td><td className="text-right">max {row.max_ms} ms</td>{row.failed !== undefined && <td className="text-right">{row.failed} ✗</td>}</tr>)}</tbody>
-        </table>
+        <Table>
+            <TBody>{rows.map((row) => <Tr key={row.name}><Td className="font-mono text-xs">{row.name}</Td><Td numeric>{row.count}×</Td><Td numeric>{row.mean_ms} ms</Td><Td numeric>max {row.max_ms} ms</Td>{row.failed !== undefined && <Td numeric>{row.failed} ✗</Td>}</Tr>)}</TBody>
+        </Table>
     );
 }

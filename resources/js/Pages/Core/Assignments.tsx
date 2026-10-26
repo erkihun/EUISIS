@@ -4,8 +4,8 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ClipboardListIcon } from '@/Components/NavIcons';
-import { FilterField, FilterPanel, Input, ListPagination, selectClassName, type LaravelPageMeta } from '@/Components/ui';
-import { Card, EmptyState, Table, TBody, THead, Td, Th, Tr } from '@euisis/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, type LaravelPageMeta } from '@/Components/ui';
+import { EmptyState, Table, TableCard, TBody, THead, Td, Th, Tr } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 
 type Named = { id: string; code: string | null; name_en: string | null; name_am: string | null } | null;
@@ -62,20 +62,20 @@ export default function CoreAssignments({ assignments, meta, filters, statuses }
                         <Input id="assignment-organization" value={form.data.organization} onChange={(e) => form.setData('organization', e.target.value)} />
                     </FilterField>
                     <FilterField label={t('core.assignments.status')} htmlFor="assignment-status">
-                        <select id="assignment-status" className={selectClassName} value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
+                        <Select id="assignment-status" value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
                             <option value="">{t('core.assignments.anyStatus')}</option>
                             {statuses.map((status) => <option key={status} value={status}>{t(`core.assignments.statuses.${status}`)}</option>)}
-                        </select>
+                        </Select>
                     </FilterField>
                     <FilterField label={t('core.assignments.scope')} htmlFor="assignment-history">
-                        <select id="assignment-history" className={selectClassName} value={form.data.history} onChange={(e) => form.setData('history', e.target.value)}>
+                        <Select id="assignment-history" value={form.data.history} onChange={(e) => form.setData('history', e.target.value)}>
                             <option value="">{t('core.assignments.currentOnly')}</option>
                             <option value="1">{t('core.assignments.withHistory')}</option>
-                        </select>
+                        </Select>
                     </FilterField>
                 </FilterPanel>
 
-                <Card className="overflow-hidden p-0">
+                <TableCard>
                     {assignments.length === 0 ? (
                         <EmptyState
                             icon={<ClipboardListIcon className="h-8 w-8" />}
@@ -124,9 +124,8 @@ export default function CoreAssignments({ assignments, meta, filters, statuses }
                             </TBody>
                         </Table>
                     )}
-                </Card>
-
-                <ListPagination meta={meta} onPageChange={(page) => router.get(route('core.assignments'), { ...form.data, page }, { preserveState: true, preserveScroll: true })} />
+                    <ListPagination meta={meta} onPageChange={(page) => router.get(route('core.assignments'), { ...form.data, page }, { preserveState: true, preserveScroll: true })} />
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

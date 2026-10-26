@@ -5,7 +5,8 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { AppDialog, Button, Card, cx, EmptyState, FormField, Input, Pagination, Select, Textarea, type PaginationMeta } from '@euisis/ui';
+import { FilterField, FilterPanel, Table, TableCard, TBody, Td, Th, THead, Tr, actionLinkClassName } from '@/Components/ui';
+import { AppDialog, Button, Card, CardDescription, CardHeader, CardTitle, cx, EmptyState, FieldError, FormField, Input, Pagination, Select, Textarea, type PaginationMeta } from '@euisis/ui';
 
 type Option = { id: string; code?: string; name_en?: string; name_am?: string | null; version_name?: string; status?: string };
 type ExportRow = { id: string; report: string; format: string; status: string; row_count: number | null; error: string | null; created_at: string | null; expires_at: string | null; include_sensitive: boolean; download_url: string | null };
@@ -22,6 +23,8 @@ const STATUS_VALUES: Record<string, string[]> = {
     card_status: ['pending_print', 'printed', 'issued', 'active', 'suspended', 'lost', 'damaged', 'expired', 'revoked', 'replaced'],
     severity: ['critical', 'high', 'medium', 'low', 'info'],
 };
+
+const CHECKBOX = 'h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary';
 
 /**
  * Core › Reports (ADR 0011): a report's filters and a paged preview limited
@@ -53,115 +56,122 @@ export default function Reports({ reports, report, definition, filters, preview,
         if (filter === 'profession') return options?.professions ?? [];
         return STATUS_VALUES[filter] ?? [];
     };
+    const hasFilters = Object.values(filters ?? {}).some((value) => value !== '' && value !== undefined);
 
-    const apply = (event: FormEvent) => {
-        event.preventDefault();
+    const apply = () => {
         router.get(url, { report, filters: Object.fromEntries(Object.entries(values).filter(([, v]) => v !== '' && v !== undefined)) }, { preserveState: true, preserveScroll: true });
     };
+    const reset = () => router.get(url, { report }, { preserveState: false });
     const submitExport = (event: FormEvent) => {
         event.preventDefault();
         if (!export_url) return;
         form.transform((data) => ({ ...data, filters }));
         form.post(export_url, { preserveScroll: true, onSuccess: () => setExporting(false) });
     };
+    const set = (filter: string) => (value: string) => setValues({ ...values, [filter]: value });
 
     return (
         <AuthenticatedLayout header={<PageHeader title={label('title')} description={label('description')} />}>
             <Head title={label('title')} />
-            <div className="grid gap-5 lg:grid-cols-[16rem_1fr]">
-                <Card className="p-2">
-                    <nav aria-label={label('title')} className="flex flex-col">
-                        {reports.map((item) => (
-                            <Link key={item.key} href={url} data={{ report: item.key }} aria-current={report === item.key ? 'page' : undefined}
-                                className={cx('rounded-md px-3 py-2 text-sm', report === item.key ? 'bg-(--app-surface-muted) font-medium text-(--app-foreground)' : 'text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
-                                {label(`names.${item.key}`)}
-                            </Link>
-                        ))}
-                    </nav>
-                </Card>
+            <div className="grid items-start gap-5 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-8 xl:grid-cols-[14.5rem_minmax(0,1fr)]">
+                {/* The report list beside the report, as System Settings lists its sections. */}
+                <nav aria-label={label('title')} className="min-w-0 lg:sticky lg:top-20 lg:self-start">
+                    <ul className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-col lg:gap-0.5 lg:px-0 lg:pb-0">
+                        {reports.map((item) => {
+                            const selected = report === item.key;
+                            return (
+                                <li key={item.key}>
+                                    <Link href={url} data={{ report: item.key }} aria-current={selected ? 'page' : undefined}
+                                        className={cx('flex items-center whitespace-nowrap rounded-control px-3 py-2 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary',
+                                            selected ? 'bg-(--app-surface) font-semibold text-(--app-foreground) shadow-xs ring-1 ring-(--app-border)' : 'font-medium text-(--app-muted-foreground) hover:bg-(--app-surface-muted) hover:text-(--app-foreground)')}>
+                                        {label(`names.${item.key}`)}
+                                    </Link>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </nav>
 
-                <div className="space-y-5">
-                    {!report && <Card><EmptyState title={label('choose')} /></Card>}
+                <div className="min-w-0 space-y-5">
+                    {!report && <Card className="p-0"><EmptyState title={label('choose')} /></Card>}
                     {report && definition && (
                         <>
-                            <Card className="p-4">
-                                <div className="flex flex-wrap items-start justify-between gap-3">
-                                    <div>
-                                        <h2 className="font-semibold text-(--app-foreground)">{label(`names.${report}`)}</h2>
-                                        <p className="mt-1 text-sm text-(--app-muted-foreground)">{label(`descriptions.${report}`)}</p>
+                            <Card>
+                                <CardHeader className={definition.filters.length > 0 ? undefined : 'mb-0'}>
+                                    <div className="min-w-0">
+                                        <CardTitle>{label(`names.${report}`)}</CardTitle>
+                                        <CardDescription>{label(`descriptions.${report}`)}</CardDescription>
                                     </div>
-                                    {can.export && export_url && <Button variant="primary" onClick={() => { form.reset(); form.clearErrors(); setExporting(true); }}>{label('export')}</Button>}
-                                </div>
+                                    {can.export && export_url && <Button variant="primary" size="sm" onClick={() => { form.reset(); form.clearErrors(); setExporting(true); }}>{label('export')}</Button>}
+                                </CardHeader>
                                 {definition.filters.length > 0 && (
-                                    <form onSubmit={apply} className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                                    <FilterPanel label={label(`names.${report}`)} onSubmit={apply} onReset={reset} hasActiveFilters={hasFilters} className="border-0 p-0">
                                         {definition.filters.map((filter) => {
                                             const type = FILTER_TYPES[filter] ?? 'text';
                                             const current = values[filter] ?? '';
+                                            const caption = label(`filters.${filter}`);
                                             if (type === 'checkbox') return (
-                                                <label key={filter} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={current === '1'} onChange={(e) => setValues({ ...values, [filter]: e.target.checked ? '1' : '' })} />{label(`filters.${filter}`)}</label>
+                                                <FilterField key={filter} label={caption}>
+                                                    <span className="flex h-10 items-center"><input type="checkbox" className={CHECKBOX} checked={current === '1'} onChange={(e) => set(filter)(e.target.checked ? '1' : '')} /></span>
+                                                </FilterField>
                                             );
-                                            if (type === 'date') return <FormField key={filter} label={label(`filters.${filter}`)}>{({ id }) => <Input id={id} type="date" value={current} onChange={(e) => setValues({ ...values, [filter]: e.target.value })} />}</FormField>;
-                                            if (type === 'text') return <FormField key={filter} label={label(`filters.${filter}`)}>{({ id }) => <Input id={id} value={current} onChange={(e) => setValues({ ...values, [filter]: e.target.value })} />}</FormField>;
+                                            if (type === 'date') return <FilterField key={filter} label={caption}><Input type="date" value={current} onChange={(e) => set(filter)(e.target.value)} /></FilterField>;
+                                            if (type === 'text') return <FilterField key={filter} label={caption}><Input value={current} onChange={(e) => set(filter)(e.target.value)} /></FilterField>;
                                             const list = type === 'organization' ? options?.organizations ?? [] : choices(filter);
                                             return (
-                                                <FormField key={filter} label={label(`filters.${filter}`)}>
-                                                    {({ id }) => (
-                                                        <Select id={id} value={current} onChange={(e) => setValues({ ...values, [filter]: e.target.value })}>
-                                                            <option value="">{label('any')}</option>
-                                                            {(list as Array<Option | string>).map((item) => typeof item === 'string'
-                                                                ? <option key={item} value={item}>{t(`core.reports.values.${item}`)}</option>
-                                                                : <option key={item.id} value={item.id}>{named(item)}</option>)}
-                                                        </Select>
-                                                    )}
-                                                </FormField>
+                                                <FilterField key={filter} label={caption}>
+                                                    <Select value={current} onChange={(e) => set(filter)(e.target.value)}>
+                                                        <option value="">{label('any')}</option>
+                                                        {(list as Array<Option | string>).map((item) => typeof item === 'string'
+                                                            ? <option key={item} value={item}>{t(`core.reports.values.${item}`)}</option>
+                                                            : <option key={item.id} value={item.id}>{named(item)}</option>)}
+                                                    </Select>
+                                                </FilterField>
                                             );
                                         })}
-                                        <div className="flex items-end"><Button type="submit" variant="outline">{label('apply')}</Button></div>
-                                    </form>
+                                    </FilterPanel>
                                 )}
                             </Card>
 
                             {preview && (
-                                <Card className="overflow-x-auto">
+                                <TableCard footer={preview.meta.total > 0 ? <Pagination meta={preview.meta} onPageChange={(page) => router.get(url, { report, filters, page }, { preserveScroll: true, preserveState: true })} /> : undefined}>
                                     {preview.rows.length === 0 ? <EmptyState title={label('noRows')} /> : (
-                                        <table className="w-full min-w-[48rem] text-left text-sm">
-                                            <thead><tr className="border-b border-(--app-border) text-xs text-(--app-muted-foreground)">
-                                                {preview.columns.map((column) => <th key={column.key} scope="col" className="px-3 py-2 font-medium">{column.label}</th>)}
-                                            </tr></thead>
-                                            <tbody className="divide-y divide-(--app-border)">
+                                        <Table className="min-w-[48rem]">
+                                            <THead>
+                                                <Tr>{preview.columns.map((column) => <Th key={column.key}>{column.label}</Th>)}</Tr>
+                                            </THead>
+                                            <TBody>
                                                 {preview.rows.map((row, index) => (
-                                                    <tr key={index}>{preview.columns.map((column) => <td key={column.key} className="px-3 py-1.5">{row[column.key] ?? ''}</td>)}</tr>
+                                                    <Tr key={index}>{preview.columns.map((column) => <Td key={column.key}>{row[column.key] ?? ''}</Td>)}</Tr>
                                                 ))}
-                                            </tbody>
-                                        </table>
+                                            </TBody>
+                                        </Table>
                                     )}
-                                </Card>
+                                </TableCard>
                             )}
-                            {preview && <Pagination meta={preview.meta} onPageChange={(page) => router.get(url, { report, filters, page }, { preserveScroll: true, preserveState: true })} />}
                         </>
                     )}
 
-                    <Card>
-                        <div className="border-b border-(--app-border) px-5 py-3"><h2 className="font-semibold text-(--app-foreground)">{label('myExports')}</h2></div>
+                    <TableCard title={label('myExports')}>
                         {exports.length === 0 ? <EmptyState title={label('noExports')} /> : (
                             <ul className="divide-y divide-(--app-border) text-sm">
                                 {exports.map((run) => (
-                                    <li key={run.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+                                    <li key={run.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
                                         <span>
                                             {label(`names.${run.report}`)} · {run.format.toUpperCase()} · <LocalizedDateDisplay value={run.created_at} withTime />
                                             {run.row_count !== null && <> · {run.row_count} {label('rows')}</>}
                                             {run.include_sensitive && <span className="ml-2"><StatusBadge status="warning" label={label('sensitive')} /></span>}
-                                            {run.error && <span className="block text-xs text-red-600">{run.error}</span>}
+                                            <FieldError className="font-normal">{run.error}</FieldError>
                                         </span>
                                         <span className="flex items-center gap-2">
                                             <StatusBadge status={run.status === 'completed' ? 'active' : run.status === 'failed' ? 'danger' : 'pending'} label={label(`exportStatuses.${run.status}`)} />
-                                            {run.download_url && <a href={run.download_url} className="text-primary hover:underline">{label('download')}</a>}
+                                            {run.download_url && <a href={run.download_url} className={actionLinkClassName({ size: 'sm' })}>{label('download')}</a>}
                                         </span>
                                     </li>
                                 ))}
                             </ul>
                         )}
-                    </Card>
+                    </TableCard>
                 </div>
             </div>
 
@@ -176,9 +186,9 @@ export default function Reports({ reports, report, definition, filters, preview,
                         )}
                     </FormField>
                     {can.sensitive && definition?.columns.some((c) => c.sensitive) && (
-                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.include_sensitive} onChange={(e) => form.setData('include_sensitive', e.target.checked)} />{label('includeSensitive')}</label>
+                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" className={CHECKBOX} checked={form.data.include_sensitive} onChange={(e) => form.setData('include_sensitive', e.target.checked)} />{label('includeSensitive')}</label>
                     )}
-                    {(form.errors as Record<string, string | undefined>).include_sensitive && <p className="text-xs text-red-600">{(form.errors as Record<string, string | undefined>).include_sensitive}</p>}
+                    <FieldError>{(form.errors as Record<string, string | undefined>).include_sensitive}</FieldError>
                     {form.data.include_sensitive && (
                         <FormField label={label('purpose')} required description={label('purposeHelp')} error={form.errors.purpose}>
                             {({ id }) => <Textarea id={id} rows={2} maxLength={500} value={form.data.purpose} onChange={(e) => form.setData('purpose', e.target.value)} />}

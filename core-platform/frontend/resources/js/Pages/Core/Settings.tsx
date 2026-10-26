@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { SettingsIcon } from '@/Components/NavIcons';
 import { buttonClassName } from '@/Components/ui';
-import { Card } from '@euisis/ui';
+import { Card, CardDescription, CardTitle } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 
 interface Props {
@@ -26,8 +26,8 @@ export default function CoreSettings({ sections }: Props) {
                                 <SettingsIcon className="h-5 w-5" aria-hidden="true" />
                             </span>
                             <div className="min-w-0">
-                                <h2 className="text-base font-semibold text-(--app-foreground)">{t(`core.settings.sections.${section.key}.title`)}</h2>
-                                <p className="text-sm text-(--app-muted-foreground)">{t(`core.settings.sections.${section.key}.description`)}</p>
+                                <CardTitle>{t(`core.settings.sections.${section.key}.title`)}</CardTitle>
+                                <CardDescription className="mt-0.5">{t(`core.settings.sections.${section.key}.description`)}</CardDescription>
                             </div>
                         </div>
                         <div className="mt-auto">

@@ -4,8 +4,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import DashboardSection from '@/Components/dashboard/DashboardSection';
 import { useLocale } from '@/hooks/useLocale';
-import { AppDialog, Button, Card, EmptyState, FormField, Input, Select, Textarea } from '@euisis/ui';
+import { AppMetricCard, TableCard } from '@/Components/ui';
+import { AppDialog, Button, Card, CardDescription, CardHeader, CardTitle, EmptyState, FieldError, FormField, Input, Select, Textarea } from '@euisis/ui';
 
 type Grant = {
     id: string;
@@ -46,6 +48,7 @@ type Dashboard = {
 type RequestOptions = { url: string; permissions: string[]; max_minutes: number; organizations: Array<{ id: string; name_en: string; name_am: string | null }> };
 
 const TONE: Record<Grant['status'], string> = { requested: 'pending', active: 'warning', rejected: 'inactive', expired: 'inactive', revoked: 'inactive' };
+const CHECKBOX = 'h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary';
 
 /**
  * Core › Security Center (ADR 0010): emergency (break-glass) access, which
@@ -80,39 +83,42 @@ export default function SecurityCenter({ grants, request, integrity, dashboard }
         <AuthenticatedLayout header={<PageHeader title={label('title')} description={label('description')}
             actions={request ? <Button variant="primary" onClick={() => { ask.reset(); ask.clearErrors(); setAsking(true); }}>{label('requestAccess')}</Button> : undefined} />}>
             <Head title={label('title')} />
-            <div className="space-y-5">
+            <div className="space-y-6">
                 {dashboard && (
-                    <Card className="p-5">
-                        <h2 className="font-semibold text-(--app-foreground)">{label('dashboardTitle')}</h2>
-                        <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-3 lg:grid-cols-6">
-                            <Figure term={label('mfaCoverage')} value={`${dashboard.privileged_with_mfa}/${dashboard.privileged}`} note={dashboard.mfa_enforced ? label('mfaEnforced') : label('mfaNotEnforced')} />
-                            <Figure term={label('withoutMfa')} value={String(dashboard.privileged_without_mfa_count)} note={dashboard.privileged_without_mfa.join(', ')} />
-                            <Figure term={label('activeSessions')} value={dashboard.active_sessions === null ? '—' : String(dashboard.active_sessions)} />
-                            <Figure term={label('failedSignIns')} value={String(dashboard.failed_sign_ins_24h)} note={`${label('lockouts')}: ${dashboard.lockouts_24h}`} />
-                            <Figure term={label('breakGlassActive')} value={String(dashboard.break_glass_active)} />
-                            <Figure term={label('apiClients')} value={String(dashboard.api_clients.active)} note={`${label('revoked')}: ${dashboard.api_clients.revoked} · ${label('expired')}: ${dashboard.api_clients.expired}`} />
-                            <Figure term={label('webhookFailures')} value={String(dashboard.webhooks.failed_deliveries)} note={`${label('suspended')}: ${dashboard.webhooks.suspended}`} />
-                        </dl>
-                        <h3 className="mt-5 text-sm font-semibold text-(--app-foreground)">{label('recentAccessChanges')}</h3>
-                        {dashboard.recent_access_changes.length === 0 ? <p className="mt-1 text-sm text-(--app-muted-foreground)">{label('none')}</p> : (
-                            <ul className="mt-2 space-y-1 text-xs">
-                                {dashboard.recent_access_changes.map((change, index) => (
-                                    <li key={index}><span className="font-mono">{change.action}</span> · {change.actor ?? '—'} · <LocalizedDateDisplay value={change.at} withTime /></li>
-                                ))}
-                            </ul>
-                        )}
-                    </Card>
+                    <DashboardSection title={label('dashboardTitle')}>
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            <AppMetricCard label={label('mfaCoverage')} value={`${dashboard.privileged_with_mfa}/${dashboard.privileged}`} detail={dashboard.mfa_enforced ? label('mfaEnforced') : label('mfaNotEnforced')} variant="primary" />
+                            <AppMetricCard label={label('withoutMfa')} value={dashboard.privileged_without_mfa_count} detail={dashboard.privileged_without_mfa.join(', ') || undefined} variant={dashboard.privileged_without_mfa_count > 0 ? 'warning' : 'neutral'} />
+                            <AppMetricCard label={label('activeSessions')} value={dashboard.active_sessions === null ? '—' : dashboard.active_sessions} variant="neutral" />
+                            <AppMetricCard label={label('failedSignIns')} value={dashboard.failed_sign_ins_24h} detail={`${label('lockouts')}: ${dashboard.lockouts_24h}`} variant={dashboard.failed_sign_ins_24h > 0 ? 'warning' : 'neutral'} />
+                            <AppMetricCard label={label('breakGlassActive')} value={dashboard.break_glass_active} variant={dashboard.break_glass_active > 0 ? 'warning' : 'neutral'} />
+                            <AppMetricCard label={label('apiClients')} value={dashboard.api_clients.active} detail={`${label('revoked')}: ${dashboard.api_clients.revoked} · ${label('expired')}: ${dashboard.api_clients.expired}`} variant="primary" />
+                            <AppMetricCard label={label('webhookFailures')} value={dashboard.webhooks.failed_deliveries} detail={`${label('suspended')}: ${dashboard.webhooks.suspended}`} variant={dashboard.webhooks.failed_deliveries > 0 ? 'danger' : 'neutral'} />
+                        </div>
+                        <TableCard title={label('recentAccessChanges')}>
+                            {dashboard.recent_access_changes.length === 0 ? <EmptyState title={label('none')} /> : (
+                                <ul className="divide-y divide-(--app-border) text-sm">
+                                    {dashboard.recent_access_changes.map((change, index) => (
+                                        <li key={index} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+                                            <span className="font-mono text-xs">{change.action}</span>
+                                            <span className="text-xs text-(--app-muted-foreground)">{change.actor ?? '—'} · <LocalizedDateDisplay value={change.at} withTime /></span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </TableCard>
+                    </DashboardSection>
                 )}
                 {integrity && (
-                    <Card className="p-5">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div>
-                                <h2 className="font-semibold text-(--app-foreground)">{label('integrityTitle')}</h2>
-                                <p className="mt-1 text-sm text-(--app-muted-foreground)">{label('integrityDescription')}</p>
+                    <Card>
+                        <CardHeader>
+                            <div className="min-w-0">
+                                <CardTitle>{label('integrityTitle')}</CardTitle>
+                                <CardDescription>{label('integrityDescription')}</CardDescription>
                             </div>
-                            {integrity.verify_url && <Button variant="outline" onClick={() => router.post(integrity.verify_url as string, {}, { preserveScroll: true })}>{label('verifyNow')}</Button>}
-                        </div>
-                        <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-4">
+                            {integrity.verify_url && <Button variant="outline" size="sm" onClick={() => router.post(integrity.verify_url as string, {}, { preserveScroll: true })}>{label('verifyNow')}</Button>}
+                        </CardHeader>
+                        <dl className="grid gap-4 text-sm sm:grid-cols-4">
                             <div><dt className="text-xs text-(--app-muted-foreground)">{label('sealedThrough')}</dt><dd className="mt-1 tabular-nums">{integrity.sealed_through}</dd></div>
                             <div><dt className="text-xs text-(--app-muted-foreground)">{label('lastSealed')}</dt><dd className="mt-1">{integrity.last_sealed_at ? <LocalizedDateDisplay value={integrity.last_sealed_at} withTime /> : '—'}</dd></div>
                             <div><dt className="text-xs text-(--app-muted-foreground)">{label('unsealed')}</dt><dd className="mt-1 tabular-nums">{integrity.unsealed}</dd></div>
@@ -130,15 +136,11 @@ export default function SecurityCenter({ grants, request, integrity, dashboard }
                     </Card>
                 )}
 
-                <Card>
-                    <div className="border-b border-(--app-border) px-5 py-4">
-                        <h2 className="font-semibold text-(--app-foreground)">{label('grantsTitle')}</h2>
-                        <p className="mt-1 text-sm text-(--app-muted-foreground)">{label('grantsDescription')}</p>
-                    </div>
+                <TableCard title={label('grantsTitle')} description={label('grantsDescription')}>
                     {grants.length === 0 ? <EmptyState title={label('noGrants')} /> : (
                         <ul className="divide-y divide-(--app-border)">
                             {grants.map((grant) => (
-                                <li key={grant.id} className="px-5 py-4">
+                                <li key={grant.id} className="px-4 py-4">
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div className="min-w-0">
                                             <p className="font-medium text-(--app-foreground)">
@@ -165,7 +167,7 @@ export default function SecurityCenter({ grants, request, integrity, dashboard }
                             ))}
                         </ul>
                     )}
-                </Card>
+                </TableCard>
             </div>
 
             {request && (
@@ -197,10 +199,10 @@ export default function SecurityCenter({ grants, request, integrity, dashboard }
                             <legend className="text-sm font-medium text-(--app-foreground)">{label('permissions')}</legend>
                             <div className="mt-2 grid max-h-48 gap-1 overflow-y-auto text-sm sm:grid-cols-2">
                                 {request.permissions.map((permission) => (
-                                    <label key={permission} className="flex items-center gap-2"><input type="checkbox" checked={ask.data.permissions.includes(permission)} onChange={() => togglePermission(permission)} /><span className="font-mono text-xs">{permission}</span></label>
+                                    <label key={permission} className="flex items-center gap-2"><input type="checkbox" className={CHECKBOX} checked={ask.data.permissions.includes(permission)} onChange={() => togglePermission(permission)} /><span className="font-mono text-xs">{permission}</span></label>
                                 ))}
                             </div>
-                            {ask.errors.permissions && <p className="mt-1 text-xs text-red-600">{ask.errors.permissions}</p>}
+                            <FieldError className="mt-1">{ask.errors.permissions}</FieldError>
                         </fieldset>
                         <FormField label={label('reason')} required description={label('reasonHelp')} error={ask.errors.reason}>
                             {({ id }) => <Textarea id={id} rows={3} maxLength={2000} value={ask.data.reason} onChange={(event) => ask.setData('reason', event.target.value)} />}
@@ -212,22 +214,12 @@ export default function SecurityCenter({ grants, request, integrity, dashboard }
             <AppDialog open={deciding !== null} onClose={() => setDeciding(null)} title={deciding ? label(deciding.decision) : ''}
                 footer={<><Button variant="outline" onClick={() => setDeciding(null)}>{label('cancel')}</Button><Button variant="primary" type="submit" form="break-glass-decision" loading={decide.processing}>{label('confirm')}</Button></>}>
                 <form id="break-glass-decision" onSubmit={submitDecision}>
-                    {(decide.errors as Record<string, string | undefined>).grant && <p className="mb-2 text-sm text-red-600">{(decide.errors as Record<string, string | undefined>).grant}</p>}
+                    <FieldError className="mb-2">{(decide.errors as Record<string, string | undefined>).grant}</FieldError>
                     <FormField label={label('reason')} required={deciding?.decision !== 'approve'} error={decide.errors.reason}>
                         {({ id }) => <Textarea id={id} rows={3} value={decide.data.reason} onChange={(event) => decide.setData('reason', event.target.value)} />}
                     </FormField>
                 </form>
             </AppDialog>
         </AuthenticatedLayout>
-    );
-}
-
-function Figure({ term, value, note }: { term: string; value: string; note?: string }) {
-    return (
-        <div>
-            <dt className="text-xs text-(--app-muted-foreground)">{term}</dt>
-            <dd className="mt-1 text-xl font-semibold tabular-nums text-(--app-foreground)">{value}</dd>
-            {note && <dd className="text-xs text-(--app-muted-foreground)">{note}</dd>}
-        </div>
     );
 }

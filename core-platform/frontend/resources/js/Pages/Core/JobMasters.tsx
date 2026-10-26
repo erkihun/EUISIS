@@ -1,10 +1,11 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppDialog, Button, Card, cx, EmptyState, FormField, Input, Textarea } from '@euisis/ui';
+import { AppTabNav, Table, TBody, Td, Th, THead, Tr } from '@/Components/ui';
+import { AppDialog, Button, Card, EmptyState, FormField, Input, Textarea } from '@euisis/ui';
 
 type MasterValue = {
     id: string;
@@ -58,50 +59,41 @@ export default function JobMasters({ kind, kinds, values, can_manage, store_url,
             <Head title={label('title')} />
 
             <div className="space-y-5">
-                <nav aria-label={label('tabsLabel')} className="flex gap-1 overflow-x-auto border-b border-(--app-border)">
-                    {kinds.map((tab) => (
-                        <Link key={tab} href={url} data={{ kind: tab }} preserveScroll aria-current={kind === tab ? 'page' : undefined}
-                            className={cx('-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm', kind === tab ? 'border-primary font-medium text-primary' : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
-                            {label(`kinds.${tab}`)}
-                        </Link>
-                    ))}
-                </nav>
+                <AppTabNav label={label('tabsLabel')} current={kind} items={kinds.map((tab) => ({ key: tab, label: label(`kinds.${tab}`), href: url, data: { kind: tab } }))} />
 
                 {!can_manage && <p className="text-sm text-(--app-muted-foreground)">{label('readOnly')}</p>}
 
-                {values.length === 0 ? (
-                    <Card><EmptyState title={label('empty')} /></Card>
-                ) : (
-                    <Card className="overflow-x-auto">
-                        <table className="w-full min-w-[40rem] text-left text-sm">
-                            <thead>
-                                <tr className="border-b border-(--app-border) text-xs text-(--app-muted-foreground)">
-                                    <th scope="col" className="px-4 py-2 font-medium">{label('code')}</th>
-                                    <th scope="col" className="px-4 py-2 font-medium">{label(locale === 'am' ? 'nameAm' : 'nameEn')}</th>
-                                    <th scope="col" className="px-4 py-2 font-medium">{label('sortOrder')}</th>
-                                    <th scope="col" className="px-4 py-2 font-medium">{label('positions')}</th>
-                                    <th scope="col" className="px-4 py-2 font-medium">{label('status')}</th>
-                                    {can_manage && <th scope="col" className="px-4 py-2"><span className="sr-only">{label('edit')}</span></th>}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-(--app-border)">
+                <Card className="overflow-hidden p-0">
+                    {values.length === 0 ? <EmptyState title={label('empty')} /> : (
+                        <Table>
+                            <THead>
+                                <Tr>
+                                    <Th>{label('code')}</Th>
+                                    <Th>{label(locale === 'am' ? 'nameAm' : 'nameEn')}</Th>
+                                    <Th align="right">{label('sortOrder')}</Th>
+                                    <Th align="right">{label('positions')}</Th>
+                                    <Th>{label('status')}</Th>
+                                    {can_manage && <Th><span className="sr-only">{label('edit')}</span></Th>}
+                                </Tr>
+                            </THead>
+                            <TBody>
                                 {values.map((value) => (
-                                    <tr key={value.id}>
-                                        <td className="px-4 py-2 font-mono">{value.code}</td>
-                                        <td className="px-4 py-2">
+                                    <Tr key={value.id}>
+                                        <Td className="font-mono">{value.code}</Td>
+                                        <Td>
                                             {locale === 'am' && value.name_am ? value.name_am : value.name_en}
                                             {value.needs_review && <span className="ml-2" title={label('needsReviewHint')}><StatusBadge status="warning" label={label('needsReview')} /></span>}
-                                        </td>
-                                        <td className="px-4 py-2 tabular-nums">{value.sort_order}</td>
-                                        <td className="px-4 py-2 tabular-nums">{value.positions_count}</td>
-                                        <td className="px-4 py-2"><StatusBadge status={value.is_active ? 'active' : 'inactive'} label={label(value.is_active ? 'active' : 'inactive')} /></td>
-                                        {can_manage && <td className="px-4 py-2 text-right"><Button size="sm" variant="outline" onClick={() => open(value)}>{label('edit')}</Button></td>}
-                                    </tr>
+                                        </Td>
+                                        <Td numeric>{value.sort_order}</Td>
+                                        <Td numeric>{value.positions_count}</Td>
+                                        <Td><StatusBadge status={value.is_active ? 'active' : 'inactive'} label={label(value.is_active ? 'active' : 'inactive')} /></Td>
+                                        {can_manage && <Td align="right"><Button size="sm" variant="outline" onClick={() => open(value)}>{label('edit')}</Button></Td>}
+                                    </Tr>
                                 ))}
-                            </tbody>
-                        </table>
-                    </Card>
-                )}
+                            </TBody>
+                        </Table>
+                    )}
+                </Card>
             </div>
 
             <AppDialog
@@ -133,7 +125,7 @@ export default function JobMasters({ kind, kinds, values, can_manage, store_url,
                         {({ id }) => <Input id={id} type="number" min={0} max={100000} value={form.data.sort_order} onChange={(event) => form.setData('sort_order', Number(event.target.value))} />}
                     </FormField>
                     <label className="flex items-center gap-2 text-sm">
-                        <input type="checkbox" checked={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.checked)} />
+                        <input type="checkbox" className="h-4 w-4 rounded-sm border-(--app-border-strong) text-primary focus:ring-primary" checked={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.checked)} />
                         {label('active')}
                     </label>
                 </form>

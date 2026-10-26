@@ -5,7 +5,8 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppDialog, Button, Card, cx, EmptyState, FormField, Pagination, Select, Textarea, type PaginationMeta } from '@euisis/ui';
+import { AppTabNav, Table, TBody, Td, Th, THead, Tr, actionLinkClassName } from '@/Components/ui';
+import { AppDialog, Button, Card, EmptyState, FormField, Pagination, Select, Textarea, type PaginationMeta } from '@euisis/ui';
 
 type Side = {
     employee_number: string;
@@ -84,23 +85,16 @@ export default function DuplicateReviews({ reviews, status, counts, url }: {
             <Head title={label('title')} />
 
             <div className="space-y-5">
-                <nav aria-label={label('tabsLabel')} className="flex gap-1 overflow-x-auto border-b border-(--app-border)">
-                    {TABS.map((tab) => (
-                        <Link key={tab} href={url} data={{ status: tab }} preserveScroll aria-current={status === tab ? 'page' : undefined}
-                            className={cx('-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-sm', status === tab ? 'border-primary font-medium text-primary' : 'border-transparent text-(--app-muted-foreground) hover:text-(--app-foreground)')}>
-                            {label(`tabs.${tab}`)} <span className="tabular-nums">({counts[tab]})</span>
-                        </Link>
-                    ))}
-                </nav>
+                <AppTabNav label={label('tabsLabel')} current={status} items={TABS.map((tab) => ({ key: tab, label: label(`tabs.${tab}`), count: counts[tab], href: url, data: { status: tab } }))} />
 
                 {reviews.data.length === 0 ? (
-                    <Card><EmptyState title={label('empty')} /></Card>
+                    <Card className="p-0"><EmptyState title={label('empty')} /></Card>
                 ) : reviews.data.map((review) => (
-                    <Card key={review.id} className="p-5">
-                        <div className="flex flex-wrap items-start justify-between gap-3">
+                    <Card key={review.id} className="overflow-hidden p-0">
+                        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-(--app-border) px-4 py-3">
                             <div>
-                                <p className="text-sm font-semibold text-(--app-foreground)">{label(`levels.${review.match_level}`)}</p>
-                                <p className="mt-1 text-xs text-(--app-muted-foreground)">
+                                <h2 className="text-sm font-semibold text-(--app-foreground)">{label(`levels.${review.match_level}`)}</h2>
+                                <p className="mt-0.5 text-xs text-(--app-muted-foreground)">
                                     {label(`sources.${review.source}`)} · {review.detected_by ?? '—'} · <LocalizedDateDisplay value={review.detected_at} withTime />
                                 </p>
                                 <div className="mt-2 flex flex-wrap gap-1">
@@ -113,45 +107,48 @@ export default function DuplicateReviews({ reviews, status, counts, url }: {
                             )}
                         </div>
 
-                        <div className="mt-4 overflow-x-auto">
-                            <table className="w-full min-w-[32rem] text-left text-sm">
-                                <thead>
-                                    <tr className="border-b border-(--app-border) text-xs text-(--app-muted-foreground)">
-                                        <th className="w-40 py-2 pr-3 font-medium" scope="col"><span className="sr-only">{label('field')}</span></th>
-                                        <th className="py-2 pr-3 font-medium" scope="col">{label('flagged')}</th>
-                                        <th className="py-2 font-medium" scope="col">{label('matched')}</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-(--app-border)">
-                                    {rows.map((row) => {
-                                        const matching = row.matchOn?.some((reason) => review.reasons.includes(reason)) ?? false;
-                                        return (
-                                            <tr key={row.key} className={matching ? 'bg-amber-50 dark:bg-amber-500/10' : undefined}>
-                                                <th scope="row" className="py-2 pr-3 text-xs font-medium text-(--app-muted-foreground)">{label(`fields.${row.key}`)}</th>
-                                                {[review.flagged, review.matched].map((side, index) => (
-                                                    <td key={index} className="py-2 pr-3 text-(--app-foreground)">
-                                                        {side === null ? '—' : side.in_scope || ['employeeNumber', 'name'].includes(row.key) ? row.value(side)
-                                                            : <span className="text-xs text-(--app-muted-foreground)">{label('outOfScope')}</span>}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                        <Table className="min-w-[32rem]">
+                            <THead>
+                                <Tr>
+                                    <Th className="w-40"><span className="sr-only">{label('field')}</span></Th>
+                                    <Th>{label('flagged')}</Th>
+                                    <Th>{label('matched')}</Th>
+                                </Tr>
+                            </THead>
+                            <TBody>
+                                {rows.map((row) => {
+                                    const matching = row.matchOn?.some((reason) => review.reasons.includes(reason)) ?? false;
+                                    return (
+                                        <Tr key={row.key} className={matching ? 'bg-amber-50 dark:bg-amber-500/10' : undefined}>
+                                            <Th scope="row">{label(`fields.${row.key}`)}</Th>
+                                            {[review.flagged, review.matched].map((side, index) => (
+                                                <Td key={index}>
+                                                    {side === null ? '—' : side.in_scope || ['employeeNumber', 'name'].includes(row.key) ? row.value(side)
+                                                        : <span className="text-xs text-(--app-muted-foreground)">{label('outOfScope')}</span>}
+                                                </Td>
+                                            ))}
+                                        </Tr>
+                                    );
+                                })}
+                            </TBody>
+                        </Table>
+
+                        <div className="space-y-2 border-t border-(--app-border) px-4 py-3">
+                            {(review.flagged?.url || review.matched?.url) && (
+                                <div className="flex flex-wrap gap-3">
+                                    {review.flagged?.url && <Link href={review.flagged.url} className={actionLinkClassName({ size: 'sm' })}>{label('openFlagged')}</Link>}
+                                    {review.matched?.url && <Link href={review.matched.url} className={actionLinkClassName({ size: 'sm' })}>{label('openMatched')}</Link>}
+                                </div>
+                            )}
+                            {review.registration_reason && <p className="text-sm"><span className="font-medium">{label('registrationReason')}</span> {review.registration_reason}</p>}
+                            {review.decided_by && (
+                                <p className="text-sm text-(--app-muted-foreground)">
+                                    {label(`tabs.${review.decision}`)} · {review.decided_by} · <LocalizedDateDisplay value={review.decided_at} withTime />
+                                    {review.reason && <span className="block text-(--app-foreground)">{review.reason}</span>}
+                                    {review.notes && <span className="block">{review.notes}</span>}
+                                </p>
+                            )}
                         </div>
-                        <div className="mt-3 flex flex-wrap gap-3 text-xs">
-                            {review.flagged?.url && <Link href={review.flagged.url} className="text-primary hover:underline">{label('openFlagged')}</Link>}
-                            {review.matched?.url && <Link href={review.matched.url} className="text-primary hover:underline">{label('openMatched')}</Link>}
-                        </div>
-                        {review.registration_reason && <p className="mt-3 text-sm"><span className="font-medium">{label('registrationReason')}</span> {review.registration_reason}</p>}
-                        {review.decided_by && (
-                            <p className="mt-2 text-sm text-(--app-muted-foreground)">
-                                {label(`tabs.${review.decision}`)} · {review.decided_by} · <LocalizedDateDisplay value={review.decided_at} withTime />
-                                {review.reason && <span className="block text-(--app-foreground)">{review.reason}</span>}
-                                {review.notes && <span className="block">{review.notes}</span>}
-                            </p>
-                        )}
                     </Card>
                 ))}
 
