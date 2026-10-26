@@ -5,8 +5,8 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { AppMetricCard, AppTabNav, FilterField, FilterPanel, Table, TableCard, TBody, Td, Th, THead, Tr, actionLinkClassName } from '@/Components/ui';
-import { AppDialog, Button, Card, EmptyState, FieldError, FormField, Input, Pagination, Select, Textarea, type PaginationMeta } from '@euisis/ui';
+import { AppMetricCard, AppTabNav, FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { AppDialog, Button, Card, EmptyState, FieldError, FormField, Input, Select, Textarea, type PaginationMeta } from '@euisis/ui';
 
 type Severity = 'critical' | 'high' | 'medium' | 'low' | 'info';
 type Named = { name_en: string; name_am: string | null } | null;
@@ -145,7 +145,7 @@ export default function DataQuality({ tab, tabs, filters, summary, checks, issue
                             </FilterField>
                         </FilterPanel>
 
-                        <TableCard footer={issues.meta.total > 0 ? <Pagination meta={issues.meta} onPageChange={(page) => router.get(url, { tab, ...filters, page }, { preserveScroll: true, preserveState: true })} /> : undefined}>
+                        <TableCard>
                             {issues.data.length === 0 ? <EmptyState title={label('noIssues')} /> : (
                                 <ul className="divide-y divide-(--app-border)">
                                     {issues.data.map((issue) => (
@@ -174,7 +174,8 @@ export default function DataQuality({ tab, tabs, filters, summary, checks, issue
                                     ))}
                                 </ul>
                             )}
-                        </TableCard>
+                            <ListPagination meta={laravelPageMeta(issues.meta)} onPageChange={(page) => router.get(url, { tab, ...filters, page }, { preserveScroll: true, preserveState: true })} />
+                </TableCard>
                     </>
                 )}
             </div>

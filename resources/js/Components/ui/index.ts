@@ -6,7 +6,7 @@ export type { AppTabNavItem } from './AppTabNav';
 export { default as AppActionMenu } from './AppActionMenu';
 export type { AppActionItem } from './AppActionMenu';
 export { default as AppDataTable, AppDataTablePagination, createColumnHelper } from './AppDataTable';
-export { default as ListPagination, hasFilterQuery } from './ListPagination';
+export { default as ListPagination, hasFilterQuery, laravelPageMeta } from './ListPagination';
 export type { LaravelPageMeta } from './ListPagination';
 export type { AppDataTableMeta, ColumnDef } from './AppDataTable';
 export { default as AppToaster } from './AppToaster';

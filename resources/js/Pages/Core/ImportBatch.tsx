@@ -4,9 +4,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
-import { AppMetricCard, AppTabNav, Table, TableCard, TBody, Td, Th, THead, Tr, actionLinkClassName } from '@/Components/ui';
+import { AppMetricCard, AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
-import { Alert, AppDialog, Button, EmptyState, FieldError, FormField, Pagination, Textarea, type PaginationMeta } from '@euisis/ui';
+import { Alert, AppDialog, Button, EmptyState, FieldError, FormField, Textarea, toneSurfaceClassName, type PaginationMeta } from '@euisis/ui';
 import type { ImportBatchSummary } from './Imports';
 
 type RowFilter = 'all' | 'invalid' | 'valid' | 'processed' | 'failed';
@@ -87,7 +87,7 @@ export default function ImportBatch({ batch, columns, rows, filter, can, urls }:
 
                 <AppTabNav label={label('rowFilter')} current={filter} items={FILTERS.map((name) => ({ key: name, label: label(`rowFilters.${name}`), href: urls.page, data: { rows: name } }))} />
 
-                <TableCard footer={rows.meta.total > 0 ? <Pagination meta={rows.meta} onPageChange={(page) => router.get(urls.page, { rows: filter, page }, { preserveScroll: true, preserveState: true })} /> : undefined}>
+                <TableCard>
                     {rows.data.length === 0 ? <EmptyState title={label('noRows')} /> : (
                         <Table>
                             <THead>
@@ -105,7 +105,7 @@ export default function ImportBatch({ batch, columns, rows, filter, can, urls }:
                                         <Td><StatusBadge status={row.status} label={label(`rowStatuses.${row.status}`)} /></Td>
                                         {columns.map((column) => {
                                             const wrong = row.errors.some((error) => error.field === column);
-                                            return <Td key={column} className={wrong ? 'bg-red-50 dark:bg-red-500/10' : undefined}>{row.values[column] ?? ''}</Td>;
+                                            return <Td key={column} className={wrong ? toneSurfaceClassName('danger') : undefined}>{row.values[column] ?? ''}</Td>;
                                         })}
                                         <Td>
                                             {row.errors.map((error, index) => (
@@ -117,6 +117,7 @@ export default function ImportBatch({ batch, columns, rows, filter, can, urls }:
                             </TBody>
                         </Table>
                     )}
+                    <ListPagination meta={laravelPageMeta(rows.meta)} onPageChange={(page) => router.get(urls.page, { rows: filter, page }, { preserveScroll: true, preserveState: true })} />
                 </TableCard>
             </div>
 

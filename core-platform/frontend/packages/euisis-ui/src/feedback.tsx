@@ -3,13 +3,25 @@ import { cx } from './primitives';
 import { useUiMessages } from './context';
 
 export type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
-const tones: Record<Tone, string> = {
-    neutral: 'bg-gray-50 text-gray-700 ring-gray-200 dark:bg-slate-800/60 dark:text-slate-300 dark:ring-slate-700',
-    info: 'bg-primary-50 text-primary-800 ring-primary-200 dark:bg-primary-950 dark:text-primary-200 dark:ring-primary-800',
-    success: 'bg-emerald-50 text-emerald-800 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900',
-    warning: 'bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900',
-    danger: 'bg-red-50 text-red-800 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-900',
+/** The tone's surface alone, for a table row or cell that carries a status (a matching field, an invalid value). */
+const surfaces: Record<Tone, string> = {
+    neutral: 'bg-gray-50 dark:bg-slate-800/60',
+    info: 'bg-primary-50 dark:bg-primary-950',
+    success: 'bg-emerald-50 dark:bg-emerald-950/40',
+    warning: 'bg-amber-50 dark:bg-amber-950/40',
+    danger: 'bg-red-50 dark:bg-red-950/40',
 };
+const tones: Record<Tone, string> = {
+    neutral: `${surfaces.neutral} text-gray-700 ring-gray-200 dark:text-slate-300 dark:ring-slate-700`,
+    info: `${surfaces.info} text-primary-800 ring-primary-200 dark:text-primary-200 dark:ring-primary-800`,
+    success: `${surfaces.success} text-emerald-800 ring-emerald-200 dark:text-emerald-300 dark:ring-emerald-900`,
+    warning: `${surfaces.warning} text-amber-800 ring-amber-200 dark:text-amber-300 dark:ring-amber-900`,
+    danger: `${surfaces.danger} text-red-800 ring-red-200 dark:text-red-300 dark:ring-red-900`,
+};
+
+export function toneSurfaceClassName(tone: Tone = 'neutral', className?: string): string {
+    return cx(surfaces[tone], className);
+}
 
 /** The badge style, for markup that must stay a plain element. */
 export function badgeClassName(tone: Tone = 'neutral', className?: string): string {

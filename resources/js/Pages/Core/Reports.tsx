@@ -5,8 +5,8 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { FilterField, FilterPanel, Table, TableCard, TBody, Td, Th, THead, Tr, actionLinkClassName } from '@/Components/ui';
-import { AppDialog, Button, Card, CardDescription, CardHeader, CardTitle, cx, EmptyState, FieldError, FormField, Input, Pagination, Select, Textarea, type PaginationMeta } from '@euisis/ui';
+import { FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { AppDialog, Button, Card, CardDescription, CardHeader, CardTitle, cx, EmptyState, FieldError, FormField, Input, Select, Textarea, type PaginationMeta } from '@euisis/ui';
 
 type Option = { id: string; code?: string; name_en?: string; name_am?: string | null; version_name?: string; status?: string };
 type ExportRow = { id: string; report: string; format: string; status: string; row_count: number | null; error: string | null; created_at: string | null; expires_at: string | null; include_sensitive: boolean; download_url: string | null };
@@ -134,7 +134,7 @@ export default function Reports({ reports, report, definition, filters, preview,
                             </Card>
 
                             {preview && (
-                                <TableCard footer={preview.meta.total > 0 ? <Pagination meta={preview.meta} onPageChange={(page) => router.get(url, { report, filters, page }, { preserveScroll: true, preserveState: true })} /> : undefined}>
+                                <TableCard>
                                     {preview.rows.length === 0 ? <EmptyState title={label('noRows')} /> : (
                                         <Table className="min-w-[48rem]">
                                             <THead>
@@ -147,7 +147,8 @@ export default function Reports({ reports, report, definition, filters, preview,
                                             </TBody>
                                         </Table>
                                     )}
-                                </TableCard>
+                                    <ListPagination meta={laravelPageMeta(preview.meta)} onPageChange={(page) => router.get(url, { report, filters, page }, { preserveScroll: true, preserveState: true })} />
+                </TableCard>
                             )}
                         </>
                     )}

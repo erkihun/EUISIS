@@ -3,8 +3,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, TableCard, actionLinkClassName } from '@/Components/ui';
-import { Button, cx, EmptyState, Pagination, type PaginationMeta } from '@euisis/ui';
+import { AppTabNav, ListPagination, TableCard, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { Button, cx, EmptyState, type PaginationMeta } from '@euisis/ui';
 
 type Item = { id: string; event: string; title: string; body: string; url: string | null; read: boolean; created_at: string | null };
 
@@ -34,7 +34,7 @@ export default function Notifications({ notifications, unread, unread_only, read
                         { key: 'unread', label: label('unread'), count: unread, href: url, data: { unread: 1 } },
                     ]}
                 />
-                <TableCard footer={notifications.meta.total > 0 ? <Pagination meta={notifications.meta} onPageChange={(page) => router.get(url, { unread: unread_only ? 1 : undefined, page }, { preserveScroll: true })} /> : undefined}>
+                <TableCard>
                     {notifications.data.length === 0 ? <EmptyState title={label('empty')} /> : (
                         <ul className="divide-y divide-(--app-border)">
                             {notifications.data.map((item) => (
@@ -52,6 +52,7 @@ export default function Notifications({ notifications, unread, unread_only, read
                             ))}
                         </ul>
                     )}
+                    <ListPagination meta={laravelPageMeta(notifications.meta)} onPageChange={(page) => router.get(url, { unread: unread_only ? 1 : undefined, page }, { preserveScroll: true })} />
                 </TableCard>
             </div>
         </AuthenticatedLayout>

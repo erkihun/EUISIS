@@ -5,8 +5,8 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, Table, TableCard, TBody, Td, Th, THead, Tr, actionLinkClassName } from '@/Components/ui';
-import { Button, Card, CardHeader, CardTitle, EmptyState, FileUpload, FormField, Pagination, Select, type PaginationMeta } from '@euisis/ui';
+import { AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { Button, Card, CardHeader, CardTitle, EmptyState, FileUpload, FormField, Select, type PaginationMeta } from '@euisis/ui';
 
 type Tab = 'validation' | 'ready' | 'processing' | 'completed' | 'failed';
 
@@ -97,7 +97,7 @@ export default function Imports({ tab, counts, batches, types, urls }: {
 
                 <AppTabNav label={label('tabsLabel')} current={tab} items={TABS.map((name) => ({ key: name, label: label(`tabs.${name}`), count: counts[name], href: urls.page, data: { tab: name } }))} />
 
-                <TableCard footer={batches.meta.total > 0 ? <Pagination meta={batches.meta} onPageChange={(page) => router.get(urls.page, { tab, page }, { preserveScroll: true, preserveState: true })} /> : undefined}>
+                <TableCard>
                     {batches.data.length === 0 ? <EmptyState title={label('empty')} /> : (
                         <Table>
                             <THead>
@@ -126,6 +126,7 @@ export default function Imports({ tab, counts, batches, types, urls }: {
                             </TBody>
                         </Table>
                     )}
+                    <ListPagination meta={laravelPageMeta(batches.meta)} onPageChange={(page) => router.get(urls.page, { tab, page }, { preserveScroll: true, preserveState: true })} />
                 </TableCard>
             </div>
         </AuthenticatedLayout>

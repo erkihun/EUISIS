@@ -5,8 +5,8 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, Table, TBody, Td, Th, THead, Tr, actionLinkClassName } from '@/Components/ui';
-import { AppDialog, Button, Card, EmptyState, FormField, Pagination, Select, Textarea, type PaginationMeta } from '@euisis/ui';
+import { AppTabNav, ListPagination, TBody, THead, Table, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { AppDialog, Button, Card, EmptyState, FormField, Select, Textarea, toneSurfaceClassName, type PaginationMeta } from '@euisis/ui';
 
 type Side = {
     employee_number: string;
@@ -119,7 +119,7 @@ export default function DuplicateReviews({ reviews, status, counts, url }: {
                                 {rows.map((row) => {
                                     const matching = row.matchOn?.some((reason) => review.reasons.includes(reason)) ?? false;
                                     return (
-                                        <Tr key={row.key} className={matching ? 'bg-amber-50 dark:bg-amber-500/10' : undefined}>
+                                        <Tr key={row.key} className={matching ? toneSurfaceClassName('warning') : undefined}>
                                             <Th scope="row">{label(`fields.${row.key}`)}</Th>
                                             {[review.flagged, review.matched].map((side, index) => (
                                                 <Td key={index}>
@@ -152,7 +152,7 @@ export default function DuplicateReviews({ reviews, status, counts, url }: {
                     </Card>
                 ))}
 
-                <Pagination meta={reviews.meta} onPageChange={(page) => router.get(url, { status, page }, { preserveScroll: true, preserveState: true })} />
+                <ListPagination bare meta={laravelPageMeta(reviews.meta)} onPageChange={(page) => router.get(url, { status, page }, { preserveScroll: true, preserveState: true })} />
             </div>
 
             <AppDialog
