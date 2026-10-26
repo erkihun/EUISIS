@@ -21,7 +21,10 @@ log "rolling back $FROM -> $TARGET"
 
 link_shared "$DEST"
 cd "$DEST/backend"
-"$PHP" artisan optimize:clear > /dev/null && "$PHP" artisan optimize > /dev/null || fail "optimize"
+# Only the compiled caches are rebuilt. Never optimize:clear here: it also empties the application cache
+# (scheduler heartbeats, roles, settings, throttles; on a shared Redis, everything in that database).
+for cleared in config route view event; do "$PHP" artisan "$cleared:clear" > /dev/null || fail "$cleared:clear"; done
+"$PHP" artisan optimize > /dev/null || fail "optimize"
 ahead="$("$PHP" -r '
   require "vendor/autoload.php"; $app = require "bootstrap/app.php"; $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
   $known = array_map(fn ($f) => basename($f, ".php"), glob("database/migrations/*.php"));

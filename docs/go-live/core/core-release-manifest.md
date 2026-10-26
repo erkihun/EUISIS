@@ -1,6 +1,6 @@
 # Core release manifest
 
-> **Superseded candidate.** This manifest is for 15c095aa. After D-12 the candidate is 91c3d851, which adds the settings work. Regenerate this file with `deploy/release/manifest.php` from the rc1 artifact once it is built (rehearsal plan, stage B1).
+> **Superseded candidate.** This manifest is for 15c095aa. After D-12 the candidate is 2016bba4, which adds the settings work and the card template designer (evidence §15d). Regenerate this file with `deploy/release/manifest.php` from that artifact.
 
 | Item | Value |
 |---|---|

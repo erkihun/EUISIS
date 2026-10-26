@@ -65,9 +65,16 @@ otherwise have surfaced on real staging.
 
 **Stage B result (2026-10-26): passed on 91c3d851.** All nine steps passed; one
 tooling defect was found and fixed (the backup missed the public disk). Details in
-[core-go-live-evidence.md §15c](core-go-live-evidence.md). A newer candidate (the
-card-template designer, 861bc5e3 on feat/golden-path-stages-apply) adds migrations
-and must go through stages A and B again.
+[core-go-live-evidence.md §15c](core-go-live-evidence.md).
+
+**rc2 (2026-10-26): the card template designer was taken into the candidate**
+(D-12 territory, decided by the project owner). Stages A and B were run again on
+it and found five defects, fixed in db705422 and 2016bba4; the candidate is now
+**2016bba4** ([core-go-live-evidence.md §15d](core-go-live-evidence.md)). The
+designer adds a step to B4 (`deploy/staging/card-designer-smoke.php`) and to the
+restore check (the template artwork). A further change (the printed card drawn
+from the designed template, 83daed6b on feat/golden-path-stages-apply) is not in
+the candidate; taking it in means stages A and B once more.
 
 ## Stage C: real staging certification (owners TBD; the certifying run)
 

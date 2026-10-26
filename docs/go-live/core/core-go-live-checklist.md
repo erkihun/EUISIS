@@ -9,8 +9,8 @@ tooling. It does **not** tick any box below. Status as of 2026-10-26.
 |---|---|---|---|---|---|
 | 1 | [ ] Owners assigned | WAITING FOR EXTERNAL EVIDENCE | owner matrix with every row BLOCKED | names, backups and deadlines filled in by the organization | TBD |
 | 2 | [ ] RPO/RTO approved | WAITING FOR EXTERNAL EVIDENCE | D-01/D-02 in the decision register; restore timings measured | decision maker, date, reason | TBD |
-| 3 | [ ] Release commit approved | DECIDED (D-12, 2026-10-26); commit to be confirmed after CI | settings work included; proposed code commit 91c3d851 (evidence §15b) | CI green on 91c3d851, or the latest fix commit, then the tag | TBD |
-| 4 | [ ] CI green | WAITING FOR EXTERNAL EVIDENCE | locally on 91c3d851: SQLite 238/238, PostgreSQL 238/238, MariaDB 236 + 2 skipped, typecheck, build, audits, drift clean; CI workflow now includes PostgreSQL 18 | PR to `main`, every job green (backend, PostgreSQL, frontend) | TBD |
+| 3 | [ ] Release commit approved | DECIDED (D-12, 2026-10-26); commit to be confirmed after CI | settings work and the card template designer included; proposed code commit 2016bba4 (evidence §15d) | CI green on 2016bba4, or the latest fix commit, then the tag | TBD |
+| 4 | [ ] CI green | WAITING FOR EXTERNAL EVIDENCE | locally on 2016bba4: SQLite 245/245, PostgreSQL 245/245, MariaDB 243 + 2 skipped, typecheck, build, audits, drift clean; CI workflow now includes PostgreSQL 18 | PR to `main`, every job green (backend, PostgreSQL, frontend) | TBD |
 | 5 | [ ] Real staging passed | WAITING FOR EXTERNAL EVIDENCE | `deploy.sh`, `golden-path-smoke.php`, rehearsal runbook | deploy log, smoke and Golden Path output on Linux/Nginx/PHP-FPM | TBD |
 | 6 | [ ] Config audit passed | WAITING FOR EXTERNAL EVIDENCE | 26/26 on the workstation staging | `core:config-audit` output from real staging and production | TBD |
 | 7 | [ ] Production keys provisioned | WAITING FOR EXTERNAL EVIDENCE | key list in the release manifest; independence check in the audit | secret-store entries (names only), KEY_INDEPENDENCE pass on the server | TBD |

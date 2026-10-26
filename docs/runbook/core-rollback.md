@@ -33,12 +33,12 @@ What it does, and what to check at each step:
 |---|---|---|
 | Code | `current` goes back to `releases/<previous>`. That release's own `vendor/` and `bootstrap/cache` come with it | `cat /srv/core/CURRENT_RELEASE` |
 | Frontend assets | each release carries its own `public/build`, so the screens roll back together with the code | the smoke test checks that `/login` serves that release's `app-*.js` |
-| Configuration cache | `optimize:clear`, then `optimize` in the target release, against the current `shared/.env` | the config audit is not run again; a changed `.env` is rolled back separately (below) |
+| Configuration cache | `config:clear`, `route:clear`, `view:clear`, `event:clear`, then `optimize` in the target release, against the current `shared/.env`. Never `optimize:clear`: it also empties the application cache (the scheduler's heartbeat, the roles, the settings), and the next deployment's review then refuses the release as "scheduler never ran" | the config audit is not run again; a changed `.env` is rolled back separately (below) |
 | Database compatibility | the script lists the migrations the target release does not know | each listed migration must be additive. If one is not, stop and fix forward instead |
 | PHP-FPM | `RELOAD_CMD`, a graceful reload | no 502s on the monitor |
 | Queue workers | `queue:restart` and `WORKERS_CMD`: workers finish their current job and restart on the old code | jobs queued by the newer release must still run on the older one. Core jobs carry ids, not code, but check failed jobs after a rollback |
 | Horizon | not used (the Core has no Redis) | — |
-| Cache | the application cache (database store) holds settings and health data only, no code | after a rollback across a settings-schema change: `php artisan cache:clear` |
+| Cache | the application cache (database store) holds settings, the roles and health data only, no code. The roles entry is keyed by the release's permission catalog, so each release reads its own | nothing to clear. A full `cache:clear` loses the scheduler heartbeat for a minute and every sign-in throttle; it is not part of a rollback |
 | Smoke | `/up`, `/health/live`, `/health/ready`, `/login` (with that release's assets), and `/health/monitor` reports the target release | the script fails loudly if any check does not pass |
 
 ## Configuration rollback

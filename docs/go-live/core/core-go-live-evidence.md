@@ -364,6 +364,34 @@ Workstation evidence only (the same rig as §1–§11); it is not certification 
 
 **Not covered:** the sequential benchmark shows the sign-in page slower on rc1 (median 163 vs 84 ms on one node), likely the settings props on web pages; it did not show in the load mix. Recorded for stage C.
 
+## 15d. rc2: the card template designer in the candidate; stages A and B (2026-10-26)
+
+The project owner took the card template designer (861bc5e3, rebased as 62abc843) into the candidate. Stage B on it found five defects; the fixes are db705422 and 2016bba4, and **the proposed release_code_commit is 2016bba4**. Workstation evidence only; not certification.
+
+**Stage A on 2016bba4:** SQLite 245/245, PostgreSQL 245/245, MariaDB 243 + 2 skipped; Pint, Composer and npm audits, typecheck and build (in the artifact), sync drift zero. (62abc843 before the fixes: 243/243 on all three.) A2 and A3 remain WAITING as in §15b.
+
+| Step | Result |
+|---|---|
+| B1 build | 62abc843, db705422 and 2016bba4 built (7.7 MB each) |
+| B2 deploy | 62abc843 over 91c3d851: the first attempt was refused by the configuration review ("scheduler: last task 24 min ago") because the rig had been stopped after rc1 — the gate working; the migrations (two additive, `id_card_templates` and its grants) had already run, and the previous release kept serving. Deployed once the scheduler was back (22 s). db705422 in 57 s, 2016bba4 in 55 s |
+| B3 Golden Path | passed on each build (24.0, 23.5, 23.5 s) |
+| B4 settings and designer smokes | settings 12/12. `deploy/staging/card-designer-smoke.php` 14/14: a viewer sees templates and cannot save; a JPG disguised as PNG is refused; the artwork is on the local disk, served to a template manager and refused without a session; the saved template is the active print version (mirrored) and audited; cards, requests and print batches still answer |
+| B5 CSP | designer, card, card request and print batch pages: 0 real violations (the known logo-URL rig artifact only). **The card page answered 500** (finding 1) |
+| B6 backup and restore | backup 32 files (the template artwork included); drill passed in 62 s: snapshot identical, 398 sealed rows and 10 heads match with the 11 newer seals reported, MFA sign-in, documents, credentials, the mail password, the logo and the template artwork (2 files) restored. Two drill runs before that failed on findings 3 and 5 |
+| B7 rollback to 91c3d851 | 12–32 s; the two designer migrations are listed as additive and left in place; the Golden Path passes on the older release (20.8, 22 s); settings pages 200; the designer route is absent there as expected |
+| B8 fix forward | 11–13 s, with the designer smoke passing right after the switch (the viewer keeps `id_card_templates.view`). One attempt was refused ("scheduler never ran", finding 4) |
+| B9 load, 20 VUs, 60 s, 220k employees, alternating | 91c3d851: 40.0 and 41.4 req/s (p95 1,210 / 1,104 ms); 2016bba4: 40.5 and 41.2 req/s (p95 1,199 / 1,129 ms); 0 errors. No regression. A first pair of candidate runs showed 9–10 % errors, all on the dashboard: the load database lacked the designer's two tables because the rig's migrate command had run through the release's cached configuration against the staging database. Rig mistake, not the application; the dashboard does read `id_card_templates`, which the deployment's migrations create |
+
+**Found and fixed:**
+
+1. **The card page failed once a card had been quality-checked** (`/id-cards/{card}` 500): `qc_at` was not cast to a date (P3 code, older than the designer; the rc1 CSP pass opened a card without a check). Fixed in db705422 with a test.
+2. **Every processed job raised a TypeError in the worker**: the job-duration listener expected a string job id and the database queue numbers its jobs. Present 116 times in the rc1 rehearsal log and missed then. Fixed in db705422 with a database-queue test; on the rig, ten notification jobs then ran clean.
+3. **The restore drill's audit step failed on a live trail**: the trail was sealed and shipped on after the backup, so the restored copy ended before the latest off-server head. `core:audit-verify --restored` reports newer seals instead of failing; the drill uses it (db705422).
+4. **`rollback.sh` emptied the application cache** (`optimize:clear` runs `cache:clear`): the scheduler heartbeat vanished and the next deployment's review refused the release as "never ran"; the roles were re-cached by the older release under its catalog, so after the fix-forward the viewers lacked `id_card_templates.view` for ten minutes. Fixed twice over: the rollback clears only the compiled caches, and the roles cache is keyed by the catalog (2016bba4, with a test).
+5. **The drill never stopped its own server** (started in a subshell), so later drills were verified against a copy left by an earlier one. The server is exec'd and a busy port refuses the drill (2016bba4).
+
+**Not a defect, noted:** the designer is read-only for every role but `core_admin` (the EUISIS split, mirrored by the grant migration); an officer sees greyed controls with no notice. The scheduler heartbeat must be fresh for a deployment to pass its review, so a rollback followed by a deployment within the same minute may need one retry.
+
 ## 15a. Release source of truth (2026-10-26, after `git fetch`; superseded for the code commit by §15b)
 
 | Ref | Commit | What it is |
