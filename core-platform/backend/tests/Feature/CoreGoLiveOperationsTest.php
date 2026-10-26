@@ -66,6 +66,8 @@ class CoreGoLiveOperationsTest extends TestCase
         foreach (['CORE_CREDENTIAL_KEYS', 'CORE_AUDIT_SEAL_KEY', 'NATIONAL_ID_HASH_KEY', 'KEY_INDEPENDENCE', 'CORE_AUDIT_HEAD_DISK', 'PRIVATE_STORAGE', 'SCHEDULER'] as $key) {
             $this->assertSame('pass', $audit[$key], $key);
         }
+        // Imagick is advice, never a blocker: only the PNG card export needs it (rc2 rehearsal: it answers 503 without).
+        $this->assertSame(extension_loaded('imagick') ? 'pass' : 'warning', $audit['PHP_IMAGICK']);
 
         // Outside production the same gaps are warnings, so development is not blocked.
         $this->app->detectEnvironment(fn (): string => 'local');

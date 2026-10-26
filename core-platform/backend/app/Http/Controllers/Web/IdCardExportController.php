@@ -57,9 +57,12 @@ class IdCardExportController extends Controller
         $this->authorize('previewSvg', $card);
         $this->audit->write('card.previewed_svg', $request->user(), $card, $card->employee?->currentAssignment?->organization_id, null, ['card_number' => $card->card_number, 'side' => $side]);
 
+        // An SVG opened on its own is a document: it runs nothing and loads nothing but its own data: images.
         return response($this->render($request, $card, $side), 200, [
             'Content-Type' => 'image/svg+xml; charset=UTF-8',
             'Cache-Control' => 'no-store, no-cache',
+            'Content-Security-Policy' => "default-src 'none'; img-src data:; style-src 'unsafe-inline'",
+            'X-Content-Type-Options' => 'nosniff',
             'X-Robots-Tag' => 'noindex',
         ]);
     }

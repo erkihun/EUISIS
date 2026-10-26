@@ -83,6 +83,9 @@ final class ConfigAudit
                 'The last backup must have succeeded within CORE_BACKUP_MAX_AGE_HOURS and its restore test passed (System Health › Backups).', ! $production || $backup['status'] === 'warning'),
             $check('SCHEDULER', $heartbeat !== null && $heartbeat <= 10, $heartbeat === null ? 'never ran' : "last task {$heartbeat} min ago",
                 'Run the scheduler every minute (schedule:run from cron or schedule:work under a supervisor).', ! $production),
+            // The PNG card export (IdCardPngExporter) answers 503 without Imagick; the SVG preview and the print sheet do not need it.
+            $check('PHP_IMAGICK', extension_loaded('imagick'), extension_loaded('imagick') ? 'loaded' : 'missing',
+                'Install php-imagick on the application servers: the PNG card export answers 503 without it.', true),
             $check('PRIVATE_STORAGE', $exposed === [], $exposed === [] ? 'private' : 'exposed: '.implode(', ', $exposed),
                 'Evidence, imports, exports and seal heads must stay on private disks outside the public web root.'),
             $check('CORE_MONITOR_TOKEN', strlen((string) config('core.monitor_token')) >= 32, (string) config('core.monitor_token') === '' ? '(not set)' : (strlen((string) config('core.monitor_token')) >= 32 ? 'set' : 'too short'),

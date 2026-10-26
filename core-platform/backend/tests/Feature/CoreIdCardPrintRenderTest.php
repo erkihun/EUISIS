@@ -68,7 +68,8 @@ class CoreIdCardPrintRenderTest extends TestCase
             ->has('card.qr_verification_url')
             ->has('card.employee.photo_url'));
 
-        $front = $this->get('/id-cards/'.$this->card->id.'/preview/svg/front')->assertOk()->assertHeader('Cache-Control', 'no-cache, no-store, private');
+        $front = $this->get('/id-cards/'.$this->card->id.'/preview/svg/front')->assertOk()->assertHeader('Cache-Control', 'no-cache, no-store, private')
+            ->assertHeader('Content-Security-Policy', "default-src 'none'; img-src data:; style-src 'unsafe-inline'")->assertHeader('X-Content-Type-Options', 'nosniff');
         $this->assertStringStartsWith('image/svg+xml', (string) $front->headers->get('Content-Type'));
         $svg = $front->getContent();
         $this->assertStringContainsString('<svg', $svg);
