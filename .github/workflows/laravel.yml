@@ -22,6 +22,9 @@ jobs:
         # route files; without the CLI opcache each re-compile is kept until
         # the process ends and the suite outgrows phpunit's memory_limit.
         ini-values: opcache.enable_cli=1
+        # No coverage driver: setup-php loads Xdebug by default, which disables
+        # the JIT and makes the suite several times slower than it is locally.
+        coverage: none
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
