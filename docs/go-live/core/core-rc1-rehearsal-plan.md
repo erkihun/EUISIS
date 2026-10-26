@@ -72,9 +72,14 @@ tooling defect was found and fixed (the backup missed the public disk). Details 
 it and found five defects, fixed in db705422 and 2016bba4; the candidate is now
 **2016bba4** ([core-go-live-evidence.md §15d](core-go-live-evidence.md)). The
 designer adds a step to B4 (`deploy/staging/card-designer-smoke.php`) and to the
-restore check (the template artwork). A further change (the printed card drawn
-from the designed template, 83daed6b on feat/golden-path-stages-apply) is not in
-the candidate; taking it in means stages A and B once more.
+restore check (the template artwork).
+
+**rc3 (2026-10-26): the printed card drawn from the designed template** was taken
+in as well (83daed6b, cherry-picked as 8d742364). Stages A and B were run again
+and found two gaps, fixed in 6bfacc4b; the candidate is now **6bfacc4b**
+([core-go-live-evidence.md §15e](core-go-live-evidence.md)). B4 gains a check of
+the printed-card routes (preview page, SVG faces, PNG export, print sheet); the
+configuration review warns without Imagick.
 
 ## Stage C: real staging certification (owners TBD; the certifying run)
 

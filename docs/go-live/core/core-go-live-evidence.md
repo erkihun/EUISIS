@@ -392,6 +392,31 @@ The project owner took the card template designer (861bc5e3, rebased as 62abc843
 
 **Not a defect, noted:** the designer is read-only for every role but `core_admin` (the EUISIS split, mirrored by the grant migration); an officer sees greyed controls with no notice. The scheduler heartbeat must be fresh for a deployment to pass its review, so a rollback followed by a deployment within the same minute may need one retry.
 
+## 15e. rc3: the printed card from the designed template; stages A and B (2026-10-26)
+
+The project owner took the printed-card change (83daed6b) into the candidate; it was cherry-picked onto the release branch as 8d742364 (the peer branch then fast-forwarded to the same commit, so the trees are identical). Stage B found two gaps, fixed in 6bfacc4b. **The proposed release_code_commit is 6bfacc4b.** Workstation evidence only; not certification.
+
+**Stage A on 6bfacc4b:** SQLite 248/248, PostgreSQL 248/248, MariaDB 246 + 2 skipped; Pint, Composer and npm audits, typecheck and build (in the artifact), sync drift zero with the widened CI path list. The change adds `chillerlan/php-qrcode` ^6.0 (lock updated) and no migrations. A2 and A3 remain WAITING as in §15b.
+
+| Step | Result |
+|---|---|
+| B1 build | 8d742364 and 6bfacc4b built (8.0 MB). One build of 6bfacc4b ran while the test suites were running and `tar` saw a file change under it; the script stopped before writing the checksum and the deployment refused the artifact. Rebuilt alone: checksum verified |
+| B2 deploy | 8d742364 over 2016bba4 in 51 s; 6bfacc4b in 52 s; configuration review passed both times |
+| B3 Golden Path | 37.1 s on 8d742364 once, then 20.5 s; 26.6 s on 6bfacc4b: the first figure was workstation noise, not the renderer |
+| B4 smokes | settings 12/12; designer 14/14 on every build. The printed-card routes as an administrator: card page and preview page 200; front face SVG 200 with the designed artwork embedded (788 ms), back face 200 (385 ms); PNG export 503 (no Imagick on the workstation); print sheet 403 on a finished batch (by design: draft batches only); SVG refused without a session |
+| B5 CSP | preview page and card page in the browser: 0 real violations (the known logo-URL rig artifact only). **The SVG faces were served without the sealed policy the version preview carries** (finding 1) |
+| B6 backup and restore | backup 78 files in 4 s (every smoke run leaves template artwork); drill passed in 153 s while the load runs shared the workstation: snapshot identical, sealed rows and off-server heads match, MFA sign-in, documents, credentials, the mail password, the logo and the template artwork (2 files) restored |
+| B7 rollback to 2016bba4 | 20–39 s; the Golden Path passes on the older release (24, 31 s); the designer smoke passes there |
+| B8 fix forward | 13 s; the designer smoke passes right after the switch |
+| B9 load, 20 VUs, 60 s, 220k employees, alternating | 2016bba4: 45.8 and 41.2 req/s (p95 1,004 / 1,129 ms); 6bfacc4b: 43.8 and 33.2 req/s (p95 1,046 / 1,450 ms); 0 errors. Three of the four runs lie within 41–46 req/s; the one low run is the kind of spread the workstation showed in rc1 (29.5 then 40.8 on one build), and the renderer routes are not in the load mix, so no regression is concluded — the low run is recorded for stage C, where the real hardware decides. A first pair of runs failed 70 % of requests on both releases: the rig's own user tokens had been minted for six hours and had expired; re-minted (`load-tokens.php`), not an application matter |
+
+**Found and fixed (6bfacc4b):**
+
+1. **The per-card SVG faces had no document policy**: an SVG opened on its own could have run script or loaded remote content. They now send `Content-Security-Policy: default-src 'none'; img-src data:; style-src 'unsafe-inline'` and `X-Content-Type-Options: nosniff`, as the version preview already did; asserted in `CoreIdCardPrintRenderTest`.
+2. **Nothing told an operator that the PNG card export needs Imagick** (it answers 503 without the extension). The configuration review now carries a `PHP_IMAGICK` row: a warning, never a blocker, because the SVG preview and the print sheet do not need it. Production application servers need `php-imagick` before the PNG export is offered.
+
+**Noted, not a defect:** the print sheet is available for draft batches only; the preview page itself does no server rendering.
+
 ## 15a. Release source of truth (2026-10-26, after `git fetch`; superseded for the code commit by §15b)
 
 | Ref | Commit | What it is |
