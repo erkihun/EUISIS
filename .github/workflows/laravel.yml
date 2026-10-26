@@ -15,7 +15,7 @@ jobs:
     - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
       with:
         # Laravel 13 needs PHP >= 8.3; the lock also installs on 8.4 and 8.5 (live hosts).
-        php-version: '8.3'
+        php-version: '8.4'
         # bcmath: Daily Work performance calculation (bccomp/bcdiv).
         extensions: bcmath, pdo_sqlite, intl, gd, zip, mbstring, opcache
         # Every test boots a fresh application and re-includes config and
