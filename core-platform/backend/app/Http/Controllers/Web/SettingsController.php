@@ -23,9 +23,8 @@ use Inertia\Response;
 use Throwable;
 
 /**
- * The EUISIS settings pages over the Core settings: Core/Settings (the
- * sections) and SystemSettings/Index with the EUISIS tabs, cards and fields
- * (CoreSettingsRegistry::EUISIS_GROUPS). The Core's own rules appear in the
+ * The EUISIS System Settings page over the Core settings: SystemSettings/Index
+ * with the EUISIS tabs, cards and fields (CoreSettingsRegistry::EUISIS_GROUPS). The Core's own rules appear in the
  * tab they belong with, in its "Other settings" card.
  */
 class SettingsController extends Controller
@@ -41,19 +40,6 @@ class SettingsController extends Controller
         'security' => ['files', 'audit', 'integration'],
     ];
 
-    /** The EUISIS settings hub (Core\CoreSettingsController::SECTIONS), with the Core page each opens. */
-    private const HUB = [
-        'general' => ['system-settings.index', 'general', 'system-settings.view'],
-        'localization' => ['system-settings.index', 'localization', 'system-settings.view'],
-        'appearance' => ['system-settings.index', 'appearance', 'system-settings.view'],
-        'security' => ['system-settings.index', 'security', 'system-settings.view'],
-        'id_cards' => ['system-settings.index', 'id_cards', 'system-settings.view'],
-        'card_templates' => ['id-card-templates.index', null, 'id_card_templates.view'],
-        // Numbering formats are the Core's code rules; they sit on the General tab.
-        'code_rules' => ['system-settings.index', 'general', 'system-settings.view'],
-        'api' => ['core.integration', null, 'integrations.view'],
-    ];
-
     /** The MFA classes of Core accounts (MfaPolicy), shown as the EUISIS "roles" of the MFA card. */
     private const MFA_ROLES = [
         'city_administrator' => ['security.mfa_city_administrators', 'City-wide administrators'],
@@ -66,18 +52,6 @@ class SettingsController extends Controller
     private const ASSETS = ['identity_system_logo', 'favicon', 'seal', 'login_card_photo_1', 'login_card_photo_2', 'login_card_photo_3'];
 
     public function __construct(private readonly CoreSettings $settings) {}
-
-    public function hub(Request $request): Response
-    {
-        return Inertia::render('Core/Settings', [
-            'sections' => collect(self::HUB)
-                ->filter(fn (array $target): bool => $request->user()->can($target[2]))
-                ->map(fn (array $target, string $key): array => [
-                    'key' => $key,
-                    'href' => route($target[0]).($target[1] !== null ? '?tab='.$target[1] : ''),
-                ])->values(),
-        ]);
-    }
 
     public function index(Request $request): Response
     {

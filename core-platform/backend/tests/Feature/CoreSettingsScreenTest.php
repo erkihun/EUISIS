@@ -137,11 +137,13 @@ class CoreSettingsScreenTest extends TestCase
         $this->assertSame([], Storage::disk('public')->allFiles());
     }
 
-    public function test_the_hub_lists_the_euisis_sections(): void
+    public function test_the_core_settings_entry_is_the_system_settings_page(): void
     {
         $this->admin();
 
-        $this->get('/core/settings')->assertInertia(fn (Assert $page) => $page->component('Core/Settings')
-            ->where('sections.5.key', 'card_templates')->where('sections.6.key', 'code_rules')->where('sections.7.key', 'api'));
+        $this->get('/core/settings')->assertRedirect('/system-settings?tab=general');
+        $this->get('/core/settings?tab=security')->assertRedirect('/system-settings?tab=security');
+        $this->get('/system-settings?tab=general')->assertInertia(fn (Assert $page) => $page->component('SystemSettings/Index')
+            ->has('settingGroups.general')->has('settingGroups.security'));
     }
 }

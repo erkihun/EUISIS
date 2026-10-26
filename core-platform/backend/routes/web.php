@@ -96,7 +96,10 @@ Route::middleware('auth')->group(function (): void {
             Route::post('/data-quality/issues/{issue}/{step}', [DataQualityController::class, 'step'])->whereIn('step', ManageDataQualityIssues::STEPS)->name('data-quality.step');
             Route::post('/data-quality/scan', [DataQualityController::class, 'scan'])->middleware('throttle:3,10')->name('data-quality.scan');
         });
-        Route::get('/settings', [SettingsController::class, 'hub'])->middleware('can:system-settings.view')->name('settings');
+        // The Core settings entry is the EUISIS System Settings page itself (as /core/card-templates is the
+        // designer); a section in the address is carried through, the General tab otherwise.
+        Route::get('/settings', fn () => redirect()->route('system-settings.index', ['tab' => request()->query('tab', 'general')]))
+            ->middleware('can:system-settings.view')->name('settings');
         Route::post('/exit', [SessionController::class, 'exitCore'])->name('exit');
 
         // The duplicate review queue (ADR 0009); the review binding is scoped by the flagged employee.

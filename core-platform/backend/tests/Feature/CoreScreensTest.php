@@ -53,7 +53,6 @@ class CoreScreensTest extends TestCase
             '/core/assignments' => 'Core/Assignments',
             '/core/audit' => 'Core/AuditCenter',
             '/core/data-quality' => 'Core/DataQuality',
-            '/core/settings' => 'Core/Settings',
             '/system-settings' => 'SystemSettings/Index',
             '/audit-logs' => 'AuditLogs/Index',
             '/profile' => 'Profile/Edit',
