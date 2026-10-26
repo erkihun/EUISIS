@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\CoreSettings;
+use App\Services\SmsGateway;
 use App\Settings\CoreSettingsRegistry;
 use App\Settings\Euisis\SystemSettingsRegistry as EuisisRegistry;
 use App\Support\CorePermissions;
@@ -93,7 +94,7 @@ class SettingsController extends Controller
                 'manageGeneral' => $can, 'manageLocalization' => $can, 'manageNotifications' => $can, 'manageEmail' => $can,
                 'manageSms' => $can, 'manageTelegram' => $can, 'manageSecurity' => $can, 'manageAppearance' => $can,
                 'manageIdCards' => $can, 'manageFieldWorkGps' => $can, 'manageSituationRoom' => $can, 'manageIntelligence' => $can,
-                'viewIdCardTemplates' => $request->user()->can('id_card_templates.view'), 'clearCache' => $can,
+                'viewIdCardTemplates' => $request->user()->can('id_card_templates.view'), 'clearCache' => $can, 'testChannels' => $can,
                 'apiManagement' => $integrations, 'integrations' => $integrations,
             ],
         ]);
@@ -160,6 +161,53 @@ class SettingsController extends Controller
         return back()->with('flash', $error !== null
             ? ['message' => __('settings.messages.test_channel_failed', ['channel' => 'Email', 'error' => $error]), 'type' => 'error']
             : ['message' => $notSent ?? __('settings.messages.test_channel_sent', ['channel' => 'Email', 'target' => $recipient]), 'type' => $notSent !== null ? 'warning' : 'success']);
+    }
+
+    /** EUISIS "Send test" for SMS: really sends through the configured gateway and reports its answer. */
+    public function testSms(Request $request, AuditWriter $audit, SmsGateway $gateway): RedirectResponse
+    {
+        $phone = $request->string('phone')->toString() ?: (string) ($this->settings->get('sms.sms_test_phone') ?? '');
+
+        return $this->channelTest($request, $audit, 'sms', $phone, fn (string $to): ?string => $gateway->send($to, __('settings.messages.test_sms_body', ['app' => config('app.name')]))
+            ? null
+            : __('settings.messages.test_sms_refused'));
+    }
+
+    /** EUISIS "Send test" for Telegram: as in EUISIS, the test is recorded and queued safely; nothing is sent. */
+    public function testTelegram(Request $request, AuditWriter $audit): RedirectResponse
+    {
+        $chatId = $request->string('chat_id')->toString() ?: (string) ($this->settings->get('telegram.telegram_test_chat_id') ?? '');
+
+        return $this->channelTest($request, $audit, 'telegram', $chatId, null);
+    }
+
+    /** One channel test, with EUISIS's answers: missing target, queued, failed or sent; always audited. */
+    private function channelTest(Request $request, AuditWriter $audit, string $channel, string $target, ?callable $send): RedirectResponse
+    {
+        $configured = $target !== '';
+        $error = null;
+        if ($configured && $send !== null) {
+            try {
+                $error = $send($target);
+            } catch (Throwable $exception) {
+                $error = Str::limit($exception->getMessage(), 300);
+            }
+        }
+        $audit->writeFor('settings.channel_tested', $request->user(), 'CoreSettings', $channel, null, null, [
+            'configured' => $configured, 'result' => ! $configured ? 'not_configured' : ($send === null ? 'queued' : ($error === null ? 'sent' : 'failed')),
+        ]);
+        $name = ucfirst($channel);
+        if (! $configured) {
+            return back()->with('flash', ['message' => __('settings.messages.test_channel_missing', ['channel' => $name]), 'type' => 'warning']);
+        }
+        if ($send === null) {
+            return back()->with('flash', ['message' => __('settings.messages.test_channel_queued', ['channel' => $name]), 'type' => 'success']);
+        }
+        if ($error !== null) {
+            return back()->with('flash', ['message' => __('settings.messages.test_channel_failed', ['channel' => $name, 'error' => $error]), 'type' => 'error']);
+        }
+
+        return back()->with('flash', ['message' => __('settings.messages.test_channel_sent', ['channel' => $name, 'target' => $target]), 'type' => 'success']);
     }
 
     /**

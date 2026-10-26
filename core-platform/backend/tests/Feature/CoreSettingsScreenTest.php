@@ -8,6 +8,7 @@ use App\Models\CoreSetting;
 use App\Models\User;
 use App\Services\CoreSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
@@ -79,6 +80,25 @@ class CoreSettingsScreenTest extends TestCase
         $field = collect($this->get('/system-settings')->inertiaProps('settingGroups.sms.fields'))->firstWhere('key', 'sms_api_key');
         $this->assertNull($field['value']);
         $this->assertTrue($field['configured']);
+    }
+
+    public function test_the_sms_and_telegram_tests_answer_as_euisis_does(): void
+    {
+        $this->admin();
+        $this->get('/system-settings')->assertInertia(fn (Assert $page) => $page->where('can.testChannels', true));
+
+        // Nothing configured: the target is missing.
+        $this->from('/system-settings?tab=sms')->post('/system-settings/test-sms')->assertRedirect('/system-settings?tab=sms')->assertSessionHas('flash.type', 'warning');
+        $this->post('/system-settings/test-telegram')->assertSessionHas('flash.type', 'warning');
+
+        // Telegram is recorded and queued; SMS really posts to the gateway and reports its answer.
+        $this->post('/system-settings/test-telegram', ['chat_id' => '12345'])->assertSessionHas('flash.type', 'success');
+        $this->patch('/system-settings/sms', ['sms_provider' => 'generic_http', 'sms_api_url' => 'https://sms.example.test/send', 'sms_api_key' => 'k-1', 'sms_test_phone' => '0911000000'])
+            ->assertSessionHasNoErrors();
+        Http::fake(['sms.example.test/*' => Http::sequence()->push(['ok' => true])->push('refused', 500)]);
+        $this->post('/system-settings/test-sms')->assertSessionHas('flash.type', 'success');
+        Http::assertSent(fn (\Illuminate\Http\Client\Request $sent): bool => $sent['to'] === '+251911000000' && $sent->hasHeader('Authorization', 'Bearer k-1'));
+        $this->post('/system-settings/test-sms', ['phone' => '+251922000000'])->assertSessionHas('flash.type', 'error');
     }
 
     public function test_the_mfa_card_saves_the_core_switches(): void

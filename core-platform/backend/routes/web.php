@@ -179,6 +179,8 @@ Route::middleware('auth')->group(function (): void {
                 ->middleware('can:system-settings.update')->name("system-settings.{$path}.update");
         }
         Route::post('/system-settings/test-email', [SettingsController::class, 'testEmail'])->middleware(['can:system-settings.update', 'throttle:5,1'])->name('system-settings.test-email');
+        Route::post('/system-settings/test-sms', [SettingsController::class, 'testSms'])->middleware(['can:system-settings.update', 'throttle:5,1'])->name('system-settings.test-sms');
+        Route::post('/system-settings/test-telegram', [SettingsController::class, 'testTelegram'])->middleware(['can:system-settings.update', 'throttle:5,1'])->name('system-settings.test-telegram');
         Route::post('/system-settings/clear-cache', [SettingsController::class, 'clearCache'])->middleware('can:system-settings.update')->name('system-settings.clear-cache');
     });
     // The EUISIS ID card template designer (SystemSettings/IdCardTemplates), the EUISIS routes.
