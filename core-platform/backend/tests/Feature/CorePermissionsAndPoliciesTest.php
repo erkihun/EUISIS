@@ -14,6 +14,7 @@ use App\Services\MfaPolicy;
 use App\Support\CorePermissions;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Tests\Concerns\BuildsGoldenPath;
@@ -120,6 +121,25 @@ class CorePermissionsAndPoliciesTest extends TestCase
         $this->get('/organization-units/create?organization_id='.$this->bureauA->id)->assertForbidden();
         // The dashboard does not count unplaced employees city-wide for a scoped reader.
         $this->get('/core')->assertInertia(fn ($page) => $page->where('metrics', fn ($metrics) => ! collect($metrics)->contains(fn ($metric) => ($metric['key'] ?? null) === 'employees_unplaced' && ($metric['value'] ?? null) !== null)));
+    }
+
+    public function test_the_role_cache_of_another_release_is_never_read(): void
+    {
+        // rc2 rehearsal: after a rollback, the older release cached the roles under its own catalog, and the
+        // fix-forward kept reading that entry for ten minutes, so viewers lacked a permission the new release grants.
+        $viewer = $this->account('core_viewer');
+        $this->assertTrue($viewer->can('employees.view'));
+        CorePermissions::flush();
+        $stale = ['core_viewer' => ['name_en' => 'Viewer', 'name_am' => null, 'permissions' => []]];
+        Cache::put('core.roles', $stale, 600);
+        $this->assertTrue($viewer->fresh()->can('employees.view'), 'the catalog-less entry of an earlier release must not be read');
+
+        // The cache this release writes is keyed by its catalog; a grant in the database shows after a flush.
+        $role = CoreRole::query()->where('key', 'core_viewer')->sole();
+        $role->permissions()->create(['permission' => 'id_card_templates.create']);
+        $this->assertFalse($viewer->fresh()->can('id_card_templates.create'), 'cached until flushed');
+        CorePermissions::flush();
+        $this->assertTrue($viewer->fresh()->can('id_card_templates.create'));
     }
 
     public function test_roles_are_edited_city_wide_without_losing_the_last_administrator(): void

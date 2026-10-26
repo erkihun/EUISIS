@@ -315,11 +315,22 @@ final class CorePermissions
 
     public static function flush(): void
     {
+        Cache::forget(self::cacheKey());
         Cache::forget(self::CACHE_KEY);
         app()->forgetInstance(self::CACHE_KEY);
     }
 
     private const CACHE_KEY = 'core.roles';
+
+    /**
+     * The cache entry is keyed by the catalog, so a release whose catalog differs never
+     * reads another release's entry (rc2 rehearsal: a rollback and fix-forward left the
+     * viewers without a permission the new release had granted, for the entry's lifetime).
+     */
+    private static function cacheKey(): string
+    {
+        return self::CACHE_KEY.'.'.substr(sha1(implode(',', self::all())), 0, 12);
+    }
 
     /**
      * Read once per request (the container), and from the cache between requests.
@@ -333,7 +344,7 @@ final class CorePermissions
         }
         $catalog = self::all();
         try {
-            $roles = Cache::remember(self::CACHE_KEY, 600, fn (): array => CoreRole::query()->with('permissions:core_role_id,permission')->get()
+            $roles = Cache::remember(self::cacheKey(), 600, fn (): array => CoreRole::query()->with('permissions:core_role_id,permission')->get()
                 ->mapWithKeys(fn (CoreRole $role): array => [$role->key => [
                     'name_en' => $role->name_en,
                     'name_am' => $role->name_am,

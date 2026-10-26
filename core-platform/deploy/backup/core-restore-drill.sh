@@ -100,7 +100,10 @@ STEP=audit
 "$PHP" artisan core:audit-verify --restored 2>&1 | tail -n 1 | tee -a "$REPORT"
 
 STEP=serve
-(cd public && "$PHP" -S "127.0.0.1:$APP_PORT" ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php > "$RESTORE_ROOT/serve.log" 2>&1) &
+# Nothing may already answer on the port: a server left from an earlier drill would be verified instead of this copy.
+"$PHP" -r 'exit(@file_get_contents("http://127.0.0.1:".$argv[1]."/up") === false ? 0 : 1);' "$APP_PORT" || { log "port $APP_PORT is already in use"; false; }
+# exec: APP_PID is the server itself, not a subshell, so the cleanup stops it.
+(cd public && exec "$PHP" -S "127.0.0.1:$APP_PORT" ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php > "$RESTORE_ROOT/serve.log" 2>&1) &
 APP_PID=$!
 for _ in $(seq 1 30); do "$PHP" -r 'exit(@file_get_contents("http://127.0.0.1:".$argv[1]."/health/live") === false ? 1 : 0);' "$APP_PORT" && break; sleep 1; done
 if [ -n "$CREDS" ]; then
