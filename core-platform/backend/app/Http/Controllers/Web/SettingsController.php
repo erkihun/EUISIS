@@ -37,7 +37,13 @@ class SettingsController extends Controller
         'id_cards' => [],
         'notifications' => [],
         'email' => [],
+        'sms' => [],
+        'telegram' => [],
         'security' => ['files', 'audit', 'integration'],
+        'field_work_gps' => [],
+        'situation_room' => [],
+        'intelligence' => [],
+        'assistant' => [],
     ];
 
     /** The MFA classes of Core accounts (MfaPolicy), shown as the EUISIS "roles" of the MFA card. */
@@ -85,8 +91,8 @@ class SettingsController extends Controller
             'can' => [
                 'view' => true, 'update' => $can,
                 'manageGeneral' => $can, 'manageLocalization' => $can, 'manageNotifications' => $can, 'manageEmail' => $can,
-                'manageSms' => false, 'manageTelegram' => false, 'manageSecurity' => $can, 'manageAppearance' => $can,
-                'manageIdCards' => $can, 'manageFieldWorkGps' => false, 'manageSituationRoom' => false, 'manageIntelligence' => false,
+                'manageSms' => $can, 'manageTelegram' => $can, 'manageSecurity' => $can, 'manageAppearance' => $can,
+                'manageIdCards' => $can, 'manageFieldWorkGps' => $can, 'manageSituationRoom' => $can, 'manageIntelligence' => $can,
                 'viewIdCardTemplates' => $request->user()->can('id_card_templates.view'), 'clearCache' => $can,
                 'apiManagement' => $integrations, 'integrations' => $integrations,
             ],

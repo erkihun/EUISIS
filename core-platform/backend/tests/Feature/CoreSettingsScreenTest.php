@@ -41,10 +41,12 @@ class CoreSettingsScreenTest extends TestCase
         $this->admin();
         $fields = $this->pageFields();
 
-        $this->assertSame(['general', 'localization', 'appearance', 'id_cards', 'notifications', 'email', 'security'], array_keys($fields));
+        $this->assertSame(['general', 'localization', 'appearance', 'id_cards', 'notifications', 'email', 'sms', 'telegram', 'security', 'field_work_gps', 'situation_room', 'intelligence', 'assistant'], array_keys($fields));
         foreach (['general' => ['support_email', 'identity_system_logo', 'help_center_url', 'login_card_photo_1'], 'localization' => ['timezone', 'date_format', 'calendar_system_mode'],
             'appearance' => ['dashboard_layout', 'default_page_size'], 'id_cards' => ['show_photo', 'verification_url', 'return_address_en'],
-            'notifications' => ['email_notifications_enabled', 'sms_notifications_enabled'], 'email' => ['mail_host', 'mail_password', 'email_test_recipient'],
+            'notifications' => ['email_notifications_enabled', 'sms_notifications_enabled', 'telegram_notifications_enabled'], 'email' => ['mail_host', 'mail_password', 'email_test_recipient'],
+            'sms' => ['sms_provider', 'sms_api_key'], 'telegram' => ['telegram_bot_token', 'telegram_default_chat_id'], 'field_work_gps' => ['require_check_in', 'max_accuracy_meters'],
+            'situation_room' => ['default_period', 'top_n'], 'intelligence' => ['ai_enabled', 'ai_provider'], 'assistant' => ['enabled', 'knowledge_enabled'],
             'security' => ['password_min_length', 'mfa_enabled', 'mfa_required_role_ids', 'maintenance_banner_enabled']] as $tab => $keys) {
             foreach ($keys as $key) {
                 $this->assertContains($key, $fields[$tab], "{$tab}.{$key}");
@@ -57,6 +59,26 @@ class CoreSettingsScreenTest extends TestCase
         $this->assertNotContains('mfa_officers', $fields['security']);
         $this->assertNotContains('email_enabled', $fields['notifications']);
         $this->assertNotContains('front_bg_from', $fields['id_cards']);
+    }
+
+    public function test_the_sections_no_core_module_reads_yet_still_save_into_core_settings(): void
+    {
+        $this->admin();
+
+        $this->patch('/system-settings/situation-room', ['top_n' => 7])->assertSessionHasNoErrors();
+        $this->patch('/system-settings/assistant', ['enabled' => '0', 'knowledge_enabled' => '1'])->assertSessionHasNoErrors();
+        $this->patch('/system-settings/sms', ['sms_api_key' => 'test-key-123'])->assertSessionHasNoErrors();
+        $this->patch('/system-settings/situation-room', ['top_n' => 'seven'])->assertSessionHasErrors('top_n');
+
+        $settings = app(CoreSettings::class);
+        $this->assertSame(7, $settings->get('situation_room.top_n'));
+        $this->assertFalse($settings->get('assistant.enabled'));
+        $this->assertTrue($settings->get('assistant.knowledge_enabled'));
+        $this->assertTrue($settings->configured('sms.sms_api_key'));
+        // A secret is never sent back to the page.
+        $field = collect($this->get('/system-settings')->inertiaProps('settingGroups.sms.fields'))->firstWhere('key', 'sms_api_key');
+        $this->assertNull($field['value']);
+        $this->assertTrue($field['configured']);
     }
 
     public function test_the_mfa_card_saves_the_core_switches(): void

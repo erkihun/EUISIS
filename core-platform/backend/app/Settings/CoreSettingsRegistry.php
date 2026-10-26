@@ -18,7 +18,7 @@ use App\Settings\Euisis\SystemSettingsRegistry as EuisisRegistry;
  */
 final class CoreSettingsRegistry
 {
-    public const GROUPS = ['general', 'localization', 'appearance', 'security', 'id_cards', 'workforce', 'numbering', 'files'];
+    public const GROUPS = ['general', 'localization', 'appearance', 'security', 'id_cards', 'notifications', 'email', 'sms', 'telegram', 'field_work_gps', 'situation_room', 'intelligence', 'assistant', 'workforce', 'numbering', 'files'];
 
     /**
      * The EUISIS System Settings sections the Core offers. Their fields are the
@@ -26,7 +26,15 @@ final class CoreSettingsRegistry
      * by the sync script): same keys, types, labels, descriptions, options and
      * order. A Core default or rule wins where the Core had the same key.
      */
-    public const EUISIS_GROUPS = ['general', 'localization', 'appearance', 'id_cards', 'notifications', 'email', 'security'];
+    public const EUISIS_GROUPS = ['general', 'localization', 'appearance', 'id_cards', 'notifications', 'email', 'sms', 'telegram', 'security', 'field_work_gps', 'situation_room', 'intelligence', 'assistant'];
+
+    /**
+     * Sections whose fields no Core module reads yet (SMS, Telegram, Field Work GPS, Situation Room,
+     * Intelligence, Assistant). By the owner's decision of 2026-10-26 the Core's System Settings page
+     * shows every EUISIS section, so these are offered and stored in core_settings like the others,
+     * ready for the module that will read them.
+     */
+    public const STORED_ONLY_GROUPS = ['sms', 'telegram', 'field_work_gps', 'situation_room', 'intelligence', 'assistant'];
 
     /**
      * EUISIS fields the Core leaves out because it does not do what they control
@@ -35,7 +43,7 @@ final class CoreSettingsRegistry
      */
     public const NOT_IN_CORE = [
         'general' => ['default_dashboard_route'],
-        'notifications' => ['database_notifications_enabled', 'telegram_notifications_enabled', 'notification_retry_attempts', 'notification_queue_name',
+        'notifications' => ['database_notifications_enabled', 'notification_retry_attempts', 'notification_queue_name',
             'notify_admin_on_security_event', 'notify_user_on_card_ready', 'notify_user_on_transfer_approved'],
         'security' => ['password_max_length', 'password_block_personal_info', 'password_block_common', 'password_breach_check', 'max_upload_size_mb',
             'allowed_file_types', 'allowed_upload_mime_types', 'require_mfa_for_admins', 'default_password_enabled', 'default_password_hash', 'force_https',

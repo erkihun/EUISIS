@@ -173,7 +173,8 @@ Route::middleware('auth')->group(function (): void {
     Route::middleware('can:system-settings.view')->group(function (): void {
         Route::get('/system-settings', [SettingsController::class, 'index'])->name('system-settings.index');
         foreach (['general' => 'general', 'localization' => 'localization', 'appearance' => 'appearance', 'security' => 'security', 'id-cards' => 'id_cards',
-            'notifications' => 'notifications', 'email' => 'email'] as $path => $section) {
+            'notifications' => 'notifications', 'email' => 'email', 'sms' => 'sms', 'telegram' => 'telegram', 'field-work-gps' => 'field_work_gps',
+            'situation-room' => 'situation_room', 'intelligence' => 'intelligence', 'assistant' => 'assistant'] as $path => $section) {
             Route::patch("/system-settings/{$path}", [SettingsController::class, 'update'])->defaults('section', $section)
                 ->middleware('can:system-settings.update')->name("system-settings.{$path}.update");
         }
