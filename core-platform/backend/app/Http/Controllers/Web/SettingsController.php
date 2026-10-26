@@ -56,6 +56,8 @@ class SettingsController extends Controller
     public function index(Request $request): Response
     {
         $can = $request->user()->can('system-settings.update');
+        // API management and Integrations both open the Core's Integration Center.
+        $integrations = $request->user()->can('integrations.view');
         $groups = [];
         foreach (self::TABS as $tab => $extras) {
             $fields = [];
@@ -85,8 +87,8 @@ class SettingsController extends Controller
                 'manageGeneral' => $can, 'manageLocalization' => $can, 'manageNotifications' => $can, 'manageEmail' => $can,
                 'manageSms' => false, 'manageTelegram' => false, 'manageSecurity' => $can, 'manageAppearance' => $can,
                 'manageIdCards' => $can, 'manageFieldWorkGps' => false, 'manageSituationRoom' => false, 'manageIntelligence' => false,
-                'viewIdCardTemplates' => $request->user()->can('id_card_templates.view'), 'clearCache' => false,
-                'apiManagement' => false, 'integrations' => false,
+                'viewIdCardTemplates' => $request->user()->can('id_card_templates.view'), 'clearCache' => $can,
+                'apiManagement' => $integrations, 'integrations' => $integrations,
             ],
         ]);
     }
@@ -127,6 +129,15 @@ class SettingsController extends Controller
     }
 
     /** EUISIS "Send test": really sends, and reports the mail server's answer. */
+    /** System Settings > Clear cache: the next read comes from the table; written to the audit trail as in EUISIS. */
+    public function clearCache(Request $request, AuditWriter $audit): RedirectResponse
+    {
+        $this->settings->clearCache();
+        $audit->writeFor('settings.cache_cleared', $request->user(), 'CoreSettings', 'all', null, null, ['scope' => 'core_settings']);
+
+        return back()->with('flash', ['message' => __('settings.messages.cache_cleared'), 'type' => 'success']);
+    }
+
     public function testEmail(Request $request, AuditWriter $audit): RedirectResponse
     {
         $recipient = $request->string('recipient')->toString() ?: (string) $this->settings->get('email.email_test_recipient') ?: (string) $request->user()->email;

@@ -146,4 +146,16 @@ class CoreSettingsScreenTest extends TestCase
         $this->get('/system-settings?tab=general')->assertInertia(fn (Assert $page) => $page->component('SystemSettings/Index')
             ->has('settingGroups.general')->has('settingGroups.security'));
     }
+
+    public function test_the_page_offers_clear_cache_and_the_integration_entries_as_euisis_does(): void
+    {
+        $this->admin();
+
+        $this->get('/system-settings')->assertInertia(fn (Assert $page) => $page->component('SystemSettings/Index')
+            ->where('can.clearCache', true)->where('can.apiManagement', true)->where('can.integrations', true));
+        $this->from('/system-settings?tab=general')->post('/system-settings/clear-cache')
+            ->assertRedirect('/system-settings?tab=general')->assertSessionHas('flash.type', 'success');
+        $this->get('/api-management')->assertRedirect('/core/integration?tab=clients');
+        $this->get('/integrations')->assertRedirect('/core/integration?tab=webhooks');
+    }
 }

@@ -164,6 +164,12 @@ final class CoreSettings
     }
 
     /** @return array<string, mixed> "group.key" => stored value */
+    /** Forgets the cached values so the next read comes from the table (System Settings > Clear cache). */
+    public function clearCache(): void
+    {
+        Cache::forget(self::CACHE_KEY);
+    }
+
     private function stored(): array
     {
         return Cache::remember(self::CACHE_KEY, 3600, fn (): array => CoreSetting::query()

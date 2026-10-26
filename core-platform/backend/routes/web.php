@@ -162,6 +162,13 @@ Route::middleware('auth')->group(function (): void {
         });
     });
 
+    // The System Settings page's "API management" and "Integrations" entries (EUISIS route names) open the
+    // Core's Integration Center, on its API clients and webhooks tabs.
+    Route::middleware('can:integrations.view')->group(function (): void {
+        Route::get('/api-management', fn () => redirect()->route('core.integration', ['tab' => 'clients']))->name('api-management.index');
+        Route::get('/integrations', fn () => redirect()->route('core.integration', ['tab' => 'webhooks']))->name('integrations.index');
+    });
+
     // The EUISIS System Settings page over the Core settings (SettingsController::TABS).
     Route::middleware('can:system-settings.view')->group(function (): void {
         Route::get('/system-settings', [SettingsController::class, 'index'])->name('system-settings.index');
@@ -171,6 +178,7 @@ Route::middleware('auth')->group(function (): void {
                 ->middleware('can:system-settings.update')->name("system-settings.{$path}.update");
         }
         Route::post('/system-settings/test-email', [SettingsController::class, 'testEmail'])->middleware(['can:system-settings.update', 'throttle:5,1'])->name('system-settings.test-email');
+        Route::post('/system-settings/clear-cache', [SettingsController::class, 'clearCache'])->middleware('can:system-settings.update')->name('system-settings.clear-cache');
     });
     // The EUISIS ID card template designer (SystemSettings/IdCardTemplates), the EUISIS routes.
     Route::middleware('can:id_card_templates.view')->prefix('system-settings/id-card-templates')->name('id-card-templates.')->group(function (): void {
