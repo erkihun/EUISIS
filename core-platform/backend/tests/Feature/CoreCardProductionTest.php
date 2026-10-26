@@ -124,6 +124,8 @@ class CoreCardProductionTest extends TestCase
         $this->post('/id-cards/'.$card->id.'/issue')->assertSessionHasErrors('card');
         $this->post('/id-cards/'.$card->id.'/quality-check', ['result' => 'failed'])->assertSessionHasErrors('qc_notes');
         $this->post('/id-cards/'.$card->id.'/quality-check', ['result' => 'passed'])->assertSessionHasNoErrors();
+        // The card page shows the check (rc2 rehearsal: it broke once qc_at was set).
+        $this->get('/id-cards/'.$card->id)->assertOk();
         $this->post('/id-cards/'.$card->id.'/issue')->assertSessionHasNoErrors();
         $this->assertSame(IdCard::ISSUED, $card->fresh()->status);
         $this->assertSame('passed', $batch->items()->sole()->qc_status);

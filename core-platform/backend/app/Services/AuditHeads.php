@@ -73,7 +73,7 @@ final class AuditHeads
     /**
      * @return array{ok: bool, checked: int, first_bad_sequence: ?int, message: string}
      */
-    public function verify(): array
+    public function verify(bool $restored = false): array
     {
         if (! $this->configured()) {
             return ['ok' => true, 'checked' => 0, 'first_bad_sequence' => null, 'message' => 'Seal heads are not shipped off the server (CORE_AUDIT_HEAD_DISK is not set).'];
@@ -102,6 +102,11 @@ final class AuditHeads
             $checked++;
         }
         $shipped = $this->latest($disk);
+        if ($shipped > $last && $restored) {
+            // A restored copy ends where its backup was taken; the live trail was sealed and shipped on after that.
+            return ['ok' => true, 'checked' => $checked, 'first_bad_sequence' => null,
+                'message' => "All {$checked} off-server seal heads match; the store also holds seals up to audit row {$shipped}, made after this copy."];
+        }
         if ($shipped > $last) {
             return ['ok' => false, 'checked' => $checked, 'first_bad_sequence' => $last + 1,
                 'message' => "Seals up to audit row {$shipped} were shipped but the database ends at {$last}: sealed rows are missing (or this is a restore to an earlier point)."];

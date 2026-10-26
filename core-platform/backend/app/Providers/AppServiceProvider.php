@@ -122,7 +122,8 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(JobProcessing::class, function (JobProcessing $event) use (&$started): void {
             $started[$event->job->getJobId()] = hrtime(true);
         });
-        $finished = function (string $class, ?string $id, bool $failed) use (&$started): void {
+        // The database queue numbers its jobs; the others name them.
+        $finished = function (string $class, int|string|null $id, bool $failed) use (&$started): void {
             $ms = isset($started[$id]) ? (int) ((hrtime(true) - $started[$id]) / 1_000_000) : 0;
             unset($started[$id]);
             Observability::job($class, $ms, $failed);

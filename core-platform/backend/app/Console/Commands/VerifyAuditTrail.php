@@ -18,7 +18,8 @@ use Illuminate\Support\Facades\Log;
  */
 class VerifyAuditTrail extends Command
 {
-    protected $signature = 'core:audit-verify {--user= : The account that asked for the check}';
+    protected $signature = 'core:audit-verify {--user= : The account that asked for the check}
+        {--restored : The trail is a restored copy: seals shipped off the server after its last seal are reported, not failed}';
 
     protected $description = 'Verify every sealed audit row, the chain and the seals';
 
@@ -29,7 +30,7 @@ class VerifyAuditTrail extends Command
         $result = $chain->verify();
         // The chain matches itself; its seals must also match the copies kept off the server (ADR 0012).
         if ($result['ok']) {
-            $copies = $heads->verify();
+            $copies = $heads->verify((bool) $this->option('restored'));
             $result = $copies['ok'] ? [...$result, 'message' => $result['message'].' '.$copies['message']]
                 : [...$copies, 'checked' => $result['checked']];
         }

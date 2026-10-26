@@ -103,4 +103,14 @@ if (method_exists($settings, 'configured')) {
             'the settings logo is restored and served from /storage');
     }
 }
+// The card template designer (from the candidate after rc1): the artwork of the active default template is on the local disk.
+if (Illuminate\Support\Facades\Schema::hasTable('id_card_templates')) {
+    $template = DB::table('id_card_templates')->where('is_default', true)->where('status', 'active')->whereNull('deleted_at')->first();
+    if ($template !== null) {
+        $artwork = array_filter([$template->front_background_path, $template->back_background_path, $template->logo_primary_path,
+            $template->logo_secondary_path, $template->seal_path, $template->signature_path]);
+        $check($artwork !== [] && array_all($artwork, fn (string $p): bool => Illuminate\Support\Facades\Storage::disk('local')->exists($p)),
+            "the active card template's artwork is restored (".count($artwork).' files)');
+    }
+}
 echo "  all application checks passed\n";

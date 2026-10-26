@@ -97,7 +97,7 @@ log "core:snapshot --compare: identical to the backup ($(grep -c . "$RESTORE_ROO
     try { printf("  %-22s %s\n", $t, $db->table($t)->count()); } catch (Throwable $e) { printf("  %-22s n/a\n", $t); } }' | tee -a "$REPORT"
 
 STEP=audit
-"$PHP" artisan core:audit-verify 2>&1 | tail -n 1 | tee -a "$REPORT"
+"$PHP" artisan core:audit-verify --restored 2>&1 | tail -n 1 | tee -a "$REPORT"
 
 STEP=serve
 (cd public && "$PHP" -S "127.0.0.1:$APP_PORT" ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php > "$RESTORE_ROOT/serve.log" 2>&1) &

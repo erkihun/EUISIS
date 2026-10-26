@@ -101,6 +101,24 @@ class CoreGoLiveOperationsTest extends TestCase
         $this->assertSame('fail', $this->audit()['PRIVATE_STORAGE']);
     }
 
+    public function test_a_job_from_the_database_queue_is_measured_without_failing_it(): void
+    {
+        // The database queue numbers its jobs (rc2 rehearsal: the measurement expected a string id and failed every job).
+        config(['queue.default' => 'database']);
+        $day = now()->format('Ymd');
+        Cache::forget('core.observe.jobs.'.$day);
+        dispatch(function (): void {
+            Cache::put('core.test.job_ran', true);
+        });
+        $this->assertSame(1, DB::table('jobs')->count());
+        $this->artisan('queue:work', ['--once' => true, '--queue' => 'default'])->assertSuccessful();
+        $this->assertTrue((bool) Cache::get('core.test.job_ran'));
+        $this->assertSame([0, 0], [DB::table('jobs')->count(), DB::table('failed_jobs')->count()]);
+        $measured = (array) Cache::get('core.observe.jobs.'.$day, []);
+        $this->assertCount(1, $measured);
+        $this->assertSame([1, 0], [array_values($measured)[0]['count'], array_values($measured)[0]['failed']]);
+    }
+
     public function test_seal_heads_are_shipped_off_the_server_and_verification_compares_them(): void
     {
         Storage::fake('audit_heads');
@@ -124,6 +142,8 @@ class CoreGoLiveOperationsTest extends TestCase
         // Seals the store has but the database lacks: removed seals, or a restore to an earlier point.
         Storage::disk('audit_heads')->put(AuditHeads::LATEST, json_encode(['to_sequence' => 9]));
         $this->artisan('core:audit-verify')->expectsOutputToContain('sealed rows are missing')->assertFailed();
+        // A restore drill verifies a copy taken before those seals: they are reported, not a failure.
+        $this->artisan('core:audit-verify', ['--restored' => true])->expectsOutputToContain('made after this copy')->assertSuccessful();
         Storage::disk('audit_heads')->put(AuditHeads::LATEST, json_encode(['to_sequence' => 5]));
 
         // A seal past the grace period without a copy is found; a fresh one is not yet expected.
