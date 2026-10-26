@@ -63,6 +63,12 @@ otherwise have surfaced on real staging.
 9. Run 20 VUs of load for comparison with the 15c095aa baseline (42 req/s,
    p95 1.13 s). A clear regression is investigated.
 
+**Stage B result (2026-10-26): passed on 91c3d851.** All nine steps passed; one
+tooling defect was found and fixed (the backup missed the public disk). Details in
+[core-go-live-evidence.md §15c](core-go-live-evidence.md). A newer candidate (the
+card-template designer, 861bc5e3 on feat/golden-path-stages-apply) adds migrations
+and must go through stages A and B again.
+
 ## Stage C: real staging certification (owners TBD; the certifying run)
 
 On Linux, Nginx, PHP-FPM 8.4, PostgreSQL 18, Redis available, with the real

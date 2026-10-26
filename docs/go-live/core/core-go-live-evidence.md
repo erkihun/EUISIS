@@ -344,6 +344,26 @@ One problem in the configuration review was also fixed (91c3d851): it ignored th
 
 **Proposed release_code_commit: 91c3d851.** Locally: SQLite 238/238, PostgreSQL 238/238, MariaDB 236 + 2 skipped; Pint, audits, typecheck, build and drift checks clean. **None of the staging evidence above applies to it.** It is rehearsed again per [core-rc1-rehearsal-plan.md](core-rc1-rehearsal-plan.md).
 
+## 15c. rc1 stage B: workstation pre-flight of 91c3d851 (2026-10-26)
+
+Workstation evidence only (the same rig as §1–§11); it is not certification and does not replace stage C.
+
+| Step | Result |
+|---|---|
+| B1 build | artifact 7.7 MB |
+| B2 deploy over 15c095aa | 36 s; config audit passed; `public/storage` linked; `/health/monitor` reports 91c3d851 |
+| B3 Golden Path over HTTPS | passed, 22.5 s |
+| B4 settings smoke (`deploy/staging/settings-smoke.php`) | 12/12: viewer refused (GET and PATCH); General saved with a raster logo, served from `/storage`; scripted SVG favicon refused; mail password encrypted, never in the page or the audit trail; test e-mail sent through `log` and audited |
+| B5 CSP | 15 screens plus `/core/settings` and `/system-settings`: 0 real violations. The only reports were the logo URL built from `APP_URL` (https://localhost:8443) while the browser used http://localhost:8601, a rig artifact |
+| B6 backup and restore | backup 19 files including the public disk; drill passed in 77 s: 317 sealed audit rows and 9 off-server seal heads match, the mail password decrypts, the logo is restored and served |
+| B7 rollback to 15c095aa | 24 s; schema matches (rc1 adds no migrations); Golden Path passed (25.3 s); the old release reads the settings rows; `/system-settings` and `/core/settings` return 200 |
+| B8 fix forward | 19 s; Golden Path (29.9 s) and settings smoke pass |
+| B9 load, 20 VUs, 60 s, 220k employees, alternating releases | 15c095aa 31.1 / 39.3 req/s (p95 1,561 / 1,173 ms); 91c3d851 40.8 / 40.8 req/s (p95 1,139 / 1,101 ms); 0 errors. No regression; the first rc1 run (29.5 req/s) was workstation noise, as the alternating runs show |
+
+**Found and fixed in stage B (tooling, not application code):** the backup covered only the private disk, so the Settings › General images were not restorable. `FILES_ROOT` is now `storage/app` (both disks), the restore drill restores and counts that tree and runs `storage:link`, and `restore-verify.php` checks the mail password and the logo.
+
+**Not covered:** the sequential benchmark shows the sign-in page slower on rc1 (median 163 vs 84 ms on one node), likely the settings props on web pages; it did not show in the load mix. Recorded for stage C.
+
 ## 15a. Release source of truth (2026-10-26, after `git fetch`; superseded for the code commit by §15b)
 
 | Ref | Commit | What it is |

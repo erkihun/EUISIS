@@ -89,4 +89,18 @@ $r = $api->post('/cards/verify', ['token' => $token]);
 $check($r->ok() && $r->json('valid') === true, 'the digital credential verifies with the restored credential keys');
 $r = $api->post('/cards/verify', ['token' => strrev((string) $token)]);
 $check($r->json('valid') !== true, 'a forged credential is refused');
+
+// Settings (from rc1 on): the encrypted secrets need the restored APP_KEY, the images the public disk.
+$settings = app(App\Services\CoreSettings::class);
+if (method_exists($settings, 'configured')) {
+    if ($settings->configured('email.mail_password')) {
+        $password = $settings->get('email.mail_password');
+        $check(is_string($password) && $password !== '', 'the encrypted mail password decrypts with the restored application key');
+    }
+    $logo = $settings->get('general.identity_system_logo');
+    if (is_string($logo) && $logo !== '') {
+        $check(Illuminate\Support\Facades\Storage::disk('public')->exists($logo) && Http::timeout(30)->get("{$base}/storage/{$logo}")->ok(),
+            'the settings logo is restored and served from /storage');
+    }
+}
 echo "  all application checks passed\n";

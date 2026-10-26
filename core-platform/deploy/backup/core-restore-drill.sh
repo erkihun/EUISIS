@@ -65,8 +65,8 @@ DB_S=$(( $(now) - t )); log "database restored in ${DB_S}s"
 
 STEP=files; t=$(now)
 mkdir -p "$RESTORE_ROOT/storage/app/private" "$RESTORE_ROOT/storage/framework/"{cache,sessions,views} "$RESTORE_ROOT/storage/logs"
-"${GPG[@]}" --decrypt "$BK/files.tar.gpg" | tar -x -C "$RESTORE_ROOT/storage/app/private"
-FILES=$(find "$RESTORE_ROOT/storage/app/private" -type f | wc -l | tr -d ' ')
+"${GPG[@]}" --decrypt "$BK/files.tar.gpg" | tar -x -C "$RESTORE_ROOT/storage/app"
+FILES=$(find "$RESTORE_ROOT/storage/app" -type f | wc -l | tr -d ' ')
 EXPECTED=$("$PHP" -r 'echo json_decode((string) file_get_contents($argv[1]), true)["files"]["count"];' "$BK/manifest.json")
 [ "$FILES" = "$EXPECTED" ] || { log "file count $FILES differs from the manifest's $EXPECTED"; false; }
 log "files restored in $(( $(now) - t ))s: $FILES files (manifest: $EXPECTED)"
@@ -83,6 +83,7 @@ grep -v -E '^(DB_HOST|DB_PORT|DB_DATABASE|DB_USERNAME|DB_PASSWORD|APP_URL|CORE_B
 printf '%s\n' "DB_HOST=127.0.0.1" "DB_PORT=$RESTORE_PORT" "DB_DATABASE=core_restored" "DB_USERNAME=core_restore" "DB_PASSWORD=" \
   "APP_URL=http://127.0.0.1:$APP_PORT" "SESSION_SECURE_COOKIE=false" "QUEUE_CONNECTION=sync" "MAIL_MAILER=array" >> "$RESTORE_ROOT/app/backend/.env"
 cd "$RESTORE_ROOT/app/backend"
+"$PHP" artisan storage:link --force > /dev/null 2>&1 || true   # the public disk (settings images)
 "$PHP" artisan optimize > /dev/null
 log "release $(head -n1 ../RELEASE | cut -c1-8) unpacked against the restored copy"
 
