@@ -49,7 +49,7 @@ class IdCard extends Model
         return [
             'is_current' => 'boolean', 'reprint_required' => 'boolean',
             'issued_at' => 'datetime', 'activated_at' => 'datetime', 'expires_at' => 'datetime', 'revoked_at' => 'datetime',
-            'printed_at' => 'datetime', 'reprint_reasons' => 'array', 'display_snapshot' => 'array',
+            'printed_at' => 'datetime', 'qc_at' => 'datetime', 'reprint_reasons' => 'array', 'display_snapshot' => 'array',
         ];
     }
 

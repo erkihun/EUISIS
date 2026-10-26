@@ -97,4 +97,17 @@ return [
             'approve' => 'The employee was approved and is now active.',
         ],
     ],
+    'evidence_done' => [
+        'uploaded' => 'The file was uploaded and waits for verification.',
+        'replaced' => 'A new version was uploaded; the earlier one is kept in the history.',
+        'verify' => 'The file was verified.',
+        'reject' => 'The file was rejected.',
+        'archived' => 'The file was archived; it stays in the history.',
+        'discarded' => 'The unused upload was removed.',
+    ],
+    'duplicate_review_done' => [
+        'not_duplicate' => 'Recorded: the two records are different people.',
+        'confirmed_duplicate' => 'Recorded: a duplicate. The flagged record is blocked until it is merged.',
+        'needs_more_information' => 'Recorded: more information is needed; the review stays open.',
+    ],
 ];

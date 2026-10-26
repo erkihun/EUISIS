@@ -1,4 +1,5 @@
 import { mapCardEmployee } from '@/Components/IdCards/mapCardEmployee';
+import CardProductionPanel, { type CardProduction } from '@/Components/IdCards/CardProductionPanel';
 import { useIdCardTemplate } from '@/Components/IdCards/IdCardTemplateContext';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import NfcStatusPanel, { NfcStatus } from '@/Components/IdCards/NfcStatusPanel';
@@ -86,6 +87,8 @@ type PageProps = {
     nfc: NfcStatus;
     card: CardData;
     can: Can;
+    /** Core only (ADR 0010): template version, prints, quality check and credential. */
+    production?: CardProduction;
 };
 
 // ── Shared field display ─────────────────────────────────────────────────────
@@ -265,7 +268,7 @@ const inputCls = 'w-full rounded-card border border-gray-300 bg-white px-3 py-2 
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps) {
+export default function IdCardShow({ card, can, nfc, portal_labels, production }: PageProps) {
     const { t, locale } = useLocale();
     const { errors } = usePage().props as { errors: Record<string, string> };
     const [modal, setModal] = useState<string | null>(null);
@@ -338,6 +341,7 @@ export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps)
         >
             <Head title={card.card_number} />
             {(can.print || can.reprint) && <div className="mb-5 rounded-xl border bg-white p-4 dark:bg-slate-900"><p className="mb-3 text-sm">{portal_labels.print_instructions}</p><button className="rounded-lg bg-blue-700 px-4 py-2 text-sm text-white" onClick={() => router.post(route('id-cards.prepare-print', card.id))}>{portal_labels.prepare_print}</button></div>}
+            {production && <CardProductionPanel production={production} />}
             <NfcStatusPanel cardId={card.id} nfc={nfc} />
 
             {/* Action error banner */}

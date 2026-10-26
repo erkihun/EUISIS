@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\CoreAuditLog;
 use App\Models\Employee;
+use App\Models\EmployeeDocument;
 use App\Models\IdCard;
 use App\Services\DuplicateEmployees;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -53,7 +54,9 @@ class CoreRegistrationAndCardRulesTest extends TestCase
         $id = $this->postJson('/api/v1/employees', $person + ['confirm_not_duplicate' => true, 'duplicate_reason' => 'Different father and birth place on file'])
             ->assertCreated()->json('data.id');
 
-        $this->assertDatabaseHas('employee_duplicate_reviews', ['employee_id' => $id, 'matched_employee_id' => $this->employee->id, 'decision' => 'distinct']);
+        // The registrar's statement opens a review; a reviewer decides (ADR 0009).
+        $this->assertDatabaseHas('employee_duplicate_reviews', ['employee_id' => $id, 'matched_employee_id' => $this->employee->id, 'decision' => 'pending',
+            'registration_reason' => 'Different father and birth place on file', 'source' => 'registration']);
         $this->assertDatabaseHas('core_audit_logs', ['action' => 'employee.duplicate_override', 'subject_id' => $id]);
     }
 
@@ -91,7 +94,7 @@ class CoreRegistrationAndCardRulesTest extends TestCase
         $this->actingAsCore('core_officer');
 
         $this->getJson('/api/v1/employees/'.$this->employee->id.'/card-eligibility')->assertOk()
-            ->assertJsonPath('eligible', false)->assertJsonStructure(['problems' => ['LIVE_CARD_EXISTS']]);
+            ->assertJsonPath('eligible', false)->assertJsonStructure(['problems' => ['ACTIVE_CARD_EXISTS']]);
         $this->postJson('/api/v1/employees/'.$this->employee->id.'/card-requests', ['request_type' => 'new'])->assertUnprocessable();
 
         $this->card->update(['status' => IdCard::REVOKED, 'is_current' => false]);
@@ -103,13 +106,15 @@ class CoreRegistrationAndCardRulesTest extends TestCase
         $this->getJson('/api/v1/employees/'.$this->employee->id.'/card-eligibility')->assertOk()->assertJsonPath('eligible', true);
     }
 
-    public function test_the_photo_rule_applies_when_switched_on(): void
+    public function test_the_photo_rule_is_on_by_default_and_can_be_switched_off(): void
     {
         $this->card->update(['status' => IdCard::REVOKED, 'is_current' => false]);
+        EmployeeDocument::query()->where('employee_id', $this->employee->id)->delete();
         $this->actingAsCore('core_admin');
-        $this->putJson('/api/v1/settings/id_cards', ['values' => ['require_photo' => true]])->assertOk();
 
-        $this->getJson('/api/v1/employees/'.$this->employee->id.'/card-eligibility')->assertJsonStructure(['problems' => ['PHOTO_MISSING']]);
+        $this->getJson('/api/v1/employees/'.$this->employee->id.'/card-eligibility')->assertJsonStructure(['problems' => ['PHOTO_REQUIRED']]);
+        $this->putJson('/api/v1/settings/id_cards', ['values' => ['require_photo' => false]])->assertOk();
+        $this->getJson('/api/v1/employees/'.$this->employee->id.'/card-eligibility')->assertJsonPath('eligible', true);
     }
 
     public function test_cards_past_their_expiry_are_marked_expired_once_and_audited(): void

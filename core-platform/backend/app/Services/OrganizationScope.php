@@ -39,16 +39,20 @@ final class OrganizationScope
         [$type, $root] = $principal instanceof User
             ? [$principal->scope_type, $principal->scope_organization_id]
             : [$principal->scope_type, $principal->owner_organization_id];
-        if ($type === User::SCOPE_CITYWIDE) {
+        // Break-glass (ADR 0010): a grant in force widens a person's scope by its own, for its time only.
+        $grant = $principal instanceof User ? BreakGlassAccess::for($principal) : null;
+        if ($type === User::SCOPE_CITYWIDE || $grant?->scope_type === User::SCOPE_CITYWIDE) {
             return null;
         }
+        $extra = $grant?->organization_id === null ? [] : $this->cache['grant:'.$grant->id] ??= $this->subtree((string) $grant->organization_id);
         if ($root === null || ! in_array($type, User::ORGANIZATION_SCOPES, true)) {
-            return [];
+            return $extra;
         }
-
-        return $this->cache[$principal::class.':'.$principal->getKey().':'.$type.':'.$root] ??= $type === User::SCOPE_SELF
+        $own = $this->cache[$principal::class.':'.$principal->getKey().':'.$type.':'.$root] ??= $type === User::SCOPE_SELF
             ? [(string) $root]
             : $this->subtree((string) $root);
+
+        return $extra === [] ? $own : array_values(array_unique([...$own, ...$extra]));
     }
 
     /** Whether the principal reaches any organizational data at all. */

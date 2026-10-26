@@ -95,6 +95,35 @@ Inertia, under the EUISIS route names. Decisions taken under the delegation:
     confirmation, and the decision is recorded as a duplicate review.
 13. **Exit Core** opens `EUISIS_APP_URL` when it is set, otherwise it signs
     the person out.
+14. **Settings are the EUISIS settings (2026-10-26).** The settings page is
+    the EUISIS System Settings page with the EUISIS tabs and fields; the
+    definitions are the EUISIS registry, copied by the sync script. The Core
+    keeps its stricter defaults where it had the same key (for example the
+    12-character password minimum and the 8-hour session), shows its own rules
+    in the matching tab's "Other settings" card, and maps the EUISIS MFA card
+    onto its per-class MFA switches. It leaves out what it does not do: SMS
+    and Telegram (no gateway), EUISIS-only notification events, upload type
+    lists, password breach and common-password checks, forced HTTPS (done by
+    the web server), audit retention and the landing-page choice. E-mail
+    settings saved on the page replace the `.env` mail values.
+15. **The card template designer is the EUISIS one (2026-10-26).** The
+    templates page is EUISIS `SystemSettings/IdCardTemplates`, run by the
+    EUISIS model, rules, action, request and controller copied by the sync
+    script (backgrounds, logos, seal, signature, layout boxes, text styles,
+    header, back photo, default per orientation). The card pages get the
+    designed template through the EUISIS `idCardTemplate(s)` props. The
+    Core's print record (ADR 0010 template versions, batches, credentials)
+    stays; `CardTemplateMirror` makes the default active designed template
+    the active print version, so nothing is activated in a second place.
+16. **The printed card is the EUISIS renderer's (2026-10-26).** The preview
+    page, the SVG faces, the PNG export and the print sheet are drawn by the
+    EUISIS `IdCardSvgRenderer` (copied with its data object, QR code, asset
+    resolver, PNG exporter and Ethiopian calendar) from the designed
+    template. `CoreIdCardRenderDataFactory` fills the EUISIS data object from
+    the Core's records: the verified photo document, the placement, the
+    credential token as the QR address (ADR 0010), no feedback link. The
+    Core's own drawing (`CardRenderer`) is gone; a template version's sample
+    preview is the same renderer with the version's orientation and city line.
 
 ## Consequences
 - The Core can be deployed, scaled, backed up and secured on its own.

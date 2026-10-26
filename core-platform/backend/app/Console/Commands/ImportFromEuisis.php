@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Support\LegacyCredentialBackfill;
+use App\Support\PositionMasterBackfill;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -35,6 +37,9 @@ class ImportFromEuisis extends Command
         'position_occupancies', 'card_requests', 'id_cards', 'card_replacements',
     ];
 
+    /** Master data copied first when EUISIS has it, so positions keep their references (ADR 0010). */
+    private const MASTERS = ['occupations'];
+
     /** Pointers that close a loop: copied empty first, filled once every row exists. */
     private const DEFERRED = [
         'employees' => ['current_assignment_id'],
@@ -58,12 +63,23 @@ class ImportFromEuisis extends Command
         Schema::disableForeignKeyConstraints();
         try {
             if ($this->option('fresh-tables')) {
+                // Credentials belong to the cards being replaced; the backfill below gives the copies theirs.
+                if (Schema::hasTable('digital_credentials')) {
+                    DB::table('digital_credentials')->delete();
+                }
                 foreach (array_reverse($tables) as $table) {
                     DB::table($table)->delete();
                 }
             }
 
             $rows = [];
+            foreach (self::MASTERS as $table) {
+                if ($source->getSchemaBuilder()->hasTable($table) && ! DB::table($table)->exists()) {
+                    $columns = array_values(array_intersect(Schema::getColumnListing($table), $source->getSchemaBuilder()->getColumnListing($table)));
+                    $source->table($table)->select($columns)->chunkById($this->rowsPerInsert($chunk, $columns), fn ($batch) => DB::table($table)->insert($batch->map(fn ($row): array => (array) $row)->all()));
+                    $rows[] = [$table, DB::table($table)->count()];
+                }
+            }
             foreach ($tables as $table) {
                 if (! $source->getSchemaBuilder()->hasTable($table)) {
                     $this->warn("EUISIS has no {$table} table; skipped.");
@@ -78,7 +94,7 @@ class ImportFromEuisis extends Command
 
                 $deferred = array_values(array_intersect(self::DEFERRED[$table] ?? [], $columns));
                 $copied = 0;
-                $source->table($table)->select($columns)->orderBy('id')->chunk($chunk, function ($batch) use ($table, $deferred, &$copied): void {
+                $source->table($table)->select($columns)->chunkById($this->rowsPerInsert($chunk, $columns), function ($batch) use ($table, $deferred, &$copied): void {
                     DB::table($table)->insert($batch->map(fn ($row): array => array_merge((array) $row, array_fill_keys($deferred, null)))->all());
                     $copied += $batch->count();
                 });
@@ -97,6 +113,9 @@ class ImportFromEuisis extends Command
                     });
                 }
             }
+            PositionMasterBackfill::run();
+            // Printed QR codes of copied cards keep verifying (ADR 0012): the migration only covered the cards present then.
+            $rows[] = ['digital_credentials (legacy QR)', LegacyCredentialBackfill::run()];
         } finally {
             Schema::enableForeignKeyConstraints();
         }
@@ -105,5 +124,17 @@ class ImportFromEuisis extends Command
         $this->info('Done. Compare fingerprints with core:snapshot before any switch.');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Rows per insert: the --chunk asked for, but never more bound values than the
+     * database takes in one statement (PostgreSQL: 65,535). A wide table such as
+     * id_cards (35 columns) with --chunk=2000 would otherwise fail part-way (ADR 0012).
+     *
+     * @param  list<string>  $columns
+     */
+    private function rowsPerInsert(int $chunk, array $columns): int
+    {
+        return max(1, min($chunk, intdiv(60000, max(1, count($columns)))));
     }
 }

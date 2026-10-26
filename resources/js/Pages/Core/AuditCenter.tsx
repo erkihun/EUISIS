@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { EyeScanIcon } from '@/Components/NavIcons';
 import { buttonClassName } from '@/Components/ui';
-import { Card } from '@euisis/ui';
+import { Card, CardDescription, CardTitle } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { formatNumber } from '@/utils/displayFormat';
 
@@ -42,8 +42,8 @@ export default function CoreAuditCenter({ views, windowDays }: Props) {
                                 <EyeScanIcon className="h-5 w-5" aria-hidden="true" />
                             </span>
                             <div className="min-w-0">
-                                <h2 className="text-base font-semibold text-(--app-foreground)">{t(`core.audit.views.${view.key}.title`)}</h2>
-                                <p className="text-sm text-(--app-muted-foreground)">{t(`core.audit.views.${view.key}.description`)}</p>
+                                <CardTitle>{t(`core.audit.views.${view.key}.title`)}</CardTitle>
+                                <CardDescription className="mt-0.5">{t(`core.audit.views.${view.key}.description`)}</CardDescription>
                             </div>
                         </div>
                         <div className="mt-auto flex items-center justify-between gap-2">

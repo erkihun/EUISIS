@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useCan } from '@/hooks/useCan';
 import EmployeeQrCards, { type QrCodesProp } from '@/Components/employees/EmployeeQrCards';
 import EmployeeWorkflowCard, { type EmployeeWorkflow } from '@/Components/employees/EmployeeWorkflowCard';
+import EmployeeEvidencePanel, { type EmployeeEvidence } from '@/Components/employees/EmployeeEvidencePanel';
 import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
@@ -95,12 +96,15 @@ export default function EmployeesShow({
     qrCodes,
     recentActivity = null,
     workflow = null,
+    evidence = null,
 }: {
     employee: EmployeeDetail;
     qrCodes?: QrCodesProp;
     recentActivity?: RecentActivity | null;
     /** The verified-employee stage, when the server runs one (the Core does). */
     workflow?: EmployeeWorkflow | null;
+    /** Documents, photo and signature with their versions and verification, when the server manages them (the Core does). */
+    evidence?: EmployeeEvidence | null;
 }) {
     const { t, locale } = useLocale();
     const { can } = useCan();
@@ -366,6 +370,8 @@ export default function EmployeesShow({
                     </div>
                 </div>
 
+                {evidence && (evidence.documents || evidence.photo || evidence.signature) && <EmployeeEvidencePanel evidence={evidence} />}
+
                 <div className="grid items-start gap-5 lg:grid-cols-2">
                     {/* ── Duplicate warnings ───────────────────────────── */}
                     {(employee.duplicate_flags?.length ?? 0) > 0 && (
@@ -397,7 +403,7 @@ export default function EmployeesShow({
                     )}
 
                     {/* ── Documents ────────────────────────────────────── */}
-                    <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
+                    {!evidence && <div className="rounded-panel border border-(--app-border) bg-(--app-surface) p-5">
                         <h3 className="text-sm font-semibold text-(--app-foreground) mb-4">
                             {t('employees.documentMetadata')}
                         </h3>
@@ -420,7 +426,7 @@ export default function EmployeesShow({
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div>}
 
                     {/* ── Audit (audit.view holders only) ─────────────── */}
                     {recentActivity !== null && (

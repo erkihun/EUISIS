@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Services\CredentialVerifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +61,23 @@ class CoreImportTest extends TestCase
         $this->assertSame($this->employee->id, DB::table('employees')->where('employee_number', 'EMP-0001')->value('id'));
         $this->assertSame($this->card->public_card_uuid, DB::table('id_cards')->value('public_card_uuid'));
         $this->artisan('core:snapshot', ['--compare' => $this->snapshot])->assertSuccessful();
+    }
+
+    public function test_imported_cards_get_their_legacy_credential_so_printed_qr_codes_keep_verifying(): void
+    {
+        $this->seedSource();
+        $this->assertSame(0, DB::table('digital_credentials')->count());
+
+        $this->artisan('core:import-from-euisis')->assertSuccessful();
+
+        $credential = DB::table('digital_credentials')->where('id_card_id', $this->card->id)->first();
+        $this->assertNotNull($credential);
+        $this->assertSame('legacy_qr', $credential->kind);
+        $check = app(CredentialVerifier::class)->check((string) $this->card->public_card_uuid);
+        $this->assertSame((string) $this->card->id, (string) $check['card']?->id);
+        // Repeat-safe: a second run (here after a fresh re-import) gives each card one credential.
+        $this->artisan('core:import-from-euisis', ['--fresh-tables' => true])->assertSuccessful();
+        $this->assertSame(1, DB::table('digital_credentials')->where('id_card_id', $this->card->id)->count());
     }
 
     public function test_the_snapshot_notices_a_changed_row(): void

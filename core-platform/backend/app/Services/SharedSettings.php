@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Settings\CoreSettingsRegistry;
+use Illuminate\Support\Facades\Storage;
+
 /**
  * The `settings` and `branding` props of every page, in the EUISIS shape
  * (EUISIS PublicSettingsService::shareableSettings and BrandingService), so
@@ -120,11 +123,25 @@ final class SharedSettings
         foreach (self::FROM_CORE as $shared => $core) {
             $values[$shared] = $this->settings->get($core);
         }
+        // Every public field of the EUISIS sections the Core keeps, under its EUISIS key.
+        foreach (['general', 'localization', 'appearance', 'id_cards', 'security'] as $group) {
+            foreach (CoreSettingsRegistry::definitions()[$group] as $key => $definition) {
+                if ($definition['is_public'] && ! ($definition['is_encrypted'] ?? false) && ! in_array($definition['type'], ['image', 'file'], true)
+                    && ! in_array("{$group}.{$key}", self::FROM_CORE, true)) {
+                    $values["{$group}.{$key}"] = $this->settings->get("{$group}.{$key}");
+                }
+            }
+        }
+        $values['general.identity_system_logo_url'] = $this->asset('identity_system_logo');
+        $values['general.favicon_url'] = $this->asset('favicon');
+        $values['general.seal_url'] = $this->asset('seal');
+        $values['general.login_card_photo_urls'] = array_values(array_filter(array_map(fn (string $key): ?string => $this->asset($key),
+            ['login_card_photo_1', 'login_card_photo_2', 'login_card_photo_3'])));
 
         return $values;
     }
 
-    /** @return array{brandName: string, brandNameEn: string, brandNameAm: string, shortName: string, officialNameEn: string, officialNameAm: string, logoUrl: null, faviconUrl: null} */
+    /** @return array{brandName: string, brandNameEn: string, brandNameAm: string, shortName: string, officialNameEn: string, officialNameAm: string, logoUrl: string|null, faviconUrl: string|null} */
     public function branding(): array
     {
         $en = (string) $this->settings->get('general.application_name');
@@ -137,8 +154,16 @@ final class SharedSettings
             'shortName' => (string) $this->settings->get('general.application_short_name'),
             'officialNameEn' => (string) $this->settings->get('general.official_name_en'),
             'officialNameAm' => (string) $this->settings->get('general.official_name_am'),
-            'logoUrl' => null,
-            'faviconUrl' => null,
+            'logoUrl' => $this->asset('identity_system_logo'),
+            'faviconUrl' => $this->asset('favicon'),
         ];
+    }
+
+    /** The public address of an image saved on Settings › General, or null. */
+    private function asset(string $key): ?string
+    {
+        $path = $this->settings->get("general.{$key}");
+
+        return is_string($path) && $path !== '' ? Storage::disk('public')->url($path) : null;
     }
 }

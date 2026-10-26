@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\WebhookDelivery;
+use App\Models\WebhookEndpoint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -56,7 +57,7 @@ final class WebhookDeliverer
                     'X-Core-Event-Id' => $delivery->event->id,
                     'X-Core-Delivery' => $delivery->id,
                     'X-Core-Timestamp' => $timestamp,
-                    'X-Core-Signature' => 'v1='.self::signature((string) $endpoint->secret, $timestamp, $body),
+                    'X-Core-Signature' => $this->signatures($endpoint, $timestamp, $body),
                 ])
                 ->withBody($body, 'application/json')
                 ->post($endpoint->url);
@@ -72,7 +73,7 @@ final class WebhookDeliverer
         if ($error === null) {
             $delivery->forceFill(['status' => WebhookDelivery::DELIVERED, 'attempts' => $attempts, 'last_attempt_at' => now(), 'delivered_at' => now(),
                 'response_code' => $code, 'error' => null, 'next_attempt_at' => null])->save();
-            $endpoint->forceFill(['last_success_at' => now()])->saveQuietly();
+            $endpoint->forceFill(['last_success_at' => now(), 'consecutive_failures' => 0])->saveQuietly();
 
             return;
         }
@@ -82,7 +83,36 @@ final class WebhookDeliverer
             'attempts' => $attempts, 'last_attempt_at' => now(), 'response_code' => $code, 'error' => $error,
             'next_attempt_at' => $wait === null ? null : now()->addMinutes($wait),
         ])->save();
-        $endpoint->forceFill(['last_failure_at' => now()])->saveQuietly();
+        $this->recordFailure($endpoint, $error);
+    }
+
+    /**
+     * One more failed attempt since the last success; at the configured count
+     * the endpoint is suspended until an administrator resumes it (ADR 0010).
+     */
+    private function recordFailure(WebhookEndpoint $endpoint, string $error): void
+    {
+        $failures = DB::table('webhook_endpoints')->where('id', $endpoint->id)->increment('consecutive_failures', 1, ['last_failure_at' => now(), 'updated_at' => now()]);
+        $count = (int) DB::table('webhook_endpoints')->where('id', $endpoint->id)->value('consecutive_failures');
+        $limit = app(CoreSettings::class)->int('integration.webhook_suspend_after');
+        if ($failures === 1 && $count >= $limit && $endpoint->is_active) {
+            $suspended = DB::table('webhook_endpoints')->where('id', $endpoint->id)->where('is_active', true)
+                ->update(['is_active' => false, 'suspended_at' => now(), 'suspended_reason' => "{$count} failed attempts in a row; last: ".mb_substr($error, 0, 160), 'updated_at' => now()]);
+            if ($suspended === 1) {
+                app(AuditWriter::class)->writeFor('webhook.suspended', null, 'WebhookEndpoint', (string) $endpoint->id, $endpoint->scope_organization_id, null, ['consecutive_failures' => $count], 'Suspended after repeated delivery failures');
+            }
+        }
+    }
+
+    /** The current signature, and the previous secret's while its grace period lasts. */
+    private function signatures(WebhookEndpoint $endpoint, string $timestamp, string $body): string
+    {
+        $header = 'v1='.self::signature((string) $endpoint->secret, $timestamp, $body);
+        if ($endpoint->previous_secret !== null && $endpoint->previous_secret_expires_at?->isFuture()) {
+            $header .= ',v1='.self::signature((string) $endpoint->previous_secret, $timestamp, $body);
+        }
+
+        return $header;
     }
 
     public static function signature(string $secret, string $timestamp, string $body): string

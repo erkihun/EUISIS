@@ -53,8 +53,9 @@ class CoreScreensTest extends TestCase
             '/core/assignments' => 'Core/Assignments',
             '/core/audit' => 'Core/AuditCenter',
             '/core/data-quality' => 'Core/DataQuality',
-            '/core/settings' => 'Core/Settings',
             '/system-settings' => 'SystemSettings/Index',
+            '/code-rules' => 'CodeRules/Index',
+            '/code-rules/create' => 'CodeRules/Create',
             '/audit-logs' => 'AuditLogs/Index',
             '/profile' => 'Profile/Edit',
             '/organizations' => 'Organizations/Index',
@@ -117,7 +118,8 @@ class CoreScreensTest extends TestCase
         $nav = collect($this->get('/core')->inertiaProps('workspace.nav'))->flatMap(fn (array $section) => collect($section['groups'])->flatMap(fn (array $g) => $g['items']))->pluck('route');
         $this->assertContains('organizations.index', $nav);
         $this->assertNotContains('users.index', $nav);
-        $this->assertNotContains('print-batches.index', $nav);
+        // Print batches are Core screens since P3 (ADR 0010).
+        $this->assertContains('print-batches.index', $nav);
     }
 
     public function test_sign_in_and_out_use_the_session(): void
@@ -162,7 +164,7 @@ class CoreScreensTest extends TestCase
         $this->post('/employees', $person + ['reason' => 'A different person: other date of birth on file'])->assertSessionHasNoErrors()->assertRedirect();
 
         $this->assertSame(2, Employee::query()->where('full_name', 'Abebe EMP-0001')->count());
-        $this->assertDatabaseHas('employee_duplicate_reviews', ['matched_employee_id' => $this->employee->id, 'decision' => 'distinct']);
+        $this->assertDatabaseHas('employee_duplicate_reviews', ['matched_employee_id' => $this->employee->id, 'decision' => 'pending']);
     }
 
     public function test_settings_belong_to_a_city_wide_administrator(): void
@@ -203,12 +205,16 @@ class CoreScreensTest extends TestCase
         $this->post('/card-requests', ['employee_ids' => [$this->employee->id], 'request_type' => 'new'])->assertRedirect('/card-requests');
         $request = CardRequest::query()->where('employee_id', $this->employee->id)->where('status', 'submitted')->firstOrFail();
 
-        $this->post('/card-requests/'.$request->id.'/approve')->assertSessionHasErrors('request');
+        // CardRequestPolicy refuses the requester before the action would (ADR 0009).
+        $this->post('/card-requests/'.$request->id.'/approve')->assertForbidden();
 
         $this->signIn('core_admin');
         $this->post('/card-requests/'.$request->id.'/approve')->assertSessionHasNoErrors();
         $card = IdCard::query()->where('card_request_id', $request->id)->firstOrFail();
         $this->post('/id-cards/'.$card->id.'/prepare-print')->assertSessionHasNoErrors();
+        $this->signIn('core_officer');
+        $this->post('/id-cards/'.$card->id.'/quality-check', ['result' => 'passed'])->assertSessionHasNoErrors();
+        $this->signIn('core_admin');
         $this->post('/id-cards/'.$card->id.'/issue')->assertSessionHasNoErrors();
         $this->post('/id-cards/'.$card->id.'/activate')->assertSessionHasNoErrors();
         $this->assertSame(IdCard::ACTIVE, $card->fresh()->status);
@@ -220,7 +226,7 @@ class CoreScreensTest extends TestCase
     {
         $this->signIn('core_admin');
 
-        $this->post('/users', ['name' => 'Hana', 'email' => 'hana@core.test', 'status' => 'active', 'role_ids' => [1, 2], 'organization_scope_ids' => [$this->bureauA->id]])
+        $this->post('/users', ['name' => 'Hana', 'email' => 'hana@core.test', 'status' => 'active', 'role_ids' => [11, 21], 'organization_scope_ids' => [$this->bureauA->id]])
             ->assertRedirect('/users')->assertSessionHas('flash.temporary_password');
 
         $user = User::query()->where('email', 'hana@core.test')->firstOrFail();

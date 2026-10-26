@@ -6,19 +6,26 @@ namespace App\Http\Controllers\Web;
 
 use App\Actions\CardRequests;
 use App\Actions\ChangeCardStatus;
+use App\Actions\ManageDigitalCredentials;
+use App\Actions\ManagePrintBatches;
 use App\Http\Controllers\Controller;
 use App\Models\CardRequest;
+use App\Models\CardTemplateVersion;
+use App\Models\DigitalCredential;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\AuditWriter;
+use App\Services\CardEligibility;
+use App\Services\EvidenceView;
 use App\Services\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -69,13 +76,14 @@ class CardController extends Controller
 
     public function show(Request $request, IdCard $card): Response
     {
+        Gate::authorize('view', $card);
         /** @var User $user */
         $user = $request->user();
         $this->authorizeCard($user, $card);
         $card->load(['employee.currentAssignment.organization', 'employee.currentAssignment.position', 'employee.currentAssignment.unit',
             'request.requester', 'request.reviewer', 'request.approver', 'previousCard', 'replacementCard']);
-        $manage = $user->can('cards.manage');
-        $status = $card->status;
+        // Each button follows IdCardPolicy: the step's permission, the holder's organization, the card's status.
+        $may = fn (string $transition): bool => Gate::forUser($user)->allows('transition', [$card, $transition]);
 
         return Inertia::render('IdCards/Show', [
             'portal_labels' => [
@@ -92,31 +100,119 @@ class CardController extends Controller
                 'issuance' => null,
                 'previous_card' => $card->previousCard?->only(['id', 'card_number']),
                 'replacement_card' => $card->replacementCard?->only(['id', 'card_number']),
-                'qr_verification_url' => $card->public_card_uuid ? route('id-checker.show', $card->public_card_uuid) : null,
+                // The QR's own address: the credential token (ADR 0010); a card from before P3 keeps its UUID address.
+                'qr_verification_url' => ($token = app(ManageDigitalCredentials::class)->tokenFor($card)) !== null ? route('id-checker.show', $token)
+                    : ($card->public_card_uuid ? route('id-checker.show', $card->public_card_uuid) : null),
                 'feedback_qr_url' => null,
             ],
             'can' => [
                 'view' => true,
                 'update' => false,
-                'print' => $manage && $status === IdCard::PENDING_PRINT,
+                'print' => $may('print'),
                 'reprint' => false,
-                'issue' => $manage && $status === IdCard::PRINTED,
-                'activate' => $manage && $status === IdCard::ISSUED,
-                'reportLost' => $manage && in_array($status, [IdCard::ACTIVE, IdCard::ISSUED], true),
-                'reportDamaged' => $manage && in_array($status, [IdCard::ACTIVE, IdCard::ISSUED], true),
-                'replace' => $manage && in_array($status, IdCard::REPLACEABLE, true),
-                'revoke' => $manage && ! in_array($status, [IdCard::REVOKED, IdCard::REPLACED, IdCard::EXPIRED], true),
-                'suspend' => $manage && in_array($status, [IdCard::ACTIVE, IdCard::ISSUED], true),
-                'reinstate' => $manage && $status === IdCard::SUSPENDED,
-                'exportPng' => false,
-                'previewSvg' => false,
+                'issue' => $may('issue'),
+                'activate' => $may('activate'),
+                'reportLost' => $may('report_lost'),
+                'reportDamaged' => $may('report_damaged'),
+                'replace' => Gate::forUser($user)->allows('replace', $card),
+                'revoke' => $may('revoke'),
+                'suspend' => $may('suspend'),
+                'reinstate' => $may('reinstate'),
+                'exportPng' => Gate::forUser($user)->allows('exportPng', $card),
+                'previewSvg' => Gate::forUser($user)->allows('previewSvg', $card),
             ],
+            'production' => $this->production($card, $user),
         ]);
+    }
+
+    /** The EUISIS IdCards/Preview page: both faces from the designed template, with its print and export windows. */
+    public function preview(Request $request, IdCard $card, EvidenceView $evidence): Response
+    {
+        Gate::authorize('view', $card);
+        $card->loadMissing('employee.currentAssignment.organization', 'employee.currentAssignment.unit', 'employee.currentAssignment.position');
+        $user = $request->user();
+        $payload = $this->card($card, $user);
+        if ($card->employee !== null) {
+            $payload['employee']['photo_url'] = $evidence->photoUrl($card->employee, $user);
+        }
+
+        return Inertia::render('IdCards/Preview', [
+            'card' => $payload + [
+                'qr_verification_url' => ($token = app(ManageDigitalCredentials::class)->tokenFor($card)) !== null ? route('id-checker.show', $token)
+                    : ($card->public_card_uuid ? route('id-checker.show', $card->public_card_uuid) : null),
+                'feedback_qr_url' => null,
+            ],
+            'can' => ['print' => $user->can('cards.manage')],
+        ]);
+    }
+
+    public function qualityCheck(Request $request, IdCard $card, ManagePrintBatches $production): RedirectResponse
+    {
+        Gate::authorize('qualityCheck', $card);
+        $data = $request->validate(['result' => ['required', Rule::in(['passed', 'failed'])], 'qc_notes' => ['nullable', 'string', 'max:1000']]);
+        $production->qualityCheck($card, $data['result'] === 'passed', $data['qc_notes'] ?? null, $request->user());
+
+        return back()->with('success', __($data['result'] === 'passed' ? 'id-cards.quality_passed' : 'id-cards.quality_failed'));
+    }
+
+    public function reprint(Request $request, IdCard $card, ManagePrintBatches $production): RedirectResponse
+    {
+        Gate::authorize('reprint', $card);
+        $production->requestReprint($card, (string) $request->validate(['reason' => ['required', 'string', 'max:1000']])['reason'], $request->user());
+
+        return back()->with('success', __('id-cards.reprint_approved'));
+    }
+
+    public function credential(Request $request, IdCard $card, string $step, ManageDigitalCredentials $credentials): RedirectResponse
+    {
+        Gate::authorize('credential', [$card, $step]);
+        $reason = (string) $request->validate(['reason' => [$step === 'issue' ? 'nullable' : 'required', 'string', 'max:1000']])['reason'] ?? '';
+        match ($step) {
+            'issue' => $credentials->issueFor($card, $request->user()),
+            'rotate' => $credentials->rotate($card, $reason, $request->user()),
+            'revoke' => $credentials->revoke($card, $reason, $request->user()),
+        };
+
+        return back()->with('success', __('id-cards.credential_'.['issue' => 'issued', 'rotate' => 'rotated', 'revoke' => 'revoked'][$step]));
+    }
+
+    /**
+     * The production panel (ADR 0010): the template version, prints, the
+     * quality check and the credential, with the steps this reader may take.
+     *
+     * @return array<string, mixed>
+     */
+    private function production(IdCard $card, User $user): array
+    {
+        $version = CardTemplateVersion::query()->with('template')->find($card->card_template_version_id);
+        $credential = DigitalCredential::query()->where('id_card_id', $card->id)->orderByDesc('issued_at')->first();
+        $gate = Gate::forUser($user);
+
+        return [
+            'template' => $version === null ? null : ['code' => $version->template?->code, 'version' => $version->version, 'status' => $version->status],
+            'print_count' => (int) $card->print_count,
+            'reprint_required' => (bool) $card->reprint_required,
+            'qc' => ['status' => $card->qc_status, 'at' => $card->qc_at?->toIso8601String(), 'notes' => $card->qc_notes, 'by' => User::query()->whereKey($card->qc_by)->value('name')],
+            'credential' => $credential === null ? null : [
+                'status' => $credential->status, 'kind' => $credential->kind, 'key_version' => $credential->key_version,
+                'issued_at' => $credential->issued_at?->toIso8601String(), 'last_verified_at' => $credential->last_verified_at?->toIso8601String(),
+                'verification_count' => (int) $credential->verification_count,
+            ],
+            'preview_url' => route('id-cards.preview', $card),
+            'urls' => [
+                'quality' => $gate->allows('qualityCheck', $card) ? route('id-cards.quality-check', $card) : null,
+                'reprint' => $gate->allows('reprint', $card) ? route('id-cards.reprint', $card) : null,
+                'issue_credential' => $gate->allows('credential', [$card, 'issue']) && ($credential === null || $credential->status !== DigitalCredential::ACTIVE) ? route('id-cards.credential', [$card, 'issue']) : null,
+                'rotate_credential' => $gate->allows('credential', [$card, 'rotate']) && $credential?->status === DigitalCredential::ACTIVE ? route('id-cards.credential', [$card, 'rotate']) : null,
+                'revoke_credential' => $gate->allows('credential', [$card, 'revoke']) && $credential?->status === DigitalCredential::ACTIVE ? route('id-cards.credential', [$card, 'revoke']) : null,
+            ],
+        ];
     }
 
     /** A card transition from the detail page; back with the EUISIS message. */
     public function transition(Request $request, IdCard $card, ChangeCardStatus $change, string $transition): RedirectResponse
     {
+        Gate::authorize('transition', [$card, $transition]);
         $reason = $request->input('reason') ?? $request->input('notes');
         if (in_array($transition, ChangeCardStatus::NEEDS_REASON, true)) {
             $request->validate(['reason' => ['required', 'string', 'max:1000']]);
@@ -133,6 +229,7 @@ class CardController extends Controller
 
     public function replace(Request $request, IdCard $card, CardRequests $requests): RedirectResponse
     {
+        Gate::authorize('replace', $card);
         $request->validate(['reason' => ['required', 'string', 'max:1000']]);
         $requests->replace($card, $request->string('reason')->toString(), $request->user());
 
@@ -159,24 +256,17 @@ class CardController extends Controller
         ]);
     }
 
-    public function createRequest(Request $request): Response
+    /** The picker lists only employees CardEligibility allows, in one bounded query (ADR 0009). */
+    public function createRequest(Request $request, CardEligibility $eligibility): Response
     {
         $term = mb_substr(trim((string) $request->query('q', '')), 0, 60);
         $limit = 1000;
-        $employees = $this->inScope(Employee::query(), $request->user(), 'id')->with('currentAssignment.organization')->where('status', Employee::ACTIVE)
-            ->when($term !== '', fn ($q) => $q->where(fn ($inner) => $inner->where('employee_number', 'like', $term.'%')->orWhere('full_name', 'like', "%{$term}%")->orWhere('name_en', 'like', "%{$term}%")))
-            ->orderBy('full_name')->orderBy('id')->limit($limit + 1)->get(['id', 'employee_number', 'full_name', 'status', 'current_assignment_id']);
-        $truncated = $employees->count() > $limit;
-        $employees = $employees->take($limit)->values();
-        $cards = IdCard::query()->whereIn('employee_id', $employees->modelKeys())->where('is_current', true)->latest('created_at')->get()->groupBy('employee_id');
-        $pending = CardRequest::query()->whereIn('employee_id', $employees->modelKeys())->whereIn('status', CardRequest::PENDING)->pluck('employee_id')->flip();
-        $employees->each(fn (Employee $employee) => $employee->setAttribute('eligible_request_types', $pending->has($employee->id) ? []
-            : $this->eligibleTypes($cards->get($employee->id)?->first())));
+        $employees = $eligibility->eligibleEmployees($request->user(), $term, $limit + 1);
 
         return Inertia::render('CardRequests/Create', [
-            'employees' => $employees->map(fn (Employee $employee): array => $employee->only(['id', 'employee_number', 'full_name', 'status', 'current_assignment_id', 'eligible_request_types'])
-                + ['current_assignment' => $employee->currentAssignment === null ? null : ['organization' => $employee->currentAssignment->organization?->only(['id', 'name_en', 'name_am'])]])->values(),
-            'employeesTruncated' => $truncated,
+            'employees' => $employees->take($limit)->map(fn (array $employee): array => array_diff_key($employee, ['organization' => true])
+                + ['current_assignment' => $employee['organization'] === null ? null : ['organization' => $employee['organization']]])->values(),
+            'employeesTruncated' => $employees->count() > $limit,
             'filters' => ['q' => $term],
             'requestTypes' => CardRequest::TYPES,
         ]);
@@ -200,7 +290,7 @@ class CardController extends Controller
                 try {
                     if (in_array($type, ['lost', 'damaged', 'replacement'], true)) {
                         $card = IdCard::query()->where('employee_id', $employee->id)->where('is_current', true)->latest('created_at')->first();
-                        if ($card === null || ! in_array($type, $this->eligibleTypes($card), true)) {
+                        if ($card === null || ! in_array($type, CardEligibility::typesFor($card->status), true)) {
                             throw ValidationException::withMessages([$field => __('id-cards.request_type_ineligible')]);
                         }
                         $requests->replace($card, $data['reason'] ?? null, $request->user());
@@ -218,6 +308,7 @@ class CardController extends Controller
 
     public function showRequest(Request $request, CardRequest $cardRequest): Response
     {
+        Gate::authorize('view', $cardRequest);
         /** @var User $user */
         $user = $request->user();
         abort_unless($this->inScope(CardRequest::query()->whereKey($cardRequest->id), $user)->exists(), 403);
@@ -234,7 +325,7 @@ class CardController extends Controller
 
     public function verifyRequest(Request $request, CardRequest $cardRequest, AuditWriter $audit): RedirectResponse
     {
-        abort_unless($this->requestCan($request->user(), $cardRequest)['verify'], 403);
+        Gate::authorize('verify', $cardRequest);
         $cardRequest->update(['status' => 'verified', 'reviewed_by' => $request->user()->id, 'verified_at' => now(), 'verification_notes' => $request->input('notes')]);
         $audit->write('card_request.verified', $request->user(), $cardRequest, $cardRequest->employee?->currentAssignment?->organization_id, null, ['status' => 'verified'], $request->input('notes'));
 
@@ -243,6 +334,7 @@ class CardController extends Controller
 
     public function approveRequest(Request $request, CardRequest $cardRequest, CardRequests $requests): RedirectResponse
     {
+        Gate::authorize('approve', $cardRequest);
         $requests->approve($cardRequest, $request->user(), $request->input('notes'));
 
         return back()->with('success', __('id-cards.request_approved'));
@@ -250,6 +342,7 @@ class CardController extends Controller
 
     public function rejectRequest(Request $request, CardRequest $cardRequest, CardRequests $requests): RedirectResponse
     {
+        Gate::authorize('reject', $cardRequest);
         $request->validate(['rejection_reason' => ['required', 'string', 'max:1000']]);
         $requests->close($cardRequest, 'reject', $request->string('rejection_reason')->toString(), $request->user());
 
@@ -258,32 +351,11 @@ class CardController extends Controller
 
     public function cancelRequest(Request $request, CardRequest $cardRequest, CardRequests $requests): RedirectResponse
     {
+        Gate::authorize('cancel', $cardRequest);
         $request->validate(['cancellation_reason' => ['required', 'string', 'max:1000']]);
         $requests->close($cardRequest, 'cancel', $request->string('cancellation_reason')->toString(), $request->user());
 
         return back()->with('success', __('id-cards.request_cancelled'));
-    }
-
-    /**
-     * Request types an employee can get, from their current card (EUISIS CardRequestEligibility).
-     *
-     * @return list<string>
-     */
-    private function eligibleTypes(?IdCard $card): array
-    {
-        if ($card === null || ! in_array($card->status, IdCard::LIVE, true) && ! in_array($card->status, IdCard::REPLACEABLE, true)) {
-            return ['new'];
-        }
-        if (in_array($card->status, [IdCard::ACTIVE, IdCard::ISSUED], true)) {
-            return ['renewal', 'correction'];
-        }
-
-        return match ($card->status) {
-            IdCard::LOST => ['lost'],
-            IdCard::DAMAGED => ['damaged'],
-            IdCard::REVOKED, IdCard::EXPIRED, IdCard::SUSPENDED => ['replacement'],
-            default => [],
-        };
     }
 
     /** Rows whose employee is placed inside the reader's organizations (all rows for a citywide reader). */
@@ -406,15 +478,14 @@ class CardController extends Controller
     /** @return array{view: bool, verify: bool, approve: bool, reject: bool, cancel: bool} */
     private function requestCan(User $user, CardRequest $cardRequest): array
     {
-        $pending = in_array($cardRequest->status, CardRequest::PENDING, true);
-        $other = (int) $cardRequest->requested_by !== (int) $user->id;
+        $gate = Gate::forUser($user);
 
         return [
-            'view' => true,
-            'verify' => $pending && $cardRequest->status !== 'verified' && $user->can('card-requests.approve'),
-            'approve' => $pending && $other && $user->can('card-requests.approve'),
-            'reject' => $pending && $user->can('card-requests.approve'),
-            'cancel' => $pending && $user->can('card-requests.create'),
+            'view' => $gate->allows('view', $cardRequest),
+            'verify' => $gate->allows('verify', $cardRequest),
+            'approve' => $gate->allows('approve', $cardRequest),
+            'reject' => $gate->allows('reject', $cardRequest),
+            'cancel' => $gate->allows('cancel', $cardRequest),
         ];
     }
 

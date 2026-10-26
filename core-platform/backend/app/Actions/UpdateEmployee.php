@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\AuditWriter;
+use App\Services\DuplicateEmployees;
 use App\Services\OrganizationScope;
 use App\Services\SeatCapacity;
 use Illuminate\Support\Facades\DB;
@@ -30,9 +31,17 @@ final readonly class UpdateEmployee
 {
     public const STATUSES = ['active', 'suspended', 'retired', 'terminated', 'deceased', 'transferred'];
 
-    public function __construct(private AuditWriter $audit, private OrganizationScope $scope, private SeatCapacity $seats) {}
+    /** The fields that identify a person: a change looks for duplicates again (ADR 0009). */
+    private const IDENTITY = ['full_name', 'date_of_birth', 'phone', 'email', 'national_id_hash'];
 
-    /** @param array{first_name?: string, middle_name?: ?string, last_name?: string, gender?: ?string} $data */
+    public function __construct(private AuditWriter $audit, private OrganizationScope $scope, private SeatCapacity $seats, private ReviewEmployeeDuplicates $duplicates) {}
+
+    /**
+     * Personal details. A national ID is kept only as its keyed hash, and one
+     * person has one record: another employee's national ID is refused.
+     *
+     * @param  array<string, mixed>  $data
+     */
     public function details(Employee $employee, array $data, User $actor): Employee
     {
         return DB::transaction(function () use ($employee, $data, $actor): Employee {
@@ -41,11 +50,27 @@ final readonly class UpdateEmployee
             if (in_array($employee->status, [Employee::SUBMITTED, Employee::VERIFIED], true)) {
                 throw ValidationException::withMessages(['employee' => 'Return the employee to draft before correcting their details.']);
             }
+            $nationalId = trim((string) ($data['national_id'] ?? ''));
+            unset($data['national_id']);
+            if ($nationalId !== '') {
+                $hash = DuplicateEmployees::nationalIdHash($nationalId);
+                if (Employee::query()->where('national_id_hash', $hash)->whereKeyNot($employee->getKey())->exists()) {
+                    throw ValidationException::withMessages(['national_id' => 'A person with this national ID is already registered.']);
+                }
+                $data['national_id_hash'] = $hash;
+            }
+            $before = $employee->only(self::IDENTITY);
             $old = $employee->only(array_keys($data));
             $employee->fill($data);
             $employee->full_name = trim(implode(' ', array_filter([$employee->first_name, $employee->middle_name, $employee->last_name])));
             $employee->save();
-            $this->audit->write('employee.updated', $actor, $employee, $this->organizationId($employee), $old, $employee->only(array_keys($data)));
+            // The hash itself is never written to the audit, only that it changed.
+            $this->audit->write('employee.updated', $actor, $employee, $this->organizationId($employee),
+                array_diff_key($old, ['national_id_hash' => true]) + (isset($data['national_id_hash']) ? ['national_id' => 'previous'] : []),
+                array_diff_key($employee->only(array_keys($data)), ['national_id_hash' => true]) + (isset($data['national_id_hash']) ? ['national_id' => 'changed'] : []));
+            if ($employee->only(self::IDENTITY) != $before) {
+                $this->duplicates->detectAfterChange($employee, $actor);
+            }
 
             return $employee;
         });

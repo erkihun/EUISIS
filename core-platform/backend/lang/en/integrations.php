@@ -37,4 +37,5 @@ return [
     'webhook_updated' => 'Webhook updated.',
     'webhook_rotated' => 'A new signing secret was issued. Copy it now; it is not shown again.',
     'delivery_retried' => 'The delivery is queued to be sent again.',
+    'webhook_resumed' => 'The webhook is active again; its waiting events are being sent.',
 ];

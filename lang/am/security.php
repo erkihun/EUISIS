@@ -35,4 +35,10 @@ return [
     'security_policy' => 'የደህንነት ፖሊሲ',
     'pii_view_denied' => 'ሚስጥራዊ የግል መረጃ ለማየት መብት የለዎትም።',
     'security_audit' => 'የደህንነት ምርመራ',
+    // Core Security Center (ADR 0010)
+    'break_glass_requested' => 'የአደጋ ጊዜ መዳረሻ ተጠይቋል። ሌላ ሰው ማጽደቅ አለበት።',
+    'break_glass_approved' => 'የአደጋ ጊዜ መዳረሻ ጸድቋል፤ በሚታየው ሰዓት በራሱ ይቋረጣል።',
+    'break_glass_rejected' => 'የአደጋ ጊዜ መዳረሻ ውድቅ ተደርጓል።',
+    'break_glass_ended' => 'የአደጋ ጊዜ መዳረሻ ተቋርጧል።',
+    'audit_verification_started' => 'የኦዲት መዝገቡ ፍተሻ እየተካሄደ ነው፤ ውጤቱ ሲያልቅ እዚህ ይታያል።',
 ];

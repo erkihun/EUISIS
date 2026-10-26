@@ -7,13 +7,13 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\IdCard;
 use App\Services\AuditWriter;
+use App\Services\CredentialVerifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -30,7 +30,10 @@ class IdCheckerController extends Controller
 
     private const MAX_ATTEMPTS = 5;
 
-    public function __construct(private readonly AuditWriter $audit) {}
+    /** Denials about the credential itself (ADR 0010): the card behind it is not described at all. */
+    private const CREDENTIAL_DENIALS = ['CREDENTIAL_UNKNOWN', 'CREDENTIAL_REVOKED', 'CREDENTIAL_SUPERSEDED', 'CREDENTIAL_EXPIRED', 'KEY_RETIRED'];
+
+    public function __construct(private readonly AuditWriter $audit, private readonly CredentialVerifier $verifier) {}
 
     public function index(): Response
     {
@@ -121,10 +124,12 @@ class IdCheckerController extends Controller
         ]);
     }
 
-    private function find(string $cardUuid): ?IdCard
+    /** The card a QR's token reaches (CredentialVerifier): a revoked, replaced, expired or unknown credential reaches none. */
+    private function find(string $token): ?IdCard
     {
-        return Str::isUuid($cardUuid) ? IdCard::query()->with('employee.currentAssignment.organization', 'employee.currentAssignment.unit', 'employee.currentAssignment.position')
-            ->where('public_card_uuid', $cardUuid)->first() : null;
+        $result = $this->verifier->check($token);
+
+        return in_array($result['code'], self::CREDENTIAL_DENIALS, true) ? null : $result['card'];
     }
 
     /** EUISIS PublicIdCheckerService::statusCode over the Core validity rule. */
@@ -154,6 +159,6 @@ class IdCheckerController extends Controller
 
     private function key(string $cardUuid): string
     {
-        return 'core.id-check.'.$cardUuid;
+        return 'core.id-check.'.hash('sha256', $cardUuid);
     }
 }

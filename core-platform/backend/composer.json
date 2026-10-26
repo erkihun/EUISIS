@@ -8,10 +8,12 @@
     "require": {
         "php": "^8.4",
         "bacon/bacon-qr-code": "^3.1",
+        "chillerlan/php-qrcode": "^6.0",
         "inertiajs/inertia-laravel": "^3.5.2",
         "laravel/framework": "^13.17",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "openspout/openspout": "^4.28",
         "pragmarx/google2fa-qrcode": "^4.0",
         "tightenco/ziggy": "^2.6.5"
     },

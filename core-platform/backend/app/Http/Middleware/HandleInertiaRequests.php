@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\MfaController;
 use App\Models\User;
 use App\Services\CoreNavigation;
 use App\Services\CoreSettings;
+use App\Services\IdCards\IdCardTemplateService;
 use App\Services\SharedSettings;
 use App\Support\CorePermissions;
 use Illuminate\Http\Request;
@@ -61,8 +62,30 @@ class HandleInertiaRequests extends Middleware
             'calendar' => ['system' => $locale === 'am' ? 'ethiopian' : 'gregorian', 'mode' => 'locale_based'],
             'settings' => $settings,
             'branding' => $shared->branding(),
-            'idCardTemplate' => null,
-            'idCardTemplates' => null,
+            'idCardTemplate' => function () use ($user): ?array {
+                if (! $this->rendersIdCards($user)) {
+                    return null;
+                }
+                $templates = app(IdCardTemplateService::class);
+                $template = $templates->active();
+
+                return $template ? $templates->presentation($template) : null;
+            },
+            // One template per orientation: the card components pick the entry for the face they draw.
+            'idCardTemplates' => function () use ($user): ?array {
+                if (! $this->rendersIdCards($user)) {
+                    return null;
+                }
+                $templates = app(IdCardTemplateService::class);
+
+                return collect(['landscape', 'portrait'])
+                    ->mapWithKeys(function (string $orientation) use ($templates): array {
+                        $template = $templates->active($orientation);
+
+                        return [$orientation => $template ? $templates->presentation($template) : null];
+                    })
+                    ->all();
+            },
             'registration_enabled' => false,
             'announcement_count' => 0,
             'is_employee_user' => false,
@@ -90,6 +113,11 @@ class HandleInertiaRequests extends Middleware
             ],
             'password_policy' => fn (): array => ['min_length' => app(CoreSettings::class)->int('security.password_min_length'), 'max_length' => 128, 'history_count' => app(CoreSettings::class)->int('security.password_history_count'), 'blocks_personal_information' => true, 'blocks_common_passwords' => false, 'checks_breaches' => false],
         ];
+    }
+
+    private function rendersIdCards(?User $user): bool
+    {
+        return $user !== null && ($user->can('cards.view') || $user->can('id_card_templates.view'));
     }
 
     private function initials(string $name): string

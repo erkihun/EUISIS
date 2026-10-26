@@ -7,6 +7,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { localizedName } from '@/utils/localizedName';
 import { Empty, formatScore, Pill, Section, Table, tdCls, thCls } from '@/Components/performance/ui';
+import PositionLifecyclePanel, { type PositionLifecycle } from '@/Components/positions/PositionLifecyclePanel';
 
 import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Movement = {
@@ -23,9 +24,11 @@ type PositionService = Named & { id: string; service_no: string; description: st
 /** Derived from the plan's lineage on the server; a position never stores a goal. */
 type ContributingGoal = { id: string; code: string; name_en: string; name_am: string | null; weight_percent: string; unit: string | null; unit_am: string | null; allocation_percent: string | null };
 type PositionPlan = { id: string; title: string; status: string; version: number; organization: Named | null; unit: Named | null; cycle: Named | null; effective_from: string | null; effective_to: string | null; goals: ContributingGoal[] };
-type Props = { position: any; movementHistory: Movement[]; positionServices: PositionService[]; currentPerformancePlans: PositionPlan[]; historicalPerformancePlans: PositionPlan[]; canViewPerformancePlans: boolean; canViewPositionServices: boolean };
+type Props = { position: any; movementHistory: Movement[]; positionServices: PositionService[]; currentPerformancePlans: PositionPlan[]; historicalPerformancePlans: PositionPlan[]; canViewPerformancePlans: boolean; canViewPositionServices: boolean;
+    /** Core only (ADR 0010): the lifecycle status, job masters, seats and history. */
+    lifecycle?: PositionLifecycle };
 
-export default function PositionsShow({ position, movementHistory, positionServices, currentPerformancePlans, historicalPerformancePlans, canViewPerformancePlans, canViewPositionServices }: Props) {
+export default function PositionsShow({ position, movementHistory, positionServices, currentPerformancePlans, historicalPerformancePlans, canViewPerformancePlans, canViewPositionServices, lifecycle }: Props) {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const standardName = localizedName(position.title_en, position.title_am, locale);
@@ -81,6 +84,8 @@ export default function PositionsShow({ position, movementHistory, positionServi
                     <div className="mt-1 text-2xl font-semibold text-(--app-foreground)">{position.assignments_count ?? 0}</div>
                 </aside>
             </div>
+
+            {lifecycle && <PositionLifecyclePanel lifecycle={lifecycle} />}
 
             {canViewPositionServices && <div className="mt-6"><Section title={t('positions.positionServices')}>
                 {positionServices.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : <Table head={<>

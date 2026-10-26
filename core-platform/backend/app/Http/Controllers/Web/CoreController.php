@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\BreakGlassGrant;
 use App\Models\CardRequest;
 use App\Models\CoreAuditLog;
 use App\Models\Employee;
@@ -18,11 +19,13 @@ use App\Models\User;
 use App\Services\CoreSettings;
 use App\Services\IntegrityChecks;
 use App\Services\OrganizationScope;
-use App\Settings\CoreSettingsRegistry;
+use App\Support\CorePermissions;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -57,6 +60,24 @@ class CoreController extends Controller
         'users_active' => ['domain' => 'governance', 'permission' => 'users.viewAny', 'citywide' => false],
         'audit_events_24h' => ['domain' => 'governance', 'permission' => 'audit.view', 'citywide' => true],
         'data_quality_findings' => ['domain' => 'quality', 'permission' => 'audit.view', 'citywide' => true],
+        // P4/P5 (ADR 0011): the operational KPIs, each in the reader's scope.
+        'organizations_total' => ['domain' => 'organization', 'permission' => 'organizations.view', 'citywide' => false],
+        'employees_total' => ['domain' => 'employees', 'permission' => 'employees.view', 'citywide' => false],
+        'employees_pending_verification' => ['domain' => 'employees', 'permission' => 'employees.view', 'citywide' => false],
+        'employees_pending_approval' => ['domain' => 'employees', 'permission' => 'employees.view', 'citywide' => false],
+        'positions_vacant' => ['domain' => 'positions', 'permission' => 'positions.viewAny', 'citywide' => false],
+        'positions_utilization' => ['domain' => 'positions', 'permission' => 'positions.viewAny', 'citywide' => false],
+        'card_coverage' => ['domain' => 'credentials', 'permission' => 'cards.view', 'citywide' => false],
+        'cards_lost_replaced' => ['domain' => 'credentials', 'permission' => 'cards.view', 'citywide' => false],
+        'card_approvals_pending' => ['domain' => 'credentials', 'permission' => 'id-cards.viewAny', 'citywide' => false],
+        'data_quality_critical' => ['domain' => 'quality', 'permission' => 'data_quality.view', 'citywide' => false],
+        'data_quality_open' => ['domain' => 'quality', 'permission' => 'data_quality.view', 'citywide' => false],
+        'hierarchy_pending' => ['domain' => 'organization', 'permission' => 'hierarchy-versions.viewAny', 'citywide' => true],
+        'webhooks_failed' => ['domain' => 'operations', 'permission' => 'integrations.view', 'citywide' => true],
+        'api_errors_24h' => ['domain' => 'operations', 'permission' => 'integrations.view', 'citywide' => true],
+        'failed_jobs' => ['domain' => 'operations', 'permission' => 'system_health.view', 'citywide' => true],
+        'break_glass_active' => ['domain' => 'operations', 'permission' => 'security_dashboard.view', 'citywide' => true],
+        'mfa_coverage' => ['domain' => 'operations', 'permission' => 'security_dashboard.view', 'citywide' => true],
     ];
 
     private const DOMAIN_LINKS = [
@@ -65,7 +86,8 @@ class CoreController extends Controller
         'employees' => ['employees.index' => 'employees.view'],
         'credentials' => ['id-cards.index' => 'cards.view', 'card-requests.index' => 'id-cards.viewAny'],
         'governance' => ['users.index' => 'users.viewAny', 'audit-logs.index' => 'audit.view'],
-        'quality' => [],
+        'quality' => ['core.data-quality' => 'data_quality.view'],
+        'operations' => ['core.system-health' => 'system_health.view', 'core.security' => 'security_dashboard.view'],
     ];
 
     private const ACTIVITY_PREFIXES = ['organization', 'unit', 'hierarchy', 'position', 'establishment', 'employee', 'assignment', 'card'];
@@ -83,14 +105,6 @@ class CoreController extends Controller
     ];
 
     private const AUDIT_WINDOW_DAYS = 30;
-
-    private const DATA_QUALITY_ROUTES = ['position' => 'positions.show', 'employee' => 'employees.show', 'card' => 'id-cards.show'];
-
-    /** Settings sections of the EUISIS settings page that the Core keeps (Core settings groups). */
-    private const SETTINGS_SECTIONS = ['general', 'localization', 'appearance', 'security', 'id_cards'];
-
-    /** Core-only groups, shown and saved with the General section. */
-    private const GENERAL_EXTRAS = ['numbering', 'workforce'];
 
     public function __construct(private readonly OrganizationScope $scope) {}
 
@@ -149,6 +163,9 @@ class CoreController extends Controller
                 'is_current' => (bool) $assignment->is_current,
                 'effective_from' => $assignment->effective_from?->toDateString(),
                 'effective_to' => $assignment->effective_to?->toDateString(),
+                'assignment_type' => $assignment->assignment_type,
+                'reason_code' => $assignment->reason_code,
+                'source_system' => $assignment->source_system,
                 'employee' => $assignment->employee?->only(['id', 'employee_number', 'full_name', 'status']),
                 'organization' => $assignment->organization?->only(['id', 'code', 'name_en', 'name_am']),
                 'unit' => $assignment->unit?->only(['id', 'code', 'name_en', 'name_am']),
@@ -178,105 +195,6 @@ class CoreController extends Controller
             ])->values(),
             'windowDays' => self::AUDIT_WINDOW_DAYS,
         ]);
-    }
-
-    public function dataQuality(Request $request, IntegrityChecks $checks): Response
-    {
-        abort_unless($request->user()->isCityWide(), 403);
-        $counts = $checks->counts();
-
-        return Inertia::render('Core/DataQuality', [
-            'checks' => collect(IntegrityChecks::SUBJECTS)->map(function (array $subject, string $key) use ($checks, $counts): array {
-                [, $kind] = $subject;
-
-                return [
-                    'key' => $key,
-                    'count' => $counts[$key] ?? 0,
-                    'kind' => $kind,
-                    'records' => ($counts[$key] ?? 0) === 0 ? [] : array_map(
-                        fn (string $id): array => ['id' => $id, 'href' => route(self::DATA_QUALITY_ROUTES[$kind], $id)],
-                        $checks->samples($key, 20),
-                    ),
-                ];
-            })->values(),
-            'sample' => 20,
-        ]);
-    }
-
-    public function settings(): Response
-    {
-        return Inertia::render('Core/Settings', [
-            'sections' => collect(self::SETTINGS_SECTIONS)->map(fn (string $key): array => [
-                'key' => $key,
-                'href' => route('system-settings.index').'?tab='.$key,
-            ])->values(),
-        ]);
-    }
-
-    /** EUISIS SystemSettings/Index over the Core settings registry. */
-    public function systemSettings(Request $request, CoreSettings $settings): Response
-    {
-        $definitions = CoreSettingsRegistry::definitions();
-        $values = $settings->values();
-        $field = fn (string $group, string $key, array $definition, int $order): array => [
-            'key' => $key,
-            'group' => $group,
-            'type' => $definition['type'],
-            'value' => $values[$group][$key],
-            'is_encrypted' => false,
-            'is_public' => $definition['is_public'],
-            'configured' => true,
-            'options' => $definition['options'],
-            'validation_rules' => $definition['rules'],
-            'description_en' => $definition['description_en'],
-            'description_am' => $definition['description_am'],
-            'label_en' => $definition['label_en'],
-            'label_am' => $definition['label_am'],
-            'sort_order' => $order,
-            'default' => $definition['default'],
-            'is_required' => in_array('required', $definition['rules'], true),
-            'asset_url' => null,
-        ];
-
-        $groups = [];
-        foreach (self::SETTINGS_SECTIONS as $group) {
-            $fields = [];
-            $order = 0;
-            foreach ([$group, ...($group === 'general' ? self::GENERAL_EXTRAS : [])] as $source) {
-                foreach ($definitions[$source] as $key => $definition) {
-                    $fields[] = $field($source, $key, $definition, $order++);
-                }
-            }
-            $groups[$group] = ['fields' => $fields, 'can_manage' => $request->user()->can('system-settings.update')];
-        }
-        $can = $request->user()->can('system-settings.update');
-
-        return Inertia::render('SystemSettings/Index', [
-            'settingGroups' => $groups,
-            'emailInEffect' => null,
-            'roles' => [],
-            'can' => [
-                'view' => true, 'update' => $can,
-                'manageGeneral' => $can, 'manageLocalization' => $can, 'manageNotifications' => false, 'manageEmail' => false,
-                'manageSms' => false, 'manageTelegram' => false, 'manageSecurity' => $can, 'manageAppearance' => $can,
-                'manageIdCards' => $can, 'manageFieldWorkGps' => false, 'manageSituationRoom' => false, 'manageIntelligence' => false,
-                'viewIdCardTemplates' => false, 'clearCache' => false,
-            ],
-        ]);
-    }
-
-    public function updateSettings(Request $request, CoreSettings $settings, string $section): RedirectResponse
-    {
-        abort_unless(in_array($section, self::SETTINGS_SECTIONS, true), 404);
-        $definitions = CoreSettingsRegistry::definitions();
-        foreach ([$section, ...($section === 'general' ? self::GENERAL_EXTRAS : [])] as $group) {
-            $input = array_intersect_key($request->all(), $definitions[$group]);
-            if ($input !== []) {
-                $settings->update($group, $input, $request->user());
-            }
-        }
-
-        return back()->with('flash', ['message' => __('Settings saved.'), 'type' => 'success']);
     }
 
     public function auditLogs(Request $request): Response
@@ -352,7 +270,8 @@ class CoreController extends Controller
             'positions_without_holder' => max(0, $activePositions()->count() - $held),
             'employees_active' => $ofEmployees(Employee::query()->where('status', Employee::ACTIVE), 'id')->count(),
             'assignments_current' => $inScope(EmployeeAssignment::query()->where('is_current', true)->where('assignment_status', EmployeeAssignment::ACTIVE))->count(),
-            'employees_unplaced' => Employee::query()->where('status', Employee::ACTIVE)->whereNull('current_assignment_id')->count(),
+            // An unplaced employee belongs to no organization, so only a city-wide reader may count them (ADR 0009).
+            'employees_unplaced' => $ids === null ? Employee::query()->where('status', Employee::ACTIVE)->whereNull('current_assignment_id')->count() : null,
             'cards_active' => $ofEmployees(IdCard::query()->where('status', IdCard::ACTIVE)->where('is_current', true))->count(),
             'cards_expiring' => $ofEmployees(IdCard::query()->where('status', IdCard::ACTIVE)->where('is_current', true)->whereBetween('expires_at', [$now, $now->copy()->addDays(self::EXPIRY_WINDOW_DAYS)]))->count(),
             'card_requests_open' => $ofEmployees(CardRequest::query()->where('status', CardRequest::SUBMITTED))->count(),
@@ -360,7 +279,71 @@ class CoreController extends Controller
             'cards_revoked' => $ofEmployees(IdCard::query()->where('status', IdCard::REVOKED))->count(),
             'users_active' => User::query()->where('is_active', true)->when($ids !== null, fn ($q) => $q->whereIn('scope_organization_id', $ids))->count(),
             'audit_events_24h' => CoreAuditLog::query()->where('created_at', '>=', $now->copy()->subDay())->count(),
-            'data_quality_findings' => $ids === null ? array_sum($checks->counts()) : null,
+            // From the last scan (core:data-quality-scan), never the checks themselves on a page load (ADR 0011).
+            'data_quality_findings' => $ids === null ? DB::table('data_quality_issues')->whereIn('status', ['open', 'investigating'])->count() : null,
+        ] + $this->operationalMetrics($ids);
+    }
+
+    /**
+     * The P4/P5 KPIs (ADR 0011). Workload counts are cached for a minute per scope;
+     * security figures (emergency access, two-step sign-in, failed jobs) are always live.
+     *
+     * @param  list<string>|null  $ids
+     * @return array<string, int|string|null>
+     */
+    private function operationalMetrics(?array $ids): array
+    {
+        $key = 'core.dashboard.'.($ids === null ? 'city' : sha1(implode(',', $ids)));
+        $workload = Cache::remember($key, 60, function () use ($ids): array {
+            $scoped = fn (\Illuminate\Database\Query\Builder $q, string $column) => $ids === null ? $q : $q->whereIn($column, $ids === [] ? ['00000000-0000-0000-0000-000000000000'] : $ids);
+            $employees = fn (array $statuses) => $scoped(DB::table('employees')->join('employee_assignments as a', 'a.id', '=', 'employees.current_assignment_id')
+                ->when($statuses !== [], fn ($q) => $q->whereIn('employees.status', $statuses)), 'a.organization_id')->count();
+            $today = now()->toDateString();
+            $true = DB::getDriverName() === 'pgsql' ? 'true' : '1';
+            $default = app(CoreSettings::class)->int('workforce.default_seat_capacity');
+            $seats = "(select coalesce(sum(approved_slots), 0) from position_establishments s where s.position_id = positions.id and s.status = 'approved' and s.deleted_at is null and s.effective_from <= '{$today}' and (s.effective_to is null or s.effective_to >= '{$today}'))";
+            $capacity = "(case when {$seats} > 0 then {$seats} else {$default} end)";
+            $holders = "(select count(*) from employee_assignments h where h.position_id = positions.id and h.is_current = {$true} and h.assignment_status = 'active')";
+            $positions = $scoped(DB::table('positions')->where('positions.lifecycle_status', 'approved')->whereNull('positions.deleted_at'), 'positions.organization_id')
+                ->selectRaw("coalesce(sum({$capacity}), 0) as seats, coalesce(sum({$holders}), 0) as held, sum(case when {$capacity} > {$holders} then 1 else 0 end) as vacant")->first();
+            $placedActive = $scoped(DB::table('employees')->join('employee_assignments as a', 'a.id', '=', 'employees.current_assignment_id')
+                ->where('employees.status', Employee::ACTIVE)->where('a.assignment_status', EmployeeAssignment::ACTIVE), 'a.organization_id');
+            $withCard = (clone $placedActive)->whereExists(fn ($q) => $q->selectRaw('1')->from('id_cards')->whereColumn('id_cards.employee_id', 'employees.id')
+                ->where('id_cards.is_current', true)->whereIn('id_cards.status', IdCard::LIVE))->count();
+            $active = $placedActive->count();
+            $cards = fn (array $statuses) => $scoped(DB::table('id_cards')->join('employees', 'employees.id', '=', 'id_cards.employee_id')
+                ->join('employee_assignments as a', 'a.id', '=', 'employees.current_assignment_id')->whereIn('id_cards.status', $statuses), 'a.organization_id')->count();
+            $issues = fn () => $scoped(DB::table('data_quality_issues')->whereIn('status', ['open', 'investigating']), 'organization_id');
+
+            return [
+                'organizations_total' => $scoped(DB::table('organizations')->whereNull('deleted_at'), 'id')->count(),
+                'employees_total' => $employees([]),
+                'employees_pending_verification' => $employees([Employee::SUBMITTED]),
+                'employees_pending_approval' => $employees([Employee::VERIFIED]),
+                'positions_vacant' => (int) ($positions->vacant ?? 0),
+                'positions_utilization' => (int) ($positions->seats ?? 0) === 0 ? null : number_format(100 * (int) $positions->held / (int) $positions->seats, 1).'%',
+                'card_coverage' => $active === 0 ? null : number_format(100 * $withCard / $active, 1).'%',
+                'cards_lost_replaced' => $cards([IdCard::LOST, IdCard::DAMAGED, IdCard::REPLACED]),
+                'card_approvals_pending' => $scoped(DB::table('card_requests')->join('employees', 'employees.id', '=', 'card_requests.employee_id')
+                    ->join('employee_assignments as a', 'a.id', '=', 'employees.current_assignment_id')->whereIn('card_requests.status', ['submitted', 'verified']), 'a.organization_id')->count(),
+                'data_quality_critical' => $issues()->where('severity', 'critical')->count(),
+                'data_quality_open' => $issues()->count(),
+                'hierarchy_pending' => $ids === null ? DB::table('hierarchy_versions')->whereIn('status', ['review', 'approved'])->count() : null,
+                'webhooks_failed' => $ids === null ? DB::table('webhook_deliveries')->where('status', 'failed')->count() : null,
+                'api_errors_24h' => $ids === null ? DB::table('api_request_logs')->where('created_at', '>=', now()->subDay())->where('status', '>=', 500)->count() : null,
+            ];
+        });
+        if ($ids !== null) {
+            return $workload;
+        }
+        $privileged = User::query()->where('is_active', true)->whereIn('role', CorePermissions::rolesWith('core.write'));
+        $withMfa = (clone $privileged)->where('two_factor_enabled', true)->whereNotNull('two_factor_confirmed_at')->count();
+        $total = $privileged->count();
+
+        return $workload + [
+            'failed_jobs' => Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->count() : null,
+            'break_glass_active' => BreakGlassGrant::query()->inForce()->count(),
+            'mfa_coverage' => $total === 0 ? null : number_format(100 * $withMfa / $total, 1).'% ('.$withMfa.'/'.$total.')',
         ];
     }
 

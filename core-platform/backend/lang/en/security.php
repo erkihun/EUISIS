@@ -41,4 +41,10 @@ return [
     'security_policy' => 'Security Policy',
     'pii_view_denied' => 'You do not have permission to view sensitive personal information.',
     'security_audit' => 'Security Audit',
+    // Core Security Center (ADR 0010)
+    'break_glass_requested' => 'Emergency access requested. Someone else must approve it.',
+    'break_glass_approved' => 'Emergency access approved; it ends by itself at the time shown.',
+    'break_glass_rejected' => 'Emergency access refused.',
+    'break_glass_ended' => 'Emergency access ended.',
+    'audit_verification_started' => 'The audit trail check is running; its result appears here when it finishes.',
 ];

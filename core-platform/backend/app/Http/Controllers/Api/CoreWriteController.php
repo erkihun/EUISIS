@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Actions\ChangeCardStatus;
+use App\Actions\ManagePrintBatches;
 use App\Actions\RegisterEmployee;
 use App\Actions\TransferEmployee;
 use App\Http\Controllers\Controller;
@@ -49,9 +50,22 @@ class CoreWriteController extends Controller
             'position_id' => ['required', 'uuid'],
             'effective_date' => ['required', 'date'],
             'reason' => ['nullable', 'string', 'max:1000'],
+            'assignment_type' => ['sometimes', 'string', 'max:24'],
+            'reason_code' => ['nullable', 'string', 'max:32'],
+            'source_document_id' => ['nullable', 'uuid'],
+            'external_reference' => ['nullable', 'string', 'max:128'],
         ]);
+        $provenance = array_intersect_key($data, array_flip(['assignment_type', 'reason_code', 'source_document_id', 'external_reference'])) + ['source_system' => 'api'];
 
-        return response()->json(['data' => $transfer->execute($employee, $data['position_id'], $data['effective_date'], $request->user(), $data['reason'] ?? null)]);
+        return response()->json(['data' => $transfer->execute($employee, $data['position_id'], $data['effective_date'], $request->user(), $data['reason'] ?? null, $provenance)]);
+    }
+
+    /** The quality check of a printed card (ADR 0010): someone other than its printer passes or fails it. */
+    public function qualityCheck(Request $request, IdCard $card, ManagePrintBatches $production): JsonResponse
+    {
+        $data = $request->validate(['result' => ['required', 'in:passed,failed'], 'qc_notes' => ['nullable', 'string', 'max:1000']]);
+
+        return response()->json(['data' => $production->qualityCheck($card, $data['result'] === 'passed', $data['qc_notes'] ?? null, $request->user())->only(['id', 'card_number', 'status', 'qc_status'])]);
     }
 
     public function changeCard(Request $request, IdCard $card, string $transition, ChangeCardStatus $change): JsonResponse

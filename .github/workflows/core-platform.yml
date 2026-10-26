@@ -6,10 +6,10 @@ name: Core platform
 on:
   push:
     branches: [ "main" ]
-    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", ".github/workflows/core-platform.yml" ]
+    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", "app/Services/SystemSettings/SystemSettingsRegistry.php", "app/Enums/IdCardTemplate.php", "app/Models/IdCardTemplate.php", "app/Models/Concerns/HasUuidPrimaryKey.php", "app/Services/IdCards/**", "app/Services/Calendar/**", "app/Actions/IdCards/**", "app/Http/Requests/IdCards/**", "app/Http/Controllers/Web/IdCardTemplateController.php", ".github/workflows/core-platform.yml" ]
   pull_request:
     branches: [ "main" ]
-    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", ".github/workflows/core-platform.yml" ]
+    paths: [ "core-platform/**", "resources/js/**", "resources/css/**", "packages/euisis-ui/**", "lang/**", "app/Services/SystemSettings/SystemSettingsRegistry.php", "app/Enums/IdCardTemplate.php", "app/Models/IdCardTemplate.php", "app/Models/Concerns/HasUuidPrimaryKey.php", "app/Services/IdCards/**", "app/Services/Calendar/**", "app/Actions/IdCards/**", "app/Http/Requests/IdCards/**", "app/Http/Controllers/Web/IdCardTemplateController.php", ".github/workflows/core-platform.yml" ]
 
 jobs:
   core-backend:
@@ -36,6 +36,46 @@ jobs:
     - name: Tests
       run: php artisan test
 
+  # The same suite on PostgreSQL 18, the production engine (ADR 0012): triggers, partial
+  # indexes and the window-function backfills behave differently from SQLite.
+  core-backend-postgres:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core-platform/backend
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: core_test
+          POSTGRES_USER: core
+          POSTGRES_PASSWORD: core-ci-only
+        ports: [ "5432:5432" ]
+        options: >-
+          --health-cmd "pg_isready -U core -d core_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_DATABASE: core_test
+      DB_USERNAME: core
+      DB_PASSWORD: core-ci-only
+    steps:
+    - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+      with:
+        php-version: '8.4'
+        extensions: pdo_pgsql, mbstring, intl
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: composer install -q --no-ansi --no-interaction --no-progress --prefer-dist
+    - name: Prepare environment
+      run: |
+        cp .env.example .env
+        php artisan key:generate
+    - name: Tests on PostgreSQL
+      run: php artisan test
+
   core-frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -59,7 +99,10 @@ jobs:
     - name: The screens are an unchanged copy of EUISIS
       run: |
         node scripts/sync-from-euisis.mjs ../..
-        git diff --exit-code -- . ../backend/lang
+        git diff --exit-code -- . ../backend/lang ../backend/app/Settings/Euisis ../backend/app/Enums ../backend/app/Exceptions ../backend/app/Models/IdCardTemplate.php ../backend/app/Models/Concerns ../backend/app/Services/IdCards ../backend/app/Services/Calendar ../backend/app/Actions/IdCards ../backend/app/Http/Requests/IdCards ../backend/app/Http/Controllers/Web/IdCardTemplateController.php \
+          ../backend/app/Models/CodeRule.php ../backend/app/Models/CodeRuleSequence.php ../backend/app/Models/CodeGenerationLog.php ../backend/app/Services/CodeGeneration \
+          ../backend/app/Http/Requests/PreviewCodeForEntityRequest.php ../backend/app/Http/Requests/PreviewCodeRuleRequest.php ../backend/app/Http/Requests/StoreCodeRuleRequest.php ../backend/app/Http/Requests/UpdateCodeRuleRequest.php \
+          ../backend/app/Http/Resources/CodeRuleResource.php ../backend/app/Http/Resources/CodeGenerationLogResource.php
     - name: Dependency audit
       run: npm audit --audit-level=high
     - name: Type check

@@ -117,7 +117,10 @@ export default function ApiClientsPanel({ clients, options, storeUrl }: { client
                                                 : `${organizationLabel(organizations.get(client.owner_organization_id ?? ''), locale)} · ${label(`scopeTypes.${client.scope_type ?? 'subtree'}`)}`}
                                         </Td>
                                         <Td><div className="flex max-w-xs flex-wrap gap-1">{client.scopes.map((scope) => <code key={scope} className="rounded-sm bg-(--app-surface-muted) px-1.5 py-0.5 text-xs">{scope}</code>)}</div></Td>
-                                        <Td numeric>{client.calls_24h}{client.errors_24h > 0 && <span className="ml-1 text-xs text-red-600 dark:text-red-400">({client.errors_24h})</span>}</Td>
+                                        <Td numeric>
+                                            {client.calls_24h}{client.errors_24h > 0 && <span className="ml-1 text-xs text-red-600 dark:text-red-400">({client.errors_24h})</span>}
+                                            {client.calls_7d !== undefined && <div className="text-xs text-(--app-muted-foreground)">{t('core.integration.center.clients.week')}: {client.calls_7d}{(client.errors_7d ?? 0) > 0 && ` (${client.errors_7d})`}{client.mean_ms_7d != null && ` · ${client.mean_ms_7d} ms`}</div>}
+                                        </Td>
                                         <Td muted><LocalizedDateDisplay value={client.expires_at} /></Td>
                                         <Td muted><LocalizedDateDisplay value={client.last_used_at} withTime fallback={label('never')} /></Td>
                                         <Td align="right">

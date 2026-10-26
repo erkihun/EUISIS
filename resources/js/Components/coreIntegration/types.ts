@@ -30,6 +30,11 @@ export type ApiClientRow = {
     last_used_at: string | null;
     calls_24h: number;
     errors_24h: number;
+    /** Usage over the last week (ADR 0010). */
+    calls_7d?: number;
+    errors_7d?: number;
+    denials_7d?: number;
+    mean_ms_7d?: number | null;
     urls: { update: string; rotate: string; revoke: string };
 };
 
@@ -43,8 +48,13 @@ export type WebhookRow = {
     secret_rotated_at: string | null;
     last_success_at: string | null;
     last_failure_at: string | null;
+    /** Suspension after repeated failures, and the old secret's grace period (ADR 0010). */
+    consecutive_failures?: number;
+    suspended_at?: string | null;
+    suspended_reason?: string | null;
+    previous_secret_expires_at?: string | null;
     deliveries: Record<string, number>;
-    urls: { update: string; rotate: string };
+    urls: { update: string; rotate: string; resume?: string | null };
 };
 
 export type DeliveryRow = {

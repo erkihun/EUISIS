@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\WebhookDelivery;
 use App\Models\WebhookEndpoint;
 use App\Services\AuditWriter;
+use App\Services\CoreSettings;
 use App\Services\DomainEvents;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -112,6 +113,9 @@ final readonly class ManageIntegrations
     public function updateWebhook(WebhookEndpoint $webhook, array $input, User $actor): WebhookEndpoint
     {
         $data = $this->webhookData($input, false);
+        if (($data['is_active'] ?? false) && $webhook->suspended_at !== null) {
+            return $this->resumeWebhook($webhook->fill(array_diff_key($data, ['is_active' => true])), $actor); // switching a suspended webhook on is resuming it
+        }
         $old = $webhook->only(array_keys($data));
         $webhook->fill($data)->save();
         $this->audit->writeFor('webhook.updated', $actor, 'WebhookEndpoint', $webhook->id, $webhook->scope_organization_id, $old, $webhook->only(array_keys($data)));
@@ -123,10 +127,28 @@ final readonly class ManageIntegrations
     public function rotateWebhook(WebhookEndpoint $webhook, User $actor): string
     {
         $secret = 'whsec_'.Str::random(40);
-        $webhook->forceFill(['secret' => $secret, 'secret_rotated_at' => now()])->save();
-        $this->audit->writeFor('webhook.secret_rotated', $actor, 'WebhookEndpoint', $webhook->id, $webhook->scope_organization_id);
+        // The old secret keeps signing alongside for a grace period (ADR 0010), so the receiver can switch without losing events.
+        $grace = app(CoreSettings::class)->int('integration.webhook_secret_grace_hours');
+        $webhook->forceFill(['previous_secret' => $grace > 0 ? $webhook->secret : null, 'previous_secret_expires_at' => $grace > 0 ? now()->addHours($grace) : null,
+            'secret' => $secret, 'secret_rotated_at' => now()])->save();
+        $this->audit->writeFor('webhook.secret_rotated', $actor, 'WebhookEndpoint', $webhook->id, $webhook->scope_organization_id, null, ['previous_valid_hours' => $grace]);
 
         return $secret;
+    }
+
+    /** Resumes a suspended endpoint: its waiting deliveries are sent again from now (ADR 0010). */
+    public function resumeWebhook(WebhookEndpoint $webhook, User $actor): WebhookEndpoint
+    {
+        if ($webhook->suspended_at === null) {
+            throw ValidationException::withMessages(['webhook' => 'This webhook is not suspended.']);
+        }
+        DB::transaction(function () use ($webhook, $actor): void {
+            $webhook->forceFill(['is_active' => true, 'consecutive_failures' => 0, 'suspended_at' => null, 'suspended_reason' => null])->save();
+            WebhookDelivery::query()->where('webhook_endpoint_id', $webhook->id)->where('status', WebhookDelivery::PENDING)->update(['next_attempt_at' => now()]);
+            $this->audit->writeFor('webhook.resumed', $actor, 'WebhookEndpoint', $webhook->id, $webhook->scope_organization_id);
+        });
+
+        return $webhook;
     }
 
     public function retryDelivery(WebhookDelivery $delivery, User $actor): WebhookDelivery

@@ -17,13 +17,13 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
-use App\Services\CodeGenerator;
 use App\Services\OrganizationScope;
 use App\Services\OrganizationUsage;
 use App\Services\StructureTree;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -97,6 +97,7 @@ class OrganizationController extends Controller
 
     public function show(Request $request, Organization $organization, StructureTree $tree): Response
     {
+        Gate::authorize('view', $organization);
         /** @var User $user */
         $user = $request->user();
         abort_unless($this->scope->allows($user, (string) $organization->id), 403);
@@ -180,6 +181,7 @@ class OrganizationController extends Controller
 
     public function update(Request $request, Organization $organization, SaveOrganization $save): RedirectResponse
     {
+        Gate::authorize('update', $organization);
         $save->execute($organization, $this->validated($request, false), $request->user());
 
         return to_route('organizations.show', $organization)->with('flash', ['message' => __('organizations.updated_successfully'), 'type' => 'success']);
@@ -187,6 +189,7 @@ class OrganizationController extends Controller
 
     public function archive(Request $request, Organization $organization, SaveOrganization $save): RedirectResponse
     {
+        Gate::authorize('archive', $organization);
         $save->execute($organization, ['status' => 'archived'], $request->user());
 
         return to_route('organizations.index')->with('flash', ['message' => __('organizations.archived_successfully'), 'type' => 'success']);
@@ -195,6 +198,7 @@ class OrganizationController extends Controller
     /** Soft delete for an organization nothing refers to (DeleteOrganization); the EUISIS page asks no reason. */
     public function destroy(Request $request, Organization $organization, DeleteOrganization $delete): RedirectResponse
     {
+        Gate::authorize('delete', $organization);
         $delete->execute($organization, $request->string('reason')->toString() ?: __('Deleted on the organization page.'), $request->user());
 
         return to_route('organizations.index')->with('flash', ['message' => __('organizations.deleted_successfully'), 'type' => 'success']);
@@ -202,30 +206,10 @@ class OrganizationController extends Controller
 
     public function deactivate(Request $request, Organization $organization, SaveOrganization $save): RedirectResponse
     {
+        Gate::authorize('archive', $organization);
         $save->execute($organization, ['status' => 'inactive'], $request->user());
 
         return to_route('organizations.show', $organization)->with('flash', ['message' => __('organizations.deactivated_successfully'), 'type' => 'success']);
-    }
-
-    /** The code a new organization would get (the form's code field). */
-    public function previewCode(Request $request, CodeGenerator $codes): JsonResponse
-    {
-        $entity = match ($request->string('entity_type')->toString()) {
-            'organization' => 'organization',
-            'organization_unit', 'unit' => 'unit',
-            'position', 'job_position' => 'position',
-            'employee' => 'employee',
-            default => null,
-        };
-        $code = $entity === null ? null : $codes->preview($entity);
-
-        return response()->json([
-            'code' => $code,
-            'rule' => $code === null ? null : ['id' => $entity, 'name' => __('Core numbering'), 'entity_type' => $entity, 'is_scoped' => false, 'scope_type' => null],
-            'manual_override_allowed' => true,
-            'requires_override_permission' => false,
-            'error' => null,
-        ]);
     }
 
     /** @return array<string, mixed> */

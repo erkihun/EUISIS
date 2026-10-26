@@ -18,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -113,6 +114,8 @@ class OrganizationUnitController extends Controller
     public function create(Request $request): Response
     {
         $ids = $this->scope->organizationIds($request->user());
+        // The chosen organization's unit options are listed only inside the reader's scope (ADR 0009).
+        abort_if($request->filled('organization_id') && ! $this->scope->allows($request->user(), (string) $request->get('organization_id')), 403);
         $selected = $request->filled('organization_id') ? Organization::query()->find($request->get('organization_id'), ['id', 'code', 'name_en', 'name_am']) : null;
 
         return Inertia::render('OrganizationUnits/Create', [
@@ -133,6 +136,7 @@ class OrganizationUnitController extends Controller
 
     public function show(Request $request, OrganizationUnit $organizationUnit): Response
     {
+        Gate::authorize('view', $organizationUnit);
         abort_unless($this->scope->allows($request->user(), (string) $organizationUnit->organization_id), 403);
         $organizationUnit->load(['organization:id,name_en,name_am,code', 'parent:id,name_en,name_am,code', 'children', 'unitType'])->loadCount('children');
 
@@ -159,6 +163,7 @@ class OrganizationUnitController extends Controller
 
     public function update(Request $request, OrganizationUnit $organizationUnit, SaveOrganizationUnit $save): RedirectResponse
     {
+        Gate::authorize('update', $organizationUnit);
         $unit = $save->execute($organizationUnit, $this->validated($request, false), $request->user());
 
         return redirect()->route('organization-units.show', $unit)->with('success', __('organization-units.updated_successfully'));
@@ -166,6 +171,7 @@ class OrganizationUnitController extends Controller
 
     public function archive(Request $request, OrganizationUnit $organizationUnit, SaveOrganizationUnit $save, AuditWriter $audit): RedirectResponse
     {
+        Gate::authorize('archive', $organizationUnit);
         $save->execute($organizationUnit, ['status' => 'archived'], $request->user());
         $organizationUnit->delete();
         $audit->write('unit.archived', $request->user(), $organizationUnit, (string) $organizationUnit->organization_id, null, null, $request->string('reason')->toString() ?: null);

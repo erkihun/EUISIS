@@ -38,6 +38,47 @@ return [
             'report' => false,
         ],
 
+        // Employee documents, photos and signatures (ADR 0009): never public, read through the authorized download.
+        'evidence' => [
+            'driver' => 'local',
+            'root' => env('CORE_EVIDENCE_ROOT', storage_path('app/private/employee-evidence')),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
+        // Business import source files (ADR 0009): private, kept for the batch's audit trail.
+        // Report exports (ADR 0011): private, downloaded only by the person who asked, removed after their retention.
+        'exports' => [
+            'driver' => 'local',
+            'root' => env('CORE_EXPORTS_ROOT', storage_path('app/private/exports')),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
+        // Audit seal heads off the database server (ADR 0012): the root is a mount of another host,
+        // or set CORE_AUDIT_HEAD_DISK=s3 to an object-locked bucket instead.
+        'audit_heads' => [
+            'driver' => 'local',
+            'root' => env('CORE_AUDIT_HEAD_ROOT', storage_path('app/private/audit-heads')),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'imports' => [
+            'driver' => 'local',
+            'root' => env('CORE_IMPORTS_ROOT', storage_path('app/private/imports')),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

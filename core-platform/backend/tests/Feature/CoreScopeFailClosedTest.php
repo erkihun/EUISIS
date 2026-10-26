@@ -135,13 +135,13 @@ class CoreScopeFailClosedTest extends TestCase
         $this->actingAs($this->account('core_admin', User::SCOPE_SUBTREE, $this->bureauA), 'web');
         $page = $this->get('/users/create')->assertOk();
         $this->assertNotContains('global', array_column($page->viewData('page')['props']['roles'], 'scope'));
-        $this->post('/users', ['name' => 'Wide', 'email' => 'wide@core.test', 'status' => 'active', 'role_ids' => [6]])->assertForbidden();
+        $this->post('/users', ['name' => 'Wide', 'email' => 'wide@core.test', 'status' => 'active', 'role_ids' => [32]])->assertForbidden();
 
         Auth::forgetGuards();
         $this->actingAs($this->account('core_admin', User::SCOPE_CITYWIDE), 'web');
-        $this->post('/users', ['name' => 'Nowhere', 'email' => 'nowhere@core.test', 'status' => 'active', 'role_ids' => [2]])
+        $this->post('/users', ['name' => 'Nowhere', 'email' => 'nowhere@core.test', 'status' => 'active', 'role_ids' => [21]])
             ->assertSessionHasErrors('organization_scope_ids');
-        $this->post('/users', ['name' => 'Wide', 'email' => 'wide@core.test', 'status' => 'active', 'role_ids' => [6]])->assertRedirect();
+        $this->post('/users', ['name' => 'Wide', 'email' => 'wide@core.test', 'status' => 'active', 'role_ids' => [32]])->assertRedirect();
         $this->assertSame(User::SCOPE_CITYWIDE, User::query()->where('email', 'wide@core.test')->value('scope_type'));
     }
 

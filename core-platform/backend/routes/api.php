@@ -95,6 +95,7 @@ Route::middleware(['auth:sanctum', 'core.user', 'throttle:core-api'])->group(fun
 
             Route::post('/card-requests/{cardRequest}/{decision}', [EmployeeCardController::class, 'decide'])->whereIn('decision', ['approve', 'reject', 'cancel']);
             Route::post('/id-cards/{card}/replace', [EmployeeCardController::class, 'replace']);
+            Route::post('/id-cards/{card}/quality-check', [CoreWriteController::class, 'qualityCheck']);
             Route::post('/id-cards/{card}/{transition}', [CoreWriteController::class, 'changeCard'])->whereIn('transition', ChangeCardStatus::transitions());
         });
 

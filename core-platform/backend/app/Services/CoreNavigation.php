@@ -57,6 +57,8 @@ final class CoreNavigation
                         ['route' => 'positions.index', 'label_key' => 'nav.positions', 'icon' => 'Briefcase', 'permission' => 'positions.viewAny'],
                         ['route' => 'positions.status', 'label_key' => 'nav.newJobPositionsStatus', 'icon' => 'SuitcaseTagIcon', 'permission' => 'positions.viewAny'],
                         ['route' => 'position-establishments.index', 'label_key' => 'nav.positionEstablishments', 'icon' => 'ClipboardTextIcon', 'permission' => 'position-establishments.viewAny'],
+                        // Core-only (ADR 0010): grades, levels, occupations, professions, employment types and categories in one place.
+                        ['route' => 'core.job-masters', 'label_key' => 'core.nav.jobMasters', 'icon' => 'RankingIcon', 'permission' => 'positions.viewAny'],
                         ['route' => 'grade-levels.index', 'label_key' => 'nav.gradeLevels', 'icon' => 'RankingIcon', 'permission' => 'grade-levels.viewAny'],
                         ['route' => 'occupations.index', 'label_key' => 'nav.occupations', 'icon' => 'AcademicCapIcon', 'permission' => 'occupations.viewAny'],
                         ['route' => 'organization-design.professions.index', 'label_key' => 'core.nav.professions', 'icon' => 'DiplomaIcon', 'permission' => ['occupations.viewAny', 'professions.manage']],
@@ -67,6 +69,10 @@ final class CoreNavigation
                     'items' => [
                         ['route' => 'employees.index', 'label_key' => 'nav.employees', 'icon' => 'Users', 'permission' => 'employees.view'],
                         ['route' => 'core.assignments', 'label_key' => 'core.nav.assignments', 'icon' => 'ClipboardListIcon', 'permission' => 'employees.view'],
+                        // Core-only (ADR 0009): the duplicate review queue.
+                        ['route' => 'core.duplicates', 'label_key' => 'core.nav.duplicateReviews', 'icon' => 'FileSearchIcon', 'permission' => 'employees.duplicates.review'],
+                        // Core-only (ADR 0009): business imports of organizations, positions, employees and placements.
+                        ['route' => 'core.imports', 'label_key' => 'core.nav.imports', 'icon' => 'ImportIcon', 'permission' => 'imports.view'],
                         ['route' => 'employees.import.create', 'label_key' => 'nav.employeeImport', 'icon' => 'ImportIcon', 'permission' => 'employees.import.view'],
                         ['route' => 'employee-corrections.index', 'label_key' => 'nav.employeeCorrections', 'icon' => 'PenIcon', 'permission' => 'employees.manage'],
                     ],
@@ -77,7 +83,7 @@ final class CoreNavigation
                         ['route' => 'id-cards.index', 'label_key' => 'nav.idCards', 'icon' => 'CreditCard', 'permission' => 'cards.view'],
                         ['route' => 'card-requests.index', 'label_key' => 'nav.cardRequests', 'icon' => 'CardReceiveIcon', 'permission' => 'id-cards.viewAny'],
                         ['route' => 'id-cards.reprint-required', 'label_key' => 'nav.reprintRequired', 'icon' => 'RestartIcon', 'permission' => 'cards.view'],
-                        ['route' => 'print-batches.index', 'label_key' => 'nav.printBatches', 'icon' => 'PrinterIcon', 'permission' => ['id-cards.createPrintBatch', 'cards.manage']],
+                        ['route' => 'print-batches.index', 'label_key' => 'nav.printBatches', 'icon' => 'PrinterIcon', 'permission' => 'card_print_batches.view'],
                         ['route' => 'id-card-templates.index', 'label_key' => 'nav.idCardTemplates', 'icon' => 'PaletteIcon', 'permission' => 'id_card_templates.view'],
                         ['route' => 'nfc-management.credentials.index', 'label_key' => 'nav.nfcCredentials', 'icon' => 'CardTransferIcon', 'permission' => 'nfc_credentials.view'],
                         // The public checker anyone can use; listed so staff find it, gated like the card pages.
@@ -109,7 +115,15 @@ final class CoreNavigation
                     'key' => 'coreControl', 'label_key' => 'core.nav.groupControl', 'icon' => 'EyeScanIcon',
                     'items' => [
                         ['route' => 'core.audit', 'label_key' => 'core.nav.auditCenter', 'icon' => 'EyeScanIcon', 'permission' => 'audit.view'],
-                        ['route' => 'core.data-quality', 'label_key' => 'core.nav.dataQuality', 'icon' => 'FileSearchIcon', 'permission' => 'audit.view'],
+                        // Core-only (ADR 0011): health checks, queues, backups and the configuration review.
+                        ['route' => 'core.system-health', 'label_key' => 'core.nav.systemHealth', 'icon' => 'ShieldCheck', 'permission' => 'system_health.view'],
+                        // Core-only (ADR 0010): emergency access and the audit trail's integrity.
+                        ['route' => 'core.security', 'label_key' => 'core.nav.securityCenter', 'icon' => 'ShieldWarningIcon', 'permission' => ['break_glass.request', 'break_glass.approve', 'audit.integrity.view']],
+                        // Core-only (ADR 0011): a person's own notifications.
+                        ['route' => 'core.notifications', 'label_key' => 'core.nav.notifications', 'icon' => 'BellIcon', 'permission' => 'core.access'],
+                        // Core-only (ADR 0011): scoped reports and audited exports.
+                        ['route' => 'core.reports', 'label_key' => 'core.nav.reports', 'icon' => 'ChartIcon', 'permission' => 'reports.view'],
+                        ['route' => 'core.data-quality', 'label_key' => 'core.nav.dataQuality', 'icon' => 'FileSearchIcon', 'permission' => 'data_quality.view'],
                         ['route' => 'audit-logs.index', 'label_key' => 'nav.auditLogs', 'icon' => 'ClipboardClockIcon', 'permission' => 'audit.view'],
                         ['route' => 'code-rules.index', 'label_key' => 'nav.codeRules', 'icon' => 'HashIcon', 'permission' => 'code-rules.viewAny'],
                     ],

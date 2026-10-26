@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { Pagination, cx } from '@euisis/ui';
+import { Pagination, cx, type PaginationMeta } from '@euisis/ui';
 
 /**
  * Whether the current URL carries any filter, for lists whose server echoes
@@ -12,6 +12,11 @@ export function hasFilterQuery(ignore: string[] = ['page', 'sort', 'direction'])
 
 /** The page fields every Laravel length-aware paginator sends. */
 export type LaravelPageMeta = { current_page: number; last_page: number; per_page?: number; total: number; from?: number | null; to?: number | null };
+
+/** A resource collection's page meta (camelCase, as the Core API answers) in the paginator's shape, so the same bar serves both. */
+export function laravelPageMeta(meta: PaginationMeta): LaravelPageMeta {
+    return { current_page: meta.currentPage, last_page: meta.lastPage, per_page: meta.perPage, total: meta.total, from: meta.from, to: meta.to };
+}
 
 /**
  * A Laravel paginator's pagination bar, as the footer of a table card: the

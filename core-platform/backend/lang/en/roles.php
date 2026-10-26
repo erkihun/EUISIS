@@ -26,4 +26,7 @@ return [
     'no_roles' => 'No roles defined',
     'select_all' => 'Select All',
     'deselect_all' => 'Deselect All',
+    'created' => 'Role created.',
+    'updated' => 'Role saved; its permissions apply at once.',
+    'deleted' => 'Role deleted.',
 ];

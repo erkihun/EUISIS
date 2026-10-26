@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\CoreSettings;
 use App\Services\DuplicateEmployees;
+use App\Services\EmployeeEvidence;
 use App\Services\OrganizationScope;
 use App\Services\SeatCapacity;
 use Illuminate\Support\Facades\DB;
@@ -45,6 +46,8 @@ final readonly class EmployeeVerification
         private SeatCapacity $seats,
         private CoreSettings $settings,
         private DuplicateEmployees $duplicates,
+        private EmployeeEvidence $evidence,
+        private ReviewEmployeeDuplicates $reviews,
     ) {}
 
     /**
@@ -57,8 +60,6 @@ final readonly class EmployeeVerification
         return array_fill_keys(self::BASE_CHECKS, true) + [
             'date_of_birth_checked' => $employee->date_of_birth !== null,
             'national_id_checked' => $employee->national_id_hash !== null,
-            'photo_verified' => (bool) $this->settings->get('workforce.verification_requires_photo'),
-            'documents_verified' => (bool) $this->settings->get('workforce.verification_requires_documents'),
         ];
     }
 
@@ -91,10 +92,8 @@ final readonly class EmployeeVerification
             if ($missing !== []) {
                 throw ValidationException::withMessages(['checks' => 'Confirm every required check: '.implode(', ', $missing).'.']);
             }
-            $open = $this->unreviewedMatches($employee, $actor);
-            if ($open !== []) {
-                throw ValidationException::withMessages(['employee' => 'Possible duplicates must be reviewed first: '.implode(', ', $open).'.']);
-            }
+            $this->assertEvidence($employee);
+            $this->assertNoOpenDuplicates($employee, $actor);
             $employee->forceFill([
                 'status' => Employee::VERIFIED, 'verification_status' => 'verified',
                 'verified_by' => $actor->getKey(), 'verified_at' => now(), 'verification_notes' => $notes,
@@ -140,11 +139,13 @@ final readonly class EmployeeVerification
             if ($position === null || ! $position->is_active || $position->organization?->status !== Organization::ACTIVE) {
                 throw ValidationException::withMessages(['employee' => 'The position must still be active and in an organization in service.']);
             }
+            $this->assertEvidence($employee);
+            $this->assertNoOpenDuplicates($employee, $actor);
             if (! $this->seats->hasFreeSeat((string) $position->id)) {
                 throw ValidationException::withMessages(['employee' => 'This position is already occupied: it has no free seat.']);
             }
 
-            $placement->forceFill(['assignment_status' => EmployeeAssignment::ACTIVE])->save();
+            $placement->forceFill(['assignment_status' => EmployeeAssignment::ACTIVE, 'approved_by' => $actorId, 'approved_at' => now()])->save();
             $employee->forceFill([
                 'status' => Employee::ACTIVE, 'verification_status' => 'approved',
                 'approved_by' => $actorId, 'approved_at' => now(),
@@ -175,6 +176,18 @@ final readonly class EmployeeVerification
         });
     }
 
+    /**
+     * The identity evidence approval needs (EmployeeEvidence, Core settings): each
+     * missing item is its own error, keyed by its code (evidence.PHOTO_REQUIRED, …).
+     */
+    private function assertEvidence(Employee $employee): void
+    {
+        $failures = $this->evidence->failures($employee, $this->evidence->forApproval());
+        if ($failures !== []) {
+            throw ValidationException::withMessages(collect($failures)->mapWithKeys(fn (string $message, string $code): array => ['evidence.'.$code => $message])->all());
+        }
+    }
+
     private function expect(Employee $employee, string $status, string $message): void
     {
         if ($employee->status !== $status) {
@@ -182,21 +195,31 @@ final readonly class EmployeeVerification
         }
     }
 
-    /** @return list<string> numbers of possible duplicates with no reviewer decision about the pair */
-    private function unreviewedMatches(Employee $employee, User $actor): array
+    /**
+     * Every possible duplicate is reviewed and none is confirmed (ADR 0009): a
+     * match with no review yet, an open review, or a confirmed duplicate stops it.
+     */
+    private function assertNoOpenDuplicates(Employee $employee, User $actor): void
     {
         $matches = $this->duplicates->matches([
             'full_name' => (string) $employee->full_name,
             'date_of_birth' => $employee->date_of_birth?->toDateString(),
             'phone' => $employee->phone,
             'email' => $employee->email,
-        ], $actor);
-        $decided = DB::table('employee_duplicate_reviews')
+        ], $actor, (string) $employee->id);
+        $reviewed = DB::table('employee_duplicate_reviews')
             ->where(fn ($q) => $q->where('employee_id', $employee->id)->orWhere('matched_employee_id', $employee->id))
             ->get(['employee_id', 'matched_employee_id'])
             ->flatMap(fn ($row): array => [(string) $row->employee_id, (string) $row->matched_employee_id])->all();
-
-        return array_values(array_map(fn (array $match): string => $match['employee_number'], array_filter($matches,
-            fn (array $match): bool => $match['employee_id'] !== (string) $employee->id && ! in_array($match['employee_id'], $decided, true))));
+        $unreviewed = array_values(array_map(fn (array $match): string => $match['employee_number'],
+            array_filter($matches, fn (array $match): bool => ! in_array($match['employee_id'], $reviewed, true))));
+        $blocking = $this->reviews->blocking($employee);
+        if ($blocking['confirmed'] !== []) {
+            throw ValidationException::withMessages(['employee' => 'This record is a confirmed duplicate of '.implode(', ', $blocking['confirmed']).'; it waits for a controlled merge.']);
+        }
+        $open = array_values(array_unique([...$unreviewed, ...$blocking['open']]));
+        if ($open !== []) {
+            throw ValidationException::withMessages(['employee' => 'Possible duplicates must be reviewed first: '.implode(', ', $open).'.']);
+        }
     }
 }

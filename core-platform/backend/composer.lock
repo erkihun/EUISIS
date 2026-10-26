@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e1032b50ebe02fce3ccb219b2ff7edb8",
+    "content-hash": "84f21df8c9374687435f9954e3f1ef43",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -194,6 +194,172 @@
                 }
             ],
             "time": "2026-09-06T14:11:38+00:00"
+        },
+        {
+            "name": "chillerlan/php-qrcode",
+            "version": "6.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/chillerlan/php-qrcode.git",
+                "reference": "49006e34bd5328f163e80329e7312f34dceea59b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/chillerlan/php-qrcode/zipball/49006e34bd5328f163e80329e7312f34dceea59b",
+                "reference": "49006e34bd5328f163e80329e7312f34dceea59b",
+                "shasum": ""
+            },
+            "require": {
+                "chillerlan/php-settings-container": "^3.2.1",
+                "ext-mbstring": "*",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "chillerlan/php-authenticator": "^5.3",
+                "ext-fileinfo": "*",
+                "intervention/image": "^3.11",
+                "phan/phan": "^6.0.1",
+                "phpbench/phpbench": "^1.4",
+                "phpmd/phpmd": "^2.15",
+                "phpstan/phpstan": "^2.1.40",
+                "phpstan/phpstan-deprecation-rules": "^2.0.4",
+                "phpunit/phpunit": "^11.5",
+                "setasign/fpdf": "^1.8.6",
+                "slevomat/coding-standard": "^8.28",
+                "squizlabs/php_codesniffer": "^4.0"
+            },
+            "suggest": {
+                "chillerlan/php-authenticator": "Yet another Google authenticator! Also creates URIs for mobile apps.",
+                "intervention/image": "More advanced GD and ImageMagick output.",
+                "setasign/fpdf": "Required to use the QR FPDF output.",
+                "simple-icons/simple-icons": "SVG icons that you can use to embed as logos in the QR Code"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "chillerlan\\QRCode\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT",
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Kazuhiko Arase",
+                    "homepage": "https://github.com/kazuhikoarase/qrcode-generator"
+                },
+                {
+                    "name": "ZXing Authors",
+                    "homepage": "https://github.com/zxing/zxing"
+                },
+                {
+                    "name": "Ashot Khanamiryan",
+                    "homepage": "https://github.com/khanamiryan/php-qrcode-detector-decoder"
+                },
+                {
+                    "name": "Smiley",
+                    "email": "smiley@chillerlan.net",
+                    "homepage": "https://github.com/codemasher"
+                },
+                {
+                    "name": "Contributors",
+                    "homepage": "https://github.com/chillerlan/php-qrcode/graphs/contributors"
+                }
+            ],
+            "description": "A QR Code generator and reader with a user-friendly API. PHP 8.2+",
+            "homepage": "https://github.com/chillerlan/php-qrcode",
+            "keywords": [
+                "phpqrcode",
+                "qr",
+                "qr code",
+                "qr-reader",
+                "qrcode",
+                "qrcode-generator",
+                "qrcode-reader"
+            ],
+            "support": {
+                "docs": "https://php-qrcode.readthedocs.io",
+                "issues": "https://github.com/chillerlan/php-qrcode/issues",
+                "source": "https://github.com/chillerlan/php-qrcode"
+            },
+            "funding": [
+                {
+                    "url": "https://ko-fi.com/codemasher",
+                    "type": "Ko-Fi"
+                }
+            ],
+            "time": "2026-03-18T21:21:07+00:00"
+        },
+        {
+            "name": "chillerlan/php-settings-container",
+            "version": "3.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/chillerlan/php-settings-container.git",
+                "reference": "a0a487cbf5344f721eb504bf0f59bada40c381b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/chillerlan/php-settings-container/zipball/a0a487cbf5344f721eb504bf0f59bada40c381b7",
+                "reference": "a0a487cbf5344f721eb504bf0f59bada40c381b7",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "phan/phan": "^5.5.2",
+                "phpmd/phpmd": "^2.15",
+                "phpstan/phpstan": "^2.1.31",
+                "phpstan/phpstan-deprecation-rules": "^2.0.3",
+                "phpunit/phpunit": "^10.5",
+                "slevomat/coding-standard": "^8.22",
+                "squizlabs/php_codesniffer": "^4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "chillerlan\\Settings\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Smiley",
+                    "email": "smiley@chillerlan.net",
+                    "homepage": "https://github.com/codemasher"
+                }
+            ],
+            "description": "A container class for immutable settings objects. Not a DI container.",
+            "homepage": "https://github.com/chillerlan/php-settings-container",
+            "keywords": [
+                "Settings",
+                "configuration",
+                "container",
+                "helper",
+                "property hook"
+            ],
+            "support": {
+                "issues": "https://github.com/chillerlan/php-settings-container/issues",
+                "source": "https://github.com/chillerlan/php-settings-container"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/donate?hosted_button_id=WLYUNAT9ZTJZ4",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://ko-fi.com/codemasher",
+                    "type": "ko_fi"
+                }
+            ],
+            "time": "2026-03-20T21:10:52+00:00"
         },
         {
             "name": "dasprid/enum",
@@ -2790,6 +2956,99 @@
                 }
             ],
             "time": "2026-02-16T23:10:27+00:00"
+        },
+        {
+            "name": "openspout/openspout",
+            "version": "v4.32.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/openspout/openspout.git",
+                "reference": "41f045c1f632e1474e15d4c7bc3abcb4a153563d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/openspout/openspout/zipball/41f045c1f632e1474e15d4c7bc3abcb4a153563d",
+                "reference": "41f045c1f632e1474e15d4c7bc3abcb4a153563d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-dom": "*",
+                "ext-fileinfo": "*",
+                "ext-filter": "*",
+                "ext-libxml": "*",
+                "ext-xmlreader": "*",
+                "ext-zip": "*",
+                "php": "~8.3.0 || ~8.4.0 || ~8.5.0"
+            },
+            "require-dev": {
+                "ext-zlib": "*",
+                "friendsofphp/php-cs-fixer": "^3.86.0",
+                "infection/infection": "^0.31.2",
+                "phpbench/phpbench": "^1.4.1",
+                "phpstan/phpstan": "^2.1.22",
+                "phpstan/phpstan-phpunit": "^2.0.7",
+                "phpstan/phpstan-strict-rules": "^2.0.6",
+                "phpunit/phpunit": "^12.3.7"
+            },
+            "suggest": {
+                "ext-iconv": "To handle non UTF-8 CSV files (if \"php-mbstring\" is not already installed or is too limited)",
+                "ext-mbstring": "To handle non UTF-8 CSV files (if \"iconv\" is not already installed)"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.3.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "OpenSpout\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Adrien Loison",
+                    "email": "adrien@box.com"
+                }
+            ],
+            "description": "PHP Library to read and write spreadsheet files (CSV, XLSX and ODS), in a fast and scalable way",
+            "homepage": "https://github.com/openspout/openspout",
+            "keywords": [
+                "OOXML",
+                "csv",
+                "excel",
+                "memory",
+                "odf",
+                "ods",
+                "office",
+                "open",
+                "php",
+                "read",
+                "scale",
+                "spreadsheet",
+                "stream",
+                "write",
+                "xlsx"
+            ],
+            "support": {
+                "issues": "https://github.com/openspout/openspout/issues",
+                "source": "https://github.com/openspout/openspout/tree/v4.32.0"
+            },
+            "funding": [
+                {
+                    "url": "https://paypal.me/filippotessarotto",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/Slamdunk",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-09-03T16:03:54+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",

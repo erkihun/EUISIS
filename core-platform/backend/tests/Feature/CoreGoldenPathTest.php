@@ -14,6 +14,7 @@ use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnitType;
 use App\Models\Position;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Tests\Concerns\BuildsGoldenPath;
 use Tests\TestCase;
 
@@ -125,7 +126,13 @@ class CoreGoldenPathTest extends TestCase
         $this->assertSame(CardRequest::APPROVED, CardRequest::query()->findOrFail($requestId)->status);
         $this->assertNotSame($requester->id, CardRequest::query()->findOrFail($requestId)->approved_by);
 
-        foreach (['print' => IdCard::PRINTED, 'issue' => IdCard::ISSUED, 'activate' => IdCard::ACTIVE] as $step => $status) {
+        $this->postJson("/api/v1/id-cards/{$cardId}/print")->assertOk()->assertJsonPath('data.status', IdCard::PRINTED);
+        $this->postJson("/api/v1/id-cards/{$cardId}/issue")->assertUnprocessable();
+        $admin = auth()->user();
+        $this->actingAsCore('core_officer');
+        $this->postJson("/api/v1/id-cards/{$cardId}/quality-check", ['result' => 'passed'])->assertOk();
+        Sanctum::actingAs($admin);
+        foreach (['issue' => IdCard::ISSUED, 'activate' => IdCard::ACTIVE] as $step => $status) {
             $this->postJson("/api/v1/id-cards/{$cardId}/{$step}")->assertOk()->assertJsonPath('data.status', $status);
         }
         $this->postJson('/api/v1/cards/verify', ['card_uuid' => IdCard::query()->findOrFail($cardId)->public_card_uuid])->assertJsonPath('valid', true);

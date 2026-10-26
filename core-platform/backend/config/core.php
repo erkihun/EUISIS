@@ -44,6 +44,41 @@ return [
     'national_id_hash_key' => (string) env('NATIONAL_ID_HASH_KEY', ''),
 
     /*
+     * Keys card credential tokens are hashed with (App\Services\CredentialKeys),
+     * newest first: "2:base64:...,1:base64:...@2026-12-31" — an older key is
+     * accepted until its date, then core:credentials-rekey has moved its
+     * credentials. Empty = one key derived from APP_KEY.
+     */
+    'credential_keys' => (string) env('CORE_CREDENTIAL_KEYS', ''),
+
+    /* The key audit seals are signed with (App\Services\AuditChain); empty = derived from APP_KEY. Keep it apart from APP_KEY in production. */
+    'audit_seal_key' => (string) env('CORE_AUDIT_SEAL_KEY', ''),
+
+    /*
+     * The filesystem disk every audit seal's head is copied to, off the database
+     * server (App\Services\AuditHeads, ADR 0012): "audit_heads" (a mounted log
+     * host) or an S3 bucket with object lock. core:audit-verify compares the
+     * database's seals with it. Empty = not shipped.
+     */
+    'audit_head_disk' => (string) env('CORE_AUDIT_HEAD_DISK', ''),
+
+    /* Enforce the screens' content security policy instead of reporting it (ADR 0012); after a staging browser pass with no violation. */
+    'csp_enforce' => (bool) env('CORE_CSP_ENFORCE', false),
+
+    /* The external monitor's bearer token for GET /health/monitor (ADR 0012); empty = that endpoint answers 404. */
+    'monitor_token' => (string) env('CORE_MONITOR_TOKEN', ''),
+
+    /*
+     * Backups run outside the Core (App\Services\BackupStatus): the backup tooling
+     * writes a JSON status file here, which System Health reads. Unset = "unknown".
+     */
+    'backup_status_file' => (string) env('CORE_BACKUP_STATUS_FILE', ''),
+    'backup_max_age_hours' => (int) env('CORE_BACKUP_MAX_AGE_HOURS', 26),
+
+    /* A request slower than this is logged and counted on System Health (milliseconds). */
+    'slow_request_ms' => (int) env('CORE_SLOW_REQUEST_MS', 1500),
+
+    /*
      * Multi-factor authentication for the categories Core settings › Security
      * require (App\Services\MfaPolicy). Off only for the test suite.
      */

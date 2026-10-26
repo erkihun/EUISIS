@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Actions\SaveUser;
 use App\Http\Controllers\Controller;
+use App\Models\CoreRole;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\OrganizationScope;
@@ -14,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -30,11 +32,14 @@ use Inertia\Response;
  */
 class UserController extends Controller
 {
-    /** Role id (the form's numeric id) => [Core role, EUISIS role scope], lowest to highest. */
-    private const ROLES = [
-        1 => ['core_viewer', 'organization'], 2 => ['core_officer', 'organization'], 3 => ['core_admin', 'organization'],
-        4 => ['core_viewer', 'global'], 5 => ['core_officer', 'global'], 6 => ['core_admin', 'global'],
-    ];
+    /**
+     * A role option is a Core role (ADR 0009) held in one of two ways: for an
+     * organization, or city-wide. Its id is role id × 10 + 1 (organization)
+     * or + 2 (city-wide), so the EUISIS forms can keep sending ids and names.
+     */
+    private const ORGANIZATION = 1;
+
+    private const CITYWIDE = 2;
 
     public function __construct(private readonly OrganizationScope $scope) {}
 
@@ -52,8 +57,8 @@ class UserController extends Controller
                 ->whereIn('scope_organization_id', $this->scope->organizationIds($actor) ?? []))
             ->when($search !== '', fn ($q) => $q->where(fn ($inner) => $inner->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")))
             ->when(in_array($status, ['active', 'inactive'], true), fn ($q) => $q->where('is_active', $status === 'active'))
-            ->when($roleKey !== false, fn ($q) => $q->where('role', self::ROLES[$roleKey][0])
-                ->when(self::ROLES[$roleKey][1] === 'global', fn ($g) => $g->where('scope_type', User::SCOPE_CITYWIDE), fn ($o) => $o->where(fn ($w) => $w->whereNull('scope_type')->orWhere('scope_type', '!=', User::SCOPE_CITYWIDE))))
+            ->when($roleKey !== false, fn ($q) => $q->where('role', $this->roleOptions()[$roleKey][0])
+                ->when($this->roleOptions()[$roleKey][1] === 'global', fn ($g) => $g->where('scope_type', User::SCOPE_CITYWIDE), fn ($o) => $o->where(fn ($w) => $w->whereNull('scope_type')->orWhere('scope_type', '!=', User::SCOPE_CITYWIDE))))
             ->orderBy('name')->orderBy('id')->paginate(50)->withQueryString();
 
         return Inertia::render('Users/Index', [
@@ -101,12 +106,12 @@ class UserController extends Controller
             'password' => ['nullable', 'confirmed', Password::min(12)],
             'status' => ['required', 'in:active,inactive'],
             'role_ids' => ['required', 'array', 'min:1'],
-            'role_ids.*' => ['integer', 'in:'.implode(',', array_keys(self::ROLES))],
+            'role_ids.*' => ['integer', Rule::in(array_keys($this->roleOptions()))],
             'organization_scope_ids' => ['nullable', 'array', 'max:1'],
             'organization_scope_ids.*' => ['uuid'],
             'scope_type' => ['nullable', 'in:self,subtree'],
         ]);
-        [$role, $kind] = self::ROLES[max($data['role_ids'])];
+        [$role, $kind] = $this->roleOptions()[max($data['role_ids'])];
         $result = $save->execute(null, [
             'name' => $data['name'],
             'email' => $data['email'],
@@ -166,7 +171,7 @@ class UserController extends Controller
         if ($chosen === []) {
             throw ValidationException::withMessages(['roles' => __('validation.required', ['attribute' => 'roles'])]);
         }
-        [$role, $kind] = self::ROLES[max($chosen)];
+        [$role, $kind] = $this->roleOptions()[max($chosen)];
         $scope = match (true) {
             $kind === 'global' => ['scope_type' => User::SCOPE_CITYWIDE, 'scope_organization_id' => null],
             ! $user->isCityWide() => [],
@@ -237,7 +242,7 @@ class UserController extends Controller
     private function roles(User $actor): array
     {
         $roles = [];
-        foreach (self::ROLES as $id => [$role, $kind]) {
+        foreach ($this->roleOptions() as $id => [$role, $kind]) {
             if ($kind === 'organization' || $actor->isCityWide()) {
                 $roles[] = ['id' => $id, 'name' => $this->roleNames()[$id], 'scope' => $kind];
             }
@@ -246,13 +251,32 @@ class UserController extends Controller
         return $roles;
     }
 
-    /** @return array<int, string> role id => the name the forms show */
+    /**
+     * Every role option: a role meant for city-wide accounts only (scope_type
+     * global) is offered only city-wide.
+     *
+     * @return array<int, array{0: string, 1: string}> option id => [role key, organization|global]
+     */
+    private function roleOptions(): array
+    {
+        $options = [];
+        foreach (CoreRole::query()->orderBy('id')->get(['id', 'key', 'scope_type']) as $role) {
+            if ($role->scope_type !== 'global') {
+                $options[$role->id * 10 + self::ORGANIZATION] = [$role->key, 'organization'];
+            }
+            $options[$role->id * 10 + self::CITYWIDE] = [$role->key, 'global'];
+        }
+
+        return $options;
+    }
+
+    /** @return array<int, string> option id => the name the forms show */
     private function roleNames(): array
     {
         return array_map(fn (array $definition): string => CorePermissions::roleName(new User([
             'role' => $definition[0],
             'scope_type' => $definition[1] === 'global' ? User::SCOPE_CITYWIDE : User::SCOPE_SUBTREE,
-        ])), self::ROLES);
+        ])), $this->roleOptions());
     }
 
     /** @return Collection<int, Organization> */

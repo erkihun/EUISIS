@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Actions\SaveUser;
 use App\Models\ApiClient;
 use App\Models\ApiRequestLog;
 use App\Models\User;
 use App\Models\WebhookDelivery;
+use App\Support\CorePermissions;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -24,7 +26,8 @@ use Throwable;
 final class SystemHealth
 {
     /** The scheduled commands whose last run is recorded (core.scheduler.<name>), with the age that is still fine. */
-    public const SCHEDULED = ['core:deliver-webhooks' => 10, 'core:expire-cards' => 60 * 26];
+    public const SCHEDULED = ['core:deliver-webhooks' => 10, 'core:expire-cards' => 60 * 26, 'core:audit-seal' => 15, 'core:audit-ship-heads' => 15, 'core:audit-verify' => 60 * 26,
+        'core:break-glass-expire' => 10, 'core:notify-expiring' => 15, 'core:data-quality-scan' => 130, 'core:prune-integration-data' => 60 * 26, 'core:prune-exports' => 60 * 26];
 
     public static function recordRun(string $command): void
     {
@@ -62,7 +65,41 @@ final class SystemHealth
             'webhooks' => $this->webhooks(),
             'api' => $this->api(),
             'access' => $this->access(),
-            'backup' => ['status' => 'unknown', 'details' => ['note' => 'Backups are run outside the Core; their result is not reported here.']],
+            'audit_integrity' => $this->auditIntegrity(),
+            'backup' => $this->backup(),
+        ];
+    }
+
+    /** The backup tooling's own report (BackupStatus); unknown when it is not integrated, never assumed healthy. */
+    private function backup(): array
+    {
+        $result = app(BackupStatus::class)->check();
+        $result['status'] = ['healthy' => 'ok', 'critical' => 'error'][$result['status']] ?? $result['status'];
+
+        return $result;
+    }
+
+    /** @return array{status: string, details: array<string, mixed>} */
+    private function auditIntegrity(): array
+    {
+        $status = app(AuditChain::class)->status();
+        $last = $status['last_verification'];
+        $offServer = app(AuditHeads::class)->configured();
+        $shipFailedAt = Cache::get('core.audit_heads.failed_at');
+
+        return [
+            'status' => match (true) {
+                $last !== null && $last->finished_at !== null && ! $last->ok => 'error',
+                $shipFailedAt !== null => 'error',
+                ! $offServer && app()->isProduction() => 'warning',
+                $last === null || $last->finished_at === null => 'unknown',
+                $status['unsealed'] > app(CoreSettings::class)->int('audit.unsealed_warning_rows')
+                    || now()->diffInHours($last->finished_at, true) > app(CoreSettings::class)->int('audit.verify_max_age_hours') => 'warning',
+                default => 'ok',
+            },
+            'details' => ['sealed_through' => $status['sealed_through'], 'last_sealed_at' => $status['last_sealed_at'], 'unsealed' => $status['unsealed'],
+                'last_verified_at' => $last?->finished_at, 'last_verification_ok' => $last === null ? null : (bool) $last->ok,
+                'heads_off_server' => $offServer, 'heads_shipped_through' => Cache::get('core.audit_heads.shipped_through'), 'heads_ship_failed_at' => $shipFailedAt],
         ];
     }
 
@@ -83,16 +120,32 @@ final class SystemHealth
     private function queue(): array
     {
         $failed = Schema::hasTable('failed_jobs') ? DB::table('failed_jobs')->count() : null;
-        $waiting = config('queue.default') === 'database' && Schema::hasTable('jobs') ? DB::table('jobs')->count() : null;
+        $database = config('queue.default') === 'database' && Schema::hasTable('jobs');
+        $waiting = $database ? DB::table('jobs')->count() : null;
+        // A job reserved for over 15 minutes is stuck (its worker died); one tried more than once is being retried.
+        $stuck = $database ? DB::table('jobs')->whereNotNull('reserved_at')->where('reserved_at', '<', now()->subMinutes(15)->getTimestamp())->count() : null;
+        $retrying = $database ? DB::table('jobs')->where('attempts', '>', 1)->count() : null;
+        $byQueue = $database ? DB::table('jobs')->groupBy('queue')->selectRaw('queue, count(*) as total, min(created_at) as oldest')->get()
+            ->mapWithKeys(fn ($r): array => [$r->queue => ['waiting' => (int) $r->total, 'oldest_age_minutes' => (int) floor((time() - (int) $r->oldest) / 60)]])->all() : null;
+        $sync = in_array(config('queue.default'), ['sync', 'null'], true);
+
+        // A job waiting long without being picked up means no worker serves its queue (ADR 0012: the rehearsal's
+        // workers listened to "default" only and the notifications queue grew unseen).
+        $oldestWaiting = $byQueue === null || $byQueue === [] ? 0 : max(array_column($byQueue, 'oldest_age_minutes'));
 
         return [
-            'status' => $failed > 0 ? 'warning' : 'ok',
-            'details' => ['connection' => config('queue.default'), 'failed_jobs' => $failed, 'waiting_jobs' => $waiting],
+            'status' => match (true) {
+                $stuck > 0 => 'error',
+                $failed > 0 || $retrying > 0 || ($sync && app()->isProduction()) || $oldestWaiting > 15 => 'warning',
+                default => 'ok',
+            },
+            'details' => ['connection' => config('queue.default'), 'failed_jobs' => $failed, 'waiting_jobs' => $waiting, 'stuck_jobs' => $stuck,
+                'retrying_jobs' => $retrying, 'queues' => $byQueue],
         ];
     }
 
     /** @return array{status: string, details: array<string, mixed>} */
-    private function scheduler(): array
+    public function scheduler(): array
     {
         $details = [];
         $status = 'ok';
@@ -140,7 +193,7 @@ final class SystemHealth
     /** @return array{status: string, details: array<string, mixed>} */
     private function access(): array
     {
-        $cityAdmins = User::query()->where('role', 'core_admin')->where('scope_type', User::SCOPE_CITYWIDE)->where('is_active', true)->count();
+        $cityAdmins = User::query()->whereIn('role', SaveUser::administratorRoles())->where('scope_type', User::SCOPE_CITYWIDE)->where('is_active', true)->count();
         $clients = ApiClient::query()->where('is_active', true)->whereNull('revoked_at');
 
         return [
@@ -152,7 +205,7 @@ final class SystemHealth
                 'live_sign_ins' => DB::table('personal_access_tokens')->where('tokenable_type', User::class)
                     ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()))->count(),
                 'mfa_enforced' => MfaPolicy::enforced(),
-                'privileged_without_mfa' => User::query()->where('is_active', true)->whereIn('role', ['core_admin', 'core_officer'])
+                'privileged_without_mfa' => User::query()->where('is_active', true)->whereIn('role', CorePermissions::rolesWith('core.write'))
                     ->where(fn ($q) => $q->where('two_factor_enabled', false)->orWhereNull('two_factor_confirmed_at'))->count(),
                 'active_api_clients' => (clone $clients)->count(),
                 'api_clients_expiring_30_days' => (clone $clients)->whereNotNull('expires_at')->whereBetween('expires_at', [now(), now()->addDays(30)])->count(),

@@ -44,4 +44,16 @@ return [
     'request_cancelled' => 'የካርድ ጥያቄ ተሰርዟል።',
     'print_batch_created' => 'የሕትመት ዙር ተዘጋጅቷል።',
     'batch_marked_printed' => 'ቡድኑ እንደታተመ ተመዝግቧል። ካርዶቹ አሁን ለማቅረብ ዝግጁ ናቸው።',
+    // Card production (Core, ADR 0010)
+    'print_batch_printed' => 'ዙሩ እንደታተመ ተመዝግቧል። እያንዳንዱ ካርድ አሁን የጥራት ፍተሻ ያስፈልገዋል።',
+    'print_batch_cancelled' => 'የሕትመት ዙሩ ተሰርዟል፤ ካርዶቹ ወደ ሌላ ዙር መግባት ይችላሉ።',
+    'quality_passed' => 'ካርዱ የጥራት ፍተሻውን አልፏል፤ ሊሰጥ ይችላል።',
+    'quality_failed' => 'ካርዱ የጥራት ፍተሻውን አላለፈም። ድጋሚ ሕትመት ያጽድቁ ወይም ይሰርዙት።',
+    'reprint_approved' => 'ድጋሚ ሕትመት ጸድቋል፤ ካርዱ ወደ ሕትመት ዙር መግባት ይችላል።',
+    'credential_issued' => 'ለካርዱ የማረጋገጫ መለያ ተሰጥቷል።',
+    'credential_rotated' => 'የማረጋገጫ መለያው ተቀይሯል። የታተመው QR ከእንግዲህ አያረጋግጥም፤ ካርዱን እንደገና ያትሙ ወይም ይተኩ።',
+    'credential_revoked' => 'የካርዱ የማረጋገጫ መለያ ተሰርዟል።',
+    'template_saved' => 'የካርድ ቅጹ ተቀምጧል።',
+    'template_activated' => 'ይህ የቅጽ ስሪት አዳዲስ ካርዶች የሚታተሙበት ሆኗል።',
+    'template_retired' => 'የቅጹ ስሪት ከአገልግሎት ወጥቷል።',
 ];

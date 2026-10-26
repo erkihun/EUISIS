@@ -15,6 +15,7 @@ use App\Services\IntegrationCenter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -64,6 +65,7 @@ class IntegrationCenterController extends Controller
                 'webhooks' => $tab === 'webhooks' ? array_map(fn (array $webhook): array => $webhook + ['urls' => [
                     'update' => route('core.integration.webhooks.update', $webhook['id']),
                     'rotate' => route('core.integration.webhooks.rotate', $webhook['id']),
+                    'resume' => $webhook['resume_url'],
                 ]], $this->center->webhooks()) : null,
                 'deliveries' => $tab === 'deliveries' ? $this->page($this->center->deliveries($filters, 25), fn ($delivery): array => $delivery->toArray() + [
                     'retry_url' => $delivery->status === WebhookDelivery::DELIVERED ? null : route('core.integration.deliveries.retry', $delivery->id),
@@ -89,6 +91,8 @@ class IntegrationCenterController extends Controller
 
     public function storeClient(Request $request): RedirectResponse
     {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('create', ApiClient::class);
         [$client, $secret] = $this->integrations->createClient($this->clientInput($request), $request->user());
 
         return $this->back('clients', __('integrations.client_created'), ['kind' => 'client', 'name' => $client->name, 'secret' => $secret]);
@@ -96,6 +100,8 @@ class IntegrationCenterController extends Controller
 
     public function updateClient(Request $request, ApiClient $apiClient): RedirectResponse
     {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('create', ApiClient::class); // the client's own state is checked by the action
         $this->integrations->updateClient($apiClient, $this->clientInput($request), $request->user());
 
         return $this->back('clients', __('integrations.client_updated'));
@@ -103,6 +109,8 @@ class IntegrationCenterController extends Controller
 
     public function rotateClient(Request $request, ApiClient $apiClient): RedirectResponse
     {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('create', ApiClient::class); // the client's own state is checked by the action
         $secret = $this->integrations->rotateClient($apiClient, $request->user());
 
         return $this->back('clients', __('integrations.client_rotated'), ['kind' => 'client', 'name' => $apiClient->name, 'secret' => $secret]);
@@ -110,6 +118,8 @@ class IntegrationCenterController extends Controller
 
     public function revokeClient(Request $request, ApiClient $apiClient): RedirectResponse
     {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('create', ApiClient::class); // the client's own state is checked by the action
         $this->integrations->revokeClient($apiClient, $request->only('reason'), $request->user());
 
         return $this->back('clients', __('integrations.client_revoked'));
@@ -117,6 +127,8 @@ class IntegrationCenterController extends Controller
 
     public function storeWebhook(Request $request): RedirectResponse
     {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('create', WebhookEndpoint::class);
         [$endpoint, $secret] = $this->integrations->createWebhook($this->webhookInput($request), $request->user());
 
         return $this->back('webhooks', __('integrations.webhook_created'), ['kind' => 'webhook', 'name' => $endpoint->name, 'secret' => $secret]);
@@ -124,6 +136,8 @@ class IntegrationCenterController extends Controller
 
     public function updateWebhook(Request $request, WebhookEndpoint $webhook): RedirectResponse
     {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('update', $webhook);
         $this->integrations->updateWebhook($webhook, $this->webhookInput($request), $request->user());
 
         return $this->back('webhooks', __('integrations.webhook_updated'));
@@ -131,13 +145,26 @@ class IntegrationCenterController extends Controller
 
     public function rotateWebhook(Request $request, WebhookEndpoint $webhook): RedirectResponse
     {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('update', $webhook);
         $secret = $this->integrations->rotateWebhook($webhook, $request->user());
 
         return $this->back('webhooks', __('integrations.webhook_rotated'), ['kind' => 'webhook', 'name' => $webhook->name, 'secret' => $secret]);
     }
 
+    public function resumeWebhook(Request $request, WebhookEndpoint $webhook): RedirectResponse
+    {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('update', $webhook);
+        $this->integrations->resumeWebhook($webhook, $request->user());
+
+        return back()->with('success', __('integrations.webhook_resumed'));
+    }
+
     public function retryDelivery(Request $request, WebhookDelivery $delivery): RedirectResponse
     {
+        // Changing integrations needs integrations.manage, city-wide (the route only checks integrations.view).
+        Gate::authorize('create', WebhookEndpoint::class);
         $this->integrations->retryDelivery($delivery, $request->user());
 
         return back()->with('flash', ['message' => __('integrations.delivery_retried'), 'type' => 'success']);
