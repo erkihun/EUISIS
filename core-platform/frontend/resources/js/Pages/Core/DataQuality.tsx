@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { AppMetricCard, AppTabNav, FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { AppMetricCard, AppTabNav, FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
 import { AppDialog, Button, Card, EmptyState, FieldError, FormField, Input, Select, Textarea, type PaginationMeta } from '@euisis/ui';
 
 type Severity = 'critical' | 'high' | 'medium' | 'low' | 'info';
@@ -93,7 +93,7 @@ export default function DataQuality({ tab, tabs, filters, summary, checks, issue
                                                 <Td><StatusBadge status={SEVERITY_TONE[check.severity]} label={label(`severities.${check.severity}`)} /></Td>
                                                 <Td muted>{label(`kinds.${check.kind}`)}</Td>
                                                 {tab === 'overview'
-                                                    ? <Td numeric><Link href={url} data={{ tab: 'open', check: check.code }} className={actionLinkClassName({ size: 'sm' })}>{check.open}</Link></Td>
+                                                    ? <Td numeric><Button as={Link} href={url} data={{ tab: 'open', check: check.code }} variant="ghost" size="sm">{check.open}</Button></Td>
                                                     : <Td muted>{check.summary}</Td>}
                                             </Tr>
                                         ))}
@@ -156,7 +156,7 @@ export default function DataQuality({ tab, tabs, filters, summary, checks, issue
                                                     {t(`core.dataQuality.checks.${issue.check_code}`)}
                                                 </p>
                                                 <p className="mt-1 text-xs text-(--app-muted-foreground)">
-                                                    {label(`kinds.${issue.entity_type}`)} · {issue.entity_url ? <Link href={issue.entity_url} className={actionLinkClassName({ className: 'font-mono' })}>{issue.entity_id}</Link> : <span className="font-mono">{issue.entity_id}</span>}
+                                                    {label(`kinds.${issue.entity_type}`)} · {issue.entity_url ? <Link href={issue.entity_url} className="font-mono text-primary hover:underline">{issue.entity_id}</Link> : <span className="font-mono">{issue.entity_id}</span>}
                                                     {' · '}{named(issue.organization)} · {label('detected')} <LocalizedDateDisplay value={issue.detected_at} withTime />
                                                     {' · '}{label('lastSeen')} <LocalizedDateDisplay value={issue.last_detected_at} withTime />
                                                     {issue.times_reopened > 0 && <> · {label('reopened')} {issue.times_reopened}</>}

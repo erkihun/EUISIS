@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, ListPagination, TBody, THead, Table, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { AppTabNav, ListPagination, TBody, THead, Table, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
 import { AppDialog, Button, Card, EmptyState, FormField, Select, Textarea, toneSurfaceClassName, type PaginationMeta } from '@euisis/ui';
 
 type Side = {
@@ -136,8 +136,8 @@ export default function DuplicateReviews({ reviews, status, counts, url }: {
                         <div className="space-y-2 border-t border-(--app-border) px-4 py-3">
                             {(review.flagged?.url || review.matched?.url) && (
                                 <div className="flex flex-wrap gap-3">
-                                    {review.flagged?.url && <Link href={review.flagged.url} className={actionLinkClassName({ size: 'sm' })}>{label('openFlagged')}</Link>}
-                                    {review.matched?.url && <Link href={review.matched.url} className={actionLinkClassName({ size: 'sm' })}>{label('openMatched')}</Link>}
+                                    {review.flagged?.url && <Button as={Link} href={review.flagged.url} variant="ghost" size="sm">{label('openFlagged')}</Button>}
+                                    {review.matched?.url && <Button as={Link} href={review.matched.url} variant="ghost" size="sm">{label('openMatched')}</Button>}
                                 </div>
                             )}
                             {review.registration_reason && <p className="text-sm"><span className="font-medium">{label('registrationReason')}</span> {review.registration_reason}</p>}

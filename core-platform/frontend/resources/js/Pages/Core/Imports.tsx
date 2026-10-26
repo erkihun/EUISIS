@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
 import { Button, Card, CardHeader, CardTitle, EmptyState, FileUpload, FormField, Select, type PaginationMeta } from '@euisis/ui';
 
 type Tab = 'validation' | 'ready' | 'processing' | 'completed' | 'failed';
@@ -88,7 +88,7 @@ export default function Imports({ tab, counts, batches, types, urls }: {
                             {chosen && (
                                 <>
                                     {' · '}{label('columns')} <code className="text-xs">{chosen.columns.join(', ')}</code> ·{' '}
-                                    <a href={chosen.template_url} className={actionLinkClassName()}>{label('template')}</a>
+                                    <a href={chosen.template_url} className="text-primary hover:underline">{label('template')}</a>
                                 </>
                             )}
                         </p>

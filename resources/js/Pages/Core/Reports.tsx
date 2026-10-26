@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
 import { AppDialog, Button, Card, CardDescription, CardHeader, CardTitle, cx, EmptyState, FieldError, FormField, Input, Select, Textarea, type PaginationMeta } from '@euisis/ui';
 
 type Option = { id: string; code?: string; name_en?: string; name_am?: string | null; version_name?: string; status?: string };
@@ -166,7 +166,7 @@ export default function Reports({ reports, report, definition, filters, preview,
                                         </span>
                                         <span className="flex items-center gap-2">
                                             <StatusBadge status={run.status === 'completed' ? 'active' : run.status === 'failed' ? 'danger' : 'pending'} label={label(`exportStatuses.${run.status}`)} />
-                                            {run.download_url && <a href={run.download_url} className={actionLinkClassName({ size: 'sm' })}>{label('download')}</a>}
+                                            {run.download_url && <Button as="a" href={run.download_url} variant="ghost" size="sm">{label('download')}</Button>}
                                         </span>
                                     </li>
                                 ))}

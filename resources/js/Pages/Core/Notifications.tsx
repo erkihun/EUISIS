@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
-import { AppTabNav, ListPagination, TableCard, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { AppTabNav, ListPagination, TableCard, laravelPageMeta } from '@/Components/ui';
 import { Button, cx, EmptyState, type PaginationMeta } from '@euisis/ui';
 
 type Item = { id: string; event: string; title: string; body: string; url: string | null; read: boolean; created_at: string | null };
@@ -45,7 +45,7 @@ export default function Notifications({ notifications, unread, unread_only, read
                                         <p className="mt-1 text-xs text-(--app-muted-foreground)"><LocalizedDateDisplay value={item.created_at} withTime /></p>
                                     </div>
                                     <div className="flex shrink-0 items-center gap-2">
-                                        {item.url && <Link href={item.url} onClick={() => !item.read && markRead([item.id])} className={actionLinkClassName({ size: 'sm' })}>{label('open')}</Link>}
+                                        {item.url && <Button as={Link} href={item.url} onClick={() => !item.read && markRead([item.id])} variant="ghost" size="sm">{label('open')}</Button>}
                                         {!item.read && <Button size="sm" variant="outline" onClick={() => markRead([item.id])}>{label('markRead')}</Button>}
                                     </div>
                                 </li>

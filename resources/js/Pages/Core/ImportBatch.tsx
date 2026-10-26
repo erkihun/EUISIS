@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
-import { AppMetricCard, AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName, laravelPageMeta } from '@/Components/ui';
+import { AppMetricCard, AppTabNav, ListPagination, TBody, THead, Table, TableCard, Td, Th, Tr, laravelPageMeta } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Alert, AppDialog, Button, EmptyState, FieldError, FormField, Textarea, toneSurfaceClassName, type PaginationMeta } from '@euisis/ui';
 import type { ImportBatchSummary } from './Imports';
@@ -68,13 +68,13 @@ export default function ImportBatch({ batch, columns, rows, filter, can, urls }:
                 {['uploaded', 'validating', 'approved', 'processing'].includes(batch.status) && (
                     <Alert tone="info">
                         {label(`working.${batch.status}`)}{' '}
-                        <button type="button" className={actionLinkClassName({ size: 'sm' })} onClick={() => router.reload()}>{label('refresh')}</button>
+                        <Button variant="ghost" size="sm" onClick={() => router.reload()}>{label('refresh')}</Button>
                     </Alert>
                 )}
                 {summaryCode && <Alert tone="danger">{label(`summary.${summaryCode}`)}</Alert>}
                 {batch.cancel_reason && <Alert tone="neutral">{label('cancelledBecause')} {batch.cancel_reason} ({batch.cancelled_by})</Alert>}
                 {batch.hierarchy_version_url && (
-                    <p className="text-sm"><Link href={batch.hierarchy_version_url} className={actionLinkClassName({ size: 'sm' })}>{label('hierarchyDraft')}</Link></p>
+                    <p><Button as={Link} href={batch.hierarchy_version_url} variant="ghost" size="sm">{label('hierarchyDraft')}</Button></p>
                 )}
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">

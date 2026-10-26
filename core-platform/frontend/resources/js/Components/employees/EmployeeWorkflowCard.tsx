@@ -3,7 +3,7 @@ import { useState } from 'react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
-import { buttonClassName } from '@/Components/ui';
+import { Textarea, buttonClassName } from '@/Components/ui';
 
 type WorkflowStep = 'submit' | 'verify' | 'return' | 'approve';
 
@@ -101,8 +101,8 @@ export default function EmployeeWorkflowCard({ workflow }: { workflow: EmployeeW
                     {(workflow.can.submit || workflow.can.verify || workflow.can.approve) && (
                         <label className="block text-sm">
                             <span className="text-xs font-medium text-(--app-muted-foreground)">{t('employees.workflow.notesOptional')}</span>
-                            <textarea
-                                className="mt-1 w-full rounded-control border border-(--app-border-strong) bg-(--app-surface) px-3 py-2 text-sm"
+                            <Textarea
+                                className="mt-1"
                                 rows={2}
                                 maxLength={1000}
                                 value={form.data.notes}
@@ -113,8 +113,8 @@ export default function EmployeeWorkflowCard({ workflow }: { workflow: EmployeeW
                     {returning && (
                         <label className="block text-sm">
                             <span className="text-xs font-medium text-(--app-muted-foreground)">{t('employees.workflow.reason')}</span>
-                            <textarea
-                                className="mt-1 w-full rounded-control border border-(--app-border-strong) bg-(--app-surface) px-3 py-2 text-sm"
+                            <Textarea
+                                className="mt-1"
                                 rows={2}
                                 maxLength={1000}
                                 value={form.data.reason}
