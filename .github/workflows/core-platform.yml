@@ -99,7 +99,10 @@ jobs:
     - name: The screens are an unchanged copy of EUISIS
       run: |
         node scripts/sync-from-euisis.mjs ../..
-        git diff --exit-code -- . ../backend/lang ../backend/app/Settings/Euisis ../backend/app/Enums ../backend/app/Exceptions ../backend/app/Models/IdCardTemplate.php ../backend/app/Models/Concerns ../backend/app/Services/IdCards ../backend/app/Services/Calendar ../backend/app/Actions/IdCards ../backend/app/Http/Requests/IdCards ../backend/app/Http/Controllers/Web/IdCardTemplateController.php \n          ../backend/app/Models/CodeRule.php ../backend/app/Models/CodeRuleSequence.php ../backend/app/Models/CodeGenerationLog.php ../backend/app/Services/CodeGeneration \n          ../backend/app/Http/Requests/PreviewCodeForEntityRequest.php ../backend/app/Http/Requests/PreviewCodeRuleRequest.php ../backend/app/Http/Requests/StoreCodeRuleRequest.php ../backend/app/Http/Requests/UpdateCodeRuleRequest.php \n          ../backend/app/Http/Resources/CodeRuleResource.php ../backend/app/Http/Resources/CodeGenerationLogResource.php
+        git diff --exit-code -- . ../backend/lang ../backend/app/Settings/Euisis ../backend/app/Enums ../backend/app/Exceptions ../backend/app/Models/IdCardTemplate.php ../backend/app/Models/Concerns ../backend/app/Services/IdCards ../backend/app/Services/Calendar ../backend/app/Actions/IdCards ../backend/app/Http/Requests/IdCards ../backend/app/Http/Controllers/Web/IdCardTemplateController.php \
+          ../backend/app/Models/CodeRule.php ../backend/app/Models/CodeRuleSequence.php ../backend/app/Models/CodeGenerationLog.php ../backend/app/Services/CodeGeneration \
+          ../backend/app/Http/Requests/PreviewCodeForEntityRequest.php ../backend/app/Http/Requests/PreviewCodeRuleRequest.php ../backend/app/Http/Requests/StoreCodeRuleRequest.php ../backend/app/Http/Requests/UpdateCodeRuleRequest.php \
+          ../backend/app/Http/Resources/CodeRuleResource.php ../backend/app/Http/Resources/CodeGenerationLogResource.php
     - name: Dependency audit
       run: npm audit --audit-level=high
     - name: Type check
