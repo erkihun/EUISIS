@@ -53,7 +53,7 @@ export default {
         active: 'Active',
         inactive: 'Inactive',
         needsReview: 'To be named',
-        needsReviewHint: 'Brought over from EUISIS by reference only; give it a name.',
+        needsReviewHint: 'Brought over by reference only; give it a name.',
         add: 'Add value',
         edit: 'Edit',
         save: 'Save',

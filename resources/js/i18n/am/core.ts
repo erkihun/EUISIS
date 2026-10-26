@@ -53,7 +53,7 @@ export default {
         active: 'ንቁ',
         inactive: 'ንቁ ያልሆነ',
         needsReview: 'ስም ያስፈልገዋል',
-        needsReviewHint: 'ከEUISIS በመለያ ቁጥር ብቻ የመጣ ነው፤ ስም ይስጡት።',
+        needsReviewHint: 'በመለያ ቁጥር ብቻ የመጣ ነው፤ ስም ይስጡት።',
         add: 'እሴት ያክሉ',
         edit: 'ያስተካክሉ',
         save: 'ያስቀምጡ',
