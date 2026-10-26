@@ -17,7 +17,6 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
-use App\Services\CodeGenerator;
 use App\Services\OrganizationScope;
 use App\Services\OrganizationUsage;
 use App\Services\StructureTree;
@@ -211,27 +210,6 @@ class OrganizationController extends Controller
         $save->execute($organization, ['status' => 'inactive'], $request->user());
 
         return to_route('organizations.show', $organization)->with('flash', ['message' => __('organizations.deactivated_successfully'), 'type' => 'success']);
-    }
-
-    /** The code a new organization would get (the form's code field). */
-    public function previewCode(Request $request, CodeGenerator $codes): JsonResponse
-    {
-        $entity = match ($request->string('entity_type')->toString()) {
-            'organization' => 'organization',
-            'organization_unit', 'unit' => 'unit',
-            'position', 'job_position' => 'position',
-            'employee' => 'employee',
-            default => null,
-        };
-        $code = $entity === null ? null : $codes->preview($entity);
-
-        return response()->json([
-            'code' => $code,
-            'rule' => $code === null ? null : ['id' => $entity, 'name' => __('Core numbering'), 'entity_type' => $entity, 'is_scoped' => false, 'scope_type' => null],
-            'manual_override_allowed' => true,
-            'requires_override_permission' => false,
-            'error' => null,
-        ]);
     }
 
     /** @return array<string, mixed> */

@@ -27,6 +27,7 @@ use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\SecurityCenterController;
 use App\Http\Controllers\Web\SessionController;
+use App\Http\Controllers\Web\CodeRuleController;
 use App\Http\Controllers\Web\SettingsController;
 use App\Http\Controllers\Web\StructureTypeController;
 use App\Http\Controllers\Web\SystemHealthController;
@@ -162,6 +163,21 @@ Route::middleware('auth')->group(function (): void {
         });
     });
 
+    // The EUISIS Code Rules screens over the Core's rules (CodeRuleController); each action checks its policy.
+    Route::middleware('can:code-rules.viewAny')->prefix('code-rules')->name('code-rules.')->group(function (): void {
+        Route::get('/', [CodeRuleController::class, 'index'])->name('index');
+        Route::get('/create', [CodeRuleController::class, 'create'])->name('create');
+        Route::post('/', [CodeRuleController::class, 'store'])->name('store');
+        Route::post('/preview', [CodeRuleController::class, 'preview'])->name('preview');
+        Route::get('/{codeRule}', [CodeRuleController::class, 'show'])->name('show');
+        Route::get('/{codeRule}/edit', [CodeRuleController::class, 'edit'])->name('edit');
+        Route::match(['put', 'patch'], '/{codeRule}', [CodeRuleController::class, 'update'])->name('update');
+        Route::post('/{codeRule}/archive', [CodeRuleController::class, 'archive'])->name('archive');
+        Route::post('/{codeRule}/restore', [CodeRuleController::class, 'restore'])->name('restore');
+        Route::get('/{codeRule}/sequences', [CodeRuleController::class, 'sequences'])->name('sequences');
+        Route::post('/{codeRule}/sequences/{sequence}/reset', [CodeRuleController::class, 'resetSequence'])->name('sequences.reset');
+    });
+
     // The System Settings page's "API management" and "Integrations" entries (EUISIS route names) open the
     // Core's Integration Center, on its API clients and webhooks tabs.
     Route::middleware('can:integrations.view')->group(function (): void {
@@ -195,7 +211,8 @@ Route::middleware('auth')->group(function (): void {
     });
 
     Route::get('/audit-logs', [CoreController::class, 'auditLogs'])->middleware('can:audit.view')->name('audit-logs.index');
-    Route::post('/code-rules/preview-code', [OrganizationController::class, 'previewCode'])->name('code-rules.preview-code');
+    // The create forms' code field (every EUISIS form asks here): the active rule, or the settings format.
+    Route::post('/code-rules/preview-code', [CodeRuleController::class, 'previewCode'])->name('code-rules.preview-code');
 
     // Organizations
     Route::middleware('can:organizations.view')->group(function (): void {

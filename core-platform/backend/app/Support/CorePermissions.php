@@ -164,6 +164,19 @@ final class CorePermissions
             'break_glass.revoke' => ['End emergency access', 'የአደጋ ጊዜ መዳረሻን ማቋረጥ'],
         ],
         // P4/P5 (ADR 0011)
+        'code_rules' => [
+            'code-rules.viewAny' => ['View code rules', 'የኮድ ደንቦችን ማየት'],
+            'code-rules.view' => ['Open a code rule', 'የኮድ ደንብን መክፈት'],
+            'code-rules.create' => ['Create code rules', 'የኮድ ደንቦችን መፍጠር'],
+            'code-rules.update' => ['Edit code rules', 'የኮድ ደንቦችን ማስተካከል'],
+            'code-rules.archive' => ['Archive code rules', 'የኮድ ደንቦችን ወደ መዝገብ ማስገባት'],
+            'code-rules.restore' => ['Restore code rules', 'የኮድ ደንቦችን መመለስ'],
+            'code-rules.viewDeleted' => ['View archived code rules', 'የተመዘገቡ የኮድ ደንቦችን ማየት'],
+            'code-rules.preview' => ['Preview generated codes', 'የሚመነጩ ኮዶችን ቅድመ እይታ'],
+            'code-rules.generate' => ['Generate codes from rules', 'ከደንቦች ኮድ ማመንጨት'],
+            'code-rules.viewSequences' => ['View code sequences', 'የኮድ ተከታታይ ቁጥሮችን ማየት'],
+            'code-rules.resetSequence' => ['Reset code sequences', 'የኮድ ተከታታይ ቁጥሮችን ዳግም ማስጀመር'],
+        ],
         'oversight' => [
             'data_quality.view' => ['See data-quality issues', 'የመረጃ ጥራት ችግሮችን ማየት'],
             'data_quality.manage' => ['Work on data-quality issues', 'የመረጃ ጥራት ችግሮችን መከታተል'],
@@ -226,6 +239,7 @@ final class CorePermissions
         'positions.approve', 'cards.quality_check', 'card_print_batches.manage', 'digital_credentials.issue', 'digital_credentials.revoke',
         'break_glass.request',
         'data_quality.manage', 'reports.export',
+        'code-rules.viewAny', 'code-rules.view', 'code-rules.preview', 'code-rules.generate',
     ];
 
     private const ADMIN = [
@@ -242,6 +256,8 @@ final class CorePermissions
         'audit.integrity.view', 'audit.integrity.verify', 'break_glass.approve', 'break_glass.revoke',
         // P4/P5 (ADR 0011)
         'data_quality.accept_risk', 'reports.export_sensitive', 'system_health.view', 'queue.manage', 'security_dashboard.view',
+        // Code Rules (the EUISIS screen; the Core numbers from an active rule, the settings formats otherwise)
+        'code-rules.create', 'code-rules.update', 'code-rules.archive', 'code-rules.restore', 'code-rules.viewDeleted', 'code-rules.viewSequences', 'code-rules.resetSequence',
     ];
 
     /**

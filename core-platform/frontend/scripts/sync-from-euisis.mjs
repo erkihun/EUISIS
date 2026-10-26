@@ -34,6 +34,7 @@ export const PAGES = [
     'CardRequests/Index', 'CardRequests/Show', 'CardRequests/Create',
     'Users/Index', 'Users/Create', 'Users/Edit',
     'AuditLogs/Index', 'SystemSettings/Index', 'SystemSettings/IdCardTemplates',
+    'CodeRules/Index', 'CodeRules/Create', 'CodeRules/Show', 'CodeRules/Edit',
     'Public/IdChecker',
 ];
 
@@ -75,6 +76,63 @@ const BACKEND_COPIES = [
             ['use App\\Services\\IdCards\\IdCardFieldImpactService;\n', ''],
             ['use App\\Services\\SystemSettings\\SystemSettingsService;\n', 'use App\\Services\\SystemSettings\\SystemSettingsService;\nuse App\\Support\\IdCardFields;\n'],
             ['IdCardFieldImpactService::ROW_FIELDS', 'IdCardFields::ROW_FIELDS'],
+        ],
+    },
+    // Code Rules (the EUISIS screens over the Core's rules): enums, exceptions, models, the token registry, the
+    // sequence and rule resolvers and the generator as they are. The target registry, the position context
+    // resolver, the actions, the policy and the controller are the Core's own (app/Services/CodeGeneration,
+    // app/Actions/CodeRules, app/Policies, app/Http/Controllers/Web): they name EUISIS modules the Core does not run.
+    { from: 'app/Enums/CodeRuleEntityType.php' },
+    { from: 'app/Enums/CodeRuleResetFrequency.php' },
+    { from: 'app/Enums/CodeRuleScopeStrategy.php' },
+    { from: 'app/Enums/CodeRuleScopeType.php' },
+    { from: 'app/Exceptions/MissingSequenceScopeContextException.php' },
+    { from: 'app/Exceptions/MissingTokenContextException.php' },
+    { from: 'app/Exceptions/RandomCodeGenerationException.php' },
+    { from: 'app/Models/CodeRule.php' },
+    { from: 'app/Models/CodeRuleSequence.php' },
+    { from: 'app/Models/CodeGenerationLog.php' },
+    { from: 'app/Services/CodeGeneration/CodeFormatTokenRegistry.php' },
+    { from: 'app/Services/CodeGeneration/SequenceScopeResolver.php' },
+    { from: 'app/Services/CodeGeneration/CodeGeneratorService.php' },
+    { from: 'app/Services/CodeGeneration/CodeRuleResolver.php' },
+    { from: 'app/Http/Requests/PreviewCodeForEntityRequest.php' },
+    { from: 'app/Http/Requests/PreviewCodeRuleRequest.php' },
+    { from: 'app/Http/Resources/CodeGenerationLogResource.php' },
+    // Service types and service providers are EUISIS modules; their tokens and scope resolve to nothing on the Core.
+    {
+        from: 'app/Services/CodeGeneration/CodeFormatTokenResolver.php',
+        replace: [
+            ['use App\\Backbone\\Contracts\\ProviderCodeLookup;\n', ''],
+            ['use App\\Models\\ServiceType;\n', ''],
+            ['        // Provider codes come from service delivery through the backbone contract.\n        private readonly ?ProviderCodeLookup $providerCodes = null,\n', ''],
+            ['        return ($this->providerCodes ?? app(ProviderCodeLookup::class))->codeFor($providerId);', '        return null; // The Core has no service providers.'],
+            ["        $code = ServiceType::query()->whereKey($serviceTypeId)->value('code');", '        $code = null; // The Core has no service types.'],
+            ["        $serviceType = ServiceType::query()->whereKey($serviceTypeId)->first(['id', 'code']);", '        $serviceType = null; // The Core has no service types.'],
+        ],
+    },
+    {
+        from: 'app/Http/Requests/StoreCodeRuleRequest.php',
+        replace: [
+            ['use App\\Models\\ServiceType;\n', ''],
+            ['            CodeRuleScopeType::ServiceType->value => ServiceType::query()->whereKey($scopeId)->exists(),\n', ''],
+        ],
+    },
+    {
+        from: 'app/Http/Requests/UpdateCodeRuleRequest.php',
+        replace: [
+            ['use App\\Models\\ServiceType;\n', ''],
+            ['            CodeRuleScopeType::ServiceType->value => ServiceType::query()->whereKey($scopeId)->exists(),\n', ''],
+        ],
+    },
+    {
+        from: 'app/Http/Resources/CodeRuleResource.php',
+        replace: [
+            ['use App\\Models\\ServiceType;\n', ''],
+            [
+                "            CodeRuleScopeType::ServiceType->value => $this->scope_id !== null\n                ? ServiceType::query()->whereKey($this->scope_id)->value('name_en')\n                : __('code-rules.scope_type_service_type'),\n",
+                "            CodeRuleScopeType::ServiceType->value => __('code-rules.scope_type_service_type'),\n",
+            ],
         ],
     },
 ];

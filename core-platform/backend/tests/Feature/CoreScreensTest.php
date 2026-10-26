@@ -54,6 +54,8 @@ class CoreScreensTest extends TestCase
             '/core/audit' => 'Core/AuditCenter',
             '/core/data-quality' => 'Core/DataQuality',
             '/system-settings' => 'SystemSettings/Index',
+            '/code-rules' => 'CodeRules/Index',
+            '/code-rules/create' => 'CodeRules/Create',
             '/audit-logs' => 'AuditLogs/Index',
             '/profile' => 'Profile/Edit',
             '/organizations' => 'Organizations/Index',
