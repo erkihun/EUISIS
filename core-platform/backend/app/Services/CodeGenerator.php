@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\CodeRuleEntityType;
+use App\Models\CodeRule;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
 use Illuminate\Support\Facades\DB;
@@ -111,7 +112,7 @@ final class CodeGenerator
     }
 
     /** @param array<string, mixed> $context */
-    private function rule(string $entity, array $context): ?\App\Models\CodeRule
+    private function rule(string $entity, array $context): ?CodeRule
     {
         $type = self::RULE_ENTITIES[$entity] ?? null;
         if ($type === null) {

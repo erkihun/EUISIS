@@ -8,9 +8,10 @@ use App\Models\CoreSetting;
 use App\Models\User;
 use App\Services\CoreSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -97,7 +98,7 @@ class CoreSettingsScreenTest extends TestCase
             ->assertSessionHasNoErrors();
         Http::fake(['sms.example.test/*' => Http::sequence()->push(['ok' => true])->push('refused', 500)]);
         $this->post('/system-settings/test-sms')->assertSessionHas('flash.type', 'success');
-        Http::assertSent(fn (\Illuminate\Http\Client\Request $sent): bool => $sent['to'] === '+251911000000' && $sent->hasHeader('Authorization', 'Bearer k-1'));
+        Http::assertSent(fn (Request $sent): bool => $sent['to'] === '+251911000000' && $sent->hasHeader('Authorization', 'Bearer k-1'));
         $this->post('/system-settings/test-sms', ['phone' => '+251922000000'])->assertSessionHas('flash.type', 'error');
     }
 

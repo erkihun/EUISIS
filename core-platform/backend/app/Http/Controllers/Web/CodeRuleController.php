@@ -26,11 +26,11 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnitType;
 use App\Services\AuditWriter;
-use App\Services\CodeGenerator;
 use App\Services\CodeGeneration\CodeFormatTokenRegistry;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
+use App\Services\CodeGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -235,7 +235,9 @@ class CodeRuleController extends Controller
         $rule = $resolver->resolve($entityType, $context);
         if ($rule === null) {
             // Without a rule the Core numbers from System Settings > Numbering; the form still shows the code.
-            $kind = match ($entityType) { 'organization' => 'organization', 'organization_unit' => 'unit', 'position', 'employee_position' => 'position', 'employee' => 'employee', 'id_card' => 'card', default => null };
+            $kind = match ($entityType) {
+                'organization' => 'organization', 'organization_unit' => 'unit', 'position', 'employee_position' => 'position', 'employee' => 'employee', 'id_card' => 'card', default => null
+            };
             $code = $kind === null ? null : $settingsGenerator->preview($kind, $context);
 
             return response()->json([
