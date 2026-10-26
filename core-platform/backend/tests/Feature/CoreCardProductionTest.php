@@ -14,8 +14,8 @@ use App\Models\CoreAuditLog;
 use App\Models\DigitalCredential;
 use App\Models\IdCard;
 use App\Models\User;
-use App\Services\CardRenderer;
 use App\Services\CredentialVerifier;
+use App\Services\IdCards\CoreIdCardRenderDataFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -212,11 +212,11 @@ class CoreCardProductionTest extends TestCase
     {
         $credentials = app(ManageDigitalCredentials::class);
         $credentials->issue($this->card, null);
-        $data = app(CardRenderer::class)->dataFor($this->card);
+        $qr = app(CoreIdCardRenderDataFactory::class)->make($this->card)->qrVerificationUrl;
 
-        $this->assertSame(route('id-checker.show', $credentials->tokenFor($this->card)), $data['qr_payload']);
-        $this->assertStringNotContainsString($this->employee->employee_number, (string) $data['qr_payload']);
-        $this->assertStringNotContainsString((string) $this->card->public_card_uuid, (string) $data['qr_payload']);
+        $this->assertSame(route('id-checker.show', $credentials->tokenFor($this->card)), $qr);
+        $this->assertStringNotContainsString($this->employee->employee_number, (string) $qr);
+        $this->assertStringNotContainsString((string) $this->card->public_card_uuid, (string) $qr);
         $this->assertArrayNotHasKey('token_encrypted', DigitalCredential::query()->sole()->toArray());
     }
 }

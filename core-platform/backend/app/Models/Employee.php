@@ -47,6 +47,18 @@ class Employee extends Model
         ];
     }
 
+    /** The full name as the ID card prints it in English (the EUISIS rule: name_en, else the metadata, else the full name). */
+    public function fullNameEn(): ?string
+    {
+        return $this->name_en ?: ($this->metadata['name_en'] ?? $this->full_name);
+    }
+
+    /** The full name as the ID card prints it in Amharic. */
+    public function fullNameAm(): ?string
+    {
+        return $this->metadata['name_am'] ?? ($this->full_name ?: $this->name_en);
+    }
+
     public function currentAssignment(): BelongsTo
     {
         return $this->belongsTo(EmployeeAssignment::class, 'current_assignment_id');

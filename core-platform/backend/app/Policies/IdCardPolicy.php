@@ -23,6 +23,17 @@ final class IdCardPolicy
         return $this->permits($user, 'cards.view', $this->employeeOrganization((string) $card->employee_id));
     }
 
+    /** The printed faces as SVG or PNG (the EUISIS print and export windows): whoever may view the card. */
+    public function previewSvg(User $user, IdCard $card): bool
+    {
+        return $this->view($user, $card);
+    }
+
+    public function exportPng(User $user, IdCard $card): bool
+    {
+        return $this->view($user, $card);
+    }
+
     public function transition(User $user, IdCard $card, string $transition): bool
     {
         $permission = ChangeCardStatus::PERMISSIONS[$transition] ?? null;

@@ -122,6 +122,7 @@ it, read from the Core tables.
 | Employees | `Employees/*` |
 | ID cards, card requests, card check | `IdCards/*`, `CardRequests/*`, `Public/IdChecker` |
 | ID card templates (the designer, with its model, rules and controller copied too) | `SystemSettings/IdCardTemplates` |
+| Card preview, SVG faces, PNG export and print sheet (the EUISIS renderer, copied with its QR code, assets and calendar) | `IdCards/Preview` |
 | Users, Audit Logs, profile, sign-in | `Users/*`, `AuditLogs/Index`, `Profile/Edit`, `Auth/Login` |
 
 "Exit Core" opens `EUISIS_APP_URL` when set, otherwise it signs out.

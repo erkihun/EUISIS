@@ -21,7 +21,7 @@ const targetJs = path.join(here, 'resources', 'js');
 /** The EUISIS pages the Core backend renders (Inertia::render names). */
 export const PAGES = [
     'Auth/Login', 'Auth/ForcedPasswordChange', 'Auth/MfaSetup', 'Auth/MfaChallenge', 'Profile/Edit',
-    'Core/Dashboard', 'Core/Assignments', 'Core/DataQuality', 'Core/Settings', 'Core/AuditCenter', 'Core/IntegrationCenter', 'Core/DuplicateReviews', 'Core/Imports', 'Core/ImportBatch', 'Core/JobMasters', 'Core/CardPreview', 'Core/SecurityCenter', 'Core/Reports', 'Core/Notifications', 'Core/SystemHealth', 'PrintBatches/Index', 'PrintBatches/Create', 'PrintBatches/Show', 'Roles/Index', 'Roles/Create', 'Roles/Edit',
+    'Core/Dashboard', 'Core/Assignments', 'Core/DataQuality', 'Core/Settings', 'Core/AuditCenter', 'Core/IntegrationCenter', 'Core/DuplicateReviews', 'Core/Imports', 'Core/ImportBatch', 'Core/JobMasters', 'Core/SecurityCenter', 'Core/Reports', 'Core/Notifications', 'Core/SystemHealth', 'PrintBatches/Index', 'PrintBatches/Create', 'PrintBatches/Show', 'Roles/Index', 'Roles/Create', 'Roles/Edit',
     'Organizations/Index', 'Organizations/Show', 'Organizations/Create', 'Organizations/Edit', 'Organizations/Organogram',
     'OrganizationTypes/Index', 'OrganizationTypes/Show', 'OrganizationTypes/Create', 'OrganizationTypes/Edit',
     'OrganizationUnits/Index', 'OrganizationUnits/Show', 'OrganizationUnits/Create', 'OrganizationUnits/Edit',
@@ -30,7 +30,7 @@ export const PAGES = [
     'Positions/Index', 'Positions/Show', 'Positions/Create', 'Positions/Edit', 'Positions/Status',
     'PositionEstablishments/Index', 'PositionEstablishments/Show', 'PositionEstablishments/Edit',
     'Employees/Index', 'Employees/Show', 'Employees/Create', 'Employees/Edit',
-    'IdCards/Index', 'IdCards/Show',
+    'IdCards/Index', 'IdCards/Show', 'IdCards/Preview',
     'CardRequests/Index', 'CardRequests/Show', 'CardRequests/Create',
     'Users/Index', 'Users/Create', 'Users/Edit',
     'AuditLogs/Index', 'SystemSettings/Index', 'SystemSettings/IdCardTemplates',
@@ -57,6 +57,17 @@ const BACKEND_COPIES = [
     { from: 'app/Services/IdCards/IdCardLayoutSettingsService.php' },
     { from: 'app/Actions/IdCards/SaveIdCardTemplateAction.php' },
     { from: 'app/Http/Controllers/Web/IdCardTemplateController.php' },
+    // The printed card: the EUISIS SVG renderer, its data object, QR code, assets, PNG export and the Ethiopian calendar it dates with.
+    { from: 'app/Services/IdCards/IdCardSvgRenderer.php' },
+    { from: 'app/Services/IdCards/IdCardRenderData.php' },
+    { from: 'app/Services/IdCards/IdCardBackTextLayout.php' },
+    { from: 'app/Services/IdCards/IdCardQrCodeRenderer.php' },
+    { from: 'app/Services/IdCards/QrCodeVersionResolver.php' },
+    { from: 'app/Services/IdCards/QrPayloadSecurityValidator.php' },
+    { from: 'app/Services/IdCards/QrPayloadContainsPiiException.php' },
+    { from: 'app/Services/IdCards/IdCardAssetResolver.php' },
+    { from: 'app/Services/IdCards/IdCardPngExporter.php' },
+    { from: 'app/Services/Calendar/EthiopianCalendarService.php' },
     // The printed-field list lives in a service the Core does not have (it reads EUISIS print snapshots).
     {
         from: 'app/Http/Requests/IdCards/SaveIdCardTemplateRequest.php',

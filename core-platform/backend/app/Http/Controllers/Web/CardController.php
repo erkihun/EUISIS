@@ -18,7 +18,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Services\AuditWriter;
 use App\Services\CardEligibility;
-use App\Services\CardRenderer;
+use App\Services\EvidenceView;
 use App\Services\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -118,31 +118,32 @@ class CardController extends Controller
                 'revoke' => $may('revoke'),
                 'suspend' => $may('suspend'),
                 'reinstate' => $may('reinstate'),
-                'exportPng' => false,
-                'previewSvg' => false,
+                'exportPng' => Gate::forUser($user)->allows('exportPng', $card),
+                'previewSvg' => Gate::forUser($user)->allows('previewSvg', $card),
             ],
             'production' => $this->production($card, $user),
         ]);
     }
 
-    /** Core/CardPreview (ADR 0010): the card as it will print, from the one renderer. */
-    public function preview(Request $request, IdCard $card): Response
+    /** The EUISIS IdCards/Preview page: both faces from the designed template, with its print and export windows. */
+    public function preview(Request $request, IdCard $card, EvidenceView $evidence): Response
     {
         Gate::authorize('view', $card);
+        $card->loadMissing('employee.currentAssignment.organization', 'employee.currentAssignment.unit', 'employee.currentAssignment.position');
+        $user = $request->user();
+        $payload = $this->card($card, $user);
+        if ($card->employee !== null) {
+            $payload['employee']['photo_url'] = $evidence->photoUrl($card->employee, $user);
+        }
 
-        return Inertia::render('Core/CardPreview', [
-            'card' => $card->only(['id', 'card_number', 'status']),
-            'svg_url' => route('id-cards.preview-svg', $card),
-            'back_url' => route('id-cards.show', $card),
+        return Inertia::render('IdCards/Preview', [
+            'card' => $payload + [
+                'qr_verification_url' => ($token = app(ManageDigitalCredentials::class)->tokenFor($card)) !== null ? route('id-checker.show', $token)
+                    : ($card->public_card_uuid ? route('id-checker.show', $card->public_card_uuid) : null),
+                'feedback_qr_url' => null,
+            ],
+            'can' => ['print' => $user->can('cards.manage')],
         ]);
-    }
-
-    public function previewSvg(IdCard $card, CardRenderer $renderer): \Illuminate\Http\Response
-    {
-        Gate::authorize('view', $card);
-        $version = CardTemplateVersion::query()->find($card->card_template_version_id) ?? CardTemplateVersion::active();
-
-        return CardSvg::response($renderer->svg((array) $version?->config, $renderer->dataFor($card)));
     }
 
     public function qualityCheck(Request $request, IdCard $card, ManagePrintBatches $production): RedirectResponse

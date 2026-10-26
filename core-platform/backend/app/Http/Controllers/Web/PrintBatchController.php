@@ -11,7 +11,8 @@ use App\Models\CardPrintBatchItem;
 use App\Models\IdCard;
 use App\Models\User;
 use App\Services\AuditWriter;
-use App\Services\CardRenderer;
+use App\Services\IdCards\CoreIdCardRenderDataFactory;
+use App\Services\IdCards\IdCardSvgRenderer;
 use App\Services\OrganizationScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -129,15 +130,20 @@ class PrintBatchController extends Controller
     }
 
     /** The batch's cards drawn for printing, one per page at card size. */
-    public function sheet(Request $request, CardPrintBatch $printBatch, CardRenderer $renderer, AuditWriter $audit): HttpResponse
+    public function sheet(Request $request, CardPrintBatch $printBatch, CoreIdCardRenderDataFactory $data, IdCardSvgRenderer $renderer, AuditWriter $audit): HttpResponse
     {
         $this->authorizeBatch($request->user(), $printBatch);
         abort_unless($request->user()->can('card_print_batches.manage') && $printBatch->status === CardPrintBatch::DRAFT, 403);
-        $config = (array) $printBatch->templateVersion?->config;
-        $landscape = ($config['orientation'] ?? 'landscape') === 'landscape';
+        // Front then back of each card, drawn by the EUISIS renderer from the designed template (the version's orientation).
+        $orientation = ($printBatch->templateVersion?->config['orientation'] ?? 'landscape') === 'portrait' ? 'portrait' : 'landscape';
         $cards = $printBatch->items()->with('card')->where('status', 'queued')->orderBy('id')->get()
-            ->map(fn (CardPrintBatchItem $item): string => '<section class="card">'.$renderer->svg($config, $renderer->dataFor($item->card)).'</section>')->implode('');
+            ->map(function (CardPrintBatchItem $item) use ($data, $renderer, $orientation): string {
+                $card = $data->make($item->card, $orientation);
+
+                return '<section class="card">'.$renderer->renderFront($card).'</section><section class="card">'.$renderer->renderBack($card).'</section>';
+            })->implode('');
         $audit->writeFor('card_print_batch.sheet_opened', $request->user(), 'CardPrintBatch', (string) $printBatch->id, null);
+        $landscape = $orientation === 'landscape';
         $size = $landscape ? '85.6mm 54mm' : '54mm 85.6mm';
         $html = '<!doctype html><html><head><meta charset="utf-8"><title>'.e($printBatch->batch_number).'</title>'
             ."<style>@page{size:{$size};margin:0}body{margin:0}.card{page-break-after:always;width:".($landscape ? '85.6mm' : '54mm').'}.card svg{width:100%;height:auto;display:block}</style>'

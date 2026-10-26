@@ -115,7 +115,15 @@ Inertia, under the EUISIS route names. Decisions taken under the delegation:
     Core's print record (ADR 0010 template versions, batches, credentials)
     stays; `CardTemplateMirror` makes the default active designed template
     the active print version, so nothing is activated in a second place.
-    The server-side print SVG keeps the Core's own drawing for now.
+16. **The printed card is the EUISIS renderer's (2026-10-26).** The preview
+    page, the SVG faces, the PNG export and the print sheet are drawn by the
+    EUISIS `IdCardSvgRenderer` (copied with its data object, QR code, asset
+    resolver, PNG exporter and Ethiopian calendar) from the designed
+    template. `CoreIdCardRenderDataFactory` fills the EUISIS data object from
+    the Core's records: the verified photo document, the placement, the
+    credential token as the QR address (ADR 0010), no feedback link. The
+    Core's own drawing (`CardRenderer`) is gone; a template version's sample
+    preview is the same renderer with the version's orientation and city line.
 
 ## Consequences
 - The Core can be deployed, scaled, backed up and secured on its own.

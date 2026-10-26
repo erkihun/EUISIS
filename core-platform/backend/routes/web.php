@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeEvidenceController;
 use App\Http\Controllers\Web\HierarchyController;
 use App\Http\Controllers\Web\HierarchyVersionController;
+use App\Http\Controllers\Web\IdCardExportController;
 use App\Http\Controllers\Web\IdCardTemplateController;
 use App\Http\Controllers\Web\IdCheckerController;
 use App\Http\Controllers\Web\ImportController;
@@ -300,7 +301,14 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/id-cards/{card}', [CardController::class, 'show'])->name('id-cards.show');
         // The card as it will print, from the one renderer (ADR 0010).
         Route::get('/id-cards/{card}/preview', [CardController::class, 'preview'])->name('id-cards.preview');
-        Route::get('/id-cards/{card}/preview.svg', [CardController::class, 'previewSvg'])->middleware('throttle:60,1')->name('id-cards.preview-svg');
+        // The printed faces from the EUISIS renderer, under the EUISIS route names (the card page's print and export windows).
+        Route::middleware('throttle:60,1')->group(function (): void {
+            Route::get('/id-cards/{card}/preview/svg/front', [IdCardExportController::class, 'previewFrontSvg'])->name('id-cards.preview.svg.front');
+            Route::get('/id-cards/{card}/preview/svg/back', [IdCardExportController::class, 'previewBackSvg'])->name('id-cards.preview.svg.back');
+            Route::get('/id-cards/{card}/export/png/front', [IdCardExportController::class, 'exportFrontPng'])->name('id-cards.export.png.front');
+            Route::get('/id-cards/{card}/export/png/back', [IdCardExportController::class, 'exportBackPng'])->name('id-cards.export.png.back');
+            Route::get('/id-cards/{card}/export/png/both', [IdCardExportController::class, 'exportBothPng'])->name('id-cards.export.png.both');
+        });
         // Card production (ADR 0010): IdCardPolicy and ManagePrintBatches / ManageDigitalCredentials decide each step.
         Route::post('/id-cards/{card}/quality-check', [CardController::class, 'qualityCheck'])->name('id-cards.quality-check');
         Route::post('/id-cards/{card}/reprint', [CardController::class, 'reprint'])->name('id-cards.reprint');

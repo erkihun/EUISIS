@@ -8,7 +8,8 @@ use App\Actions\ManageCardTemplates;
 use App\Http\Controllers\Controller;
 use App\Models\CardTemplate;
 use App\Models\CardTemplateVersion;
-use App\Services\CardRenderer;
+use App\Services\IdCards\CoreIdCardRenderDataFactory;
+use App\Services\IdCards\IdCardSvgRenderer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
@@ -55,9 +56,14 @@ class CardTemplateController extends Controller
         return back()->with('success', __('id-cards.template_retired'));
     }
 
-    /** The version drawn with made-up data, by the same renderer that prints. */
-    public function preview(CardTemplateVersion $version, CardRenderer $renderer): HttpResponse
+    /** The version drawn with made-up data by the EUISIS renderer, with the version's orientation and header band (header_en/am = the city line). */
+    public function preview(CardTemplateVersion $version, CoreIdCardRenderDataFactory $data, IdCardSvgRenderer $renderer): HttpResponse
     {
-        return CardSvg::response($renderer->svg((array) $version->config, $renderer->sample()));
+        $config = (array) $version->config;
+        $orientation = ($config['orientation'] ?? null) === 'portrait' ? 'portrait' : 'landscape';
+
+        return CardSvg::response($renderer->renderFront($data->sample($orientation, [
+            'city_name_en' => (string) ($config['header_en'] ?? ''), 'city_name_am' => (string) ($config['header_am'] ?? ''),
+        ])));
     }
 }
