@@ -1,7 +1,7 @@
 # Cafeteria platform (the cafeteria module as its own system)
 
 Decision record: [ADR 0014](../architecture/adr/0014-cafeteria-platform.md). The platform itself is
-documented in [`cafeteria-platform/README.md`](../../cafeteria-platform/README.md).
+documented in its own repository (`cafeteria-platform`, beside EUISIS; its README).
 
 Three flows:
 
@@ -39,7 +39,7 @@ EUISIS_CARD_FRESH_MINUTES=5
 EUISIS_OFFLINE_GRACE_HOURS=24
 ```
 
-Then, in `cafeteria-platform/backend`:
+Then, in the platform repository's `backend/`:
 
 ```bash
 php artisan migrate --force
@@ -91,7 +91,7 @@ Errors follow the platform's integration contract (`{message, code, errors}`; `S
 ## Local rig (this workstation, 2026-10-27)
 
 - EUISIS at `http://127.0.0.1:8000` holds the application `CAFETERIA_PLATFORM_LOCAL` (city-wide, 7 endpoints).
-- The platform runs from `.claude/launch.json` (`cafeteria-platform`, port 8110) on PostgreSQL `cafeteriadb`
+- The platform is the sibling repository `C:\Users\Erkis\Documents\GitHub\cafeteria-platform`; it runs from its own `.claude/launch.json` (`cafeteria-platform`, port 8110) on PostgreSQL `cafeteriadb`
   (`cafeteriadb_test` is for a PostgreSQL test run), with the API client "EUISIS (local)".
 - EUISIS `.env` has `CAFETERIA_PLATFORM_MODE=local`, the platform URL and its token; the platform `.env` has
   `EUISIS_URL`/`EUISIS_TOKEN`. Both pings answer; the first full sync mirrored the 21 organizations and 28

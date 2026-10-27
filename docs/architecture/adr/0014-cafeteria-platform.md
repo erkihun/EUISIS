@@ -17,12 +17,15 @@ two systems connected over an API.
 
 ## Decision
 
-1. **`cafeteria-platform/` is the cafeteria module as its own system**: a Laravel backend
-   (`cafeteria-platform/backend`, database `cafeteriadb`, dev port 8110) and the EUISIS screens copied
-   unchanged (`cafeteria-platform/frontend`, built into the backend). It starts from the Core platform
+1. **The cafeteria platform is the cafeteria module as its own system, in its own repository**
+   (`cafeteria-platform`, checked out beside EUISIS; locally `C:\Users\Erkis\Documents\GitHub\cafeteria-platform`):
+   a Laravel backend (`backend/`, database `cafeteriadb`, dev port 8110) and the EUISIS screens copied
+   unchanged (`frontend/`, built into the backend). Nothing of it lives in the EUISIS repository; EUISIS keeps
+   only its side of the API link (`config/cafeteria_platform.php`, the client, the redirect switch). It starts from the Core platform
    skeleton (ADR 0006: sign-in, MFA, roles, settings, audit, integration center, system health) with the
    Core's master-data screens removed.
-2. **The screens are the EUISIS screens, 100% the same.** `frontend/scripts/sync-from-euisis.mjs` copies the
+2. **The screens are the EUISIS screens, 100% the same.** The platform's `frontend/scripts/sync-from-euisis.mjs`
+   (pointed at an EUISIS checkout: argument, `EUISIS_PATH`, or the sibling folder `../EUISIS`) copies the
    pages it lists (every `Cafeteria/*` page, the provider-portal sign-in, the skeleton's administration pages)
    with their import closure, the translations and the UI kit. Nothing is edited by hand; the only differences
    are two script patches (unknown routes link to `#`, the cafeteria icons for the server-sent navigation).
@@ -53,7 +56,7 @@ two systems connected over an API.
 6. **EUISIS reads cafeteria results back over the platform's API** (`/api/v1/integration/cafeteria/*`, an
    API client on the platform with the `cafeteria:read` scope): an employee's standing and meals (the
    employee portal's My Services), the cafeterias and a period's totals (for the Situation Room). The
-   contract is in `cafeteria-platform/docs/openapi/core-integration-v1.yaml`.
+   contract is in the platform repository, `docs/openapi/core-integration-v1.yaml`.
 7. **EUISIS keeps its cafeteria code and tables; a switch moves the module.** `CAFETERIA_PLATFORM_MODE=local`
    (default) changes nothing. `platform` makes the EUISIS cafeteria pages and the cafeteria side of the
    provider portal redirect to the platform on the same path, and makes the employee portal read an
