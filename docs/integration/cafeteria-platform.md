@@ -1,7 +1,10 @@
 # Cafeteria platform (the cafeteria module as its own system)
 
 Decision record: [ADR 0014](../architecture/adr/0014-cafeteria-platform.md). The platform itself is
-documented in its own repository (`cafeteria-platform`, beside EUISIS; its README).
+documented in its own repository, [github.com/erkihun/cafeteria-platform](https://github.com/erkihun/cafeteria-platform)
+(checked out beside EUISIS; its README). Its CI drift job reads this repository through the secret
+`EUISIS_REPO_TOKEN` (a fine-grained token with *Contents: read* on `erkihun/EUISIS`), set in that repository's
+Actions secrets.
 
 Three flows:
 

@@ -18,7 +18,7 @@ two systems connected over an API.
 ## Decision
 
 1. **The cafeteria platform is the cafeteria module as its own system, in its own repository**
-   (`cafeteria-platform`, checked out beside EUISIS; locally `C:\Users\Erkis\Documents\GitHub\cafeteria-platform`):
+   ([github.com/erkihun/cafeteria-platform](https://github.com/erkihun/cafeteria-platform), checked out beside EUISIS; locally `C:\Users\Erkis\Documents\GitHub\cafeteria-platform`):
    a Laravel backend (`backend/`, database `cafeteriadb`, dev port 8110) and the EUISIS screens copied
    unchanged (`frontend/`, built into the backend). Nothing of it lives in the EUISIS repository; EUISIS keeps
    only its side of the API link (`config/cafeteria_platform.php`, the client, the redirect switch). It starts from the Core platform
