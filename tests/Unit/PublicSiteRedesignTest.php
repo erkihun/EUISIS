@@ -42,6 +42,13 @@ it('keeps the Verify task in the first phone screen', function (): void {
     expect($scanner)
         ->not->toContain('object-contain')
         ->not->toContain('clamp(160px')
+        // The camera area stays a square whichever way the camera is turned:
+        // a landscape picture takes the square's height and is clipped at the
+        // sides (before the library measures it), and the scan box is square.
+        ->toContain('className="flex aspect-square w-full')
+        ->toContain('[&_video]:max-w-none')
+        ->toContain("video.addEventListener('loadedmetadata', apply, { once: true })")
+        ->toContain('return { width: side, height: side };')
         // An aspect-ratio constraint applied after opening is refused by
         // some phones and failed the whole start; resolution hints are
         // "ideal" only, so no camera refuses to open over them.
