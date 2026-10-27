@@ -48,6 +48,7 @@ use App\Services\Cafeteria\CafeteriaLedgerService;
 use App\Services\Cafeteria\CafeteriaSubsidyRuleResolver;
 use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
 use App\Services\Cafeteria\WorkingDayCalendarService;
+use App\Services\CafeteriaPlatform\CafeteriaPlatformClient;
 use App\Services\DailyActivity\DailyActivityCalendarService;
 use App\Services\DailyActivity\DailyActivitySettings;
 use App\Services\DailyActivity\WorkCalendarService;
@@ -513,12 +514,16 @@ class EmployeePortalController extends Controller
                         : ['type' => 'service', 'transactions' => []]);
 
                 try {
+                    $platform = app(CafeteriaPlatformClient::class);
                     $base['activity'] = $isCafeteria
-                        ? $this->buildCafeteriaActivity(
-                            $employee, $today,
-                            $ledgerService, $ruleResolver,
-                            $availableSubsidyService, $workingDayService,
-                        )
+                        ? ($platform->enabled()
+                            // The cafeteria runs on its own platform (ADR 0014): its records are read over its API.
+                            ? $this->buildCafeteriaActivityFromPlatform($employee, $today, $platform, $workingDayService)
+                            : $this->buildCafeteriaActivity(
+                                $employee, $today,
+                                $ledgerService, $ruleResolver,
+                                $availableSubsidyService, $workingDayService,
+                            ))
                         : ($isTransport
                             ? $this->buildTransportActivity($employee->id, $today)
                             : $this->buildServiceActivity($employee->id, $e->service_type_id));
@@ -567,6 +572,88 @@ class EmployeePortalController extends Controller
         $resolution = app(CafeteriaPolicyResolver::class)->resolve($employee, $cafeteria, $today);
 
         return $resolution->resolved() ? (float) $resolution->policy->daily_subsidy_amount : null;
+    }
+
+    /**
+     * The same activity block, from the cafeteria platform's API (ADR 0014):
+     * the employee's standing (policy, exclusion, today's use) and their
+     * accepted meals, laid out over the EUISIS working-day calendar.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildCafeteriaActivityFromPlatform(Employee $employee, Carbon $today, CafeteriaPlatformClient $platform, WorkingDayCalendarService $workingDays): array
+    {
+        $standing = $platform->entitlement((string) $employee->id) ?? [];
+        $meals = $platform->transactions((string) $employee->id, 100);
+
+        $weekMon = $today->copy()->startOfWeek(Carbon::MONDAY);
+        $weekFri = $weekMon->copy()->addDays(4);
+        $windowStart = $today->copy()->subMonths(13)->startOfMonth();
+        $windowEnd = $today->copy()->addMonth()->endOfMonth();
+
+        /** @var array<string, array{date: string, subsidy: float}> $consumedByDate */
+        $consumedByDate = [];
+        foreach ($meals as $meal) {
+            $date = (string) ($meal['transaction_date'] ?? '');
+            if ($date === '' || ($meal['status'] ?? null) !== 'accepted') {
+                continue;
+            }
+            $consumedByDate[$date] = ['date' => $date, 'subsidy' => round(((float) ($consumedByDate[$date]['subsidy'] ?? 0)) + (float) ($meal['subsidy_amount'] ?? 0), 2)];
+        }
+        ksort($consumedByDate);
+        $within = fn (string $from, string $to): array => array_filter($consumedByDate, fn (array $r): bool => $r['date'] >= $from && $r['date'] <= $to);
+
+        $holidayDates = $workingDays->holidaysBetween($windowStart, $windowEnd)
+            ->map(fn ($h) => Carbon::parse($h->holiday_date ?? $h->date ?? $h)->toDateString())->values()->all();
+
+        $todayStr = $today->toDateString();
+        $policy = is_array($standing['policy'] ?? null) ? $standing['policy'] : null;
+        $dailyRate = $policy === null ? null : (float) ($policy['daily_subsidy_amount'] ?? 0);
+        $weekConsumed = $within($weekMon->toDateString(), $weekFri->toDateString());
+        $weekDays = $workingDays->workingDaysBetween($weekMon, $weekFri);
+        $monthConsumed = $within($today->copy()->startOfMonth()->toDateString(), $today->copy()->endOfMonth()->toDateString());
+        $yearConsumed = $within($today->copy()->startOfYear()->toDateString(), $windowEnd->toDateString());
+
+        return [
+            'type' => 'cafeteria',
+            'daily' => ['date' => $todayStr, 'consumed' => isset($consumedByDate[$todayStr]), 'subsidy' => $consumedByDate[$todayStr]['subsidy'] ?? 0.0],
+            'weekly' => [
+                'week_start' => $weekMon->toDateString(),
+                'week_end' => $weekFri->toDateString(),
+                'days_consumed' => count($weekConsumed),
+                'days_total' => $weekDays,
+                'days_remaining' => max(0, $weekDays - count($weekConsumed)),
+                'subsidy_used' => round(array_sum(array_column($weekConsumed, 'subsidy')), 2),
+                'subsidy_remaining' => $dailyRate === null ? null : round(max(0, $weekDays - count($weekConsumed)) * $dailyRate, 2),
+                'daily_rate' => $dailyRate,
+                'balance' => 0.0,
+                'pending' => 0.0,
+            ],
+            'monthly' => [
+                'label' => $today->format('F Y'), 'month' => (int) $today->format('n'), 'year' => (int) $today->format('Y'),
+                'days_consumed' => count($monthConsumed),
+                'working_days' => $workingDays->workingDaysBetween($today->copy()->startOfMonth(), $today->copy()->endOfMonth()),
+                'subsidy_used' => round(array_sum(array_column($monthConsumed, 'subsidy')), 2),
+            ],
+            'yearly' => ['year' => (int) $today->format('Y'), 'days_consumed' => count($yearConsumed), 'subsidy_used' => round(array_sum(array_column($yearConsumed, 'subsidy')), 2)],
+            'employee' => ['id' => $employee->id, 'name' => $employee->full_name, 'number' => $employee->employee_number],
+            'today' => $todayStr,
+            'consumed' => array_map(fn (array $r): float => $r['subsidy'], $consumedByDate) ?: (object) [],
+            'holidays' => $holidayDates,
+            'window_start' => $windowStart->toDateString(),
+            'window_end' => $windowEnd->toDateString(),
+            'transactions' => array_values(array_map(fn (array $meal): array => [
+                'date' => $meal['transaction_date'] ?? null,
+                'time' => isset($meal['scanned_at']) ? Carbon::parse((string) $meal['scanned_at'])->format('H:i') : null,
+                'subsidy' => (float) ($meal['subsidy_amount'] ?? 0),
+                'meal_amount' => (float) ($meal['total_amount'] ?? 0),
+                'employee_pays' => (float) ($meal['employee_payable_amount'] ?? 0),
+                'provider' => $meal['cafeteria']['name_en'] ?? null,
+                'status' => $meal['status'] ?? null,
+            ], array_slice($meals, 0, 15))),
+            // The platform's own view of the employee, for the page to show where it differs from the local rules.
+            'platform' => ['eligible' => (bool) ($standing['eligible'] ?? false), 'reason' => $standing['reason'] ?? null, 'cafeteria' => $standing['cafeteria'] ?? null, 'url' => $platform->url()],
+        ];
     }
 
     private function buildCafeteriaActivity(

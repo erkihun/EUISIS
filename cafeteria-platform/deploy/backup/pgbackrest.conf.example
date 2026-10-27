@@ -1,0 +1,40 @@
+# Core pgBackRest TEMPLATE (docs/runbook/core-backup-and-restore.md). Replace every
+# REPLACE_* after the host topology is confirmed. Install outside any release at
+# /etc/pgbackrest/pgbackrest.conf, mode 0600, owned by the PostgreSQL/backup OS
+# account; PHP never reads it. Same layout as the EUISIS template (deploy/backup/).
+[global]
+# Repository 1: a separate backup host or volume, encrypted.
+repo1-type=posix
+repo1-host=REPLACE_PRIVATE_REPOSITORY_HOST
+repo1-host-user=pgbackrest
+repo1-path=/REPLACE_PRIVATE_REPOSITORY_MOUNT/core
+repo1-cipher-type=aes-256-cbc
+repo1-retention-full-type=count
+repo1-retention-full=REPLACE_AFTER_RPO_DECISION
+
+# Repository 2: off-site, independent of repository 1 (object storage with object lock where available).
+repo2-type=s3
+repo2-s3-bucket=REPLACE_OFFSITE_BUCKET
+repo2-s3-endpoint=REPLACE_S3_ENDPOINT
+repo2-s3-region=REPLACE_REGION
+repo2-path=/core
+repo2-cipher-type=aes-256-cbc
+repo2-retention-full-type=count
+repo2-retention-full=REPLACE_AFTER_RPO_DECISION
+
+# repo1-cipher-pass, repo2-cipher-pass and the S3 keys come from a secret-store-rendered
+# include (mode 0600); escrow the cipher passwords apart from the repositories.
+start-fast=y
+process-max=2
+log-level-file=info
+log-path=/var/log/pgbackrest
+lock-path=/var/lib/pgbackrest/lock
+
+[core]
+pg1-path=/REPLACE_POSTGRES_DATA_DIRECTORY
+pg1-port=5432
+# postgresql.conf (restart needed for archive_mode):
+#   wal_level = replica
+#   archive_mode = on
+#   archive_timeout = '300s'        # a proposal, not an approved RPO
+#   archive_command = 'pgbackrest --stanza=core archive-push %p'

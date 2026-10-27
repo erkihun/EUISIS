@@ -23,6 +23,7 @@ use App\Http\Middleware\GuardMasterDataWrites;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PrivateQrPageHeaders;
 use App\Http\Middleware\RecordRequestTelemetry;
+use App\Http\Middleware\RedirectCafeteriaToPlatform;
 use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
@@ -87,6 +88,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             // Modules outside the current production scope (config/features.php) answer 404.
             BlockDisabledModules::class,
+            // The cafeteria module on its own platform (config/cafeteria_platform.php, ADR 0014): its pages live there.
+            RedirectCafeteriaToPlatform::class,
             SetClientLocale::class,
             EnforceSessionIdleTimeout::class,
             HandleInertiaRequests::class,

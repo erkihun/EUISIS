@@ -6,6 +6,12 @@
             "runtimeExecutable": "php",
             "runtimeArgs": ["artisan", "serve", "--port=8123"],
             "port": 8123
+        },
+        {
+            "name": "cafeteria-platform",
+            "runtimeExecutable": "php",
+            "runtimeArgs": ["cafeteria-platform/backend/artisan", "serve", "--port=8110"],
+            "port": 8110
         }
     ]
 }
