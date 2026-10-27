@@ -380,7 +380,9 @@ test('organization show includes the full tree component contract', function ():
     $component = file_get_contents(resource_path('js/Components/organizations/OrganizationStructureTree.tsx'));
 
     expect($source)->toContain('OrganizationStructureTree', 'structureTree')
-        ->and($component)->toContain('LocalizedDateDisplay', 'fullOrganizationStructure', 'searchStructure', 'directOrganizationPositions');
+        ->and($component)->toContain('LocalizedDateDisplay', 'fullOrganizationStructure', 'searchStructure', 'directOrganizationPositions')
+        // The assigned employee's photo is shown on the position row and in its detail.
+        ->and($component)->toContain('UserAvatar', 'assignee.photo_url');
 });
 
 // ── Archive ────────────────────────────────────────────────────────────────
