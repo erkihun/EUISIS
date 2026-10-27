@@ -35,6 +35,7 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Performance\EpmsAccess;
 use App\Services\Performance\PerformanceCascadeService;
 use App\Services\Positions\ScopedPositionStructureService;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\RedirectResponse;
@@ -60,7 +61,11 @@ class PositionController extends Controller
      */
     private function positionStatusRows(Builder $positions, ?array $allowedOrganizationIds): QueryBuilder
     {
-        $occupied = DB::table('position_occupancies')
+        // Every piece runs on the positions query's connection, and the raw
+        // expressions follow that driver (see idText / concat).
+        $connection = $positions->getConnection();
+
+        $occupied = $connection->table('position_occupancies')
             ->where('status', OccupancyStatus::Active->value)
             ->groupBy('position_establishment_id')
             ->select('position_establishment_id', DB::raw('COUNT(*) AS filled'));
@@ -71,7 +76,7 @@ class PositionController extends Controller
         // run four times per page).
         $positionIds = (clone $positions)->reorder()->select('positions.id')->toBase();
 
-        $establishments = DB::table('position_establishments AS pe')
+        $establishments = $connection->table('position_establishments AS pe')
             ->where('pe.status', EstablishmentStatus::Approved->value)
             ->whereNull('pe.deleted_at')
             ->whereIn('pe.position_id', $positionIds)
@@ -80,7 +85,7 @@ class PositionController extends Controller
             ->groupBy('pe.position_id')
             ->select('pe.position_id', DB::raw('SUM(pe.approved_slots) AS slots'), DB::raw('SUM(COALESCE(occ.filled, 0)) AS filled'));
 
-        $assigned = DB::table('employee_assignments')
+        $assigned = $connection->table('employee_assignments')
             ->where('is_current', true)
             ->where('assignment_status', AssignmentStatus::Active->value)
             ->whereIn('position_id', $positionIds)
@@ -102,8 +107,37 @@ class PositionController extends Controller
                     WHEN COALESCE(asg.cnt, 0) < ({$total}) THEN COALESCE(asg.cnt, 0)
                     ELSE ({$total}) END) AS filled"),
                 // First-appearance order of the old in-memory grouping (org, unit, code).
-                DB::raw("(COALESCE(CAST(positions.organization_id AS VARCHAR(64)), '') || '|' || COALESCE(CAST(positions.organization_unit_id AS VARCHAR(64)), '') || '|' || COALESCE(positions.job_position_code, '')) AS sort_key"),
+                DB::raw('('.$this->concat(
+                    $connection,
+                    'COALESCE('.$this->idText($connection, 'positions.organization_id').", '')",
+                    "'|'",
+                    'COALESCE('.$this->idText($connection, 'positions.organization_unit_id').", '')",
+                    "'|'",
+                    "COALESCE(positions.job_position_code, '')",
+                ).') AS sort_key'),
             ]);
+    }
+
+    /**
+     * An id column as text: uuid on PostgreSQL, char(36) on MySQL/MariaDB
+     * (whose CAST has no VARCHAR type; the live server is MySQL), text on SQLite.
+     */
+    private function idText(ConnectionInterface $connection, string $column): string
+    {
+        return match ($connection->getDriverName()) {
+            'pgsql' => "CAST({$column} AS VARCHAR(64))",
+            'mysql', 'mariadb' => "CAST({$column} AS CHAR(64))",
+            default => "CAST({$column} AS TEXT)",
+        };
+    }
+
+    /** String concatenation: `||` is logical OR on MySQL/MariaDB, so they get CONCAT(). */
+    private function concat(ConnectionInterface $connection, string ...$parts): string
+    {
+        return match ($connection->getDriverName()) {
+            'mysql', 'mariadb' => 'CONCAT('.implode(', ', $parts).')',
+            default => implode(' || ', $parts),
+        };
     }
 
     public function status(Request $request, OrganizationScopeService $organizationScopeService): Response
@@ -228,7 +262,7 @@ class PositionController extends Controller
             ->values()
             ->all();
 
-        $totals = DB::query()->fromSub($statusRows, 'ps')
+        $totals = $statusRows->newQuery()->fromSub($statusRows, 'ps')
             ->selectRaw('COALESCE(SUM(ps.total), 0) AS total, COALESCE(SUM(ps.filled), 0) AS filled')
             ->first();
         $summaryTotal = (int) $totals->total;
@@ -239,8 +273,8 @@ class PositionController extends Controller
         // filter-aware rows as the summary tiles, so the charts always agree
         // with the headline numbers.
         $buildBreakdown = function (string $column, callable $labelsFor) use ($statusRows): array {
-            $key = "COALESCE(NULLIF(CAST(ps.{$column} AS VARCHAR(64)), ''), '__unassigned__')";
-            $rows = DB::query()->fromSub($statusRows, 'ps')
+            $key = 'COALESCE(NULLIF('.$this->idText($statusRows->getConnection(), "ps.{$column}").", ''), '__unassigned__')";
+            $rows = $statusRows->newQuery()->fromSub($statusRows, 'ps')
                 ->selectRaw("{$key} AS group_key, SUM(ps.total) AS total, SUM(ps.filled) AS filled, MIN(ps.sort_key) AS first_seen")
                 ->groupByRaw($key)
                 ->get();
