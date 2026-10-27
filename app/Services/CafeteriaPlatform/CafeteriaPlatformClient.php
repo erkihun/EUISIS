@@ -20,6 +20,14 @@ class CafeteriaPlatformClient
         return config('cafeteria_platform.mode') === 'platform' && $this->configured();
     }
 
+    /** Whether the employee portal shows the platform's view of an employee's cafeteria standing. */
+    public function servesEmployeePortal(): bool
+    {
+        $setting = config('cafeteria_platform.employee_portal');
+
+        return $this->configured() && ($setting === null ? $this->enabled() : filter_var($setting, FILTER_VALIDATE_BOOL));
+    }
+
     public function configured(): bool
     {
         return (string) config('cafeteria_platform.url') !== '' && (string) config('cafeteria_platform.token') !== '';

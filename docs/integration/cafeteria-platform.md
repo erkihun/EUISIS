@@ -65,6 +65,8 @@ On the platform, Integration Center → API clients → new client for EUISIS wi
 CAFETERIA_PLATFORM_MODE=local        # platform, once the platform serves the cafeteria
 CAFETERIA_PLATFORM_URL=https://cafeteria.example.gov.et
 CAFETERIA_PLATFORM_TOKEN=<secret from step 3>
+# Optional: true lets My Services in the employee portal read the platform already in local mode
+CAFETERIA_PLATFORM_EMPLOYEE_PORTAL=
 ```
 
 `php artisan config:cache`, then `php artisan cafeteria-platform:ping`.
@@ -72,6 +74,12 @@ CAFETERIA_PLATFORM_TOKEN=<secret from step 3>
 ## Using it
 
 - **Mode `local`** (default): nothing changes in EUISIS; the platform can be filled and checked alongside.
+  With `CAFETERIA_PLATFORM_EMPLOYEE_PORTAL=true`, My Services in the employee portal already shows the
+  employee's cafeteria standing and meals from the platform (the same card and calendar as before), while
+  the administration pages stay in EUISIS: a staged rollout.
+- **Moving the records**: on the platform, `php artisan cafeteria:import-from-euisis-db` copies the cafeteria
+  tables of the EUISIS database (`EUISIS_DB_*`) once, keeping ids, after a directory sync; account references
+  are mapped to a platform administrator and rows whose employee or organization is not mirrored are skipped.
 - **Mode `platform`**: the EUISIS cafeteria pages (`/cafeteria/...`, the cafeteria side of the provider
   portal, `/cafe`) send people to the same path on the platform; My Services in the employee portal reads the
   employee's cafeteria standing and meals from the platform. The EUISIS cafeteria tables keep their history.

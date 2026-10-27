@@ -516,7 +516,7 @@ class EmployeePortalController extends Controller
                 try {
                     $platform = app(CafeteriaPlatformClient::class);
                     $base['activity'] = $isCafeteria
-                        ? ($platform->enabled()
+                        ? ($platform->servesEmployeePortal()
                             // The cafeteria runs on its own platform (ADR 0014): its records are read over its API.
                             ? $this->buildCafeteriaActivityFromPlatform($employee, $today, $platform, $workingDayService)
                             : $this->buildCafeteriaActivity(

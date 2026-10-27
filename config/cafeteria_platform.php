@@ -32,4 +32,9 @@ return [
     'timeout' => (int) env('CAFETERIA_PLATFORM_TIMEOUT', 10),
 
     'verify_tls' => (bool) env('CAFETERIA_PLATFORM_VERIFY_TLS', true),
+
+    // Whether My Services in the employee portal reads an employee's cafeteria standing and meals from the
+    // platform. Unset, it follows the mode; true lets the portal read the platform while EUISIS still serves
+    // the cafeteria pages itself (a staged rollout).
+    'employee_portal' => env('CAFETERIA_PLATFORM_EMPLOYEE_PORTAL'),
 ];

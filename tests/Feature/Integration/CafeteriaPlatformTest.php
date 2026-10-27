@@ -79,6 +79,20 @@ test('in platform mode my services reads the cafeteria standing and meals from t
             ->has('entitlements.0.activity.transactions', 3));
 });
 
+test('the employee portal can read the platform while EUISIS still serves the cafeteria pages', function (): void {
+    config(['cafeteria_platform.mode' => 'local', 'cafeteria_platform.url' => 'https://cafeteria.test', 'cafeteria_platform.token' => 'secret']);
+    $client = app(CafeteriaPlatformClient::class);
+
+    config(['cafeteria_platform.employee_portal' => null]);
+    expect($client->servesEmployeePortal())->toBeFalse();
+    config(['cafeteria_platform.employee_portal' => true]);
+    expect($client->servesEmployeePortal())->toBeTrue()->and($client->enabled())->toBeFalse();
+    config(['cafeteria_platform.employee_portal' => false, 'cafeteria_platform.mode' => 'platform']);
+    expect($client->servesEmployeePortal())->toBeFalse()->and($client->enabled())->toBeTrue();
+    config(['cafeteria_platform.employee_portal' => true, 'cafeteria_platform.token' => '']);
+    expect($client->servesEmployeePortal())->toBeFalse();
+});
+
 test('the platform client reads the totals and the cafeterias', function (): void {
     config(['cafeteria_platform.mode' => 'platform', 'cafeteria_platform.url' => 'https://cafeteria.test', 'cafeteria_platform.token' => 'secret']);
     Http::fake([
