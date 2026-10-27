@@ -164,6 +164,25 @@ Printing stores the card artwork on the local disk, as in production.
 | Organization Design & Workforce Planning | Seeded | ORG-1 chain through the domain services (`DemoOrganizationDesignSeeder`): published mandate `MND-01` with power `PW-01` and functions `F-01`/`F-02`; published services `SRV-01`/`SRV-02`; published processes `PRC-01`/`PRC-02` with activities, tasks `T-01`…`T-04`, occupation/competency/qualification requirements and an approved standard on `T-01`; HR/SVC/ICT responsibilities; an **approved** design study proposing a Records Team; `P-HR` linked to its work with derived requirements, a published profile and a published job description (stamped on its occupant's assignment); `P-CLERK` linked with a **draft** profile. Drafted by the designer, published by the approver. **Not seeded:** classifications (OFFICIAL_DATASET_REQUIRED), methodologies and manpower plans (no policy parameters are invented, D-6/D-7) |
 | Court Cases | `SKIPPED_PLANNED_MODULE` | Placeholder only (see [court-cases.md](court-cases.md)) |
 
+## Intelligence
+
+Separate from `DemoDataSeeder`, and it works on whatever organizations and employees the database already has:
+
+    php artisan db:seed --class="Database\Seeders\Demo\DemoIntelligenceSeeder"
+
+It needs an active Super Admin, who stands in as owner, reviewer and acknowledger. What it writes:
+
+| Data | How |
+|---|---|
+| Telemetry | 30 days: hourly buckets, then every 5 minutes for the last 72 hours, only in buckets the collector has not written. Office-hour traffic per route group, a cafeteria lunch peak, a commute peak for transport scanners, slowly falling free disk space and rising connections and notification backlog (for Predictive), plus the episodes behind the incidents |
+| Deployments, error groups | 8 releases (`recorded_by = demo-seeder`) and 12 error fingerprints (`sample_context.demo_dataset`); two are followed within the hour by incidents, so Deployment Analysis correlates them |
+| Incidents | 11, raised and escalated by the real `IncidentManager` with its rule recommendations, then owned, mitigated, resolved, verified and closed as the incident page does. 5 stay active (open, investigating, mitigated) |
+| AI, reviews, alerts, knowledge | Root-cause runs from a `demo` provider (no model is called), people's reviews of the recommendations of incidents that are over, resolved alert history, 11 Knowledge Assistant questions answered by the real retriever (extractive) |
+| Public submissions | About 900 over 12 months on the existing organizations and employees (`DEMO-PF-` references, Amharic texts), with timestamps matching each status and a waiting-time complaint spike in the last nine days |
+| Forecasts | Back-tests of the real `Forecaster` on that complaint year with actuals and errors, then today's snapshot |
+
+At the end the real `AlertEngine` runs. Notifications are faked for the process. Re-running tops the telemetry up to now (component health only counts samples from the last 15 minutes, so re-run it, or run `intelligence:collect`, when the tiles show unknown); everything else is written once. Workforce, Performance and vacancy forecasts still reflect the real structure data.
+
 ## Validation
 
 `php artisan demo-data:validate` is read-only and checks: 5 demo organizations; per organization at least 5 units, positions, employees and accessible cafeterias, and an active policy today; one valid current assignment per employee (organization / unit / position consistent); no over-occupied position and at least one vacancy; unique employee numbers, organization codes and card numbers; cafeteria placement (provider, one main, parent in network); access and assignment validity; no overlapping binding policies; distinct subsidies; transaction snapshots (owner = employee's organization on the date, payee = the cafeteria's provider, policy governs that date and owner); the demo hierarchy version. It prints counts and exits 1 on any failure.

@@ -75,7 +75,7 @@ test('without telemetry every component is unknown and panels say so', function 
         ->and($payload['insights'])->toBe([]);
 
     $rows = panel($payload, 'component_states')['data']['rows'];
-    expect(collect($rows)->pluck('cells.state.key')->unique()->all())->toBe(['intelligence.health.unknown']);
+    expect(collect($rows)->pluck('state.key')->unique()->all())->toBe(['intelligence.health.unknown']);
 });
 
 test('system health reads the collected samples and raises components with active incidents', function (): void {
@@ -141,7 +141,7 @@ test('errors, application, database, queue, integrations, deployments and predic
 
     $errors = areaPayload($developer, IntelligenceArea::Errors);
     expect(collect(panel($errors, 'error_headline')['data']['items'])->keyBy('key')['fingerprints_active']['value'])->toBe(1)
-        ->and(panel($errors, 'top_fingerprints')['data']['rows'][0]['cells']['exception'])->toBe('BoomException')
+        ->and(panel($errors, 'top_fingerprints')['data']['rows'][0]['exception'])->toBe('BoomException')
         ->and(json_encode($errors))->not->toContain('password');
 
     $app = areaPayload($developer, IntelligenceArea::ApplicationHealth);
@@ -162,16 +162,16 @@ test('errors, application, database, queue, integrations, deployments and predic
         ->and(panel($queue, 'queue_pending_trend')['type'])->toBe('line');
 
     $integrations = areaPayload($developer, IntelligenceArea::IntegrationHealth);
-    $row = panel($integrations, 'integrations_table')['data']['rows'][0]['cells'];
+    $row = panel($integrations, 'integrations_table')['data']['rows'][0];
     expect($row['provider'])->toBe('sms')->and($row['calls'])->toBe(120)->and($row['failures'])->toBe(10)->and($row['last_success'])->not->toBeNull()
         ->and(panel($integrations, 'email_delivery')['reason'])->toBe('NEEDS_DATA');
 
     $deployments = areaPayload($developer, IntelligenceArea::DeploymentAnalysis);
-    expect(panel($deployments, 'deployments_table')['data']['rows'][0]['cells']['release'])->toBe('v1.9.0')
-        ->and(panel($deployments, 'deployments_table')['data']['rows'][0]['cells']['commit'])->toBe('abc1234def');
+    expect(panel($deployments, 'deployments_table')['data']['rows'][0]['release'])->toBe('v1.9.0')
+        ->and(panel($deployments, 'deployments_table')['data']['rows'][0]['commit'])->toBe('abc1234def');
 
     $predictive = areaPayload($developer, IntelligenceArea::Predictive);
-    $verdicts = collect(panel($predictive, 'trend_watch')['data']['rows'])->mapWithKeys(fn (array $r): array => [$r['key'] => $r['cells']['verdict']['key']]);
+    $verdicts = collect(panel($predictive, 'trend_watch')['data']['rows'])->mapWithKeys(fn (array $r): array => [$r['key'] => $r['verdict']['key']]);
     expect($verdicts['queue_notifications'])->toBe('intelligence.values.trend_verdict.deteriorating')
         ->and($verdicts['db_ping'])->toBe('intelligence.values.trend_verdict.stable')
         ->and($verdicts['db_connections'])->toBe('intelligence.values.trend_verdict.insufficient')
