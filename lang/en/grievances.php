@@ -13,6 +13,11 @@ return [
     'committeeMinMembers' => 'The committee cannot fall below the minimum number of members required by policy.',
     'committeeAlreadyHasChairperson' => 'The committee already has a Chairperson. End that term first.',
     'tribunalCaseUpdated' => 'Tribunal case updated.',
+    'courtMs' => [
+        'queued' => 'The referral is on its way to the tribunal court.',
+        'alreadyReferred' => 'This case has already been sent to the tribunal court.',
+        'disabled' => 'The connection to the tribunal court (court-ms) is switched off.',
+    ],
 
     'flash' => [
         'draft_saved' => 'Draft saved.',
@@ -196,6 +201,9 @@ return [
         'title' => 'Grievance case',
         'open' => 'Open',
         'generic' => 'There is an update on grievance case :case.',
+        'court_ms_returned' => 'The tribunal court returned grievance case :case. See the reason on the tribunal case.',
+        'court_ms_hearing' => 'The tribunal court scheduled a hearing for grievance case :case.',
+        'court_ms_decided' => 'The tribunal court issued a decision on grievance case :case.',
         'sms' => ':app: action is required on grievance case :case. Please sign in to view it.',
         'sms_letter' => ':app: an official letter on grievance case :case is available in My Portal.',
         'submitted' => 'Your grievance :case was submitted.',

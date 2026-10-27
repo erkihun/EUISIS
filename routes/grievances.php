@@ -195,4 +195,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/tribunal-cases', [AdministrativeTribunalController::class, 'index'])->name('tribunal-cases.index');
     Route::get('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'show'])->name('tribunal-cases.show');
     Route::patch('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'update'])->name('tribunal-cases.update');
+    // Referral to the tribunal's own case system (ADR 0013): a person confirms what is sent; the send is queued.
+    Route::post('/tribunal-cases/{administrativeTribunalCase}/referral', [AdministrativeTribunalController::class, 'refer'])
+        ->middleware('throttle:10,1')->name('tribunal-cases.referral');
 });

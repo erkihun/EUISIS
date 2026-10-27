@@ -88,6 +88,12 @@ them exists in code or schema.**
 - Grievance Management, only where an official referral exists
 - Administrative Tribunal integration, where applicable
 
+The tribunal itself runs its cases in the separate court-ms system. The Administrative
+Tribunal register (Grievance Management) refers a case there and follows its status
+([ADR 0013](architecture/adr/0013-court-ms-integration.md),
+[integration runbook](integration/court-ms.md)). That link does not touch this module: it
+adds no Court Cases table, route or permission.
+
 ## Tests
 
 `tests/Feature/CourtCases/CourtCasesPlaceholderTest.php` covers access
