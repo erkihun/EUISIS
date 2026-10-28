@@ -25,7 +25,8 @@ class CafeteriaPlatformClient
     {
         $setting = config('cafeteria_platform.employee_portal');
 
-        return $this->configured() && ($setting === null ? $this->enabled() : filter_var($setting, FILTER_VALIDATE_BOOL));
+        // Unset or blank (`CAFETERIA_PLATFORM_EMPLOYEE_PORTAL=` as .env.example ships it) follows the mode.
+        return $this->configured() && ($setting === null || $setting === '' ? $this->enabled() : filter_var($setting, FILTER_VALIDATE_BOOL));
     }
 
     public function configured(): bool

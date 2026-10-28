@@ -85,6 +85,11 @@ test('the employee portal can read the platform while EUISIS still serves the ca
 
     config(['cafeteria_platform.employee_portal' => null]);
     expect($client->servesEmployeePortal())->toBeFalse();
+    // Blank, as .env.example ships it, follows the mode too.
+    config(['cafeteria_platform.employee_portal' => '', 'cafeteria_platform.mode' => 'platform']);
+    expect($client->servesEmployeePortal())->toBeTrue();
+    config(['cafeteria_platform.mode' => 'local']);
+    expect($client->servesEmployeePortal())->toBeFalse();
     config(['cafeteria_platform.employee_portal' => true]);
     expect($client->servesEmployeePortal())->toBeTrue()->and($client->enabled())->toBeFalse();
     config(['cafeteria_platform.employee_portal' => false, 'cafeteria_platform.mode' => 'platform']);
