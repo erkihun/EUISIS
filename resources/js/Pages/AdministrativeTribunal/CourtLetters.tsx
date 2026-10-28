@@ -87,7 +87,7 @@ export default function CourtLetters({ letters, filters }: Props): JSX.Element {
                                         {letter.approved_at && <LocalizedDateDisplay value={letter.approved_at} className="block text-xs text-(--app-muted-foreground)" />}
                                     </Td>
                                     <Td>
-                                        <a href={route('tribunal-cases.letters.download', letter.id)} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{label('download')}</a>
+                                        <a href={route('tribunal-cases.letters.download', letter.id)} className={buttonClassName({ variant: 'outline', size: 'sm', className: 'whitespace-nowrap' })}>{label('download')}</a>
                                     </Td>
                                 </Tr>
                             ))}
