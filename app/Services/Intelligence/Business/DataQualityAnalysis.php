@@ -130,7 +130,6 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
         $positions = $this->link('positions.index');
         $organizations = $this->link('organizations.index');
         $units = $this->link('organization-units.index');
-        $submissions = $this->link('service-submissions.index');
 
         $assignments = fn (): Builder => $context->scope->apply(DB::table('employee_assignments as ea'), 'ea.organization_id');
         $establishments = function () use ($context, $today): Builder {
@@ -160,8 +159,6 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
             ['qr_without_public_phone', self::WARN, (int) $context->scope->apply(DB::table('organizations as o')->whereNull('o.deleted_at'), 'o.id')
                 ->whereExists(fn ($q) => $q->selectRaw('1')->from('organization_feedback_qr_codes as q')->whereColumn('q.organization_id', 'o.id')->where('q.status', 'active'))
                 ->where(fn ($q) => $q->whereNull('o.public_contact_phone')->orWhere('o.public_contact_phone', ''))->count(), $this->link('service-feedback.organization-qr.index')],
-            ['submissions_without_category', self::WARN, (int) $context->scope->apply(DB::table('employee_service_feedback as f'), 'f.organization_id')
-                ->whereIn('f.type', ['suggestion', 'complaint'])->where('f.status', '!=', 'hidden')->whereNull('f.category_id')->count(), $submissions],
             ['assignments_effective_to_before_from', self::FAIL, (int) $assignments()->whereNotNull('ea.effective_to')->whereColumn('ea.effective_to', '<', 'ea.effective_from')->count(), $employees],
             ['positions_effective_to_before_from', self::FAIL, (int) $this->workforce->activePositions($context)->whereNotNull('p.effective_to')->whereColumn('p.effective_to', '<', 'p.effective_from')->count(), $positions],
             ['establishments_effective_to_before_from', self::FAIL, (int) $context->scope->apply(DB::table('position_establishments as pe')->whereNull('pe.deleted_at'), 'pe.organization_id')

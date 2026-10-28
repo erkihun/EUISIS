@@ -136,7 +136,6 @@ use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
 use App\Http\Controllers\Web\ProviderUserController;
-use App\Http\Controllers\Web\PublicFeedbackCategoryController;
 use App\Http\Controllers\Web\PublicFeedbackEmployeePhotoController;
 use App\Http\Controllers\Web\PublicFeedbackOrganizationLogoController;
 use App\Http\Controllers\Web\PublicFeedbackQuestionnaireController;
@@ -429,9 +428,9 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
             Route::get('/', 'show')->name('show');
             Route::get('/correct', 'edit')->name('correct');
             Route::post('/correct', 'correct')->middleware('throttle:10,1')->name('correct.store');
+            Route::post('/messages', 'message')->middleware('throttle:30,1')->name('messages.store');
             // An appeal to the appellate court (ADR 0013 #14): asked here, released by the court's registry.
             Route::post('/appeal', 'appeal')->middleware('throttle:10,1')->name('appeal.store');
-            Route::post('/messages', 'message')->middleware('throttle:30,1')->name('messages.store');
             Route::post('/files', 'upload')->middleware('throttle:20,1')->name('files.store');
             Route::post('/files/{file}/delete', 'deleteFile')->middleware('throttle:20,1')->name('files.destroy');
             Route::post('/evidences/{evidence}/delete', 'deleteEvidence')->middleware('throttle:20,1')->name('evidences.destroy');
@@ -1581,13 +1580,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
             ->whereIn('category', array_column(SituationCategory::cases(), 'value'))->name('category');
     });
 
-    // Public feedback categories: before the {serviceFeedback} wildcard below.
-    Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');
-    Route::get('/feedback-admin/categories/create', [PublicFeedbackCategoryController::class, 'create'])->name('service-feedback.categories.create');
-    Route::get('/feedback-admin/categories/{category}/edit', [PublicFeedbackCategoryController::class, 'edit'])->whereUuid('category')->name('service-feedback.categories.edit');
-    Route::post('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'store'])->name('service-feedback.categories.store');
-    Route::put('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'update'])->whereUuid('category')->name('service-feedback.categories.update');
-    Route::delete('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'destroy'])->whereUuid('category')->name('service-feedback.categories.destroy');
     Route::get('/feedback-admin/organization-qr', [OrganizationFeedbackQrController::class, 'index'])->name('service-feedback.organization-qr.index');
     Route::get('/feedback-admin/submission-reports', [PublicFeedbackReportController::class, 'index'])->name('service-feedback.submission-reports.index');
     Route::post('/feedback-admin/submission-reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-feedback.submission-reports.export');

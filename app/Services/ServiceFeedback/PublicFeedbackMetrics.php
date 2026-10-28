@@ -13,7 +13,6 @@ use App\Models\Employee;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\PublicFeedbackAssignment;
-use App\Models\PublicFeedbackCategory;
 use App\Models\User;
 use App\Services\Calendar\LocalizedDateService;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -37,7 +36,7 @@ use Illuminate\Support\Facades\Lang;
  */
 final class PublicFeedbackMetrics
 {
-    public const FILTER_KEYS = ['organization_id', 'submission_type', 'tip_type', 'target_type', 'category_id', 'status', 'date_from', 'date_to', 'handler_type', 'handler_id'];
+    public const FILTER_KEYS = ['organization_id', 'submission_type', 'tip_type', 'target_type', 'status', 'date_from', 'date_to', 'handler_type', 'handler_id'];
 
     /** Statuses that mean "still being worked". */
     private const OPEN = ['pending', 'unrouted', 'assigned', 'under_review', 'reviewed'];
@@ -118,9 +117,6 @@ final class PublicFeedbackMetrics
             $filters['target_type'] === PublicFeedbackTargetType::Employee->value
                 ? $query->where(fn (Builder $q) => $q->where('target_type', 'employee')->orWhereNull('target_type'))
                 : $query->where('target_type', $filters['target_type']);
-        }
-        if (isset($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
         }
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -292,24 +288,6 @@ final class PublicFeedbackMetrics
     }
 
     /**
-     * @param  Builder<EmployeeServiceFeedback>  $query
-     * @return Collection<int, array{id: string, name_en: ?string, name_am: ?string, total: int}>
-     */
-    public function byCategory(Builder $query): Collection
-    {
-        $rows = (clone $query)->whereNotNull('category_id')
-            ->selectRaw('category_id, COUNT(*) AS total')->groupBy('category_id')->orderByDesc('total')->get();
-        $names = PublicFeedbackCategory::query()->whereIn('id', $rows->pluck('category_id')->all())->get(['id', 'name_en', 'name_am'])->keyBy('id');
-
-        return $rows->map(fn ($row): array => [
-            'id' => $row->category_id,
-            'name_en' => $names[$row->category_id]->name_en ?? null,
-            'name_am' => $names[$row->category_id]->name_am ?? null,
-            'total' => (int) $row->total,
-        ])->values();
-    }
-
-    /**
      * The relevant work units visitors named on the organization form, under
      * the name recorded at submission, plus one "General / Not sure" bucket
      * (id null). Employee-QR rows and rows older than the field are left out.
@@ -376,9 +354,9 @@ final class PublicFeedbackMetrics
      */
     public function exportColumns(User $user): array
     {
-        $columns = ['submitted_at', 'reference', 'type', 'tip_type', 'intake_channel', 'target_type', 'target_name', 'organization', 'organization_unit', 'category', 'status', 'handler', 'subject', 'message', 'involved_parties'];
+        $columns = ['submitted_at', 'reference', 'type', 'tip_type', 'intake_channel', 'target_type', 'target_name', 'organization', 'organization_unit', 'status', 'handler', 'subject', 'message', 'involved_parties'];
         if ($this->visibility->canSeeIdentity($user)) {
-            array_splice($columns, 12, 0, ['client_name', 'client_contact', 'client_email', 'submitter_organization', 'submitter_address']);
+            array_splice($columns, 11, 0, ['client_name', 'client_contact', 'client_email', 'submitter_organization', 'submitter_address']);
         }
 
         return $columns;
@@ -402,7 +380,7 @@ final class PublicFeedbackMetrics
         $rows = [];
 
         (clone $query)
-            ->with(['employee:id,full_name', 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'organizationTarget:id,name_en,name_am', 'category:id,name_en,name_am', 'currentAssignment'])
+            ->with(['employee:id,full_name', 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'organizationTarget:id,name_en,name_am', 'currentAssignment'])
             ->orderBy('submitted_at')
             ->chunk(500, function ($chunk) use (&$rows, $identity, $locale, $dates, $value, $name): void {
                 foreach ($chunk as $item) {
@@ -423,7 +401,6 @@ final class PublicFeedbackMetrics
                         // The relevant work unit as recorded at submission; "General / Not sure" is spelled out, never a fake unit.
                         'organization_unit' => $item->relevantUnitName($locale)
                             ?? ($item->isGeneralUnitSelection() ? (string) __('service-feedback.export_values.unit_selection.GENERAL', [], $locale) : $name($item->organizationUnit)),
-                        'category' => $name($item->category),
                         'status' => $value('statuses', $item->status->value),
                         'handler' => $item->currentAssignment?->handlerName($locale),
                         'subject' => $item->subject,
@@ -453,9 +430,6 @@ final class PublicFeedbackMetrics
             'organizations' => Organization::query()
                 ->when($organizationIds !== null, fn ($q) => $q->whereIn('id', $organizationIds))
                 ->orderBy('name_en')->get(['id', 'name_en', 'name_am'])->all(),
-            'categories' => PublicFeedbackCategory::query()
-                ->when($organizationIds !== null, fn ($q) => $q->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $organizationIds)))
-                ->orderBy('sort_order')->orderBy('name_en')->get(['id', 'name_en', 'name_am'])->all(),
             'statuses' => ServiceFeedbackStatus::values(),
             // Only what the user's grants let them read: no option that can only ever return nothing.
             'types' => $this->visibility->visibleTypes($user),

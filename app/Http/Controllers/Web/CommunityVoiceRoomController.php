@@ -10,7 +10,6 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ExportSituationRoomReport;
 use App\Models\Employee;
 use App\Models\Organization;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackReportExport;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -264,9 +263,6 @@ class CommunityVoiceRoomController extends Controller
             'types' => M::TYPES,
             'targets' => M::TARGETS,
             'statuses' => array_keys(M::STATUS_BUCKETS),
-            'categories' => PublicFeedbackCategory::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name_en')
-                ->get(['id', 'name_en', 'name_am'])
-                ->map(fn ($c): array => ['id' => (string) $c->id, 'name_en' => $c->name_en, 'name_am' => $c->name_am])->all(),
         ];
     }
 

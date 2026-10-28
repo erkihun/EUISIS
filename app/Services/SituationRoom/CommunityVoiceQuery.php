@@ -6,7 +6,6 @@ namespace App\Services\SituationRoom;
 
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
-use App\Models\PublicFeedbackCategory;
 use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Support\Database\SqlDateBucket;
 use Illuminate\Database\Eloquent\Builder;
@@ -49,11 +48,6 @@ final class CommunityVoiceQuery
             $query->where(fn (Builder $q) => $q->where(self::T.'.target_type', 'employee')->orWhereNull(self::T.'.target_type'));
         } elseif ($filters->target === 'organization') {
             $query->where(self::T.'.target_type', 'organization');
-        }
-        if ($filters->categoryId === 'none') {
-            $query->whereNull(self::T.'.category_id');
-        } elseif ($filters->categoryId !== null) {
-            $query->where(self::T.'.category_id', $filters->categoryId);
         }
         if ($filters->status !== null) {
             $query->whereIn(self::T.'.status', SituationRoomMetrics::STATUS_BUCKETS[$filters->status]);
@@ -174,29 +168,6 @@ final class CommunityVoiceQuery
         usort($rows, fn (array $a, array $b): int => [$b['total'], $a['name_en']] <=> [$a['total'], $b['name_en']]);
 
         return ['rows' => $rows, 'own' => $ownCounts];
-    }
-
-    /**
-     * Counts per approved category, uncategorized shown as its own row.
-     *
-     * @return list<array<string, mixed>>
-     */
-    public function byCategory(SituationRoomScope $scope, SituationRoomFilters $filters): array
-    {
-        $rows = $this->base($scope, $filters, $filters->start, $filters->end)->toBase()
-            ->selectRaw(self::T.'.category_id AS category_id')
-            ->selectRaw($this->countColumns())
-            ->groupBy(self::T.'.category_id')
-            ->get();
-
-        $names = PublicFeedbackCategory::query()->whereIn('id', $rows->pluck('category_id')->filter()->all())->get(['id', 'name_en', 'name_am'])->keyBy(fn ($c): string => (string) $c->id);
-
-        return $rows->map(fn ($row): array => [
-            'id' => $row->category_id !== null ? (string) $row->category_id : null,
-            'name_en' => $row->category_id !== null ? ($names[(string) $row->category_id]->name_en ?? null) : null,
-            'name_am' => $row->category_id !== null ? ($names[(string) $row->category_id]->name_am ?? null) : null,
-            'uncategorized' => $row->category_id === null,
-        ] + $this->countsFrom($row))->sortByDesc('total')->values()->all();
     }
 
     /**

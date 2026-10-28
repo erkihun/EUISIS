@@ -7,7 +7,6 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\OrganizationUnit;
 use App\Models\Permission;
 use App\Models\PublicFeedbackAssignment;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackReportExport;
 use App\Models\PublicFeedbackStatusHistory;
 use App\Models\User;
@@ -134,7 +133,7 @@ it('keeps Complaints from a user who holds the general grant but not the Complai
     $this->actingAs($general)->get(apfDetailUrl($this->rows['complaint']))->assertForbidden();
 });
 
-it('returns nothing for forged organization, unit, category and handler filters', function (array $query): void {
+it('returns nothing for forged organization, unit and handler filters', function (array $query): void {
     $props = apfProps(apfViewer('subcity_a'), route('service-submissions.index', $query));
 
     expect($props['entries']['total'])->toBe(0)->and($props['overview']['total'])->toBe(0);
@@ -142,34 +141,8 @@ it('returns nothing for forged organization, unit, category and handler filters'
     'a sibling organization' => [fn () => ['organization_id' => test()->s->org['subcity_b']->id]],
     'the parent organization' => [fn () => ['organization_id' => test()->s->org['bureau']->id]],
     'an unknown unit' => [fn () => ['organization_unit_id' => (string) Str::uuid()]],
-    'an unknown category' => [fn () => ['category_id' => (string) Str::uuid()]],
     'an unknown handler' => [fn () => ['handler_type' => 'user', 'handler_id' => '999999']],
 ]);
-
-it('keeps the issue category readable on old submissions after it is renamed or retired, separately from the unit', function (): void {
-    $category = PublicFeedbackCategory::query()->create(['code' => 'WAIT', 'name_en' => 'Waiting time', 'name_am' => 'የመጠበቂያ ጊዜ', 'submission_types' => ['complaint'], 'target_types' => ['organization'], 'is_active' => true]);
-    $permits = OrganizationUnit::query()->create(['organization_id' => $this->s->org['woreda_a1']->id, 'unit_type' => 'office', 'code' => 'A1-PERMITS', 'name_en' => 'Permits office', 'status' => 'active']);
-    $this->rows['complaint']->forceFill(['category_id' => $category->id, 'organization_unit_id' => $permits->id, 'organization_unit_name_snapshot' => 'Permits office', 'unit_selection_mode' => 'SELECTED'])->save();
-    $viewer = apfViewer('subcity_a');
-
-    $detail = apfProps($viewer, apfDetailUrl($this->rows['complaint']));
-    expect($detail['entry']['category'])->toBe('Waiting time')
-        ->and($detail['entry']['organization_unit'])->toBe('Permits office');
-
-    // Renamed and retired: the submission still shows a category, and the retirement never deletes the row.
-    $category->update(['name_en' => 'Waiting time (long)', 'is_active' => false]);
-    $this->actingAs(apfViewer('bureau', ['service_feedback.manage_categories']))->delete(route('service-feedback.categories.destroy', $category->id))->assertRedirect();
-    expect(PublicFeedbackCategory::query()->whereKey($category->id)->exists())->toBeTrue();
-
-    $detail = apfProps($viewer, apfDetailUrl($this->rows['complaint']));
-    expect($detail['entry']['category'])->toBe('Waiting time (long)')
-        ->and($detail['entry']['organization_unit'])->toBe('Permits office');
-
-    $rows = collect(apfProps($viewer, route('service-submissions.index', ['category_id' => $category->id]))['entries']['data']);
-    expect($rows->pluck('id')->all())->toBe([$this->rows['complaint']->id])
-        ->and($rows->first()['category'])->toBe('Waiting time (long)')
-        ->and($rows->first()['organization_unit'])->toBe('Permits office');
-});
 
 it('filters by the relevant work unit of the chosen institution only, and shows the unit as recorded or General / Not sure', function (): void {
     $permits = OrganizationUnit::query()->create(['organization_id' => $this->s->org['woreda_a1']->id, 'unit_type' => 'office', 'code' => 'A1-PERMITS', 'name_en' => 'Permits office', 'status' => 'active']);
@@ -222,14 +195,11 @@ it('lists every type with its target, organization and status, and none of the s
         ->not->toContain('Private narrative');
 });
 
-it('filters by type, target, category, status and identity, and reconciles the cards with the list', function (): void {
-    $category = PublicFeedbackCategory::query()->create(['code' => 'WAIT', 'name_en' => 'Waiting time', 'name_am' => 'የጥበቃ ጊዜ', 'submission_types' => ['complaint'], 'target_types' => ['organization'], 'is_active' => true]);
-    $this->rows['complaint']->forceFill(['category_id' => $category->id])->save();
+it('filters by type, target, status and identity, and reconciles the cards with the list', function (): void {
     $viewer = apfViewer('subcity_a');
 
     expect(apfProps($viewer, route('service-submissions.index', ['submission_type' => 'complaint']))['entries']['total'])->toBe(1)
         ->and(apfProps($viewer, route('service-submissions.index', ['target_type' => 'organization']))['entries']['total'])->toBe(3)
-        ->and(apfProps($viewer, route('service-submissions.index', ['category_id' => $category->id]))['entries']['data'][0]['category'])->toBe('Waiting time')
         ->and(apfProps($viewer, route('service-submissions.index', ['status' => 'pending']))['entries']['total'])->toBe(1)
         ->and(apfProps($viewer, route('service-submissions.index', ['identity_mode' => 'anonymous']))['entries']['data'][0]['type'])->toBe('suggestion');
 

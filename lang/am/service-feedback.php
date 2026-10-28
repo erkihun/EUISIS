@@ -11,13 +11,8 @@ return [
     'form_replayed' => 'ይህ ቅጽ አስቀድሞ ገብቷል። ሌላ ምላሽ ለመላክ ገጹን እንደገና ይክፈቱ።',
     'submission_failed' => 'ያስገቡት መረጃ ሊቀመጥ አልቻለም፤ ምንም አልተቀመጠም። እባክዎ ከጥቂት ጊዜ በኋላ እንደገና ይሞክሩ።',
     'too_many_submissions' => 'ከዚህ መሣሪያ ብዙ መልዕክቶች ተልከዋል። እባክዎ ጥቂት ደቂቃዎች ጠብቀው እንደገና ይሞክሩ፤ የጻፉት በገጹ ላይ አለ።',
-    'category_not_applicable' => 'ይህ ምድብ ለዚህ ማቅረብ አይተገበርም።',
 
     // የምድብ አስተዳደር
-    'category_saved' => 'ምድቡ ተቀምጧል።',
-    'category_retired' => 'ጉዳዮች ይህን ምድብ ስለሚጠቅሱ ከመሰረዝ ይልቅ ተሰናብቷል።',
-    'category_deleted' => 'ምድቡ ተሰርዟል።',
-    'category_code_taken' => 'በዚህ ወሰን ውስጥ ይህ ኮድ ያለው ምድብ አስቀድሞ አለ።',
 
     // የተቋም የአስተያየት QR አስተዳደር
     'qrGenerated' => 'የተቋሙ የአስተያየት QR ነቅቷል።',
@@ -37,7 +32,6 @@ return [
     'rule_saved' => 'የመስመር ደንቡ ተቀምጧል።',
     'rule_retired' => 'ጉዳዮች በዚህ ደንብ ስለተመሩ ከመሰረዝ ይልቅ ተሰናብቷል።',
     'rule_deleted' => 'የመስመር ደንቡ ተሰርዟል።',
-    'category_out_of_scope' => 'ምድቡ ከተማ አቀፍ ወይም የደንቡ ተቋም መሆን አለበት።',
     'unit_out_of_scope' => 'የሥራ ክፍሉ የደንቡ ተቋም መሆን አለበት።',
     'settings_saved' => 'የሕዝብ አስተያየት ፖሊሲው ተቀምጧል።',
     'questionnaire_draft_created' => 'የመጠይቁ አዲስ ረቂቅ ተፈጥሯል።',
@@ -72,7 +66,6 @@ return [
         'target_name' => 'ዒላማ',
         'organization' => 'ተቋም',
         'organization_unit' => 'የሚመለከተው የሥራ ክፍል',
-        'category' => 'የጉዳዩ ዓይነት',
         'status' => 'ሁኔታ',
         'handler' => 'የሚያስተናግደው አካል',
         'client_name' => 'የአቅራቢ ስም',
@@ -91,7 +84,7 @@ return [
     'feedback_export_columns' => [
         'submitted_at' => 'የቀረበበት ጊዜ', 'target_type' => 'የሚመለከተው ዓይነት', 'target' => 'የሚመለከተው',
         'employee' => 'ሠራተኛ', 'employee_number' => 'የሠራተኛ ቁጥር', 'organization' => 'ተቋም',
-        'unit' => 'የሥራ ክፍል', 'service' => 'አገልግሎት', 'category' => 'የጉዳዩ ዓይነት', 'rating' => 'ደረጃ',
+        'unit' => 'የሥራ ክፍል', 'service' => 'አገልግሎት', 'rating' => 'ደረጃ',
         'status' => 'ሁኔታ', 'comment' => 'አስተያየት', 'client_name' => 'የተገልጋዩ ስም', 'client_contact' => 'የተገልጋዩ መገናኛ',
     ],
 

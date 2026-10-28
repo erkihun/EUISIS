@@ -45,7 +45,6 @@ class PublicFeedbackReportController extends Controller
             'tipOffsByOrganization' => $this->metrics->tipOffsByOrganization($query)->all(),
             'employeeTargetedTipOffs' => $this->metrics->employeeTargetedTipOffs($query, $user, $filters)->all(),
             'byOrganization' => $this->metrics->byOrganization($query)->all(),
-            'byCategory' => $this->metrics->byCategory($query)->all(),
             'byHandler' => $this->metrics->byHandler($query)->all(),
             'byUnit' => $this->metrics->byUnit($query)->all(),
             'filterOptions' => $this->metrics->filterOptions($user),

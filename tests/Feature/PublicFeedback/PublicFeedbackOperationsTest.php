@@ -15,7 +15,6 @@ use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\Support\PublicFeedbackScenario;
 
@@ -45,26 +44,14 @@ it('reports findings, repairs only deterministic ones and leaves ambiguous rows 
     $ghost = User::factory()->create();
     PublicFeedbackRoutingRule::query()->create(['organization_id' => $this->a->organization->id, 'handler_type' => 'user', 'handler_id' => (string) $ghost->id, 'priority' => 1, 'is_active' => true, 'created_by' => $this->superAdmin->id]);
     $ghost->forceDelete();
-    // A category reference that no longer resolves.
-    $orphan = EmployeeServiceFeedback::query()->create([
-        'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'type' => ServiceFeedbackType::Suggestion,
-        'comment' => 'Orphan category', 'status' => ServiceFeedbackStatus::Closed, 'submitted_at' => now(),
-    ]);
-    // Legacy data only: a live MySQL/PostgreSQL database enforces the foreign key, so the dangling
-    // reference is planted with the constraint switched off for the one statement.
-    Schema::disableForeignKeyConstraints();
-    DB::table('employee_service_feedback')->where('id', $orphan->id)->update(['category_id' => '00000000-0000-0000-0000-00000000dead']);
-    Schema::enableForeignKeyConstraints();
 
     $findings = collect(app(PublicFeedbackDataQuality::class)->run())->keyBy('key');
 
     expect($findings['active_organizations_without_qr']['count'])->toBeGreaterThanOrEqual(1)
         ->and($findings['unrouted_legacy_submissions']['count'])->toBe(1)
         ->and($findings['missing_submitted_at']['count'])->toBe(1)
-        ->and($findings['missing_initial_history']['count'])->toBe(2)
+        ->and($findings['missing_initial_history']['count'])->toBe(1)
         ->and($findings['rules_with_missing_handler']['count'])->toBe(1)
-        ->and($findings['broken_category_reference']['count'])->toBe(1)
-        ->and($findings['broken_category_reference']['severity'])->toBe('NEEDS_DATA_REVIEW')
         ->and($findings['duplicate_active_qr']['count'])->toBe(0)
         ->and($findings['invalid_source_target']['count'])->toBe(0);
 
@@ -81,7 +68,6 @@ it('reports findings, repairs only deterministic ones and leaves ambiguous rows 
         ->and($legacy->fresh()->target_type->value)->toBe('employee')
         ->and(PublicFeedbackStatusHistory::query()->where('submission_id', $legacy->id)->pluck('to_status')->all())->toBe(['pending', 'unrouted'])
         // Ambiguous data is untouched.
-        ->and($after['broken_category_reference']['count'])->toBe(1)
         ->and($after['rules_with_missing_handler']['count'])->toBe(1);
 });
 

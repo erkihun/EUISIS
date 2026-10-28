@@ -16,7 +16,6 @@ use App\Models\OrganizationUnit;
 use App\Models\Permission;
 use App\Models\Position;
 use App\Models\PositionService;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackRoutingRule;
 use App\Models\Role;
 use App\Models\User;
@@ -70,10 +69,9 @@ it('keeps the employee feedback token through position, unit, institution, statu
     $transfer = EmployeeAssignment::query()->create(['employee_id' => $employee->id, 'organization_id' => $this->b->organization->id, 'organization_unit_id' => $this->b->unit->id, 'position_id' => $this->b->position->id, 'is_current' => true, 'assignment_status' => AssignmentStatus::Active->value, 'effective_from' => now()->toDateString()]);
     $employee->forceFill(['current_assignment_id' => $transfer->id, 'first_name' => 'Renamed'])->save();
 
-    // Suspension and reinstatement, new category, new service, new routing rule, workflow activity.
+    // Suspension and reinstatement, new service, new routing rule, workflow activity.
     $employee->forceFill(['status' => EmployeeStatus::Suspended->value])->save();
     $employee->forceFill(['status' => EmployeeStatus::Active->value])->save();
-    PublicFeedbackCategory::query()->create(['code' => 'NEW', 'name_en' => 'New', 'submission_types' => ['complaint'], 'target_types' => ['employee'], 'organization_id' => null, 'is_active' => true, 'sort_order' => 1]);
     PositionService::query()->create(['organization_id' => $this->b->organization->id, 'position_id' => $this->b->position->id, 'service_no' => 'STB-002', 'name_en' => 'New service', 'is_active' => true, 'is_performance_evaluation_enabled' => true, 'sort_order' => 1]);
     PublicFeedbackRoutingRule::query()->create(['organization_id' => $this->b->organization->id, 'handler_type' => 'user', 'handler_id' => (string) $this->superAdmin->id, 'priority' => 5, 'is_active' => true, 'created_by' => $this->superAdmin->id]);
     app(PublicFeedbackWorkflow::class)->transition($complaint, ServiceFeedbackStatus::UnderReview, $this->superAdmin);
@@ -92,7 +90,7 @@ it('keeps the employee feedback token through position, unit, institution, statu
     expect($tokens->ensureActiveToken($employee->fresh())->token)->not->toBe($token);
 });
 
-it('keeps the institution feedback token through rename, branding, structure version, administrator, service, category and routing changes', function (): void {
+it('keeps the institution feedback token through rename, branding, structure version, administrator, service and routing changes', function (): void {
     $organization = $this->a->organization;
     $codes = app(OrganizationFeedbackQrService::class);
     $token = $codes->ensureActive($organization, $this->superAdmin)->public_token;
@@ -102,7 +100,6 @@ it('keeps the institution feedback token through rename, branding, structure ver
     $newAdmin = User::factory()->create();
     UserOrganizationScope::query()->create(['user_id' => $newAdmin->id, 'organization_id' => $organization->id, 'scope_type' => OrganizationScopeType::Self]);
     PositionService::query()->create(['organization_id' => $organization->id, 'position_id' => $this->a->position->id, 'service_no' => 'STA-002', 'name_en' => 'Another service', 'is_active' => true, 'is_performance_evaluation_enabled' => true, 'sort_order' => 1]);
-    PublicFeedbackCategory::query()->create(['code' => 'ORG-CAT', 'name_en' => 'Counter', 'submission_types' => ['complaint'], 'target_types' => ['organization'], 'organization_id' => $organization->id, 'is_active' => true, 'sort_order' => 1]);
     PublicFeedbackRoutingRule::query()->create(['organization_id' => $organization->id, 'handler_type' => 'user', 'handler_id' => (string) $this->superAdmin->id, 'priority' => 5, 'is_active' => true, 'created_by' => $this->superAdmin->id]);
 
     $organization->refresh();

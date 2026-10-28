@@ -11,7 +11,6 @@ use App\Models\AuditLog;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\OrganizationUnit;
 use App\Models\Permission;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackReportExport;
 use App\Models\Role;
 use App\Models\User;
@@ -59,10 +58,6 @@ beforeEach(function (): void {
     $this->orgOnly->assignRole('Organization-only Reviewer');
     UserOrganizationScope::query()->create(['user_id' => $this->orgOnly->id, 'organization_id' => $this->a->organization->id, 'scope_type' => OrganizationScopeType::Self]);
 
-    $this->category = PublicFeedbackCategory::query()->create([
-        'code' => 'WAIT', 'name_en' => 'Waiting time', 'name_am' => 'የመጠበቂያ ጊዜ', 'submission_types' => ['feedback', 'suggestion', 'complaint'],
-        'target_types' => ['employee', 'organization'], 'organization_id' => null, 'is_active' => true, 'sort_order' => 1,
-    ]);
 });
 
 function rptRow(PublicFeedbackScenario $s, ServiceFeedbackType $type, ServiceFeedbackStatus $status, array $overrides = []): EmployeeServiceFeedback
@@ -142,11 +137,11 @@ it('breaks organization submissions down by the relevant work unit named, with G
     expect($am)->toContain('የፈቃድ ጽሕፈት ቤት')->toContain('አጠቃላይ / አላውቅም');
 });
 
-it('breaks submissions down by organization, category, status and handler with filters', function (): void {
-    $handled = rptRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Unrouted, ['category_id' => $this->category->id]);
+it('breaks submissions down by organization, status and handler with filters', function (): void {
+    $handled = rptRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Unrouted);
     // The handler must work in the submission's institution: orgOnly is scoped to A.
     app(PublicFeedbackAssignmentService::class)->assign($handled, PublicFeedbackHandlerType::User, (string) $this->orgOnly->id, $this->superAdmin);
-    rptRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed, ['category_id' => $this->category->id, 'submitted_at' => now()->subDays(40)]);
+    rptRow($this->a, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed, ['submitted_at' => now()->subDays(40)]);
     rptOrganizationRow($this->a, ServiceFeedbackType::Suggestion, ServiceFeedbackStatus::NotAdopted);
     rptRow($this->b, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending);
 
@@ -157,7 +152,6 @@ it('breaks submissions down by organization, category, status and handler with f
             ->component('ServiceFeedback/SubmissionReports')
             ->where('summary.total', 4)
             ->where('byOrganization', fn ($rows) => collect($rows->toArray())->pluck('total', 'name_en')->all() === [$this->a->organization->name_en => 3, $this->b->organization->name_en => 1])
-            ->where('byCategory', fn ($rows) => collect($rows->toArray())->pluck('total', 'name_en')->all() === ['Waiting time' => 2])
             ->where('byHandler', fn ($rows) => collect($rows->toArray())->pluck('total', 'name_en')->all() === [$this->orgOnly->name => 1])
             ->where('can.export', true));
 
@@ -256,7 +250,7 @@ it('keeps Public Feedback Management as one sidebar group with every management 
     expect($group)->toContain("labelKey: 'nav.groupPublicFeedback'");
     foreach ([
         'service-feedback.admin.dashboard', 'service-feedback.admin.index', 'service-submissions.suggestions', 'service-submissions.complaints',
-        'service-feedback.categories.index', 'service-feedback.routing-rules.index', 'service-feedback.organization-qr.index',
+        'service-feedback.routing-rules.index', 'service-feedback.organization-qr.index',
         'service-feedback.admin.reports', 'service-feedback.submission-reports.index', 'service-feedback.settings.index',
     ] as $routeName) {
         expect($group)->toContain("routeName: '{$routeName}'");

@@ -43,21 +43,19 @@ final class CommunityVoiceRoomService
         return $this->remember($scope, $filters, 'comparison', SituationRoomMetrics::CACHE_SECONDS, function () use ($scope, $filters): array {
             $kpis = $this->headline($scope, $filters)['kpis'];
             $institutions = $this->voice->byInstitution($scope, $filters);
-            $categories = $this->voice->byCategory($scope, $filters);
 
             return [
                 'institutions' => $institutions,
                 'attention' => $this->attention->items($scope, $filters, $kpis),
-                'summary' => $this->summary->sentences($kpis, $categories, $institutions),
+                'summary' => $this->summary->sentences($kpis, $institutions),
             ];
         });
     }
 
-    /** Categories, services, relevant work units, workflow state, target split and ratings. */
+    /** Services, relevant work units, workflow state, target split and ratings. */
     public function breakdown(SituationRoomScope $scope, SituationRoomFilters $filters): array
     {
         return $this->remember($scope, $filters, 'breakdown', SituationRoomMetrics::CACHE_SECONDS, fn (): array => [
-            'categories' => $this->voice->byCategory($scope, $filters),
             'services' => $this->voice->byService($scope, $filters),
             'units' => $this->voice->byUnit($scope, $filters),
             'resolution' => $this->voice->resolution($scope, $filters),
@@ -88,13 +86,11 @@ final class CommunityVoiceRoomService
     public function wall(SituationRoomScope $scope, SituationRoomFilters $filters): array
     {
         return $this->remember($scope, $filters, 'wall', SituationRoomMetrics::WALL_CACHE_SECONDS, function () use ($scope, $filters): array {
-            $categories = $this->voice->byCategory($scope, $filters);
 
             return [
                 'kpis' => $this->voice->kpis($scope, $filters),
                 'trend' => $this->voice->trend($scope, $filters),
                 'institutions' => $this->voice->byInstitution($scope, $filters),
-                'categories' => array_slice($categories, 0, SituationRoomMetrics::TOP_N),
                 'resolution' => $this->voice->resolution($scope, $filters)['statuses'],
             ];
         });

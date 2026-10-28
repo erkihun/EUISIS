@@ -11,13 +11,8 @@ return [
     'form_replayed' => 'This form was already submitted. Open the page again to send another response.',
     'submission_failed' => 'Your submission could not be saved and nothing was stored. Please try again in a moment.',
     'too_many_submissions' => 'Too many messages were sent from this device. Please wait a few minutes and try again; what you typed is still on the page.',
-    'category_not_applicable' => 'This category does not apply to this submission.',
 
     // Category management
-    'category_saved' => 'The category was saved.',
-    'category_retired' => 'Submissions refer to this category, so it was retired instead of deleted.',
-    'category_deleted' => 'The category was deleted.',
-    'category_code_taken' => 'A category with this code already exists in this scope.',
 
     // Organization feedback QR management
     'qrGenerated' => 'The organization feedback QR is enabled.',
@@ -37,7 +32,6 @@ return [
     'rule_saved' => 'The routing rule was saved.',
     'rule_retired' => 'Submissions were routed by this rule, so it was retired instead of deleted.',
     'rule_deleted' => 'The routing rule was deleted.',
-    'category_out_of_scope' => 'The category must be city-wide or belong to the rule\'s institution.',
     'unit_out_of_scope' => 'The work unit must belong to the rule\'s institution.',
     'settings_saved' => 'The public feedback policy was saved.',
     'questionnaire_draft_created' => 'A new draft of the questionnaire was created.',
@@ -72,7 +66,6 @@ return [
         'target_name' => 'Target',
         'organization' => 'Organization',
         'organization_unit' => 'Relevant work unit',
-        'category' => 'Issue category',
         'status' => 'Status',
         'handler' => 'Handler',
         'client_name' => 'Submitter Name',
@@ -91,7 +84,7 @@ return [
     'feedback_export_columns' => [
         'submitted_at' => 'Submitted At', 'target_type' => 'Target Type', 'target' => 'Target',
         'employee' => 'Employee', 'employee_number' => 'Employee No.', 'organization' => 'Organization',
-        'unit' => 'Unit', 'service' => 'Service', 'category' => 'Issue category', 'rating' => 'Rating',
+        'unit' => 'Unit', 'service' => 'Service', 'rating' => 'Rating',
         'status' => 'Status', 'comment' => 'Comment', 'client_name' => 'Client Name', 'client_contact' => 'Client Contact',
     ],
 

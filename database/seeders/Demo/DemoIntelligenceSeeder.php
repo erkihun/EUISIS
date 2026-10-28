@@ -162,12 +162,6 @@ class DemoIntelligenceSeeder extends DemoSeeder
     private const COMPLAINT_SUBJECTS = ['ረጅም ወረፋ', 'የአገልግሎት መዘግየት', 'ተደጋጋሚ ቀጠሮ', 'የሠራተኛ ባህሪ', 'ግልጽ ያልሆነ መረጃ', 'የተደራሽነት ችግር'];
 
     /** Category code weights by submission type. */
-    private const CATEGORY_WEIGHTS = [
-        'feedback' => ['SERVICE_QUALITY' => 5, 'STAFF_CONDUCT' => 3, 'WAITING' => 2, 'INFO_GUIDANCE' => 2, 'FACILITY' => 1],
-        'complaint' => ['WAITING' => 4, 'PROCESS_DELAY' => 4, 'STAFF_CONDUCT' => 3, 'SERVICE_QUALITY' => 3, 'INFO_GUIDANCE' => 2, 'ACCESSIBILITY' => 1, 'FACILITY' => 1, 'OTHER' => 1],
-        'suggestion' => ['PROCESS_DELAY' => 3, 'INFO_GUIDANCE' => 3, 'ACCESSIBILITY' => 2, 'FACILITY' => 2, 'SERVICE_QUALITY' => 2, 'OTHER' => 1],
-    ];
-
     private CarbonImmutable $now;
 
     /** @var array<string, CarbonImmutable> */
@@ -1085,7 +1079,6 @@ class DemoIntelligenceSeeder extends DemoSeeder
         $units = DB::table('organization_units')->whereNull('deleted_at')->get(['id', 'organization_id', 'name_en', 'name_am', 'unit_type'])->groupBy('organization_id');
         $qrCodes = DB::table('organization_feedback_qr_codes')->where('status', 'active')->pluck('id', 'organization_id');
         $services = DB::table('position_services')->whereNull('deleted_at')->where('is_active', true)->get(['id', 'organization_id', 'service_no', 'name_en'])->groupBy('organization_id');
-        $categories = DB::table('public_feedback_categories')->where('is_active', true)->pluck('id', 'code');
 
         $rows = [];
         $n = 0;
@@ -1097,12 +1090,12 @@ class DemoIntelligenceSeeder extends DemoSeeder
             $complaintShare = 0.28 + 0.012 * $m;
             for ($i = 0; $i < $volume; $i++) {
                 $type = $this->pick(['complaint' => $complaintShare, 'feedback' => 0.5 - $complaintShare / 2, 'suggestion' => 0.5 - $complaintShare / 2]);
-                $rows[] = $this->submission(++$n, $type, $this->officeMoment($monthStart, $monthEnd), $admin, $orgWeights, $organizationsById, $assignments, $units, $qrCodes, $services, $categories);
+                $rows[] = $this->submission(++$n, $type, $this->officeMoment($monthStart, $monthEnd), $admin, $orgWeights, $organizationsById, $assignments, $units, $qrCodes, $services);
             }
         }
-        // The spike Public Voice should notice: waiting-time complaints in the last nine days.
+        // The spike Public Voice should notice: a burst of complaints in the last nine days.
         for ($i = 0; $i < 55; $i++) {
-            $rows[] = $this->submission(++$n, 'complaint', $this->officeMoment($this->now->subDays(9), $this->now), $admin, $orgWeights, $organizationsById, $assignments, $units, $qrCodes, $services, $categories, 'WAITING');
+            $rows[] = $this->submission(++$n, 'complaint', $this->officeMoment($this->now->subDays(9), $this->now), $admin, $orgWeights, $organizationsById, $assignments, $units, $qrCodes, $services);
         }
 
         foreach (array_chunk($rows, 250) as $chunk) {
@@ -1119,11 +1112,10 @@ class DemoIntelligenceSeeder extends DemoSeeder
      * @param  Collection<string, Collection<int, object>>  $units
      * @param  Collection<string, string>  $qrCodes
      * @param  Collection<string, Collection<int, object>>  $services
-     * @param  Collection<string, string>  $categories
      * @return array<string, mixed>
      */
     private function submission(int $n, string $type, CarbonImmutable $submitted, User $admin, array $orgWeights, Collection $organizations, Collection $assignments,
-        Collection $units, Collection $qrCodes, Collection $services, Collection $categories, ?string $category = null): array
+        Collection $units, Collection $qrCodes, Collection $services): array
     {
         $life = $this->lifecycle($type, $submitted);
         $assignment = $assignments->isNotEmpty() && $this->chance(0.45) ? $assignments->random() : null;
@@ -1131,7 +1123,6 @@ class DemoIntelligenceSeeder extends DemoSeeder
         $organization = $organizations->get($organizationId);
         $unit = $assignment === null && $this->chance(0.4) ? ($units->get($organizationId)?->random()) : null;
         $service = $this->chance(0.5) ? ($services->get($organizationId)?->random()) : null;
-        $categoryCode = $category ?? ($life['status'] === 'unrouted' && $this->chance(0.5) ? null : ($this->chance(0.1) ? null : $this->pick(self::CATEGORY_WEIGHTS[$type])));
         $channel = $this->pick(['WEB_QR' => 82, 'PHONE' => 9, 'WRITTEN' => 6, 'ORAL' => 3]);
         $comments = self::COMMENTS[$type];
         $touched = array_filter([$submitted, $life['acknowledged_at'], $life['assigned_at'], $life['reviewed_at'], $life['resolved_at'], $life['closed_at']]);
@@ -1156,7 +1147,6 @@ class DemoIntelligenceSeeder extends DemoSeeder
             'service_no_snapshot' => $service?->service_no,
             'service_name_snapshot' => $service?->name_en,
             'type' => $type,
-            'category_id' => $categoryCode !== null ? $categories->get($categoryCode) : null,
             'subject' => $type === 'complaint' ? self::COMPLAINT_SUBJECTS[array_rand(self::COMPLAINT_SUBJECTS)] : null,
             'comment' => $type === 'feedback' && $this->chance(0.25) ? null : $comments[array_rand($comments)],
             'rating' => match ($type) {

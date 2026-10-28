@@ -18,7 +18,10 @@ it('routes scanned or typed values through the shared resolver', function (): vo
         ->not->toContain('function resolveDestination');
 
     $resolver = publicSource('resources/js/Components/public/verifyDestination.ts');
-    expect($resolver)->toContain('/service-feedback/${value}')->toContain('/id-checker/${uuidMatch[0]}');
+    expect($resolver)->toContain('/service-feedback/${value}')->toContain('/id-checker/${uuidMatch[0]}')
+        // A printed organization feedback QR links to /feedback/{token}; it
+        // used to fall through to the ID checker and 404.
+        ->toContain('(id-checker|service-feedback|feedback)');
 });
 
 it('keeps the Verify task in the first phone screen', function (): void {

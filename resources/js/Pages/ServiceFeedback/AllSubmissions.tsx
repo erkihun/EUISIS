@@ -29,7 +29,6 @@ type Entry = {
     organization: string | null;
     organization_unit: string | null;
     unit_selection_mode: 'SELECTED' | 'GENERAL' | null;
-    category: string | null;
     service: string | null;
     status: string;
     submitted_at: string | null;
@@ -43,7 +42,6 @@ type Filters = {
     target_type?: string;
     organization_id?: string;
     organization_unit_id?: string;
-    category_id?: string;
     status?: string;
     identity_mode?: string;
     date_from?: string;
@@ -67,7 +65,6 @@ type Props = {
     filters: Filters;
     filterOptions: {
         organizations: Named[];
-        categories: Named[];
         /** Work units of the selected organization; empty until one is chosen. */
         units: Named[];
         statuses: string[];
@@ -114,7 +111,7 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
 
     const nameOf = (option: Named) => (am ? option.name_am ?? option.name_en : option.name_en);
     const open = overview.by_status.pending + overview.by_status.unrouted + overview.by_status.assigned + overview.by_status.under_review;
-    const filterKeys: (keyof Filters)[] = ['submission_type', 'target_type', 'organization_id', 'organization_unit_id', 'category_id', 'status', 'identity_mode', 'date_from', 'date_to', 'q', 'mine'];
+    const filterKeys: (keyof Filters)[] = ['submission_type', 'target_type', 'organization_id', 'organization_unit_id', 'status', 'identity_mode', 'date_from', 'date_to', 'q', 'mine'];
     const hasFilters = filterKeys.some((key) => filled(filters[key]) && !(queue === 'unrouted' && key === 'status'));
     const title = t(queue === 'unrouted' ? 'serviceFeedback.unroutedQueueTitle' : 'serviceFeedback.allSubmissionsTitle');
 
@@ -180,12 +177,6 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                                 {filterOptions.units.map((unit) => <option key={unit.id} value={unit.id}>{nameOf(unit)}</option>)}
                             </Select>
                         )}
-                        {filterOptions.categories.length > 0 && (
-                            <Select className={selectCls} value={filters.category_id ?? ''} onChange={(event) => apply({ category_id: event.target.value })} aria-label={t('serviceFeedback.issueCategory')}>
-                                <option value="">{t('serviceFeedback.allCategories')}</option>
-                                {filterOptions.categories.map((category) => <option key={category.id} value={category.id}>{nameOf(category)}</option>)}
-                            </Select>
-                        )}
                         {queue === 'all' && (
                             <Select className={selectCls} value={filters.status ?? ''} onChange={(event) => apply({ status: event.target.value })} aria-label={t('serviceFeedback.filterStatus')}>
                                 <option value="">{t('serviceFeedback.allStatuses')}</option>
@@ -238,7 +229,6 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.columnReference')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.columnTarget')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'hidden text-left lg:table-cell')}>{t('serviceFeedback.filterOrganization')}</th>
-                                        <th scope="col" className={cx(tableHeaderCellClassName, 'hidden text-left xl:table-cell')}>{t('serviceFeedback.issueCategory')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.filterStatus')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.submittedDate')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'hidden text-left lg:table-cell')}>{t('serviceFeedback.currentHandler')}</th>
@@ -265,7 +255,6 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                                                     ? <span className="block max-w-56 text-xs text-(--app-muted-foreground)">{entry.organization_unit}</span>
                                                     : entry.unit_selection_mode === 'GENERAL' && <span className="block max-w-56 text-xs text-(--app-muted-foreground)">{t('serviceFeedback.generalNotSure')}</span>}
                                             </td>
-                                            <td className={cx(tableCellClassName, 'hidden xl:table-cell')}>{entry.category ?? <span className="text-(--app-muted-foreground)">{t('serviceFeedback.notCategorised')}</span>}</td>
                                             <td className={tableCellClassName}><FeedbackStatusBadge status={entry.status} /></td>
                                             <td className={cx(tableCellClassName, 'whitespace-nowrap text-(--app-muted-foreground)')}><LocalizedDateDisplay value={entry.submitted_at} withTime /></td>
                                             <td className={cx(tableCellClassName, 'hidden lg:table-cell')}>{entry.handler ?? <span className="text-(--app-muted-foreground)">{t('serviceFeedback.noHandler')}</span>}</td>
@@ -291,7 +280,7 @@ export default function AllSubmissions({ queue, entries, overview, filters, filt
                                                 {t(entry.target_type === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee')}: {entry.target_name ?? '—'}
                                             </span>
                                             <span className="text-xs text-(--app-muted-foreground)">
-                                                {[entry.organization, entry.category].filter(Boolean).join(' · ')}{' · '}<LocalizedDateDisplay value={entry.submitted_at} />
+                                                {[entry.organization].filter(Boolean).join(' · ')}{' · '}<LocalizedDateDisplay value={entry.submitted_at} />
                                             </span>
                                         </Link>
                                     </li>

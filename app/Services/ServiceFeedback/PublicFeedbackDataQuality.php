@@ -109,10 +109,6 @@ final class PublicFeedbackDataQuality
                 ->whereNotExists(fn ($q) => $q->selectRaw('1')->from('public_feedback_status_history as h')->whereColumn('h.submission_id', 's.id'))
                 ->pluck('s.id'), true);
 
-        $add('broken_category_reference', 'Submissions referring to a category that no longer exists', self::SEVERITY_REVIEW,
-            DB::table('employee_service_feedback as s')->leftJoin('public_feedback_categories as c', 'c.id', '=', 's.category_id')
-                ->whereNotNull('s.category_id')->whereNull('c.id')->pluck('s.id'));
-
         // The database normally forbids this (pfa_one_open_per_submission); a server that refused the index relies on this check.
         $add('several_open_assignments', 'Submissions with more than one open assignment', self::SEVERITY_FAIL,
             DB::table('public_feedback_assignments')->whereNull('ended_at')->groupBy('submission_id')

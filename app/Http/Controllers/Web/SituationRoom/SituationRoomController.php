@@ -9,7 +9,6 @@ use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
-use App\Models\PublicFeedbackCategory;
 use App\Models\User;
 use App\Services\Intelligence\IntelligencePermissions;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -178,7 +177,7 @@ final class SituationRoomController extends Controller
      */
     private function options(SituationCategory $category, SituationContext $context): array
     {
-        $options = ['units' => [], 'feedback_categories' => [], 'public_voice' => false];
+        $options = ['units' => [], 'public_voice' => false];
         $focus = $context->scope->focusOrganizationId;
 
         if ($focus !== null) {
@@ -193,19 +192,6 @@ final class SituationRoomController extends Controller
 
         if (in_array($category, [SituationCategory::Complaints, SituationCategory::Feedback, SituationCategory::TipOffs], true)) {
             $options['public_voice'] = true;
-            $type = match ($category) {
-                SituationCategory::Complaints => 'complaint',
-                SituationCategory::Feedback => 'feedback',
-                default => 'suggestion',
-            };
-            $options['feedback_categories'] = PublicFeedbackCategory::query()
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->get(['id', 'name_en', 'name_am', 'submission_types'])
-                ->filter(fn ($c): bool => empty($c->submission_types) || in_array($type, (array) $c->submission_types, true))
-                ->map(fn ($c): array => ['id' => (string) $c->id, 'label' => SituationLabel::names($c->name_en, $c->name_am)])
-                ->values()
-                ->all();
         }
 
         return $options;

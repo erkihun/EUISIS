@@ -22,7 +22,6 @@ use App\Models\OrganizationEdge;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Permission;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackReportExport;
 use App\Models\Role;
 use App\Models\SituationRoomAction;
@@ -179,11 +178,6 @@ beforeEach(function (): void {
     $this->sibling = srOrg('SIBLING');
     srPublish([[$this->city, $this->bureau], [$this->bureau, $this->subcity], [$this->subcity, $this->woreda], [$this->city, $this->sibling]]);
 
-    $this->category = PublicFeedbackCategory::query()->create([
-        'code' => 'SR-WAIT', 'name_en' => 'Waiting time', 'name_am' => 'የመጠበቂያ ጊዜ', 'submission_types' => ['feedback', 'suggestion', 'complaint'],
-        'target_types' => ['employee', 'organization'], 'organization_id' => null, 'is_active' => true, 'sort_order' => 1,
-    ]);
-
     $this->bureauHead = srUser(SR_PERMISSIONS, $this->bureau);
     $this->woredaHead = srUser(SR_PERMISSIONS, $this->woreda);
     $this->filters = SituationRoomFilters::fromInput([]);
@@ -243,23 +237,19 @@ it('makes institution bars plus the own bucket add up to the total', function ()
         ->and($institutions['rows'][0]['total'] + $institutions['own']['total'])->toBe($voice->kpis($scope, $this->filters)['current']['total']);
 });
 
-it('counts categories with uncategorized, and keeps hidden out of every bucket', function (): void {
-    srRow($this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending, ['category_id' => $this->category->id]);
-    srRow($this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed, ['category_id' => $this->category->id]);
+it('keeps hidden out of every bucket', function (): void {
+    srRow($this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Pending);
+    srRow($this->woreda, ServiceFeedbackType::Complaint, ServiceFeedbackStatus::Closed);
     srRow($this->woreda, ServiceFeedbackType::Suggestion, ServiceFeedbackStatus::NotAdopted);
     srRow($this->woreda, ServiceFeedbackType::Feedback, ServiceFeedbackStatus::Hidden);
 
     $scope = srScope($this->bureauHead);
     $voice = app(CommunityVoiceQuery::class);
     $kpis = $voice->kpis($scope, $this->filters)['current'];
-    $categories = collect($voice->byCategory($scope, $this->filters));
 
     expect($kpis['total'])->toBe(3)
         ->and($kpis['resolved'])->toBe(2)
-        ->and($kpis['unresolved'])->toBe(1)
-        ->and($categories->sum('total'))->toBe(3)
-        ->and($categories->firstWhere('uncategorized', true)['total'])->toBe(1)
-        ->and($categories->firstWhere('id', $this->category->id)['complaint'])->toBe(2);
+        ->and($kpis['unresolved'])->toBe(1);
 });
 
 it('counts the relevant work units the public named under the recorded name, with a General / Not sure bucket, inside the scope', function (): void {

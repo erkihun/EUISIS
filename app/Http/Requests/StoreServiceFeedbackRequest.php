@@ -38,8 +38,6 @@ class StoreServiceFeedbackRequest extends FormRequest
 
         return [
             'form_token' => ['nullable', 'string', 'size:32'],
-            // Applicability (type, target, scope) is checked in the controller.
-            'category_id' => ['nullable', 'uuid'],
             // A service belongs to an employee's position; an organization has none.
             'position_service_id' => $employeeTarget ? [
                 'required',

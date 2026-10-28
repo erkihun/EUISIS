@@ -6,9 +6,9 @@ import { Building2, ChevronRight } from '@/Components/NavIcons';
 import { publicButtonSecondary } from '@/Components/public/PublicPage';
 import RatingScale from '@/Components/public/RatingScale';
 import {
-    AboutYou, CategoryChips, EvidenceSection, FormNotice, IdentityFields, RequirementMark, TIP_TYPE_COPY, TipTypeChooser,
+    AboutYou, EvidenceSection, FormNotice, IdentityFields, RequirementMark, TIP_TYPE_COPY, TipTypeChooser,
     areaClass, cardClass, errorClass, evidenceError, fieldClass, labelClass, mutedClass, privacyNoteKey, sendButtonClass, useSubmissionOutcome,
-    type CategoryOption, type Links, type TargetDisplay,
+    type Links, type TargetDisplay,
 } from '@/Components/public/feedbackFormParts';
 import { FeedbackActionBar } from '@/Layouts/FeedbackAppLayout';
 import { useLocale } from '@/hooks/useLocale';
@@ -91,7 +91,6 @@ type AnswerValue = string | string[];
 interface OrganizationFormData {
     form_token: string;
     questionnaire_version: string;
-    category_id: string;
     service_id: string;
     service_text: string;
     organization_unit_id: string;
@@ -116,11 +115,11 @@ interface OrganizationFormData {
 
 const TIME_BANDS = ['morning', 'afternoon', 'evening'] as const;
 const OTHER_SERVICE = '__other';
-// The first step asks WHERE (unit) and WHAT KIND (issue category), then when; an error on any of them reopens it.
-const SERVICE_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'category_id', 'service_date', 'service_time_band'];
+// The first step asks WHERE (unit), then when; an error on any of them reopens it.
+const SERVICE_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band'];
 const SUBMITTER_FIELDS = ['client_name', 'client_contact', 'client_email', 'submitter_organization', 'submitter_address', 'form_token', 'questionnaire_version'];
 /** What a draft keeps for this tab: never the visitor's identity, never files, never a Tip-off. */
-const DRAFT_FIELDS = ['category_id', 'service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band', 'answers', 'rating', 'comment', 'message', 'incident_location'] as const;
+const DRAFT_FIELDS = ['service_id', 'service_text', 'organization_unit_id', 'unit_selection_mode', 'service_date', 'service_time_band', 'answers', 'rating', 'comment', 'message', 'incident_location'] as const;
 
 const STEP_TITLE: Record<StepId, Record<SubmissionKind, string>> = {
     service: { feedback: 'stepService', complaint: 'stepService', suggestion: 'stepServiceOptional' },
@@ -486,10 +485,9 @@ function ReviewRow({ label, value, onEdit }: { label: string; value: ReactNode; 
     );
 }
 
-export default function OrganizationFeedbackForm({ kind, target, categories, links, formToken, requirements, evidence, tipTypes, context }: {
+export default function OrganizationFeedbackForm({ kind, target, links, formToken, requirements, evidence, tipTypes, context }: {
     kind: SubmissionKind;
     target: TargetDisplay;
-    categories: CategoryOption[];
     links: Links;
     formToken: string | null;
     requirements: SubmissionRequirements;
@@ -519,7 +517,6 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
     const form = useForm<OrganizationFormData>({
         form_token: formToken ?? '',
         questionnaire_version: context.questionnaire ? String(context.questionnaire.version) : '',
-        category_id: '',
         service_id: '',
         service_text: '',
         organization_unit_id: '',
@@ -639,7 +636,6 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
         const common = {
             form_token: current.form_token,
             questionnaire_version: current.questionnaire_version,
-            category_id: current.category_id,
             service_id: current.service_id,
             service_text: current.service_id === '' ? current.service_text : '',
             organization_unit_id: current.organization_unit_id,
@@ -708,7 +704,6 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
         ? context.serviceOptions.items.find((item) => item.id === data.service_id)?.name ?? serviceLabel ?? t('serviceFeedback.serviceChosen')
         : data.service_text.trim() !== '' ? data.service_text : null;
     const answeredExperience = experienceQuestions.filter((question) => isAnswered(data.answers[question.code])).length;
-    const category = categories.find((candidate) => candidate.id === data.category_id);
     const narrative = (kind === 'feedback' ? data.comment : data.message).trim();
     const stepIndexOf = (id: StepId) => steps.indexOf(id);
 
@@ -754,9 +749,7 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                                 error={fieldErrors.organization_unit_id}
                             />
                         )}
-                        {/* WHERE (the unit above) before WHAT KIND (the category): two questions, two fieldsets. */}
-                        <CategoryChips categories={categories} value={data.category_id} onChange={(value) => set('category_id', value)} error={fieldErrors.category_id} kind={kind} embedded />
-                        {kind !== 'suggestion' && (context.offices.length > 0 || categories.length > 0) && <hr className="border-(--app-border)" />}
+                        {kind !== 'suggestion' && context.offices.length > 0 && <hr className="border-(--app-border)" />}
                         {kind !== 'suggestion' && (
                             <>
                                 <div data-field>
@@ -913,7 +906,6 @@ export default function OrganizationFeedbackForm({ kind, target, categories, lin
                                     <ReviewRow label={t('serviceFeedback.overallSatisfaction')} value={data.rating !== '' ? t(`serviceFeedback.rating${data.rating}`) : '—'} onEdit={() => goTo(stepIndexOf('experience'))} />
                                 )}
                                 <ReviewRow label={stepTitle('details')} value={narrative !== '' ? (narrative.length > 140 ? `${narrative.slice(0, 140)}…` : narrative) : '—'} onEdit={() => goTo(stepIndexOf('details'))} />
-                                {category && <ReviewRow label={t('serviceFeedback.issueCategory')} value={category.name} onEdit={() => goTo(stepIndexOf('service'))} />}
                                 {data.attachments.length > 0 && (
                                     <ReviewRow label={t('serviceFeedback.evidenceTitle')} value={t('serviceFeedback.filesAttached').replace('{count}', String(data.attachments.length))} onEdit={() => goTo(stepIndexOf('details'))} />
                                 )}

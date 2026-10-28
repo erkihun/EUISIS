@@ -11,7 +11,6 @@ const PRESETS = ['today', 'week', 'month', 'quarter', 'year', 'custom'] as const
 
 export interface FilterOptions {
     units: SrNamedOption[];
-    feedback_categories: SrNamedOption[];
     public_voice: boolean;
     tip_types?: boolean;
 }
@@ -76,14 +75,6 @@ export function SituationFilterBar({ url, filters, query, scope, options }: {
             )}
             {options?.public_voice && (
                 <>
-                    {options.feedback_categories.length > 0 && (
-                        <FilterField label={sr('ui.category_filter')} htmlFor="sr-category">
-                            <Select id="sr-category" value={draft.category_id ?? ''} onChange={(e) => set('category_id')(e.target.value)}>
-                                <option value="">{sr('ui.all_categories')}</option>
-                                {options.feedback_categories.map((c) => <option key={c.id} value={c.id}>{label(c.label)}</option>)}
-                            </Select>
-                        </FilterField>
-                    )}
                     <FilterField label={sr('ui.target_type')} htmlFor="sr-target">
                         <Select id="sr-target" value={draft.target_type ?? ''} onChange={(e) => set('target_type')(e.target.value)}>
                             <option value="">{sr('ui.all_targets')}</option>

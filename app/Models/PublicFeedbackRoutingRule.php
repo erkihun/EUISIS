@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Where a new suggestion or complaint goes (brief §45). A rule matches on
- * organization, target type, submission type, Tip-off type and category —
+ * organization, target type, submission type, Tip-off type and work unit —
  * each either a value or "any" — and names one handler. A corruption Tip-off
  * is matched only by a rule naming that tip type (PublicFeedbackRoutingService). The most specific rule in effect
  * wins; ties go to the lowest priority number. A rule that routed something
@@ -29,7 +29,6 @@ class PublicFeedbackRoutingRule extends Model
         'target_type',
         'submission_type',
         'tip_type',
-        'category_id',
         'organization_unit_id',
         'handler_type',
         'handler_id',
@@ -56,11 +55,6 @@ class PublicFeedbackRoutingRule extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(PublicFeedbackCategory::class, 'category_id');
     }
 
     /**

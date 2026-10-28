@@ -120,7 +120,7 @@ appearance settings wired to the tokens.
     detail pages, form repeaters and the organization-design trees (113,
     capped by the guard).
 12. **Filter bars on every registry**: organization types, organization-unit
-    types, roles, position establishments, feedback categories, routing rules
+    types, roles, position establishments, routing rules
     and print batches had no filtering at all (or only query parameters without
     a panel). Each now has the same `FilterPanel` as the organizations list —
     search, status and the one extra facet that matters (category, scope,

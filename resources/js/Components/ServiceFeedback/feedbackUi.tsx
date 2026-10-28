@@ -32,7 +32,6 @@ export type FeedbackSummary = {
     target_type?: 'employee' | 'organization';
     /** An institution target's name and code; null for an employee target. */
     target_organization?: { en: string | null; am: string | null; code: string | null } | null;
-    category?: NamePair;
     identity_mode?: 'anonymous' | 'identified' | 'optional' | null;
 };
 

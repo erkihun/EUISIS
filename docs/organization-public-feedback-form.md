@@ -54,8 +54,8 @@ type, and the route always states the type on the server.
 
 | Step | Feedback (አስተያየት) | Tip-off (ጥቆማ, internal `suggestion`) | Complaint (ቅሬታ) |
 |---|---|---|---|
-| 1 | Service information: service, **relevant work unit**, **issue category**, date, time | Tip-off details: type, facts, more details, evidence | Service information: service, **relevant work unit**, **issue category**, date, time |
-| 2 | Service experience + **overall satisfaction (required)** | Related service (optional): service, **relevant work unit**, **issue category** | Complaint details: what happened, where, evidence |
+| 1 | Service information: service, **relevant work unit**, date, time | Tip-off details: type, facts, more details, evidence | Service information: service, **relevant work unit**, date, time |
+| 2 | Service experience + **overall satisfaction (required)** | Related service (optional): service, **relevant work unit** | Complaint details: what happened, where, evidence |
 | 3 | Your feedback: comments + detail questions | Service experience *(only if a question applies)* | Service experience *(only if a question applies)* |
 | 4 | About you and review | About you (optional) and review | About you and review |
 
@@ -81,7 +81,6 @@ enforces them alone.
 | `service_text` | all | optional, ≤ 200 characters; kept only when no `service_id` is chosen |
 | `organization_unit_id` | all | the **relevant work unit**: an active, in-force unit of the scanned institution flagged *Available for public feedback*; re-checked on POST against the resolved institution. Stored with name/type snapshots. See [public-feedback-unit-selection.md](public-feedback-unit-selection.md) |
 | `unit_selection_mode` | all | `SELECTED` (a unit) or `GENERAL` ("General / Not sure", no unit row). Tip-off and Complaint must answer while the institution offers units; a post without the key is treated as `GENERAL` |
-| `category_id` | all | the **issue category** (*what kind* of issue — the unit above says *where*): optional; must be active, public-selectable, configured for this submission type and target type, and city-wide or the scanned institution's own. Labelled "Issue Category" / "የጉዳዩ ዓይነት", asked right after the unit |
 | `service_date` | Feedback, Complaint | optional, `Y-m-d`, not in the future, within the last year |
 | `service_time_band` | Feedback, Complaint | optional; `morning`, `afternoon` or `evening` |
 | `questionnaire_version` | all | the version the page showed; refused if another version is published now ("the form was updated"). Required when the type now has a **required** question: a page opened before that version was published states none, and is refused rather than skipping a question the visitor never saw. With only optional questions, a page that showed none is accepted and the row records no version |

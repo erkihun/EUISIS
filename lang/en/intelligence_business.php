@@ -41,7 +41,6 @@ return [
         'voice_targets' => ['title' => 'By target', 'description' => 'Submissions about an employee (QR on the card) and about an institution (the institution form), by type. Rows written before the unified model are employee submissions.'],
         'voice_by_organization' => ['title' => 'By organization', 'description' => 'Received per roll-up row, by type. A volume of reports, never a finding about an organization.'],
         'voice_status' => ['title' => 'Handling status', 'description' => 'Of the period\'s submissions: still open, with an outcome, or closed, by type.'],
-        'complaints_by_category' => ['title' => 'Complaints by category', 'description' => 'The largest complaint categories of the period, and everything else as "other".'],
         'complaints_by_service' => ['title' => 'Complaints by service', 'description' => 'Complaints that name a catalogue service by its id. A service only described in words is not counted here.'],
         'complaints_backlog' => ['title' => 'Complaint backlog and routing', 'description' => 'Complaints open at the start and the end of the period, and the period\'s tip-offs and complaints that could not be routed to anyone.'],
 
@@ -193,11 +192,6 @@ return [
             'title' => 'Complaint drop may be influenced by submission failures',
             'summary' => ':current complaints in the last seven days against a weekly baseline of :baseline (:percent%), while the public-feedback routes recorded a :failure_rate% failure rate and :incidents incident(s). The drop may be influenced by submission failures rather than improved service.',
             'recommendation' => 'Ask the technical team to confirm the public-feedback routes; do not report the drop as an improvement until they have.',
-        ],
-        'repeated_complaint_category' => [
-            'title' => 'One category dominates complaints',
-            'summary' => '":name" accounts for :count of :current complaints (:percent%) in the period.',
-            'recommendation' => 'Treat the category as a systemic issue: review the service behind it rather than the individual cases.',
         ],
         'complaint_backlog_growth' => [
             'title' => 'Complaint backlog growing',
@@ -397,7 +391,6 @@ return [
         'positions_without_competency' => ['label' => 'Active positions without competency requirements', 'impact' => 'Competency gaps cannot be assessed.', 'remediation' => 'Organization Design › Position design'],
         'unmapped_legacy_positions' => ['label' => 'Legacy positions with no occupation, work link, profile or job description', 'impact' => 'Invisible to workforce planning and service intelligence.', 'remediation' => 'Organization Design › Legacy mapping'],
         'qr_without_public_phone' => ['label' => 'Institutions with an active feedback QR but no public contact phone', 'impact' => 'No Call action on their QR pages.', 'remediation' => 'Public Feedback › Organization QR'],
-        'submissions_without_category' => ['label' => 'Tip-offs and complaints without a category', 'impact' => 'Missing from the category breakdown and from routing by category.', 'remediation' => 'Public Feedback › Submissions'],
         'assignments_effective_to_before_from' => ['label' => 'Assignments ending before they start', 'impact' => 'Historical occupancy and tenure are wrong.', 'remediation' => 'Employees › Assignment'],
         'positions_effective_to_before_from' => ['label' => 'Positions ending before they start', 'impact' => 'Position history is wrong.', 'remediation' => 'Positions'],
         'establishments_effective_to_before_from' => ['label' => 'Establishments ending before they start', 'impact' => 'Capacity history is wrong.', 'remediation' => 'Positions › Establishment'],

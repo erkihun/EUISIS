@@ -14,7 +14,7 @@ type Entry = {
     id: string; reference: string | null; status: string; message: string; subject: string | null;
     target_type: 'employee' | 'organization'; target_name: string | null; target_code?: string | null;
     created_at: string | null; submitted_at: string | null; employee: string | null; employee_number: string | null;
-    organization: string | null; organization_unit: string | null; unit_selection_mode: 'SELECTED' | 'GENERAL' | null; position: string | null; category: string | null;
+    organization: string | null; organization_unit: string | null; unit_selection_mode: 'SELECTED' | 'GENERAL' | null; position: string | null;
     client_name: string | null; client_contact: string | null; identity_hidden: boolean;
     client_email: string | null; submitter_organization: string | null;
     submitter_address: Partial<Record<'city' | 'sub_city' | 'woreda' | 'detail', string>> | null;
@@ -96,7 +96,6 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                                 // What the visitor said the submission concerns: contextual attribution, not the handler and not a finding.
                                 <Field label={t('serviceFeedback.relevantWorkUnit')}>{entry.organization_unit ?? (entry.unit_selection_mode === 'GENERAL' ? t('serviceFeedback.generalNotSure') : '—')}</Field>
                             )}
-                            <Field label={t('serviceFeedback.issueCategory')}>{entry.category ?? '—'}</Field>
                             <Field label={t('serviceFeedback.client')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_name ?? t('serviceFeedback.anonymousClient')}</Field>
                             <Field label={t('serviceFeedback.contact')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_contact ?? t('serviceFeedback.notProvided')}</Field>
                             {!entry.identity_hidden && entry.client_email && <Field label={t('serviceFeedback.clientEmail')}>{entry.client_email}</Field>}

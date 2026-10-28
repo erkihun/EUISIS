@@ -55,9 +55,7 @@ final class DataQualityAnalytics extends SituationAnalytics
         if ($context->can(SituationPermissions::PUBLIC_VOICE)) {
             $public = DB::table('employee_service_feedback as f')->where('f.status', '!=', 'hidden');
             $context->scope->apply($public, 'f.organization_id');
-            $nonFeedback = (clone $public)->whereIn('f.type', ['suggestion', 'complaint']);
             $tips = (clone $public)->where('f.type', 'suggestion');
-            $checks[] = ['check' => 'submissions_without_category', 'count' => (clone $nonFeedback)->whereNull('f.category_id')->count(), 'of' => (clone $nonFeedback)->count()];
             $checks[] = ['check' => 'tip_offs_unclassified_legacy', 'count' => (clone $tips)->whereNull('f.tip_type')->count(), 'of' => (clone $tips)->count()];
         }
 
