@@ -60,6 +60,8 @@ test('my court cases shows the employee\'s cases read from court-ms', function (
     Http::assertSent(fn (HttpRequest $request): bool => $request->method() === 'POST'
         && $request['employee']['uuid'] === (string) $employee->id
         && $request['employee']['national_id'] === '1234567890123456'
+        // court-ms words the notices in the language the page is read in.
+        && in_array($request['locale'], ['en', 'am'], true)
         && $request->hasHeader('Authorization', 'Bearer cms_test-token'));
 });
 

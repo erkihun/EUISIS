@@ -38,14 +38,16 @@ final class EmployeeCourtPortal
      */
     public function summary(Employee $employee): ?array
     {
-        $key = "court-ms:employee-summary:{$employee->getKey()}";
+        // court-ms words the notices in the employee's language, so each language is cached apart.
+        $locale = app()->getLocale() === 'am' ? 'am' : 'en';
+        $key = "court-ms:employee-summary:{$employee->getKey()}:{$locale}";
         $cached = Cache::get($key);
         if (is_array($cached)) {
             return $cached;
         }
 
         try {
-            $summary = $this->client->employeeSummary($this->identity($employee));
+            $summary = $this->client->employeeSummary($this->identity($employee), $locale);
         } catch (CourtMsException) {
             return null;
         }
@@ -59,7 +61,7 @@ final class EmployeeCourtPortal
     {
         $url = $this->client->signInUrl($this->person($employee), $target);
         // Opening the portal may open the court account or change what it shows.
-        Cache::forget("court-ms:employee-summary:{$employee->getKey()}");
+        self::forgetSummary($employee);
 
         return $url;
     }
@@ -74,9 +76,16 @@ final class EmployeeCourtPortal
     public function fileCase(Employee $employee, array $filing, array $documents): array
     {
         $result = $this->client->fileCase(['employee' => $this->person($employee), ...$filing], $documents);
-        Cache::forget("court-ms:employee-summary:{$employee->getKey()}");
+        self::forgetSummary($employee);
 
         return $result;
+    }
+
+    private static function forgetSummary(Employee $employee): void
+    {
+        foreach (['en', 'am'] as $locale) {
+            Cache::forget("court-ms:employee-summary:{$employee->getKey()}:{$locale}");
+        }
     }
 
     /** court-ms case types, for the filing form; empty when court-ms cannot be reached. */

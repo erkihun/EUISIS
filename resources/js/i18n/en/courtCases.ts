@@ -84,7 +84,7 @@ const courtCases = {
         grievancesSection: 'Grievances and documents',
         grievancesHelp: 'Choose the grievances this case concerns. Each goes to the court with the letters and decisions issued to you and the documents you submitted.',
         noGrievances: 'You have no submitted grievances. You can still file the case and attach documents.',
-        documentCount: '{count} PDF documents',
+        documentCount: 'PDF documents: {count}',
         files: 'More documents (PDF)',
         filesHelp: 'Up to {count} documents in all, {size} MB each.',
         submitHelp: 'The court registry reviews the case before it is opened.',

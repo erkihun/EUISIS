@@ -140,16 +140,16 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
                                 <TBody>
                                     {summary.cases.map((courtCase) => (
                                         <Tr key={courtCase.id}>
-                                            <Td className="font-mono text-sm">{courtCase.case_number}</Td>
+                                            <Td className="whitespace-nowrap font-mono text-sm">{courtCase.case_number}</Td>
                                             <Td muted={!courtCase.respondent}>{courtCase.respondent ?? '—'}</Td>
-                                            <Td muted={!courtCase.case_type}>{courtCase.case_type ?? '—'}</Td>
+                                            <Td muted={!courtCase.case_type} className="whitespace-nowrap">{courtCase.case_type ?? '—'}</Td>
                                             <Td><StatusBadge status={courtCase.status} label={label(`status.${courtCase.status}`)} /></Td>
                                             <Td><StatusBadge status={courtCase.review_status} label={label(`review.${courtCase.review_status}`)} /></Td>
-                                            <Td><LocalizedDateDisplay value={courtCase.filed_at} /></Td>
-                                            <Td muted={!courtCase.next_hearing_at}>
+                                            <Td className="whitespace-nowrap"><LocalizedDateDisplay value={courtCase.filed_at} /></Td>
+                                            <Td muted={!courtCase.next_hearing_at} className="whitespace-nowrap">
                                                 {courtCase.next_hearing_at ? <LocalizedDateDisplay value={courtCase.next_hearing_at} withTime /> : label('noHearing')}
                                             </Td>
-                                            <Td>{openButton(`case:${courtCase.id}`, label('openCase'))}</Td>
+                                            <Td className="whitespace-nowrap">{openButton(`case:${courtCase.id}`, label('openCase'))}</Td>
                                         </Tr>
                                     ))}
                                 </TBody>

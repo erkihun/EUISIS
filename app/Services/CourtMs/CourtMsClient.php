@@ -90,15 +90,15 @@ final class CourtMsClient
     }
 
     /**
-     * Flow 4: an employee's court summary (`linked`, counts, cases, notices).
+     * Flow 4: an employee's court summary (`linked`, counts, cases, notices), its notices worded in `$locale`.
      *
      * @param  array{uuid: string, national_id?: ?string, email?: ?string}  $identity
      * @return array<string, mixed>
      */
-    public function employeeSummary(array $identity): array
+    public function employeeSummary(array $identity, ?string $locale = null): array
     {
         try {
-            $json = $this->decode($this->request()->post('/api/v1/integration/people/court-summary', ['employee' => $identity]));
+            $json = $this->decode($this->request()->post('/api/v1/integration/people/court-summary', array_filter(['employee' => $identity, 'locale' => $locale])));
         } catch (ConnectionException $e) {
             throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
         }

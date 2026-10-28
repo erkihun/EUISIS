@@ -84,7 +84,7 @@ const courtCases = {
         grievancesSection: 'ቅሬታዎችና ሰነዶች',
         grievancesHelp: 'ይህ ክስ የሚመለከታቸውን ቅሬታዎች ይምረጡ። እያንዳንዱ ቅሬታ ከተሰጥዎት ደብዳቤዎችና ውሳኔዎች እንዲሁም ካቀረቧቸው ሰነዶች ጋር ለፍርድ ቤቱ ይላካል።',
         noGrievances: 'ያቀረቡት ቅሬታ የለም። አሁንም ክሱን ማቅረብና ሰነዶችን ማያያዝ ይችላሉ።',
-        documentCount: '{count} የPDF ሰነዶች',
+        documentCount: 'የPDF ሰነዶች፦ {count}',
         files: 'ተጨማሪ ሰነዶች (PDF)',
         filesHelp: 'በአጠቃላይ እስከ {count} ሰነዶች፣ እያንዳንዳቸው እስከ {size} MB።',
         submitHelp: 'ጉዳዩ ከመከፈቱ በፊት የፍርድ ቤቱ መዝገብ ቤት ይገመግመዋል።',
