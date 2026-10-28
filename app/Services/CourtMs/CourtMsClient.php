@@ -107,30 +107,6 @@ final class CourtMsClient
     }
 
     /**
-     * Flow 4: a one-time URL that opens the court portal signed in as the employee.
-     * Only a URL on court-ms's own public host is accepted.
-     *
-     * @param  array<string, mixed>  $employee
-     */
-    public function signInUrl(array $employee, string $target): string
-    {
-        try {
-            $json = $this->decode($this->request()->post('/api/v1/integration/people/sign-in-tickets', ['employee' => $employee, 'target' => $target]));
-        } catch (ConnectionException $e) {
-            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
-        }
-
-        $url = (string) ($json['data']['url'] ?? '');
-        $expected = strtolower((string) parse_url((string) (config('court_ms.public_url') ?: config('court_ms.url')), PHP_URL_HOST));
-        $parts = parse_url($url);
-        if (! is_array($parts) || ! in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true) || strtolower($parts['host'] ?? '') !== $expected) {
-            throw new CourtMsException('court-ms answered with a sign-in link to another site.', retryable: false);
-        }
-
-        return $url;
-    }
-
-    /**
      * Flow 5: a case the employee files from My Portal, with their grievance record
      * (`grievances`, a JSON string) and PDFs. Idempotent on `filing_id`.
      *
@@ -199,6 +175,64 @@ final class CourtMsClient
         }
 
         return $body;
+    }
+
+    /**
+     * Flow 6: a call into the employee's case workspace in court-ms (cases/{id}/workspace,
+     * cases/{id}/messages, …). The employee is named in the body, never in a URL.
+     *
+     * @param  array<string, mixed>  $data  the court-ms portal form's own field names
+     * @param  array<string, array{name: string, contents: string, mime?: string}>  $files  by field name (`file`, `pdf`, `evidence_files[0]`)
+     * @return array<string, mixed>
+     */
+    public function workspace(string $path, string $employeeUuid, array $data = [], array $files = []): array
+    {
+        $request = $this->request()->timeout(max(30, (int) config('court_ms.timeout', 20)));
+        $url = '/api/v1/integration/people/'.ltrim($path, '/');
+        $payload = ['employee_uuid' => $employeeUuid, ...$data];
+
+        try {
+            if ($files === []) {
+                $response = $request->post($url, $payload);
+            } else {
+                foreach ($files as $field => $file) {
+                    $request = $request->attach($field, $file['contents'], $file['name'], ['Content-Type' => $file['mime'] ?? 'application/octet-stream']);
+                }
+                $response = $request->asMultipart()->post($url, $this->multipartFields($payload, []));
+            }
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+
+        return (array) ($this->decode($response)['data'] ?? []);
+    }
+
+    /**
+     * Flow 6: one of the employee's case files (kind: evidence, file, response, reply,
+     * decision, letter, receipt, hearing), as court-ms serves it to the parties.
+     *
+     * @return array{body: string, type: string, name: string}
+     */
+    public function workspaceFile(int $caseId, string $employeeUuid, string $kind, ?int $id = null, ?int $responseId = null): array
+    {
+        try {
+            $response = $this->request()->accept('*/*')->timeout(max(30, (int) config('court_ms.timeout', 20)))
+                ->post("/api/v1/integration/people/cases/{$caseId}/download", array_filter([
+                    'employee_uuid' => $employeeUuid, 'kind' => $kind, 'id' => $id, 'response_id' => $responseId,
+                ], fn ($value) => $value !== null));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+        if (! $response->successful()) {
+            $this->decode($response);
+        }
+
+        $name = 'court-'.$kind.'.'.($kind === 'hearing' ? 'ics' : 'pdf');
+        if (preg_match('/filename\*?=(?:UTF-8\'\')?"?([^";]+)"?/i', (string) $response->header('Content-Disposition'), $match) === 1) {
+            $name = basename(rawurldecode($match[1]));
+        }
+
+        return ['body' => $response->body(), 'type' => $response->header('Content-Type') ?: 'application/octet-stream', 'name' => $name];
     }
 
     /**

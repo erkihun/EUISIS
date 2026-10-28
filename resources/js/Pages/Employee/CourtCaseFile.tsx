@@ -125,7 +125,7 @@ export default function CourtCaseFile({ filingId, caseTypes, organizations, defa
                         <fieldset className="space-y-2">
                             <legend className="sr-only">{label('grievancesSection')}</legend>
                             {grievances.map((grievance) => (
-                                <label key={grievance.id} className="flex cursor-pointer items-start gap-3 rounded-lg border border-(--app-border) p-3 hover:bg-(--app-muted)">
+                                <label key={grievance.id} className="flex cursor-pointer items-start gap-3 rounded-lg border border-(--app-border) p-3 hover:bg-(--app-surface-muted)">
                                     <input type="checkbox" className="mt-1 h-4 w-4" checked={form.data.grievance_ids.includes(grievance.id)} onChange={(e) => toggleGrievance(grievance.id, e.target.checked)} />
                                     <span className="min-w-0 flex-1 space-y-1">
                                         <span className="flex flex-wrap items-center gap-2">
@@ -147,7 +147,7 @@ export default function CourtCaseFile({ filingId, caseTypes, organizations, defa
                     <FormField label={label('files')} description={label('filesHelp', { count: limits.documents, size: limits.documentMb })} error={errors.files ?? fileErrors}>
                         {({ id, describedBy, invalid }) => (
                             <input id={id} aria-describedby={describedBy} aria-invalid={invalid} type="file" multiple accept=".pdf,application/pdf"
-                                className="block w-full text-sm text-(--app-foreground) file:mr-3 file:rounded-md file:border-0 file:bg-(--app-muted) file:px-3 file:py-2"
+                                className="block w-full text-sm text-(--app-foreground) file:mr-3 file:rounded-md file:border-0 file:bg-(--app-surface-muted) file:px-3 file:py-2"
                                 onChange={(e) => form.setData('files', Array.from(e.target.files ?? []))} />
                         )}
                     </FormField>

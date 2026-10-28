@@ -77,6 +77,7 @@ taken while building it.
 | 9 | What of the grievance record goes with a filing? (2026-10-28) | Only what the employee already sees in My Grievances: the grievance's facts, the letters issued to them, the issued decisions, and the PDFs (those letters and the evidence they submitted). Nothing from the committee's internal file. The employee chooses the grievances. |
 | 10 | Who receives the tribunal's letters to an institution? (2026-10-28) | The institution's Administrative Tribunal Officers (`grievances.tribunal` within that institution) are notified and read them under Tribunal Cases > Court letters; `court_cases.view` and city-wide scopes read all. No new permission. |
 | 11 | How long do the tokens of connected systems live? (2026-10-28) | Each EUISIS token carries its own expiry (TD-16). The court-ms and cafeteria-platform applications get a lifetime in days (90 suggested) and a new token before it ends; any other token keeps the 8-hour default. The global Sanctum expiry had cut both systems off 8 hours after every token. |
+| 12 | Where do employees follow and answer their cases; what of the court portal? (2026-10-28, owner) | Everything is in My Portal (Flow 6): case details, hearings, documents, messages, replies to respondent responses, corrections, letters, decisions and notices. court-ms's applicant portal, with its sign-in and registration, is closed (`EUISIS_PORTAL_IN_EUISIS`), and so is the respondent portal: respondents can no longer answer in court-ms. The one-time sign-in link of Flow 4 is gone. court-ms runs its own portal actions for the employee's linked account, call by call, so its rules, audit and notifications are unchanged. |
 
 ## Alternatives considered
 
@@ -114,6 +115,9 @@ taken while building it.
 - Only what the officer confirms leaves EUISIS. The court-ms update list carries no
   grievance content back; EUISIS notifications carry only the case number.
 - Tokens live in the environment files only.
+- Flow 6 acts as the employee only through `people:act`, naming them by EUISIS UUID in the
+  body. court-ms signs the linked applicant account in for that call alone, with its own
+  ownership checks, and EUISIS sends nothing the employee's own session did not submit.
 
 ## Operational impact
 

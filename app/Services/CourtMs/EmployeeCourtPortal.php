@@ -8,26 +8,18 @@ use App\Models\Employee;
 use Illuminate\Support\Facades\Cache;
 
 /**
- * My Portal > My court cases (court-ms Flow 4, ADR 0013). Applicants at the
- * administrative tribunal are city employees, so the employee portal shows
- * their court cases and opens the court portal signed in as them. court-ms
- * stays the system of record: nothing here stores a case.
+ * My Portal > My court cases (court-ms Flows 4 to 6, ADR 0013). Applicants at the
+ * administrative tribunal are city employees: they file, follow and answer their
+ * cases here, and court-ms's own applicant portal is closed. court-ms stays the
+ * system of record: nothing here stores a case.
  */
 final class EmployeeCourtPortal
 {
-    /** Pages of the court portal an employee may be sent to (court-ms EmployeeCourtAccess::TARGETS, plus `case:<id>`). */
-    public const TARGETS = ['dashboard', 'cases', 'new_case', 'notifications', 'profile'];
-
     public function __construct(private readonly CourtMsClient $client) {}
 
     public function enabled(): bool
     {
         return $this->client->employeePortalEnabled();
-    }
-
-    public static function validTarget(string $target): bool
-    {
-        return in_array($target, self::TARGETS, true) || preg_match('/^case:\d{1,10}$/', $target) === 1;
     }
 
     /**
@@ -56,14 +48,28 @@ final class EmployeeCourtPortal
         return $summary;
     }
 
-    /** The one-time URL that opens `$target` in the court portal, signed in as the employee. */
-    public function signInUrl(Employee $employee, string $target): string
+    /**
+     * Flow 6: a call into the employee's case workspace in court-ms; the summary is
+     * read again afterwards, since the call may change what it shows.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array<string, array{name: string, contents: string, mime?: string}>  $files
+     * @return array<string, mixed>
+     */
+    public function workspace(Employee $employee, string $path, array $data = [], array $files = [], bool $changes = false): array
     {
-        $url = $this->client->signInUrl($this->person($employee), $target);
-        // Opening the portal may open the court account or change what it shows.
-        self::forgetSummary($employee);
+        $result = $this->client->workspace($path, (string) $employee->getKey(), $data, $files);
+        if ($changes) {
+            self::forgetSummary($employee);
+        }
 
-        return $url;
+        return $result;
+    }
+
+    /** @return array{body: string, type: string, name: string} */
+    public function file(Employee $employee, int $caseId, string $kind, ?int $id = null, ?int $responseId = null): array
+    {
+        return $this->client->workspaceFile($caseId, (string) $employee->getKey(), $kind, $id, $responseId);
     }
 
     /**
@@ -81,7 +87,7 @@ final class EmployeeCourtPortal
         return $result;
     }
 
-    private static function forgetSummary(Employee $employee): void
+    public static function forgetSummary(Employee $employee): void
     {
         foreach (['en', 'am'] as $locale) {
             Cache::forget("court-ms:employee-summary:{$employee->getKey()}:{$locale}");

@@ -1,5 +1,4 @@
-import { Link } from '@inertiajs/react';
-import axios from 'axios';
+import { Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
@@ -7,7 +6,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import { useBranding } from '@/hooks/useBranding';
 import { useLocale } from '@/hooks/useLocale';
-import { Alert, Button, Card, TBody, THead, Table, Td, Th, Tr, buttonClassName } from '@euisis/ui';
+import { Alert, Button, Card, TBody, THead, Table, Td, Th, Tr, actionLinkClassName, buttonClassName } from '@euisis/ui';
 
 type CourtCase = {
     id: number;
@@ -22,17 +21,18 @@ type CourtCase = {
     next_hearing_at: string | null;
 };
 
-type Notice = { id: string; title: string; message: string; created_at: string | null };
+/** `id` is court-ms's `type:source` key; `case_id` the case it concerns. */
+type Notice = { id: string; title: string; message: string; created_at: string | null; case_id?: number | null };
 
 type Props = {
-    /** linked: the employee has a court account; not_linked: the first open creates it. */
+    /** linked: the employee has a court account; not_linked: filing the first case creates it. */
     state: 'linked' | 'not_linked' | 'unavailable' | 'disabled' | 'no_employee';
     summary: {
         counts: { cases?: number; open?: number; awaiting_review?: number; upcoming_hearings?: number; unread_notices?: number };
         cases: CourtCase[];
         notices: Notice[];
     } | null;
-    /** Why the last attempt to open the court portal was refused (courtCases.portal.errors.*). */
+    /** Why court-ms refused the last step (courtCases.portal.errors.*). */
     error: string | null;
     /** The case number of a case just filed from My Portal (Flow 5). */
     filed: string | null;
@@ -40,56 +40,26 @@ type Props = {
 
 /**
  * My Portal > My court cases (court-ms Flow 4). Applicants at the administrative
- * tribunal are city employees: their cases are read from court-ms and filed here
- * (Flow 5, Employee/CourtCaseFile); following and answering a case opens the court
- * portal in a new tab, already signed in as them.
+ * tribunal are city employees: their cases are read from court-ms, filed here
+ * (Flow 5, Employee/CourtCaseFile) and followed and answered here too (Flow 6,
+ * Employee/CourtCaseShow); the court portal itself is not used.
  */
-export default function EmployeeCourtCases({ state, summary, error: initialError, filed }: Props) {
+export default function EmployeeCourtCases({ state, summary, error, filed }: Props) {
     const { t } = useLocale();
     const { withBrand } = useBranding();
     const label = (key: string) => t(`courtCases.portal.${key}`);
-    const [opening, setOpening] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(initialError);
-    const canOpen = state === 'linked' || state === 'not_linked' || state === 'unavailable';
+    const [reading, setReading] = useState<string | null>(null);
 
-    /** Opens the tab inside the click (so no pop-up blocker stops it), then sends it to the one-time link. */
-    async function open(target: string) {
-        const tab = window.open('about:blank', '_blank');
-        setOpening(target);
-        setError(null);
-        try {
-            const response = await axios.post<{ url: string }>(route('employee.court-cases.open'), { target }, { headers: { Accept: 'application/json' } });
-            if (tab) {
-                tab.opener = null;
-                tab.location.href = response.data.url;
-            } else {
-                window.location.href = response.data.url;
-            }
-        } catch (failure) {
-            tab?.close();
-            const code = axios.isAxiosError(failure) ? (failure.response?.data as { error_code?: string } | undefined)?.error_code : undefined;
-            setError(code ?? 'unavailable');
-        } finally {
-            setOpening(null);
-        }
-    }
-
-    const openButton = (target: string, text: string, variant: 'primary' | 'outline' = 'outline') => (
-        <Button type="button" variant={variant} size="sm" onClick={() => void open(target)} disabled={opening !== null || !canOpen}
-            aria-label={`${text} (${label('opensInNewTab')})`} loading={opening === target}>
-            {text}
-        </Button>
-    );
+    /** Marks one notice (or all of them) as read in court-ms; the list comes back without it. */
+    const markRead = (id: string | null) => {
+        setReading(id ?? 'all');
+        router.post(route('employee.court-cases.notices.read'), id === null ? { all: true } : { id }, { preserveScroll: true, onFinish: () => setReading(null) });
+    };
 
     // Cases are filed in EUISIS, against an institution registered here (court-ms Flow 5).
     const fileLink = <Link href={route('employee.court-cases.file')} className={buttonClassName({ variant: 'primary', size: 'sm' })}>{label('fileCase')}</Link>;
 
-    const actions = canOpen ? (
-        <div className="flex flex-wrap gap-2">
-            {state !== 'unavailable' && fileLink}
-            {openButton('dashboard', label('openPortal'))}
-        </div>
-    ) : undefined;
+    const actions = state === 'linked' || state === 'not_linked' ? fileLink : undefined;
 
     const counts = summary?.counts ?? {};
     const stat = (value: number | undefined, text: string): ReactNode => (
@@ -141,7 +111,7 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
                                     {summary.cases.map((courtCase) => (
                                         <Tr key={courtCase.id}>
                                             <Td className="whitespace-nowrap font-mono text-sm">{courtCase.case_number}</Td>
-                                            <Td muted={!courtCase.respondent}>{courtCase.respondent ?? '—'}</Td>
+                                            <Td muted={!courtCase.respondent} className="min-w-48">{courtCase.respondent ?? '—'}</Td>
                                             <Td muted={!courtCase.case_type} className="whitespace-nowrap">{courtCase.case_type ?? '—'}</Td>
                                             <Td><StatusBadge status={courtCase.status} label={label(`status.${courtCase.status}`)} /></Td>
                                             <Td><StatusBadge status={courtCase.review_status} label={label(`review.${courtCase.review_status}`)} /></Td>
@@ -149,7 +119,10 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
                                             <Td muted={!courtCase.next_hearing_at} className="whitespace-nowrap">
                                                 {courtCase.next_hearing_at ? <LocalizedDateDisplay value={courtCase.next_hearing_at} withTime /> : label('noHearing')}
                                             </Td>
-                                            <Td className="whitespace-nowrap">{openButton(`case:${courtCase.id}`, label('openCase'))}</Td>
+                                            <Td className="whitespace-nowrap">
+                                                <Link href={route('employee.court-cases.show', courtCase.id)} className={buttonClassName({ variant: 'outline', size: 'sm' })}
+                                                    aria-label={`${label('openCase')} ${courtCase.case_number}`}>{label('openCase')}</Link>
+                                            </Td>
                                         </Tr>
                                     ))}
                                 </TBody>
@@ -160,17 +133,25 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
                     <Card className="space-y-3">
                         <div className="flex items-center justify-between gap-3">
                             <h2 className="text-base font-semibold text-(--app-foreground)">{label('noticesTitle')}</h2>
-                            {summary.notices.length > 0 && openButton('notifications', label('viewNotices'))}
+                            {summary.notices.length > 0 && (
+                                <Button type="button" variant="outline" size="sm" onClick={() => markRead(null)} disabled={reading !== null} loading={reading === 'all'}>{label('markAllRead')}</Button>
+                            )}
                         </div>
                         {summary.notices.length === 0 ? (
                             <p className="text-sm text-(--app-muted-foreground)">{label('noNotices')}</p>
                         ) : (
                             <ul className="divide-y divide-(--app-border)">
                                 {summary.notices.map((notice) => (
-                                    <li key={notice.id} className="py-3">
-                                        <p className="text-sm font-semibold text-(--app-foreground)">{notice.title}</p>
-                                        <p className="text-sm text-(--app-muted-foreground)">{notice.message}</p>
-                                        <LocalizedDateDisplay value={notice.created_at} withTime className="text-xs text-(--app-muted-foreground)" />
+                                    <li key={notice.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
+                                        <span className="min-w-0">
+                                            <span className="block text-sm font-semibold text-(--app-foreground)">{notice.title}</span>
+                                            <span className="block text-sm text-(--app-muted-foreground)">{notice.message}</span>
+                                            <LocalizedDateDisplay value={notice.created_at} withTime className="text-xs text-(--app-muted-foreground)" />
+                                        </span>
+                                        <span className="flex gap-3">
+                                            {notice.case_id && <Link href={route('employee.court-cases.show', notice.case_id)} className={actionLinkClassName()}>{label('openCase')}</Link>}
+                                            <button type="button" onClick={() => markRead(notice.id)} disabled={reading !== null} className={actionLinkClassName({ tone: 'neutral' })}>{label('markRead')}</button>
+                                        </span>
                                     </li>
                                 ))}
                             </ul>

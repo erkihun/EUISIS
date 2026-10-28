@@ -10,6 +10,7 @@ use App\Http\Controllers\Core\CoreIntegrationCenterController;
 use App\Http\Controllers\Core\CoreSettingsController;
 use App\Http\Controllers\Core\CoreWorkspaceController;
 use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
+use App\Http\Controllers\Employee\EmployeeCourtCaseController;
 use App\Http\Controllers\Employee\EmployeeCourtCasesController;
 use App\Http\Controllers\Employee\EmployeeCourtFilingController;
 use App\Http\Controllers\Employee\EmployeePortalController;
@@ -410,12 +411,29 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
         Route::get('/my-portal/'.$section, [EmployeeSelfServiceController::class, 'page'])->defaults('section', $section)->name('employee.'.$section);
     }
     Route::get('/my-portal/services', [EmployeePortalController::class, 'myEntitlements'])->name('employee.services');
-    // My court cases (court-ms Flow 4): the employee's tribunal cases, and the court portal opened signed in.
+    // My court cases (court-ms Flow 4): the employee's tribunal cases and court notices.
     Route::get('/my-portal/court-cases', [EmployeeCourtCasesController::class, 'index'])->name('employee.court-cases');
-    Route::post('/my-portal/court-cases/open', [EmployeeCourtCasesController::class, 'open'])->middleware('throttle:20,1')->name('employee.court-cases.open');
+    Route::post('/my-portal/court-cases/notices/read', [EmployeeCourtCasesController::class, 'readNotices'])->middleware('throttle:60,1')->name('employee.court-cases.notices.read');
     // File a case (court-ms Flow 5): employees file here, against an institution registered in EUISIS.
     Route::get('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'create'])->name('employee.court-cases.file');
     Route::post('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'store'])->middleware('throttle:10,1')->name('employee.court-cases.file.store');
+    // A case, worked on here (court-ms Flow 6): court-ms's applicant portal is closed.
+    Route::prefix('/my-portal/court-cases/{case}')->whereNumber(['case', 'file', 'evidence', 'witness', 'response', 'reply', 'id'])
+        ->controller(EmployeeCourtCaseController::class)->name('employee.court-cases.')->group(function (): void {
+            Route::get('/', 'show')->name('show');
+            Route::get('/correct', 'edit')->name('correct');
+            Route::post('/correct', 'correct')->middleware('throttle:10,1')->name('correct.store');
+            Route::post('/messages', 'message')->middleware('throttle:30,1')->name('messages.store');
+            Route::post('/files', 'upload')->middleware('throttle:20,1')->name('files.store');
+            Route::post('/files/{file}/delete', 'deleteFile')->middleware('throttle:20,1')->name('files.destroy');
+            Route::post('/evidences/{evidence}/delete', 'deleteEvidence')->middleware('throttle:20,1')->name('evidences.destroy');
+            Route::post('/witnesses/{witness}/delete', 'deleteWitness')->middleware('throttle:20,1')->name('witnesses.destroy');
+            Route::get('/download/{kind}/{id?}', 'download')->middleware('throttle:60,1')->name('download');
+            Route::get('/responses/{response}', 'response')->name('responses.show');
+            Route::post('/responses/{response}/replies', 'storeReply')->middleware('throttle:10,1')->name('replies.store');
+            Route::post('/responses/{response}/replies/{reply}/update', 'updateReply')->middleware('throttle:10,1')->name('replies.update');
+            Route::post('/responses/{response}/replies/{reply}/delete', 'destroyReply')->middleware('throttle:10,1')->name('replies.destroy');
+        });
     Route::get('/my-portal/profile/photo', [EmployeeSelfServiceController::class, 'photo'])->name('employee.photo');
     Route::post('/my-portal/profile', [EmployeeSelfServiceController::class, 'update'])->middleware('throttle:30,1')->name('employee.profile.update');
     Route::post('/my-portal/profile/contact', [EmployeeSelfServiceController::class, 'requestContact'])->middleware('throttle:3,10')->name('employee.contact.request');

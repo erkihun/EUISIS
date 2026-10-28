@@ -26,13 +26,9 @@ return [
 
     'verify_tls' => (bool) env('COURT_MS_VERIFY_TLS', true),
 
-    // Flow 4: My Portal > My court cases shows the employee's tribunal cases and opens the
-    // court portal signed in (the token needs court-ms's people:read and people:sign-in).
+    // Flows 4 and 6: My Portal > My court cases lists the employee's tribunal cases, and each
+    // case is followed and answered there (the token needs court-ms's people:read and people:act).
     'employee_portal' => (bool) env('COURT_MS_EMPLOYEE_PORTAL', false),
-
-    // The address browsers use for court-ms, when it differs from COURT_MS_URL (an internal
-    // API address, say). Sign-in links are followed only to this host.
-    'public_url' => rtrim((string) env('COURT_MS_PUBLIC_URL', ''), '/'),
 
     // Grievance category code => court-ms case type id, the referral form's default choice.
     // JSON, e.g. {"DISMISSAL":3,"TRANSFER":4}; the officer can still pick another type.
