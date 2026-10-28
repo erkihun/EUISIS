@@ -13,6 +13,7 @@ use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivi
 use App\Http\Controllers\Employee\EmployeeCourtCaseController;
 use App\Http\Controllers\Employee\EmployeeCourtCasesController;
 use App\Http\Controllers\Employee\EmployeeCourtFilingController;
+use App\Http\Controllers\Employee\EmployeeCourtPartiesController;
 use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
@@ -417,6 +418,11 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     // File a case (court-ms Flow 5): employees file here, against an institution registered in EUISIS.
     Route::get('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'create'])->name('employee.court-cases.file');
     Route::post('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'store'])->middleware('throttle:10,1')->name('employee.court-cases.file.store');
+    Route::post('/my-portal/court-cases/colleague', [EmployeeCourtFilingController::class, 'colleague'])->middleware('throttle:30,1')->name('employee.court-cases.colleague');
+    // Several parties (court-ms, ADR 0013 #13): invitations to join a case, and applications to intervene.
+    Route::post('/my-portal/court-cases/invitations/{party}/respond', [EmployeeCourtPartiesController::class, 'respond'])->whereNumber('party')->middleware('throttle:20,1')->name('employee.court-cases.invitations.respond');
+    Route::get('/my-portal/court-cases/intervene', [EmployeeCourtPartiesController::class, 'intervene'])->name('employee.court-cases.intervene');
+    Route::post('/my-portal/court-cases/intervene', [EmployeeCourtPartiesController::class, 'storeIntervention'])->middleware('throttle:10,1')->name('employee.court-cases.intervene.store');
     // A case, worked on here (court-ms Flow 6): court-ms's applicant portal is closed.
     Route::prefix('/my-portal/court-cases/{case}')->whereNumber(['case', 'file', 'evidence', 'witness', 'response', 'reply', 'id'])
         ->controller(EmployeeCourtCaseController::class)->name('employee.court-cases.')->group(function (): void {

@@ -79,12 +79,60 @@ final class EmployeeCourtPortal
      * @param  list<array{name: string, contents: string, title: string, source?: string}>  $documents
      * @return array{case_id: int, case_number: string, review_status: string, status: string}
      */
-    public function fileCase(Employee $employee, array $filing, array $documents): array
+    public function fileCase(Employee $employee, array $filing, array $documents, ?array $powerOfAttorney = null): array
     {
-        $result = $this->client->fileCase(['employee' => $this->person($employee), ...$filing], $documents);
+        $result = $this->client->fileCase(['employee' => $this->person($employee), ...$filing], $documents, $powerOfAttorney);
         self::forgetSummary($employee);
 
         return $result;
+    }
+
+    /**
+     * The employee's invitations to join a case and their applications to intervene
+     * (ADR 0013 #13); null when court-ms cannot be reached.
+     *
+     * @return array{invitations: list<array<string, mixed>>, interventions: list<array<string, mixed>>}|null
+     */
+    public function parties(Employee $employee): ?array
+    {
+        try {
+            return $this->client->parties((string) $employee->getKey());
+        } catch (CourtMsException) {
+            return null;
+        }
+    }
+
+    /**
+     * The court's register of verified lawyers, for the filing form; empty when
+     * court-ms cannot be reached.
+     *
+     * @return list<array{name: string, license_number: string}>
+     */
+    public function lawyers(): array
+    {
+        try {
+            return $this->client->lawyers();
+        } catch (CourtMsException) {
+            return [];
+        }
+    }
+
+    /** @return array<string, mixed> */
+    public function respondToInvitation(Employee $employee, int $partyId, bool $accept): array
+    {
+        $result = $this->client->respondToInvitation($partyId, $this->person($employee), $accept);
+        self::forgetSummary($employee);
+
+        return $result;
+    }
+
+    /**
+     * @param  array{name: string, contents: string}|null  $document
+     * @return array<string, mixed>
+     */
+    public function intervene(Employee $employee, string $caseNumber, string $statement, ?array $document = null): array
+    {
+        return $this->client->intervene($this->person($employee), $caseNumber, $statement, $document);
     }
 
     public static function forgetSummary(Employee $employee): void

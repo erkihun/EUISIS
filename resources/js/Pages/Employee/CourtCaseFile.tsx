@@ -1,5 +1,5 @@
 import { useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
@@ -25,6 +25,8 @@ type Props = {
     organizations: Organization[];
     defaultOrganizationId: string | null;
     grievances: Grievance[];
+    /** The court's register of verified lawyers (ADR 0013 #13). */
+    lawyers: Array<{ name: string; license_number: string }>;
     limits: { documents: number; documentMb: number };
     /** Why court-ms refused the last attempt (courtCases.portal.errors.*). */
     error: string | null;
@@ -34,8 +36,10 @@ type Props = {
  * My Portal > My court cases > File a case (court-ms Flow 5). The employee files
  * here, against an institution registered in EUISIS, and chooses the grievances
  * the case concerns: their letters, decisions and PDFs go to the court with it.
+ * Other employees may file with them, each confirming in their own My Portal,
+ * and a lawyer from the court's register may represent them (ADR 0013 #13).
  */
-export default function CourtCaseFile({ filingId, caseTypes, organizations, defaultOrganizationId, grievances, limits, error }: Props) {
+export default function CourtCaseFile({ filingId, caseTypes, organizations, defaultOrganizationId, grievances, lawyers, limits, error }: Props) {
     const { t, locale } = useLocale();
     const enumLabel = useEnumLabel();
     const label = (key: string, values: Record<string, string | number> = {}) =>
@@ -49,9 +53,33 @@ export default function CourtCaseFile({ filingId, caseTypes, organizations, defa
         relief_requested: '',
         grievance_ids: [] as string[],
         files: [] as File[],
+        co_applicants: [] as string[],
+        lawyer_license_number: '',
+        power_of_attorney: null as File | null,
     });
     const errors = form.errors as Record<string, string | undefined>;
     const fileErrors = Object.entries(errors).filter(([key]) => key.startsWith('files.')).map(([, message]) => message).join(' ') || undefined;
+    const coApplicantErrors = Object.entries(errors).filter(([key]) => key.startsWith('co_applicants')).map(([, message]) => message).join(' ') || undefined;
+    // Co-applicants are added by employee number, after their name is checked.
+    const [names, setNames] = useState<Record<string, string>>({});
+    const [number, setNumber] = useState('');
+    const [lookup, setLookup] = useState<{ busy: boolean; error: string | null }>({ busy: false, error: null });
+
+    const addColleague = async () => {
+        const value = number.trim();
+        if (value === '' || form.data.co_applicants.includes(value)) return;
+        setLookup({ busy: true, error: null });
+        try {
+            const response = await window.axios.post<{ data: { employee_number: string; name: string } }>(route('employee.court-cases.colleague'), { employee_number: value });
+            setNames((current) => ({ ...current, [value]: response.data.data.name }));
+            form.setData('co_applicants', [...form.data.co_applicants, value]);
+            setNumber('');
+            setLookup({ busy: false, error: null });
+        } catch (failure) {
+            const message = (failure as { response?: { data?: { message?: string } } }).response?.data?.message;
+            setLookup({ busy: false, error: message ?? t('courtCases.portal.errors.unavailable') });
+        }
+    };
     const nameOf = (organization: Organization) => (locale === 'am' ? organization.name_am || organization.name_en : organization.name_en || organization.name_am || '');
 
     const toggleGrievance = (id: string, checked: boolean) => {
@@ -151,6 +179,59 @@ export default function CourtCaseFile({ filingId, caseTypes, organizations, defa
                                 onChange={(e) => form.setData('files', Array.from(e.target.files ?? []))} />
                         )}
                     </FormField>
+                </Card>
+
+                <Card className="space-y-4">
+                    <div>
+                        <h2 className="text-base font-semibold text-(--app-foreground)">{label('partiesSection')}</h2>
+                        <p className="text-sm text-(--app-muted-foreground)">{label('partiesHelp')}</p>
+                    </div>
+                    <FormField label={label('coApplicant')} error={lookup.error ?? coApplicantErrors} className="md:max-w-md">
+                        {({ id, describedBy, invalid }) => (
+                            <div className="flex gap-2">
+                                <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} maxLength={60} value={number} placeholder={label('coApplicantPlaceholder')}
+                                    onChange={(e) => { setNumber(e.target.value); setLookup({ busy: false, error: null }); }}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void addColleague(); } }} />
+                                <Button type="button" variant="outline" onClick={() => { void addColleague(); }} loading={lookup.busy} disabled={lookup.busy || number.trim() === ''}>{label('addCoApplicant')}</Button>
+                            </div>
+                        )}
+                    </FormField>
+                    {form.data.co_applicants.length > 0 && (
+                        <ul className="divide-y divide-(--app-border) rounded-lg border border-(--app-border)">
+                            {form.data.co_applicants.map((value) => (
+                                <li key={value} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                                    <span className="min-w-0">
+                                        <span className="font-medium text-(--app-foreground)">{names[value] ?? value}</span>
+                                        <span className="ml-2 font-mono text-xs text-(--app-muted-foreground)">{value}</span>
+                                    </span>
+                                    <button type="button" className="text-sm font-medium text-red-600 hover:underline" onClick={() => form.setData('co_applicants', form.data.co_applicants.filter((item) => item !== value))}>
+                                        {label('removeCoApplicant')}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+
+                    <div className="grid gap-4 border-t border-(--app-border) pt-4 md:grid-cols-2">
+                        <FormField label={label('lawyer')} description={lawyers.length === 0 ? label('noLawyers') : label('lawyerHelp')} error={errors.lawyer_license_number}>
+                            {({ id, describedBy, invalid }) => (
+                                <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.lawyer_license_number} disabled={lawyers.length === 0}
+                                    onChange={(e) => form.setData('lawyer_license_number', e.target.value)}>
+                                    <option value="">{label('noLawyer')}</option>
+                                    {lawyers.map((lawyer) => <option key={lawyer.license_number} value={lawyer.license_number}>{`${lawyer.name} · ${lawyer.license_number}`}</option>)}
+                                </Select>
+                            )}
+                        </FormField>
+                        {form.data.lawyer_license_number !== '' && (
+                            <FormField label={label('powerOfAttorney')} required description={label('powerOfAttorneyHelp')} error={errors.power_of_attorney}>
+                                {({ id, describedBy, invalid }) => (
+                                    <input id={id} aria-describedby={describedBy} aria-invalid={invalid} type="file" required accept=".pdf,application/pdf"
+                                        className="block w-full text-sm text-(--app-foreground) file:mr-3 file:rounded-md file:border-0 file:bg-(--app-surface-muted) file:px-3 file:py-2"
+                                        onChange={(e) => form.setData('power_of_attorney', e.target.files?.[0] ?? null)} />
+                                )}
+                            </FormField>
+                        )}
+                    </div>
                 </Card>
 
                 <div className="flex flex-wrap items-center justify-end gap-3">

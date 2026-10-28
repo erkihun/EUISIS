@@ -125,6 +125,17 @@ organization cache), and make sure its scheduler runs.
   letters and the evidence the employee submitted (at most 20 PDFs of 10 MB). court-ms
   starts the case in intake review; the form id makes a second send file it once. An
   account with no employee record cannot file.
+- **Filing with others (ADR 0013 #13):** the filing form also takes **co-applicants** by
+  employee number (each checked by name first, `employee.court-cases.colleague`; only active
+  employees, never oneself; sent to court-ms by EUISIS id) and a **lawyer** from the court's
+  register (`/people/lawyers`: name and licence number only) with the power of attorney as a
+  PDF. Each co-applicant, and an employee whose lawyer filed for them in court-ms, sees the
+  case under *Cases waiting for your confirmation* on My court cases and joins or declines
+  there; joining opens their court account if they had none, and opens the case. *Apply to
+  intervene* asks to take part in another employee's case (case number, grounds, an
+  optional PDF); only the judge of the case decides, and the outcome shows under *My
+  applications to intervene*. A case page lists the parties and their lawyers, the
+  employee's own role, and when cases were merged, the case each went into.
 - **Court letters (Flow 5):** when the tribunal approves a letter on a case against an
   institution registered here, `court-ms:poll` receives it with its PDF
   (`court_ms_letters`, PDFs on the `local` disk under `court-ms/letters/`) and notifies
@@ -164,7 +175,8 @@ organization cache), and make sure its scheduler runs.
 ## Tests
 
 `tests/Feature/Grievances/CourtMsIntegrationTest.php`,
-`tests/Feature/Integration/CourtMsEmployeePortalTest.php` and
-`tests/Feature/Integration/CourtMsEmployeeFilingTest.php` (EUISIS) and
+`tests/Feature/Integration/CourtMsEmployeePortalTest.php`,
+`tests/Feature/Integration/CourtMsEmployeeFilingTest.php` and
+`tests/Feature/Integration/CourtMsCasePartiesTest.php` (EUISIS) and
 `tests/Feature/Euisis/*` (court-ms) cover access, idempotency, failure handling, the
 sync, the update list and the status mapping.

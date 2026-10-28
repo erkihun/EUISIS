@@ -59,6 +59,7 @@ test('my court cases shows the employee\'s cases read from court-ms', function (
 
     // court-ms is asked with the employee's UUID and national ID, by POST, so the ID is never in a URL.
     Http::assertSent(fn (HttpRequest $request): bool => $request->method() === 'POST'
+        && str_ends_with($request->url(), '/people/court-summary')
         && $request['employee']['uuid'] === (string) $employee->id
         && $request['employee']['national_id'] === '1234567890123456'
         // court-ms words the notices in the language the page is read in.

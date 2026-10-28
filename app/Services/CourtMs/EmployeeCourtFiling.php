@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\CourtMs;
 
+use App\Enums\EmployeeStatus;
 use App\Enums\Grievance\GrievanceDecisionStatus;
 use App\Enums\Grievance\GrievanceLetterStatus;
 use App\Enums\GrievanceStatus;
@@ -59,15 +60,33 @@ final class EmployeeCourtFiling
         return $employee->currentAssignment?->organization_id;
     }
 
+    /** An active employee by employee number: a co-applicant the employee files with. */
+    public function colleague(string $employeeNumber): ?Employee
+    {
+        $number = trim($employeeNumber);
+
+        return $number === '' ? null : Employee::query()->where('employee_number', $number)->where('status', EmployeeStatus::Active->value)->first();
+    }
+
+    /** The name court-ms shows for an employee: the English name, as their court account is opened. */
+    public function nameOf(Employee $employee): string
+    {
+        $name = trim((string) ($employee->fullNameEn() ?: implode(' ', array_filter([$employee->first_name, $employee->middle_name, $employee->last_name]))));
+
+        return $name !== '' ? $name : (string) $employee->employee_number;
+    }
+
     /**
      * @param  array{case_type_id: int, description: string, relief_requested?: ?string, organization_id: string, respondent_address?: ?string, filing_id: string}  $data
      * @param  list<string>  $grievanceIds  the employee's own grievances (checked by the caller)
      * @param  list<UploadedFile>  $uploads  PDFs the employee adds
+     * @param  list<array{uuid: string, name: string}>  $coApplicants  other employees filing with them (checked by the caller)
+     * @param  ?string  $lawyerLicense  a lawyer from the court's register, with the power of attorney
      * @return array{case_id: int, case_number: string, review_status: string, status: string}
      *
      * @throws CourtMsException
      */
-    public function file(Employee $employee, User $user, array $data, array $grievanceIds, array $uploads): array
+    public function file(Employee $employee, User $user, array $data, array $grievanceIds, array $uploads, array $coApplicants = [], ?string $lawyerLicense = null, ?UploadedFile $powerOfAttorney = null): array
     {
         $organization = $this->organizations()->findOrFail($data['organization_id']);
         $grievances = $this->grievances($user)->whereKey($grievanceIds)->with('category')->orderBy('submitted_at')->get();
@@ -96,7 +115,12 @@ final class EmployeeCourtFiling
                 'address' => $data['respondent_address'] ?? null,
             ], fn (mixed $value): bool => $value !== null && $value !== ''),
             'grievances' => json_encode($grievances->map(fn (Grievance $g): array => $this->snapshot($g))->values()->all(), JSON_UNESCAPED_UNICODE),
-        ], array_slice($documents, 0, self::MAX_DOCUMENTS));
+            'co_applicants' => $coApplicants !== [] ? $coApplicants : null,
+            'lawyer_license_number' => $powerOfAttorney !== null ? $lawyerLicense : null,
+        ], array_slice($documents, 0, self::MAX_DOCUMENTS), $powerOfAttorney !== null && $lawyerLicense !== null ? [
+            'name' => $powerOfAttorney->getClientOriginalName() ?: 'power-of-attorney.pdf',
+            'contents' => (string) $powerOfAttorney->get(),
+        ] : null);
     }
 
     /**

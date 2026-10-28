@@ -80,4 +80,10 @@ return [
     'fields' => [
         'full_name' => 'Legal name', 'name' => 'Legal name', 'name_en' => 'English name', 'photo' => 'Profile photo', 'photo_path' => 'Profile photo', 'email' => 'Personal email', 'phone' => 'Phone number', 'address' => 'Current address', 'emergency_contact_name' => 'Emergency contact name', 'emergency_contact_phone' => 'Emergency contact phone', 'emergency_contact_relationship' => 'Relationship', 'preferred_language' => 'Preferred language', 'notification_preferences' => 'Email notifications', 'employee_number' => 'Employee number', 'employment_type' => 'Employment type', 'organization' => 'Organization', 'organization_unit' => 'Organization unit', 'position' => 'Position', 'job_grade' => 'Job grade', 'date_of_birth' => 'Date of birth', 'gender' => 'Sex', 'nationality' => 'Nationality', 'national_id' => 'National ID', 'effective_from' => 'Assignment start date',
     ],
+    // Filing with others at the administrative court (court-ms, ADR 0013 #13).
+    'court' => [
+        'colleague_not_found' => 'No active employee has the number :number.',
+        'colleague_is_you' => 'You file the case yourself; add only the other employees filing with you.',
+        'lawyer_not_listed' => 'Choose a lawyer from the court\'s register.',
+    ],
 ];

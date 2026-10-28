@@ -30,6 +30,8 @@ class EmployeeCourtCasesController extends Controller
                 'summary' => null,
                 'error' => null,
                 'filed' => null,
+                'parties' => null,
+                'done' => null,
             ]);
         }
 
@@ -50,6 +52,11 @@ class EmployeeCourtCasesController extends Controller
             'error' => $request->session()->get('court_error'),
             // The case number of a case just filed from My Portal (Flow 5).
             'filed' => $request->session()->get('court_filed'),
+            // Invitations to join a case and applications to intervene (ADR 0013 #13), even before
+            // the employee has a court account: answering an invitation opens it.
+            'parties' => $summary === null ? null : $portal->parties($employee),
+            // The step just done (courtCases.portal.done.*).
+            'done' => $request->session()->get('court_done'),
         ]);
     }
 

@@ -10,6 +10,7 @@ use App\Models\Organization;
 use App\Services\CourtMs\CourtMsException;
 use App\Services\CourtMs\EmployeeCourtFiling;
 use App\Services\CourtMs\EmployeeCourtPortal;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -52,6 +53,8 @@ class EmployeeCourtFilingController extends Controller
                     'submitted_at' => $g->submitted_at?->toIso8601String(),
                     'documents' => $filing->documentCount($g, $user),
                 ])->values()->all(),
+            // The court's register of verified lawyers (ADR 0013 #13): name and licence number only.
+            'lawyers' => $portal->lawyers(),
             'limits' => ['documents' => EmployeeCourtFiling::MAX_DOCUMENTS, 'documentMb' => EmployeeCourtFiling::MAX_DOCUMENT_BYTES / 1024 / 1024],
             // Why court-ms refused the last attempt, once (courtCases.portal.errors.*).
             'error' => $request->session()->get('court_error'),
@@ -76,15 +79,35 @@ class EmployeeCourtFilingController extends Controller
             'grievance_ids.*' => ['uuid'],
             'files' => ['nullable', 'array', 'max:10'],
             'files.*' => ['file', 'mimes:pdf', 'max:'.(EmployeeCourtFiling::MAX_DOCUMENT_BYTES / 1024)],
+            // Other employees filing with them (each confirms in their own My Portal) and a lawyer (ADR 0013 #13).
+            'co_applicants' => ['nullable', 'array', 'max:20'],
+            'co_applicants.*' => ['string', 'max:60', 'distinct'],
+            'lawyer_license_number' => ['nullable', 'string', 'max:80'],
+            'power_of_attorney' => ['nullable', 'required_with:lawyer_license_number', 'file', 'mimes:pdf', 'max:'.(EmployeeCourtFiling::MAX_DOCUMENT_BYTES / 1024)],
         ]);
 
         $grievanceIds = array_values(array_unique((array) ($data['grievance_ids'] ?? [])));
         if ($grievanceIds !== [] && $filing->grievances($user)->whereKey($grievanceIds)->count() !== count($grievanceIds)) {
             throw ValidationException::withMessages(['grievance_ids' => __('validation.exists', ['attribute' => 'grievance'])]);
         }
+        $coApplicants = [];
+        foreach (array_values((array) ($data['co_applicants'] ?? [])) as $i => $number) {
+            $colleague = $filing->colleague((string) $number);
+            if ($colleague === null || $colleague->is($employee)) {
+                throw ValidationException::withMessages(["co_applicants.{$i}" => $colleague === null
+                    ? __('employee-portal.court.colleague_not_found', ['number' => trim((string) $number)])
+                    : __('employee-portal.court.colleague_is_you')]);
+            }
+            $coApplicants[] = ['uuid' => (string) $colleague->getKey(), 'name' => $filing->nameOf($colleague)];
+        }
+        $lawyer = filled($data['lawyer_license_number'] ?? null) ? trim((string) $data['lawyer_license_number']) : null;
+        if ($lawyer !== null && ! in_array($lawyer, array_column($portal->lawyers(), 'license_number'), true)) {
+            throw ValidationException::withMessages(['lawyer_license_number' => __('employee-portal.court.lawyer_not_listed')]);
+        }
 
         try {
-            $case = $filing->file($employee, $user, $data, $grievanceIds, array_values((array) $request->file('files', [])));
+            $case = $filing->file($employee, $user, $data, $grievanceIds, array_values((array) $request->file('files', [])),
+                $coApplicants, $lawyer, $lawyer !== null ? $request->file('power_of_attorney') : null);
         } catch (CourtMsException $e) {
             if ($e->status === 422 && $e->errors !== []) {
                 // A court-ms rule the form did not catch: shown on the form, never as a crash.
@@ -97,5 +120,20 @@ class EmployeeCourtFilingController extends Controller
 
         // The court cases page confirms it with the case number (courtCases.portal.filed).
         return to_route('employee.court-cases')->with('court_filed', $case['case_number']);
+    }
+
+    /** The active employee with this number, by name only: the filing form checks a co-applicant before adding them. */
+    public function colleague(Request $request, EmployeeCourtFiling $filing): JsonResponse
+    {
+        abort_if($request->user()?->employee === null, 404);
+        $data = $request->validate(['employee_number' => ['required', 'string', 'max:60']]);
+        $colleague = $filing->colleague($data['employee_number']);
+        if ($colleague === null || $colleague->is($request->user()->employee)) {
+            return response()->json(['message' => $colleague === null
+                ? __('employee-portal.court.colleague_not_found', ['number' => trim($data['employee_number'])])
+                : __('employee-portal.court.colleague_is_you')], 404);
+        }
+
+        return response()->json(['data' => ['employee_number' => (string) $colleague->employee_number, 'name' => $filing->nameOf($colleague)]]);
     }
 }

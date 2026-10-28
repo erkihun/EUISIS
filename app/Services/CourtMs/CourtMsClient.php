@@ -110,17 +110,25 @@ final class CourtMsClient
      * Flow 5: a case the employee files from My Portal, with their grievance record
      * (`grievances`, a JSON string) and PDFs. Idempotent on `filing_id`.
      *
+     * A case may name co-applicants (`co_applicants`, each confirms in their own My
+     * Portal) and a lawyer from the court's register (`lawyer_license_number`, with
+     * the power of attorney).
+     *
      * @param  array<string, mixed>  $payload
      * @param  list<array{name: string, contents: string, title: string, source?: string}>  $documents
+     * @param  array{name: string, contents: string}|null  $powerOfAttorney
      * @return array{case_id: int, case_number: string, review_status: string, status: string}
      */
-    public function fileCase(array $payload, array $documents = []): array
+    public function fileCase(array $payload, array $documents = [], ?array $powerOfAttorney = null): array
     {
         $request = $this->request()->timeout(max(60, (int) config('court_ms.timeout', 20)));
 
         try {
             foreach ($documents as $i => $document) {
                 $request = $request->attach("documents[{$i}]", $document['contents'], $document['name'], ['Content-Type' => 'application/pdf']);
+            }
+            if ($powerOfAttorney !== null) {
+                $request = $request->attach('power_of_attorney', $powerOfAttorney['contents'], $powerOfAttorney['name'], ['Content-Type' => 'application/pdf']);
             }
             $response = $request->asMultipart()->post('/api/v1/integration/people/cases', $this->multipartFields($payload, $documents));
         } catch (ConnectionException $e) {
@@ -135,6 +143,83 @@ final class CourtMsClient
             'review_status' => (string) ($data['review_status'] ?? ''),
             'status' => (string) ($data['status'] ?? ''),
         ];
+    }
+
+    /**
+     * Several parties (ADR 0013 #13): the employee's invitations to join a case and
+     * their applications to intervene.
+     *
+     * @return array{invitations: list<array<string, mixed>>, interventions: list<array<string, mixed>>}
+     */
+    public function parties(string $employeeUuid): array
+    {
+        $data = $this->workspace('parties', $employeeUuid);
+
+        return [
+            'invitations' => array_values((array) ($data['invitations'] ?? [])),
+            'interventions' => array_values((array) ($data['interventions'] ?? [])),
+        ];
+    }
+
+    /**
+     * The court's register of verified lawyers (name and licence number only).
+     *
+     * @return list<array{name: string, license_number: string}>
+     */
+    public function lawyers(?string $search = null): array
+    {
+        try {
+            $json = $this->decode($this->request()->post('/api/v1/integration/people/lawyers', array_filter(['q' => $search])));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+
+        return array_values(array_map(fn (array $row): array => [
+            'name' => (string) ($row['name'] ?? ''),
+            'license_number' => (string) ($row['license_number'] ?? ''),
+        ], (array) ($json['data'] ?? [])));
+    }
+
+    /**
+     * The employee joins a case they were invited to, or declines. The employee's
+     * record goes along, since joining may open their court account.
+     *
+     * @param  array<string, mixed>  $person
+     * @return array<string, mixed>
+     */
+    public function respondToInvitation(int $partyId, array $person, bool $accept): array
+    {
+        try {
+            $json = $this->decode($this->request()->post("/api/v1/integration/people/parties/{$partyId}/respond", ['employee' => $person, 'accept' => $accept]));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+
+        return (array) ($json['data'] ?? []);
+    }
+
+    /**
+     * The employee applies to intervene in another employee's case; the judge decides.
+     *
+     * @param  array<string, mixed>  $person
+     * @param  array{name: string, contents: string}|null  $document
+     * @return array<string, mixed>
+     */
+    public function intervene(array $person, string $caseNumber, string $statement, ?array $document = null): array
+    {
+        $request = $this->request()->timeout(max(30, (int) config('court_ms.timeout', 20)));
+        $payload = ['employee' => $person, 'case_number' => $caseNumber, 'statement' => $statement];
+
+        try {
+            $response = $document === null
+                ? $request->post('/api/v1/integration/people/interventions', $payload)
+                : $request->attach('document', $document['contents'], $document['name'], ['Content-Type' => 'application/pdf'])
+                    ->asMultipart()->post('/api/v1/integration/people/interventions', $this->multipartFields($payload, []));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+
+        return (array) ($this->decode($response)['data'] ?? []);
     }
 
     /**

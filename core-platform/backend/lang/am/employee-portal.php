@@ -80,4 +80,10 @@ return [
     'fields' => [
         'full_name' => 'ሕጋዊ ስም', 'name' => 'ሕጋዊ ስም', 'name_en' => 'የእንግሊዝኛ ስም', 'photo' => 'የግል ፎቶ', 'photo_path' => 'የግል ፎቶ', 'email' => 'የግል ኢሜይል', 'phone' => 'ስልክ ቁጥር', 'address' => 'የአሁን አድራሻ', 'emergency_contact_name' => 'የአደጋ ጊዜ ተጠሪ ስም', 'emergency_contact_phone' => 'የአደጋ ጊዜ ተጠሪ ስልክ', 'emergency_contact_relationship' => 'ዝምድና', 'preferred_language' => 'የቋንቋ ምርጫ', 'notification_preferences' => 'የኢሜይል ማሳወቂያዎች', 'employee_number' => 'የሠራተኛ ቁጥር', 'employment_type' => 'የቅጥር ዓይነት', 'organization' => 'ተቋም', 'organization_unit' => 'የሥራ ክፍል', 'position' => 'የሥራ መደብ', 'job_grade' => 'ደረጃ', 'date_of_birth' => 'የትውልድ ቀን', 'gender' => 'ጾታ', 'nationality' => 'ዜግነት', 'national_id' => 'ብሔራዊ መታወቂያ', 'effective_from' => 'የምደባ መጀመሪያ ቀን',
     ],
+    // በአስተዳደር ፍርድ ቤት ከሌሎች ጋር ክስ ማቅረብ (court-ms፣ ADR 0013 #13)።
+    'court' => [
+        'colleague_not_found' => 'ቁጥሩ :number የሆነ በሥራ ላይ ያለ ሠራተኛ የለም።',
+        'colleague_is_you' => 'ክሱን የሚያቀርቡት እርስዎ ነዎት፤ የሚጨምሩት ከእርስዎ ጋር የሚከሱ ሌሎች ሠራተኞችን ብቻ ነው።',
+        'lawyer_not_listed' => 'ከፍርድ ቤቱ የጠበቆች መዝገብ ጠበቃ ይምረጡ።',
+    ],
 ];

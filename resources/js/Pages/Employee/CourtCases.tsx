@@ -19,6 +19,26 @@ type CourtCase = {
     review_status: string;
     filed_at: string | null;
     next_hearing_at: string | null;
+    /** How the employee is a party (ADR 0013 #13): lead, co_applicant or intervener. */
+    role?: string | null;
+    /** The case this one was merged into. */
+    merged_into?: { id: number; case_number: string } | null;
+};
+
+/** An invitation to join a case, or an application to intervene (court-ms case_applicants). */
+type PartyCard = {
+    id: number;
+    case_id: number;
+    case_number: string;
+    case_type: string | null;
+    respondent: string | null;
+    role: 'lead' | 'co_applicant' | 'intervener';
+    status: string;
+    invited_by: string | null;
+    lawyer: { name: string; license_number: string | null } | null;
+    decision_note: string | null;
+    decided_at: string | null;
+    created_at: string | null;
 };
 
 /** `id` is court-ms's `type:source` key; `case_id` the case it concerns. */
@@ -36,6 +56,10 @@ type Props = {
     error: string | null;
     /** The case number of a case just filed from My Portal (Flow 5). */
     filed: string | null;
+    /** Invitations to join a case and applications to intervene; null when court-ms cannot be reached. */
+    parties: { invitations: PartyCard[]; interventions: PartyCard[] } | null;
+    /** The step just done (courtCases.portal.done.*). */
+    done: string | null;
 };
 
 /**
@@ -44,11 +68,18 @@ type Props = {
  * (Flow 5, Employee/CourtCaseFile) and followed and answered here too (Flow 6,
  * Employee/CourtCaseShow); the court portal itself is not used.
  */
-export default function EmployeeCourtCases({ state, summary, error, filed }: Props) {
+export default function EmployeeCourtCases({ state, summary, error, filed, parties, done }: Props) {
     const { t } = useLocale();
     const { withBrand } = useBranding();
     const label = (key: string) => t(`courtCases.portal.${key}`);
     const [reading, setReading] = useState<string | null>(null);
+    const [answering, setAnswering] = useState<number | null>(null);
+
+    /** Joins the case (it opens here once joined) or declines the invitation. */
+    const answer = (invitation: PartyCard, accept: boolean) => {
+        setAnswering(invitation.id);
+        router.post(route('employee.court-cases.invitations.respond', invitation.id), { accept }, { preserveScroll: true, onFinish: () => setAnswering(null) });
+    };
 
     /** Marks one notice (or all of them) as read in court-ms; the list comes back without it. */
     const markRead = (id: string | null) => {
@@ -59,7 +90,14 @@ export default function EmployeeCourtCases({ state, summary, error, filed }: Pro
     // Cases are filed in EUISIS, against an institution registered here (court-ms Flow 5).
     const fileLink = <Link href={route('employee.court-cases.file')} className={buttonClassName({ variant: 'primary', size: 'sm' })}>{label('fileCase')}</Link>;
 
-    const actions = state === 'linked' || state === 'not_linked' ? fileLink : undefined;
+    const actions = state === 'linked' || state === 'not_linked' ? (
+        <div className="flex flex-wrap gap-2">
+            <Link href={route('employee.court-cases.intervene')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{label('intervene')}</Link>
+            {fileLink}
+        </div>
+    ) : undefined;
+    const invitations = parties?.invitations ?? [];
+    const interventions = parties?.interventions ?? [];
 
     const counts = summary?.counts ?? {};
     const stat = (value: number | undefined, text: string): ReactNode => (
@@ -73,6 +111,40 @@ export default function EmployeeCourtCases({ state, summary, error, filed }: Pro
         <PortalPage title={label('title')} description={label('description')} actions={actions}>
             {error && <Alert tone="danger">{t(`courtCases.portal.errors.${error}`)}</Alert>}
             {filed && <Alert tone="success">{label('filed').replace('{number}', filed)}</Alert>}
+            {done && <Alert tone="success">{label(`done.${done}`)}</Alert>}
+
+            {invitations.length > 0 && (
+                <Card className="space-y-3">
+                    <div>
+                        <h2 className="text-base font-semibold text-(--app-foreground)">{label('invitations.title')}</h2>
+                        <p className="text-sm text-(--app-muted-foreground)">{label('invitations.help')}</p>
+                    </div>
+                    <ul className="divide-y divide-(--app-border)">
+                        {invitations.map((invitation) => (
+                            <li key={invitation.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
+                                <span className="min-w-0 space-y-0.5">
+                                    <span className="block text-sm font-semibold text-(--app-foreground)">
+                                        <span className="font-mono">{invitation.case_number}</span>
+                                        {invitation.respondent && <> · {invitation.respondent}</>}
+                                    </span>
+                                    <span className="block text-sm text-(--app-muted-foreground)">
+                                        {invitation.role === 'lead'
+                                            ? label('invitations.byLawyer').replace('{name}', invitation.lawyer?.name ?? '—')
+                                            : label('invitations.byColleague').replace('{name}', invitation.invited_by ?? '—')}
+                                    </span>
+                                    {invitation.case_type && <span className="block text-xs text-(--app-muted-foreground)">{invitation.case_type}</span>}
+                                </span>
+                                <span className="flex flex-wrap gap-2">
+                                    <Button type="button" size="sm" variant="primary" onClick={() => answer(invitation, true)} disabled={answering !== null} loading={answering === invitation.id}>
+                                        {label('invitations.accept')}
+                                    </Button>
+                                    <Button type="button" size="sm" variant="outline" onClick={() => answer(invitation, false)} disabled={answering !== null}>{label('invitations.decline')}</Button>
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            )}
 
             {state === 'no_employee' && <Alert tone="info">{label('noEmployee')}</Alert>}
             {state === 'disabled' && <Alert tone="info">{withBrand(label('disabled'))}</Alert>}
@@ -110,7 +182,11 @@ export default function EmployeeCourtCases({ state, summary, error, filed }: Pro
                                 <TBody>
                                     {summary.cases.map((courtCase) => (
                                         <Tr key={courtCase.id}>
-                                            <Td className="whitespace-nowrap font-mono text-sm">{courtCase.case_number}</Td>
+                                            <Td className="whitespace-nowrap">
+                                                <span className="block font-mono text-sm">{courtCase.case_number}</span>
+                                                {courtCase.role && courtCase.role !== 'lead' && <span className="block text-xs text-(--app-muted-foreground)">{label(`roles.${courtCase.role}`)}</span>}
+                                                {courtCase.merged_into && <span className="block text-xs text-amber-700 dark:text-amber-400">{label('mergedInto').replace('{number}', courtCase.merged_into.case_number)}</span>}
+                                            </Td>
                                             <Td muted={!courtCase.respondent} className="min-w-48">{courtCase.respondent ?? '—'}</Td>
                                             <Td muted={!courtCase.case_type} className="whitespace-nowrap">{courtCase.case_type ?? '—'}</Td>
                                             <Td><StatusBadge status={courtCase.status} label={label(`status.${courtCase.status}`)} /></Td>
@@ -129,6 +205,29 @@ export default function EmployeeCourtCases({ state, summary, error, filed }: Pro
                             </Table>
                         )}
                     </Card>
+
+                    {interventions.length > 0 && (
+                        <Card className="space-y-3">
+                            <h2 className="text-base font-semibold text-(--app-foreground)">{label('interventions.title')}</h2>
+                            <ul className="divide-y divide-(--app-border)">
+                                {interventions.map((intervention) => (
+                                    <li key={intervention.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
+                                        <span className="min-w-0 space-y-0.5">
+                                            <span className="block font-mono text-sm font-semibold text-(--app-foreground)">{intervention.case_number}</span>
+                                            <LocalizedDateDisplay value={intervention.created_at} className="block text-xs text-(--app-muted-foreground)" />
+                                            {intervention.decision_note && <span className="block text-sm text-(--app-muted-foreground)">{intervention.decision_note}</span>}
+                                        </span>
+                                        <span className="flex items-center gap-3">
+                                            <StatusBadge status={intervention.status} label={label(`interventions.status.${intervention.status}`)} />
+                                            {intervention.status === 'admitted' && (
+                                                <Link href={route('employee.court-cases.show', intervention.case_id)} className={actionLinkClassName()}>{label('openCase')}</Link>
+                                            )}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </Card>
+                    )}
 
                     <Card className="space-y-3">
                         <div className="flex items-center justify-between gap-3">

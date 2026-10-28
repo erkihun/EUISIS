@@ -30,8 +30,21 @@ type Workspace = {
     messages: Array<{ id: number; body: string; mine: boolean; sender_name: string | null; created_at: string | null }>;
     files: Array<{ id: number; name: string; created_at: string | null; can_delete: boolean }>;
     review: { status: string; note: string | null };
-    /** A pending case the registry has not accepted may still be corrected. */
+    /** A pending case the registry has not accepted may still be corrected, by its lead applicant. */
     can: { modify: boolean };
+    /** The applicant's side (ADR 0013 #13): the applicant, co-applicants, admitted interveners and their lawyers. */
+    parties?: Array<{
+        id: number;
+        name: string;
+        role: 'lead' | 'co_applicant' | 'intervener';
+        status: string;
+        is_you: boolean;
+        lawyers: Array<{ name: string; license_number: string | null; status: string }>;
+    }>;
+    /** How the employee is a party: lead, co_applicant, intervener (or lawyer). */
+    role?: string | null;
+    merged_into?: { id: number; case_number: string; note: string | null } | null;
+    merged_from?: string[];
 };
 
 type Props = {
@@ -107,6 +120,12 @@ export default function CourtCaseShow({ workspace, error, done }: Props) {
         <PortalPage title={label('title', { number: courtCase.case_number })} description={courtCase.case_type ?? undefined} backHref={route('employee.court-cases')} actions={actions}>
             {error && <Alert tone="danger">{t(`courtCases.portal.errors.${error}`)}</Alert>}
             {done && <Alert tone="success">{label(`done.${done}`)}</Alert>}
+            {workspace.merged_into && (
+                <Alert tone="warning" title={label('mergedInto', { number: workspace.merged_into.case_number })}>
+                    {workspace.merged_into.note && <p>{workspace.merged_into.note}</p>}
+                    <Link href={route('employee.court-cases.show', workspace.merged_into.id)} className={actionLinkClassName()}>{label('openMerged')}</Link>
+                </Alert>
+            )}
             {review.status !== 'accepted' && (
                 <Alert tone={review.status === 'rejected' ? 'danger' : review.status === 'returned' ? 'warning' : 'info'} title={label(`reviewNotice.${review.status}`)}>
                     {review.note && <p><span className="font-medium">{label('reviewNote')}:</span> {review.note}</p>}
@@ -132,6 +151,39 @@ export default function CourtCaseShow({ workspace, error, done }: Props) {
                     </div>
                 )}
             </Card>
+
+            {(workspace.parties?.length ?? 0) > 0 && (
+                <Card>
+                    <CardHeader className="mb-2">
+                        <CardTitle>{label('parties.title')}</CardTitle>
+                        {workspace.role && <CardDescription>{label('parties.yourRole', { role: label(`parties.roles.${workspace.role}`) })}</CardDescription>}
+                    </CardHeader>
+                    <ul className="divide-y divide-(--app-border)">
+                        {workspace.parties?.map((party) => (
+                            <li key={party.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
+                                <span className="min-w-0 space-y-0.5">
+                                    <span className="block text-sm font-semibold text-(--app-foreground)">
+                                        {party.name}{party.is_you && <span className="ml-1 font-normal text-(--app-muted-foreground)">({label('parties.you')})</span>}
+                                    </span>
+                                    {party.lawyers.map((lawyer) => (
+                                        <span key={`${party.id}-${lawyer.license_number}`} className="block text-xs text-(--app-muted-foreground)">
+                                            {label('parties.lawyer', { name: lawyer.name, license: lawyer.license_number ?? '—' })}
+                                            {lawyer.status === 'pending' && <> · {label('parties.lawyerPending')}</>}
+                                        </span>
+                                    ))}
+                                </span>
+                                <span className="flex flex-wrap gap-2">
+                                    <StatusBadge status={party.role === 'lead' ? 'active' : 'info'} label={label(`parties.roles.${party.role}`)} />
+                                    {party.status === 'invited' && <StatusBadge status="pending" label={label('parties.invited')} />}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                    {(workspace.merged_from?.length ?? 0) > 0 && (
+                        <p className="mt-3 border-t border-(--app-border) pt-3 text-sm text-(--app-muted-foreground)">{label('mergedFrom', { numbers: (workspace.merged_from ?? []).join(', ') })}</p>
+                    )}
+                </Card>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-2">
                 <Card>
