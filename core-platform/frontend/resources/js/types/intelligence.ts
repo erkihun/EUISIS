@@ -64,6 +64,6 @@ export type IntelligenceAnalysisFrame = {
     filters: SrFilters;
     query: SrQuery;
     scope: SrScope;
-    options: { units: Array<{ id: string; label: SrLabel }>; feedback_categories: never[]; public_voice: boolean };
+    options: { units: Array<{ id: string; label: SrLabel }>; public_voice: boolean };
     result?: IntelligenceResult;
 };
