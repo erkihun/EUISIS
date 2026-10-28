@@ -6,7 +6,7 @@ architecture review ([platform-governance.md](platform-governance.md)).
 
 | ID | Debt | Reason / risk | Guard today | Way out | Owner | Target |
 | --- | --- | --- | --- | --- | --- | --- |
-| TD-1 | 208 service-module files read Golden Path models directly (25 October: exclusion-create and ledger-filter lookups migrated to `EmployeeDirectory`) | historic; blocks physical separation | `ServiceModuleCoreDependencyTest` ratchet per module | move each module onto Core contracts; lower the baseline | module owners | per module |
+| TD-1 | 207 service-module files read Golden Path models directly (25 October: exclusion-create and ledger-filter lookups migrated to `EmployeeDirectory`) | historic; blocks physical separation | `ServiceModuleCoreDependencyTest` ratchet per module | move each module onto Core contracts; lower the baseline | module owners | per module |
 | TD-2 | ~~Eight partner routes missing from the OpenAPI document~~ **resolved 2026-10-24** (OpenAPI 1.4.0) | — | `OpenApiContractTest` | — | Integration/API Owner | done |
 | TD-3 | ~~Users with no scope rows see every organization~~ **resolved 2026-10-24** for organization-level roles (ADR 0003); role-less accounts with direct permissions remain | access wider than intended | `OrganizationScopeServiceTest`, `access:scope-gaps` | give those accounts a role and a scope | Information Security Lead | before go-live |
 | TD-4 | Legacy masters (institution offices, `users.national_id`, `api_clients`) | second sources of truth | redirects, `backbone:duplicate-masters` | [deprecation-register.md](deprecation-register.md) | Data Steward | per register |

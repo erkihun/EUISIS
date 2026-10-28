@@ -80,7 +80,7 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         'field_work' => 8,
         'recruitment' => 4,
         'transfer' => 15,
-        'feedback' => 18,
+        'feedback' => 17,
         'intelligence' => 2,
         'situation_room' => 12,
         'communication' => 12,

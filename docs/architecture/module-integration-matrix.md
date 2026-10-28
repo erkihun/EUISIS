@@ -32,7 +32,7 @@ is allowed).
 | Assessment | 13 | DIRECT_CORE_ACCESS | none | none | none |
 | Daily work | 12 | DIRECT_CORE_ACCESS | none | none | none |
 | Field work | 8 | DIRECT_CORE_ACCESS | none | none | none |
-| Public / service feedback | 18 | DIRECT_CORE_ACCESS; registers its feedback-link adapter into Core | implements `EmployeeFeedbackLinks` | none | none |
+| Public / service feedback | 17 | DIRECT_CORE_ACCESS; registers its feedback-link adapter into Core | implements `EmployeeFeedbackLinks` | none | none |
 | Grievance | 15 | DIRECT_CORE_ACCESS | none | none | none |
 | Discipline / appeal | 3 | DIRECT_CORE_ACCESS | none | none | none |
 | Organization design | 37 | DIRECT_CORE_ACCESS; job-description stamp through Core | `StampJobDescriptionOnCurrentAssignments` | none | that command only |
@@ -41,7 +41,7 @@ is allowed).
 | Provider portals / NFC | 7 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` | none | none |
 | External systems | n/a | API only | `/api/v1` with scopes and organization bounds | change feed, webhooks | none (ADR 0002) |
 
-Total: 208 files in service modules import a Golden Path model (25 October).
+Total: 207 files in service modules import a Golden Path model (29 October: the issue category removal took one feedback import away).
 
 The exclusion-create and ledger-filter employee lookups now use the scoped
 `EmployeeDirectory` contract. Their existing URLs, permissions, cross-organization
