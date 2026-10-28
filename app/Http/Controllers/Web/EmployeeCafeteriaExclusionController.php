@@ -8,6 +8,7 @@ use App\Actions\Cafeteria\ArchiveEmployeeCafeteriaExclusionAction;
 use App\Actions\Cafeteria\CreateEmployeeCafeteriaExclusionAction;
 use App\Actions\Cafeteria\EndEmployeeCafeteriaExclusionAction;
 use App\Actions\Cafeteria\UpdateEmployeeCafeteriaExclusionAction;
+use App\Backbone\Contracts\EmployeeDirectory;
 use App\Enums\CafeteriaExclusionStatus;
 use App\Enums\CafeteriaExclusionType;
 use App\Http\Controllers\Controller;
@@ -15,7 +16,6 @@ use App\Http\Requests\EndEmployeeCafeteriaExclusionRequest;
 use App\Http\Requests\StoreEmployeeCafeteriaExclusionRequest;
 use App\Http\Requests\UpdateEmployeeCafeteriaExclusionRequest;
 use App\Http\Resources\EmployeeCafeteriaExclusionResource;
-use App\Models\Employee;
 use App\Models\EmployeeCafeteriaExclusion;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
@@ -65,11 +65,12 @@ class EmployeeCafeteriaExclusionController extends Controller
         ]);
     }
 
-    public function store(StoreEmployeeCafeteriaExclusionRequest $request, CreateEmployeeCafeteriaExclusionAction $action): RedirectResponse
+    public function store(StoreEmployeeCafeteriaExclusionRequest $request, CreateEmployeeCafeteriaExclusionAction $action, EmployeeDirectory $employees): RedirectResponse
     {
         $this->authorize('create', EmployeeCafeteriaExclusion::class);
-        $employee = Employee::query()->findOrFail($request->validated('employee_id'));
-        abort_unless(app(OrganizationScopeService::class)->canAccessEmployee($request->user(), $employee), 403);
+        $employeeId = $request->validated('employee_id');
+        abort_if($employees->findByUuid($employeeId) === null, 404);
+        abort_if($employees->findFor($request->user(), $employeeId) === null, 403);
 
         $action->execute($request->validated(), $request->user(), $request);
 

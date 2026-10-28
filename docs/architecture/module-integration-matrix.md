@@ -3,7 +3,7 @@
 How each module uses the Core (the Golden Path backbone). "Reads" lists the
 Core records a module needs; "Writes" must be "none" or a Core command.
 
-Status on 24 October 2026 (Core migration Stage 3). The direct-import counts
+Status on 25 October 2026 (Core migration Stage 3). The direct-import counts
 are files that still `use` a Golden Path model; they are frozen by
 `tests/Unit/ServiceModuleCoreDependencyTest.php` and may only go down. No
 service module writes a Golden Path record at runtime: that is refused by
@@ -22,7 +22,7 @@ is allowed).
 
 | Module | Files importing Core models | Status | Contracts / adapters used | Core events consumed | Writes to Core |
 | --- | --- | --- | --- | --- | --- |
-| Cafeteria | 23 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` (every scan); `CafeteriaEmployeeContext` over `AssignmentContextReader` (exclusion audit context) | none (live verification per scan) | none |
+| Cafeteria | 21 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` (every scan); `CafeteriaEmployeeContext` over `AssignmentContextReader` (exclusion audit context); `EmployeeDirectory` (exclusion creation and selected ledger employee) | none (live verification per scan) | none |
 | Transport | 13 | ADAPTER_INTRODUCED, EVENT_SYNCED | `CredentialLookup`, `ServiceEligibility` (boarding), `EmployeeDirectory` (manual lookup) | `AssignmentChanged`, `EmployeeChanged` (eligibility re-evaluation) | none |
 | Entitlements / service transactions | (in cafeteria and transport counts) | CONTRACT_MIGRATED for the service gate | `ServiceEligibility`, `CredentialLookup` | none | none |
 | Communication | 12 | EVENT_SYNCED | none | `AssignmentChanged`, `EmployeeChanged` (membership sync) | none |
@@ -41,7 +41,14 @@ is allowed).
 | Provider portals / NFC | 7 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` | none | none |
 | External systems | n/a | API only | `/api/v1` with scopes and organization bounds | change feed, webhooks | none (ADR 0002) |
 
-Total: 210 files in service modules import a Golden Path model (24 October).
+Total: 208 files in service modules import a Golden Path model (25 October).
+
+The exclusion-create and ledger-filter employee lookups now use the scoped
+`EmployeeDirectory` contract. Their existing URLs, permissions, cross-organization
+denials and response fields are preserved. Ledger balances can be read by employee
+UUID, while existing callers can still supply an Employee model. The ledger list
+and exclusion resources still use employee relationships; removing these two
+imports does **not** complete Cafeteria's physical separation.
 
 ## What each module owns
 
@@ -69,7 +76,7 @@ identity table of its own; `*_snapshot` columns are evidence, not masters.
 
 ## Next migrations, lowest risk first
 
-1. Cafeteria: the remaining employee lookups in exclusions and ledgers through `EmployeeDirectory`.
+1. Cafeteria: move remaining list/resource relationship reads and reporting lookups behind Core contracts; exclusion creation and selected ledger employee lookups already use `EmployeeDirectory`.
 2. Provider portals: scan lookups through `CredentialVerification`.
 3. EPMS and assessment: current placement through `AssignmentContextReader`, organization subtree through `OrganizationHierarchy`.
 4. Daily and field work: the same two contracts.

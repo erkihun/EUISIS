@@ -9,7 +9,7 @@ measurement says so. Re-score in each quarterly architecture review
 
 | Area | Status | Evidence | What moves it |
 | --- | --- | --- | --- |
-| Architecture | ATTENTION_REQUIRED | Core boundary, scope, contract and drift tests pass in CI; 210 service-module files still read Golden Path models directly (TD-1); physical separation not started (TD-9); live host runs MySQL against decision D-5 (TD-19) | allowlists shrinking; ADR on the production engine |
+| Architecture | ATTENTION_REQUIRED | Core boundary, scope, contract and drift tests pass in CI; 208 service-module files still read Golden Path models directly (TD-1); physical separation not started (TD-9); live host runs MySQL against decision D-5 (TD-19) | allowlists shrinking; ADR on the production engine |
 | Data quality | NOT_MEASURED | the checks exist (`structure:audit`, `data:audit-duplicates`, `backbone:audit-integrity`, `backbone:duplicate-masters`), but no production run is recorded | run them in production; record counts per rule monthly |
 | Security | ATTENTION_REQUIRED | ADR 0003 controls in code; dependency audits clean; MFA required for admin roles; no penetration test (G4); no recorded production access review; secrets rotation dates not recorded; no time-limited elevation (TD-17) | `access:review` and `api:consumers` in production; penetration test; rotation dates |
 | Performance | NOT_MEASURED | 3-million-employee benchmark on a development machine ([../production-readiness/load-test-results.md](../production-readiness/load-test-results.md)); no production latency figures | API latency from `api_request_logs`; load test on production-like hardware |

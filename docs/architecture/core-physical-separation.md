@@ -1,6 +1,6 @@
 # Core physical separation
 
-Status on 24 October 2026: **not ready**. Separation is a later decision; this
+Status on 25 October 2026: **not ready**. Separation is a later decision; this
 document records the boundary, the chosen structure, the prerequisites and the
 tooling that already exists.
 
@@ -9,7 +9,7 @@ tooling that already exists.
 | Prerequisite | State | Evidence |
 | --- | --- | --- |
 | No service module writes Golden Path records directly | met | `tests/Unit/BackboneBoundaryTest.php` (only the development load-test seeder is allowed) |
-| Downstream reads go through contracts or the API | **not met**: 210 service-module files still import Golden Path models | `tests/Unit/ServiceModuleCoreDependencyTest.php`, [module-integration-matrix.md](module-integration-matrix.md) |
+| Downstream reads go through contracts or the API | **not met**: 208 service-module files still import Golden Path models | `tests/Unit/ServiceModuleCoreDependencyTest.php`, [module-integration-matrix.md](module-integration-matrix.md) |
 | Event consumers working | met in process (transport and communication listen to backbone events); partners use the outbox, change feed and webhooks | `BackboneStageTwoTest`, `tests/Feature/Integration/*` |
 | Core write actions authoritative | met inside the application; machine writes refused (ADR 0002) | `MachineWriteBoundaryTest` |
 | Legacy compatibility paths documented | met | [core-workspace.md](core-workspace.md) "Page availability" |
@@ -17,7 +17,9 @@ tooling that already exists.
 | Staging that approximates production | **not available to this work** | — |
 
 Physical database separation must not start while the second row is open:
-moving the tables would break 210 files at once.
+moving the tables would break the remaining direct readers. The 208-file import
+count is a migration ratchet, not an exhaustive inventory of relationship or raw
+SQL dependencies.
 
 ## Boundary
 

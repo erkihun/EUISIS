@@ -68,7 +68,7 @@ function serviceModuleCoreImports(): array
 it('lets no service module add a direct dependency on Golden Path models', function (): void {
     // Baseline 2026-10-24. Lower a number when a module moves onto Core contracts.
     $baseline = [
-        'cafeteria' => 23,
+        'cafeteria' => 21,
         // 2026-10-25: route access, organization lookup, eligibility request, the
         // reevaluation job and the scan service read through Core contracts.
         'transport' => 8,

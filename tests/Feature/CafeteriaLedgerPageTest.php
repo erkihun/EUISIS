@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Backbone\Contracts\EmployeeDirectory;
 use App\Models\CafeteriaSubsidyLedger;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -11,6 +12,7 @@ use App\Models\OrganizationType;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
     Permission::findOrCreate('cafeteria_ledger.view', 'web');
@@ -66,6 +68,30 @@ it('filters by date and type without changing the selected employee current bala
         ->where('summary.net', 10)->where('balance', 6));
     $this->get(route('cafeteria.ledger.index', ['entry_type' => 'extra_usage']))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->has('entries', 1)->where('summary.debits', 4)->where('summary.net', -4));
+});
+
+it('reads a selected employee through the scoped Core directory and preserves the public fields', function (): void {
+    $identity = app(EmployeeDirectory::class)->findFor($this->actor, $this->people[0]->id);
+    $directory = Mockery::mock(EmployeeDirectory::class);
+    $directory->shouldReceive('findFor')->once()->with($this->actor, $this->people[0]->id)->andReturn($identity);
+    app()->instance(EmployeeDirectory::class, $directory);
+    ledgerPageEntry($this->people[0], ['balance_after' => 17]);
+
+    $this->actingAs($this->actor)->get(route('cafeteria.ledger.index', ['employee_id' => $this->people[0]->id]))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('employee', ['id' => $identity->employeeUuid, 'full_name' => $identity->fullName, 'employee_number' => $identity->employeeNumber])
+        ->where('balance', 17));
+});
+
+it('keeps employees without a current assignment out of the ledger filter even for global administrators', function (): void {
+    Role::findOrCreate('Super Admin', 'web');
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Admin');
+    $employee = Employee::query()->create([
+        'employee_number' => 'UNASSIGNED', 'first_name' => 'No', 'last_name' => 'Assignment', 'full_name' => 'No Assignment', 'status' => 'active',
+    ]);
+
+    $this->actingAs($admin)->get(route('cafeteria.ledger.index', ['employee_id' => $employee->id]))->assertNotFound();
 });
 
 it('rejects invalid ledger filters', function (): void {

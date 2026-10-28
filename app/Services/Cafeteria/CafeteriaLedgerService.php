@@ -18,10 +18,11 @@ class CafeteriaLedgerService
      * Get the current running balance for an employee.
      * Positive = credit; negative = pending deduction.
      */
-    public function getBalance(Employee $employee): float
+    public function getBalance(Employee|string $employee): float
     {
+        $employeeId = $employee instanceof Employee ? $employee->getKey() : $employee;
         $latest = CafeteriaSubsidyLedger::query()
-            ->where('employee_id', $employee->id)
+            ->where('employee_id', $employeeId)
             ->orderByDesc('ledger_date')
             ->orderByDesc('created_at')
             ->first('balance_after');
