@@ -117,10 +117,13 @@ final class EmployeeCourtPortal
         }
     }
 
-    /** @return array<string, mixed> */
-    public function respondToInvitation(Employee $employee, int $partyId, bool $accept): array
+    /**
+     * @param  array{name: string, contents: string}|null  $powerOfAttorney
+     * @return array<string, mixed>
+     */
+    public function respondToInvitation(Employee $employee, int $partyId, bool $accept, ?string $lawyerLicenseNumber = null, ?array $powerOfAttorney = null): array
     {
-        $result = $this->client->respondToInvitation($partyId, $this->person($employee), $accept);
+        $result = $this->client->respondToInvitation($partyId, $this->person($employee), $accept, $lawyerLicenseNumber, $powerOfAttorney);
         self::forgetSummary($employee);
 
         return $result;

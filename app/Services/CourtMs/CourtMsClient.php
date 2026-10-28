@@ -250,15 +250,27 @@ final class CourtMsClient
 
     /**
      * The employee joins a case they were invited to, or declines. The employee's
-     * record goes along, since joining may open their court account.
+     * record goes along, since joining may open their court account. Joining, they
+     * may name a lawyer from the court's register, with the power of attorney.
      *
      * @param  array<string, mixed>  $person
+     * @param  array{name: string, contents: string}|null  $powerOfAttorney
      * @return array<string, mixed>
      */
-    public function respondToInvitation(int $partyId, array $person, bool $accept): array
+    public function respondToInvitation(int $partyId, array $person, bool $accept, ?string $lawyerLicenseNumber = null, ?array $powerOfAttorney = null): array
     {
+        $url = "/api/v1/integration/people/parties/{$partyId}/respond";
+        $payload = ['employee' => $person, 'accept' => $accept];
+
         try {
-            $json = $this->decode($this->request()->post("/api/v1/integration/people/parties/{$partyId}/respond", ['employee' => $person, 'accept' => $accept]));
+            if ($accept && $lawyerLicenseNumber !== null && $powerOfAttorney !== null) {
+                $response = $this->request()->timeout(max(30, (int) config('court_ms.timeout', 20)))
+                    ->attach('power_of_attorney', $powerOfAttorney['contents'], $powerOfAttorney['name'], ['Content-Type' => 'application/pdf'])
+                    ->asMultipart()->post($url, $this->multipartFields([...$payload, 'accept' => '1', 'lawyer_license_number' => $lawyerLicenseNumber], []));
+            } else {
+                $response = $this->request()->post($url, $payload);
+            }
+            $json = $this->decode($response);
         } catch (ConnectionException $e) {
             throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
         }

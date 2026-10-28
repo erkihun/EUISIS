@@ -27,16 +27,30 @@ class EmployeeCourtPartiesController extends Controller
 
     public function __construct(private readonly EmployeeCourtPortal $portal) {}
 
-    /** The employee joins the case they were invited to, or declines. */
+    /**
+     * The employee joins the case they were invited to, or declines. Joining, they may
+     * name a lawyer from the court's register, with the power of attorney the registry checks.
+     */
     public function respond(Request $request, int $party): RedirectResponse
     {
-        $data = $request->validate(['accept' => ['required', 'boolean']]);
+        $data = $request->validate([
+            'accept' => ['required', 'boolean'],
+            'lawyer_license_number' => ['nullable', 'string', 'max:60'],
+            'power_of_attorney' => ['nullable', 'required_with:lawyer_license_number', 'file', 'mimes:pdf', 'max:10240'],
+        ]);
         $employee = $this->employee($request);
         $accept = (bool) $data['accept'];
+        $lawyer = $accept && filled($data['lawyer_license_number'] ?? null) ? trim((string) $data['lawyer_license_number']) : null;
+        $document = $lawyer !== null ? $request->file('power_of_attorney') : null;
 
         try {
-            $result = $this->portal->respondToInvitation($employee, $party, $accept);
+            $result = $this->portal->respondToInvitation($employee, $party, $accept, $lawyer,
+                $document !== null ? ['name' => $document->getClientOriginalName() ?: 'power-of-attorney.pdf', 'contents' => (string) $document->get()] : null);
         } catch (CourtMsException $e) {
+            if ($e->status === 422) {
+                throw ValidationException::withMessages($e->errors !== [] ? $e->errors : ['lawyer_license_number' => [$e->getMessage()]]);
+            }
+
             return $this->failed($e);
         }
 

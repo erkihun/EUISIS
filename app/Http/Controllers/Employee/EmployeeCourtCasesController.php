@@ -31,11 +31,15 @@ class EmployeeCourtCasesController extends Controller
                 'error' => null,
                 'filed' => null,
                 'parties' => null,
+                'lawyers' => [],
                 'done' => null,
             ]);
         }
 
         $summary = $portal->summary($employee);
+        $parties = $summary === null ? null : $portal->parties($employee);
+        // An employee joining a colleague's case may name a lawyer: the court's register, fetched only then.
+        $namesLawyer = collect($parties['invitations'] ?? [])->contains(fn (array $invitation): bool => ($invitation['lawyer'] ?? null) === null);
 
         return Inertia::render('Employee/CourtCases', [
             'state' => match (true) {
@@ -54,7 +58,8 @@ class EmployeeCourtCasesController extends Controller
             'filed' => $request->session()->get('court_filed'),
             // Invitations to join a case and applications to intervene (ADR 0013 #13), even before
             // the employee has a court account: answering an invitation opens it.
-            'parties' => $summary === null ? null : $portal->parties($employee),
+            'parties' => $parties,
+            'lawyers' => $namesLawyer ? $portal->lawyers() : [],
             // The step just done (courtCases.portal.done.*).
             'done' => $request->session()->get('court_done'),
         ]);

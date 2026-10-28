@@ -134,6 +134,41 @@ test('invitations are listed, and joining opens the case while declining returns
         ->assertSessionHasErrors('invitation');
 });
 
+test('joining a colleague\'s case, the employee may name a lawyer from the register with the power of attorney', function (): void {
+    $invitation = ['id' => 41, 'case_id' => 9, 'case_number' => 'ADM/00009/26', 'case_type' => 'Administrative', 'respondent' => 'Bureau of Finance',
+        'role' => 'co_applicant', 'status' => 'invited', 'invited_by' => 'Meron A Haile', 'lawyer' => null, 'decision_note' => null, 'decided_at' => null, 'created_at' => now()->toIso8601String()];
+    courtPartiesFake([
+        'court.test/api/v1/integration/people/court-summary' => Http::response(['data' => ['linked' => false]]),
+        'court.test/api/v1/integration/people/parties' => Http::response(['data' => ['invitations' => [$invitation], 'interventions' => []]]),
+        'court.test/api/v1/integration/people/parties/41/respond' => Http::sequence()
+            ->push(['message' => 'No verified lawyer in the court\'s register has this licence number.', 'error_code' => 'unknown_lawyer',
+                'errors' => ['lawyer_license_number' => ['No verified lawyer in the court\'s register has this licence number.']]], 422)
+            ->push(['data' => ['ok' => true, 'case_id' => 9, 'status' => 'active']]),
+    ]);
+    $user = $this->s->complainant;
+
+    // A colleague's invitation brings the register, so the employee can pick their lawyer.
+    $this->actingAs($user)->get(route('employee.court-cases'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('lawyers.0.license_number', 'LIC-1001'));
+
+    // A lawyer needs the power of attorney.
+    $this->actingAs($user)->from(route('employee.court-cases'))
+        ->post(route('employee.court-cases.invitations.respond', 41), ['accept' => true, 'lawyer_license_number' => 'LIC-1001'])
+        ->assertSessionHasErrors('power_of_attorney');
+
+    // court-ms refusing the licence number comes back on the form.
+    $this->actingAs($user)->from(route('employee.court-cases'))
+        ->post(route('employee.court-cases.invitations.respond', 41), ['accept' => true, 'lawyer_license_number' => 'LIC-GONE', 'power_of_attorney' => courtPartiesPdf('poa.pdf')])
+        ->assertSessionHasErrors('lawyer_license_number');
+
+    $this->actingAs($user)->post(route('employee.court-cases.invitations.respond', 41), ['accept' => true, 'lawyer_license_number' => 'LIC-1001', 'power_of_attorney' => courtPartiesPdf('poa.pdf')])
+        ->assertRedirect(route('employee.court-cases.show', 9));
+    Http::assertSent(fn (HttpRequest $request): bool => str_ends_with($request->url(), '/parties/41/respond') && $request->isMultipart()
+        && collect($request->data())->contains(fn ($part) => ($part['name'] ?? null) === 'lawyer_license_number' && $part['contents'] === 'LIC-1001')
+        && collect($request->data())->contains(fn ($part) => ($part['name'] ?? null) === 'power_of_attorney')
+        && collect($request->data())->contains(fn ($part) => ($part['name'] ?? null) === 'employee[uuid]' && $part['contents'] === (string) $user->employee_id));
+});
+
 test('an employee applies to intervene with their grounds and a PDF; court-ms refusals come back on the form', function (): void {
     courtPartiesFake([
         'court.test/api/v1/integration/people/interventions' => Http::sequence()

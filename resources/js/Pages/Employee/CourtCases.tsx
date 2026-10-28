@@ -1,12 +1,12 @@
-import { Link, router } from '@inertiajs/react';
-import { useState, type ReactNode } from 'react';
+import { Link, router, useForm } from '@inertiajs/react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import { useBranding } from '@/hooks/useBranding';
 import { useLocale } from '@/hooks/useLocale';
-import { Alert, Button, Card, TBody, THead, Table, Td, Th, Tr, actionLinkClassName, buttonClassName } from '@euisis/ui';
+import { Alert, Button, Card, FormField, Select, TBody, THead, Table, Td, Th, Tr, actionLinkClassName, buttonClassName } from '@euisis/ui';
 
 type CourtCase = {
     id: number;
@@ -58,9 +58,58 @@ type Props = {
     filed: string | null;
     /** Invitations to join a case and applications to intervene; null when court-ms cannot be reached. */
     parties: { invitations: PartyCard[]; interventions: PartyCard[] } | null;
+    /** The court's register of verified lawyers, when an invitation lets the employee name one. */
+    lawyers?: Array<{ name: string; license_number: string }>;
     /** The step just done (courtCases.portal.done.*). */
     done: string | null;
 };
+
+/**
+ * Joining a colleague's case: the employee may name a lawyer of their own from
+ * the court's register, with the power of attorney the registry then checks.
+ * Without a lawyer they simply join.
+ */
+function JoinPanel({ invitation, lawyers, onCancel }: { invitation: PartyCard; lawyers: Array<{ name: string; license_number: string }>; onCancel: () => void }) {
+    const { t } = useLocale();
+    const label = (key: string) => t(`courtCases.portal.invitations.${key}`);
+    const form = useForm<{ accept: boolean; lawyer_license_number: string; power_of_attorney: File | null }>({ accept: true, lawyer_license_number: '', power_of_attorney: null });
+    const errors = form.errors as Record<string, string | undefined>;
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        form.post(route('employee.court-cases.invitations.respond', invitation.id), { forceFormData: true, preserveScroll: true });
+    };
+
+    return (
+        <form onSubmit={submit} className="basis-full space-y-3 rounded-md border border-dashed border-(--app-border) bg-(--app-surface-muted) p-3">
+            <p className="text-sm text-(--app-muted-foreground)">{label('lawyerHelp')}</p>
+            <div className="grid gap-3 md:grid-cols-2">
+                <FormField label={label('lawyer')} description={lawyers.length === 0 ? label('noLawyers') : undefined} error={errors.lawyer_license_number}>
+                    {({ id, describedBy, invalid }) => (
+                        <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.lawyer_license_number} disabled={lawyers.length === 0}
+                            onChange={(e) => form.setData('lawyer_license_number', e.target.value)}>
+                            <option value="">{label('noLawyer')}</option>
+                            {lawyers.map((lawyer) => <option key={lawyer.license_number} value={lawyer.license_number}>{`${lawyer.name} · ${lawyer.license_number}`}</option>)}
+                        </Select>
+                    )}
+                </FormField>
+                {form.data.lawyer_license_number !== '' && (
+                    <FormField label={label('powerOfAttorney')} required description={label('powerOfAttorneyHelp')} error={errors.power_of_attorney}>
+                        {({ id, describedBy, invalid }) => (
+                            <input id={id} aria-describedby={describedBy} aria-invalid={invalid} type="file" required accept=".pdf,application/pdf"
+                                className="block w-full text-sm text-(--app-foreground) file:mr-3 file:rounded-md file:border-0 file:bg-(--app-surface) file:px-3 file:py-2"
+                                onChange={(e) => form.setData('power_of_attorney', e.target.files?.[0] ?? null)} />
+                        )}
+                    </FormField>
+                )}
+            </div>
+            <div className="flex flex-wrap gap-2">
+                <Button type="submit" size="sm" variant="primary" loading={form.processing}>{label('join')}</Button>
+                <Button type="button" size="sm" variant="ghost" disabled={form.processing} onClick={onCancel}>{label('cancel')}</Button>
+            </div>
+        </form>
+    );
+}
 
 /**
  * My Portal > My court cases (court-ms Flow 4). Applicants at the administrative
@@ -68,12 +117,14 @@ type Props = {
  * (Flow 5, Employee/CourtCaseFile) and followed and answered here too (Flow 6,
  * Employee/CourtCaseShow); the court portal itself is not used.
  */
-export default function EmployeeCourtCases({ state, summary, error, filed, parties, done }: Props) {
+export default function EmployeeCourtCases({ state, summary, error, filed, parties, lawyers = [], done }: Props) {
     const { t } = useLocale();
     const { withBrand } = useBranding();
     const label = (key: string) => t(`courtCases.portal.${key}`);
     const [reading, setReading] = useState<string | null>(null);
     const [answering, setAnswering] = useState<number | null>(null);
+    // The colleague's invitation being joined: its panel asks whether to name a lawyer first.
+    const [joining, setJoining] = useState<number | null>(null);
 
     /** Joins the case (it opens here once joined) or declines the invitation. */
     const answer = (invitation: PartyCard, accept: boolean) => {
@@ -128,18 +179,21 @@ export default function EmployeeCourtCases({ state, summary, error, filed, parti
                                         {invitation.respondent && <> · {invitation.respondent}</>}
                                     </span>
                                     <span className="block text-sm text-(--app-muted-foreground)">
-                                        {invitation.role === 'lead'
-                                            ? label('invitations.byLawyer').replace('{name}', invitation.lawyer?.name ?? '—')
+                                        {/* A lawyer filed for them (as the applicant or one of several clients), or a colleague named them. */}
+                                        {invitation.lawyer && !invitation.invited_by
+                                            ? label('invitations.byLawyer').replace('{name}', invitation.lawyer.name)
                                             : label('invitations.byColleague').replace('{name}', invitation.invited_by ?? '—')}
                                     </span>
                                     {invitation.case_type && <span className="block text-xs text-(--app-muted-foreground)">{invitation.case_type}</span>}
                                 </span>
                                 <span className="flex flex-wrap gap-2">
-                                    <Button type="button" size="sm" variant="primary" onClick={() => answer(invitation, true)} disabled={answering !== null} loading={answering === invitation.id}>
+                                    <Button type="button" size="sm" variant="primary" disabled={answering !== null || joining === invitation.id} loading={answering === invitation.id}
+                                        onClick={() => (invitation.lawyer ? answer(invitation, true) : setJoining(invitation.id))}>
                                         {label('invitations.accept')}
                                     </Button>
                                     <Button type="button" size="sm" variant="outline" onClick={() => answer(invitation, false)} disabled={answering !== null}>{label('invitations.decline')}</Button>
                                 </span>
+                                {joining === invitation.id && <JoinPanel invitation={invitation} lawyers={lawyers} onCancel={() => setJoining(null)} />}
                             </li>
                         ))}
                     </ul>

@@ -131,7 +131,10 @@ organization cache), and make sure its scheduler runs.
   register (`/people/lawyers`: name and licence number only) with the power of attorney as a
   PDF. Each co-applicant, and an employee whose lawyer filed for them in court-ms, sees the
   case under *Cases waiting for your confirmation* on My court cases and joins or declines
-  there; joining opens their court account if they had none, and opens the case. *Apply to
+  there; joining opens their court account if they had none, and opens the case. Joining a
+  colleague's case, they may name a lawyer of their own from the register with the power of
+  attorney (sent multipart; the court registry checks it); a lawyer who filed for several
+  clients at once shows on each co-client's invitation as *Filed for you by your lawyer*. *Apply to
   intervene* asks to take part in another employee's case (case number, grounds, an
   optional PDF); only the judge of the case decides, and the outcome shows under *My
   applications to intervene*. A case page lists the parties and their lawyers, the
