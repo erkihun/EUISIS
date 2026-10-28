@@ -281,6 +281,8 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 items: [
                     { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: InboxOutIcon },
                     { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: GrievanceIcon, permission: 'grievances.view_own', listedInAdmin: true },
+                    // court-ms Flow 4: the employee's tribunal cases; the court portal opens signed in.
+                    { routeName: 'employee.court-cases', labelKey: 'courtCases.portal.nav', icon: ScaleIcon, employeeOnly: true },
                     { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: ScaleIcon, permission: 'discipline.view_own', listedInAdmin: true },
                     { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: BellIcon },
                 ],
@@ -866,6 +868,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const features = (pageProps as { features?: Record<string, boolean> }).features ?? {};
     const moduleEnabled = (routeName: string) => !(
         (!features.transport && routeName.startsWith('transport.'))
+        || (!features.court_portal && routeName.startsWith('employee.court-cases'))
         || (!features.court_cases && routeName.startsWith('court-cases.'))
     );
     // Keep the existing permission contract, including independently permitted child links.

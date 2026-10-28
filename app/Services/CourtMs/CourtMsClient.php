@@ -83,6 +83,53 @@ final class CourtMsClient
         ];
     }
 
+    /** Whether My Portal shows the court section (Flow 4). */
+    public function employeePortalEnabled(): bool
+    {
+        return $this->enabled() && (bool) config('court_ms.employee_portal');
+    }
+
+    /**
+     * Flow 4: an employee's court summary (`linked`, counts, cases, notices).
+     *
+     * @param  array{uuid: string, national_id?: ?string, email?: ?string}  $identity
+     * @return array<string, mixed>
+     */
+    public function employeeSummary(array $identity): array
+    {
+        try {
+            $json = $this->decode($this->request()->post('/api/v1/integration/people/court-summary', ['employee' => $identity]));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+
+        return (array) ($json['data'] ?? []);
+    }
+
+    /**
+     * Flow 4: a one-time URL that opens the court portal signed in as the employee.
+     * Only a URL on court-ms's own public host is accepted.
+     *
+     * @param  array<string, mixed>  $employee
+     */
+    public function signInUrl(array $employee, string $target): string
+    {
+        try {
+            $json = $this->decode($this->request()->post('/api/v1/integration/people/sign-in-tickets', ['employee' => $employee, 'target' => $target]));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+
+        $url = (string) ($json['data']['url'] ?? '');
+        $expected = strtolower((string) parse_url((string) (config('court_ms.public_url') ?: config('court_ms.url')), PHP_URL_HOST));
+        $parts = parse_url($url);
+        if (! is_array($parts) || ! in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true) || strtolower($parts['host'] ?? '') !== $expected) {
+            throw new CourtMsException('court-ms answered with a sign-in link to another site.', retryable: false);
+        }
+
+        return $url;
+    }
+
     /**
      * Multipart sends flat fields: nested arrays become `complainant[name]`.
      *
@@ -128,6 +175,7 @@ final class CourtMsClient
             $status >= 500 || in_array($status, [408, 429], true),
             (array) ($json['errors'] ?? []),
             isset($json['request_id']) ? (string) $json['request_id'] : $response->header('X-Request-ID'),
+            isset($json['error_code']) ? (string) $json['error_code'] : null,
         );
     }
 

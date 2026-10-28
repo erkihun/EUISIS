@@ -27,7 +27,7 @@ const grievances = {
     courtMs: {
         title: 'የአስተዳደር ፍርድ ቤት (court-ms)',
         state: { queued: 'በመላክ ላይ', sent: 'ለፍርድ ቤቱ ተልኳል', failed: 'አልተላከም' },
-        waiting: 'court-ms እስኪደርስ በመጠበቅ ላይ። በራሱ ይላካል።',
+        waiting: 'court-ms እስኪደርስ በመጠባበቅ ላይ። በራሱ ይላካል።',
         retrying: 'court-ms ገና ሊደረስበት አልቻለም፤ :attempts ጊዜ ተሞክሯል። በራሱ መሞከሩን ይቀጥላል።',
         failed: 'court-ms ጉዳዩን አልተቀበለም።',
         caseNumber: 'የፍርድ ቤት የጉዳይ ቁጥር',
@@ -51,7 +51,7 @@ const grievances = {
         noDocuments: 'ይህ ቅሬታ የሚያያዝ የPDF ማስረጃ የለውም።',
         send: 'ለፍርድ ቤቱ ላክ',
         sendAgain: 'እንደገና ላክ',
-        review: { awaiting_review: 'ግምገማ በመጠበቅ ላይ', accepted: 'ተቀባይነት አግኝቷል', returned: 'ተመልሷል', rejected: 'ውድቅ ተደርጓል' },
+        review: { awaiting_review: 'ግምገማ በመጠባበቅ ላይ', accepted: 'ተቀባይነት አግኝቷል', returned: 'ተመልሷል', rejected: 'ውድቅ ተደርጓል' },
         status: { pending: 'በመጠባበቅ ላይ', active: 'በሂደት ላይ', adjourned: 'ተቀጥሯል', dismissed: 'ተሰርዟል', closed: 'ተዘግቷል' },
     },
 

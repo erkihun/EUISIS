@@ -20,6 +20,8 @@ final class CourtMsException extends RuntimeException
         public readonly bool $retryable = true,
         public readonly array $errors = [],
         public readonly ?string $requestId = null,
+        /** court-ms's `error_code` (Flow 4 refusals such as `employee_record_incomplete`). */
+        public readonly ?string $errorCode = null,
     ) {
         parent::__construct($message);
     }
