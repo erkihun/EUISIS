@@ -36,6 +36,27 @@ jobs:
     - name: Tests
       run: php artisan test
 
+  # The same suite on PHP 8.5, the version the live web hosts run.
+  core-backend-php85:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core-platform/backend
+    steps:
+    - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+      with:
+        php-version: '8.5'
+        extensions: pdo_sqlite, mbstring, intl
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: composer install -q --no-ansi --no-interaction --no-progress --prefer-dist
+    - name: Prepare environment
+      run: |
+        cp .env.example .env
+        php artisan key:generate
+    - name: Tests
+      run: php artisan test
+
   # The same suite on PostgreSQL 18, the production engine (ADR 0012): triggers, partial
   # indexes and the window-function backfills behave differently from SQLite.
   core-backend-postgres:

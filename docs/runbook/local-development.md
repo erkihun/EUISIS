@@ -2,7 +2,7 @@
 
 ## Target Stack
 
-- PHP 8.4
+- PHP 8.5 (the live web hosts' version; 8.4 also works, and the standalone Core needs at least 8.4)
 - Composer
 - Node.js current LTS
 - PostgreSQL

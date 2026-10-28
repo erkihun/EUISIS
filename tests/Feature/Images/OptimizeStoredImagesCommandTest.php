@@ -85,7 +85,6 @@ class OptimizeStoredImagesCommandTest extends TestCase
 
         ob_start();
         imagepng($image, null, 6);
-        imagedestroy($image);
 
         return (string) ob_get_clean();
     }

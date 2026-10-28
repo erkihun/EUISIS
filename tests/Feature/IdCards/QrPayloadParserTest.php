@@ -69,7 +69,6 @@ it('routes every terminal through the same parser', function (string $service): 
     $printed = app(CardQrPayloadService::class)->buildStableQrUrl($card);
 
     $resolver = new ReflectionMethod($service, 'resolveCard');
-    $resolver->setAccessible(true);
 
     expect($resolver->invoke(app($service), $printed)?->id)->toBe($card->id);
 })->with([

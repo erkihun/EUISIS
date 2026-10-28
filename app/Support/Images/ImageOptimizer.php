@@ -79,7 +79,7 @@ final class ImageOptimizer
             $outWidth = imagesx($image);
             $outHeight = imagesy($image);
         } finally {
-            imagedestroy($image);
+            unset($image);
         }
 
         if ($tempPath === null) {
@@ -161,8 +161,6 @@ final class ImageOptimizer
             return $image;
         }
 
-        imagedestroy($image);
-
         return $rotated;
     }
 
@@ -178,7 +176,6 @@ final class ImageOptimizer
         }
 
         imagecopyresampled($target, $source, 0, 0, 0, 0, $width, $height, imagesx($source), imagesy($source));
-        imagedestroy($source);
 
         return $target;
     }
