@@ -10,6 +10,8 @@ use App\Http\Controllers\Core\CoreIntegrationCenterController;
 use App\Http\Controllers\Core\CoreSettingsController;
 use App\Http\Controllers\Core\CoreWorkspaceController;
 use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
+use App\Http\Controllers\Employee\EmployeeCourtCasesController;
+use App\Http\Controllers\Employee\EmployeeCourtFilingController;
 use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
@@ -406,14 +408,14 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
 
     foreach (['profile', 'employment', 'organization', 'position', 'id-card', 'service-tasks', 'documents', 'requests', 'notifications', 'security'] as $section) {
         Route::get('/my-portal/'.$section, [EmployeeSelfServiceController::class, 'page'])->defaults('section', $section)->name('employee.'.$section);
-    Route::get('/my-portal/services', [EmployeePortalController::class, 'myEntitlements'])->name('employee.services');
     }
+    Route::get('/my-portal/services', [EmployeePortalController::class, 'myEntitlements'])->name('employee.services');
     // My court cases (court-ms Flow 4): the employee's tribunal cases, and the court portal opened signed in.
-    Route::get('/my-portal/court-cases', [\App\Http\Controllers\Employee\EmployeeCourtCasesController::class, 'index'])->name('employee.court-cases');
-    Route::post('/my-portal/court-cases/open', [\App\Http\Controllers\Employee\EmployeeCourtCasesController::class, 'open'])->middleware('throttle:20,1')->name('employee.court-cases.open');
+    Route::get('/my-portal/court-cases', [EmployeeCourtCasesController::class, 'index'])->name('employee.court-cases');
+    Route::post('/my-portal/court-cases/open', [EmployeeCourtCasesController::class, 'open'])->middleware('throttle:20,1')->name('employee.court-cases.open');
     // File a case (court-ms Flow 5): employees file here, against an institution registered in EUISIS.
-    Route::get('/my-portal/court-cases/file', [\App\Http\Controllers\Employee\EmployeeCourtFilingController::class, 'create'])->name('employee.court-cases.file');
-    Route::post('/my-portal/court-cases/file', [\App\Http\Controllers\Employee\EmployeeCourtFilingController::class, 'store'])->middleware('throttle:10,1')->name('employee.court-cases.file.store');
+    Route::get('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'create'])->name('employee.court-cases.file');
+    Route::post('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'store'])->middleware('throttle:10,1')->name('employee.court-cases.file.store');
     Route::get('/my-portal/profile/photo', [EmployeeSelfServiceController::class, 'photo'])->name('employee.photo');
     Route::post('/my-portal/profile', [EmployeeSelfServiceController::class, 'update'])->middleware('throttle:30,1')->name('employee.profile.update');
     Route::post('/my-portal/profile/contact', [EmployeeSelfServiceController::class, 'requestContact'])->middleware('throttle:3,10')->name('employee.contact.request');

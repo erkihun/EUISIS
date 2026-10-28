@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Services\CourtMs\CourtMsClient;
+
 /**
  * Module feature flags (config/features.php). Modules outside the current
  * production scope stay in the codebase but are unreachable while disabled.
@@ -59,7 +61,7 @@ final class Features
             'transport_gps' => self::enabled('transport') && self::enabled('transport_gps'),
             'court_cases' => self::enabled('court_cases'),
             // My Portal > My court cases (court-ms Flow 4): the connection is configured and the portal section switched on.
-            'court_portal' => app(\App\Services\CourtMs\CourtMsClient::class)->employeePortalEnabled(),
+            'court_portal' => app(CourtMsClient::class)->employeePortalEnabled(),
         ];
     }
 }
