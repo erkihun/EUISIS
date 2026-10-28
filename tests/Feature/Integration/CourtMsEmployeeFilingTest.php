@@ -194,6 +194,8 @@ test('the poll delivers court letters to the institution\'s tribunal officers, o
             ->push(['data' => [$row(1, 11, $this->s->bureau->id), $row(2, 12, (string) str()->uuid())], 'next_cursor' => 2, 'has_more' => false])
             ->push(['data' => [], 'next_cursor' => 2, 'has_more' => false]),
         'court.test/api/v1/integration/letters/11/pdf' => Http::response(COURT_FILING_PDF, 200, ['Content-Type' => 'application/pdf']),
+        // The poll also reads new cases against institutions (Flow 7); none here.
+        'court.test/api/v1/integration/institutions/cases/new' => Http::response(['data' => [], 'next_cursor' => 0, 'has_more' => false]),
     ]);
 
     $this->artisan('court-ms:poll')->expectsOutputToContain('court-ms letters: 2 read, 1 delivered.')->assertSuccessful();

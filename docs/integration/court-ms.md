@@ -47,8 +47,8 @@ php artisan euisis:integration-token --ip=<EUISIS server IP>
 ```
 
 It prints the token once. Rotate with the same command; revoke with `--revoke`. A token
-issued before Flows 4 to 6 gains their abilities (`people:read`, `people:file`,
-`people:act`, `letters:read`) without changing with
+issued before Flows 4 to 7 gains their abilities (`people:read`, `people:file`,
+`people:act`, `letters:read`, `institutions:read`, `institutions:act`) without changing with
 `php artisan euisis:integration-token --refresh-abilities`. With court-ms's
 `EUISIS_PARTIES_ONLY` on (the default with its EUISIS connection), cases can no longer be
 started in the court portal: employees file here (Flow 5). With `EUISIS_PORTAL_IN_EUISIS`
@@ -143,6 +143,25 @@ organization cache), and make sure its scheduler runs.
   They read it under Tribunal Cases > Court letters; people with `court_cases.view` or a
   city-wide scope see every institution's letters. Opening the PDF marks it read. A
   letter whose PDF cannot be read stops the run there; the next poll starts from it.
+- **Cases against an institution (Flow 7, ADR 0013 #14):** each institution names its
+  **court case officer** under Tribunal Cases > Cases against the institution > Court case
+  officers (`grievances.tribunal` over the institution; naming one also gives them the
+  cases waiting without an officer). `court-ms:poll` reads every new case filed against an
+  institution here (`/institutions/cases/new` after its cursor), however it was filed: from
+  My Portal, by a lawyer or by the registry. Each is kept in `institution_court_cases` and
+  given to that officer, who is notified; with nobody named, the institution's tribunal
+  officers are told to assign someone. The case page reads the case live from court-ms
+  (course, hearings, decision) and lets the officer give it to a colleague.
+- **Appeals (ADR 0013 #14):** once a case is closed with a published decision, a party may
+  take its record to the appellate court, which is outside both systems. The employee asks
+  on their case page in My Portal, the institution's officer on the institution's case
+  page, each with the grounds. court-ms's registry releases the record or refuses it with
+  a reason; releasing marks the case as at the appellate court. The released record
+  downloads here as one PDF: the EUISIS grievance or discipline case the case started
+  from, the case, the pleadings, hearings and the bench's notes, witnesses, letters, the
+  decision and the appeal, then the documents as annexes. On the filing form the employee
+  may choose their own **discipline cases** whose decision was delivered to them; each goes
+  with its charges, the employee's answers and the decision, as a grievance does.
 
 ## Status mapping
 
@@ -176,7 +195,8 @@ organization cache), and make sure its scheduler runs.
 
 `tests/Feature/Grievances/CourtMsIntegrationTest.php`,
 `tests/Feature/Integration/CourtMsEmployeePortalTest.php`,
-`tests/Feature/Integration/CourtMsEmployeeFilingTest.php` and
-`tests/Feature/Integration/CourtMsCasePartiesTest.php` (EUISIS) and
+`tests/Feature/Integration/CourtMsEmployeeFilingTest.php`,
+`tests/Feature/Integration/CourtMsCasePartiesTest.php` and
+`tests/Feature/Integration/CourtMsInstitutionCasesTest.php` (EUISIS) and
 `tests/Feature/Euisis/*` (court-ms) cover access, idempotency, failure handling, the
 sync, the update list and the status mapping.

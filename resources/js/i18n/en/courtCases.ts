@@ -132,6 +132,9 @@ const courtCases = {
         noLawyer: 'No lawyer',
         powerOfAttorney: 'Power of attorney (PDF)',
         powerOfAttorneyHelp: 'The court registry checks it before the lawyer may act for you.',
+        disciplinesSection: 'Discipline cases',
+        disciplinesHelp: 'If the case challenges a discipline decision delivered to you, choose the discipline case: its charges, your answers and the decision go to the court with it.',
+        disciplineDelivered: 'Decision delivered',
     },
 
     /* My Portal > My court cases > Apply to intervene (court-ms, ADR 0013 #13). */
@@ -146,6 +149,78 @@ const courtCases = {
         documentHelp: 'A decision, letter or other document that shows your interest in the case.',
         submitHelp: 'The judge admits or refuses your application. You are told the decision here.',
         submit: 'Send the application',
+    },
+
+    /* Tribunal cases > Cases against the institution (court-ms Flow 7, ADR 0013 #14). */
+    institution: {
+        title: 'Cases against the institution',
+        description: 'Cases filed at the administrative tribunal against the institutions you work for. Each new case goes by itself to the officer the institution named to follow its court cases.',
+        none: 'No cases against these institutions.',
+        open: 'Open',
+        unassigned: 'No officer',
+        unassignedHelp: 'Nobody follows this case yet. Assign an officer, or name the institution\'s court case officer.',
+        followedBy: 'Followed by {name}.',
+        filters: {
+            all: 'All',
+            mine: 'Mine',
+            unassigned: 'Without an officer',
+        },
+        table: {
+            received: 'Received',
+            caseNumber: 'Case number',
+            applicants: 'Applicants',
+            institution: 'Institution',
+            officer: 'Officer',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        caseTitle: 'Case {number}',
+        filed: 'Filed',
+        decided: 'Decided: {title},',
+        officer: 'Officer following the case',
+        assignTo: 'Give the case to',
+        assign: 'Assign',
+        hearings: 'Hearings',
+        appealed: 'The case is at the appellate court',
+        errors: {
+            unavailable: 'The court system cannot be reached right now. Try again shortly.',
+            not_released: 'The court\'s registry has not released the record yet.',
+        },
+        appeal: {
+            title: 'Appeal to the appellate court',
+            help: 'Once the case is closed with a published decision, a party may take its record to the appellate court. The court\'s registry releases the record; you then download it here as one PDF, from the proceeding it started from to the decision.',
+            grounds: 'Grounds of appeal',
+            groundsHelp: 'Why the decision should be reviewed by the appellate court.',
+            submit: 'Ask for the record to appeal',
+            download: 'Download the appeal record (PDF)',
+            downloadHelp: 'One PDF with the whole record and its documents as annexes.',
+            outcome: 'Appellate court: {outcome}',
+            outcomes: {
+                confirmed: 'Confirmed',
+                modified: 'Modified',
+                reversed: 'Reversed',
+            },
+            statuses: {
+                draft: 'Draft',
+                submitted: 'Waiting for the registry',
+                under_review: 'Waiting for the registry',
+                approved: 'Record released',
+                rejected: 'Refused',
+                closed: 'Appellate outcome recorded',
+            },
+        },
+        officers: {
+            title: 'Court case officers',
+            description: 'The person each institution names to follow its cases at the administrative tribunal. New cases against the institution go to them by themselves.',
+            none: 'No institutions in your scope.',
+            nobody: 'Nobody named',
+            save: 'Save',
+            table: {
+                institution: 'Institution',
+                officer: 'Court case officer',
+                actions: 'Actions',
+            },
+        },
     },
 
     /* My Portal > My court cases > a case (court-ms Flow 6): followed and answered here. */
@@ -163,6 +238,7 @@ const courtCases = {
             replyUpdated: 'Your reply was updated.',
             replyRemoved: 'Your reply was removed.',
             invitationAccepted: 'You joined the case. It is now one of your court cases.',
+            appealRequested: 'Your request to appeal was sent. The court\'s registry releases the record.',
         },
         reviewNotice: {
             awaiting_review: 'The court registry is reviewing your case before it is opened.',
@@ -232,6 +308,29 @@ const courtCases = {
         courtStaff: 'Court staff',
         messageLabel: 'Message to the court',
         send: 'Send',
+        appeal: {
+            title: 'Appeal to the appellate court',
+            help: 'Once the case is closed with a published decision, a party may take its record to the appellate court. The court\'s registry releases the record; you then download it here as one PDF, from the proceeding it started from to the decision.',
+            grounds: 'Grounds of appeal',
+            groundsHelp: 'Why the decision should be reviewed by the appellate court.',
+            submit: 'Ask for the record to appeal',
+            download: 'Download the appeal record (PDF)',
+            downloadHelp: 'One PDF with the whole record and its documents as annexes.',
+            outcome: 'Appellate court: {outcome}',
+            outcomes: {
+                confirmed: 'Confirmed',
+                modified: 'Modified',
+                reversed: 'Reversed',
+            },
+            statuses: {
+                draft: 'Draft',
+                submitted: 'Waiting for the registry',
+                under_review: 'Waiting for the registry',
+                approved: 'Record released',
+                rejected: 'Refused',
+                closed: 'Appellate outcome recorded',
+            },
+        },
     },
 
     /* … > a case > a respondent response, with the employee's replies (court-ms Flow 6). */

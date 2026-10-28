@@ -166,8 +166,9 @@ it('follows the court case: intake review, hearing and decision reach the tribun
     $case->forceFill(['referral_state' => 'sent', 'court_case_number' => 'ADM/00007/26', 'court_review_status' => 'awaiting_review', 'court_status' => 'pending'])->save();
 
     Http::fake([
-        // The poll also reads court letters (Flow 5); none here.
+        // The poll also reads court letters (Flow 5) and new cases against institutions (Flow 7); none here.
         'court.test/api/v1/integration/letters/updates*' => Http::response(['data' => [], 'next_cursor' => 0, 'has_more' => false]),
+        'court.test/api/v1/integration/institutions/cases/new' => Http::response(['data' => [], 'next_cursor' => 0, 'has_more' => false]),
         'court.test/api/v1/integration/referrals/updates?since=0*' => Http::response(['data' => [[
             'cursor' => 5, 'referral_id' => $grievance->id, 'case_number' => 'ADM/00007/26', 'review_status' => 'accepted', 'review_reason' => null,
             'status' => 'active', 'hearing_at' => '2026-10-20 09:30:00', 'decision_date' => null, 'decision_summary' => null,

@@ -79,10 +79,24 @@ class EmployeeCourtCaseController extends Controller
         return $this->act($request, "cases/{$case}/witnesses/{$witness}/delete", success: 'witnessRemoved');
     }
 
-    /** A case file, as court-ms serves it to the parties; kind is evidence, file, response, reply, decision, letter, receipt or hearing. */
+    /**
+     * The employee asks for the record of a closed case to take to the appellate court
+     * (ADR 0013 #14); the court's registry releases it, and it is then downloaded here.
+     */
+    public function appeal(Request $request, int $case): RedirectResponse
+    {
+        $data = $request->validate(['grounds' => ['required', 'string', 'max:10000']]);
+
+        return $this->act($request, "cases/{$case}/appeal", $data, success: 'appealRequested');
+    }
+
+    /**
+     * A case file, as court-ms serves it to the parties; kind is evidence, file, response, reply,
+     * decision, letter, receipt, hearing, or appeal_record (once the registry released it).
+     */
     public function download(Request $request, int $case, string $kind, ?int $id = null): SymfonyResponse|RedirectResponse
     {
-        abort_unless(in_array($kind, ['evidence', 'file', 'response', 'reply', 'decision', 'letter', 'receipt', 'hearing'], true), 404);
+        abort_unless(in_array($kind, ['evidence', 'file', 'response', 'reply', 'decision', 'letter', 'receipt', 'hearing', 'appeal_record'], true), 404);
         $employee = $this->employee($request);
         $responseId = $request->integer('response') ?: null;
 

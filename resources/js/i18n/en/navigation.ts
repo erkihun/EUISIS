@@ -152,6 +152,7 @@ const navigation = {
     grievanceSla: 'SLA Policies',
     grievanceReports: 'Reports',
     grievanceSettings: 'Settings',
+    institutionCourtCases: 'Cases Against the Institution',
     tribunalCases: 'Tribunal Cases',
     groupTribunalCourt: 'Tribunal Court',
     courtCases: 'Court Cases',

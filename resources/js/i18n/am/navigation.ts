@@ -152,6 +152,7 @@ const navigation = {
     grievanceSla: 'የጊዜ ገደብ ፖሊሲዎች (SLA)',
     grievanceReports: 'ሪፖርቶች',
     grievanceSettings: 'ቅንብሮች',
+    institutionCourtCases: 'በተቋሙ ላይ የቀረቡ ጉዳዮች',
     tribunalCases: 'የአስተዳደር ፍርድ ቤት ጉዳዮች',
     groupTribunalCourt: 'የአስተዳደር ፍርድ ቤት',
     courtCases: 'የፍርድ ቤት ጉዳዮች',

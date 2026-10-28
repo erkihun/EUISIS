@@ -30,5 +30,7 @@ return [
         'data_quality_critical' => ['title' => 'Critical data-quality issue found', 'body' => 'The scan found critical issues (:check). Open Data Quality to work on them.'],
         'security_alert' => ['title' => 'Security alert', 'body' => 'A security event needs attention: open the Security Center.'],
         'court_letter_received' => ['title' => 'Letter from the administrative tribunal', 'body' => 'The administrative tribunal sent your institution a letter on case :case. Open Court letters to read it.'],
+        'institution_court_case_assigned' => ['title' => 'Your institution is sued: the case is yours to follow', 'body' => 'Case :case, filed at the administrative tribunal against your institution, was given to you to follow.'],
+        'institution_court_case_unassigned' => ['title' => 'Your institution is sued', 'body' => 'Case :case was filed at the administrative tribunal against your institution. No officer is named to follow its court cases: assign someone.'],
     ],
 ];

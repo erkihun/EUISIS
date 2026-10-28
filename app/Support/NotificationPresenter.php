@@ -10,6 +10,7 @@ use App\Notifications\DailyActivityNotification;
 use App\Notifications\EmployeePortalNotification;
 use App\Notifications\FieldWorkNotification;
 use App\Notifications\GrievanceNotification;
+use App\Notifications\InstitutionCourtCaseNotification;
 use App\Notifications\PasswordSecurityNotification;
 use App\Notifications\PerformanceNotification;
 use App\Notifications\PublicFeedbackNotification;
@@ -31,6 +32,7 @@ final class NotificationPresenter
     private const RENDERERS = [
         'communication' => CommunicationNotification::class,
         'court_letter' => CourtLetterNotification::class,
+        'institution_court_case' => InstitutionCourtCaseNotification::class,
         'daily_activity' => DailyActivityNotification::class,
         'employee_portal' => EmployeePortalNotification::class,
         'field_work' => FieldWorkNotification::class,

@@ -32,7 +32,10 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
 
     return (
         <AuthenticatedLayout header={<PageHeader title={t('grievances.tribunalCases')} actions={(
-            <Link href={route('tribunal-cases.letters.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('courtCases.letters.title')}</Link>
+            <div className="flex flex-wrap gap-2">
+                <Link href={route('tribunal-cases.institution-cases.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('courtCases.institution.title')}</Link>
+                <Link href={route('tribunal-cases.letters.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('courtCases.letters.title')}</Link>
+            </div>
         )} />}>
             <Head title={t('grievances.tribunalCases')} />
 

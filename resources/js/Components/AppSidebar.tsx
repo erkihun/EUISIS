@@ -601,6 +601,8 @@ const navGroups: NavGroup[] = [
         icon: ScaleIcon,
         items: [
             { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: FolderOpenIcon, permission: 'grievances.tribunal' },
+            // Cases filed at the tribunal against the institution, for its court case officer (court-ms Flow 7, ADR 0013 #14).
+            { routeName: 'tribunal-cases.institution-cases.index', labelKey: 'nav.institutionCourtCases', icon: InboxInIcon, permission: 'grievances.tribunal' },
             { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: GavelIcon, permission: 'court_cases.view' },
         ],
     },

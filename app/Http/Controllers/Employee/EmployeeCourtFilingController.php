@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Models\DisciplinaryCase;
 use App\Models\Grievance;
 use App\Models\Organization;
 use App\Services\CourtMs\CourtMsException;
@@ -53,6 +54,15 @@ class EmployeeCourtFilingController extends Controller
                     'submitted_at' => $g->submitted_at?->toIso8601String(),
                     'documents' => $filing->documentCount($g, $user),
                 ])->values()->all(),
+            // The employee's decided discipline cases (ADR 0013 #14): a case may challenge one, and its record travels with it.
+            'disciplines' => $filing->disciplines($employee)->latest('delivered_at')->limit(50)->get()
+                ->map(fn (DisciplinaryCase $c): array => [
+                    'id' => (string) $c->getKey(),
+                    'case_number' => $c->case_number,
+                    'summary' => $c->summary ? mb_substr(strip_tags((string) $c->summary), 0, 200) : null,
+                    'status' => $c->status?->value,
+                    'delivered_at' => $c->delivered_at?->toIso8601String(),
+                ])->values()->all(),
             // The court's register of verified lawyers (ADR 0013 #13): name and licence number only.
             'lawyers' => $portal->lawyers(),
             'limits' => ['documents' => EmployeeCourtFiling::MAX_DOCUMENTS, 'documentMb' => EmployeeCourtFiling::MAX_DOCUMENT_BYTES / 1024 / 1024],
@@ -77,6 +87,8 @@ class EmployeeCourtFilingController extends Controller
             'respondent_address' => ['nullable', 'string', 'max:500'],
             'grievance_ids' => ['nullable', 'array', 'max:20'],
             'grievance_ids.*' => ['uuid'],
+            'discipline_ids' => ['nullable', 'array', 'max:20'],
+            'discipline_ids.*' => ['uuid'],
             'files' => ['nullable', 'array', 'max:10'],
             'files.*' => ['file', 'mimes:pdf', 'max:'.(EmployeeCourtFiling::MAX_DOCUMENT_BYTES / 1024)],
             // Other employees filing with them (each confirms in their own My Portal) and a lawyer (ADR 0013 #13).
@@ -89,6 +101,10 @@ class EmployeeCourtFilingController extends Controller
         $grievanceIds = array_values(array_unique((array) ($data['grievance_ids'] ?? [])));
         if ($grievanceIds !== [] && $filing->grievances($user)->whereKey($grievanceIds)->count() !== count($grievanceIds)) {
             throw ValidationException::withMessages(['grievance_ids' => __('validation.exists', ['attribute' => 'grievance'])]);
+        }
+        $disciplineIds = array_values(array_unique((array) ($data['discipline_ids'] ?? [])));
+        if ($disciplineIds !== [] && $filing->disciplines($employee)->whereKey($disciplineIds)->count() !== count($disciplineIds)) {
+            throw ValidationException::withMessages(['discipline_ids' => __('validation.exists', ['attribute' => 'discipline case'])]);
         }
         $coApplicants = [];
         foreach (array_values((array) ($data['co_applicants'] ?? [])) as $i => $number) {
@@ -107,7 +123,7 @@ class EmployeeCourtFilingController extends Controller
 
         try {
             $case = $filing->file($employee, $user, $data, $grievanceIds, array_values((array) $request->file('files', [])),
-                $coApplicants, $lawyer, $lawyer !== null ? $request->file('power_of_attorney') : null);
+                $coApplicants, $lawyer, $lawyer !== null ? $request->file('power_of_attorney') : null, $disciplineIds);
         } catch (CourtMsException $e) {
             if ($e->status === 422 && $e->errors !== []) {
                 // A court-ms rule the form did not catch: shown on the form, never as a crash.

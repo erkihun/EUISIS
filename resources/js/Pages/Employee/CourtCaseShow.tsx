@@ -45,6 +45,12 @@ type Workspace = {
     role?: string | null;
     merged_into?: { id: number; case_number: string; note: string | null } | null;
     merged_from?: string[];
+    /** The appeal to the appellate court (ADR 0013 #14): asked here, released by the court's registry. */
+    appeal?: {
+        appealable: boolean;
+        requests: Array<{ id: number; appeal_number: string; status: string; note: string | null; requested_at: string | null; released_at: string | null; outcome: string | null }>;
+        released: boolean;
+    };
 };
 
 type Props = {
@@ -71,6 +77,14 @@ export default function CourtCaseShow({ workspace, error, done }: Props) {
 
     const message = useForm({ body: '' });
     const upload = useForm({ label: '', file: null as File | null });
+    const appealForm = useForm({ grounds: '' });
+    const appeal = workspace.appeal;
+    const openAppeal = appeal?.requests.find((request) => ['submitted', 'under_review', 'approved', 'closed'].includes(request.status));
+
+    const sendAppeal = (event: FormEvent) => {
+        event.preventDefault();
+        appealForm.post(route('employee.court-cases.appeal.store', courtCase.id), { preserveScroll: true, onSuccess: () => appealForm.reset() });
+    };
 
     const sendMessage = (event: FormEvent) => {
         event.preventDefault();
@@ -181,6 +195,43 @@ export default function CourtCaseShow({ workspace, error, done }: Props) {
                     </ul>
                     {(workspace.merged_from?.length ?? 0) > 0 && (
                         <p className="mt-3 border-t border-(--app-border) pt-3 text-sm text-(--app-muted-foreground)">{label('mergedFrom', { numbers: (workspace.merged_from ?? []).join(', ') })}</p>
+                    )}
+                </Card>
+            )}
+
+            {appeal && (appeal.appealable || appeal.requests.length > 0) && (
+                <Card className="space-y-3">
+                    <CardHeader className="mb-0">
+                        <CardTitle>{label('appeal.title')}</CardTitle>
+                        <CardDescription>{label('appeal.help')}</CardDescription>
+                    </CardHeader>
+                    {appeal.requests.map((request) => (
+                        <div key={request.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-(--app-border) p-3 text-sm">
+                            <span className="min-w-0 space-y-0.5">
+                                <span className="block font-mono font-semibold text-(--app-foreground)">{request.appeal_number}</span>
+                                <LocalizedDateDisplay value={request.requested_at} className="block text-xs text-(--app-muted-foreground)" />
+                                {request.status === 'rejected' && request.note && <span className="block text-(--app-muted-foreground)">{request.note}</span>}
+                                {request.outcome && <span className="block font-medium text-(--app-foreground)">{label('appeal.outcome', { outcome: label(`appeal.outcomes.${request.outcome}`) })}</span>}
+                            </span>
+                            <StatusBadge status={request.status === 'approved' || request.status === 'closed' ? 'approved' : request.status === 'rejected' ? 'rejected' : 'pending'} label={label(`appeal.statuses.${request.status}`)} />
+                        </div>
+                    ))}
+                    {appeal.released && (
+                        <div className="flex flex-wrap items-center gap-3 rounded-lg bg-(--app-surface-muted) p-3">
+                            <a href={download('appeal_record')} className={buttonClassName({ variant: 'primary', size: 'sm' })}>{label('appeal.download')}</a>
+                            <span className="text-xs text-(--app-muted-foreground)">{label('appeal.downloadHelp')}</span>
+                        </div>
+                    )}
+                    {appeal.appealable && !openAppeal && (
+                        <form onSubmit={sendAppeal} className="space-y-3">
+                            <FormField label={label('appeal.grounds')} required description={label('appeal.groundsHelp')} error={appealForm.errors.grounds}>
+                                {({ id, describedBy, invalid }) => (
+                                    <Textarea id={id} aria-describedby={describedBy} aria-invalid={invalid} required rows={4} maxLength={10000} value={appealForm.data.grounds}
+                                        onChange={(e) => appealForm.setData('grounds', e.target.value)} />
+                                )}
+                            </FormField>
+                            <Button type="submit" variant="primary" size="sm" loading={appealForm.processing} disabled={appealForm.processing}>{label('appeal.submit')}</Button>
+                        </form>
                     )}
                 </Card>
             )}

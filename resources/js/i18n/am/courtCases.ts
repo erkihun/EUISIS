@@ -132,6 +132,9 @@ const courtCases = {
         noLawyer: 'ጠበቃ የለም',
         powerOfAttorney: 'የውክልና ሰነድ (PDF)',
         powerOfAttorneyHelp: 'ጠበቃው እርስዎን ወክሎ ከመሥራቱ በፊት የፍርድ ቤቱ መዝገብ ቤት ይመረምረዋል።',
+        disciplinesSection: 'የዲሲፕሊን ጉዳዮች',
+        disciplinesHelp: 'ክሱ የደረሰዎትን የዲሲፕሊን ውሳኔ የሚቃወም ከሆነ የዲሲፕሊን ጉዳዩን ይምረጡ፤ ክሶቹ፣ መልሶችዎና ውሳኔው ከክሱ ጋር ወደ ፍርድ ቤቱ ይሄዳሉ።',
+        disciplineDelivered: 'ውሳኔው የደረሰበት',
     },
 
     /* My Portal > My court cases > Apply to intervene (court-ms, ADR 0013 #13). */
@@ -146,6 +149,78 @@ const courtCases = {
         documentHelp: 'በጉዳዩ ያለዎትን ጥቅም የሚያሳይ ውሳኔ፣ ደብዳቤ ወይም ሌላ ሰነድ።',
         submitHelp: 'ዳኛው ማመልከቻዎን ይፈቅዳል ወይም ውድቅ ያደርጋል። ውሳኔው እዚህ ይነገርዎታል።',
         submit: 'ማመልከቻውን ላክ',
+    },
+
+    /* Tribunal cases > Cases against the institution (court-ms Flow 7, ADR 0013 #14). */
+    institution: {
+        title: 'በተቋሙ ላይ የቀረቡ ጉዳዮች',
+        description: 'በአስተዳደር ፍርድ ቤት በሚሠሩባቸው ተቋማት ላይ የቀረቡ ጉዳዮች። እያንዳንዱ አዲስ ጉዳይ ተቋሙ የፍርድ ቤት ጉዳዮቹን እንዲከታተል ለመደበው ሰው በራሱ ይደርሳል።',
+        none: 'በእነዚህ ተቋማት ላይ የቀረበ ጉዳይ የለም።',
+        open: 'ክፈት',
+        unassigned: 'ተከታታይ የለውም',
+        unassignedHelp: 'ይህን ጉዳይ እስካሁን የሚከታተል የለም። ተከታታይ ይመድቡ፣ ወይም የተቋሙን የፍርድ ቤት ጉዳዮች ተከታታይ ይሰይሙ።',
+        followedBy: 'የሚከታተለው {name} ነው።',
+        filters: {
+            all: 'ሁሉም',
+            mine: 'የእኔ',
+            unassigned: 'ተከታታይ የሌላቸው',
+        },
+        table: {
+            received: 'የደረሰበት',
+            caseNumber: 'የመዝገብ ቁጥር',
+            applicants: 'ከሳሾች',
+            institution: 'ተቋም',
+            officer: 'ተከታታይ',
+            status: 'ሁኔታ',
+            actions: 'እርምጃዎች',
+        },
+        caseTitle: 'ጉዳይ {number}',
+        filed: 'የቀረበበት',
+        decided: 'የተወሰነ፦ {title}፣',
+        officer: 'ጉዳዩን የሚከታተለው',
+        assignTo: 'ጉዳዩን ስጥ ለ',
+        assign: 'መድብ',
+        hearings: 'ችሎቶች',
+        appealed: 'ጉዳዩ በይግባኝ ሰሚ ፍርድ ቤት ነው',
+        errors: {
+            unavailable: 'የፍርድ ቤቱ ሥርዓት አሁን ሊደረስበት አልቻለም። ትንሽ ቆይተው ይሞክሩ።',
+            not_released: 'የፍርድ ቤቱ መዝገብ ቤት መዝገቡን እስካሁን አልፈቀደም።',
+        },
+        appeal: {
+            title: 'ወደ ይግባኝ ሰሚ ፍርድ ቤት',
+            help: 'ጉዳዩ ታትሞ በወጣ ውሳኔ ከተዘጋ በኋላ ተከራካሪው መዝገቡን ወደ ይግባኝ ሰሚ ፍርድ ቤት መውሰድ ይችላል። መዝገቡን የሚፈቅደው የፍርድ ቤቱ መዝገብ ቤት ነው፤ ከዚያ ከተነሳበት ሂደት እስከ ውሳኔው ያለውን በአንድ PDF እዚህ ያወርዱታል።',
+            grounds: 'የይግባኝ ምክንያቶች',
+            groundsHelp: 'ውሳኔው በይግባኝ ሰሚ ፍርድ ቤት መታየት ያለበት ለምን እንደሆነ።',
+            submit: 'ለይግባኝ መዝገቡን ጠይቅ',
+            download: 'የይግባኝ መዝገቡን አውርድ (PDF)',
+            downloadHelp: 'ሙሉ መዝገቡና ሰነዶቹ እንደ አባሪ በአንድ PDF።',
+            outcome: 'ይግባኝ ሰሚ ፍርድ ቤት፦ {outcome}',
+            outcomes: {
+                confirmed: 'ጸንቷል',
+                modified: 'ተሻሽሏል',
+                reversed: 'ተሽሯል',
+            },
+            statuses: {
+                draft: 'ረቂቅ',
+                submitted: 'መዝገብ ቤቱን በመጠባበቅ ላይ',
+                under_review: 'መዝገብ ቤቱን በመጠባበቅ ላይ',
+                approved: 'መዝገቡ ተፈቅዷል',
+                rejected: 'ውድቅ ተደርጓል',
+                closed: 'የይግባኝ ውጤቱ ተመዝግቧል',
+            },
+        },
+        officers: {
+            title: 'የፍርድ ቤት ጉዳዮች ተከታታዮች',
+            description: 'እያንዳንዱ ተቋም በአስተዳደር ፍርድ ቤት ያሉ ጉዳዮቹን እንዲከታተል የሚሰይመው ሰው። በተቋሙ ላይ የሚቀርቡ አዳዲስ ጉዳዮች በራሳቸው ለእሱ ይደርሳሉ።',
+            none: 'በኃላፊነትዎ ሥር ያለ ተቋም የለም።',
+            nobody: 'አልተሰየመም',
+            save: 'አስቀምጥ',
+            table: {
+                institution: 'ተቋም',
+                officer: 'የፍርድ ቤት ጉዳዮች ተከታታይ',
+                actions: 'እርምጃዎች',
+            },
+        },
     },
 
     /* የእኔ ፖርታል > የፍርድ ቤት ጉዳዮቼ > አንድ ጉዳይ (court-ms, Flow 6)፦ እዚሁ የሚከታተሉትና መልስ የሚሰጡበት። */
@@ -163,6 +238,7 @@ const courtCases = {
             replyUpdated: 'የመልስ መልስዎ ተሻሽሏል።',
             replyRemoved: 'የመልስ መልስዎ ተወግዷል።',
             invitationAccepted: 'ጉዳዩን ተቀላቅለዋል። አሁን ከፍርድ ቤት ጉዳዮችዎ አንዱ ነው።',
+            appealRequested: 'የይግባኝ ጥያቄዎ ተልኳል። መዝገቡን የሚፈቅደው የፍርድ ቤቱ መዝገብ ቤት ነው።',
         },
         reviewNotice: {
             awaiting_review: 'ጉዳይዎ ከመከፈቱ በፊት የፍርድ ቤቱ መዝገብ ቤት እየገመገመው ነው።',
@@ -232,6 +308,29 @@ const courtCases = {
         courtStaff: 'የፍርድ ቤቱ ሠራተኛ',
         messageLabel: 'ለፍርድ ቤቱ የሚላክ መልእክት',
         send: 'ላክ',
+        appeal: {
+            title: 'ወደ ይግባኝ ሰሚ ፍርድ ቤት',
+            help: 'ጉዳዩ ታትሞ በወጣ ውሳኔ ከተዘጋ በኋላ ተከራካሪው መዝገቡን ወደ ይግባኝ ሰሚ ፍርድ ቤት መውሰድ ይችላል። መዝገቡን የሚፈቅደው የፍርድ ቤቱ መዝገብ ቤት ነው፤ ከዚያ ከተነሳበት ሂደት እስከ ውሳኔው ያለውን በአንድ PDF እዚህ ያወርዱታል።',
+            grounds: 'የይግባኝ ምክንያቶች',
+            groundsHelp: 'ውሳኔው በይግባኝ ሰሚ ፍርድ ቤት መታየት ያለበት ለምን እንደሆነ።',
+            submit: 'ለይግባኝ መዝገቡን ጠይቅ',
+            download: 'የይግባኝ መዝገቡን አውርድ (PDF)',
+            downloadHelp: 'ሙሉ መዝገቡና ሰነዶቹ እንደ አባሪ በአንድ PDF።',
+            outcome: 'ይግባኝ ሰሚ ፍርድ ቤት፦ {outcome}',
+            outcomes: {
+                confirmed: 'ጸንቷል',
+                modified: 'ተሻሽሏል',
+                reversed: 'ተሽሯል',
+            },
+            statuses: {
+                draft: 'ረቂቅ',
+                submitted: 'መዝገብ ቤቱን በመጠባበቅ ላይ',
+                under_review: 'መዝገብ ቤቱን በመጠባበቅ ላይ',
+                approved: 'መዝገቡ ተፈቅዷል',
+                rejected: 'ውድቅ ተደርጓል',
+                closed: 'የይግባኝ ውጤቱ ተመዝግቧል',
+            },
+        },
     },
 
     /* … > አንድ ጉዳይ > የተከሳሽ መልስ፣ ከሠራተኛው የመልስ መልሶች ጋር (court-ms, Flow 6)። */

@@ -7,6 +7,9 @@ import { useLocale } from '@/hooks/useLocale';
 /** Fallback labels for pages outside the navigation tree, keyed by URL segment. */
 const SEGMENT_LABEL_KEYS: Record<string, string> = {
     'dashboard': 'nav.dashboard',
+    // Tribunal cases > Cases against the institution (court-ms Flow 7, ADR 0013 #14).
+    'institution-cases': 'nav.institutionCourtCases',
+    'case-officers': 'courtCases.institution.officers.title',
     'organizations': 'nav.organizations',
     'organization-types': 'nav.organizationTypes',
     'organization-units': 'nav.organizationUnits',

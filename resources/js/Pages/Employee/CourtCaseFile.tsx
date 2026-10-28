@@ -25,6 +25,8 @@ type Props = {
     organizations: Organization[];
     defaultOrganizationId: string | null;
     grievances: Grievance[];
+    /** The employee's decided discipline cases (ADR 0013 #14): their record goes to the court with the case. */
+    disciplines?: Array<{ id: string; case_number: string | null; summary: string | null; status: string | null; delivered_at: string | null }>;
     /** The court's register of verified lawyers (ADR 0013 #13). */
     lawyers: Array<{ name: string; license_number: string }>;
     limits: { documents: number; documentMb: number };
@@ -39,7 +41,7 @@ type Props = {
  * Other employees may file with them, each confirming in their own My Portal,
  * and a lawyer from the court's register may represent them (ADR 0013 #13).
  */
-export default function CourtCaseFile({ filingId, caseTypes, organizations, defaultOrganizationId, grievances, lawyers, limits, error }: Props) {
+export default function CourtCaseFile({ filingId, caseTypes, organizations, defaultOrganizationId, grievances, disciplines = [], lawyers, limits, error }: Props) {
     const { t, locale } = useLocale();
     const enumLabel = useEnumLabel();
     const label = (key: string, values: Record<string, string | number> = {}) =>
@@ -52,6 +54,7 @@ export default function CourtCaseFile({ filingId, caseTypes, organizations, defa
         description: '',
         relief_requested: '',
         grievance_ids: [] as string[],
+        discipline_ids: [] as string[],
         files: [] as File[],
         co_applicants: [] as string[],
         lawyer_license_number: '',
@@ -171,6 +174,25 @@ export default function CourtCaseFile({ filingId, caseTypes, organizations, defa
                         </fieldset>
                     )}
                     {errors.grievance_ids && <p role="alert" className="text-sm text-red-600">{errors.grievance_ids}</p>}
+
+                    {disciplines.length > 0 && (
+                        <fieldset className="space-y-2 border-t border-(--app-border) pt-4">
+                            <legend className="text-sm font-semibold text-(--app-foreground)">{label('disciplinesSection')}</legend>
+                            <p className="text-sm text-(--app-muted-foreground)">{label('disciplinesHelp')}</p>
+                            {disciplines.map((discipline) => (
+                                <label key={discipline.id} className="flex cursor-pointer items-start gap-3 rounded-lg border border-(--app-border) p-3 hover:bg-(--app-surface-muted)">
+                                    <input type="checkbox" className="mt-1 h-4 w-4" checked={form.data.discipline_ids.includes(discipline.id)}
+                                        onChange={(e) => form.setData('discipline_ids', e.target.checked ? [...form.data.discipline_ids, discipline.id] : form.data.discipline_ids.filter((value) => value !== discipline.id))} />
+                                    <span className="min-w-0 flex-1 space-y-1">
+                                        <span className="block font-mono text-sm text-(--app-foreground)">{discipline.case_number ?? '—'}</span>
+                                        {discipline.summary && <span className="block text-sm text-(--app-foreground)">{discipline.summary}</span>}
+                                        <span className="block text-xs text-(--app-muted-foreground)">{label('disciplineDelivered')} <LocalizedDateDisplay value={discipline.delivered_at} /></span>
+                                    </span>
+                                </label>
+                            ))}
+                            {errors.discipline_ids && <p role="alert" className="text-sm text-red-600">{errors.discipline_ids}</p>}
+                        </fieldset>
+                    )}
 
                     <FormField label={label('files')} description={label('filesHelp', { count: limits.documents, size: limits.documentMb })} error={errors.files ?? fileErrors}>
                         {({ id, describedBy, invalid }) => (

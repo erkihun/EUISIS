@@ -146,6 +146,74 @@ final class CourtMsClient
     }
 
     /**
+     * Flow 7 (ADR 0013 #14): cases filed against EUISIS institutions after a cursor (the court-ms case id).
+     *
+     * @return array{data: list<array<string, mixed>>, next_cursor: int, has_more: bool}
+     */
+    public function institutionNewCases(int $since, int $limit = 100): array
+    {
+        $json = $this->postJson('/api/v1/integration/institutions/cases/new', ['since' => $since, 'limit' => $limit]);
+
+        return [
+            'data' => array_values((array) ($json['data'] ?? [])),
+            'next_cursor' => (int) ($json['next_cursor'] ?? $since),
+            'has_more' => (bool) ($json['has_more'] ?? false),
+        ];
+    }
+
+    /**
+     * Flow 7: one case as the respondent institution follows it.
+     *
+     * @return array<string, mixed>
+     */
+    public function institutionCase(int $caseId, string $organizationUuid): array
+    {
+        return (array) ($this->postJson("/api/v1/integration/institutions/cases/{$caseId}", ['organization_uuid' => $organizationUuid])['data'] ?? []);
+    }
+
+    /**
+     * Flow 7: the institution asks for a closed case's record to take to the appellate court.
+     *
+     * @return array<string, mixed>
+     */
+    public function institutionAppeal(int $caseId, string $organizationUuid, string $appellantName, string $grounds): array
+    {
+        return (array) ($this->postJson("/api/v1/integration/institutions/cases/{$caseId}/appeal", [
+            'organization_uuid' => $organizationUuid, 'appellant_name' => $appellantName, 'grounds' => $grounds,
+        ])['data'] ?? []);
+    }
+
+    /** Flow 7: the appeal record PDF, once the registry released it to the institution. */
+    public function institutionAppealRecord(int $caseId, string $organizationUuid): string
+    {
+        try {
+            $response = $this->request()->accept('application/pdf')->timeout(max(120, (int) config('court_ms.timeout', 20)))
+                ->post("/api/v1/integration/institutions/cases/{$caseId}/appeal-record", ['organization_uuid' => $organizationUuid]);
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+        if (! $response->successful()) {
+            $this->decode($response);
+        }
+        $body = $response->body();
+        if (! str_starts_with($body, '%PDF')) {
+            throw new CourtMsException("court-ms answered the appeal record of case {$caseId} with something other than a PDF.", retryable: false);
+        }
+
+        return $body;
+    }
+
+    /** @return array<string, mixed> */
+    private function postJson(string $path, array $payload): array
+    {
+        try {
+            return $this->decode($this->request()->post($path, $payload));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+    }
+
+    /**
      * Several parties (ADR 0013 #13): the employee's invitations to join a case and
      * their applications to intervene.
      *
@@ -301,7 +369,8 @@ final class CourtMsClient
     public function workspaceFile(int $caseId, string $employeeUuid, string $kind, ?int $id = null, ?int $responseId = null): array
     {
         try {
-            $response = $this->request()->accept('*/*')->timeout(max(30, (int) config('court_ms.timeout', 20)))
+            // The appeal record is built on request, its annexes merged in: it takes longer.
+            $response = $this->request()->accept('*/*')->timeout(max($kind === 'appeal_record' ? 120 : 30, (int) config('court_ms.timeout', 20)))
                 ->post("/api/v1/integration/people/cases/{$caseId}/download", array_filter([
                     'employee_uuid' => $employeeUuid, 'kind' => $kind, 'id' => $id, 'response_id' => $responseId,
                 ], fn ($value) => $value !== null));

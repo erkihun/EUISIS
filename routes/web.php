@@ -429,6 +429,8 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
             Route::get('/', 'show')->name('show');
             Route::get('/correct', 'edit')->name('correct');
             Route::post('/correct', 'correct')->middleware('throttle:10,1')->name('correct.store');
+            // An appeal to the appellate court (ADR 0013 #14): asked here, released by the court's registry.
+            Route::post('/appeal', 'appeal')->middleware('throttle:10,1')->name('appeal.store');
             Route::post('/messages', 'message')->middleware('throttle:30,1')->name('messages.store');
             Route::post('/files', 'upload')->middleware('throttle:20,1')->name('files.store');
             Route::post('/files/{file}/delete', 'deleteFile')->middleware('throttle:20,1')->name('files.destroy');
