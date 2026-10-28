@@ -12,6 +12,11 @@ return [
     'committeeMinMembers' => 'ኮሚቴው በፖሊሲ ከሚፈለገው ዝቅተኛ የአባላት ብዛት በታች መውረድ አይችልም።',
     'committeeAlreadyHasChairperson' => 'ኮሚቴው ቀድሞ ሰብሳቢ አለው። መጀመሪያ ያንን የሥራ ዘመን ያብቁ።',
     'tribunalCaseUpdated' => 'የፍርድ ቤት ጉዳዩ ተሻሽሏል።',
+    'courtMs' => [
+        'queued' => 'ጉዳዩ ወደ ፍርድ ቤቱ በመላክ ላይ ነው።',
+        'alreadyReferred' => 'ይህ ጉዳይ ቀድሞ ወደ ፍርድ ቤቱ ተልኳል።',
+        'disabled' => 'ከፍርድ ቤቱ (court-ms) ጋር ያለው ግንኙነት ጠፍቷል።',
+    ],
 
     'flash' => [
         'draft_saved' => 'ረቂቁ ተቀምጧል።',
@@ -194,6 +199,9 @@ return [
         'title' => 'የቅሬታ ጉዳይ',
         'open' => 'ይክፈቱ',
         'generic' => 'በቅሬታ ጉዳይ :case ላይ አዲስ መረጃ አለ።',
+        'court_ms_returned' => 'ፍርድ ቤቱ የቅሬታ ጉዳይ :caseን መልሶታል። ምክንያቱን በፍርድ ቤት ጉዳዩ ላይ ይመልከቱ።',
+        'court_ms_hearing' => 'ፍርድ ቤቱ ለቅሬታ ጉዳይ :case ችሎት ቀጥሯል።',
+        'court_ms_decided' => 'ፍርድ ቤቱ በቅሬታ ጉዳይ :case ላይ ውሳኔ ሰጥቷል።',
         'sms' => ':app፡ በቅሬታ ጉዳይ :case ላይ እርምጃ ያስፈልጋል። ለማየት ወደ ሥርዓቱ ይግቡ።',
         'sms_letter' => ':app፡ በቅሬታ ጉዳይ :case ላይ ይፋዊ ደብዳቤ በራስ አገልግሎት ፖርታል ይገኛል።',
         'submitted' => 'ቅሬታዎ :case ቀርቧል።',
