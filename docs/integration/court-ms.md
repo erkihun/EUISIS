@@ -53,8 +53,8 @@ issued before Flows 4 to 6 gains their abilities (`people:read`, `people:file`,
 `EUISIS_PARTIES_ONLY` on (the default with its EUISIS connection), cases can no longer be
 started in the court portal: employees file here (Flow 5). With `EUISIS_PORTAL_IN_EUISIS`
 (also on by default) court-ms's applicant and respondent portal, with its sign-in and
-registration, is closed and says where to go; set `EUISIS_PORTAL_URL` there to this
-site's `/my-portal/court-cases` so it links here.
+registration, is gone (its URLs are not found); set `EUISIS_PORTAL_URL` there to this
+site's `/my-portal/court-cases` so the court's public site links parties here.
 
 ### 3. Configure EUISIS
 
