@@ -10,6 +10,18 @@
                 "--port=8123"
             ],
             "port": 8123
+        },
+        {
+            "name": "court-ms",
+            "runtimeExecutable": "php",
+            "runtimeArgs": ["../court-ms/artisan", "serve", "--port=8200"],
+            "port": 8200
+        },
+        {
+            "name": "cafeteria-platform",
+            "runtimeExecutable": "php",
+            "runtimeArgs": ["../cafeteria-platform/backend/artisan", "serve", "--port=8110"],
+            "port": 8110
         }
     ]
 }

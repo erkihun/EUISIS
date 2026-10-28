@@ -16,8 +16,8 @@ project_name: "EUISIS"
 #   python_pyrefly         python_ty              qml                    r                      rego
 #   ruby                   ruby_solargraph        rust                   scala                  scss
 #   solidity               svelte                 swift                  systemverilog          terraform
-#   toml                   typescript             typescript_vts         vue                    wolfram
-#   yaml                   zig
+#   toml                   typescript             typescript_tsgo        typescript_vts         vue
+#   vbnet                  wolfram                yaml                   zig
 #   (This list may be outdated; generated with scripts/print_language_list.py;
 #   For the current list, see values of the LanguageServerId enum here:
 #   https://github.com/oraios/serena/blob/main/src/solidlsp/ls_config.py)
@@ -41,6 +41,7 @@ project_name: "EUISIS"
 # Note that when using the JetBrains backend, language servers are not used and this list is correspondingly ignored.
 language_servers:
 - php
+- typescript
 
 # the encoding used by text files in the project
 # For a list of possible encodings, see https://docs.python.org/3.11/library/codecs.html#standard-encodings
