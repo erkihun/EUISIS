@@ -44,7 +44,10 @@ function courtCasesRoutes(): array
 {
     return array_values(array_filter(
         Route::getRoutes()->getRoutes(),
-        fn (RoutingRoute $route): bool => str_contains($route->uri(), 'court-case') || str_starts_with((string) $route->getName(), 'court-cases.'),
+        // My Portal > My court cases (court-ms Flows 4 and 5, ADR 0013) is the link to the
+        // tribunal's own case system, not this module.
+        fn (RoutingRoute $route): bool => ! str_starts_with($route->uri(), 'my-portal/')
+            && (str_contains($route->uri(), 'court-case') || str_starts_with((string) $route->getName(), 'court-cases.')),
     ));
 }
 

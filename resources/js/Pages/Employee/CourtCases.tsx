@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import axios from 'axios';
 import { useState, type ReactNode } from 'react';
 import PortalPage from '@/Components/employees/portal/PortalPage';
@@ -6,10 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import { useBranding } from '@/hooks/useBranding';
 import { useLocale } from '@/hooks/useLocale';
-import { Alert, Button, Card } from '@euisis/ui';
-import {
-    tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName,
-} from '@/Components/ui';
+import { Alert, Button, Card, TBody, THead, Table, Td, Th, Tr, buttonClassName } from '@euisis/ui';
 
 type CourtCase = {
     id: number;
@@ -34,14 +32,17 @@ type Props = {
     } | null;
     /** Why the last attempt to open the court portal was refused (courtCases.portal.errors.*). */
     error: string | null;
+    /** The case number of a case just filed from My Portal (Flow 5). */
+    filed: string | null;
 };
 
 /**
  * My Portal > My court cases (court-ms Flow 4). Applicants at the administrative
- * tribunal are city employees: their cases are read from court-ms, and every
- * action opens the court portal in a new tab, already signed in as them.
+ * tribunal are city employees: their cases are read from court-ms and filed here
+ * (Flow 5, Employee/CourtCaseFile); following and answering a case opens the court
+ * portal in a new tab, already signed in as them.
  */
-export default function EmployeeCourtCases({ state, summary, error: initialError }: Props) {
+export default function EmployeeCourtCases({ state, summary, error: initialError, filed }: Props) {
     const { t } = useLocale();
     const { withBrand } = useBranding();
     const label = (key: string) => t(`courtCases.portal.${key}`);
@@ -78,9 +79,12 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
         </Button>
     );
 
+    // Cases are filed in EUISIS, against an institution registered here (court-ms Flow 5).
+    const fileLink = <Link href={route('employee.court-cases.file')} className={buttonClassName({ variant: 'primary', size: 'sm' })}>{label('fileCase')}</Link>;
+
     const actions = canOpen ? (
         <div className="flex flex-wrap gap-2">
-            {openButton('new_case', label('fileCase'), 'primary')}
+            {state !== 'unavailable' && fileLink}
             {openButton('dashboard', label('openPortal'))}
         </div>
     ) : undefined;
@@ -96,6 +100,7 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
     return (
         <PortalPage title={label('title')} description={label('description')} actions={actions}>
             {error && <Alert tone="danger">{t(`courtCases.portal.errors.${error}`)}</Alert>}
+            {filed && <Alert tone="success">{label('filed').replace('{number}', filed)}</Alert>}
 
             {state === 'no_employee' && <Alert tone="info">{label('noEmployee')}</Alert>}
             {state === 'disabled' && <Alert tone="info">{withBrand(label('disabled'))}</Alert>}
@@ -104,7 +109,7 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
                 <Card className="space-y-3">
                     <h2 className="text-base font-semibold text-(--app-foreground)">{label('notLinkedTitle')}</h2>
                     <p className="text-sm text-(--app-muted-foreground)">{label('notLinked')}</p>
-                    <div>{openButton('new_case', label('fileCase'), 'primary')}</div>
+                    <div>{fileLink}</div>
                 </Card>
             )}
 
@@ -122,33 +127,31 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
                         {summary.cases.length === 0 ? (
                             <EmptyState title={label('noCases')} />
                         ) : (
-                            <div className={tableContainerClassName}>
-                                <table className={tableClassName}>
-                                    <thead className={tableHeadClassName}>
-                                        <tr>
-                                            {(['caseNumber', 'title', 'type', 'status', 'review', 'filed', 'nextHearing', 'actions'] as const).map((column) => (
-                                                <th key={column} scope="col" className={tableHeaderCellClassName}>{label(`table.${column}`)}</th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody className={tableBodyClassName}>
-                                        {summary.cases.map((courtCase) => (
-                                            <tr key={courtCase.id} className={tableRowClassName}>
-                                                <td className={`${tableCellClassName} font-mono text-sm`}>{courtCase.case_number}</td>
-                                                <td className={tableCellClassName}>{courtCase.title}</td>
-                                                <td className={tableCellClassName}>{courtCase.case_type ?? '—'}</td>
-                                                <td className={tableCellClassName}><StatusBadge status={courtCase.status} label={label(`status.${courtCase.status}`)} /></td>
-                                                <td className={tableCellClassName}><StatusBadge status={courtCase.review_status} label={label(`review.${courtCase.review_status}`)} /></td>
-                                                <td className={tableCellClassName}><LocalizedDateDisplay value={courtCase.filed_at} /></td>
-                                                <td className={tableCellClassName}>
-                                                    {courtCase.next_hearing_at ? <LocalizedDateDisplay value={courtCase.next_hearing_at} withTime /> : <span className="text-(--app-muted-foreground)">{label('noHearing')}</span>}
-                                                </td>
-                                                <td className={tableCellClassName}>{openButton(`case:${courtCase.id}`, label('openCase'))}</td>
-                                            </tr>
+                            <Table>
+                                <THead>
+                                    <Tr>
+                                        {(['caseNumber', 'title', 'type', 'status', 'review', 'filed', 'nextHearing', 'actions'] as const).map((column) => (
+                                            <Th key={column} scope="col">{label(`table.${column}`)}</Th>
                                         ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    </Tr>
+                                </THead>
+                                <TBody>
+                                    {summary.cases.map((courtCase) => (
+                                        <Tr key={courtCase.id}>
+                                            <Td className="font-mono text-sm">{courtCase.case_number}</Td>
+                                            <Td>{courtCase.title}</Td>
+                                            <Td muted={!courtCase.case_type}>{courtCase.case_type ?? '—'}</Td>
+                                            <Td><StatusBadge status={courtCase.status} label={label(`status.${courtCase.status}`)} /></Td>
+                                            <Td><StatusBadge status={courtCase.review_status} label={label(`review.${courtCase.review_status}`)} /></Td>
+                                            <Td><LocalizedDateDisplay value={courtCase.filed_at} /></Td>
+                                            <Td muted={!courtCase.next_hearing_at}>
+                                                {courtCase.next_hearing_at ? <LocalizedDateDisplay value={courtCase.next_hearing_at} withTime /> : label('noHearing')}
+                                            </Td>
+                                            <Td>{openButton(`case:${courtCase.id}`, label('openCase'))}</Td>
+                                        </Tr>
+                                    ))}
+                                </TBody>
+                            </Table>
                         )}
                     </Card>
 

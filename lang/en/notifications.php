@@ -29,5 +29,6 @@ return [
         'import_failed' => ['title' => 'Import failed', 'body' => 'Your :number import failed. Open it to see why.'],
         'data_quality_critical' => ['title' => 'Critical data-quality issue found', 'body' => 'The scan found critical issues (:check). Open Data Quality to work on them.'],
         'security_alert' => ['title' => 'Security alert', 'body' => 'A security event needs attention: open the Security Center.'],
+        'court_letter_received' => ['title' => 'Letter from the administrative tribunal', 'body' => 'The administrative tribunal sent your institution a letter on case :case. Open Court letters to read it.'],
     ],
 ];

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Notifications\Communication\CommunicationNotification;
+use App\Notifications\CourtLetterNotification;
 use App\Notifications\DailyActivityNotification;
 use App\Notifications\EmployeePortalNotification;
 use App\Notifications\FieldWorkNotification;
@@ -29,6 +30,7 @@ final class NotificationPresenter
 {
     private const RENDERERS = [
         'communication' => CommunicationNotification::class,
+        'court_letter' => CourtLetterNotification::class,
         'daily_activity' => DailyActivityNotification::class,
         'employee_portal' => EmployeePortalNotification::class,
         'field_work' => FieldWorkNotification::class,

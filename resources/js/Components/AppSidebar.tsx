@@ -282,7 +282,7 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                     { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: InboxOutIcon },
                     { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: GrievanceIcon, permission: 'grievances.view_own', listedInAdmin: true },
                     // court-ms Flow 4: the employee's tribunal cases; the court portal opens signed in.
-                    { routeName: 'employee.court-cases', labelKey: 'courtCases.portal.nav', icon: ScaleIcon, employeeOnly: true },
+                    { routeName: 'employee.court-cases', labelKey: 'courtCases.portal.nav', icon: GavelIcon, employeeOnly: true },
                     { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: ScaleIcon, permission: 'discipline.view_own', listedInAdmin: true },
                     { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: BellIcon },
                 ],

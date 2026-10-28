@@ -7,7 +7,7 @@ import { useState, type JSX } from 'react';
 import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type TribunalCase = {
     id: string; case_number: string; status: string; hearing_date: string | null; decision_date: string | null;
     court_case_number: string | null;
@@ -31,7 +31,9 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
     const [status, setStatus] = useState(filters.status ?? '');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('grievances.tribunalCases')} />}>
+        <AuthenticatedLayout header={<PageHeader title={t('grievances.tribunalCases')} actions={(
+            <Link href={route('tribunal-cases.letters.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('courtCases.letters.title')}</Link>
+        )} />}>
             <Head title={t('grievances.tribunalCases')} />
 
             <div className="space-y-4">

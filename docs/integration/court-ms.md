@@ -33,7 +33,7 @@ System Settings → API Management → new application, for example code `COURT_
 Issue a token (shown once) and hand it to the court-ms administrator for `EUISIS_TOKEN`.
 The change feed must be on (`INTEGRATION_CHANGE_FEED_ENABLED=true`).
 
-### 2. Issue the EUISIS token in court-ms (Flows 2 to 4)
+### 2. Issue the EUISIS token in court-ms (Flows 2 to 5)
 
 On the court-ms server:
 
@@ -42,8 +42,11 @@ php artisan euisis:integration-token --ip=<EUISIS server IP>
 ```
 
 It prints the token once. Rotate with the same command; revoke with `--revoke`. A token
-issued before Flow 4 gains its abilities (`people:read`, `people:sign-in`) without
-changing with `php artisan euisis:integration-token --refresh-abilities`.
+issued before Flows 4 and 5 gains their abilities (`people:read`, `people:sign-in`,
+`people:file`, `letters:read`) without changing with
+`php artisan euisis:integration-token --refresh-abilities`. With court-ms's
+`EUISIS_PARTIES_ONLY` on (the default with its EUISIS connection), cases can no longer be
+started in the court portal: employees file here (Flow 5).
 
 ### 3. Configure EUISIS
 
@@ -90,12 +93,28 @@ organization cache), and make sure its scheduler runs.
 
 - **Employee portal (Flow 4):** applicants at the tribunal are city employees. My Portal >
   My court cases lists the employee's court cases (status, review, next hearing) and
-  unread notices, read from court-ms and cached for a minute. *File a new case*, *Open*
-  and *Open the court portal* ask court-ms for a one-time link (two minutes, used once)
+  unread notices, read from court-ms and cached for a minute. *Open* and *Open the court
+  portal* ask court-ms for a one-time link (two minutes, used once)
   and open it in a new tab, signed in as the employee. The first time, court-ms opens
-  the employee's court account from their record (national ID, phone and email are
-  required), or links the one that has their national ID; it never takes over an account
+  the employee's court account from their record (national ID, phone, email and gender
+  are required), or links the one that has their national ID; it never takes over an account
   linked to another employee. court-ms stays the system of record; EUISIS stores no case.
+- **Filing a case (Flow 5):** employees file here, not in court-ms. *File a new case* opens
+  My Portal > My court cases > File a case: case type (from court-ms), title, what
+  happened, relief, the respondent institution (only active institutions registered here;
+  the employee's own is pre-selected), the grievances it concerns (their own, submitted
+  ones) and more PDFs. Each chosen grievance goes with its facts, the letters issued to
+  the employee (as responses) and the issued decisions, as plain text, and its PDFs: those
+  letters and the evidence the employee submitted (at most 20 PDFs of 10 MB). court-ms
+  starts the case in intake review; the form id makes a second send file it once. An
+  account with no employee record cannot file.
+- **Court letters (Flow 5):** when the tribunal approves a letter on a case against an
+  institution registered here, `court-ms:poll` receives it with its PDF
+  (`court_ms_letters`, PDFs on the `local` disk under `court-ms/letters/`) and notifies
+  the institution's tribunal officers (`grievances.tribunal` within that institution).
+  They read it under Tribunal Cases > Court letters; people with `court_cases.view` or a
+  city-wide scope see every institution's letters. Opening the PDF marks it read. A
+  letter whose PDF cannot be read stops the run there; the next poll starts from it.
 
 ## Status mapping
 
@@ -118,11 +137,15 @@ organization cache), and make sure its scheduler runs.
 | Status never changes | `php artisan court-ms:poll` by hand; the panel shows the last poll error. |
 | No *My court cases* in My Portal | `COURT_MS_EMPLOYEE_PORTAL=true` with the three connection values, and the account linked to an employee record. |
 | My court cases says court-ms cannot be reached | court-ms reachable; the token holds `people:read` (`--refresh-abilities`). |
-| Opening says the employee record is incomplete | The employee needs a national ID, phone and email before a court account can be opened. |
+| Opening or filing says the employee record is incomplete | The employee needs a national ID, phone, email and gender (male or female) before a court account can be opened. |
+| File a case says the court system cannot be reached | court-ms reachable; the token holds `people:file` and `referrals:read` (case types). |
+| The poll fails with "court-ms letters" | The token holds `letters:read` (`--refresh-abilities` in court-ms); a `503` on a letter's PDF is retried on the next poll. |
+| No court letters for an institution | Its tribunal officer holds `grievances.tribunal` with a scope row for that institution; the letter was approved with "send to respondent" on a case whose respondent is that institution. |
 
 ## Tests
 
-`tests/Feature/Grievances/CourtMsIntegrationTest.php` and
-`tests/Feature/Integration/CourtMsEmployeePortalTest.php` (EUISIS) and
+`tests/Feature/Grievances/CourtMsIntegrationTest.php`,
+`tests/Feature/Integration/CourtMsEmployeePortalTest.php` and
+`tests/Feature/Integration/CourtMsEmployeeFilingTest.php` (EUISIS) and
 `tests/Feature/Euisis/*` (court-ms) cover access, idempotency, failure handling, the
 sync, the update list and the status mapping.

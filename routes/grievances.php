@@ -15,6 +15,7 @@ use App\Http\Controllers\Grievances\GrievanceReportController;
 use App\Http\Controllers\Grievances\GrievanceRoutingController;
 use App\Http\Controllers\Grievances\GrievanceSettingsController;
 use App\Http\Controllers\Web\AdministrativeTribunalController;
+use App\Http\Controllers\Web\TribunalLetterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -193,6 +194,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 
     // Administrative Tribunal register (external-authority stages keep it in step).
     Route::get('/tribunal-cases', [AdministrativeTribunalController::class, 'index'])->name('tribunal-cases.index');
+    // Letters the tribunal sent institutions here through its case system (ADR 0013, Flow 5).
+    Route::get('/tribunal-cases/letters', [TribunalLetterController::class, 'index'])->name('tribunal-cases.letters.index');
+    Route::get('/tribunal-cases/letters/{letterId}/pdf', [TribunalLetterController::class, 'download'])->whereUuid('letterId')->name('tribunal-cases.letters.download');
     Route::get('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'show'])->name('tribunal-cases.show');
     Route::patch('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'update'])->name('tribunal-cases.update');
     // Referral to the tribunal's own case system (ADR 0013): a person confirms what is sent; the send is queued.

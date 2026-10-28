@@ -64,6 +64,27 @@ final class EmployeeCourtPortal
         return $url;
     }
 
+    /**
+     * Flow 5: files the employee's case in court-ms (EmployeeCourtFiling builds it).
+     *
+     * @param  array<string, mixed>  $filing
+     * @param  list<array{name: string, contents: string, title: string, source?: string}>  $documents
+     * @return array{case_id: int, case_number: string, review_status: string, status: string}
+     */
+    public function fileCase(Employee $employee, array $filing, array $documents): array
+    {
+        $result = $this->client->fileCase(['employee' => $this->person($employee), ...$filing], $documents);
+        Cache::forget("court-ms:employee-summary:{$employee->getKey()}");
+
+        return $result;
+    }
+
+    /** court-ms case types, for the filing form; empty when court-ms cannot be reached. */
+    public function caseTypes(): array
+    {
+        return $this->client->caseTypes();
+    }
+
     /** @return array{uuid: string, national_id: ?string, email: ?string} */
     private function identity(Employee $employee): array
     {

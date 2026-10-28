@@ -73,6 +73,9 @@ taken while building it.
 | 5 | Who owns the integration account? | The court-ms system administrator issues and rotates it (`php artisan euisis:integration-token`); the EUISIS System Admin registers court-ms as an application. |
 | 6 | Network path | HTTPS with certificate checks on both sides; IP allowlists recommended on both. |
 | 7 | Does EUISIS keep its own tribunal number? | Yes (decision 8). |
+| 8 | Where do employees file, and who may be a party? (2026-10-28) | Employees file from My Portal (Flow 5), not in the court portal. Only an employee with an EUISIS record may sue, and only an active institution registered here may be sued; court-ms enforces the same with `EUISIS_PARTIES_ONLY` (referrals must name both). |
+| 9 | What of the grievance record goes with a filing? (2026-10-28) | Only what the employee already sees in My Grievances: the grievance's facts, the letters issued to them, the issued decisions, and the PDFs (those letters and the evidence they submitted). Nothing from the committee's internal file. The employee chooses the grievances. |
+| 10 | Who receives the tribunal's letters to an institution? (2026-10-28) | The institution's Administrative Tribunal Officers (`grievances.tribunal` within that institution) are notified and read them under Tribunal Cases > Court letters; `court_cases.view` and city-wide scopes read all. No new permission. |
 
 ## Alternatives considered
 

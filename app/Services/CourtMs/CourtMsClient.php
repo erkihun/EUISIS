@@ -131,10 +131,81 @@ final class CourtMsClient
     }
 
     /**
+     * Flow 5: a case the employee files from My Portal, with their grievance record
+     * (`grievances`, a JSON string) and PDFs. Idempotent on `filing_id`.
+     *
+     * @param  array<string, mixed>  $payload
+     * @param  list<array{name: string, contents: string, title: string, source?: string}>  $documents
+     * @return array{case_id: int, case_number: string, review_status: string, status: string}
+     */
+    public function fileCase(array $payload, array $documents = []): array
+    {
+        $request = $this->request()->timeout(max(60, (int) config('court_ms.timeout', 20)));
+
+        try {
+            foreach ($documents as $i => $document) {
+                $request = $request->attach("documents[{$i}]", $document['contents'], $document['name'], ['Content-Type' => 'application/pdf']);
+            }
+            $response = $request->asMultipart()->post('/api/v1/integration/people/cases', $this->multipartFields($payload, $documents));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+
+        $data = (array) ($this->decode($response)['data'] ?? []);
+
+        return [
+            'case_id' => (int) ($data['case_id'] ?? 0),
+            'case_number' => (string) ($data['case_number'] ?? ''),
+            'review_status' => (string) ($data['review_status'] ?? ''),
+            'status' => (string) ($data['status'] ?? ''),
+        ];
+    }
+
+    /**
+     * Flow 5: approved court letters for EUISIS institutions, after a cursor.
+     *
+     * @return array{data: list<array<string, mixed>>, next_cursor: int, has_more: bool}
+     */
+    public function letterUpdates(int $since, int $limit = 100): array
+    {
+        try {
+            $json = $this->decode($this->request()->get('/api/v1/integration/letters/updates', ['since' => $since, 'limit' => $limit]));
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+
+        return [
+            'data' => array_values((array) ($json['data'] ?? [])),
+            'next_cursor' => (int) ($json['next_cursor'] ?? $since),
+            'has_more' => (bool) ($json['has_more'] ?? false),
+        ];
+    }
+
+    /** Flow 5: an approved court letter's PDF. */
+    public function letterPdf(int $letterId): string
+    {
+        try {
+            $response = $this->request()->accept('application/pdf')->get("/api/v1/integration/letters/{$letterId}/pdf");
+        } catch (ConnectionException $e) {
+            throw new CourtMsException('court-ms could not be reached: '.$e->getMessage());
+        }
+        if (! $response->successful()) {
+            $this->decode($response);
+        }
+
+        $body = $response->body();
+        if (! str_starts_with($body, '%PDF')) {
+            throw new CourtMsException("court-ms answered letter {$letterId} with something other than a PDF.", retryable: false);
+        }
+
+        return $body;
+    }
+
+    /**
      * Multipart sends flat fields: nested arrays become `complainant[name]`.
      *
      * @param  array<string, mixed>  $payload
-     * @param  list<array{title: string}>  $documents
+     * @param  list<array{title: string, source?: string}>  $documents
      * @return list<array{name: string, contents: string}>
      */
     private function multipartFields(array $payload, array $documents): array
@@ -153,6 +224,9 @@ final class CourtMsClient
         $flatten($payload, '');
         foreach ($documents as $i => $document) {
             $fields[] = ['name' => "document_titles[{$i}]", 'contents' => $document['title']];
+            if (isset($document['source'])) {
+                $fields[] = ['name' => "document_sources[{$i}]", 'contents' => $document['source']];
+            }
         }
 
         return $fields;

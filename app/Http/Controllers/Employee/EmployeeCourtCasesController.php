@@ -15,8 +15,9 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 /**
  * My Portal > My court cases (court-ms Flow 4): the employee's tribunal cases,
- * read from court-ms, and the way into the court portal for anything they do
- * there (file, reply, follow), already signed in.
+ * read from court-ms, and the way into the court portal for what they do there
+ * (reply, follow), already signed in. Cases are filed in EUISIS (Flow 5,
+ * EmployeeCourtFilingController).
  */
 class EmployeeCourtCasesController extends Controller
 {
@@ -32,6 +33,7 @@ class EmployeeCourtCasesController extends Controller
                 'state' => $employee === null ? 'no_employee' : 'disabled',
                 'summary' => null,
                 'error' => null,
+                'filed' => null,
             ]);
         }
 
@@ -50,6 +52,8 @@ class EmployeeCourtCasesController extends Controller
             ] : null,
             // Why the last attempt to open the court portal was refused, once.
             'error' => $request->session()->get('court_error'),
+            // The case number of a case just filed from My Portal (Flow 5).
+            'filed' => $request->session()->get('court_filed'),
         ]);
     }
 
