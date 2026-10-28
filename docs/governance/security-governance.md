@@ -122,7 +122,7 @@ G4). No penetration test has been performed yet.
 | --- | --- | --- |
 | Penetration test of Core and `/api/v1` | not performed | Information Security Lead |
 | Accounts given permissions directly without a role | still unscoped; listed by `access:scope-gaps` as DIRECT_PERMISSIONS_UNSCOPED; give them a role and a scope | Information Security Lead |
-| Partner tokens live 8 hours (global `SANCTUM_TOKEN_EXPIRATION_MINUTES`) with no per-application lifetime | decide a lifetime and rotation per application ([technical-debt.md](technical-debt.md) TD-16) | Integration/API Owner |
+| Partner tokens: 8 hours by default (`SANCTUM_TOKEN_EXPIRATION_MINUTES`); a connected system's application sets a lifetime in days (API Management, capped by its approval expiry) and its token is rotated before it ends ([technical-debt.md](technical-debt.md) TD-16, resolved 2026-10-28) | keep lifetimes for systems, not people; review them with `api:consumers` | Integration/API Owner |
 | Time-limited elevation and break-glass expiry | built 2026-10-25 (`access:elevate`, `access:expire-elevations`); a web screen for it is not built | Information Security Lead |
 
 ## Incidents

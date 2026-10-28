@@ -195,6 +195,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Sanctum\Sanctum;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
@@ -250,6 +251,14 @@ class AppServiceProvider extends ServiceProvider
         // Core Stage 6 deployment safety: migrate:fresh, migrate:refresh,
         // migrate:reset and db:wipe refuse to run in production, whoever types them.
         DB::prohibitDestructiveCommands($this->app->isProduction());
+
+        // TD-16: Sanctum checks a token's own expires_at; a token without one keeps
+        // the default lifetime (8 hours) from its creation, as before.
+        Sanctum::authenticateAccessTokensUsing(
+            fn ($token, bool $isValid): bool => $isValid
+                && ($token->expires_at !== null
+                    || ($token->created_at !== null && $token->created_at->gt(now()->subMinutes(max(1, (int) config('sanctum.default_token_lifetime_minutes', 480)))))),
+        );
 
         // Formatted text in server-rendered output (PDF, email): `@richtext($value)`
         // sanitizes against config/richtext.php and prints it; legacy plain text

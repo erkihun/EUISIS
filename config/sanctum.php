@@ -50,7 +50,14 @@ return [
     |
     */
 
-    'expiration' => (int) env('SANCTUM_TOKEN_EXPIRATION_MINUTES', 60 * 8), // default 8 hours; was 30 days
+    // Each token carries its own expiry (TD-16). A partner application may set a
+    // lifetime in days (external_applications.token_lifetime_days); a token with
+    // no expiry of its own lives default_token_lifetime_minutes, enforced in
+    // AppServiceProvider. A global value here would override both.
+    'expiration' => null,
+
+    // The lifetime of a token whose application sets none: 8 hours (was 30 days).
+    'default_token_lifetime_minutes' => (int) env('SANCTUM_TOKEN_EXPIRATION_MINUTES', 60 * 8),
 
     /*
     |--------------------------------------------------------------------------

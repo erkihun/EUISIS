@@ -76,6 +76,7 @@ taken while building it.
 | 8 | Where do employees file, and who may be a party? (2026-10-28) | Employees file from My Portal (Flow 5), not in the court portal. Only an employee with an EUISIS record may sue, and only an active institution registered here may be sued; court-ms enforces the same with `EUISIS_PARTIES_ONLY` (referrals must name both). |
 | 9 | What of the grievance record goes with a filing? (2026-10-28) | Only what the employee already sees in My Grievances: the grievance's facts, the letters issued to them, the issued decisions, and the PDFs (those letters and the evidence they submitted). Nothing from the committee's internal file. The employee chooses the grievances. |
 | 10 | Who receives the tribunal's letters to an institution? (2026-10-28) | The institution's Administrative Tribunal Officers (`grievances.tribunal` within that institution) are notified and read them under Tribunal Cases > Court letters; `court_cases.view` and city-wide scopes read all. No new permission. |
+| 11 | How long do the tokens of connected systems live? (2026-10-28) | Each EUISIS token carries its own expiry (TD-16). The court-ms and cafeteria-platform applications get a lifetime in days (90 suggested) and a new token before it ends; any other token keeps the 8-hour default. The global Sanctum expiry had cut both systems off 8 hours after every token. |
 
 ## Alternatives considered
 

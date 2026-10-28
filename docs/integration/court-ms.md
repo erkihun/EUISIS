@@ -30,7 +30,10 @@ System Settings → API Management → new application, for example code `COURT_
   `GET /api/v1/organizations/{organization}/positions`, `GET /api/v1/employees`,
   `GET /api/v1/employees/{employee}`.
 
-Issue a token (shown once) and hand it to the court-ms administrator for `EUISIS_TOKEN`.
+Set **Token lifetime** to the rotation period, for example 90 days; without it the token stops
+after 8 hours. Issue a token (shown once) and hand it to the court-ms administrator for
+`EUISIS_TOKEN`; issue the next one before the first runs out (`php artisan api:consumers`
+shows each token's expiry).
 The change feed must be on (`INTEGRATION_CHANGE_FEED_ENABLED=true`).
 
 ### 2. Issue the EUISIS token in court-ms (Flows 2 to 5)

@@ -36,6 +36,7 @@ interface Props {
         status: string;
         allowed_scopes: string[];
         rate_limit_per_minute: number;
+        token_lifetime_days: number | null;
         allowed_ips: string[];
         last_used_at: string | null;
         organization_access: string;
@@ -91,6 +92,7 @@ export default function ApiManagementShow({
         status: application.status,
         allowed_scopes: application.allowed_scopes,
         rate_limit_per_minute: application.rate_limit_per_minute,
+        token_lifetime_days: (application.token_lifetime_days ?? '') as number | '',
         allowed_ips: application.allowed_ips,
         // Preloaded so opening the edit form does not clear existing
         // assignments — sync() would otherwise detach every one of them.
@@ -246,6 +248,12 @@ export default function ApiManagementShow({
                     <div>
                         <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.ownerInstitution')}</dt>
                         <dd className="mt-1 text-sm text-(--app-foreground)">{application.owner_institution ?? '—'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.tokenLifetime')}</dt>
+                        <dd className="mt-1 text-sm text-(--app-foreground)">
+                            {application.token_lifetime_days ? t('apiManagement.tokenLifetimeDays').replace('{days}', String(application.token_lifetime_days)) : t('apiManagement.tokenLifetimeDefault')}
+                        </dd>
                     </div>
                     <div>
                         <dt className="text-xs text-(--app-muted-foreground)">{t('apiManagement.approvalExpires')}</dt>

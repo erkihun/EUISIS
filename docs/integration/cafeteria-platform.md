@@ -31,7 +31,9 @@ System Settings → API Management → new application, for example code `CAFETE
   `GET /api/v1/employees/{employee}/service-eligibility`, `GET /api/v1/id-cards/verify/{token}`,
   `POST /api/v1/cards/verify`, `GET /api/v1/cards/{cardUuid}`.
 
-Issue a token (shown once) for the platform's `EUISIS_TOKEN`.
+Set **Token lifetime** to the rotation period, for example 90 days; without it the token stops after 8 hours.
+Issue a token (shown once) for the platform's `EUISIS_TOKEN`, and the next one before it runs out
+(`php artisan api:consumers` shows each token's expiry).
 
 ### 2. Configure the platform
 
