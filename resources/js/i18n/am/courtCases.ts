@@ -24,7 +24,7 @@ const courtCases = {
         },
         table: {
             caseNumber: 'የመዝገብ ቁጥር',
-            title: 'ርዕስ',
+            respondent: 'ተከሳሽ',
             type: 'ዓይነት',
             status: 'ሁኔታ',
             review: 'ግምገማ',

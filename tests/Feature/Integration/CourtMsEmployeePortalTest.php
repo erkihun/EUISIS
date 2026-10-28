@@ -42,7 +42,7 @@ test('my court cases shows the employee\'s cases read from court-ms', function (
     Http::fake(['https://court.test/api/v1/integration/people/court-summary' => Http::response(['data' => [
         'linked' => true,
         'counts' => ['cases' => 1, 'open' => 1, 'awaiting_review' => 0, 'upcoming_hearings' => 1, 'unread_notices' => 2],
-        'cases' => [['id' => 7, 'case_number' => 'CIV-00007-26', 'title' => 'Unpaid allowance', 'case_type' => 'Civil', 'status' => 'active', 'review_status' => 'accepted', 'filed_at' => now()->toIso8601String(), 'next_hearing_at' => now()->addDays(3)->toIso8601String()]],
+        'cases' => [['id' => 7, 'case_number' => 'CIV-00007-26', 'title' => 'Meron A Haile', 'respondent' => 'Bureau of Finance', 'case_type' => 'Civil', 'status' => 'active', 'review_status' => 'accepted', 'filed_at' => now()->toIso8601String(), 'next_hearing_at' => now()->addDays(3)->toIso8601String()]],
         'notices' => [['id' => 'hearing:3', 'title' => 'Hearing: CIV-00007-26', 'message' => 'Preliminary · Room 1', 'created_at' => now()->toIso8601String()]],
     ]])]);
 
@@ -53,6 +53,7 @@ test('my court cases shows the employee\'s cases read from court-ms', function (
             ->where('state', 'linked')
             ->where('summary.counts.unread_notices', 2)
             ->where('summary.cases.0.case_number', 'CIV-00007-26')
+            ->where('summary.cases.0.respondent', 'Bureau of Finance')
             ->where('features.court_portal', true));
 
     // court-ms is asked with the employee's UUID and national ID, by POST, so the ID is never in a URL.

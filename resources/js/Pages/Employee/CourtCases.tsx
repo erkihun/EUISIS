@@ -13,6 +13,8 @@ type CourtCase = {
     id: number;
     case_number: string;
     title: string;
+    /** The other party (court-ms Flow 4); the case title is the employee's own name. */
+    respondent: string | null;
     case_type: string | null;
     status: string;
     review_status: string;
@@ -130,7 +132,7 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
                             <Table>
                                 <THead>
                                     <Tr>
-                                        {(['caseNumber', 'title', 'type', 'status', 'review', 'filed', 'nextHearing', 'actions'] as const).map((column) => (
+                                        {(['caseNumber', 'respondent', 'type', 'status', 'review', 'filed', 'nextHearing', 'actions'] as const).map((column) => (
                                             <Th key={column} scope="col">{label(`table.${column}`)}</Th>
                                         ))}
                                     </Tr>
@@ -139,7 +141,7 @@ export default function EmployeeCourtCases({ state, summary, error: initialError
                                     {summary.cases.map((courtCase) => (
                                         <Tr key={courtCase.id}>
                                             <Td className="font-mono text-sm">{courtCase.case_number}</Td>
-                                            <Td>{courtCase.title}</Td>
+                                            <Td muted={!courtCase.respondent}>{courtCase.respondent ?? '—'}</Td>
                                             <Td muted={!courtCase.case_type}>{courtCase.case_type ?? '—'}</Td>
                                             <Td><StatusBadge status={courtCase.status} label={label(`status.${courtCase.status}`)} /></Td>
                                             <Td><StatusBadge status={courtCase.review_status} label={label(`review.${courtCase.review_status}`)} /></Td>

@@ -24,7 +24,7 @@ const courtCases = {
         },
         table: {
             caseNumber: 'Case number',
-            title: 'Title',
+            respondent: 'Respondent',
             type: 'Type',
             status: 'Status',
             review: 'Review',
