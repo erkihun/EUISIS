@@ -20,6 +20,11 @@ use Spatie\Permission\PermissionRegistrar;
  * rules column and the empty categories table stay: SQLite cannot drop a
  * column that carries a foreign key, and with the parent table gone it refuses
  * every write to the child table. Nothing reads either of them any more.
+ *
+ * migration-safety: reviewed. The drop is the owner's decision of 2026-10-27
+ * (the category is gone end to end and is not to come back); nothing reads the
+ * dropped table or columns, and the release backup taken before deploying
+ * holds the old categories should they ever be needed.
  */
 return new class extends Migration
 {

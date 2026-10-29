@@ -36,5 +36,8 @@
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Tests read the cafeteria from EUISIS itself, whatever a local .env says (ADR 0014 switch). -->
+        <env name="CAFETERIA_PLATFORM_MODE" value="local"/>
+        <env name="CAFETERIA_PLATFORM_EMPLOYEE_PORTAL" value="false"/>
     </php>
 </phpunit>
