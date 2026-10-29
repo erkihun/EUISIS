@@ -38,7 +38,12 @@ class CardRequestController extends Controller
 
         $cardRequests = CardRequest::query()
             ->whereHas('employee.currentAssignment', fn ($query) => $this->organizationScopeService->applyOrganizationScope($query, request()->user()))
-            ->with(['employee.currentAssignment.organization', 'requester', 'reviewer', 'approver', 'rejecter'])
+            // Identity and placement for each row; actors by name only.
+            ->with([
+                'employee:id,employee_number,first_name,middle_name,last_name,full_name,name_en,status,photo_path,current_assignment_id',
+                'employee.currentAssignment.organization',
+                'requester:id,name', 'reviewer:id,name', 'approver:id,name', 'rejecter:id,name',
+            ])
             ->orderByDesc('created_at')
             ->paginate(25);
 
@@ -135,22 +140,31 @@ class CardRequestController extends Controller
     {
         $this->authorize('view', $cardRequest);
 
+        // Only what the page shows: the employee's identity and placement, and each
+        // actor's name (never a user's email, phone, login or 2FA details).
         $cardRequest->load([
+            'employee:id,employee_number,first_name,middle_name,last_name,full_name,name_en,status,photo_path,current_assignment_id',
             'employee.currentAssignment.organization',
             'employee.currentAssignment.position',
-            'requester',
-            'reviewer',
-            'approver',
-            'rejecter',
-            'canceller',
+            'requester:id,name',
+            'reviewer:id,name',
+            'approver:id,name',
+            'rejecter:id,name',
+            'canceller:id,name',
             'previousCard',
             'cards',
         ]);
 
+        $payload = $cardRequest->toArray();
+        // The page reads each actor as {id, name} under its column name.
+        foreach (['requested_by' => 'requester', 'reviewed_by' => 'reviewer', 'approved_by' => 'approver', 'rejected_by' => 'rejecter', 'cancelled_by' => 'canceller'] as $column => $relation) {
+            $payload[$column] = $cardRequest->{$relation}?->only(['id', 'name']);
+        }
+
         $user = request()->user();
 
         return Inertia::render('CardRequests/Show', [
-            'cardRequest' => $cardRequest,
+            'cardRequest' => $payload,
             'can' => [
                 'view' => $user?->can('view', $cardRequest),
                 'verify' => $user?->can('verify', $cardRequest),

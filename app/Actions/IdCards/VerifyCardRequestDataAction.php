@@ -9,6 +9,7 @@ use App\Enums\AuditEventType;
 use App\Enums\CardRequestStatus;
 use App\Models\CardRequest;
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 
 readonly class VerifyCardRequestDataAction
 {
@@ -16,6 +17,13 @@ readonly class VerifyCardRequestDataAction
 
     public function execute(CardRequest $cardRequest, User $actor, ?string $notes = null): CardRequest
     {
+        // Verifying is the step after submission; it must never reopen a closed request.
+        if ($cardRequest->status !== CardRequestStatus::Submitted) {
+            throw ValidationException::withMessages([
+                'status' => __('id-cards.request_not_verifiable'),
+            ]);
+        }
+
         $cardRequest->update([
             'status' => CardRequestStatus::Verified,
             'reviewed_by' => $actor->getKey(),

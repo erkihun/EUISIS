@@ -56,4 +56,5 @@ return [
     'template_saved' => 'የካርድ ቅጹ ተቀምጧል።',
     'template_activated' => 'ይህ የቅጽ ስሪት አዳዲስ ካርዶች የሚታተሙበት ሆኗል።',
     'template_retired' => 'የቅጹ ስሪት ከአገልግሎት ወጥቷል።',
+    'request_not_verifiable' => 'ሊረጋገጥ የሚችለው የቀረበ የካርድ ጥያቄ ብቻ ነው፤ ይህ ጥያቄ ያንን ደረጃ አልፏል።',
 ];

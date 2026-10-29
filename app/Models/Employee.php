@@ -71,6 +71,10 @@ class Employee extends Model
     protected $hidden = [
         'national_id',
         'national_id_hash',
+        // A declared disability is health data: shown only through
+        // EmployeeDetailResource to holders of employees.viewPii.
+        'has_disability',
+        'disability_type',
     ];
 
     protected $appends = ['photo_url'];

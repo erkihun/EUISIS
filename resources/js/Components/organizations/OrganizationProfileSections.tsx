@@ -3,7 +3,7 @@ import FormSection from '@/Components/FormSection';
 import LocationPicker from '@/Components/fieldWork/LocationPicker';
 import type { MapConfig } from '@/Components/fieldWork/LocationMap';
 import { useLocale } from '@/hooks/useLocale';
-import { cx, inputClassName } from '@/Components/ui';
+import { cx, inputClassName, textareaClassName } from '@/Components/ui';
 
 /**
  * The parts of the organization form shared by Create and Edit: short names,
@@ -56,6 +56,7 @@ export function organizationProfilePayload(data: OrganizationProfile): Record<ke
 }
 
 const inputCls = cx(inputClassName, 'w-full');
+const textareaCls = cx(textareaClassName, 'w-full');
 
 export function OrgField({ label, error, children, help, required }: { label: string; error?: string; children: ReactNode; help?: string; required?: boolean }) {
     return (
@@ -100,10 +101,10 @@ export function LocationSection({ data, errors, set, map, step }: SectionProps &
         <FormSection id="organization-location" step={step} title={t('organizations.sectionLocation')} description={t('organizations.sectionLocationHelp')} grid={false}>
             <div className="grid gap-4 md:grid-cols-2">
                 <OrgField label={t('organizations.addressEn')} error={errors.address_en}>
-                    <textarea className={inputCls} rows={2} maxLength={500} placeholder={t('organizations.addressPlaceholder')} value={data.address_en} onChange={(e) => set({ address_en: e.target.value })} />
+                    <textarea className={textareaCls} rows={2} maxLength={500} placeholder={t('organizations.addressPlaceholder')} value={data.address_en} onChange={(e) => set({ address_en: e.target.value })} />
                 </OrgField>
                 <OrgField label={t('organizations.addressAm')} error={errors.address_am}>
-                    <textarea className={inputCls} rows={2} maxLength={500} value={data.address_am} onChange={(e) => set({ address_am: e.target.value })} />
+                    <textarea className={textareaCls} rows={2} maxLength={500} value={data.address_am} onChange={(e) => set({ address_am: e.target.value })} />
                 </OrgField>
             </div>
 
@@ -147,7 +148,7 @@ export function ContactSection({ data, errors, set, step }: SectionProps & { ste
                 <input className={inputCls} type="email" inputMode="email" autoComplete="off" maxLength={255} placeholder="info@example.gov.et" value={data.official_email} onChange={(e) => set({ official_email: e.target.value })} />
             </OrgField>
             <OrgField label={t('organizations.website')} error={errors.website}>
-                <input className={inputCls} type="url" inputMode="url" maxLength={255} placeholder="https://example.gov.et" value={data.website} onChange={(e) => set({ website: e.target.value })} />
+                <input className={inputCls} type="text" inputMode="url" autoComplete="url" maxLength={255} placeholder="https://example.gov.et" value={data.website} onChange={(e) => set({ website: e.target.value })} />
             </OrgField>
             <OrgField label={t('organizations.poBox')} error={errors.po_box}>
                 <input className={inputCls} maxLength={32} placeholder="1234" value={data.po_box} onChange={(e) => set({ po_box: e.target.value })} />

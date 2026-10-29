@@ -57,4 +57,5 @@ return [
     'template_saved' => 'The card template was saved.',
     'template_activated' => 'The template version is now the one new cards are printed with.',
     'template_retired' => 'The template version was retired.',
+    'request_not_verifiable' => 'Only a submitted card request can be verified; this one is already past that step.',
 ];

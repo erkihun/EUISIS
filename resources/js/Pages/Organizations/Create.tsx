@@ -458,7 +458,7 @@ export default function CreateOrganization({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
+                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-(--app-border) sm:pr-20! bg-[color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-4 backdrop-blur-sm sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8">
                         <Link
                             href={route('organizations.index')}
                             className="rounded-lg px-4 py-2 text-sm font-medium text-(--app-foreground) hover:bg-(--app-surface-muted)"

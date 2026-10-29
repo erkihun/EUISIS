@@ -430,7 +430,7 @@ export default function EmployeesEdit({
                         >
                             <textarea
                                 id="address"
-                                className={inputCls}
+                                className={`${inputCls} min-h-16 py-2`}
                                 rows={2}
                                 maxLength={1000}
                                 placeholder={t('employees.addressPlaceholder')}

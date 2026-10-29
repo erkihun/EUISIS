@@ -262,7 +262,7 @@ export default function EmployeesShow({
                             <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
                                 <Field label={t('employees.address')} value={employee.address} />
                                 <Field label={t('employees.nationality')} value={employee.nationality} />
-                                <Field label={t('employees.employeeStatus')} value={employee.employment_type_label} />
+                                <Field label={t('employees.employmentType')} value={employee.employment_type_label} />
                                 <Field label={t('employees.emergencyContactName')} value={employee.emergency_contact_name} />
                                 <Field label={t('employees.emergencyContactPhone')} value={employee.emergency_contact_phone} />
                             </dl>

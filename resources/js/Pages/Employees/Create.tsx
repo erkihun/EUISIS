@@ -201,7 +201,14 @@ export default function EmployeesCreate({
         };
 
         window.addEventListener('beforeunload', warnOnUnload);
-        const stopListening = router.on('before', () => window.confirm(t('employees.unsavedChangesWarning')));
+        // Only leaving the page is challenged: the form's own POST, prefetches and
+        // partial reloads (the placement lists) pass. `inertia:before` fires before
+        // form.processing is set, so the method is what tells the save apart.
+        const stopListening = router.on('before', (event) => {
+            const visit = event.detail.visit;
+            if (visit.method !== 'get' || visit.prefetch || visit.only.length > 0) return;
+            if (!window.confirm(t('employees.unsavedChangesWarning'))) event.preventDefault();
+        });
 
         return () => {
             window.removeEventListener('beforeunload', warnOnUnload);
@@ -545,7 +552,7 @@ export default function EmployeesCreate({
                         </Field>
 
                         <Field label={t('employees.address')} error={form.errors.address} className="md:col-span-2 xl:col-span-3" htmlFor="address">
-                            <textarea id="address" className={inputCls} rows={2} maxLength={500} placeholder={t('employees.addressPlaceholder')} value={form.data.address} onChange={(e) => form.setData('address', e.target.value)} />
+                            <textarea id="address" className={`${inputCls} min-h-16 py-2`} rows={2} maxLength={500} placeholder={t('employees.addressPlaceholder')} value={form.data.address} onChange={(e) => form.setData('address', e.target.value)} />
                         </Field>
                     </FormCard>
 
