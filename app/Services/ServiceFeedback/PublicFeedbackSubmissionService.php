@@ -129,8 +129,6 @@ class PublicFeedbackSubmissionService
                         ? $this->trimmedOrNull($data['comment'] ?? null)
                         : trim((string) ($data['message'] ?? '')),
                     'subject' => $this->trimmedOrNull($data['subject'] ?? null),
-                    // Applicability was checked by the controller against the resolved target.
-                    'category_id' => $this->trimmedOrNull($data['category_id'] ?? null),
                     // The identity policy of this type, recorded with the row (PublicSubmissionPolicy).
                     'client_name' => $this->trimmedOrNull($data['client_name'] ?? null),
                     'client_contact' => $this->trimmedOrNull($data['client_contact'] ?? null),
@@ -268,7 +266,6 @@ class PublicFeedbackSubmissionService
             trim((string) ($data['message'] ?? $data['comment'] ?? '')),
             (string) ($data['rating'] ?? ''),
             (string) ($data['position_service_id'] ?? ''),
-            (string) ($data['category_id'] ?? ''),
             trim((string) ($data['client_name'] ?? '')),
             trim((string) ($data['client_contact'] ?? '')),
             trim((string) ($data['client_email'] ?? '')),

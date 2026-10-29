@@ -15,11 +15,10 @@ final class ManagementSummary
 {
     /**
      * @param  array{current: array<string, mixed>, previous: array<string, mixed>}  $kpis
-     * @param  list<array<string, mixed>>  $categories
      * @param  array{rows: list<array<string, mixed>>, own: array<string, int>}  $institutions
      * @return list<array{code: string, params: array<string, mixed>}>
      */
-    public function sentences(array $kpis, array $categories, array $institutions): array
+    public function sentences(array $kpis, array $institutions): array
     {
         $current = $kpis['current'];
         $previous = $kpis['previous'];
@@ -45,11 +44,6 @@ final class ManagementSummary
                 continue;
             }
             $sentences[] = ['code' => $now > $before ? 'type_more' : 'type_fewer', 'params' => ['type' => $type, 'current' => $now, 'previous' => $before]];
-        }
-
-        $topCategory = collect($categories)->sortByDesc('complaint')->first(fn (array $row): bool => ! $row['uncategorized'] && (int) $row['complaint'] > 0);
-        if ($topCategory !== null) {
-            $sentences[] = ['code' => 'top_complaint_category', 'params' => ['category_en' => $topCategory['name_en'], 'category_am' => $topCategory['name_am'], 'count' => (int) $topCategory['complaint']]];
         }
 
         $topInstitution = collect($institutions['rows'])->sortByDesc('unresolved_complaints')->first(fn (array $row): bool => (int) $row['unresolved_complaints'] > 0);

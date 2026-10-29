@@ -40,7 +40,6 @@ return [
         'voice_targets' => ['title' => 'በዒላማ', 'description' => 'ስለ ሠራተኛ (በመታወቂያ ካርዱ ላይ ያለ QR) እና ስለ ተቋም (የተቋም ቅጽ) የቀረቡ አስተያየቶች፣ በዓይነት። ከተዋሃደው ሞዴል በፊት የተጻፉ ረድፎች የሠራተኛ አስተያየቶች ናቸው።'],
         'voice_by_organization' => ['title' => 'በተቋም', 'description' => 'በእያንዳንዱ የማጠቃለያ ረድፍ የተቀበሉ፣ በዓይነት። የሪፖርቶች መጠን እንጂ ስለ ተቋም ግኝት አይደለም።'],
         'voice_status' => ['title' => 'የአያያዝ ሁኔታ', 'description' => 'ከጊዜው አስተያየቶች ውስጥ፦ አሁንም ክፍት፣ ውጤት ያገኙ ወይም የተዘጉ፣ በዓይነት።'],
-        'complaints_by_category' => ['title' => 'ቅሬታዎች በምድብ', 'description' => 'የጊዜው ትልልቅ የቅሬታ ምድቦች፣ የቀረው ሁሉ እንደ «ሌላ»።'],
         'complaints_by_service' => ['title' => 'ቅሬታዎች በአገልግሎት', 'description' => 'የካታሎግ አገልግሎትን በመለያው የሚጠቅሱ ቅሬታዎች። በቃላት ብቻ የተገለጸ አገልግሎት እዚህ አይቆጠርም።'],
         'complaints_backlog' => ['title' => 'የቅሬታ ክምችት እና መምራት', 'description' => 'በጊዜው መጀመሪያ እና መጨረሻ ክፍት የነበሩ ቅሬታዎች፣ እና ወደ ማንም ሊመሩ ያልቻሉ የጊዜው ጥቆማዎች እና ቅሬታዎች።'],
 
@@ -192,11 +191,6 @@ return [
             'title' => 'የቅሬታ ቅናሽ በማቅረብ ውድቀቶች ተጽዕኖ ሥር ሊሆን ይችላል',
             'summary' => 'ባለፉት ሰባት ቀናት :current ቅሬታዎች፣ ሳምንታዊ መነሻው :baseline ነው (:percent%)፤ በዚሁ ጊዜ የሕዝብ አስተያየት መንገዶች :failure_rate% የውድቀት መጠን እና :incidents ክስተት(ቶች) መዝግበዋል። ቅናሹ ከተሻሻለ አገልግሎት ይልቅ በማቅረብ ውድቀቶች ተጽዕኖ ሥር ሊሆን ይችላል።',
             'recommendation' => 'የሕዝብ አስተያየት መንገዶችን እንዲያረጋግጥ የቴክኒክ ቡድኑን ይጠይቁ፤ እስኪያረጋግጡ ድረስ ቅናሹን እንደ መሻሻል አይዘግቡ።',
-        ],
-        'repeated_complaint_category' => [
-            'title' => 'አንድ ምድብ ቅሬታዎችን ይቆጣጠራል',
-            'summary' => '«:name»፦ በጊዜው ውስጥ ከ:current ቅሬታዎች :count (:percent%) በአንድ ምድብ ውስጥ ናቸው።',
-            'recommendation' => 'ምድቡን እንደ ሥርዓታዊ ችግር ይውሰዱት፤ ከግለሰብ ጉዳዮች ይልቅ ከኋላው ያለውን አገልግሎት ይገምግሙ።',
         ],
         'complaint_backlog_growth' => [
             'title' => 'የቅሬታ ክምችት እያደገ ነው',
@@ -396,7 +390,6 @@ return [
         'positions_without_competency' => ['label' => 'የብቃት መስፈርት የሌላቸው ንቁ የሥራ መደቦች', 'impact' => 'የብቃት ክፍተቶች ሊገመገሙ አይችሉም።', 'remediation' => 'የተቋም ንድፍ › የሥራ መደብ ንድፍ'],
         'unmapped_legacy_positions' => ['label' => 'ሙያ፣ የሥራ ማያያዣ፣ መገለጫ ወይም የሥራ መግለጫ የሌላቸው የቀድሞ የሥራ መደቦች', 'impact' => 'ለሰው ኃይል ዕቅድ እና ለአገልግሎት ትንተና አይታዩም።', 'remediation' => 'የተቋም ንድፍ › የቀድሞ ካርታ'],
         'qr_without_public_phone' => ['label' => 'ንቁ የአስተያየት QR ያላቸው ነገር ግን የሕዝብ መገናኛ ስልክ የሌላቸው ተቋማት', 'impact' => 'በQR ገጾቻቸው ላይ የመደወል እርምጃ የለም።', 'remediation' => 'የሕዝብ አስተያየት › የተቋም QR'],
-        'submissions_without_category' => ['label' => 'ምድብ የሌላቸው ጥቆማዎች እና ቅሬታዎች', 'impact' => 'ከምድብ ክፍፍል እና በምድብ ከመምራት ይጎድላሉ።', 'remediation' => 'የሕዝብ አስተያየት › አስተያየቶች'],
         'assignments_effective_to_before_from' => ['label' => 'ከመጀመራቸው በፊት የሚያበቁ ምደባዎች', 'impact' => 'የታሪክ መያዝ እና የአገልግሎት ዘመን ስህተት ናቸው።', 'remediation' => 'ሠራተኞች › ምደባ'],
         'positions_effective_to_before_from' => ['label' => 'ከመጀመራቸው በፊት የሚያበቁ የሥራ መደቦች', 'impact' => 'የሥራ መደብ ታሪክ ስህተት ነው።', 'remediation' => 'የሥራ መደቦች'],
         'establishments_effective_to_before_from' => ['label' => 'ከመጀመራቸው በፊት የሚያበቁ መዋቅር ምደባዎች', 'impact' => 'የአቅም ታሪክ ስህተት ነው።', 'remediation' => 'የሥራ መደቦች › መዋቅር ምደባ'],

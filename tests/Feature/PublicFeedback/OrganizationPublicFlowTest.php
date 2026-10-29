@@ -13,7 +13,6 @@ use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\Support\PublicFeedbackScenario;
 
@@ -249,25 +248,6 @@ it('does not show a complaint receipt on another form type for the same QR', fun
             ->where('submitted', false)
             ->where('receipt', null)
             ->where('type', 'suggestion'));
-});
-
-it('lets a visitor correct an inapplicable category without refreshing the form', function (): void {
-    $formToken = $this->get('/feedback/'.$this->token.'/suggestion')
-        ->assertOk()
-        ->inertiaProps()['formToken'];
-
-    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', [
-        'message' => 'A suggestion with a category to correct.',
-        'category_id' => (string) Str::uuid(),
-        'form_token' => $formToken,
-    ]))->assertSessionHasErrors('category_id');
-
-    $this->post('/feedback/'.$this->token.'/suggestion', pfComplete('suggestion', [
-        'message' => 'A suggestion with a category to correct.',
-        'form_token' => $formToken,
-    ]))->assertRedirect()->assertSessionHasNoErrors();
-
-    expect(EmployeeServiceFeedback::query()->count())->toBe(1);
 });
 
 it('consumes a one-time form token so a replayed form is refused', function (): void {

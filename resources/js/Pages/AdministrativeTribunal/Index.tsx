@@ -7,9 +7,10 @@ import { useState, type JSX } from 'react';
 import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type TribunalCase = {
     id: string; case_number: string; status: string; hearing_date: string | null; decision_date: string | null;
+    court_case_number: string | null;
     grievance: {
         reference_number: string; subject: string;
         organization: { name_en: string; name_am: string | null } | null;
@@ -30,7 +31,12 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
     const [status, setStatus] = useState(filters.status ?? '');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('grievances.tribunalCases')} />}>
+        <AuthenticatedLayout header={<PageHeader title={t('grievances.tribunalCases')} actions={(
+            <div className="flex flex-wrap gap-2">
+                <Link href={route('tribunal-cases.institution-cases.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('courtCases.institution.title')}</Link>
+                <Link href={route('tribunal-cases.letters.index')} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('courtCases.letters.title')}</Link>
+            </div>
+        )} />}>
             <Head title={t('grievances.tribunalCases')} />
 
             <div className="space-y-4">
@@ -64,6 +70,7 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
                                 <tr key={c.id} className={tableRowClassName}>
                                     <td className={tableCellClassName}>
                                         <Link href={route('tribunal-cases.show', c.id)} className="font-mono text-primary hover:underline dark:text-primary">{c.case_number}</Link>
+                                        {c.court_case_number && <span className="block font-mono text-xs text-(--app-muted-foreground)">{c.court_case_number}</span>}
                                     </td>
                                     <td className={cx(tableCellClassName, 'text-(--app-foreground) max-w-xs truncate')}>
                                         {c.grievance?.subject ?? '-'}

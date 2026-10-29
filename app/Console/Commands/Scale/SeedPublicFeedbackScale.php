@@ -7,7 +7,6 @@ namespace App\Console\Commands\Scale;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\Permission;
-use App\Models\PublicFeedbackCategory;
 use App\Models\Role;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
@@ -18,8 +17,8 @@ use Illuminate\Support\Str;
 
 /**
  * Synthetic, PII-free public feedback data for a scale database built by
- * scale:generate (QA brief §70). Adds institution QR codes, city-wide
- * categories, one handler account and routing rule per institution, employee
+ * scale:generate (QA brief §70). Adds institution QR codes, one handler
+ * account and routing rule per institution, employee
  * feedback tokens (with one position service each so a rating can be
  * submitted) and a configurable number of submissions spread over the six
  * target × type combinations. Everything except the submissions is
@@ -29,7 +28,6 @@ class SeedPublicFeedbackScale extends Command
 {
     protected $signature = 'feedback:scale-seed
         {--employee-tokens=2000 : Employees given an active feedback QR token (each gets one position service)}
-        {--categories=8 : City-wide categories to ensure}
         {--submissions=20000 : Submissions to add, spread over the six target × type combinations}
         {--chunk=1000 : Insert chunk size}
         {--password=Scale-Load-Test-2026! : Password for the fb-handler-<n>@scale.invalid accounts}';
@@ -60,14 +58,13 @@ class SeedPublicFeedbackScale extends Command
         $this->now = now()->toDateTimeString();
 
         $organizations = $this->organizations($qr);
-        $categories = $this->categories((int) $this->option('categories'));
         $handlers = $this->handlers($organizations);
         $employees = $this->employeeTokens($tokens, (int) $this->option('employee-tokens'));
-        $added = $this->submissions((int) $this->option('submissions'), (int) $this->option('chunk'), $organizations, $categories, $handlers, $employees);
+        $added = $this->submissions((int) $this->option('submissions'), (int) $this->option('chunk'), $organizations, $handlers, $employees);
 
         $this->info(sprintf(
-            'Institutions with QR: %d; categories: %d; handlers/rules: %d; employee tokens: %d; submissions added: %d.',
-            count($organizations), count($categories), count($handlers), count($employees), $added,
+            'Institutions with QR: %d; handlers/rules: %d; employee tokens: %d; submissions added: %d.',
+            count($organizations), count($handlers), count($employees), $added,
         ));
         $this->info('Handler accounts: fb-handler-<n>@scale.invalid (scoped to one institution). Password: --password option.');
 
@@ -88,24 +85,6 @@ class SeedPublicFeedbackScale extends Command
         $this->line('Institution QR codes ensured: '.count($result));
 
         return $result;
-    }
-
-    /** @return list<string> category ids */
-    private function categories(int $count): array
-    {
-        $ids = [];
-        for ($n = 1; $n <= $count; $n++) {
-            $ids[] = PublicFeedbackCategory::query()->firstOrCreate(
-                ['organization_id' => null, 'code' => 'SC-CAT-'.$n],
-                [
-                    'name_en' => 'Scale category '.$n, 'name_am' => 'የመለኪያ ምድብ '.$n,
-                    'submission_types' => ['suggestion', 'complaint'], 'target_types' => ['employee', 'organization'],
-                    'is_active' => true, 'sort_order' => $n,
-                ],
-            )->id;
-        }
-
-        return $ids;
     }
 
     /**
@@ -209,11 +188,10 @@ class SeedPublicFeedbackScale extends Command
 
     /**
      * @param  array<string, array{id: string, code: string, name: string, qr_id: string, token: string}>  $organizations
-     * @param  list<string>  $categories
      * @param  array<string, array{user_id: int, name: string, rule_id: string}>  $handlers
      * @param  list<array<string, mixed>>  $employees
      */
-    private function submissions(int $count, int $chunk, array $organizations, array $categories, array $handlers, array $employees): int
+    private function submissions(int $count, int $chunk, array $organizations, array $handlers, array $employees): int
     {
         if ($count <= 0 || $employees === [] || $organizations === []) {
             return 0;
@@ -251,7 +229,6 @@ class SeedPublicFeedbackScale extends Command
                     'employee_assignment_id' => $isEmployee ? $employee['assignment_id'] : null,
                     'target_name_snapshot' => $isEmployee ? $employee['name'] : $organization['name'],
                     'target_code_snapshot' => $isEmployee ? $employee['number'] : $organization['code'],
-                    'category_id' => $type === 'feedback' ? null : $categories[array_rand($categories)],
                     'submitter_identity_mode' => 'anonymous',
                     'type' => $type,
                     'reference_number' => $type === 'complaint' ? 'PSC-SCALE-'.str_pad((string) $n, 7, '0', STR_PAD_LEFT) : null,

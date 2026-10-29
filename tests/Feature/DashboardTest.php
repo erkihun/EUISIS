@@ -280,7 +280,6 @@ it('keeps employee self-service mode for a user with no administrative access', 
 
     $middleware = app(HandleInertiaRequests::class);
     $resolve = new ReflectionMethod($middleware, 'resolveIsEmployeeUser');
-    $resolve->setAccessible(true);
 
     expect($resolve->invoke($middleware, $employeeUser))->toBeTrue();
 });

@@ -68,6 +68,10 @@ Schedule::command('intelligence:alerts')->hourly()->withoutOverlapping()->onOneS
 Schedule::command('intelligence:forecast --evaluate')->dailyAt('04:10')->withoutOverlapping()->onOneServer();
 Schedule::command('assistant:prune')->dailyAt('03:50')->withoutOverlapping()->onOneServer();
 
+// court-ms (ADR 0013, docs/integration/court-ms.md): status of the tribunal cases referred to court-ms.
+// A no-op while COURT_MS_ENABLED is false.
+Schedule::command('court-ms:poll')->everyTenMinutes()->withoutOverlapping()->onOneServer();
+
 // Event integration layer (docs/integration/transactional-outbox.md): outbox →
 // change feed every ten seconds without the queue; webhook deliveries fan out
 // one queued job per subscription; retention only when a policy is configured.

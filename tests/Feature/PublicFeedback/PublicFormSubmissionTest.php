@@ -41,7 +41,6 @@ function browserEntryPayload(string $type, string $message): array
     $common = [
         'form_token' => '',
         'position_service_id' => '',
-        'category_id' => '',
         'message' => $message,
         'client_email' => '',
         'incident_date' => '',

@@ -27,7 +27,8 @@ class ApiConsumerRegistry extends Command
     public function handle(PartnerAccessReviewService $review): int
     {
         $cutoff = Carbon::now()->subDays(max(1, (int) $this->option('days')));
-        $lifetime = config('sanctum.expiration');
+        // A token without its own expiry lives the default lifetime (TD-16, AppServiceProvider).
+        $lifetime = config('sanctum.expiration') ?? config('sanctum.default_token_lifetime_minutes');
 
         $rows = ExternalApplication::query()
             ->withCount('organizationScopes')

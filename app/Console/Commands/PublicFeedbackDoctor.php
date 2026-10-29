@@ -8,7 +8,6 @@ use App\Enums\CodeRuleEntityType;
 use App\Models\CodeRule;
 use App\Models\EmployeeFeedbackToken;
 use App\Models\OrganizationFeedbackQrCode;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackRoutingRule;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use Illuminate\Console\Command;
@@ -83,9 +82,6 @@ class PublicFeedbackDoctor extends Command
         $employeeTokens = EmployeeFeedbackToken::query()->where('status', 'active')->count();
         $this->add('Active institution QR codes', $organizationCodes > 0 ? 'OK' : 'WARN', $organizationCodes > 0 ? "{$organizationCodes} active" : 'None: generate one from an institution\'s "Feedback QR" page, or nobody has a link to open');
         $this->add('Active employee feedback QR tokens', $employeeTokens > 0 ? 'OK' : 'WARN', $employeeTokens > 0 ? "{$employeeTokens} active" : 'None generated yet (Employees › Feedback QR)');
-
-        $categories = PublicFeedbackCategory::query()->active()->count();
-        $this->add('Active categories', $categories > 0 ? 'OK' : 'WARN', $categories > 0 ? "{$categories} active" : 'No category: forms still work, submissions are uncategorised');
 
         $rules = PublicFeedbackRoutingRule::query()->where('is_active', true)->count();
         $this->add('Active routing rules', $rules > 0 ? 'OK' : 'WARN', $rules > 0 ? "{$rules} active" : 'No rule: suggestions and complaints arrive UNROUTED and must be assigned by hand');

@@ -15,6 +15,8 @@ use App\Http\Controllers\Grievances\GrievanceReportController;
 use App\Http\Controllers\Grievances\GrievanceRoutingController;
 use App\Http\Controllers\Grievances\GrievanceSettingsController;
 use App\Http\Controllers\Web\AdministrativeTribunalController;
+use App\Http\Controllers\Web\InstitutionCourtCaseController;
+use App\Http\Controllers\Web\TribunalLetterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -193,6 +195,22 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 
     // Administrative Tribunal register (external-authority stages keep it in step).
     Route::get('/tribunal-cases', [AdministrativeTribunalController::class, 'index'])->name('tribunal-cases.index');
+    // Letters the tribunal sent institutions here through its case system (ADR 0013, Flow 5).
+    Route::get('/tribunal-cases/letters', [TribunalLetterController::class, 'index'])->name('tribunal-cases.letters.index');
+    Route::get('/tribunal-cases/letters/{letterId}/pdf', [TribunalLetterController::class, 'download'])->whereUuid('letterId')->name('tribunal-cases.letters.download');
+    // Cases filed against institutions here, for the officer who follows them, and their appeals (ADR 0013 #14, Flow 7).
+    Route::prefix('/tribunal-cases/institution-cases')->name('tribunal-cases.institution-cases.')->controller(InstitutionCourtCaseController::class)->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::get('/case-officers', 'officers')->name('case-officers');
+        Route::post('/case-officers', 'saveOfficer')->middleware('throttle:30,1')->name('case-officers.store');
+        Route::get('/{institutionCourtCase}', 'show')->whereUuid('institutionCourtCase')->name('show');
+        Route::post('/{institutionCourtCase}/assign', 'assign')->whereUuid('institutionCourtCase')->middleware('throttle:30,1')->name('assign');
+        Route::post('/{institutionCourtCase}/appeal', 'appeal')->whereUuid('institutionCourtCase')->middleware('throttle:10,1')->name('appeal');
+        Route::get('/{institutionCourtCase}/appeal-record', 'appealRecord')->whereUuid('institutionCourtCase')->middleware('throttle:20,1')->name('appeal-record');
+    });
     Route::get('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'show'])->name('tribunal-cases.show');
     Route::patch('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'update'])->name('tribunal-cases.update');
+    // Referral to the tribunal's own case system (ADR 0013): a person confirms what is sent; the send is queued.
+    Route::post('/tribunal-cases/{administrativeTribunalCase}/referral', [AdministrativeTribunalController::class, 'refer'])
+        ->middleware('throttle:10,1')->name('tribunal-cases.referral');
 });

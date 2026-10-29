@@ -11,7 +11,6 @@ use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Models\Employee;
 use App\Models\PositionService;
-use App\Models\PublicFeedbackCategory;
 use App\Models\Service;
 use App\Services\ServiceFeedback\PublicFeedbackAnswerStatistics;
 use App\Services\SituationRoom\SituationContext;
@@ -73,7 +72,6 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
 
         return $panels + [
             "{$p}_target" => fn (): SituationPanel => $this->targets($context),
-            "{$p}_category" => fn (): SituationPanel => $this->categories($context),
             "{$p}_service" => fn (): SituationPanel => $this->services($context),
             "{$p}_question_ratings" => fn (): SituationPanel => $this->questionRatings($context),
             "{$p}_question_choices" => fn (): SituationPanel => $this->questionChoices($context),
@@ -100,7 +98,7 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
                 ? $query->where(fn ($q) => $q->where('f.target_type', $target)->orWhereNull('f.target_type'))
                 : $query->where('f.target_type', $target);
         }
-        foreach (['status' => 'f.status', 'category_id' => 'f.category_id', 'position_service_id' => 'f.position_service_id', 'organization_unit_id' => 'f.organization_unit_id'] as $key => $column) {
+        foreach (['status' => 'f.status', 'position_service_id' => 'f.position_service_id', 'organization_unit_id' => 'f.organization_unit_id'] as $key => $column) {
             if (($value = $filters->get($key)) !== null) {
                 $query->where($column, $value);
             }
@@ -221,22 +219,6 @@ abstract class PublicVoiceAnalytics extends SituationAnalytics
 
         return $this->chart("{$this->prefix()}_target", 'donut', self::SOURCE, $this->valueLabels('target_type', $buckets), [
             ['key' => 'received', 'label' => SituationLabel::key('situationRoom.series.received'), 'values' => array_map(fn (string $b): int => $counts[$b] ?? 0, $buckets)],
-        ]);
-    }
-
-    private function categories(SituationContext $context): SituationPanel
-    {
-        $counts = $this->countBy($this->inPeriodBase($context), "COALESCE(CAST(f.category_id AS VARCHAR(64)), '__none')");
-        $top = $this->topWithOther($counts);
-        $names = PublicFeedbackCategory::query()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($c): string => (string) $c->id);
-        $categories = array_map(fn ($key): array => match ((string) $key) {
-            '__none' => SituationLabel::key('situationRoom.values.common.not_categorised'),
-            '__other' => SituationLabel::key('situationRoom.values.common.other'),
-            default => SituationLabel::names($names[$key]->name_en ?? null, $names[$key]->name_am ?? null),
-        }, array_keys($top));
-
-        return $this->chart("{$this->prefix()}_category", 'hbar', self::SOURCE, $categories, [
-            ['key' => 'received', 'label' => SituationLabel::key('situationRoom.series.received'), 'values' => array_values($top)],
         ]);
     }
 

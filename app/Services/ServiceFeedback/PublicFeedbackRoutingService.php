@@ -12,7 +12,6 @@ use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\OrganizationUnit;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackRoutingRule;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -28,8 +27,8 @@ use Illuminate\Validation\ValidationException;
  * flow (§48).
  *
  * Rule precedence: a rule naming the organization beats a city-wide one, then
- * a named target type, then a named submission type, then a named tip type,
- * then a named category; among equally specific rules the lowest priority
+ * a named target type, then a named submission type, then a named tip type;
+ * among equally specific rules the lowest priority
  * number wins, then the older rule. No match → UNROUTED and the routing
  * administrators are told; the submission never falls to the target employee
  * (§46).
@@ -80,8 +79,6 @@ final class PublicFeedbackRoutingService
             ->where(fn (Builder $q) => $submission->tip_type === PublicTipType::Corruption
                 ? $q->where('tip_type', PublicTipType::Corruption->value)
                 : $q->whereNull('tip_type')->when($submission->tip_type !== null, fn (Builder $q) => $q->orWhere('tip_type', $submission->tip_type->value)))
-            ->where(fn (Builder $q) => $q->whereNull('category_id')
-                ->when($submission->category_id !== null, fn (Builder $q) => $q->orWhere('category_id', $submission->category_id)))
             // The relevant work unit the visitor named (organization form); "General / Not sure" matches only unit-less rules.
             ->where(fn (Builder $q) => $q->whereNull('organization_unit_id')
                 ->when($submission->organization_unit_id !== null, fn (Builder $q) => $q->orWhere('organization_unit_id', $submission->organization_unit_id)))
@@ -90,7 +87,6 @@ final class PublicFeedbackRoutingService
             ->orderByRaw('CASE WHEN target_type IS NULL THEN 1 ELSE 0 END')
             ->orderByRaw('CASE WHEN submission_type IS NULL THEN 1 ELSE 0 END')
             ->orderByRaw('CASE WHEN tip_type IS NULL THEN 1 ELSE 0 END')
-            ->orderByRaw('CASE WHEN category_id IS NULL THEN 1 ELSE 0 END')
             ->orderBy('priority')
             ->orderBy('created_at')
             ->get();
@@ -154,7 +150,7 @@ final class PublicFeedbackRoutingService
     /** @return Builder<PublicFeedbackRoutingRule> */
     public function queryFor(User $user): Builder
     {
-        $query = PublicFeedbackRoutingRule::query()->with(['organization:id,name_en,name_am', 'category:id,name_en,name_am', 'unit:id,name_en,name_am']);
+        $query = PublicFeedbackRoutingRule::query()->with(['organization:id,name_en,name_am', 'unit:id,name_en,name_am']);
 
         if (! $this->scope->isUnrestricted($user)) {
             $query->whereIn('organization_id', $this->scope->accessibleOrganizationIds($user)->all());
@@ -212,7 +208,6 @@ final class PublicFeedbackRoutingService
             'submission_type' => $data['submission_type'] ?? null,
             // A tip type narrows only Tip-off rules; the request refuses it on a complaint rule.
             'tip_type' => ($data['submission_type'] ?? null) === 'complaint' ? null : ($data['tip_type'] ?? null),
-            'category_id' => $data['category_id'] ?? null,
             // A unit narrows only an institution's own rule; it is never the handler.
             'organization_unit_id' => ($data['organization_id'] ?? null) === null ? null : ($data['organization_unit_id'] ?? null),
             'handler_type' => PublicFeedbackHandlerType::from($data['handler_type']),
@@ -227,8 +222,7 @@ final class PublicFeedbackRoutingService
     /**
      * The handler must be reachable from the rule's organization (a city-wide
      * rule cannot name one institution's unit, nor a user confined to one
-     * institution), and the category must be city-wide or the same
-     * institution's own.
+     * institution).
      *
      * @throws ValidationException
      */
@@ -242,14 +236,6 @@ final class PublicFeedbackRoutingService
         }
 
         $this->assignments->assertHandlerWithinOrganization($type, $attributes['handler_id'], $attributes['organization_id']);
-
-        if ($attributes['category_id'] !== null) {
-            $category = PublicFeedbackCategory::query()->find($attributes['category_id']);
-
-            if ($category === null || ($category->organization_id !== null && $category->organization_id !== $attributes['organization_id'])) {
-                throw ValidationException::withMessages(['category_id' => __('service-feedback.category_out_of_scope')]);
-            }
-        }
 
         if ($attributes['organization_unit_id'] !== null) {
             $unit = OrganizationUnit::query()->find($attributes['organization_unit_id']);
@@ -269,7 +255,7 @@ final class PublicFeedbackRoutingService
             organizationId: $rule->organization_id,
             newValues: [
                 'organization_id' => $rule->organization_id, 'target_type' => $rule->target_type, 'submission_type' => $rule->submission_type,
-                'category_id' => $rule->category_id, 'handler' => $rule->handler_type->value.':'.$rule->handler_id, 'priority' => $rule->priority,
+                'handler' => $rule->handler_type->value.':'.$rule->handler_id, 'priority' => $rule->priority,
                 'is_active' => $rule->is_active,
             ],
             reason: 'Public feedback routing rule '.$action,

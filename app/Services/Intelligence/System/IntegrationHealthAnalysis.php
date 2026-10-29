@@ -75,13 +75,14 @@ final class IntegrationHealthAnalysis extends SystemAnalysis
                     $lastSuccess = $s['bucket_start'];
                 }
             }
-            $rows[] = ['key' => $provider, 'cells' => [
+            $rows[] = [
+                'key' => $provider,
                 'provider' => $provider,
                 'calls' => (int) $totalCalls,
                 'failures' => (int) $totalFailures,
                 'failure_rate' => $totalCalls > 0 ? round(100 * $totalFailures / $totalCalls, 1) : null,
                 'last_success' => $lastSuccess,
-            ]];
+            ];
         }
 
         return SituationPanel::table('integrations_table', $this->title('integrations_table'), $this->hint('integrations_table'), $this->source('integrations'), [

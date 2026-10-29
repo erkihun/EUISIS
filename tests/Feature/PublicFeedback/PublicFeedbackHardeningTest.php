@@ -32,7 +32,7 @@ const PFH_ALL = [
     'service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.review',
     'service_feedback.view_employee_target', 'service_feedback.view_organization_target', 'service_feedback.view_submitter_identity',
     'service_feedback.view_sensitive_attachments', 'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.resolve',
-    'service_feedback.close', 'service_feedback.refer_discipline', 'service_feedback.manage_routing', 'service_feedback.manage_categories',
+    'service_feedback.close', 'service_feedback.refer_discipline', 'service_feedback.manage_routing',
 ];
 
 beforeEach(function (): void {

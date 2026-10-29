@@ -41,7 +41,6 @@ class EmployeeServiceFeedback extends Model
         'source_organization_qr_id',
         'target_name_snapshot',
         'target_code_snapshot',
-        'category_id',
         'subject',
         'submitter_identity_mode',
         'submitted_at',
@@ -282,11 +281,6 @@ class EmployeeServiceFeedback extends Model
     public function assignment(): BelongsTo
     {
         return $this->belongsTo(EmployeeAssignment::class, 'employee_assignment_id');
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(PublicFeedbackCategory::class, 'category_id');
     }
 
     /** Append-only transitions, oldest first. */

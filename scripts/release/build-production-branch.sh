@@ -30,7 +30,6 @@ EXCLUDE=(
     docs
     ':!docs/api-management-guide.md'
     TRANSFER_MODULE_GUIDE.md
-    external-apps
     employeeId_db
     sec-routes.json
     sec-audit.json

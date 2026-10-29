@@ -11,7 +11,6 @@ use App\Http\Controllers\Controller;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
-use App\Models\PublicFeedbackCategory;
 use App\Models\User;
 use App\Services\ServiceFeedback\PublicFeedbackMetrics;
 use App\Services\ServiceFeedback\PublicFeedbackVisibility;
@@ -30,7 +29,7 @@ use Inertia\Response;
  * PublicFeedbackMetrics::query(), which applies the type grants (WHAT), the
  * target-type grants and the organization scope (WHERE), and never shows a
  * user a submission about themselves. Every filter only narrows that base, so
- * a forged organization, unit, category or handler id returns nothing rather
+ * a forged organization, unit or handler id returns nothing rather
  * than another institution's rows. Each row opens the type's own detail
  * page, which checks access again. The list carries no submitter identity and
  * no narrative.
@@ -39,7 +38,7 @@ class PublicSubmissionListController extends Controller
 {
     private const PER_PAGE = 25;
 
-    private const SORTS = ['newest', 'oldest', 'status', 'organization', 'category'];
+    private const SORTS = ['newest', 'oldest', 'status', 'organization'];
 
     public function __construct(
         private readonly PublicFeedbackMetrics $metrics,
@@ -82,7 +81,6 @@ class PublicSubmissionListController extends Controller
                 'organization:id,name_en,name_am',
                 'organizationUnit:id,name_en,name_am',
                 'organizationTarget:id,code,name_en,name_am',
-                'category:id,name_en,name_am',
                 'currentAssignment',
             ])
             ->paginate(self::PER_PAGE)
@@ -98,7 +96,6 @@ class PublicSubmissionListController extends Controller
             'filters' => $filters + $extra + ['sort' => $sort],
             'filterOptions' => [
                 'organizations' => $options['organizations'],
-                'categories' => $options['categories'],
                 // The work units of the one institution chosen above, never of an institution outside the user's scope.
                 'units' => $this->unitOptions($filters['organization_id'] ?? null, $options['organizations']),
                 'statuses' => $options['statuses'],
@@ -193,8 +190,7 @@ class PublicSubmissionListController extends Controller
                 $q->where('reference_number', mb_strtoupper($term))
                     ->orWhere('target_name_snapshot', ci_like_operator(), $pattern)
                     ->orWhere('service_name_snapshot', ci_like_operator(), $pattern)
-                    ->orWhereHas('organizationTarget', fn (Builder $org) => $org->where('name_en', ci_like_operator(), $pattern)->orWhere('name_am', ci_like_operator(), $pattern))
-                    ->orWhereHas('category', fn (Builder $category) => $category->where('name_en', ci_like_operator(), $pattern)->orWhere('name_am', ci_like_operator(), $pattern));
+                    ->orWhereHas('organizationTarget', fn (Builder $org) => $org->where('name_en', ci_like_operator(), $pattern)->orWhere('name_am', ci_like_operator(), $pattern));
                 if ($employees) {
                     $q->orWhereHas('employee', fn (Builder $employee) => $employee->where('full_name', ci_like_operator(), $pattern)->orWhere('employee_number', $term));
                 }
@@ -215,7 +211,6 @@ class PublicSubmissionListController extends Controller
             'oldest' => $query->orderBy('submitted_at')->orderBy('id'),
             'status' => $query->orderBy('status')->orderByDesc('submitted_at')->orderByDesc('id'),
             'organization' => $query->orderBy(Organization::query()->select('name_en')->whereColumn('organizations.id', 'employee_service_feedback.organization_id')->limit(1))->orderByDesc('submitted_at')->orderByDesc('id'),
-            'category' => $query->orderBy(PublicFeedbackCategory::query()->select('name_en')->whereColumn('public_feedback_categories.id', 'employee_service_feedback.category_id')->limit(1))->orderByDesc('submitted_at')->orderByDesc('id'),
             default => $query->orderByDesc('submitted_at')->orderByDesc('id'),
         };
     }
@@ -242,7 +237,6 @@ class PublicSubmissionListController extends Controller
             // The relevant work unit as recorded at submission; the live unit only for rows older than the snapshot.
             'organization_unit' => $entry->relevantUnitName($locale) ?? $name($entry->organizationUnit),
             'unit_selection_mode' => $entry->unit_selection_mode,
-            'category' => $entry->category?->localizedName($locale),
             'service' => $entry->service_name_snapshot ?? $entry->service_text,
             'status' => $entry->status->value,
             'submitted_at' => ($entry->submitted_at ?? $entry->created_at)?->toIso8601String(),

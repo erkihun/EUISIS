@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Backbone\Contracts\EmployeeDirectory;
 use App\Enums\CafeteriaLedgerEntryType;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CafeteriaSubsidyLedgerResource;
 use App\Models\CafeteriaSubsidyLedger;
-use App\Models\Employee;
 use App\Services\Cafeteria\CafeteriaLedgerService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\Request;
@@ -20,7 +20,7 @@ class CafeteriaSubsidyLedgerController extends Controller
 {
     public function __construct(private readonly CafeteriaLedgerService $ledgerService) {}
 
-    public function index(Request $request, OrganizationScopeService $scope): Response
+    public function index(Request $request, OrganizationScopeService $scope, EmployeeDirectory $employees): Response
     {
         $this->authorize('viewAny', CafeteriaSubsidyLedger::class);
 
@@ -34,10 +34,10 @@ class CafeteriaSubsidyLedgerController extends Controller
         $employeeId = $filters['employee_id'] ?? null;
         // Only the filtered employee is loaded; the picker searches through
         // lookup.employees instead of shipping everyone in scope (SCL-10).
-        $employee = $employeeId ? Employee::query()->whereKey($employeeId)
-            ->whereHas('currentAssignment', fn ($query) => $scope->applyOrganizationScope($query, $request->user()))
-            ->first(['id', 'full_name', 'employee_number']) : null;
-        abort_if($employeeId && ! $employee, 404);
+        $employee = $employeeId ? $employees->findFor($request->user(), $employeeId) : null;
+        // Ledger filters have always required a current placement, including
+        // for global administrators. Identity alone does not imply placement.
+        abort_if($employeeId && ($employee === null || $employee->currentAssignmentUuid === null), 404);
 
         $query = CafeteriaSubsidyLedger::query()
             ->whereHas('employee.currentAssignment', fn ($query) => $scope->applyOrganizationScope($query, $request->user()))
@@ -53,7 +53,7 @@ class CafeteriaSubsidyLedgerController extends Controller
 
         $entries = $query->paginate(50)->withQueryString();
 
-        $balance = $employee ? $this->ledgerService->getBalance($employee) : null;
+        $balance = $employee ? $this->ledgerService->getBalance($employee->employeeUuid) : null;
 
         return Inertia::render('Cafeteria/Ledger/Index', [
             'entries' => CafeteriaSubsidyLedgerResource::collection($entries)->resolve(),
@@ -66,7 +66,11 @@ class CafeteriaSubsidyLedgerController extends Controller
             'filters' => collect($filters)->except('page')->all(),
             'entryTypes' => array_column(CafeteriaLedgerEntryType::cases(), 'value'),
             'summary' => ['credits' => (float) $summary->credits, 'debits' => (float) $summary->debits, 'net' => (float) $summary->credits - (float) $summary->debits],
-            'employee' => $employee?->only(['id', 'full_name', 'employee_number']),
+            'employee' => $employee === null ? null : [
+                'id' => $employee->employeeUuid,
+                'full_name' => $employee->fullName,
+                'employee_number' => $employee->employeeNumber,
+            ],
             'balance' => $balance,
         ]);
     }

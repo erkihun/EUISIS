@@ -112,6 +112,7 @@ export default function ApiManagementIndex({ applications, scopes, assignableEnd
         status: 'active',
         allowed_scopes: [] as string[],
         rate_limit_per_minute: 60,
+        token_lifetime_days: '' as number | '',
         allowed_ips: [] as string[],
         endpoint_ids: [] as string[],
         organization_access: 'scoped',

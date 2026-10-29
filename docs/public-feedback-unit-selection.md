@@ -13,35 +13,19 @@ screens, the Situation Room and the reports. Companion to
 | Question | Field | Definition |
 |---|---|---|
 | **Where** does the issue belong? | **Relevant Work Unit** (`organization_unit_id` + snapshots, or General / Not sure) | *Where the issue belongs*: the part of the institution the submission concerns. |
-| **What kind** of issue is it? | **Issue Category** (`category_id`, one optional choice from `public_feedback_categories`) | *What kind of issue it is*: waiting time, staff conduct, service quality… configured by administrators, never typed by the visitor. |
 
-The form asks them in that order, as two separate fieldsets on the first
-step (unit, then category), each with its own helper text. Neither one is the
-target organization (the token) nor the routing handler.
+The form asks it as its own fieldset on the first step, with its own helper
+text. It is neither the target organization (the token) nor the routing
+handler. The issue category that used to follow it was removed on 2026-10-27;
+submissions carry no category.
 
-## 1. Four things that are never the same
+## 1. Three things that are never the same
 
 | | Set by | Stored in | Can change later? |
 |---|---|---|---|
 | **Target organization** | The scanned QR / opaque token, resolved on the server on every GET and POST | `organization_target_id`, `organization_id`, `target_name_snapshot` | Never. Nothing the browser posts can move it. |
 | **Relevant work unit** | The visitor, from the units the server offered for that token, or "General / Not sure" | `organization_unit_id` (nullable) + `organization_unit_name_snapshot`, `organization_unit_name_am_snapshot`, `organization_unit_type_snapshot`, `unit_selection_mode` (`SELECTED` / `GENERAL`) | Never. It is what the visitor said; a later rename or archive of the unit does not rewrite it. |
-| **Issue category** | The visitor, from the active, public-selectable categories configured for this submission type and target type (city-wide or the institution's own); optional | `category_id` | The reference stays; the category is retired (`is_active = false`), never deleted, once referenced, so old submissions keep a readable name. |
 | **Routing handler** | Routing rules at submission, or staff by hand | `public_feedback_assignments` | Yes — reassignment ends one row and opens another. |
-
-### Issue category configuration (`public_feedback_categories`)
-
-`code`, `name_en` / `name_am`, `description_en` / `description_am` (shown as
-the chip's tooltip and under the chosen chip), `submission_types[]`,
-`target_types[]`, `organization_id` (null = city-wide), `is_active`,
-`is_public_selectable` ("Offered on the public form"; unticked = internal
-classification only), `sort_order`. Managed under Public Feedback Management
-› Categories. The public form receives only `{id, name, description}` in the
-visitor's language for the categories that are active, public-selectable and
-configured for the current type and target; the POST re-checks the same rule
-(`PublicFeedbackCategoryService::isApplicable`), so a category configured for
-complaints only is refused on a Tip-off, and an archived or internal category
-is refused everywhere. There is no "None" category: leaving the choice empty
-stores `category_id = NULL`.
 
 The relevant unit is *contextual attribution*: it says what the submission is
 about. It is not a new target type, it is not the handler, and it is not a

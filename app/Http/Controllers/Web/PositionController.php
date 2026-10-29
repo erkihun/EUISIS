@@ -35,12 +35,14 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Performance\EpmsAccess;
 use App\Services\Performance\PerformanceCascadeService;
 use App\Services\Positions\ScopedPositionStructureService;
+use App\Support\Database\SqlText;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -102,8 +104,23 @@ class PositionController extends Controller
                     WHEN COALESCE(asg.cnt, 0) < ({$total}) THEN COALESCE(asg.cnt, 0)
                     ELSE ({$total}) END) AS filled"),
                 // First-appearance order of the old in-memory grouping (org, unit, code).
-                DB::raw("(COALESCE(CAST(positions.organization_id AS VARCHAR(64)), '') || '|' || COALESCE(CAST(positions.organization_unit_id AS VARCHAR(64)), '') || '|' || COALESCE(positions.job_position_code, '')) AS sort_key"),
+                // Driver-aware text: MySQL has no VARCHAR in CAST and reads || as OR.
+                DB::raw(SqlText::concat([
+                    'COALESCE('.SqlText::idText('positions.organization_id').", '')",
+                    "'|'",
+                    'COALESCE('.SqlText::idText('positions.organization_unit_id').", '')",
+                    "'|'",
+                    "COALESCE(positions.job_position_code, '')",
+                ]).' AS sort_key'),
             ]);
+    }
+
+    /** A query-string id filter, or null when absent or not a uuid. */
+    private function uuidFilter(Request $request, string $key): ?string
+    {
+        $value = $request->string($key)->toString();
+
+        return Str::isUuid($value) ? $value : null;
     }
 
     public function status(Request $request, OrganizationScopeService $organizationScopeService): Response
@@ -114,6 +131,12 @@ class PositionController extends Controller
         $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
         $isAccessRestricted = ! $organizationScopeService->isUnrestricted($user);
         $isOrganizationScoped = $isAccessRestricted && $accessibleOrganizationIds->count() <= 1;
+
+        // Id filters come straight from the query string. Anything that is not
+        // a uuid is ignored rather than sent to the database: PostgreSQL
+        // refuses it with an error, which the page showed as a 500.
+        $organizationFilter = $this->uuidFilter($request, 'organization_id');
+        $organizationUnitFilter = $this->uuidFilter($request, 'organization_unit_id');
 
         $baseQuery = Position::query()
             ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
@@ -129,8 +152,8 @@ class PositionController extends Controller
                         ->orWhere('job_family', ci_like_operator(), "%{$search}%");
                 });
             })
-            ->when($request->string('organization_id')->toString() !== '', fn ($query) => $query->where('organization_id', $request->string('organization_id')->toString()))
-            ->when($request->string('organization_unit_id')->toString() !== '', fn ($query) => $query->where('organization_unit_id', $request->string('organization_unit_id')->toString()))
+            ->when($organizationFilter !== null, fn ($query) => $query->where('organization_id', $organizationFilter))
+            ->when($organizationUnitFilter !== null, fn ($query) => $query->where('organization_unit_id', $organizationUnitFilter))
             ->when($request->string('job_family')->toString() !== '', fn ($query) => $query->where('job_family', $request->string('job_family')->toString()))
             ->when($request->string('grade_level')->toString() !== '', fn ($query) => $query->where('grade_level', $request->string('grade_level')->toString()))
             ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', $request->boolean('is_active')));
@@ -188,7 +211,7 @@ class PositionController extends Controller
 
         $organizationUnits = OrganizationUnit::query()
             ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
-            ->when($request->string('organization_id')->toString() !== '', fn ($query) => $query->where('organization_id', $request->string('organization_id')->toString()))
+            ->when($organizationFilter !== null, fn ($query) => $query->where('organization_id', $organizationFilter))
             ->orderBy('name_en')
             ->get(['id', 'organization_id', 'name_en', 'name_am']);
 
@@ -239,7 +262,7 @@ class PositionController extends Controller
         // filter-aware rows as the summary tiles, so the charts always agree
         // with the headline numbers.
         $buildBreakdown = function (string $column, callable $labelsFor) use ($statusRows): array {
-            $key = "COALESCE(NULLIF(CAST(ps.{$column} AS VARCHAR(64)), ''), '__unassigned__')";
+            $key = 'COALESCE(NULLIF('.SqlText::idText('ps.'.$column).", ''), '__unassigned__')";
             $rows = DB::query()->fromSub($statusRows, 'ps')
                 ->selectRaw("{$key} AS group_key, SUM(ps.total) AS total, SUM(ps.filled) AS filled, MIN(ps.sort_key) AS first_seen")
                 ->groupByRaw($key)

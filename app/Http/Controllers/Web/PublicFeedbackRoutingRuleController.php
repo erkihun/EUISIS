@@ -8,7 +8,6 @@ use App\Enums\PublicFeedbackHandlerType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePublicFeedbackRoutingRuleRequest;
 use App\Models\Organization;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackRoutingRule;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -160,8 +159,6 @@ class PublicFeedbackRoutingRuleController extends Controller
             'target_type' => $rule->target_type,
             'submission_type' => $rule->submission_type,
             'tip_type' => $rule->tip_type?->value,
-            'category_id' => $rule->category_id,
-            'category' => $rule->category === null ? null : ['en' => $rule->category->name_en, 'am' => $rule->category->name_am],
             'organization_unit_id' => $rule->organization_unit_id,
             'unit' => $rule->unit === null ? null : ['en' => $rule->unit->name_en, 'am' => $rule->unit->name_am],
             'handler_type' => $rule->handler_type->value,
@@ -178,9 +175,9 @@ class PublicFeedbackRoutingRuleController extends Controller
     }
 
     /**
-     * The scopes and categories a user may build a rule from.
+     * The scopes a user may build a rule from.
      *
-     * @return array{organizations: list<array<string, mixed>>, categories: list<array<string, mixed>>, canManageCityWide: bool}
+     * @return array{organizations: list<array<string, mixed>>, canManageCityWide: bool}
      */
     private function formOptions(User $user): array
     {
@@ -192,13 +189,6 @@ class PublicFeedbackRoutingRuleController extends Controller
 
         return [
             'organizations' => $organizations->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am'])->toArray(),
-            'categories' => PublicFeedbackCategory::query()->active()
-                ->when($organizationIds !== null, fn ($q) => $q->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $organizationIds)))
-                ->orderBy('sort_order')->orderBy('name_en')
-                ->get(['id', 'organization_id', 'name_en', 'name_am'])
-                ->map(fn (PublicFeedbackCategory $category): array => [
-                    'id' => $category->id, 'organization_id' => $category->organization_id, 'name_en' => $category->name_en, 'name_am' => $category->name_am,
-                ])->all(),
             'canManageCityWide' => $this->routing->canManage($user, null),
         ];
     }

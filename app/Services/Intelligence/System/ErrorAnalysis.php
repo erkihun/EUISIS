@@ -58,15 +58,13 @@ final class ErrorAnalysis extends SystemAnalysis
             ->orderByDesc('occurrences')->limit($context->topN * 2)->get()
             ->map(fn (IntelligenceErrorFingerprint $f): array => [
                 'key' => $f->fingerprint,
-                'cells' => [
-                    'exception' => class_basename($f->exception_class),
-                    'message' => mb_substr($f->message_normalized, 0, 140),
-                    'route_group' => SituationLabel::key(self::PREFIX."values.route_group.{$f->route_group}"),
-                    'component' => $f->component ?? '',
-                    'occurrences' => (int) $f->occurrences,
-                    'first_seen' => $f->first_seen_at->toIso8601String(),
-                    'last_seen' => $f->last_seen_at->toIso8601String(),
-                ],
+                'exception' => class_basename($f->exception_class),
+                'message' => mb_substr($f->message_normalized, 0, 140),
+                'route_group' => SituationLabel::key(self::PREFIX."values.route_group.{$f->route_group}"),
+                'component' => $f->component ?? '',
+                'occurrences' => (int) $f->occurrences,
+                'first_seen' => $f->first_seen_at->toIso8601String(),
+                'last_seen' => $f->last_seen_at->toIso8601String(),
                 'href' => $f->incident_id !== null ? route('intelligence.incidents.show', $f->incident_id) : null,
             ])->all();
 

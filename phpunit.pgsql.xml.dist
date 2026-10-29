@@ -8,7 +8,8 @@
         <testsuite name="Feature"><directory>tests/Feature</directory></testsuite>
     </testsuites>
     <php>
-        <ini name="memory_limit" value="512M"/>
+        <!-- A single-process run (CI) outgrew 512M after ~1,900 of ~4,700 tests (backup exports); 2G leaves room. -->
+        <ini name="memory_limit" value="2G"/>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
@@ -25,5 +26,8 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- Tests read the cafeteria from EUISIS itself, whatever a local .env says (ADR 0014 switch). -->
+        <env name="CAFETERIA_PLATFORM_MODE" value="local"/>
+        <env name="CAFETERIA_PLATFORM_EMPLOYEE_PORTAL" value="false"/>
     </php>
 </phpunit>

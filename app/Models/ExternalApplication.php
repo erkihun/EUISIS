@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\PersonalAccessToken;
 
@@ -82,6 +83,7 @@ class ExternalApplication extends Model implements AuthenticatableContract
         'status',
         'allowed_scopes',
         'rate_limit_per_minute',
+        'token_lifetime_days',
         'allowed_ips',
         'created_by',
         'last_used_at',
@@ -99,6 +101,7 @@ class ExternalApplication extends Model implements AuthenticatableContract
             'allowed_scopes' => 'array',
             'allowed_ips' => 'array',
             'rate_limit_per_minute' => 'integer',
+            'token_lifetime_days' => 'integer',
             // Deliberately absent from $fillable: the legacy endpoint grace is
             // set by migration only and must never be settable from a request.
             'unrestricted_endpoints' => 'boolean',
@@ -120,6 +123,20 @@ class ExternalApplication extends Model implements AuthenticatableContract
     public function isExpired(): bool
     {
         return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    /**
+     * When a token issued now stops working (TD-16): after the application's
+     * token lifetime in days, or the default lifetime (8 hours) when it sets
+     * none, and never after the application's own approval expiry.
+     */
+    public function newTokenExpiry(): Carbon
+    {
+        $expiry = $this->token_lifetime_days !== null && $this->token_lifetime_days > 0
+            ? now()->addDays($this->token_lifetime_days)
+            : now()->addMinutes(max(1, (int) config('sanctum.default_token_lifetime_minutes', 480)));
+
+        return $this->expires_at !== null && $this->expires_at->lt($expiry) ? $this->expires_at->copy() : $expiry;
     }
 
     /** The reason a request from this application is refused, for the gate's error code. */

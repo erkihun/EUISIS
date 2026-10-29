@@ -16,6 +16,8 @@ const common = {
     import: 'ከፋይል ያስገቡ',
     actions: 'እርምጃዎች',
     details: 'ዝርዝሮች',
+    /** የ`….correct` ገጽ ዱካ (ለማስተካከያ የተመለሰ መዝገብ)። */
+    correct: 'ማስተካከያ',
     overview: 'አጠቃላይ እይታ',
     status: 'ሁኔታ',
     createdAt: 'የተፈጠረበት ቀን',

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Backbone\Contracts\EmployeeDirectory;
 use App\Enums\OrganizationScopeType;
 use App\Models\Employee;
 use App\Models\EmployeeCafeteriaExclusion;
@@ -65,6 +66,26 @@ test('the create form ships no employee list', function (): void {
         ->get(route('cafeteria.employee-exclusions.create'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->missing('employees'));
+});
+
+test('an officer creates an exclusion through the Core employee directory', function (): void {
+    $identity = app(EmployeeDirectory::class)->findFor($this->officer, $this->ownEmployee->id);
+    $directory = Mockery::mock(EmployeeDirectory::class);
+    $directory->shouldReceive('findByUuid')->once()->with($this->ownEmployee->id)->andReturn($identity);
+    $directory->shouldReceive('findFor')->once()->with($this->officer, $this->ownEmployee->id)->andReturn($identity);
+    app()->instance(EmployeeDirectory::class, $directory);
+
+    $startsOn = now()->addMonth()->toDateString();
+    actingAs($this->officer)->post(route('cafeteria.employee-exclusions.store'), [
+        'employee_id' => $this->ownEmployee->id, 'exclusion_type' => 'leave',
+        'starts_on' => $startsOn, 'ends_on' => now()->addMonth()->addDays(3)->toDateString(),
+        'reason_en' => 'Approved leave',
+    ])->assertRedirect(route('cafeteria.employee-exclusions.index'));
+
+    expect(EmployeeCafeteriaExclusion::query()
+        ->where('employee_id', $this->ownEmployee->id)
+        ->whereDate('starts_on', $startsOn)
+        ->count())->toBe(1);
 });
 
 test('a scoped officer cannot open, end or create an exclusion outside their scope', function (): void {

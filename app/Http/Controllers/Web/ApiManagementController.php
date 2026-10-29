@@ -114,6 +114,7 @@ class ApiManagementController extends Controller
                 'status' => $externalApplication->status,
                 'allowed_scopes' => $externalApplication->allowed_scopes ?? [],
                 'rate_limit_per_minute' => $externalApplication->rate_limit_per_minute,
+                'token_lifetime_days' => $externalApplication->token_lifetime_days,
                 'allowed_ips' => $externalApplication->allowed_ips ?? [],
                 'last_used_at' => $externalApplication->last_used_at?->toDateTimeString(),
                 'organization_access' => $externalApplication->organization_access,
@@ -309,6 +310,8 @@ class ApiManagementController extends Controller
         $token = $externalApplication->createToken(
             $request->string('name')->toString() ?: $externalApplication->code,
             $abilities,
+            // TD-16: the application's token lifetime, or the 8-hour default.
+            $externalApplication->newTokenExpiry(),
         );
 
         $this->writeAuditLogAction->execute(
@@ -681,6 +684,8 @@ class ApiManagementController extends Controller
             'allowed_scopes' => ['array'],
             'allowed_scopes.*' => [Rule::in(ApiScope::values())],
             'rate_limit_per_minute' => ['required', 'integer', 'min:1', 'max:10000'],
+            // TD-16: days a new token lives; empty keeps the 8-hour default.
+            'token_lifetime_days' => ['nullable', 'integer', 'min:1', 'max:365'],
             'allowed_ips' => ['nullable', 'array'],
             'allowed_ips.*' => ['string', 'ip'],
             // Organization bound (F2) and provider binding (F16).

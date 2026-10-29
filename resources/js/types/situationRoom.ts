@@ -98,7 +98,7 @@ export interface SrPeriod {
     timezone: string;
 }
 
-export type SrFilters = { period: SrPeriod } & Partial<Record<'organization_id' | 'organization_unit_id' | 'category_id' | 'position_service_id' | 'target_type' | 'status' | 'tip_type' | 'page', string>>;
+export type SrFilters = { period: SrPeriod } & Partial<Record<'organization_id' | 'organization_unit_id' | 'position_service_id' | 'target_type' | 'status' | 'tip_type' | 'page', string>>;
 
 export type SrQuery = Record<string, string>;
 

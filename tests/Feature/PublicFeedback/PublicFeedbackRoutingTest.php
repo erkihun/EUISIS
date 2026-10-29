@@ -10,7 +10,6 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\OrganizationUnit;
 use App\Models\Permission;
 use App\Models\PublicFeedbackAssignment;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackRoutingRule;
 use App\Models\PublicFeedbackStatusHistory;
 use App\Models\Role;
@@ -74,11 +73,6 @@ beforeEach(function (): void {
 
     $this->orgToken = app(OrganizationFeedbackQrService::class)->ensureActive($this->a->organization, $this->superAdmin)->public_token;
     RateLimiter::clear('sf-submit:'.$this->orgToken.'|127.0.0.1');
-
-    $this->category = PublicFeedbackCategory::query()->create([
-        'code' => 'WAITING', 'name_en' => 'Waiting time', 'submission_types' => ['suggestion', 'complaint'],
-        'target_types' => ['employee', 'organization'], 'organization_id' => null, 'is_active' => true, 'sort_order' => 1,
-    ]);
 });
 
 function rtRule(array $overrides = []): PublicFeedbackRoutingRule
@@ -87,7 +81,6 @@ function rtRule(array $overrides = []): PublicFeedbackRoutingRule
         'organization_id' => test()->a->organization->id,
         'target_type' => null,
         'submission_type' => null,
-        'category_id' => null,
         'handler_type' => 'user',
         'handler_id' => (string) test()->handler->id,
         'priority' => 100,
@@ -119,23 +112,16 @@ it('picks the most specific active rule in effect, then the priority', function 
         'organization_id' => $this->a->organization->id, 'unit_type' => 'department', 'code' => 'SQ', 'name_en' => 'Service Quality', 'name_am' => 'የአገልግሎት ጥራት', 'status' => 'active',
     ]);
     rtRule(['priority' => 10]);                                                       // organization-wide, any type
-    rtRule(['submission_type' => 'complaint', 'priority' => 50, 'handler_type' => 'organization_unit', 'handler_id' => $unit->id]);
-    $byCategory = rtRule(['submission_type' => 'complaint', 'category_id' => $this->category->id, 'priority' => 90]);
-    rtRule(['submission_type' => 'complaint', 'category_id' => $this->category->id, 'priority' => 5, 'is_active' => false]);
-    rtRule(['submission_type' => 'complaint', 'category_id' => $this->category->id, 'priority' => 1, 'effective_to' => now()->subDay()]);
-    rtRule(['organization_id' => null, 'submission_type' => 'complaint', 'category_id' => $this->category->id, 'priority' => 1]); // city-wide loses to the institution's own
+    $byType = rtRule(['submission_type' => 'complaint', 'priority' => 50, 'handler_type' => 'organization_unit', 'handler_id' => $unit->id]);
+    rtRule(['submission_type' => 'complaint', 'priority' => 5, 'is_active' => false]);
+    rtRule(['submission_type' => 'complaint', 'priority' => 1, 'effective_to' => now()->subDay()]);
+    rtRule(['organization_id' => null, 'submission_type' => 'complaint', 'priority' => 1]); // city-wide loses to the institution's own
 
     $complaint = EmployeeServiceFeedback::query()->create([
         'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'type' => ServiceFeedbackType::Complaint,
-        'comment' => 'x', 'status' => ServiceFeedbackStatus::Pending, 'category_id' => $this->category->id, 'submitted_at' => now(),
+        'comment' => 'x', 'status' => ServiceFeedbackStatus::Pending, 'submitted_at' => now(),
     ]);
-    expect(app(PublicFeedbackRoutingService::class)->resolve($complaint)?->id)->toBe($byCategory->id);
-
-    $uncategorised = EmployeeServiceFeedback::query()->create([
-        'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'type' => ServiceFeedbackType::Complaint,
-        'comment' => 'y', 'status' => ServiceFeedbackStatus::Pending, 'submitted_at' => now(),
-    ]);
-    expect(app(PublicFeedbackRoutingService::class)->resolve($uncategorised)?->handler_type->value)->toBe('organization_unit');
+    expect(app(PublicFeedbackRoutingService::class)->resolve($complaint)?->id)->toBe($byType->id);
 
     $suggestion = EmployeeServiceFeedback::query()->create([
         'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'type' => ServiceFeedbackType::Suggestion,
@@ -223,7 +209,7 @@ it('refuses a handler outside the submission organization', function (): void {
 
 it('lets a scoped admin manage rules only inside their scope and city rules only with city access', function (): void {
     $payload = [
-        'organization_id' => $this->a->organization->id, 'target_type' => 'employee', 'submission_type' => 'complaint', 'category_id' => null,
+        'organization_id' => $this->a->organization->id, 'target_type' => 'employee', 'submission_type' => 'complaint',
         'handler_type' => 'user', 'handler_id' => (string) $this->handler->id, 'priority' => 20, 'effective_from' => null, 'effective_to' => null, 'is_active' => true,
     ];
 
@@ -370,7 +356,7 @@ it('accepts a unit only on its own institution\'s rule and shows it on the rules
     [$permits, $lead] = rtUnitScenario();
     $foreign = OrganizationUnit::query()->create(['organization_id' => $this->b->organization->id, 'unit_type' => 'office', 'code' => 'RT-FOREIGN', 'name_en' => 'Foreign office', 'status' => 'active']);
     $payload = [
-        'organization_id' => $this->a->organization->id, 'target_type' => 'organization', 'submission_type' => 'complaint', 'category_id' => null,
+        'organization_id' => $this->a->organization->id, 'target_type' => 'organization', 'submission_type' => 'complaint',
         'handler_type' => 'user', 'handler_id' => (string) $lead->id, 'priority' => 20, 'is_active' => true,
     ];
 
@@ -415,8 +401,7 @@ it('adds and edits a rule on its own page, inside the user scope', function (): 
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/RoutingRules/Create')
             ->where('canManageCityWide', false)
-            ->has('organizations')
-            ->has('categories'));
+            ->has('organizations'));
 
     $this->actingAs($this->orgAdmin)
         ->get(route('service-feedback.routing-rules.edit', $rule))

@@ -281,6 +281,8 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 items: [
                     { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: InboxOutIcon },
                     { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: GrievanceIcon, permission: 'grievances.view_own', listedInAdmin: true },
+                    // court-ms Flow 4: the employee's tribunal cases; the court portal opens signed in.
+                    { routeName: 'employee.court-cases', labelKey: 'courtCases.portal.nav', icon: GavelIcon, employeeOnly: true },
                     { routeName: 'employee.discipline.index', labelKey: 'nav.myDisciplinaryCases', icon: ScaleIcon, permission: 'discipline.view_own', listedInAdmin: true },
                     { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: BellIcon },
                 ],
@@ -599,6 +601,8 @@ const navGroups: NavGroup[] = [
         icon: ScaleIcon,
         items: [
             { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: FolderOpenIcon, permission: 'grievances.tribunal' },
+            // Cases filed at the tribunal against the institution, for its court case officer (court-ms Flow 7, ADR 0013 #14).
+            { routeName: 'tribunal-cases.institution-cases.index', labelKey: 'nav.institutionCourtCases', icon: InboxInIcon, permission: 'grievances.tribunal' },
             { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: GavelIcon, permission: 'court_cases.view' },
         ],
     },
@@ -632,7 +636,6 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: StarIcon, permission: 'service_feedback.view' },
             { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: LightbulbIcon, permission: 'service_feedback.view' },
             { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: ComplaintIcon, permission: 'service_feedback.complaints.view' },
-            { routeName: 'service-feedback.categories.index', labelKey: 'nav.serviceFeedbackCategories', icon: TagsIcon, permission: 'service_feedback.manage_categories' },
             { routeName: 'service-feedback.questionnaire.index', labelKey: 'nav.serviceFeedbackQuestionnaire', icon: QuestionnaireIcon, permission: 'service_feedback.manage_questions' },
             { routeName: 'service-feedback.routing-rules.index', labelKey: 'nav.serviceFeedbackRoutingRules', icon: SignpostIcon, permission: 'service_feedback.manage_routing' },
             { routeName: 'service-feedback.organization-qr.index', labelKey: 'nav.organizationFeedbackQrCodes', icon: QrCodeIcon, permission: 'service_feedback.organization_qr.view' },
@@ -867,6 +870,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const moduleEnabled = (routeName: string) => !(
         (!features.transport && routeName.startsWith('transport.'))
         || (!features.court_cases && routeName.startsWith('court-cases.'))
+        || (!features.court_portal && routeName.startsWith('employee.court-cases'))
     );
     // Keep the existing permission contract, including independently permitted child links.
     const permitted = (item: NavSubItem) => moduleEnabled(item.routeName)

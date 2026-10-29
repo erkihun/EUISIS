@@ -15,7 +15,6 @@ use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use App\Services\ServiceFeedback\PublicEmployeeFeedbackIdentity;
 use App\Services\ServiceFeedback\PublicEvidencePolicy;
-use App\Services\ServiceFeedback\PublicFeedbackCategoryService;
 use App\Services\ServiceFeedback\PublicFeedbackFormToken;
 use App\Services\ServiceFeedback\PublicFeedbackQuestionnaire;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
@@ -62,7 +61,6 @@ class PublicServiceFeedbackController extends Controller
         private readonly PublicFeedbackTargetResolver $resolver,
         private readonly PublicFeedbackSubmissionService $submissions,
         private readonly PublicFeedbackFormToken $formTokens,
-        private readonly PublicFeedbackCategoryService $categories,
         private readonly PublicFeedbackSettings $settings,
         private readonly PublicSubmissionPolicy $policy,
         private readonly PublicFeedbackQuestionnaire $questionnaire,
@@ -160,7 +158,6 @@ class PublicServiceFeedbackController extends Controller
                 'target' => null,
                 'links' => $links,
                 'serviceTypes' => [],
-                'categories' => [],
                 'submitted' => false,
                 'type' => null,
                 'reference' => null,
@@ -195,7 +192,6 @@ class PublicServiceFeedbackController extends Controller
             'serviceTypes' => $context->targetType === PublicFeedbackTargetType::Employee
                 ? $this->feedback->serviceOptions($context->contextPositionId, $locale)
                 : [],
-            'categories' => $type === null ? [] : $this->categories->optionsFor($context, $type, $locale),
             'submitted' => $receiptMatches && (bool) $request->session()->get('feedback_submitted', false),
             'type' => $type?->value,
             'reference' => $receipt['reference'] ?? null,
@@ -237,11 +233,6 @@ class PublicServiceFeedbackController extends Controller
 
         /** @var array<string, mixed> $validated */
         $validated = $request->validated();
-
-        // A category is accepted only if this visitor could have been offered it.
-        if (! empty($validated['category_id']) && ! $this->categories->isApplicable((string) $validated['category_id'], $context, $type)) {
-            return back()->withErrors(['category_id' => __('service-feedback.category_not_applicable')]);
-        }
 
         /*
          * Re-check a chosen service against the employee's own position. The

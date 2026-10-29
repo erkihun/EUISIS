@@ -22,7 +22,6 @@ final readonly class SituationRoomFilters
         public Carbon $previousEnd,
         public ?string $type,
         public ?string $target,
-        public ?string $categoryId,
         public ?string $status,
     ) {}
 
@@ -47,7 +46,6 @@ final readonly class SituationRoomFilters
         };
 
         $pick = static fn (string $key, array $allowed): ?string => in_array($input[$key] ?? null, $allowed, true) ? (string) $input[$key] : null;
-        $category = $input['category_id'] ?? null;
 
         return new self(
             period: $period,
@@ -57,7 +55,6 @@ final readonly class SituationRoomFilters
             previousEnd: $previousEnd,
             type: $pick('type', SituationRoomMetrics::TYPES),
             target: $pick('target', SituationRoomMetrics::TARGETS),
-            categoryId: is_string($category) && ($category === 'none' || preg_match('/^[0-9a-f-]{36}$/i', $category) === 1) ? $category : null,
             status: $pick('status', array_keys(SituationRoomMetrics::STATUS_BUCKETS)),
         );
     }
@@ -108,7 +105,6 @@ final readonly class SituationRoomFilters
             'previous_to' => $this->previousEnd->copy()->subDay()->toDateString(),
             'type' => $this->type,
             'target' => $this->target,
-            'category_id' => $this->categoryId,
             'status' => $this->status,
             'unit' => $this->bucketUnit(),
         ], fn ($value): bool => $value !== null);

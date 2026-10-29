@@ -107,7 +107,6 @@ class ImageOptimizerTest extends TestCase
 
         $path = tempnam(sys_get_temp_dir(), 'png-').'.png';
         imagepng($image, $path, 6);
-        imagedestroy($image);
         $this->tempFiles[] = $path;
 
         return $path;
@@ -126,7 +125,6 @@ class ImageOptimizerTest extends TestCase
 
         $path = tempnam(sys_get_temp_dir(), 'jpg-').'.jpg';
         imagejpeg($image, $path, 95);
-        imagedestroy($image);
         $this->tempFiles[] = $path;
 
         return $path;

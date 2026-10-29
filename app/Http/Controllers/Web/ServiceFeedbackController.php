@@ -14,7 +14,6 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\PositionService;
-use App\Models\PublicFeedbackCategory;
 use App\Models\PublicFeedbackStatusHistory;
 use App\Services\Calendar\LocalizedDateService;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -60,7 +59,6 @@ class ServiceFeedbackController extends Controller
         'q',
         // Who the feedback is about: an employee (their QR) or an institution (its QR).
         'target_type',
-        'category_id',
     ];
 
     public function __construct(
@@ -118,7 +116,6 @@ class ServiceFeedbackController extends Controller
                 'position:id,title_en,title_am',
                 'positionService:id,service_no,name_en,name_am',
                 'organizationTarget:id,code,name_en,name_am',
-                'category:id,name_en,name_am',
             ])
             ->latest('created_at')
             ->paginate(20)
@@ -170,7 +167,6 @@ class ServiceFeedbackController extends Controller
             'position:id,title_en,title_am',
             'positionService:id,service_no,name_en,name_am',
             'organizationTarget:id,code,name_en,name_am,logo_path',
-            'category:id,name_en,name_am',
             'reviewer:id,name',
             'statusHistory.actor:id,name',
         ]);
@@ -400,7 +396,6 @@ class ServiceFeedbackController extends Controller
                 'organizationUnit:id,name_en,name_am',
                 'positionService:id,service_no,name_en,name_am',
                 'organizationTarget:id,name_en,name_am',
-                'category:id,name_en,name_am',
             ])
             ->latest('created_at');
 
@@ -419,7 +414,7 @@ class ServiceFeedbackController extends Controller
         $dates = app(LocalizedDateService::class);
         $name = fn (?object $model): ?string => $model === null ? null
             : ($locale === 'am' && filled($model->name_am ?? null) ? $model->name_am : $model->name_en);
-        $columns = ['submitted_at', 'target_type', 'target', 'employee', 'employee_number', 'organization', 'unit', 'service', 'category', 'rating', 'status', 'comment', 'client_name', 'client_contact'];
+        $columns = ['submitted_at', 'target_type', 'target', 'employee', 'employee_number', 'organization', 'unit', 'service', 'rating', 'status', 'comment', 'client_name', 'client_contact'];
 
         return response()->streamDownload(function () use ($query, $showIdentity, $locale, $dates, $name, $columns): void {
             $handle = fopen('php://output', 'wb');
@@ -441,7 +436,6 @@ class ServiceFeedbackController extends Controller
                         $name($item->organization),
                         $name($item->organizationUnit),
                         $item->service_name_snapshot ?? $name($item->positionService) ?? $item->service_text,
-                        $name($item->category),
                         $item->rating,
                         (string) __('service-feedback.export_values.statuses.'.$item->status->value),
                         $item->comment,
@@ -500,7 +494,6 @@ class ServiceFeedbackController extends Controller
                 'am' => $item->organizationTarget->name_am,
                 'code' => $item->organizationTarget->code,
             ],
-            'category' => $this->namePair($item->category, 'name'),
             'identity_mode' => $item->submitter_identity_mode?->value,
         ];
     }
@@ -558,15 +551,6 @@ class ServiceFeedbackController extends Controller
                 )
                 ->orderBy('service_no')
                 ->get(['id', 'service_no', 'name_en', 'name_am']),
-            // City-wide categories and those of the user's own institutions — never another institution's.
-            'categories' => PublicFeedbackCategory::query()
-                ->when(
-                    ! $scope->isUnrestricted($user),
-                    fn ($query) => $query->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $scope->accessibleOrganizationIds($user)->all())),
-                )
-                ->orderBy('sort_order')
-                ->orderBy('name_en')
-                ->get(['id', 'name_en', 'name_am']),
         ];
     }
 

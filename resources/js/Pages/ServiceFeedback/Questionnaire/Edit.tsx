@@ -6,7 +6,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
-import { SUBMISSION_TYPES, type SubmissionType } from '../Categories/Form';
+import { SUBMISSION_TYPES, type SubmissionType } from '@/Components/ServiceFeedback/submissionTypes';
 import type { QuestionnaireStatus } from './Index';
 
 type QuestionType = 'rating' | 'single_choice' | 'multiple_choice' | 'short_text' | 'long_text' | 'yes_no';

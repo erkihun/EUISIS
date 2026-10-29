@@ -72,14 +72,12 @@ final class DeploymentAnalysis extends SystemAnalysis
         }
         $rows = IntelligenceDeployment::query()->orderByDesc('deployed_at')->limit(20)->get()->map(fn (IntelligenceDeployment $d): array => [
             'key' => $d->id,
-            'cells' => [
-                'release' => $d->release,
-                'commit' => $d->commit_hash !== null ? substr($d->commit_hash, 0, 10) : '',
-                'environment' => $d->environment,
-                'deployed_at' => $d->deployed_at->toIso8601String(),
-                'incidents_after' => $this->incidentsAfter($d),
-                'new_errors_after' => IntelligenceErrorFingerprint::query()->whereBetween('first_seen_at', [$d->deployed_at->toDateTimeString(), $d->deployed_at->addMinutes(IncidentManager::DEPLOYMENT_WINDOW_MINUTES)->toDateTimeString()])->count(),
-            ],
+            'release' => $d->release,
+            'commit' => $d->commit_hash !== null ? substr($d->commit_hash, 0, 10) : '',
+            'environment' => $d->environment,
+            'deployed_at' => $d->deployed_at->toIso8601String(),
+            'incidents_after' => $this->incidentsAfter($d),
+            'new_errors_after' => IntelligenceErrorFingerprint::query()->whereBetween('first_seen_at', [$d->deployed_at->toDateTimeString(), $d->deployed_at->addMinutes(IncidentManager::DEPLOYMENT_WINDOW_MINUTES)->toDateTimeString()])->count(),
         ])->all();
 
         return SituationPanel::table('deployments_table', $this->title('deployments_table'), $this->hint('deployments_table'), $this->source('deployments'), [

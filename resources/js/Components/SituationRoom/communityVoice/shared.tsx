@@ -36,7 +36,6 @@ export type Filters = {
     previous_to: string;
     type?: string;
     target?: string;
-    category_id?: string;
     status?: string;
     unit: 'day' | 'week' | 'month';
 };
@@ -46,7 +45,6 @@ export type FilterOptions = {
     types: string[];
     targets: string[];
     statuses: string[];
-    categories: ({ id: string } & Name)[];
 };
 
 /** Fill {placeholders} in a translated string. */
@@ -84,7 +82,6 @@ export function viewQuery(scope: ScopeProps, filters: Filters, extra: Record<str
         to: filters.period === 'custom' ? filters.to : undefined,
         type: filters.type,
         target: filters.target,
-        category_id: filters.category_id,
         status: filters.status,
         ...extra,
     };
@@ -123,8 +120,8 @@ export function Breadcrumb({ scope, filters }: { scope: ScopeProps; filters: Fil
 }
 
 /**
- * The executive filter bar: institution in view, period, type, target,
- * category and status. Applying reloads the page with the new query; the
+ * The executive filter bar: institution in view, period, type, target
+ * and status. Applying reloads the page with the new query; the
  * server re-validates everything.
  */
 export function FilterBar({ scope, filters, options, routeName = 'situation-room.community-voice', showTypeFilters = true }: {
@@ -143,7 +140,6 @@ export function FilterBar({ scope, filters, options, routeName = 'situation-room
         to: filters.to,
         type: filters.type ?? '',
         target: filters.target ?? '',
-        category_id: filters.category_id ?? '',
         status: filters.status ?? '',
     });
     const set = (key: keyof typeof draft) => (value: string) => setDraft((current) => ({ ...current, [key]: value }));
@@ -169,7 +165,7 @@ export function FilterBar({ scope, filters, options, routeName = 'situation-room
         <FilterPanel
             onSubmit={apply}
             onReset={() => router.get(route(routeName), {}, { preserveScroll: true })}
-            hasActiveFilters={Boolean(scope.node || filters.type || filters.target || filters.category_id || filters.status || filters.period !== '30d')}
+            hasActiveFilters={Boolean(scope.node || filters.type || filters.target || filters.status || filters.period !== '30d')}
             label={t('common.filters')}
             submitLabel={t('situationRoom.apply')}
         >
@@ -207,13 +203,6 @@ export function FilterBar({ scope, filters, options, routeName = 'situation-room
                         </FilterField>
                     </>
                 )}
-                <FilterField label={t('situationRoom.categoryLabel')} htmlFor="sr-category">
-                    <Select id="sr-category" value={draft.category_id} onChange={(e) => set('category_id')(e.target.value)}>
-                        <option value="">{t('situationRoom.all')}</option>
-                        <option value="none">{t('situationRoom.uncategorized')}</option>
-                        {options.categories.map((category) => <option key={category.id} value={category.id}>{name(category)}</option>)}
-                    </Select>
-                </FilterField>
                 <FilterField label={t('situationRoom.statusLabel')} htmlFor="sr-status">
                     <Select id="sr-status" value={draft.status} onChange={(e) => set('status')(e.target.value)}>
                         <option value="">{t('situationRoom.all')}</option>

@@ -21,7 +21,6 @@ export type FeedbackFilters = {
     q?: string;
     /** `employee` (an employee's QR) or `organization` (an institution's QR). */
     target_type?: string;
-    category_id?: string;
 };
 
 export type FeedbackFilterOptions = {
@@ -29,8 +28,6 @@ export type FeedbackFilterOptions = {
     /** Work units of the organization chosen in the bar; empty (or absent) until one is chosen. */
     units?: { id: string; name_en: string; name_am: string | null }[];
     serviceTypes: { id: string; name_en: string; name_am: string | null }[];
-    /** Categories the user may filter on (city-wide and their institutions'); absent on screens without the filter. */
-    categories?: { id: string; name_en: string; name_am: string | null }[];
 };
 
 type FilterKey = keyof FeedbackFilters;
@@ -130,7 +127,6 @@ export default function FeedbackFilterBar({
         date_from: (value) => `${t('serviceFeedback.dateFrom')} ${formatDateDisplay(value, calendar, locale)}`,
         date_to: (value) => `${t('serviceFeedback.dateTo')} ${formatDateDisplay(value, calendar, locale)}`,
         target_type: (value) => t(value === 'organization' ? 'serviceFeedback.targetOrganization' : 'serviceFeedback.targetEmployee'),
-        category_id: (value) => nameOf(filterOptions.categories ?? [], value),
         employee_id: () => t('serviceFeedback.filterEmployee'),
         organization_unit_id: () => t('serviceFeedback.filterUnit'),
         service_no: (value) => `${t('serviceFeedback.serviceIdNo')}: ${value}`,
@@ -270,20 +266,6 @@ export default function FeedbackFilterBar({
                         <option value="employee">{t('serviceFeedback.targetEmployee')}</option>
                         <option value="organization">{t('serviceFeedback.targetOrganization')}</option>
                     </Select>
-
-                    {filterOptions.categories && filterOptions.categories.length > 0 && (
-                        <Select
-                            className={selectCls}
-                            value={filters.category_id ?? ''}
-                            onChange={(event) => apply({ category_id: event.target.value })}
-                            aria-label={t('serviceFeedback.issueCategory')}
-                        >
-                            <option value="">{t('serviceFeedback.allCategories')}</option>
-                            {filterOptions.categories.map((category) => (
-                                <option key={category.id} value={category.id}>{am ? (category.name_am ?? category.name_en) : category.name_en}</option>
-                            ))}
-                        </Select>
-                    )}
 
                     {statuses && (
                         <Select

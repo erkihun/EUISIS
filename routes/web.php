@@ -10,6 +10,10 @@ use App\Http\Controllers\Core\CoreIntegrationCenterController;
 use App\Http\Controllers\Core\CoreSettingsController;
 use App\Http\Controllers\Core\CoreWorkspaceController;
 use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
+use App\Http\Controllers\Employee\EmployeeCourtCaseController;
+use App\Http\Controllers\Employee\EmployeeCourtCasesController;
+use App\Http\Controllers\Employee\EmployeeCourtFilingController;
+use App\Http\Controllers\Employee\EmployeeCourtPartiesController;
 use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
@@ -132,7 +136,6 @@ use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
 use App\Http\Controllers\Web\ProviderUserController;
-use App\Http\Controllers\Web\PublicFeedbackCategoryController;
 use App\Http\Controllers\Web\PublicFeedbackEmployeePhotoController;
 use App\Http\Controllers\Web\PublicFeedbackOrganizationLogoController;
 use App\Http\Controllers\Web\PublicFeedbackQuestionnaireController;
@@ -408,6 +411,36 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
         Route::get('/my-portal/'.$section, [EmployeeSelfServiceController::class, 'page'])->defaults('section', $section)->name('employee.'.$section);
     }
     Route::get('/my-portal/services', [EmployeePortalController::class, 'myEntitlements'])->name('employee.services');
+    // My court cases (court-ms Flow 4): the employee's tribunal cases and court notices.
+    Route::get('/my-portal/court-cases', [EmployeeCourtCasesController::class, 'index'])->name('employee.court-cases');
+    Route::post('/my-portal/court-cases/notices/read', [EmployeeCourtCasesController::class, 'readNotices'])->middleware('throttle:60,1')->name('employee.court-cases.notices.read');
+    // File a case (court-ms Flow 5): employees file here, against an institution registered in EUISIS.
+    Route::get('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'create'])->name('employee.court-cases.file');
+    Route::post('/my-portal/court-cases/file', [EmployeeCourtFilingController::class, 'store'])->middleware('throttle:10,1')->name('employee.court-cases.file.store');
+    Route::post('/my-portal/court-cases/colleague', [EmployeeCourtFilingController::class, 'colleague'])->middleware('throttle:30,1')->name('employee.court-cases.colleague');
+    // Several parties (court-ms, ADR 0013 #13): invitations to join a case, and applications to intervene.
+    Route::post('/my-portal/court-cases/invitations/{party}/respond', [EmployeeCourtPartiesController::class, 'respond'])->whereNumber('party')->middleware('throttle:20,1')->name('employee.court-cases.invitations.respond');
+    Route::get('/my-portal/court-cases/intervene', [EmployeeCourtPartiesController::class, 'intervene'])->name('employee.court-cases.intervene');
+    Route::post('/my-portal/court-cases/intervene', [EmployeeCourtPartiesController::class, 'storeIntervention'])->middleware('throttle:10,1')->name('employee.court-cases.intervene.store');
+    // A case, worked on here (court-ms Flow 6): court-ms's applicant portal is closed.
+    Route::prefix('/my-portal/court-cases/{case}')->whereNumber(['case', 'file', 'evidence', 'witness', 'response', 'reply', 'id'])
+        ->controller(EmployeeCourtCaseController::class)->name('employee.court-cases.')->group(function (): void {
+            Route::get('/', 'show')->name('show');
+            Route::get('/correct', 'edit')->name('correct');
+            Route::post('/correct', 'correct')->middleware('throttle:10,1')->name('correct.store');
+            Route::post('/messages', 'message')->middleware('throttle:30,1')->name('messages.store');
+            // An appeal to the appellate court (ADR 0013 #14): asked here, released by the court's registry.
+            Route::post('/appeal', 'appeal')->middleware('throttle:10,1')->name('appeal.store');
+            Route::post('/files', 'upload')->middleware('throttle:20,1')->name('files.store');
+            Route::post('/files/{file}/delete', 'deleteFile')->middleware('throttle:20,1')->name('files.destroy');
+            Route::post('/evidences/{evidence}/delete', 'deleteEvidence')->middleware('throttle:20,1')->name('evidences.destroy');
+            Route::post('/witnesses/{witness}/delete', 'deleteWitness')->middleware('throttle:20,1')->name('witnesses.destroy');
+            Route::get('/download/{kind}/{id?}', 'download')->middleware('throttle:60,1')->name('download');
+            Route::get('/responses/{response}', 'response')->name('responses.show');
+            Route::post('/responses/{response}/replies', 'storeReply')->middleware('throttle:10,1')->name('replies.store');
+            Route::post('/responses/{response}/replies/{reply}/update', 'updateReply')->middleware('throttle:10,1')->name('replies.update');
+            Route::post('/responses/{response}/replies/{reply}/delete', 'destroyReply')->middleware('throttle:10,1')->name('replies.destroy');
+        });
     Route::get('/my-portal/profile/photo', [EmployeeSelfServiceController::class, 'photo'])->name('employee.photo');
     Route::post('/my-portal/profile', [EmployeeSelfServiceController::class, 'update'])->middleware('throttle:30,1')->name('employee.profile.update');
     Route::post('/my-portal/profile/contact', [EmployeeSelfServiceController::class, 'requestContact'])->middleware('throttle:3,10')->name('employee.contact.request');
@@ -1547,13 +1580,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
             ->whereIn('category', array_column(SituationCategory::cases(), 'value'))->name('category');
     });
 
-    // Public feedback categories: before the {serviceFeedback} wildcard below.
-    Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');
-    Route::get('/feedback-admin/categories/create', [PublicFeedbackCategoryController::class, 'create'])->name('service-feedback.categories.create');
-    Route::get('/feedback-admin/categories/{category}/edit', [PublicFeedbackCategoryController::class, 'edit'])->whereUuid('category')->name('service-feedback.categories.edit');
-    Route::post('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'store'])->name('service-feedback.categories.store');
-    Route::put('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'update'])->whereUuid('category')->name('service-feedback.categories.update');
-    Route::delete('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'destroy'])->whereUuid('category')->name('service-feedback.categories.destroy');
     Route::get('/feedback-admin/organization-qr', [OrganizationFeedbackQrController::class, 'index'])->name('service-feedback.organization-qr.index');
     Route::get('/feedback-admin/submission-reports', [PublicFeedbackReportController::class, 'index'])->name('service-feedback.submission-reports.index');
     Route::post('/feedback-admin/submission-reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-feedback.submission-reports.export');
