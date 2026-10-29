@@ -55,6 +55,21 @@ class OrganizationDataPresenter
                 ]
                 : null,
             'status' => $this->scalar($organization->status),
+            'short_name_en' => $organization->short_name_en,
+            'short_name_am' => $organization->short_name_am,
+            'contact' => [
+                'phone' => $organization->public_contact_phone,
+                'email' => $organization->official_email,
+                'website' => $organization->website,
+                'po_box' => $organization->po_box,
+            ],
+            'location' => [
+                'address_en' => $organization->address_en,
+                'address_am' => $organization->address_am,
+                'latitude' => $organization->latitude,
+                'longitude' => $organization->longitude,
+                'geofence_radius_m' => $organization->geofence_radius_m,
+            ],
             'updated_at' => $organization->updated_at?->toIso8601String(),
         ];
     }

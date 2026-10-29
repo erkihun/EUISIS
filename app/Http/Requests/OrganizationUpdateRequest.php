@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\OrganizationStatus;
+use App\Http\Requests\Concerns\ValidatesOrganizationProfile;
 use App\Models\OrganizationType;
 use App\Rules\PublicContactPhoneNumber;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,6 +15,8 @@ use Illuminate\Validation\Validator;
 
 class OrganizationUpdateRequest extends FormRequest
 {
+    use ValidatesOrganizationProfile;
+
     public function authorize(): bool
     {
         $organization = $this->route('organization');
@@ -23,6 +26,8 @@ class OrganizationUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->normalizeOrganizationProfile();
+
         $this->merge([
             'name_am' => $this->input('name_am') ?: null,
             'legal_basis_ref' => $this->input('legal_basis_ref') ?: null,
@@ -56,6 +61,7 @@ class OrganizationUpdateRequest extends FormRequest
             'branding_primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'branding_secondary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'public_contact_phone' => ['sometimes', 'nullable', 'string', 'max:32', new PublicContactPhoneNumber],
+            ...$this->organizationProfileRules(),
         ];
     }
 

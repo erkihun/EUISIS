@@ -11,6 +11,8 @@ import { Link, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent, type JSX, type ReactNode } from 'react';
 
 type TypeOption = Option & { description_en: string | null; description_am: string | null };
+/** A destination organization with its own point and check-in radius, when it has one. */
+type OrganizationOption = Option & { latitude?: number | null; longitude?: number | null; geofence_radius_m?: number | null };
 
 type Values = {
     field_work_type_id: string;
@@ -184,12 +186,18 @@ export default function FieldWorkForm({ employee, placement, types, destinationT
                                             <button type="button" className="text-xs font-medium text-red-700 hover:underline dark:text-red-400" onClick={() => form.setData((data) => ({ ...data, destination_organization: null, destination_organization_id: '', destination_organization_unit_id: '' }))}>{t('fieldWork.actions.remove')}</button>
                                         </div>
                                     ) : (
-                                        <SearchPicker<Option>
+                                        <SearchPicker<OrganizationOption>
                                             url={route('employee.field-work.lookup.organizations')}
                                             label={`${t('fieldWork.fields.destinationOrganization')} *`}
                                             placeholder={t('fieldWork.fields.searchOrganization')}
                                             render={(row) => named(row, locale)}
-                                            onPick={(row) => form.setData((data) => ({ ...data, destination_organization: row, destination_organization_id: row.id, destination_organization_unit_id: '' }))}
+                                            onPick={(row) => form.setData((data) => {
+                                                // The organization's recorded point fills an empty expected location; a point already set stays.
+                                                const prefill = data.expected_latitude === '' && data.expected_longitude === '' && row.latitude != null && row.longitude != null
+                                                    ? { expected_latitude: String(row.latitude), expected_longitude: String(row.longitude), geofence_radius_m: row.geofence_radius_m ? String(row.geofence_radius_m) : data.geofence_radius_m }
+                                                    : {};
+                                                return { ...data, ...prefill, destination_organization: row, destination_organization_id: row.id, destination_organization_unit_id: '' };
+                                            })}
                                         />
                                     )}
                                     {error('destination_organization_id')}

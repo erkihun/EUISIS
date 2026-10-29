@@ -7,6 +7,8 @@ import { toDateInput } from '@/lib/dateUtils';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import FormSection from '@/Components/FormSection';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import { ContactSection, LocationSection, SectionNav, ShortNameFields, organizationProfile, organizationProfilePayload, type OrganizationProfile } from '@/Components/organizations/OrganizationProfileSections';
+import type { MapConfig } from '@/Components/fieldWork/LocationMap';
 
 import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
@@ -27,6 +29,16 @@ type Organization = {
     branding_primary_color: string | null;
     branding_secondary_color: string | null;
     public_contact_phone: string | null;
+    short_name_en?: string | null;
+    short_name_am?: string | null;
+    official_email?: string | null;
+    website?: string | null;
+    po_box?: string | null;
+    address_en?: string | null;
+    address_am?: string | null;
+    latitude?: number | string | null;
+    longitude?: number | string | null;
+    geofence_radius_m?: number | null;
 };
 
 const inputCls = cx(inputClassName, 'w-full');
@@ -60,9 +72,11 @@ function Field({
 export default function EditOrganization({
     organization,
     organizationTypes,
+    map,
 }: {
     organization: Organization;
     organizationTypes: OrgType[];
+    map: MapConfig;
 }) {
     const { t, locale } = useLocale();
 
@@ -79,8 +93,7 @@ export default function EditOrganization({
         remove_logo: boolean;
         branding_primary_color: string;
         branding_secondary_color: string;
-        public_contact_phone: string;
-    }>({
+    } & OrganizationProfile>({
         organization_type_id: organization.organization_type_id ?? '',
         code: organization.code ?? '',
         name_en: organization.name_en ?? '',
@@ -93,8 +106,10 @@ export default function EditOrganization({
         remove_logo: false,
         branding_primary_color: organization.branding_primary_color ?? '',
         branding_secondary_color: organization.branding_secondary_color ?? '',
-        public_contact_phone: organization.public_contact_phone ?? '',
+        ...organizationProfile(organization),
     });
+    const setProfile = (values: Partial<OrganizationProfile>) => form.setData((data) => ({ ...data, ...values }));
+    const profile: OrganizationProfile = organizationProfile(form.data);
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -129,7 +144,7 @@ export default function EditOrganization({
             effective_to: data.effective_to || null,
             branding_primary_color: data.branding_primary_color || null,
             branding_secondary_color: data.branding_secondary_color || null,
-            public_contact_phone: data.public_contact_phone.trim() || null,
+            ...organizationProfilePayload(organizationProfile(data)),
         }));
         form.post(route('organizations.update', organization.id), { preserveState: true });
     }
@@ -163,53 +178,18 @@ export default function EditOrganization({
                             </ul>
                         </div>
                     )}
+                    <SectionNav sections={[
+                        { id: 'organization-identity', label: t('organizations.sectionIdentity') },
+                        { id: 'organization-location', label: t('organizations.sectionLocation') },
+                        { id: 'organization-contact', label: t('organizations.sectionContact') },
+                        { id: 'organization-legal', label: t('organizations.sectionLegalValidity') },
+                        { id: 'organization-branding', label: t('organizations.branding') },
+                    ]} />
+
                     <div className="space-y-6">
-                        {/* Basic Information */}
-                        <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')} columns={3}>
-                            <Field label={t('organizations.nameEn')} error={form.errors.name_en} required>
-                                <input
-                                    className={inputCls}
-                                    value={form.data.name_en}
-                                    onChange={(e) => form.setData('name_en', e.target.value)}
-                                />
-                            </Field>
-                            <Field label={t('organizations.nameAm')} error={form.errors.name_am} required>
-                                <input
-                                    className={inputCls}
-                                    placeholder={t('organizations.fullNameAmPlaceholder')}
-                                    value={form.data.name_am}
-                                    onChange={(e) => form.setData('name_am', e.target.value)}
-                                />
-                            </Field>
-                            <Field label={t('organizations.legalBasisRef')} error={form.errors.legal_basis_ref}>
-                                <input
-                                    className={inputCls}
-                                    placeholder={t('organizations.legalBasisPlaceholder')}
-                                    value={form.data.legal_basis_ref}
-                                    onChange={(e) => form.setData('legal_basis_ref', e.target.value)}
-                                />
-                            </Field>
-                        </FormSection>
-
-                        {/* Public contact: the Call action on this institution's and its employees' feedback QR pages. */}
-                        <FormSection title={t('organizations.sectionPublicContact')} description={t('organizations.sectionPublicContactHelp')}>
-                            <Field label={t('organizations.publicContactPhone')} error={form.errors.public_contact_phone} help={t('organizations.publicContactPhoneHelp')}>
-                                <input
-                                    className={inputCls}
-                                    type="tel"
-                                    inputMode="tel"
-                                    autoComplete="off"
-                                    maxLength={32}
-                                    placeholder="011 123 4567"
-                                    value={form.data.public_contact_phone}
-                                    onChange={(e) => form.setData('public_contact_phone', e.target.value)}
-                                />
-                            </Field>
-                        </FormSection>
-
-                        {/* Classification */}
-                        <FormSection title={t('organizations.sectionClassification')} description={t('organizations.sectionClassificationHelp')}>
-                            <Field label={t('organizations.organizationType')} error={form.errors.organization_type_id} help={t('organizations.typeHelpText')}>
+                        {/* 1. Identity */}
+                        <FormSection id="organization-identity" step={1} title={t('organizations.sectionIdentity')} description={t('organizations.sectionIdentityHelp')}>
+                            <Field label={t('organizations.organizationType')} error={form.errors.organization_type_id} help={t('organizations.typeHelpText')} required>
                                 <select
                                     className={inputCls}
                                     value={form.data.organization_type_id}
@@ -234,11 +214,40 @@ export default function EditOrganization({
                                 preserveExistingCodeOnEdit
                                 error={form.errors.code}
                             />
+
+                            <Field label={t('organizations.nameEn')} error={form.errors.name_en} required>
+                                <input
+                                    className={inputCls}
+                                    value={form.data.name_en}
+                                    onChange={(e) => form.setData('name_en', e.target.value)}
+                                />
+                            </Field>
+                            <Field label={t('organizations.nameAm')} error={form.errors.name_am} required>
+                                <input
+                                    className={inputCls}
+                                    placeholder={t('organizations.fullNameAmPlaceholder')}
+                                    value={form.data.name_am}
+                                    onChange={(e) => form.setData('name_am', e.target.value)}
+                                />
+                            </Field>
+                            <ShortNameFields data={profile} errors={form.errors} set={setProfile} />
                         </FormSection>
 
-                        {/* Status & Validity */}
-                        <FormSection title={t('organizations.sectionStatusValidity')} description={t('organizations.sectionStatusValidityHelp')} columns={3}>
-                            <Field label={t('common.status')} error={form.errors.status}>
+                        <LocationSection data={profile} errors={form.errors} set={setProfile} map={map} step={2} />
+
+                        <ContactSection data={profile} errors={form.errors} set={setProfile} step={3} />
+
+                        {/* 4. Legal basis & validity */}
+                        <FormSection id="organization-legal" step={4} title={t('organizations.sectionLegalValidity')} description={t('organizations.sectionLegalValidityHelp')}>
+                            <Field label={t('organizations.legalBasisRef')} error={form.errors.legal_basis_ref}>
+                                <input
+                                    className={inputCls}
+                                    placeholder={t('organizations.legalBasisPlaceholder')}
+                                    value={form.data.legal_basis_ref}
+                                    onChange={(e) => form.setData('legal_basis_ref', e.target.value)}
+                                />
+                            </Field>
+                            <Field label={t('common.status')} error={form.errors.status} required>
                                 <select
                                     className={inputCls}
                                     value={form.data.status}
@@ -268,7 +277,7 @@ export default function EditOrganization({
                         </FormSection>
 
                         {/* Branding */}
-                        <FormSection title={t('organizations.branding')} description={t('organizations.brandingHelpText')} grid={false}>
+                        <FormSection id="organization-branding" step={5} title={t('organizations.branding')} description={t('organizations.brandingHelpText')} grid={false}>
                             <div className="grid gap-5 sm:grid-cols-2">
                                 {/* Logo */}
                                 <div>

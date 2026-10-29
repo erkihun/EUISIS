@@ -117,6 +117,16 @@ export default function OrganizationShow({
         branding_primary_color: string | null;
         branding_secondary_color: string | null;
         public_contact_phone?: string | null;
+        short_name_en?: string | null;
+        short_name_am?: string | null;
+        official_email?: string | null;
+        website?: string | null;
+        po_box?: string | null;
+        address_en?: string | null;
+        address_am?: string | null;
+        latitude?: number | null;
+        longitude?: number | null;
+        geofence_radius_m?: number | null;
     };
     parentOrganizationId: string | null;
     parentOrganization?: ParentOrganization;
@@ -133,6 +143,10 @@ export default function OrganizationShow({
 }) {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
+    const hasLocationOrContact = [
+        organization.address_en, organization.address_am, organization.public_contact_phone, organization.official_email,
+        organization.website, organization.po_box, organization.latitude,
+    ].some((value) => value !== null && value !== undefined && value !== '');
 
     /**
      * Localized label for a status key, falling back to the raw key when no
@@ -348,7 +362,7 @@ export default function OrganizationShow({
                         {[
                             { label: t('organizations.type'), value: organization.type ? localizedName(organization.type.name_en, organization.type.name_am, locale) : '—' },
                             { label: t('organizations.legalBasis'), value: organization.legal_basis_ref ?? '—' },
-                            { label: t('organizations.publicContactPhone'), value: organization.public_contact_phone || '—' },
+                            { label: t('organizations.shortNameEn'), value: localizedName(organization.short_name_en ?? null, organization.short_name_am ?? null, locale) || '—' },
                             { label: t('organizations.mergedInto'), value: organization.merged_into ? localizedName(organization.merged_into.name_en, organization.merged_into.name_am, locale) : '—' },
                         ].map(({ label, value }) => (
                             <div key={label}>
@@ -378,6 +392,55 @@ export default function OrganizationShow({
                             </dd>
                         </div>
                     </dl>
+
+                    {/* Location & contact: also pre-fills field work sent here and goes out in the master-data API. */}
+                    <div className="mt-5 border-t border-(--app-border) pt-4">
+                        <p className="text-xs font-semibold text-(--app-muted-foreground)">{t('organizations.locationAndContact')}</p>
+                        {hasLocationOrContact ? (
+                            <dl className="mt-3 grid gap-4 sm:grid-cols-2">
+                                {[
+                                    { label: t('organizations.addressEn'), value: localizedName(organization.address_en ?? null, organization.address_am ?? null, locale) || '—' },
+                                    { label: t('organizations.publicContactPhone'), value: organization.public_contact_phone || '—' },
+                                    { label: t('organizations.officialEmail'), value: organization.official_email || '—' },
+                                    { label: t('organizations.poBox'), value: organization.po_box || '—' },
+                                ].map(({ label, value }) => (
+                                    <div key={label}>
+                                        <dt className="text-xs font-medium text-(--app-muted-foreground)">{label}</dt>
+                                        <dd className="mt-1 whitespace-pre-line text-sm text-(--app-foreground)">{value}</dd>
+                                    </div>
+                                ))}
+                                <div>
+                                    <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('organizations.website')}</dt>
+                                    <dd className="mt-1 text-sm">
+                                        {organization.website
+                                            ? <a href={organization.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{organization.website}</a>
+                                            : '—'}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt className="text-xs font-medium text-(--app-muted-foreground)">{t('organizations.gpsPoint')}</dt>
+                                    <dd className="mt-1 text-sm text-(--app-foreground)">
+                                        {organization.latitude != null && organization.longitude != null ? (
+                                            <>
+                                                <span className="font-mono text-xs">{organization.latitude}, {organization.longitude}</span>
+                                                {organization.geofence_radius_m ? <span className="text-xs text-(--app-muted-foreground)"> · {organization.geofence_radius_m} m</span> : null}
+                                                <a
+                                                    href={`https://www.openstreetmap.org/?mlat=${organization.latitude}&mlon=${organization.longitude}#map=17/${organization.latitude}/${organization.longitude}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="ml-2 text-xs text-primary hover:underline"
+                                                >
+                                                    {t('organizations.openInMap')}
+                                                </a>
+                                            </>
+                                        ) : '—'}
+                                    </dd>
+                                </div>
+                            </dl>
+                        ) : (
+                            <p className="mt-2 text-sm text-(--app-muted-foreground)">{t('organizations.noLocationOrContact')}</p>
+                        )}
+                    </div>
                 </section>
 
                 {/* Right column: hierarchy + structure */}

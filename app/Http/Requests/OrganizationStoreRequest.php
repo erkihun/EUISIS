@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationRelationshipType;
 use App\Enums\OrganizationStatus;
+use App\Http\Requests\Concerns\ValidatesOrganizationProfile;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationType;
@@ -18,6 +19,8 @@ use Illuminate\Validation\Validator;
 
 class OrganizationStoreRequest extends FormRequest
 {
+    use ValidatesOrganizationProfile;
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', Organization::class) ?? false;
@@ -25,6 +28,8 @@ class OrganizationStoreRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->normalizeOrganizationProfile();
+
         $this->merge([
             'name_am' => $this->input('name_am') ?: null,
             'legal_basis_ref' => $this->input('legal_basis_ref') ?: null,
@@ -60,6 +65,7 @@ class OrganizationStoreRequest extends FormRequest
             'branding_primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'branding_secondary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'public_contact_phone' => ['nullable', 'string', 'max:32', new PublicContactPhoneNumber],
+            ...$this->organizationProfileRules(),
         ];
     }
 

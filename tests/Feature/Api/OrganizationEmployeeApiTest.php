@@ -315,7 +315,11 @@ it('returns the agreed safe organization fields', function (): void {
 
     expect(array_keys($organization))->toEqualCanonicalizing([
         'id', 'code', 'name_en', 'name_am', 'organization_type', 'status', 'updated_at',
+        // The institution's own public contact and location (2026-10-29), never a person's.
+        'short_name_en', 'short_name_am', 'contact', 'location',
     ]);
+    expect(array_keys($organization['contact']))->toEqualCanonicalizing(['phone', 'email', 'website', 'po_box'])
+        ->and(array_keys($organization['location']))->toEqualCanonicalizing(['address_en', 'address_am', 'latitude', 'longitude', 'geofence_radius_m']);
 });
 
 it('reports position occupancy without naming the occupant', function (): void {

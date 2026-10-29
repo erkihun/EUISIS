@@ -28,6 +28,7 @@ use App\Services\Organizations\OrganizationStatisticsService;
 use App\Services\Organizations\ParentOrganizationOptionsService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrAccess;
+use App\Support\MapConfig;
 use Barryvdh\DomPDF\Facade\Pdf;
 use DateTimeInterface;
 use Illuminate\Http\JsonResponse;
@@ -206,6 +207,7 @@ class OrganizationController extends Controller
             'parentOrganizationOptions' => $parentOptions['options'],
             'selectedParentOrganization' => $parentOptions['selected'],
             'requiresParentOrganization' => $requiresParentOrganization,
+            'map' => MapConfig::forPicker(),
         ]);
     }
 
@@ -374,6 +376,7 @@ class OrganizationController extends Controller
                 ->where(fn ($query) => $query->active()->orWhere('id', $organization->organization_type_id))
                 ->orderBy('name_en')
                 ->get(['id', 'name_en', 'name_am', 'code']),
+            'map' => MapConfig::forPicker(),
         ]);
     }
 

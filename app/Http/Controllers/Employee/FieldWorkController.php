@@ -22,6 +22,7 @@ use App\Models\OrganizationUnit;
 use App\Services\FieldWork\FieldWorkPresenter;
 use App\Services\FieldWork\FieldWorkService;
 use App\Services\FieldWork\FieldWorkSettings;
+use App\Support\MapConfig;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -219,9 +220,13 @@ class FieldWorkController extends Controller
             ->where(fn (Builder $q) => $q->where('name_en', $like, $pattern)->orWhere('name_am', $like, $pattern)->orWhere('code', $like, $pattern))
             ->orderBy('name_en')
             ->limit(20)
-            ->get(['id', 'name_en', 'name_am']);
+            ->get(['id', 'name_en', 'name_am', 'latitude', 'longitude', 'geofence_radius_m']);
 
-        return response()->json(['data' => $rows->map(fn (Organization $o): array => ['id' => $o->id, 'name_en' => $o->name_en, 'name_am' => $o->name_am])->values()]);
+        // The organization's own point and radius pre-fill the expected location.
+        return response()->json(['data' => $rows->map(fn (Organization $o): array => [
+            'id' => $o->id, 'name_en' => $o->name_en, 'name_am' => $o->name_am,
+            'latitude' => $o->latitude, 'longitude' => $o->longitude, 'geofence_radius_m' => $o->geofence_radius_m,
+        ])->values()]);
     }
 
     /** Units of one chosen destination organization (hierarchy-valid by construction). */
@@ -285,14 +290,7 @@ class FieldWorkController extends Controller
             'canSubmit' => $request->user()->can('field_work.submit_own'),
             'today' => $this->settings->today()->toDateString(),
             // The expected-location map (config/maps.php) and the largest geofence the rules accept.
-            'map' => [
-                'tileUrl' => (string) config('maps.tile_url'),
-                'attribution' => (string) config('maps.attribution'),
-                'maxZoom' => (int) config('maps.max_zoom'),
-                'center' => config('maps.default_center'),
-                'zoom' => (int) config('maps.default_zoom'),
-                'maxRadius' => $this->settings->maxGeofenceRadius(),
-            ],
+            'map' => MapConfig::forPicker(),
         ];
     }
 

@@ -29,6 +29,8 @@ readonly class UpdateOrganizationAction
                 'legal_basis_ref', 'status', 'effective_from', 'effective_to',
                 'logo_path', 'branding_primary_color', 'branding_secondary_color',
                 'public_contact_phone',
+                'short_name_en', 'short_name_am', 'official_email', 'website', 'po_box',
+                'address_en', 'address_am', 'latitude', 'longitude', 'geofence_radius_m',
             ]);
 
             $nameChanged = $this->attributeChanged($attributes, 'name_en', $organization->name_en)

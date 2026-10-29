@@ -9,6 +9,10 @@ type Props = PropsWithChildren<{
     grid?: boolean;
     /** Max columns at the widest breakpoint. Use 3 on full-width forms. */
     columns?: 2 | 3;
+    /** Anchor for jump links to the section. */
+    id?: string;
+    /** Step number shown before the title on a numbered form. */
+    step?: number;
 }>;
 
 const gridCols: Record<2 | 3, string> = {
@@ -21,12 +25,17 @@ const gridCols: Record<2 | 3, string> = {
  * clear sections (Basic Information, Classification, Hierarchy, …) without any
  * heavy UI library — just consistent spacing and a divider.
  */
-export default function FormSection({ title, description, aside, grid = true, columns = 2, children }: Props) {
+export default function FormSection({ title, description, aside, grid = true, columns = 2, id, step, children }: Props) {
     return (
-        <section className="border-t border-(--app-border) pt-6 first:border-t-0 first:pt-0">
+        <section id={id} className="scroll-mt-24 border-t border-(--app-border) pt-6 first:border-t-0 first:pt-0">
             <div className="mb-4 flex items-start justify-between gap-3">
                 <div>
-                    <h2 className="text-sm font-semibold text-(--app-foreground)">{title}</h2>
+                    <h2 className="flex items-center gap-2 text-sm font-semibold text-(--app-foreground)">
+                        {step !== undefined && (
+                            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">{step}</span>
+                        )}
+                        {title}
+                    </h2>
                     {description && (
                         <p className="mt-1 max-w-2xl text-xs text-(--app-muted-foreground)">{description}</p>
                     )}

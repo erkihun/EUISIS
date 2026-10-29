@@ -121,9 +121,23 @@ return a list.
   "name_am": "የአዲስ አበባ ከተማ አስተዳደር",
   "organization_type": { "code": "BUREAU", "name_en": "Bureau", "name_am": "ቢሮ" },
   "status": "active",
+  "short_name_en": "AACG",
+  "short_name_am": "አአከአ",
+  "contact": { "phone": "+251111234567", "email": "info@example.gov.et", "website": "https://example.gov.et", "po_box": "1234" },
+  "location": {
+    "address_en": "Arada, Woreda 1, Churchill Avenue",
+    "address_am": "አራዳ፣ ወረዳ 1፣ ቸርችል ጎዳና",
+    "latitude": 9.0321,
+    "longitude": 38.7469,
+    "geofence_radius_m": 150
+  },
   "updated_at": "2026-09-03T10:15:00+03:00"
 }
 ```
+
+`contact` and `location` are the institution's own public details, never a person's (added 2026-10-29; every
+field may be null). `location.latitude`/`longitude` are WGS 84 degrees and `geofence_radius_m` is the radius
+around that point within which a field work check-in counts as at the organization.
 
 ### Organization Unit
 
