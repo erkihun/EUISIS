@@ -33,6 +33,7 @@ Small, reversible changes inside one module do not need one; the pull request is
 | [0006](0006-standalone-core-platform.md) | The Core as a standalone platform: own API, frontend and database in `core-platform/`, copy-and-compare cutover | accepted 2026-10-25 |
 | [0013](0013-court-ms-integration.md) | Integration with court-ms, the tribunal case system: master data out, referrals in, status back | accepted 2026-10-27 (technical; owner defaults open) |
 | [0015](0015-standalone-apps-out-of-the-euisis-repository.md) | Standalone apps (the Core, the legacy cafeteria app) live in their own repositories beside EUISIS, not inside it | accepted 2026-10-29 |
+| [0016](0016-module-boundaries.md) | Module boundaries: `Modules/<Name>/{Domain,Application,Infrastructure,Http}`, stored class names kept, one module per change (Transport first) | accepted 2026-10-30 |
 
 Decisions that are recorded elsewhere and would each merit an ADR when next
 changed: API versioning ([api-lifecycle](../../governance/api-lifecycle.md)),
