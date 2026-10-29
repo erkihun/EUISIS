@@ -17,10 +17,10 @@ const inputCls = cx(inputClassName, 'w-full');
 const labelCls = 'block text-xs font-medium text-(--app-muted-foreground)';
 const helpCls = 'mt-1 text-xs text-(--app-muted-foreground)';
 
-function Field({ label, error, children, help }: { label: string; error?: string; children: React.ReactNode; help?: string }) {
+function Field({ label, error, children, help, required }: { label: string; error?: string; children: React.ReactNode; help?: string; required?: boolean }) {
     return (
         <div>
-            <label className={labelCls}>{label}</label>
+            <label className={labelCls}>{label}{required && <span className="ml-1 text-red-600" aria-hidden="true">*</span>}</label>
             <div className="mt-1">{children}</div>
             {help && <p className={helpCls}>{help}</p>}
             {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
@@ -168,7 +168,7 @@ export default function CreateOrganization({
                     <div className="space-y-6">
                         {/* Basic Information */}
                         <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')} columns={3}>
-                            <Field label={t('organizations.nameEn')} error={form.errors.name_en}>
+                            <Field label={t('organizations.nameEn')} error={form.errors.name_en} required>
                                 <input
                                     className={inputCls}
                                     placeholder={t('organizations.fullNameEn')}
@@ -176,7 +176,7 @@ export default function CreateOrganization({
                                     onChange={(event) => form.setData('name_en', event.target.value)}
                                 />
                             </Field>
-                            <Field label={t('organizations.nameAm')} error={form.errors.name_am}>
+                            <Field label={t('organizations.nameAm')} error={form.errors.name_am} required>
                                 <input
                                     className={inputCls}
                                     placeholder={t('organizations.fullNameAmPlaceholder')}
@@ -342,16 +342,16 @@ export default function CreateOrganization({
                                             )}
                                         </Field>
 
-                                        <Field label={t('organizations.relationshipType')} error={form.errors.relationship_type}>
+                                        <Field label={t('organizations.relationshipType')} error={form.errors.relationship_type} help={t('hierarchyVersions.relationshipTypeHelp')}>
                                             <select
                                                 className={inputCls}
                                                 value={form.data.relationship_type}
                                                 onChange={(event) => form.setData('relationship_type', event.target.value)}
                                             >
-                                                <option value="reports_to">{t('organizations.reportsTo')}</option>
-                                                <option value="geographically_under">{t('organizations.administrative')}</option>
-                                                <option value="service_scope">{t('organizations.serviceScope')}</option>
-                                                <option value="oversight">{t('organizations.technical')}</option>
+                                                <option value="reports_to">{t('hierarchyVersions.relationshipTypes.reportsTo')}</option>
+                                                <option value="geographically_under">{t('hierarchyVersions.relationshipTypes.geographicallyUnder')}</option>
+                                                <option value="service_scope">{t('hierarchyVersions.relationshipTypes.serviceScope')}</option>
+                                                <option value="oversight">{t('hierarchyVersions.relationshipTypes.oversight')}</option>
                                             </select>
                                         </Field>
                                     </div>

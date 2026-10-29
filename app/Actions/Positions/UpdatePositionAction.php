@@ -21,6 +21,7 @@ readonly class UpdatePositionAction
         private WriteAuditLogAction $writeAuditLogAction,
         private PositionCapacityService $capacity,
         private OrganizationScopeService $organizationScope,
+        private EnsureSingleUnitHead $ensureSingleUnitHead,
     ) {}
 
     public function execute(Position $position, array $attributes, User $actor): Position
@@ -33,6 +34,13 @@ readonly class UpdatePositionAction
 
             $attributes = $this->fillOrganizationFromUnit($locked, $attributes, $actor);
             $this->refuseStrandingHolders($locked, $attributes);
+
+            if ((bool) ($attributes['is_unit_head'] ?? $locked->is_unit_head)) {
+                $this->ensureSingleUnitHead->execute(
+                    (string) ($attributes['organization_unit_id'] ?? $locked->organization_unit_id),
+                    (string) $locked->getKey(),
+                );
+            }
 
             $locked->update($attributes);
             $fresh = $locked->fresh();

@@ -84,8 +84,10 @@ readonly class MovePositionAction
             $fromOrganizationUnitId = $lockedPosition->organization_unit_id;
             $movedAt = now();
 
+            // Heading the old unit does not make it head of the new one.
             $lockedPosition->forceFill([
                 'organization_unit_id' => $targetUnit->getKey(),
+                'is_unit_head' => false,
             ])->save();
 
             $movement = PositionMovement::query()->create([

@@ -39,6 +39,8 @@ const positions = {
     statusInactive: 'Inactive',
     activePosition: 'Active Position',
     inactivePosition: 'Inactive Position',
+    unitHead: 'Head of this unit',
+    unitHeadHelp: 'The position that leads the unit; approvals, letter signatures and the organogram use it. One per unit.',
     noPositions: 'No positions found',
     noPositionsFound: 'No positions found',
     search: 'Search positions',

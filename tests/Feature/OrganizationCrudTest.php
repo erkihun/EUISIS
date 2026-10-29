@@ -38,6 +38,7 @@ function makeOrg(OrganizationType $type, string $code = 'ORG-1'): Organization
         'organization_type_id' => $type->id,
         'code' => $code,
         'name_en' => 'Test Organization',
+        'name_am' => 'የሙከራ ተቋም',
         'status' => OrganizationStatus::Active,
     ]);
 }
@@ -119,6 +120,7 @@ test('users without organizations.create cannot create an organization', functio
             'organization_type_id' => $type->id,
             'code' => 'ORG-NEW',
             'name_en' => 'New Org',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertForbidden();
@@ -132,6 +134,7 @@ test('users with organizations.create can create an organization', function (): 
             'organization_type_id' => $type->id,
             'code' => 'ORG-NEW',
             'name_en' => 'New Org',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertRedirect();
@@ -148,6 +151,7 @@ test('duplicate organization code is rejected', function (): void {
             'organization_type_id' => $type->id,
             'code' => 'ORG-DUPLICATE',
             'name_en' => 'Duplicate Organization',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertSessionHasErrors('code');
@@ -162,6 +166,7 @@ test('inactive organization type is rejected', function (): void {
             'organization_type_id' => $type->id,
             'code' => 'ORG-INACTIVE-TYPE',
             'name_en' => 'Invalid Organization',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertSessionHasErrors('organization_type_id');
@@ -175,6 +180,7 @@ test('invalid organization status is rejected', function (): void {
             'organization_type_id' => $type->id,
             'code' => 'ORG-BAD-STATUS',
             'name_en' => 'Invalid Status Organization',
+            'name_am' => 'አማርኛ',
             'status' => 'enabled',
         ])
         ->assertSessionHasErrors('status');
@@ -208,6 +214,7 @@ test('users without organizations.update cannot update an organization', functio
             'organization_type_id' => $org->organization_type_id,
             'code' => $org->code,
             'name_en' => 'Changed',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertForbidden();
@@ -221,6 +228,7 @@ test('users with organizations.update can update an organization', function (): 
             'organization_type_id' => $org->organization_type_id,
             'code' => $org->code,
             'name_en' => 'Updated Name',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertRedirect(route('organizations.show', $org));

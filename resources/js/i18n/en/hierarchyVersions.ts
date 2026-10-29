@@ -92,6 +92,7 @@ export default {
         serviceScope: 'Service scope',
         oversight: 'Oversight',
     },
+    relationshipTypeHelp: 'Whichever type you choose, this organization sits under the parent, and the parent’s administrators can see and manage it. Choose “Reports to” unless another type clearly applies.',
     // Status labels (used for status_label on tree nodes)
     active: 'Active',
     inactive: 'Inactive',

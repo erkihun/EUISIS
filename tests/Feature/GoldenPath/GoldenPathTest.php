@@ -24,6 +24,7 @@ use App\Models\Organization;
 use App\Models\OrganizationCafeteriaAccess;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
+use App\Models\OrganizationUnitType;
 use App\Models\Position;
 use App\Models\Provider;
 use App\Models\ProviderUser;
@@ -89,18 +90,19 @@ beforeEach(function (): void {
 function goldenEmployee(object $test, string $name): array
 {
     $test->actingAs($test->maker)->post(route('organizations.store'), [
-        'organization_type_id' => $test->type->id, 'name_en' => $name, 'status' => 'active',
+        'organization_type_id' => $test->type->id, 'name_en' => $name, 'name_am' => $name.' (አማርኛ)', 'status' => 'active',
     ])->assertSessionHasNoErrors()->assertRedirect();
     $organization = Organization::query()->where('name_en', $name)->sole();
 
     $test->actingAs($test->maker)->post(route('organization-units.store'), [
         'organization_id' => $organization->id, 'unit_type' => 'department',
-        'code' => 'U-'.Str::upper(Str::random(5)), 'name_en' => $name.' HR', 'status' => 'active',
+        'organization_unit_type_id' => OrganizationUnitType::query()->firstOrCreate(['code' => 'department'], ['name_en' => 'Department', 'name_am' => 'መምሪያ', 'is_active' => true])->id,
+        'code' => 'U-'.Str::upper(Str::random(5)), 'name_en' => $name.' HR', 'name_am' => 'የሰው ሀብት', 'status' => 'active',
     ])->assertSessionHasNoErrors()->assertRedirect();
     $unit = OrganizationUnit::query()->where('organization_id', $organization->id)->sole();
 
     $test->actingAs($test->maker)->post(route('positions.store'), [
-        'title_en' => 'HR Officer', 'is_active' => true, 'organization_unit_id' => $unit->id, 'occupation_id' => $test->occupation->id,
+        'title_en' => 'HR Officer', 'title_am' => 'የሰው ሀብት ባለሙያ', 'is_active' => true, 'organization_unit_id' => $unit->id, 'occupation_id' => $test->occupation->id,
     ])->assertSessionHasNoErrors()->assertRedirect();
     $position = Position::query()->where('organization_unit_id', $unit->id)->sole();
 

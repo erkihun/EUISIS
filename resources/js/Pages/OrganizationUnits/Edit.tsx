@@ -163,7 +163,7 @@ export default function OrganizationUnitsEdit({
 
                         {/* Name AM */}
                         <div>
-                            <FormLabel>{t('organizationUnits.nameAm')}</FormLabel>
+                            <FormLabel>{`${t('organizationUnits.nameAm')} *`}</FormLabel>
                             <Input
                                 className="w-full"
                                 value={data.name_am}

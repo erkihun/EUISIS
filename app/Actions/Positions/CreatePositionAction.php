@@ -19,6 +19,7 @@ readonly class CreatePositionAction
         private WriteAuditLogAction $writeAuditLogAction,
         private GenerateCodeAction $generateCodeAction,
         private PositionCodeContextResolver $positionCodeContextResolver,
+        private EnsureSingleUnitHead $ensureSingleUnitHead,
     ) {}
 
     public function execute(array $attributes, User $actor): Position
@@ -59,6 +60,10 @@ readonly class CreatePositionAction
             $manualCode,
             'job_position_code',
         );
+
+        if (! empty($attributes['is_unit_head'])) {
+            $this->ensureSingleUnitHead->execute($organizationUnitId !== null ? (string) $organizationUnitId : null);
+        }
 
         $position = Position::query()->create($attributes);
 

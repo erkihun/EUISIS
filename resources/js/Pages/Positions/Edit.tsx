@@ -43,6 +43,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
         position_category_id: position.position_category_id ?? '',
         job_family: position.job_family ?? '',
         is_active: position.is_active ?? true,
+        is_unit_head: position.is_unit_head ?? false,
         effective_from: toDateInput(position.effective_from),
         effective_to: toDateInput(position.effective_to),
     });
@@ -109,7 +110,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Organization Unit */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="organization_unit_id">{t('positions.organizationUnit')}</FormLabel>
+                        <FormLabel htmlFor="organization_unit_id" required>{t('positions.organizationUnit')}</FormLabel>
                         <select
                             id="organization_unit_id"
                             className={inputCls}
@@ -128,7 +129,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Occupation */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="occupation_id">{t('positions.occupation')}</FormLabel>
+                        <FormLabel htmlFor="occupation_id" required>{t('positions.occupation')}</FormLabel>
                         <select
                             id="occupation_id"
                             className={inputCls}
@@ -147,7 +148,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* English Title */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="title_en">{t('positions.englishTitle')}</FormLabel>
+                        <FormLabel htmlFor="title_en" required>{t('positions.englishTitle')}</FormLabel>
                         <input
                             id="title_en"
                             className={inputCls}
@@ -160,7 +161,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Amharic Title */}
                     <div className="space-y-1.5">
-                        <FormLabel htmlFor="title_am">{t('positions.amharicTitle')}</FormLabel>
+                        <FormLabel htmlFor="title_am" required>{t('positions.amharicTitle')}</FormLabel>
                         <input
                             id="title_am"
                             className={inputCls}
@@ -196,18 +197,6 @@ export default function PositionsEdit({ position, organizations, organizationUni
                     {jobMasters && <JobMasterSelects groups={jobMasters} errors={form.errors}
                         values={{ job_level_id: form.data.job_level_id, profession_id: form.data.profession_id, employment_type_id: form.data.employment_type_id, position_category_id: form.data.position_category_id }}
                         onChange={(field, value) => form.setData(field, value)} />}
-
-                    {/* Job Family */}
-                    <div className="space-y-1.5">
-                        <FormLabel htmlFor="job_family">{t('positions.jobFamily')}</FormLabel>
-                        <input
-                            id="job_family"
-                            className={inputCls}
-                            value={form.data.job_family}
-                            placeholder={t('positions.jobFamily')}
-                            onChange={(e) => form.setData('job_family', e.target.value)}
-                        />
-                    </div>
 
                     {/* Effective From */}
                     <div className="space-y-1.5">
@@ -253,6 +242,20 @@ export default function PositionsEdit({ position, organizations, organizationUni
                     />
                     {t('positions.activePosition')}
                 </label>
+
+                {/* Head of unit */}
+                <div>
+                    <label className="flex items-center gap-2 text-sm text-(--app-foreground)">
+                        <input
+                            type="checkbox"
+                            checked={form.data.is_unit_head}
+                            onChange={(e) => form.setData('is_unit_head', e.target.checked)}
+                        />
+                        {t('positions.unitHead')}
+                    </label>
+                    <p className="mt-1 text-xs text-(--app-muted-foreground)">{t('positions.unitHeadHelp')}</p>
+                    {form.errors.is_unit_head && <p className={errorCls}>{form.errors.is_unit_head}</p>}
+                </div>
 
                 <div className="flex gap-3">
                     <button

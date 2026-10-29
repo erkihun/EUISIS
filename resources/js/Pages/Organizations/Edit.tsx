@@ -39,15 +39,17 @@ function Field({
     error,
     children,
     help,
+    required,
 }: {
     label: string;
     error?: string;
     children: React.ReactNode;
     help?: string;
+    required?: boolean;
 }) {
     return (
         <div>
-            <label className={labelCls}>{label}</label>
+            <label className={labelCls}>{label}{required && <span className="ml-1 text-red-600" aria-hidden="true">*</span>}</label>
             <div className="mt-1">{children}</div>
             {help && <p className={helpCls}>{help}</p>}
             {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
@@ -164,14 +166,14 @@ export default function EditOrganization({
                     <div className="space-y-6">
                         {/* Basic Information */}
                         <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')} columns={3}>
-                            <Field label={t('organizations.nameEn')} error={form.errors.name_en}>
+                            <Field label={t('organizations.nameEn')} error={form.errors.name_en} required>
                                 <input
                                     className={inputCls}
                                     value={form.data.name_en}
                                     onChange={(e) => form.setData('name_en', e.target.value)}
                                 />
                             </Field>
-                            <Field label={t('organizations.nameAm')} error={form.errors.name_am}>
+                            <Field label={t('organizations.nameAm')} error={form.errors.name_am} required>
                                 <input
                                     className={inputCls}
                                     placeholder={t('organizations.fullNameAmPlaceholder')}

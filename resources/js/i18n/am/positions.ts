@@ -39,6 +39,8 @@ const positions = {
     statusInactive: 'ንቁ ያልሆነ',
     activePosition: 'ንቁ መደብ',
     inactivePosition: 'ንቁ ያልሆነ መደብ',
+    unitHead: 'የዚህ የሥራ ክፍል ኃላፊ',
+    unitHeadHelp: 'የሥራ ክፍሉን የሚመራ የሥራ መደብ፤ ማጽደቂያዎች፣ የደብዳቤ ፊርማዎችና የመዋቅር ሰንጠረዡ ይጠቀሙበታል። ለአንድ የሥራ ክፍል አንድ ብቻ።',
     noPositions: 'ምንም የሥራ መደቦች አልተገኙም',
     noPositionsFound: 'ምንም የሥራ መደቦች አልተገኙም',
     search: 'የሥራ መደቦችን ይፈልጉ',

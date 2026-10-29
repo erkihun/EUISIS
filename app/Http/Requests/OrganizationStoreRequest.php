@@ -48,7 +48,7 @@ class OrganizationStoreRequest extends FormRequest
             'organization_type_id' => ['required', 'uuid', 'exists:organization_types,id'],
             'code' => ['nullable', 'string', 'max:255', 'unique:organizations,code'],
             'name_en' => ['required', 'string', 'max:255'],
-            'name_am' => ['nullable', 'string', 'max:255'],
+            'name_am' => ['required', 'string', 'max:255'],
             'legal_basis_ref' => ['nullable', 'string', 'max:255'],
             'status' => ['required', new Enum(OrganizationStatus::class)],
             'effective_from' => ['nullable', 'date'],

@@ -48,6 +48,7 @@ class PositionResource extends JsonResource
             'grade_level' => $this->grade_level,
             'job_family' => $this->job_family,
             'is_active' => $this->is_active,
+            'is_unit_head' => (bool) $this->is_unit_head,
             'effective_from' => $this->effective_from?->toDateString(),
             'effective_to' => $this->effective_to?->toDateString(),
             'assignments_count' => $this->whenCounted('assignments'),

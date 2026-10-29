@@ -349,6 +349,7 @@ it('generates organization code when omitted on create', function (): void {
         ->post(route('organizations.store'), [
             'organization_type_id' => $type->id,
             'name_en' => 'Generated Organization',
+            'name_am' => 'አማርኛ',
             'status' => OrganizationStatus::Active->value,
         ])
         ->assertRedirect();
@@ -415,6 +416,7 @@ it('generates position code when omitted on create', function (): void {
     $this->actingAs($user)
         ->post(route('positions.store'), [
             'title_en' => 'Systems Analyst',
+            'title_am' => 'አማርኛ',
             'old_code' => 'LEGACY-SA-01',
             'bpr_name' => 'Systems Analysis Specialist',
             'is_active' => true,

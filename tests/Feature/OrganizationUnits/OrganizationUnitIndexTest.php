@@ -8,6 +8,7 @@ use App\Enums\OrganizationUnitStatus;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
+use App\Models\OrganizationUnitType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Spatie\Permission\Models\Permission;
@@ -183,8 +184,10 @@ test('test_root_unit_can_be_created_without_parent', function (): void {
         ->post(route('organization-units.store'), [
             'organization_id' => $org->id,
             'unit_type' => 'department',
+            'organization_unit_type_id' => ouIndexUnitTypeId(),
             'code' => 'ROOT-'.uniqid(),
             'name_en' => 'Root Unit',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertRedirect();
@@ -232,7 +235,9 @@ test('test_parent_unit_from_another_organization_is_rejected', function (): void
             'organization_id' => $org1->id,
             'parent_unit_id' => $parentInOrg2->id,
             'unit_type' => 'department',
+            'organization_unit_type_id' => ouIndexUnitTypeId(),
             'name_en' => 'Child in Org1',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertSessionHasErrors('parent_unit_id');
@@ -248,8 +253,10 @@ test('test_create_unit_writes_audit_log', function (): void {
         ->post(route('organization-units.store'), [
             'organization_id' => $org->id,
             'unit_type' => 'department',
+            'organization_unit_type_id' => ouIndexUnitTypeId(),
             'code' => 'AUDIT-'.uniqid(),
             'name_en' => 'Audit Test Unit',
+            'name_am' => 'አማርኛ',
             'status' => 'active',
         ])
         ->assertRedirect();
@@ -331,3 +338,12 @@ test('test_en_am_localization_keys_exist', function (): void {
         expect(array_key_exists($key, $am))->toBeTrue("Missing AM key: {$key}");
     }
 });
+
+/** A Unit Types catalog entry: units need one since the production rules (2026-10-29). */
+function ouIndexUnitTypeId(): string
+{
+    return OrganizationUnitType::query()->firstOrCreate(
+        ['code' => 'department'],
+        ['name_en' => 'Department', 'name_am' => 'መምሪያ', 'is_active' => true],
+    )->id;
+}

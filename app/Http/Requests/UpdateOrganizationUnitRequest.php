@@ -53,7 +53,7 @@ class UpdateOrganizationUnitRequest extends FormRequest
                 },
             ],
             'organization_unit_type_id' => [
-                'nullable',
+                'required',
                 'uuid',
                 Rule::exists('organization_unit_types', 'id')->whereNull('deleted_at'),
             ],
@@ -67,7 +67,7 @@ class UpdateOrganizationUnitRequest extends FormRequest
                     ->ignore($unit->getKey()),
             ],
             'name_en' => ['required', 'string', 'max:255'],
-            'name_am' => ['nullable', 'string', 'max:255'],
+            'name_am' => ['required', 'string', 'max:255'],
             'description_en' => ['nullable', 'string'],
             'description_am' => ['nullable', 'string'],
             'status' => ['required', new Enum(OrganizationUnitStatus::class)],

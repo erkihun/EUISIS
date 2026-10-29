@@ -179,6 +179,7 @@ describe('organization public contact phone', function (): void {
             'organization_type_id' => $this->organization->organization_type_id,
             'code' => $this->organization->code,
             'name_en' => $this->organization->name_en,
+            'name_am' => 'የሙከራ ተቋም',
             'status' => 'active',
         ];
     });

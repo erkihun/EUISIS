@@ -1,4 +1,5 @@
 import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
 import type { OrganizationUnitType } from '@/types/organizationUnit';
 
 const colorMap: Record<OrganizationUnitType, string> = {
@@ -20,15 +21,23 @@ const labelKeyMap: Record<OrganizationUnitType, string> = {
 };
 
 interface Props {
-    unitType: OrganizationUnitType | string;
+    unitType: OrganizationUnitType | string | null;
+    /** The Unit Types catalog entry, which wins over the legacy fixed type when the unit has one. */
+    catalog?: { code: string; name_en: string; name_am: string | null } | null;
     className?: string;
 }
 
-export default function OrganizationUnitTypeBadge({ unitType, className = '' }: Props) {
-    const { t } = useLocale();
-    const colorClass = colorMap[unitType as OrganizationUnitType] ?? 'bg-(--app-surface-muted) text-(--app-muted-foreground)';
-    const labelKey = labelKeyMap[unitType as OrganizationUnitType];
-    const label = labelKey ? t(labelKey) : unitType;
+export default function OrganizationUnitTypeBadge({ unitType, catalog, className = '' }: Props) {
+    const { t, locale } = useLocale();
+    const key = (catalog?.code ?? unitType ?? '').toLowerCase();
+    const colorClass = colorMap[key as OrganizationUnitType] ?? 'bg-(--app-surface-muted) text-(--app-muted-foreground)';
+    const labelKey = labelKeyMap[key as OrganizationUnitType];
+    const label = catalog
+        ? localizedName(catalog.name_en, catalog.name_am, locale)
+        : (labelKey ? t(labelKey) : unitType);
+    if (!label) {
+        return null;
+    }
     return (
         <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${colorClass} ${className}`}

@@ -92,6 +92,7 @@ export default {
         serviceScope: 'የአገልግሎት ወሰን',
         oversight: 'ቁጥጥር',
     },
+    relationshipTypeHelp: 'የትኛውም የግንኙነት ዓይነት ቢመረጥ ይህ ተቋም በበላይ ተቋሙ ሥር ይቀመጣል፤ የበላይ ተቋሙ አስተዳዳሪዎችም ሊያዩትና ሊያስተዳድሩት ይችላሉ። ሌላ ዓይነት በግልጽ ካልተገባ በስተቀር «ለዚህ ሪፖርት ያደርጋል» የሚለውን ይምረጡ።',
     // Status labels (used for status_label on tree nodes)
     active: 'ንቁ',
     inactive: 'ንቁ ያልሆነ',

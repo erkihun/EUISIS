@@ -32,12 +32,12 @@ it('refuses master-data changes while writes are frozen and leaves reads alone',
     $this->actingAs($this->admin);
 
     $this->from(route('organizations.index'))
-        ->post(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Frozen org', 'status' => 'active'])
+        ->post(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Frozen org', 'name_am' => 'አማርኛ', 'status' => 'active'])
         ->assertRedirect(route('organizations.index'))
         ->assertSessionHas('flash.message', __('backbone.master_data_frozen'));
     expect(Organization::query()->where('name_en', 'Frozen org')->exists())->toBeFalse();
 
-    $this->postJson(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Frozen org', 'status' => 'active'])
+    $this->postJson(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Frozen org', 'name_am' => 'አማርኛ', 'status' => 'active'])
         ->assertStatus(423)->assertJsonPath('error_code', 'master_data_frozen');
 
     $this->get(route('organizations.index'))->assertOk();
@@ -46,7 +46,7 @@ it('refuses master-data changes while writes are frozen and leaves reads alone',
 it('lets master-data changes through to the action when writes are open', function (): void {
     config(['core.master_data_writes' => 'open']);
     $this->actingAs($this->admin)
-        ->post(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Open org', 'status' => 'active']);
+        ->post(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Open org', 'name_am' => 'አማርኛ', 'status' => 'active']);
 
     // The request reached the organization action (here it stops at the missing code rule), not the freeze.
     expect(session('flash.message'))->not->toBe(__('backbone.master_data_frozen'))
@@ -121,7 +121,7 @@ it('allows master-data writes only in the core and legacy modes, failing closed 
     config(['core.master_data_writes' => $setting]);
     $this->actingAs($this->admin);
 
-    $response = $this->postJson(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Mode org', 'status' => 'active']);
+    $response = $this->postJson(route('organizations.store'), ['organization_type_id' => $this->type->id, 'name_en' => 'Mode org', 'name_am' => 'አማርኛ', 'status' => 'active']);
 
     expect($response->status() === 423)->toBe(! $writes)
         ->and(MasterDataWriteMode::fromSetting($setting)->allowsWrites())->toBe($writes);

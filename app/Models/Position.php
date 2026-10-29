@@ -34,6 +34,7 @@ class Position extends Model
         'grade_level',
         'job_family',
         'is_active',
+        'is_unit_head',
         'effective_from',
         'effective_to',
         'metadata',
@@ -45,6 +46,7 @@ class Position extends Model
     {
         return [
             'is_active' => 'bool',
+            'is_unit_head' => 'bool',
             'effective_from' => 'date',
             'effective_to' => 'date',
             'metadata' => 'array',
