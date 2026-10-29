@@ -50,8 +50,8 @@ class OrganizationUnit extends Model
             // unit_type is kept as a plain string to allow custom type codes beyond the enum
             'status' => OrganizationUnitStatus::class,
             'is_public_feedback_selectable' => 'boolean',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'metadata' => 'array',
         ];
     }

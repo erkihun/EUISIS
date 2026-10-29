@@ -35,7 +35,7 @@ class CafeteriaMenu extends Model
     protected function casts(): array
     {
         return [
-            'menu_date' => 'date',
+            'menu_date' => 'date:Y-m-d',
             'price' => 'decimal:2',
             'subsidy_eligible' => 'boolean',
             'max_orders' => 'integer',

@@ -36,7 +36,7 @@ class CafeteriaSpecialDay extends Model
     ];
 
     protected $casts = [
-        'special_date' => 'date',
+        'special_date' => 'date:Y-m-d',
         'day_type' => CafeteriaSpecialDayType::class,
         'is_open' => 'boolean',
         'is_subsidy_day' => 'boolean',

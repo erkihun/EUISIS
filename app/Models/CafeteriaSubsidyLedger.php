@@ -34,10 +34,10 @@ class CafeteriaSubsidyLedger extends Model
     ];
 
     protected $casts = [
-        'ledger_date' => 'date',
-        'allocated_for_date' => 'date',
-        'week_start_date' => 'date',
-        'week_end_date' => 'date',
+        'ledger_date' => 'date:Y-m-d',
+        'allocated_for_date' => 'date:Y-m-d',
+        'week_start_date' => 'date:Y-m-d',
+        'week_end_date' => 'date:Y-m-d',
         'entry_type' => CafeteriaLedgerEntryType::class,
         'amount' => 'decimal:2',
         'balance_after' => 'decimal:2',

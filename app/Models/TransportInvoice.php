@@ -23,8 +23,8 @@ class TransportInvoice extends Model
     protected function casts(): array
     {
         return [
-            'period_start' => 'date',
-            'period_end' => 'date',
+            'period_start' => 'date:Y-m-d',
+            'period_end' => 'date:Y-m-d',
             'claimed_boardings' => 'integer',
             'claimed_trips' => 'integer',
             'claimed_employee_days' => 'integer',

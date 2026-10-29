@@ -33,7 +33,7 @@ class OrganizationalChangeRequestAttachment extends Model
     {
         return [
             'document_type' => OrganizationalChangeAttachmentType::class,
-            'document_date' => 'date',
+            'document_date' => 'date:Y-m-d',
             'file_size' => 'integer',
         ];
     }

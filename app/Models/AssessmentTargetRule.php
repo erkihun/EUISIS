@@ -36,8 +36,8 @@ class AssessmentTargetRule extends Model
             'target_type' => TargetType::class,
             'include_descendants' => 'bool',
             'priority' => 'integer',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
         ];
     }
 

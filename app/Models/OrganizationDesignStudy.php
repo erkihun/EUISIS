@@ -32,8 +32,8 @@ class OrganizationDesignStudy extends Model
         return [
             'study_type' => DesignStudyType::class,
             'status' => OrganizationDesignStatus::class,
-            'started_at' => 'date',
-            'target_effective_date' => 'date',
+            'started_at' => 'date:Y-m-d',
+            'target_effective_date' => 'date:Y-m-d',
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
             'approved_at' => 'datetime',

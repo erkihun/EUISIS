@@ -30,8 +30,8 @@ class Entitlement extends Model
     {
         return [
             'status' => EntitlementStatus::class,
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'rule_snapshot' => 'array',
         ];
     }

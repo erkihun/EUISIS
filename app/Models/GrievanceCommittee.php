@@ -40,8 +40,8 @@ class GrievanceCommittee extends Model
     {
         return [
             'committee_type' => CommitteeType::class,
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'approved_at' => 'datetime',
         ];
     }

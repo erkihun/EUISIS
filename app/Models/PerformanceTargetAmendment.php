@@ -34,7 +34,7 @@ class PerformanceTargetAmendment extends Model
         return [
             'original_values' => 'array',
             'proposed_values' => 'array',
-            'effective_date' => 'date',
+            'effective_date' => 'date:Y-m-d',
             'status' => AmendmentStatus::class,
             'decided_at' => 'datetime',
         ];

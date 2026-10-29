@@ -82,13 +82,13 @@ class Employee extends Model
     protected function casts(): array
     {
         return [
-            'date_of_birth' => 'date',
+            'date_of_birth' => 'date:Y-m-d',
             'status' => EmployeeStatus::class,
             'employment_type' => EmploymentType::class,
             'marital_status' => MaritalStatus::class,
             'has_disability' => 'bool',
             'disability_type' => DisabilityType::class,
-            'service_start_date' => 'date',
+            'service_start_date' => 'date:Y-m-d',
             'data_quality_score' => 'float',
             'metadata' => 'array',
             'notification_preferences' => 'array',

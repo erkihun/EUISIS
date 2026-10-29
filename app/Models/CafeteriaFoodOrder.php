@@ -38,7 +38,7 @@ class CafeteriaFoodOrder extends Model
     protected function casts(): array
     {
         return [
-            'order_date' => 'date',
+            'order_date' => 'date:Y-m-d',
             'ordered_at' => 'datetime',
             'served_at' => 'datetime',
             'quantity' => 'integer',

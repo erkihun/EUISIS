@@ -58,8 +58,8 @@ class PerformanceObjective extends Model
             'weight' => 'decimal:4',
             'absolute_weight_percent' => 'decimal:4',
             'local_weight_percent' => 'decimal:4',
-            'start_date' => 'date',
-            'end_date' => 'date',
+            'start_date' => 'date:Y-m-d',
+            'end_date' => 'date:Y-m-d',
         ];
     }
 

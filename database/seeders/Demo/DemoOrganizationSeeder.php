@@ -81,10 +81,7 @@ class DemoOrganizationSeeder extends DemoSeeder
                     ? 'Synthetic demo hierarchy (development / QA / UAT only).'
                     : 'DRAFT: the current published structure plus the synthetic demo organizations. Publish only on a development or UAT database.',
             ], $maker);
-
-            if ($published !== null) {
-                $this->copyEdges($published, $version, $maker, $createEdge);
-            }
+            // A new draft already starts as a copy of the published structure (CreateHierarchyVersionAction).
         }
 
         if ($version->status !== HierarchyVersionStatus::Draft) {
@@ -117,17 +114,5 @@ class DemoOrganizationSeeder extends DemoSeeder
         }
 
         $publish->execute($version, $maker);
-    }
-
-    private function copyEdges(HierarchyVersion $from, HierarchyVersion $to, User $maker, CreateOrganizationEdgeAction $createEdge): void
-    {
-        OrganizationEdge::query()->where('hierarchy_version_id', $from->id)->orderBy('created_at')->get()
-            ->each(fn (OrganizationEdge $edge) => $createEdge->execute($to, [
-                'parent_organization_id' => $edge->parent_organization_id,
-                'child_organization_id' => $edge->child_organization_id,
-                'relationship_type' => $edge->relationship_type->value,
-                'effective_from' => $edge->effective_from?->toDateString(),
-                'effective_to' => $edge->effective_to?->toDateString(),
-            ], $maker));
     }
 }

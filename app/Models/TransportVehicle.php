@@ -43,10 +43,10 @@ class TransportVehicle extends Model
             'capacity' => 'integer',
             'standing_capacity' => 'integer',
             'year' => 'integer',
-            'inspection_expires_at' => 'date',
-            'insurance_expires_at' => 'date',
-            'permit_expires_at' => 'date',
-            'maintenance_until' => 'date',
+            'inspection_expires_at' => 'date:Y-m-d',
+            'insurance_expires_at' => 'date:Y-m-d',
+            'permit_expires_at' => 'date:Y-m-d',
+            'maintenance_until' => 'date:Y-m-d',
         ];
     }
 

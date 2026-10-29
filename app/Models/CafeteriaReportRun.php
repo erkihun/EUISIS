@@ -29,8 +29,8 @@ class CafeteriaReportRun extends Model
 
     protected $casts = [
         'report_type' => CafeteriaReportType::class,
-        'period_start' => 'date',
-        'period_end' => 'date',
+        'period_start' => 'date:Y-m-d',
+        'period_end' => 'date:Y-m-d',
         'generated_at' => 'datetime',
         'filters' => 'array',
         'totals' => 'array',

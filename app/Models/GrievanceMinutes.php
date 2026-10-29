@@ -41,7 +41,7 @@ class GrievanceMinutes extends Model
     {
         return [
             'status' => GrievanceMinutesStatus::class,
-            'meeting_date' => 'date',
+            'meeting_date' => 'date:Y-m-d',
             'attendees' => 'array',
             'confirmed_at' => 'datetime',
             'version_no' => 'int',

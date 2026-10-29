@@ -30,8 +30,8 @@ class TransportRouteStop extends Model
             'pickup_allowed' => 'boolean',
             'dropoff_allowed' => 'boolean',
             'is_active' => 'boolean',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
         ];
     }
 

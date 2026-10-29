@@ -39,7 +39,7 @@ class LegacyBaseline extends Model
     {
         return [
             'version_no' => 'integer',
-            'effective_date' => 'date',
+            'effective_date' => 'date:Y-m-d',
             'status' => OrganizationDesignStatus::class,
             'validation_summary' => 'array',
             'validated_at' => 'datetime',

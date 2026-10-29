@@ -32,7 +32,7 @@ class DisciplinaryDecision extends Model
             'decided_at' => 'datetime',
             'delivered_at' => 'datetime',
             'acknowledged_at' => 'datetime',
-            'effective_on' => 'date',
+            'effective_on' => 'date:Y-m-d',
         ];
     }
 

@@ -34,7 +34,7 @@ class TransportDriver extends Model
     protected function casts(): array
     {
         return [
-            'license_expiry_date' => 'date',
+            'license_expiry_date' => 'date:Y-m-d',
         ];
     }
 

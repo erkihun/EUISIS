@@ -47,7 +47,7 @@ class CafeteriaTransactionConsumedDay extends Model
 
     protected $casts = [
         'slot_no' => 'integer',
-        'consumed_date' => 'date',
+        'consumed_date' => 'date:Y-m-d',
         'subsidy_amount' => 'decimal:2',
         'is_working_day' => 'boolean',
         'reversed_at' => 'datetime',

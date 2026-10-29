@@ -24,7 +24,7 @@ class PositionProfile extends Model
 
     protected function casts(): array
     {
-        return ['version_no' => 'integer', 'status' => OrganizationDesignStatus::class, 'effective_from' => 'date', 'effective_to' => 'date', 'approved_at' => 'datetime'];
+        return ['version_no' => 'integer', 'status' => OrganizationDesignStatus::class, 'effective_from' => 'date:Y-m-d', 'effective_to' => 'date:Y-m-d', 'approved_at' => 'datetime'];
     }
 
     public function position(): BelongsTo

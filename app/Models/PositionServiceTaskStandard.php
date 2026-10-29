@@ -57,8 +57,8 @@ class PositionServiceTaskStandard extends Model
             'planned_quantity' => 'decimal:4',
             'planned_time_minutes' => 'decimal:4',
             'planned_quality' => 'decimal:4',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'approved_at' => 'datetime',
         ];
     }

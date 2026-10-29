@@ -67,7 +67,7 @@ class CafeteriaTransaction extends Model
     ];
 
     protected $casts = [
-        'transaction_date' => 'date',
+        'transaction_date' => 'date:Y-m-d',
         'scanned_at' => 'datetime',
         'meal_amount' => 'decimal:2',
         'subsidy_amount_applied' => 'decimal:2',
@@ -79,8 +79,8 @@ class CafeteriaTransaction extends Model
         'is_holiday' => 'boolean',
         'is_working_day' => 'boolean',
         'available_amount_before' => 'decimal:2',
-        'week_start_date' => 'date',
-        'week_end_date' => 'date',
+        'week_start_date' => 'date:Y-m-d',
+        'week_end_date' => 'date:Y-m-d',
         'available_days_count' => 'integer',
         'consumed_days_count' => 'integer',
         'fulfilled_at' => 'datetime',

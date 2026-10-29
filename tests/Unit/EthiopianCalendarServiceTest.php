@@ -8,16 +8,22 @@ use App\Services\Calendar\EthiopianCalendarService;
 
 // ─── Known date vectors ──────────────────────────────────────────────────────
 
+// 2015 E.C. is a leap year (Y mod 4 = 3): Pagume 6, 2015 is 11 Sept 2023 and
+// Ethiopian New Year 2016 is 12 Sept 2023; Genna (7 Jan 2024) is Tahsas 28.
 dataset('gregorian_to_ethiopian', [
-    'Sept 11 2023 = Meskerem 1 2016' => [2023, 9, 11, 2016, 1, 1],
-    'Jan 7 2024 = Tahsas 29 2016' => [2024, 1,  7,  2016, 4, 29],
+    'Sept 11 2023 = Pagume 6 2015' => [2023, 9, 11, 2015, 13, 6],
+    'Sept 12 2023 = Meskerem 1 2016' => [2023, 9, 12, 2016, 1, 1],
+    'Jan 7 2024 = Tahsas 28 2016' => [2024, 1,  7,  2016, 4, 28],
     'May 26 2026 = Ginbot 18 2018' => [2026, 5, 26, 2018, 9, 18],
+    'Sept 11 2026 = Meskerem 1 2019' => [2026, 9, 11, 2019, 1, 1],
+    'Apr 12 1988 = Miyazia 4 1980' => [1988, 4, 12, 1980, 8, 4],
 ]);
 
 dataset('ethiopian_to_gregorian', [
-    'Meskerem 1 2016 = Sept 11 2023' => [2016, 1, 1,  2023, 9, 11],
-    'Tahsas 29 2016 = Jan 7 2024' => [2016, 4, 29, 2024, 1,  7],
+    'Meskerem 1 2016 = Sept 12 2023' => [2016, 1, 1,  2023, 9, 12],
+    'Tahsas 28 2016 = Jan 7 2024' => [2016, 4, 28, 2024, 1,  7],
     'Ginbot 18 2018 = May 26 2026' => [2018, 9, 18, 2026, 5, 26],
+    'Miyazia 4 1980 = Apr 12 1988' => [1980, 8, 4, 1988, 4, 12],
 ]);
 
 // ─── Conversion tests ─────────────────────────────────────────────────────────

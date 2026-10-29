@@ -93,7 +93,7 @@ class GrievanceLetter extends Model
             'language' => GrievanceLetterLanguage::class,
             'status' => GrievanceLetterStatus::class,
             'signature_method' => GrievanceSignatureMethod::class,
-            'letter_date' => 'date',
+            'letter_date' => 'date:Y-m-d',
             'signed_at' => 'datetime',
             'seal_applied_at' => 'datetime',
             'generated_at' => 'datetime',

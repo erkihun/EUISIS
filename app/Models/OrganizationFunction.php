@@ -30,7 +30,7 @@ class OrganizationFunction extends Model
 
     protected function casts(): array
     {
-        return ['sequence' => 'integer', 'depth' => 'integer', 'version_no' => 'integer', 'effective_from' => 'date', 'effective_to' => 'date'];
+        return ['sequence' => 'integer', 'depth' => 'integer', 'version_no' => 'integer', 'effective_from' => 'date:Y-m-d', 'effective_to' => 'date'];
     }
 
     public function mandate(): BelongsTo

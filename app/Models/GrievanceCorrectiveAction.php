@@ -37,7 +37,7 @@ class GrievanceCorrectiveAction extends Model
     {
         return [
             'status' => GrievanceCorrectiveActionStatus::class,
-            'due_date' => 'date',
+            'due_date' => 'date:Y-m-d',
             'completed_at' => 'datetime',
         ];
     }

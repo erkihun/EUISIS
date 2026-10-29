@@ -38,7 +38,7 @@ class InstitutionCourtCase extends Model
         return [
             'court_case_id' => 'integer',
             'applicants' => 'array',
-            'filed_at' => 'date',
+            'filed_at' => 'date:Y-m-d',
             'assigned_at' => 'datetime',
             'received_at' => 'datetime',
         ];

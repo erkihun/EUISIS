@@ -29,7 +29,7 @@ class JobDescription extends Model
     protected function casts(): array
     {
         return [
-            'version_no' => 'integer', 'status' => OrganizationDesignStatus::class, 'effective_from' => 'date', 'effective_to' => 'date',
+            'version_no' => 'integer', 'status' => OrganizationDesignStatus::class, 'effective_from' => 'date:Y-m-d', 'effective_to' => 'date:Y-m-d',
             'submitted_at' => 'datetime', 'reviewed_at' => 'datetime', 'approved_at' => 'datetime', 'published_at' => 'datetime', 'generated_at' => 'datetime',
         ];
     }

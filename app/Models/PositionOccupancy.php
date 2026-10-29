@@ -32,8 +32,8 @@ class PositionOccupancy extends Model
     {
         return [
             'status' => OccupancyStatus::class,
-            'occupied_from' => 'date',
-            'occupied_until' => 'date',
+            'occupied_from' => 'date:Y-m-d',
+            'occupied_until' => 'date:Y-m-d',
         ];
     }
 

@@ -64,7 +64,7 @@ class TransportTransaction extends Model
             'scanned_at' => 'datetime',
             'offline_recorded_at' => 'datetime',
             'voided_at' => 'datetime',
-            'transaction_date' => 'date',
+            'transaction_date' => 'date:Y-m-d',
             'direction' => TransportDirection::class,
             'verification_method' => TransportVerificationMethod::class,
             'sync_state' => TransportSyncState::class,

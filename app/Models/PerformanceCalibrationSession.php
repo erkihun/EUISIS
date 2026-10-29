@@ -34,7 +34,7 @@ class PerformanceCalibrationSession extends Model
     protected function casts(): array
     {
         return [
-            'session_date' => 'date',
+            'session_date' => 'date:Y-m-d',
             'status' => CalibrationStatus::class,
             'finalized_at' => 'datetime',
         ];

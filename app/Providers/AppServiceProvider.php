@@ -413,6 +413,10 @@ class AppServiceProvider extends ServiceProvider
             if ($ability === 'approve' && $target instanceof CardRequest && $target->isRequestedBy($user)) {
                 return null;
             }
+            // The card request workflow state binds a Super Admin too: a closed request is not reopened.
+            if ($target instanceof CardRequest && in_array($ability, ['verify', 'approve', 'reject', 'cancel'], true) && ! $target->allowsStep($ability)) {
+                return false;
+            }
             // Same rule for transfer and vacancy applications: the policy refuses the
             // applicant every workflow decision, even a Super Admin applicant.
             if (($target instanceof TransferApplication || $target instanceof VacancyApplication)

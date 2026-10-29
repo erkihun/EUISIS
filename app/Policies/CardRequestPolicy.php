@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use App\Enums\CardRequestStatus;
 use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\User;
@@ -51,9 +50,8 @@ readonly class CardRequestPolicy
 
     public function verify(User $user, CardRequest $cardRequest): bool
     {
-        // Only a submitted request is verified; a verified, approved or closed one is past that step.
         return ($user->can('id-cards.verifyRequest') || $user->can('cards.manage'))
-            && $cardRequest->status === CardRequestStatus::Submitted
+            && $cardRequest->allowsStep('verify')
             && $this->organizationScopeService->canAccessEmployee($user, $cardRequest->employee);
     }
 
@@ -72,21 +70,15 @@ readonly class CardRequestPolicy
     public function reject(User $user, CardRequest $cardRequest): bool
     {
         return $user->can('id-cards.rejectRequest')
-            && ! $this->isClosed($cardRequest)
+            && $cardRequest->allowsStep('reject')
             && $this->organizationScopeService->canAccessEmployee($user, $cardRequest->employee);
     }
 
     public function cancel(User $user, CardRequest $cardRequest): bool
     {
         return ($user->can('id-cards.submitRequest') || $user->can('cards.manage'))
-            && ! $this->isClosed($cardRequest)
+            && $cardRequest->allowsStep('cancel')
             && $this->organizationScopeService->canAccessEmployee($user, $cardRequest->employee);
-    }
-
-    /** Approved, rejected and cancelled requests are final: nothing may reopen them. */
-    private function isClosed(CardRequest $cardRequest): bool
-    {
-        return in_array($cardRequest->status, [CardRequestStatus::Approved, CardRequestStatus::Rejected, CardRequestStatus::Cancelled], true);
     }
 
     /** Legacy fallback used by existing controller authorize() calls */

@@ -27,8 +27,8 @@ class ManpowerPlan extends Model
     {
         return [
             'status' => OrganizationDesignStatus::class,
-            'planning_period_start' => 'date',
-            'planning_period_end' => 'date',
+            'planning_period_start' => 'date:Y-m-d',
+            'planning_period_end' => 'date:Y-m-d',
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
             'approved_at' => 'datetime',

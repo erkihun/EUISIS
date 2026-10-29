@@ -27,9 +27,9 @@ class DisciplinaryAppeal extends Model
             'notice_received_at' => 'datetime',
             'record_copy_requested' => 'boolean',
             'record_copy_delivered_at' => 'datetime',
-            'filed_on' => 'date',
+            'filed_on' => 'date:Y-m-d',
             'outcome' => DisciplinaryAppealOutcome::class,
-            'outcome_decided_on' => 'date',
+            'outcome_decided_on' => 'date:Y-m-d',
             'outcome_received_at' => 'datetime',
             'implemented_at' => 'datetime',
         ];

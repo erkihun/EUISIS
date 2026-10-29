@@ -11,6 +11,7 @@ use App\Policies\CardRequestPolicy;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /*
  * Verifying is the step after submission. It must never reopen a closed
@@ -71,4 +72,17 @@ it('offers verify, reject and cancel only while the request is open', function (
         ->and($real->reject($this->actor, $approved))->toBeFalse()
         ->and($real->cancel($this->actor, $approved))->toBeFalse()
         ->and($real->reject($this->actor, $submitted))->toBeTrue();
+});
+
+it('binds a Super Admin to the workflow state too', function (): void {
+    Role::findOrCreate('Super Admin', 'web');
+    $this->actor->assignRole('Super Admin');
+
+    $submitted = crsgRequest(CardRequestStatus::Submitted);
+    $approved = crsgRequest(CardRequestStatus::Approved);
+
+    expect($this->actor->can('verify', $submitted))->toBeTrue()
+        ->and($this->actor->can('verify', $approved))->toBeFalse()
+        ->and($this->actor->can('reject', $approved))->toBeFalse()
+        ->and($this->actor->can('approve', $approved))->toBeFalse();
 });

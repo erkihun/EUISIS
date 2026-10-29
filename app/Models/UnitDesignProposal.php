@@ -31,7 +31,7 @@ class UnitDesignProposal extends Model
 
     protected function casts(): array
     {
-        return ['effective_from' => 'date', 'effective_to' => 'date', 'sequence' => 'integer'];
+        return ['effective_from' => 'date:Y-m-d', 'effective_to' => 'date:Y-m-d', 'sequence' => 'integer'];
     }
 
     public function study(): BelongsTo

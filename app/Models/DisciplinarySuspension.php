@@ -33,12 +33,12 @@ class DisciplinarySuspension extends Model
         return [
             'ordered_at' => 'datetime',
             'without_pay' => 'boolean',
-            'starts_on' => 'date',
-            'ends_on' => 'date',
+            'starts_on' => 'date:Y-m-d',
+            'ends_on' => 'date:Y-m-d',
             'served_at' => 'datetime',
-            'posting_ends_on' => 'date',
-            'lifted_on' => 'date',
-            'back_pay_paid_on' => 'date',
+            'posting_ends_on' => 'date:Y-m-d',
+            'lifted_on' => 'date:Y-m-d',
+            'back_pay_paid_on' => 'date:Y-m-d',
         ];
     }
 

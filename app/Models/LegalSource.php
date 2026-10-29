@@ -31,9 +31,9 @@ class LegalSource extends Model
     protected function casts(): array
     {
         return [
-            'issue_date' => 'date',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'issue_date' => 'date:Y-m-d',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'status' => LegalSourceStatus::class,
         ];
     }

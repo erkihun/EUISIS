@@ -30,8 +30,8 @@ class TransportSchedule extends Model
             'direction' => TransportDirection::class,
             'service_days' => 'array',
             'skips_public_holidays' => 'boolean',
-            'effective_from' => 'date',
-            'effective_to' => 'date',
+            'effective_from' => 'date:Y-m-d',
+            'effective_to' => 'date:Y-m-d',
             'is_active' => 'boolean',
         ];
     }
