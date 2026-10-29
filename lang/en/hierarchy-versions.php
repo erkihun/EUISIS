@@ -13,6 +13,7 @@ return [
     'approved_successfully' => 'Hierarchy version approved. It can be published on its effective date.',
     'returned_to_draft' => 'Hierarchy version sent back to draft.',
     'publish_requires_edges' => 'A hierarchy version must contain at least one organization edge before publishing.',
+    'publish_drops_active_organizations' => 'Publishing would remove :count active organizations from the structure (and from everyone\'s scope): :names. Add them to this version, or archive or merge them first.',
     'publish_has_duplicate_edges' => 'This hierarchy version contains duplicate parent-child edges.',
     'publish_has_circular_hierarchy' => 'This hierarchy version contains a circular hierarchy.',
     'edge_created_successfully' => 'Hierarchy relationship created successfully.',

@@ -226,8 +226,8 @@ test('dates use the localized picker rather than a raw ISO input', function (): 
     foreach (['Create', 'Edit'] as $page) {
         $source = employeeFormSource($page);
 
-        expect($source)
-            ->toContain('<LocalizedDatePicker')
+        // The localized picker, or the day/month/year birth date picker (same calendar rules).
+        expect($source)->toMatch('/<(LocalizedDatePicker|BirthDatePicker)\b/')
             ->not->toContain('type="date"');
     }
 });

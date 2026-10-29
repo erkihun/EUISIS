@@ -15,6 +15,7 @@ return [
     'approved_successfully' => 'የተቋም መዋቅር ተዋረድ ስሪቱ ጸድቋል። በሥራ ላይ በሚውልበት ቀን ይፋ ማድረግ ይቻላል።',
     'returned_to_draft' => 'የተቋም መዋቅር ተዋረድ ስሪቱ ወደ ረቂቅ ተመልሷል።',
     'publish_requires_edges' => 'ስሪቱ ከመጽደቁ በፊት ቢያንስ አንድ የተቋማት ግንኙነት መኖር አለበት።',
+    'publish_drops_active_organizations' => 'ማጽደቅ :count ንቁ ተቋማትን ከመዋቅሩ (እና ከሁሉም ተጠቃሚዎች የሥራ ወሰን) ያስወጣል፦ :names። ወደዚህ ስሪት ያክሏቸው፣ ወይም መጀመሪያ በማህደር ያስቀምጧቸው ወይም ያዋህዷቸው።',
     'publish_has_duplicate_edges' => 'በዚህ ስሪት ውስጥ ተደጋጋሚ የበላይ-ተጠሪ ተቋም ግንኙነቶች አሉ።',
     'publish_has_circular_hierarchy' => 'በዚህ ስሪት ውስጥ የተዋረድ ዑደት ተገኝቷል።',
     'edge_created_successfully' => 'የተዋረድ ግንኙነቱ በተሳካ ሁኔታ ተፈጥሯል።',

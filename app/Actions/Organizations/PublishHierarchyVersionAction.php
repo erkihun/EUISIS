@@ -7,7 +7,9 @@ namespace App\Actions\Organizations;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\HierarchyVersionStatus;
+use App\Enums\OrganizationStatus;
 use App\Models\HierarchyVersion;
+use App\Models\Organization;
 use App\Models\OrganizationClosurePath;
 use App\Models\OrganizationEdge;
 use App\Models\User;
@@ -196,6 +198,59 @@ readonly class PublishHierarchyVersionAction
                     'status' => __('hierarchy-versions.publish_has_circular_hierarchy'),
                 ]);
             }
+        }
+
+        $this->ensureNoActiveOrganizationIsDropped($version, $edges);
+    }
+
+    /**
+     * Publishing replaces the live structure. An active organization that is
+     * in the published tree but missing from the draft would fall out of the
+     * tree and out of every administrator's scope, so the draft must keep it
+     * (or the organization must first be archived, merged or dissolved).
+     *
+     * @param  Collection<int, OrganizationEdge>  $draftEdges
+     */
+    private function ensureNoActiveOrganizationIsDropped(HierarchyVersion $version, Collection $draftEdges): void
+    {
+        $published = HierarchyVersion::query()
+            ->whereKeyNot($version->id)
+            ->where('status', HierarchyVersionStatus::Published)
+            ->latest('effective_from')
+            ->first();
+
+        if ($published === null) {
+            return;
+        }
+
+        $inDraft = $draftEdges->flatMap(fn (OrganizationEdge $edge): array => [$edge->parent_organization_id, $edge->child_organization_id])
+            ->unique()->flip();
+
+        $inPublished = OrganizationEdge::query()
+            ->where('hierarchy_version_id', $published->id)
+            ->get(['parent_organization_id', 'child_organization_id'])
+            ->flatMap(fn (OrganizationEdge $edge): array => [$edge->parent_organization_id, $edge->child_organization_id])
+            ->unique()
+            ->reject(fn (string $id): bool => $inDraft->has($id))
+            ->values();
+
+        if ($inPublished->isEmpty()) {
+            return;
+        }
+
+        $dropped = Organization::query()
+            ->whereKey($inPublished->all())
+            ->where('status', OrganizationStatus::Active->value)
+            ->orderBy('name_en')
+            ->get(['code', 'name_en']);
+
+        if ($dropped->isNotEmpty()) {
+            throw ValidationException::withMessages([
+                'status' => __('hierarchy-versions.publish_drops_active_organizations', [
+                    'count' => $dropped->count(),
+                    'names' => $dropped->take(5)->map(fn (Organization $o): string => trim($o->code.' '.$o->name_en))->implode(', '),
+                ]),
+            ]);
         }
     }
 }
