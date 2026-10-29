@@ -1,7 +1,7 @@
 # ADR 0012: Core platform — go-live operations
 
 Status: accepted (technical decisions). The business and infrastructure decisions this
-depends on are open and listed in [core-owner-matrix-and-risks.md](../../go-live/core/core-owner-matrix-and-risks.md).
+depends on are open and listed in `core-owner-matrix-and-risks.md` (core-platform repository, `docs/go-live/core/`).
 Date: 2026-10-26. Follows ADR 0011.
 
 ## Context
