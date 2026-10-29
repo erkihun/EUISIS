@@ -7,6 +7,8 @@ import { toast } from '@/lib/toast';
 import { localizedName } from '@/utils/localizedName';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import BirthDatePicker from '@/Components/Calendar/BirthDatePicker';
+import EmployeeStatisticsSection, { employeeStatistics, employeeStatisticsPayload, type EducationLevelOption, type EmployeeStatistics } from '@/Components/employees/EmployeeStatisticsSection';
 import {
     BasicIcon,
     ContactIcon,
@@ -56,7 +58,7 @@ type PlacementContext = {
 export default function EmployeesCreate({
     organizations,
     organizationUnits,
-    hierarchyVersions,
+    educationLevels,
     positions,
     selectedOrganizationId,
     selectedOrganizationUnitId,
@@ -66,7 +68,7 @@ export default function EmployeesCreate({
 }: {
     organizations: Option[];
     organizationUnits: Option[];
-    hierarchyVersions: Option[];
+    educationLevels: EducationLevelOption[];
     positions: Option[];
     selectedOrganizationId: string | null;
     selectedOrganizationUnitId: string | null;
@@ -95,12 +97,11 @@ export default function EmployeesCreate({
         status: string;
         organization_id: string;
         organization_unit_id: string;
-        hierarchy_version_id: string;
         position_id: string;
         effective_from: string;
         reason: string;
         photo: File | null;
-    }>({
+    } & EmployeeStatistics>({
         employee_number: '',
         first_name: '',
         middle_name: '',
@@ -119,12 +120,13 @@ export default function EmployeesCreate({
         status: 'active',
         organization_id: selectedOrganizationId ?? organizations[0]?.id ?? '',
         organization_unit_id: selectedOrganizationUnitId ?? '',
-        hierarchy_version_id: hierarchyVersions[0]?.id ?? '',
         position_id: selectedPositionId ?? '',
         effective_from: new Date().toISOString().slice(0, 10),
         reason: '',
         photo: null,
+        ...employeeStatistics(),
     });
+    const setStatistics = (values: Partial<EmployeeStatistics>) => form.setData((data) => ({ ...data, ...values }));
 
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const photoInputRef = useRef<HTMLInputElement>(null);
@@ -273,6 +275,8 @@ export default function EmployeesCreate({
     function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (form.processing) return;
+        // Whoever registers the person may record a declared disability.
+        form.transform((data) => ({ ...data, ...employeeStatisticsPayload(data, true) }));
         form.post(route('employees.store'), {
             preserveScroll: true,
             onError: focusFirstError,
@@ -425,20 +429,6 @@ export default function EmployeesCreate({
                                         ))}
                                     </select>
                                 </Field>
-
-                                <Field label={t('organizations.hierarchyVersion')} error={form.errors.hierarchy_version_id} htmlFor="hierarchy_version_id">
-                                    <select
-                                        id="hierarchy_version_id"
-                                        className={inputCls}
-                                        value={form.data.hierarchy_version_id}
-                                        onChange={(e) => form.setData('hierarchy_version_id', e.target.value)}
-                                    >
-                                        <option value="">{t('employees.noHierarchyVersion')}</option>
-                                        {hierarchyVersions.map((version) => (
-                                            <option key={version.id} value={version.id}>{version.version_name}</option>
-                                        ))}
-                                    </select>
-                                </Field>
                             </>
                         )}
 
@@ -500,8 +490,8 @@ export default function EmployeesCreate({
                             </select>
                         </Field>
 
-                        <Field label={t('employees.dateOfBirth')} error={form.errors.date_of_birth}>
-                            <LocalizedDatePicker className={inputCls} value={form.data.date_of_birth} onChange={(iso) => form.setData('date_of_birth', iso)} />
+                        <Field label={t('employees.dateOfBirth')} error={form.errors.date_of_birth} htmlFor="date_of_birth">
+                            <BirthDatePicker id="date_of_birth" value={form.data.date_of_birth} onChange={(iso) => form.setData('date_of_birth', iso)} invalid={Boolean(form.errors.date_of_birth)} />
                         </Field>
 
                         <div className="md:col-span-2 xl:col-span-3">
@@ -584,6 +574,14 @@ export default function EmployeesCreate({
                             <LocalizedDatePicker className={inputCls} value={form.data.effective_from} onChange={(iso) => form.setData('effective_from', iso)} />
                         </Field>
                     </FormCard>
+
+                    <EmployeeStatisticsSection
+                        data={form.data}
+                        errors={form.errors}
+                        set={setStatistics}
+                        educationLevels={educationLevels}
+                        canViewSensitive
+                    />
 
                     <FormCard wide icon={<EmergencyIcon />} title={t('employees.sectionEmergency')} description={t('employees.sectionEmergencyHelp')}>
                         <Field label={t('employees.emergencyContactName')} error={form.errors.emergency_contact_name} htmlFor="emergency_contact_name">

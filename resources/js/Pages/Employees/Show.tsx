@@ -31,6 +31,13 @@ type EmployeeDetail = {
     address?: string | null;
     nationality?: string | null;
     employment_type_label?: string | null;
+    marital_status?: string | null;
+    education_level?: { id: string; name_en: string; name_am: string | null } | null;
+    field_of_study?: string | null;
+    service_start_date?: string | null;
+    can_view_sensitive?: boolean;
+    has_disability?: boolean | null;
+    disability_type?: string | null;
     emergency_contact_name?: string | null;
     emergency_contact_phone?: string | null;
     photo_url?: string | null;
@@ -71,7 +78,7 @@ type EmployeeDetail = {
     }>;
 };
 
-function Field({ label, value }: { label: string; value?: string | number | null }) {
+function Field({ label, value }: { label: string; value?: React.ReactNode }) {
     return (
         <div>
             <dt className="text-xs font-medium text-(--app-muted-foreground)">
@@ -258,6 +265,29 @@ export default function EmployeesShow({
                                 <Field label={t('employees.employeeStatus')} value={employee.employment_type_label} />
                                 <Field label={t('employees.emergencyContactName')} value={employee.emergency_contact_name} />
                                 <Field label={t('employees.emergencyContactPhone')} value={employee.emergency_contact_phone} />
+                            </dl>
+                        </div>
+
+                        {/* Statistical information; the disability fields only for those who may see health data. */}
+                        <div className="mt-6 border-t border-(--app-border) pt-6">
+                            <h3 className="mb-4 text-sm font-semibold text-(--app-foreground)">
+                                {t('employees.sectionStatistics')}
+                            </h3>
+                            <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
+                                <Field label={t('employees.maritalStatus')} value={employee.marital_status ? t(`employees.maritalStatus_${employee.marital_status}`) : null} />
+                                <Field label={t('employees.educationLevel')} value={employee.education_level ? localizedName(employee.education_level.name_en, employee.education_level.name_am, locale) : null} />
+                                <Field label={t('employees.fieldOfStudy')} value={employee.field_of_study} />
+                                <Field label={t('employees.serviceStartDate')} value={employee.service_start_date ? <LocalizedDateDisplay value={employee.service_start_date} /> : null} />
+                                {employee.can_view_sensitive && (
+                                    <Field
+                                        label={t('employees.hasDisability')}
+                                        value={employee.has_disability === null || employee.has_disability === undefined
+                                            ? null
+                                            : employee.has_disability
+                                                ? `${t('common.yes')}${employee.disability_type ? ` · ${t(`employees.disabilityType_${employee.disability_type}`)}` : ''}`
+                                                : t('common.no')}
+                                    />
+                                )}
                             </dl>
                         </div>
                     </div>

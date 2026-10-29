@@ -6,12 +6,15 @@ namespace App\Http\Requests;
 
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
+use App\Http\Requests\Concerns\ValidatesEmployeeStatistics;
 use App\Support\Security\NationalIdHash;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
 class EmployeeUpdateRequest extends FormRequest
 {
+    use ValidatesEmployeeStatistics;
+
     public function authorize(): bool
     {
         return $this->user()?->can('employees.manage') ?? false;
@@ -19,6 +22,8 @@ class EmployeeUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->normalizeEmployeeStatistics();
+
         $this->merge([
             'name_en' => filled($this->input('name_en')) ? trim((string) $this->input('name_en')) : null,
         ]);
@@ -53,8 +58,7 @@ class EmployeeUpdateRequest extends FormRequest
             'name_en' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:255', "unique:employees,email,{$employeeId},id"],
-            'date_of_birth' => ['nullable', 'date'],
-            'gender' => ['nullable', 'string', 'max:32'],
+            ...$this->employeeStatisticsRules($this->route('employee')?->gender),
             'nationality' => ['nullable', 'string', 'max:100'],
             'employment_type' => ['nullable', new Enum(EmploymentType::class)],
             'address' => ['nullable', 'string', 'max:500'],

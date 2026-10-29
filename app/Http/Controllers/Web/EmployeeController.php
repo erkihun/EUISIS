@@ -18,14 +18,15 @@ use App\Http\Requests\EmployeeUpdateRequest;
 use App\Http\Resources\EmployeeDetailResource;
 use App\Http\Resources\EmployeeResource;
 use App\Models\AuditLog;
+use App\Models\EducationLevel;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\HierarchyVersion;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Services\Hierarchy\HierarchyVersionResolver;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Positions\PositionCapacityService;
@@ -357,7 +358,7 @@ class EmployeeController extends Controller
             'organizations' => $availableOrganizations,
             'organizationUnits' => $organizationUnitQuery
                 ->get(['id', 'organization_id', 'name_en', 'name_am', 'code']),
-            'hierarchyVersions' => HierarchyVersion::query()->orderByDesc('effective_from')->get(['id', 'version_name', 'status']),
+            'educationLevels' => $this->educationLevelOptions(),
             'positions' => $positionQuery
                 ->get(['id', 'job_position_code', 'title_en', 'title_am', 'organization_id', 'organization_unit_id']),
             'selectedOrganizationId' => $selectedOrganizationId,
@@ -561,7 +562,14 @@ class EmployeeController extends Controller
         // through transfers), so none is sent.
         return Inertia::render('Employees/Edit', [
             'employee' => (new EmployeeDetailResource($employee))->resolve(),
+            'educationLevels' => $this->educationLevelOptions(),
         ]);
+    }
+
+    /** The education ladder (organization design catalog), lowest first. */
+    private function educationLevelOptions(): array
+    {
+        return EducationLevel::query()->where('is_active', true)->orderBy('rank')->get(['id', 'name_en', 'name_am'])->all();
     }
 
     public function show(
@@ -752,6 +760,12 @@ class EmployeeController extends Controller
             'gender',
             'nationality',
             'employment_type',
+            'marital_status',
+            'education_level_id',
+            'field_of_study',
+            'has_disability',
+            'disability_type',
+            'service_start_date',
             'address',
             'emergency_contact_name',
             'emergency_contact_phone',
@@ -772,7 +786,8 @@ class EmployeeController extends Controller
             [
                 'organization_id' => $request->string('organization_id')->toString(),
                 'organization_unit_id' => $organizationUnitId,
-                'hierarchy_version_id' => $request->string('hierarchy_version_id')->toString() ?: null,
+                // The placement is recorded against the published chart; it is not the clerk's choice.
+                'hierarchy_version_id' => app(HierarchyVersionResolver::class)->resolveDefault()?->getKey(),
                 'position_id' => $positionId,
                 'effective_from' => $request->date('effective_from')?->toDateString() ?? now()->toDateString(),
                 'reason' => $request->input('reason'),

@@ -165,7 +165,8 @@ it('renders the create page with the option lists the form binds to', function (
             ->has('organizations')
             ->has('organizationUnits')
             ->has('positions')
-            ->has('hierarchyVersions')
+            ->has('educationLevels')
+            ->missing('hierarchyVersions')
             ->has('placementContext')
         );
 });

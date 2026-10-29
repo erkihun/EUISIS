@@ -25,6 +25,16 @@ class EmployeeDetailResource extends EmployeeResource
         $data['nationality'] = $this->nationality;
         $data['employment_type'] = $this->employment_type?->value;
         $data['employment_type_label'] = $this->employment_type?->label();
+        $data['marital_status'] = $this->marital_status?->value;
+        $data['education_level_id'] = $this->education_level_id;
+        $data['education_level'] = $this->educationLevel?->only(['id', 'name_en', 'name_am']);
+        $data['field_of_study'] = $this->field_of_study;
+        $data['service_start_date'] = $this->service_start_date?->toDateString();
+        // A declared disability is health data: the same permission as the national ID.
+        $canViewSensitive = (bool) $request->user()?->can('employees.viewPii');
+        $data['can_view_sensitive'] = $canViewSensitive;
+        $data['has_disability'] = $canViewSensitive ? $this->has_disability : null;
+        $data['disability_type'] = $canViewSensitive ? $this->disability_type?->value : null;
         $data['address'] = $this->address;
         $data['emergency_contact_name'] = $this->emergency_contact_name;
         $data['emergency_contact_phone'] = $this->emergency_contact_phone;

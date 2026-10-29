@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\CardStatus;
+use App\Enums\DisabilityType;
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\FeedbackTokenStatus;
+use App\Enums\MaritalStatus;
 use App\Models\Concerns\HasIntegrationEvents;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Observers\EmployeeCardImpactObserver;
@@ -44,6 +46,12 @@ class Employee extends Model
         'gender',
         'nationality',
         'employment_type',
+        'marital_status',
+        'education_level_id',
+        'field_of_study',
+        'has_disability',
+        'disability_type',
+        'service_start_date',
         'phone',
         'email',
         'address',
@@ -73,6 +81,10 @@ class Employee extends Model
             'date_of_birth' => 'date',
             'status' => EmployeeStatus::class,
             'employment_type' => EmploymentType::class,
+            'marital_status' => MaritalStatus::class,
+            'has_disability' => 'bool',
+            'disability_type' => DisabilityType::class,
+            'service_start_date' => 'date',
             'data_quality_score' => 'float',
             'metadata' => 'array',
             'notification_preferences' => 'array',
@@ -126,6 +138,11 @@ class Employee extends Model
     public function assignments(): HasMany
     {
         return $this->hasMany(EmployeeAssignment::class);
+    }
+
+    public function educationLevel(): BelongsTo
+    {
+        return $this->belongsTo(EducationLevel::class);
     }
 
     public function currentAssignment(): BelongsTo
