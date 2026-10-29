@@ -21,32 +21,33 @@ test('Ethiopian calendar converter correctly converts known date: 2024-09-11 is 
     expect($eth['day'])->toBe(1);
 });
 
-test('Ethiopian calendar converts 2023-09-11 to Meskerem 1 2016 (documented test vector)', function (): void {
+// 2015 E.C. ends with Pagume 6 (Y mod 4 = 3), so 2016 E.C. starts on 12 Sept 2023.
+test('Ethiopian calendar converts 2023-09-12 to Meskerem 1 2016 (documented test vector)', function (): void {
     $service = app(EthiopianCalendarService::class);
-    $eth = $service->gregorianToEthiopian(2023, 9, 11);
+    $eth = $service->gregorianToEthiopian(2023, 9, 12);
 
     expect($eth['year'])->toBe(2016);
     expect($eth['month'])->toBe(1);
     expect($eth['day'])->toBe(1);
 });
 
-test('Ethiopian calendar converts 2024-01-07 to Tahsas 29, 2016 (documented test vector)', function (): void {
+test('Ethiopian calendar converts 2024-01-07 (Genna) to Tahsas 28, 2016 (documented test vector)', function (): void {
     $service = app(EthiopianCalendarService::class);
     $eth = $service->gregorianToEthiopian(2024, 1, 7);
 
     expect($eth['year'])->toBe(2016);
     expect($eth['month'])->toBe(4);
-    expect($eth['day'])->toBe(29);
+    expect($eth['day'])->toBe(28);
 });
 
-test('Ethiopian calendar converts Gregorian 2000-01-01 correctly (month 4 day 23)', function (): void {
+test('Ethiopian calendar converts Gregorian 2000-01-01 correctly (month 4 day 22)', function (): void {
     $service = app(EthiopianCalendarService::class);
     $eth = $service->gregorianToEthiopian(2000, 1, 1);
 
-    // JDN epoch = 1724221; 2000-01-01 falls in Tahsas (month 4), day 23
+    // 1991 E.C. is a leap year, so 1992 started on 12 Sept 1999: 2000-01-01 is Tahsas 22.
     expect($eth['year'])->toBe(1992);
     expect($eth['month'])->toBe(4);
-    expect($eth['day'])->toBe(23);
+    expect($eth['day'])->toBe(22);
 });
 
 test('Ethiopian calendar round-trips: Gregorian → Ethiopian → Gregorian', function (): void {
