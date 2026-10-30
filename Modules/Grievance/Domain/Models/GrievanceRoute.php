@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievanceMovementType;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
 
 /**
  * One edge of the grievance routing graph: where a case goes from a source (an organization entry point or a handler) for a given movement type. Administrative hierarchy is never assumed; every edge is explicit and must be approved before use.

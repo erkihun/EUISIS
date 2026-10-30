@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
-use App\Enums\Grievance\GrievanceDispatchChannel;
-use App\Enums\Grievance\GrievanceLetterLanguage;
-use App\Enums\Grievance\GrievanceLetterStatus;
-use App\Enums\Grievance\GrievanceLetterType;
-use App\Enums\Grievance\GrievanceRecipientKind;
-use App\Enums\Grievance\GrievanceRecipientType;
-use App\Enums\Grievance\GrievanceSignatureMethod;
 use App\Http\Controllers\Controller;
-use App\Models\Grievance;
-use App\Models\GrievanceLetter;
-use App\Models\GrievanceLetterDispatch;
 use App\Models\OrganizationSeal;
-use App\Services\Grievances\GrievanceCaseAccessService;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Services\Grievances\GrievancePresenter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Application\Services\GrievanceCaseAccessService;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Application\Services\GrievancePresenter;
+use Modules\Grievance\Domain\Enums\GrievanceDispatchChannel;
+use Modules\Grievance\Domain\Enums\GrievanceLetterLanguage;
+use Modules\Grievance\Domain\Enums\GrievanceLetterStatus;
+use Modules\Grievance\Domain\Enums\GrievanceLetterType;
+use Modules\Grievance\Domain\Enums\GrievanceRecipientKind;
+use Modules\Grievance\Domain\Enums\GrievanceRecipientType;
+use Modules\Grievance\Domain\Enums\GrievanceSignatureMethod;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceLetter;
+use Modules\Grievance\Domain\Models\GrievanceLetterDispatch;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Official grievance correspondence: register, drafting, signing, sealing, issue, dispatch. */

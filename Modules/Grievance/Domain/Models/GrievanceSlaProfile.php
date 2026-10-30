@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievanceSlaDayType;
-use App\Enums\Grievance\GrievanceSlaPurpose;
-use App\Enums\Grievance\GrievanceSlaStartPoint;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Organization;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaDayType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPurpose;
+use Modules\Grievance\Domain\Enums\GrievanceSlaStartPoint;
 
 /**
  * Deadline policy for one handler level/category. Stages snapshot it when created, so later edits never rewrite historical deadlines.

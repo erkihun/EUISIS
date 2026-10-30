@@ -2,26 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
-use App\Enums\Grievance\GrievanceApprovalAction;
-use App\Enums\Grievance\GrievanceCommitteeRole;
-use App\Enums\Grievance\GrievanceDecisionStatus;
-use App\Enums\Grievance\GrievanceDecisionType;
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievanceSlaPurpose;
-use App\Enums\Grievance\GrievanceStageStatus;
-use App\Enums\Grievance\GrievanceVoteType;
-use App\Enums\GrievanceStatus;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceDecisionApproval;
-use App\Models\GrievanceDecisionVote;
-use App\Models\GrievanceDelegation;
 use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\Legal\StatutoryDeadlineService;
@@ -29,6 +14,21 @@ use App\Support\Legal\Regulation201;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceApprovalAction;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionStatus;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionType;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPurpose;
+use Modules\Grievance\Domain\Enums\GrievanceStageStatus;
+use Modules\Grievance\Domain\Enums\GrievanceVoteType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
+use Modules\Grievance\Domain\Models\GrievanceDecisionApproval;
+use Modules\Grievance\Domain\Models\GrievanceDecisionVote;
+use Modules\Grievance\Domain\Models\GrievanceDelegation;
 
 /**
  * Decisions (docs/grievance-management.md §8).

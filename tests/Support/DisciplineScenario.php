@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use App\Enums\CommitteeType;
 use App\Models\Employee;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceCommitteeMember;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
 use Modules\Discipline\Contracts\Data\DisciplineRoles;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
 
 /**
  * One institution with an Art. 5 disciplinary committee:

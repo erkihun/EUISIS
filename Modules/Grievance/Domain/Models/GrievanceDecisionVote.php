@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceVoteType;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceVoteType;
 
 /**
  * A panel member's vote (and optional dissenting opinion) on a decision draft.

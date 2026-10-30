@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceCommitteeRole;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
 
 /**
  * The committee panel of one case stage, snapshotted when the stage is created so history shows who sat on the case. Recusals and replacements are recorded here, never by editing the committee.

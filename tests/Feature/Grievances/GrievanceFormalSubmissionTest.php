@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
-use App\Enums\GrievanceStatus;
-use App\Exceptions\Grievances\InitialResolutionRequiredException;
-use App\Services\Grievances\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionOutcome as Outcome;
+use Modules\Grievance\Domain\Exceptions\InitialResolutionRequiredException;
 use Tests\Support\GrievanceScenario;
 
 it('blocks formal submission when the initial issue was resolved informally', function () {

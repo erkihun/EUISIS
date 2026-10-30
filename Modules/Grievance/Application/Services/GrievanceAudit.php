@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\Grievance;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Grievance\Domain\Models\Grievance;
 
 /**
  * Every grievance state change is audited through here. Values are ids,

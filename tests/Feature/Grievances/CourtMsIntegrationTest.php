@@ -4,17 +4,10 @@ declare(strict_types=1);
 
 use App\Jobs\Grievances\SendCourtMsReferral;
 use App\Models\AdministrativeTribunalCase;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseEvent;
-use App\Models\GrievanceEvidence;
-use App\Models\GrievanceExternalAuthority;
 use App\Models\User;
 use App\Services\CourtMs\CourtMsException;
 use App\Services\CourtMs\CourtMsReferrals;
 use App\Services\CourtMs\CourtMsStatusSync;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceEscalationService;
-use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -22,6 +15,13 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseEvent;
+use Modules\Grievance\Domain\Models\GrievanceEvidence;
+use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
 use Tests\Support\GrievanceScenario;
 
 // court-ms integration, EUISIS side (ADR 0013, docs/integration/court-ms.md).

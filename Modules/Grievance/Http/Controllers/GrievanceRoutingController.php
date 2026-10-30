@@ -2,24 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
 use App\Enums\AuditEventType;
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievanceMovementType;
-use App\Enums\Grievance\GrievanceSlaDayType;
-use App\Enums\Grievance\GrievanceSlaPurpose;
-use App\Enums\Grievance\GrievanceSlaStartPoint;
 use App\Http\Controllers\Controller;
-use App\Models\GrievanceCategory;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceExternalAuthority;
-use App\Models\GrievanceRoute;
-use App\Models\GrievanceSlaProfile;
 use App\Models\Organization;
-use App\Services\Grievances\GrievanceAudit;
-use App\Services\Grievances\GrievanceHandlerRegistry;
-use App\Services\Grievances\GrievancePresenter;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +14,19 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Application\Services\GrievanceAudit;
+use Modules\Grievance\Application\Services\GrievanceHandlerRegistry;
+use Modules\Grievance\Application\Services\GrievancePresenter;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaDayType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPurpose;
+use Modules\Grievance\Domain\Enums\GrievanceSlaStartPoint;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
+use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
 
 /**
  * Routing graph and SLA policies (docs/grievance-management.md §5–6). A new

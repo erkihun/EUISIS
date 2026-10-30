@@ -9,6 +9,7 @@ use App\Enums\Performance\AppealStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 /**
  * Appeal against a released result. Decided by a reused grievance committee of type performance_appeal.
@@ -56,6 +57,6 @@ class PerformanceAppeal extends Model
 
     public function committee(): BelongsTo
     {
-        return $this->belongsTo(GrievanceCommittee::class, 'committee_id');
+        return $this->belongsTo(GrievanceCommitteeRecord::class, 'committee_id');
     }
 }

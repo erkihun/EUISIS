@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;

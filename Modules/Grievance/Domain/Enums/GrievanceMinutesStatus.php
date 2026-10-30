@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums\Grievance;
+namespace Modules\Grievance\Domain\Enums;
 
 /**
  * Minutes lifecycle. Confirmed minutes change only through a new version.

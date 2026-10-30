@@ -7,7 +7,6 @@ use App\Models\InstitutionCourtCase;
 use App\Notifications\InstitutionCourtCaseNotification;
 use App\Services\CourtMs\CourtMsStatusSync;
 use App\Services\CourtMs\InstitutionCourtCaseInbox;
-use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -15,6 +14,7 @@ use Inertia\Testing\AssertableInertia;
 use Modules\Discipline\Domain\Models\DisciplinaryCase;
 use Modules\Discipline\Domain\Models\DisciplinaryCharge;
 use Modules\Discipline\Domain\Models\DisciplinaryDecision;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
 use Tests\Support\GrievanceScenario;
 
 /*

@@ -7,9 +7,6 @@ namespace App\Providers;
 use App\Backbone\Contracts\EmployeeFeedbackLinks;
 use App\Enums\CodeRuleEntityType;
 use App\Models\EmployeeServiceFeedback;
-use App\Models\Grievance;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceLetter;
 use App\Models\TransferApplication;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
@@ -87,9 +84,5 @@ class ServiceModuleServiceProvider extends ServiceProvider
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::TransferApplication, TransferApplication::class, 'application_number', withTrashed: true);
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicServiceComplaint, EmployeeServiceFeedback::class, 'reference_number');
         CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::PublicTipOff, EmployeeServiceFeedback::class, 'reference_number');
-        // Grievance numbers carry unique indexes that include archived rows, so archived rows count as taken.
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::GrievanceCase, Grievance::class, 'reference_number', withTrashed: true);
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::GrievanceDecision, GrievanceDecision::class, 'decision_no', withTrashed: true);
-        CodeRuleTargetRegistry::registerCollisionCheck(CodeRuleEntityType::GrievanceLetter, GrievanceLetter::class, 'reference_number', withTrashed: true);
     }
 }

@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Enums\AssignmentStatus;
-use App\Enums\CommitteeType;
-use App\Enums\Grievance\GrievanceHandlerType;
 use App\Enums\HierarchyVersionStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceCommitteeMember;
-use App\Models\GrievanceExternalAuthority;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationClosurePath;
 use App\Models\OrganizationUnit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
+use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
 
 /**
  * One place that knows what a grievance handler is (docs/grievance-management.md §5):

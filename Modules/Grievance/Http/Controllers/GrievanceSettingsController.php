@@ -2,35 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
 use App\Actions\SystemSettings\UpdateSystemSettingsGroupAction;
 use App\Enums\AuditEventType;
-use App\Enums\Grievance\GrievanceConfidentiality;
-use App\Enums\Grievance\GrievanceDecisionType;
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievanceLetterLanguage;
-use App\Enums\Grievance\GrievanceLetterType;
-use App\Enums\Grievance\GrievancePriority;
-use App\Enums\Grievance\GrievanceReasonCodeType;
 use App\Http\Controllers\Controller;
-use App\Models\GrievanceApprovalRule;
-use App\Models\GrievanceCategory;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceDelegation;
-use App\Models\GrievanceExternalAuthority;
-use App\Models\GrievanceLetterTemplate;
-use App\Models\GrievanceReasonCode;
-use App\Models\GrievanceSlaProfile;
 use App\Models\Organization;
 use App\Models\OrganizationLetterhead;
 use App\Models\OrganizationSeal;
 use App\Models\PublicHoliday;
 use App\Models\User;
-use App\Services\Grievances\GrievanceAudit;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Services\Grievances\GrievanceHandlerRegistry;
-use App\Services\Grievances\GrievancePresenter;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
@@ -43,6 +24,25 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Application\Services\GrievanceAudit;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Application\Services\GrievanceHandlerRegistry;
+use Modules\Grievance\Application\Services\GrievancePresenter;
+use Modules\Grievance\Domain\Enums\GrievanceConfidentiality;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionType;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceLetterLanguage;
+use Modules\Grievance\Domain\Enums\GrievanceLetterType;
+use Modules\Grievance\Domain\Enums\GrievancePriority;
+use Modules\Grievance\Domain\Enums\GrievanceReasonCodeType;
+use Modules\Grievance\Domain\Models\GrievanceApprovalRule;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceDelegation;
+use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceLetterTemplate;
+use Modules\Grievance\Domain\Models\GrievanceReasonCode;
+use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**

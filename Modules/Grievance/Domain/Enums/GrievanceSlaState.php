@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums\Grievance;
+namespace Modules\Grievance\Domain\Enums;
 
 /**
  * Computed SLA state shown in the UI (never stored).

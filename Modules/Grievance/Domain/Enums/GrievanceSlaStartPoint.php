@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums\Grievance;
+namespace Modules\Grievance\Domain\Enums;
 
 /**
  * When a stage's SLA clock starts (configurable per SLA profile).

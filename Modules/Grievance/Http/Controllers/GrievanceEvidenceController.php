@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
-use App\Enums\Grievance\GrievanceConfidentiality;
-use App\Enums\Grievance\GrievanceCustodyAction;
-use App\Enums\Grievance\GrievanceEvidenceType;
 use App\Http\Controllers\Controller;
-use App\Models\Grievance;
-use App\Models\GrievanceEvidence;
-use App\Services\Grievances\GrievanceCaseAccessService;
-use App\Services\Grievances\GrievanceEvidenceService;
-use App\Services\Grievances\GrievanceSettings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Modules\Grievance\Application\Services\GrievanceCaseAccessService;
+use Modules\Grievance\Application\Services\GrievanceEvidenceService;
+use Modules\Grievance\Application\Services\GrievanceSettings;
+use Modules\Grievance\Domain\Enums\GrievanceConfidentiality;
+use Modules\Grievance\Domain\Enums\GrievanceCustodyAction;
+use Modules\Grievance\Domain\Enums\GrievanceEvidenceType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceEvidence;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Handler-side evidence: upload, accept/reject, classify, new version, custody, download. */

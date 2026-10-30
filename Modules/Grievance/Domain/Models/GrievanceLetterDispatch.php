@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceDispatchChannel;
-use App\Enums\Grievance\GrievanceDispatchStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceDispatchChannel;
+use Modules\Grievance\Domain\Enums\GrievanceDispatchStatus;
 
 /**
  * One dispatch of a letter through a channel. `delivered` is set only when the channel confirms delivery.

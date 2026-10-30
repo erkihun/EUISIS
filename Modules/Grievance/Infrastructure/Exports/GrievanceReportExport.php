@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Exports\Grievances;
+namespace Modules\Grievance\Infrastructure\Exports;
 
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;

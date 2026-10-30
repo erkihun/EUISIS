@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums\Grievance;
+namespace Modules\Grievance\Domain\Enums;
 
 /**
  * Committee vote on a decision draft (only when voting is enabled in settings).

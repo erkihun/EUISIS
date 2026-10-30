@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums\Grievance;
+namespace Modules\Grievance\Domain\Enums;
 
 /**
  * Who an information request is addressed to.

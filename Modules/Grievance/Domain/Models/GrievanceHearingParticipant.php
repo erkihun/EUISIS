@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceParticipantRole;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceParticipantRole;
 
 /**
  * A hearing participant. Contact details are encrypted at rest and shown only to the case handlers.

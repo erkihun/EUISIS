@@ -2,19 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceSignatureMethod;
 use App\Enums\OrganizationStatus;
 use App\Models\CourtMsLetter;
-use App\Models\Grievance;
 use App\Models\User;
 use App\Notifications\CourtLetterNotification;
 use App\Services\CourtMs\CourtLetterInbox;
 use App\Services\CourtMs\CourtMsException;
 use App\Services\CourtMs\CourtMsStatusSync;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Services\Grievances\GrievanceDecisionService;
-use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -22,6 +16,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Enums\GrievanceSignatureMethod;
+use Modules\Grievance\Domain\Models\Grievance;
 use Tests\Support\GrievanceScenario;
 
 /*

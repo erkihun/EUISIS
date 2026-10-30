@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceDecisionStatus;
-use App\Enums\Grievance\GrievanceLetterStatus;
-use App\Enums\Grievance\GrievanceSignatureMethod;
-use App\Models\GrievanceRoute;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Services\Grievances\GrievanceDecisionService;
-use App\Services\Grievances\GrievanceEscalationService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionStatus;
+use Modules\Grievance\Domain\Enums\GrievanceLetterStatus;
+use Modules\Grievance\Domain\Enums\GrievanceSignatureMethod;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Tests\Support\GrievanceScenario;
 
 beforeEach(function (): void {

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceCommitteeRole;
-use App\Enums\Grievance\GrievanceCommitteeSelectionSource as Source;
 use App\Services\Legal\StatutoryCommitteeRules;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeSelectionSource as Source;
 
 it('matches the statutory selection-source constants', function () {
     expect(Source::AppointedByHead->value)->toBe(StatutoryCommitteeRules::APPOINTED);

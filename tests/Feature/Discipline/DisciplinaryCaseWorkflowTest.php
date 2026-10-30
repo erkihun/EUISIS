@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
-use App\Models\GrievanceCommitteeMember;
 use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
@@ -18,6 +17,7 @@ use Modules\Discipline\Contracts\Data\DisciplinaryFinding;
 use Modules\Discipline\Contracts\Data\DisciplinaryPenalty;
 use Modules\Discipline\Domain\Models\DisciplinaryCase;
 use Modules\Discipline\Domain\Models\DisciplinaryCaseMember;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
 use Tests\Support\DisciplineScenario;
 
 beforeEach(function (): void {

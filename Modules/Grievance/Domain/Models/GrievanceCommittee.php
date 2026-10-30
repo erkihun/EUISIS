@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\CommitteeType;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Organization;
+use App\Models\OrganizationUnit;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Grievance\Contracts\Data\CommitteeType;
 
 /**
  * A committee of selected employees (not an organization unit). Shared with

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
-use App\Models\Grievance;
 use App\Models\PublicHoliday;
 use App\Models\StatutoryDeadline;
 use App\Services\Calendar\PublicHolidayCalendar;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceDecisionService;
-use App\Services\Grievances\GrievanceEscalationService;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
 use Illuminate\Support\Carbon;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionOutcome as Outcome;
+use Modules\Grievance\Domain\Models\Grievance;
 use Tests\Support\GrievanceScenario;
 
 afterEach(fn () => Carbon::setTestNow());

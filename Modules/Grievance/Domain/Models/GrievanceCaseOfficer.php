@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceCaseOfficerRole;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceCaseOfficerRole;
 
 /**
  * An officer explicitly assigned to a case at a Team/Directorate (organization unit) stage.

@@ -2,19 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Enums\AuditEventType;
-use App\Enums\CommitteeType;
-use App\Enums\Grievance\GrievanceCommitteeRole;
-use App\Enums\Grievance\GrievanceRecusalStatus;
 use App\Models\Employee;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseRecusal;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceCommitteeMember;
-use App\Models\GrievanceStageMember;
 use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -22,6 +13,15 @@ use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
+use Modules\Grievance\Domain\Enums\GrievanceRecusalStatus;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseRecusal;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
+use Modules\Grievance\Domain\Models\GrievanceStageMember;
 
 /**
  * Grievance committees, their membership history, conflicts of interest and

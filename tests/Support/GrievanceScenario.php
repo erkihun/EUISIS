@@ -5,20 +5,10 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Enums\AssignmentStatus;
-use App\Enums\CommitteeType;
-use App\Enums\Grievance\GrievanceVoteType;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\GrievanceApprovalRule;
-use App\Models\GrievanceCategory;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceCommitteeMember;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceLetter;
-use App\Models\GrievanceRoute;
-use App\Models\GrievanceSlaProfile;
 use App\Models\Organization;
 use App\Models\OrganizationSeal;
 use App\Models\OrganizationType;
@@ -26,9 +16,19 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\Grievances\GrievanceDecisionService;
-use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Support\Str;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Enums\GrievanceVoteType;
+use Modules\Grievance\Domain\Models\GrievanceApprovalRule;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
+use Modules\Grievance\Domain\Models\GrievanceLetter;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
+use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
 
 /**
  * Reference grievance layout, built fresh per test:

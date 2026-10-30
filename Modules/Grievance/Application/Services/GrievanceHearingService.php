@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Enums\AuditEventType;
-use App\Enums\Grievance\GrievanceCommitteeRole;
-use App\Enums\Grievance\GrievanceHearingMode;
-use App\Enums\Grievance\GrievanceHearingStatus;
-use App\Enums\Grievance\GrievanceMinutesStatus;
-use App\Enums\Grievance\GrievanceParticipantRole;
-use App\Enums\Grievance\GrievanceStageStatus;
-use App\Models\Grievance;
-use App\Models\GrievanceHearing;
-use App\Models\GrievanceHearingParticipant;
-use App\Models\GrievanceMinutes;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
+use Modules\Grievance\Domain\Enums\GrievanceHearingMode;
+use Modules\Grievance\Domain\Enums\GrievanceHearingStatus;
+use Modules\Grievance\Domain\Enums\GrievanceMinutesStatus;
+use Modules\Grievance\Domain\Enums\GrievanceParticipantRole;
+use Modules\Grievance\Domain\Enums\GrievanceStageStatus;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceHearing;
+use Modules\Grievance\Domain\Models\GrievanceHearingParticipant;
+use Modules\Grievance\Domain\Models\GrievanceMinutes;
 
 /**
  * Hearings, participants and minutes (docs/grievance-management.md §8.5).

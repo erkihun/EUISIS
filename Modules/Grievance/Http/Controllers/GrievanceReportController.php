@@ -2,27 +2,27 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
 use App\Enums\AuditEventType;
-use App\Exports\Grievances\GrievanceReportExport;
 use App\Http\Controllers\Controller;
-use App\Models\Grievance;
-use App\Models\GrievanceAppeal;
-use App\Models\GrievanceCategory;
 use App\Models\Organization;
 use App\Services\Calendar\LocalizedDateService;
-use App\Services\Grievances\GrievanceAudit;
-use App\Services\Grievances\GrievanceCaseAccessService;
-use App\Services\Grievances\GrievancePresenter;
-use App\Services\Grievances\GrievanceReportService;
-use App\Services\Grievances\GrievanceSettings;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
+use Modules\Grievance\Application\Services\GrievanceAudit;
+use Modules\Grievance\Application\Services\GrievanceCaseAccessService;
+use Modules\Grievance\Application\Services\GrievancePresenter;
+use Modules\Grievance\Application\Services\GrievanceReportService;
+use Modules\Grievance\Application\Services\GrievanceSettings;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceAppeal;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Infrastructure\Exports\GrievanceReportExport;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 /** Aggregate grievance reports (no employee ranking), CSV/Excel/PDF export, and the appeals list. */

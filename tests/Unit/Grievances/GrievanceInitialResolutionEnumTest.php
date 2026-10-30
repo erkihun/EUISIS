@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
-use App\Enums\Grievance\GrievanceInitialResolutionStatus as Status;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionOutcome as Outcome;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionStatus as Status;
 
 it('marks resolved and failed as terminal statuses', function () {
     expect(Status::Resolved->isTerminal())->toBeTrue();

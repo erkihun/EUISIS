@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Jobs;
+namespace Modules\Grievance\Infrastructure\Jobs;
 
-use App\Services\Grievances\GrievanceEscalationService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
 
 /**
  * Queueable entry point for the grievance SLA sweep (the scheduler runs the

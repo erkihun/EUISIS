@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
-use App\Enums\Grievance\GrievanceCommitteeRole;
-use App\Enums\Grievance\GrievanceConfidentiality;
-use App\Enums\Grievance\GrievanceDecisionStatus;
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievanceLetterStatus;
-use App\Enums\GrievanceStatus;
 use App\Models\Employee;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceEvidence;
-use App\Models\GrievanceLetter;
-use App\Models\GrievanceStageMember;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceConfidentiality;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionStatus;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceLetterStatus;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
+use Modules\Grievance\Domain\Models\GrievanceEvidence;
+use Modules\Grievance\Domain\Models\GrievanceLetter;
+use Modules\Grievance\Domain\Models\GrievanceStageMember;
 
 /**
  * Who may do what on a grievance case (docs/grievance-management.md §7).

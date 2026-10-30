@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Contracts\SmsGateway;
-use App\Enums\Grievance\GrievanceHandlerType;
 use App\Models\Employee;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseStage;
 use App\Models\User;
-use App\Notifications\GrievanceNotification;
 use App\Services\Branding\BrandingService;
 use App\Services\Employees\EmployeeUserResolver;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Modules\Grievance\Application\Notifications\GrievanceNotification;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
 use Throwable;
 
 /**

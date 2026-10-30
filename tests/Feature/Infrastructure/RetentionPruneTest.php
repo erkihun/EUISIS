@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\Grievance;
 use App\Models\SystemSetting;
-use App\Services\Grievances\GrievanceCaseService;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Retention\RetentionMatrix;
 use Illuminate\Console\Scheduling\Schedule;
@@ -13,6 +11,8 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Domain\Models\Grievance;
 use Tests\Support\GrievanceScenario;
 
 /*

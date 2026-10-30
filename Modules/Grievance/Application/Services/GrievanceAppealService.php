@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Enums\AuditEventType;
-use App\Enums\Grievance\GrievanceAppealStatus;
-use App\Enums\Grievance\GrievanceDecisionStatus;
-use App\Enums\Grievance\GrievanceMovementType;
-use App\Enums\GrievanceStatus;
-use App\Models\Grievance;
-use App\Models\GrievanceAppeal;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceDecision;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceAppealStatus;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionStatus;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceAppeal;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
 
 /**
  * Employee appeal (docs/grievance-management.md §6.5): the handler DECIDED

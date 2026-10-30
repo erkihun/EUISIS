@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Enums\AssignmentStatus;
-use App\Enums\Grievance\GrievanceHandlerType;
 use App\Models\EmployeeAssignment;
-use App\Models\Grievance;
-use App\Models\GrievanceApprovalRule;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceDelegation;
 use App\Models\User;
 use Carbon\CarbonInterface;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceApprovalRule;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
+use Modules\Grievance\Domain\Models\GrievanceDelegation;
 
 /**
  * Executive approval (docs/grievance-management.md §8.3).

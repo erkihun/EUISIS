@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
-use App\Enums\Grievance\GrievanceConfidentiality;
-use App\Enums\Grievance\GrievanceEventVisibility;
-use App\Enums\Grievance\GrievanceLetterStatus;
-use App\Enums\Grievance\GrievanceSlaPauseStatus;
 use App\Models\Employee;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseEvent;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceEvidence;
-use App\Models\GrievanceLetter;
 use App\Models\User;
 use App\Support\Legal\Regulation201;
+use Modules\Grievance\Domain\Enums\GrievanceConfidentiality;
+use Modules\Grievance\Domain\Enums\GrievanceEventVisibility;
+use Modules\Grievance\Domain\Enums\GrievanceLetterStatus;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPauseStatus;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseEvent;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
+use Modules\Grievance\Domain\Models\GrievanceEvidence;
+use Modules\Grievance\Domain\Models\GrievanceLetter;
 
 /**
  * Shapes grievance data for Inertia pages. Two audiences:

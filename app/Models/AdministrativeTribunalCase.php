@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Contracts\ReadModels\GrievanceRecord;
 
 class AdministrativeTribunalCase extends Model
 {
@@ -57,7 +58,7 @@ class AdministrativeTribunalCase extends Model
 
     public function grievance(): BelongsTo
     {
-        return $this->belongsTo(Grievance::class);
+        return $this->belongsTo(GrievanceRecord::class, 'grievance_id');
     }
 
     public function assignedToUser(): BelongsTo

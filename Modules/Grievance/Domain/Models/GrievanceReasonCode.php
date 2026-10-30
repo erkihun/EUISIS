@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceReasonCodeType;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Grievance\Domain\Enums\GrievanceReasonCodeType;
 
 /**
  * Configurable reason codes (intake return/rejection, withdrawal, closure, reopen, reassignment).

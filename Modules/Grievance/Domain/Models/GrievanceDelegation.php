@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Organization;
+use App\Models\Position;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

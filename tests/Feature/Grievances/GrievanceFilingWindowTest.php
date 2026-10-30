@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Models\Grievance;
 use App\Models\SystemSetting;
-use App\Services\Grievances\GrievanceCaseService;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Legal\Regulation201;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Domain\Models\Grievance;
 use Tests\Support\GrievanceScenario;
 
 /*

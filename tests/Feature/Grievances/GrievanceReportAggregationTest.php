@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Models\Grievance;
-use App\Models\GrievanceCaseStage;
 use App\Models\User;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceReportService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceReportService;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
 use Spatie\Permission\Models\Role;
 use Tests\Support\GrievanceScenario;
 

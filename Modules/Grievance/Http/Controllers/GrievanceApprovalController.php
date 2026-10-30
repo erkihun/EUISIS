@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
-use App\Enums\Grievance\GrievanceDecisionStatus;
 use App\Http\Controllers\Controller;
-use App\Models\GrievanceDecision;
 use App\Models\User;
-use App\Services\Grievances\GrievanceApproverResolver;
-use App\Services\Grievances\GrievanceCaseAccessService;
-use App\Services\Grievances\GrievancePresenter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Application\Services\GrievanceApproverResolver;
+use Modules\Grievance\Application\Services\GrievanceCaseAccessService;
+use Modules\Grievance\Application\Services\GrievancePresenter;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionStatus;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
 
 /**
  * Executive approvals: only decisions routed to a position the user holds

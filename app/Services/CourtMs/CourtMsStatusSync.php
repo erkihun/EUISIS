@@ -6,11 +6,10 @@ namespace App\Services\CourtMs;
 
 use App\Models\AdministrativeTribunalCase;
 use App\Models\User;
-use App\Services\Grievances\GrievanceNotifier;
-use App\Services\Grievances\GrievanceTimeline;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Grievance\Contracts\GrievanceCaseLinks;
 
 /**
  * Reads what changed on referred cases in court-ms and keeps the tribunal
@@ -31,8 +30,7 @@ final class CourtMsStatusSync
 
     public function __construct(
         private readonly CourtMsClient $client,
-        private readonly GrievanceTimeline $timeline,
-        private readonly GrievanceNotifier $notifier,
+        private readonly GrievanceCaseLinks $grievances,
     ) {}
 
     /** @return array{read: int, applied: int} */
@@ -129,7 +127,7 @@ final class CourtMsStatusSync
                 $events[] = ['court_ms_case_closed', ['status' => $values['court_status']]];
             }
             foreach ($events as [$event, $data]) {
-                $this->timeline->record($case->grievance, $event, null, ['court_case_number' => $update['case_number'] ?? null, ...$data]);
+                $this->grievances->recordEvent((string) $case->grievance_id, $event, null, ['court_case_number' => $update['case_number'] ?? null, ...$data]);
             }
 
             $kind = match (true) {
@@ -139,7 +137,7 @@ final class CourtMsStatusSync
                 default => null,
             };
             if ($kind !== null) {
-                $this->notifier->toUsers($this->people($case), $kind, $case->grievance, '/tribunal-cases/'.$case->getKey());
+                $this->grievances->notifyUsers($this->people($case), $kind, (string) $case->grievance_id, '/tribunal-cases/'.$case->getKey());
             }
         });
 

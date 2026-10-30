@@ -5,18 +5,18 @@ declare(strict_types=1);
 namespace Database\Seeders\Demo;
 
 use App\Enums\AuditEventType;
-use App\Enums\CommitteeType;
-use App\Models\Grievance;
-use App\Models\GrievanceCategory;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceRoute;
 use App\Models\Organization;
 use App\Models\User;
-use App\Services\Grievances\GrievanceAudit;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceCommitteeService;
-use App\Services\Grievances\GrievanceSettings;
 use App\Support\Demo\DemoDataset;
+use Modules\Grievance\Application\Services\GrievanceAudit;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCommitteeService;
+use Modules\Grievance\Application\Services\GrievanceSettings;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
 
 /**
  * A small Grievance Management dataset for Organization 5, through the

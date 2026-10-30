@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceDecisionStatus;
-use App\Enums\Grievance\GrievanceLetterStatus;
-use App\Enums\Grievance\GrievanceSignatureMethod;
-use App\Models\GrievanceApprovalRule;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceCommitteeService;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Services\Grievances\GrievanceDecisionService;
-use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
 use Modules\Discipline\Domain\Models\DisciplinaryCase;
 use Modules\Discipline\Domain\Models\DisciplinaryDecision;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCommitteeService;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionStatus;
+use Modules\Grievance\Domain\Enums\GrievanceLetterStatus;
+use Modules\Grievance\Domain\Enums\GrievanceSignatureMethod;
+use Modules\Grievance\Domain\Models\GrievanceApprovalRule;
 use Tests\Support\GrievanceScenario;
 
 /*

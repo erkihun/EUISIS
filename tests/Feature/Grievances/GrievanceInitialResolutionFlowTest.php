@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceInitialResolutionOutcome;
-use App\Enums\Grievance\GrievanceInitialResolutionStatus;
-use App\Services\Grievances\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionOutcome;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionStatus;
 use Tests\Support\GrievanceScenario;
 
 it('resolves employee identity server-side and ignores forged ids', function () {

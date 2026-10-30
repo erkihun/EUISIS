@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Performance;
 
-use App\Enums\CommitteeType;
 use App\Enums\Performance\ResultStatus;
-use App\Models\GrievanceCommittee;
 use App\Models\Organization;
 use App\Models\PerformanceCalibrationItem;
 use App\Models\PerformanceCalibrationSession;
@@ -19,6 +17,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 class PerformanceCalibrationController extends PerformanceController
 {
@@ -43,7 +43,7 @@ class PerformanceCalibrationController extends PerformanceController
                 ->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $this->scope->allowedOrganizationIds($user)))
                 ->get(['id', 'name_en', 'name_am'])->toArray(),
             'organizations' => $this->scope->applyOrganizationScope(Organization::query(), $user, 'id')->orderBy('name_en')->limit(200)->get(['id', 'name_en', 'name_am'])->toArray(),
-            'committees' => $this->scope->applyOrganizationScope(GrievanceCommittee::query(), $user)
+            'committees' => $this->scope->applyOrganizationScope(GrievanceCommitteeRecord::query(), $user)
                 ->where('committee_type', CommitteeType::PerformanceCalibration->value)->get(['id', 'name_en', 'name_am', 'organization_id'])->toArray(),
             'can' => ['manage' => $user->can('performance_calibration.manage')],
         ]);

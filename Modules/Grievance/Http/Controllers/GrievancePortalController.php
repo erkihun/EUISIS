@@ -2,32 +2,32 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
-use App\Enums\Grievance\GrievanceEvidenceType;
-use App\Enums\Grievance\GrievanceReasonCodeType;
-use App\Enums\GrievanceStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Grievance;
-use App\Models\GrievanceCategory;
-use App\Models\GrievanceInformationRequest;
-use App\Models\GrievanceLetter;
-use App\Models\GrievanceReasonCode;
 use App\Rules\RichTextContent;
-use App\Services\Grievances\GrievanceAppealService;
-use App\Services\Grievances\GrievanceCaseAccessService;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Services\Grievances\GrievanceEvidenceService;
-use App\Services\Grievances\GrievanceInformationService;
-use App\Services\Grievances\GrievancePresenter;
-use App\Services\Grievances\GrievanceSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Application\Services\GrievanceAppealService;
+use Modules\Grievance\Application\Services\GrievanceCaseAccessService;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Application\Services\GrievanceEvidenceService;
+use Modules\Grievance\Application\Services\GrievanceInformationService;
+use Modules\Grievance\Application\Services\GrievancePresenter;
+use Modules\Grievance\Application\Services\GrievanceSettings;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceEvidenceType;
+use Modules\Grievance\Domain\Enums\GrievanceReasonCodeType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceInformationRequest;
+use Modules\Grievance\Domain\Models\GrievanceLetter;
+use Modules\Grievance\Domain\Models\GrievanceReasonCode;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**

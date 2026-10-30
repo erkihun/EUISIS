@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Enums\AuditEventType;
-use App\Enums\Grievance\GrievanceInformationRequestStatus;
-use App\Enums\Grievance\GrievanceInformationTarget;
-use App\Enums\Grievance\GrievanceSlaPauseReason;
-use App\Enums\Grievance\GrievanceSlaPauseStatus;
-use App\Enums\Grievance\GrievanceStageStatus;
-use App\Models\Grievance;
-use App\Models\GrievanceInformationRequest;
-use App\Models\GrievanceInformationResponse;
-use App\Models\GrievanceSlaPause;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Domain\Enums\GrievanceInformationRequestStatus;
+use Modules\Grievance\Domain\Enums\GrievanceInformationTarget;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPauseReason;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPauseStatus;
+use Modules\Grievance\Domain\Enums\GrievanceStageStatus;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceInformationRequest;
+use Modules\Grievance\Domain\Models\GrievanceInformationResponse;
+use Modules\Grievance\Domain\Models\GrievanceSlaPause;
 
 /**
  * Requests for further information (docs/grievance-management.md §8.7).

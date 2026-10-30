@@ -3,14 +3,8 @@
 declare(strict_types=1);
 
 use App\Enums\CardStatus;
-use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
-use App\Enums\GrievanceStatus;
 use App\Enums\HierarchyVersionStatus;
-use Modules\DailyWork\Domain\Models\DailyActivityLog;
 use App\Models\Employee;
-use App\Models\Grievance;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceRoute;
 use App\Models\HierarchyVersion;
 use App\Models\IdCard;
 use App\Models\Organization;
@@ -37,6 +31,12 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\DailyWork\Contracts\Data\DailyActivityStatus;
+use Modules\DailyWork\Domain\Models\DailyActivityLog;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Modules\Providers\Domain\Models\ProviderUser;
 
 /*

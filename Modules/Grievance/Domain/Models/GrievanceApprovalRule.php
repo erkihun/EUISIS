@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceDecisionType;
-use App\Enums\Grievance\GrievanceHandlerType;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Organization;
+use App\Models\Position;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionType;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
 
 /**
  * When a decision needs executive approval and which position approves it. The approver is resolved at runtime from the position's current holder, so leadership changes need no workflow edits.

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
-use App\Enums\Grievance\GrievanceDecisionType;
-use App\Enums\Grievance\GrievanceVoteType;
 use App\Http\Controllers\Controller;
-use App\Models\Grievance;
-use App\Models\GrievanceDecision;
-use App\Services\Grievances\GrievanceDecisionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionType;
+use Modules\Grievance\Domain\Enums\GrievanceVoteType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
 
 /** Decision drafting, internal review, executive approval and finalization. */
 class GrievanceDecisionController extends Controller

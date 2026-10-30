@@ -2,31 +2,31 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceCaseOfficerRole;
-use App\Enums\Grievance\GrievanceDecisionStatus;
-use App\Enums\Grievance\GrievanceLetterStatus;
-use App\Enums\Grievance\GrievanceMovementType;
-use App\Enums\Grievance\GrievanceSignatureMethod;
-use App\Enums\Grievance\GrievanceSlaPauseReason;
-use App\Enums\Grievance\GrievanceStageStatus;
-use App\Enums\GrievanceStatus;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceLetter;
-use App\Models\GrievanceRoute;
-use App\Models\GrievanceSlaProfile;
-use App\Services\Grievances\GrievanceAppealService;
-use App\Services\Grievances\GrievanceCaseAccessService;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceCommitteeService;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Services\Grievances\GrievanceDecisionService;
-use App\Services\Grievances\GrievanceEscalationService;
-use App\Services\Grievances\GrievanceSlaService;
-use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Application\Services\GrievanceAppealService;
+use Modules\Grievance\Application\Services\GrievanceCaseAccessService;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCommitteeService;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
+use Modules\Grievance\Application\Services\GrievanceSlaService;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceCaseOfficerRole;
+use Modules\Grievance\Domain\Enums\GrievanceDecisionStatus;
+use Modules\Grievance\Domain\Enums\GrievanceLetterStatus;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
+use Modules\Grievance\Domain\Enums\GrievanceSignatureMethod;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPauseReason;
+use Modules\Grievance\Domain\Enums\GrievanceStageStatus;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceLetter;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
+use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
 use Tests\Support\GrievanceScenario;
 
 beforeEach(function (): void {

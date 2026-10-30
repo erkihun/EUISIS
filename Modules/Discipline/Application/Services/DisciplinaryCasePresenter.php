@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Discipline\Application\Services;
 
-use App\Enums\CommitteeType;
 use App\Models\Employee;
-use App\Models\GrievanceCommittee;
 use App\Models\StatutoryDeadline;
 use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
@@ -23,6 +21,8 @@ use Modules\Discipline\Domain\Models\DisciplinaryRecommendation;
 use Modules\Discipline\Domain\Models\DisciplinaryResponse;
 use Modules\Discipline\Domain\Models\DisciplinarySuspension;
 use Modules\Discipline\Domain\Models\DisciplinaryWitness;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 /**
  * Shapes disciplinary cases for Inertia. The accused's view leaves out the
@@ -228,13 +228,13 @@ final class DisciplinaryCasePresenter
      */
     public function committeeOptions(DisciplinaryCase $case, string $locale): array
     {
-        return GrievanceCommittee::query()
+        return GrievanceCommitteeRecord::query()
             ->where('committee_type', CommitteeType::Disciplinary->value)
             ->where('organization_id', $case->organization_id)
             ->where('status', 'active')
             ->orderBy('name_en')
             ->get()
-            ->map(fn (GrievanceCommittee $c): array => [
+            ->map(fn (GrievanceCommitteeRecord $c): array => [
                 'id' => $c->getKey(),
                 'name' => $this->name($c, $locale),
                 'problems' => $this->committees->compositionProblems($c),

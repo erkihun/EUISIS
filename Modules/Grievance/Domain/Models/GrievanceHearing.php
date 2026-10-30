@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceHearingMode;
-use App\Enums\Grievance\GrievanceHearingStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Grievance\Domain\Enums\GrievanceHearingMode;
+use Modules\Grievance\Domain\Enums\GrievanceHearingStatus;
 
 /**
  * A formal hearing/meeting of a case stage.

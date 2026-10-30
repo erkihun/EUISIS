@@ -9,6 +9,7 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 /**
  * Calibration panel session. Members come from a reused grievance committee of type performance_calibration.
@@ -52,7 +53,7 @@ class PerformanceCalibrationSession extends Model
 
     public function committee(): BelongsTo
     {
-        return $this->belongsTo(GrievanceCommittee::class, 'committee_id');
+        return $this->belongsTo(GrievanceCommitteeRecord::class, 'committee_id');
     }
 
     public function items(): HasMany

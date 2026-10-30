@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Support\Grievances;
+namespace Modules\Grievance\Contracts\Data;
 
 /**
  * Grievance permission sets per default role (docs/grievance-management.md §7).

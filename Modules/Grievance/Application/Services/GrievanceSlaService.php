@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Enums\AuditEventType;
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievanceSlaDayType;
-use App\Enums\Grievance\GrievanceSlaPauseReason;
-use App\Enums\Grievance\GrievanceSlaPauseStatus;
-use App\Enums\Grievance\GrievanceSlaPurpose;
-use App\Enums\Grievance\GrievanceSlaStartPoint;
-use App\Enums\Grievance\GrievanceSlaState;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceSlaPause;
-use App\Models\GrievanceSlaProfile;
 use App\Models\User;
 use App\Services\Calendar\WorkingDayCalculator;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaDayType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPauseReason;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPauseStatus;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPurpose;
+use Modules\Grievance\Domain\Enums\GrievanceSlaStartPoint;
+use Modules\Grievance\Domain\Enums\GrievanceSlaState;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceSlaPause;
+use Modules\Grievance\Domain\Models\GrievanceSlaProfile;
 
 /**
  * Stage deadlines (docs/grievance-management.md §6).

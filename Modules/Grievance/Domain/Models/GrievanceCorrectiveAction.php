@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceCorrectiveActionStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Organization;
+use App\Models\OrganizationUnit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceCorrectiveActionStatus;
 
 /**
  * An institutional corrective action ordered by a decision. Not a disciplinary measure.

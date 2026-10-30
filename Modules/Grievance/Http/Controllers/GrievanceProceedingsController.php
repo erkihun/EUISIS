@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
-use App\Enums\Grievance\GrievanceHearingMode;
-use App\Enums\Grievance\GrievanceHearingStatus;
-use App\Enums\Grievance\GrievanceInformationTarget;
-use App\Enums\Grievance\GrievanceParticipantRole;
 use App\Http\Controllers\Controller;
-use App\Models\Grievance;
-use App\Models\GrievanceHearing;
-use App\Models\GrievanceInformationRequest;
-use App\Models\GrievanceMinutes;
-use App\Services\Grievances\GrievanceHearingService;
-use App\Services\Grievances\GrievanceInformationService;
-use App\Services\Grievances\GrievanceSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Modules\Grievance\Application\Services\GrievanceHearingService;
+use Modules\Grievance\Application\Services\GrievanceInformationService;
+use Modules\Grievance\Application\Services\GrievanceSettings;
+use Modules\Grievance\Domain\Enums\GrievanceHearingMode;
+use Modules\Grievance\Domain\Enums\GrievanceHearingStatus;
+use Modules\Grievance\Domain\Enums\GrievanceInformationTarget;
+use Modules\Grievance\Domain\Enums\GrievanceParticipantRole;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceHearing;
+use Modules\Grievance\Domain\Models\GrievanceInformationRequest;
+use Modules\Grievance\Domain\Models\GrievanceMinutes;
 
 /** Information requests, hearings and minutes on a case. */
 class GrievanceProceedingsController extends Controller

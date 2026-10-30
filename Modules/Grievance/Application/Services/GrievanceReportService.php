@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
-use App\Enums\Grievance\GrievanceMovementType;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseStage;
-use App\Models\GrievanceCategory;
-use App\Models\GrievanceDecision;
-use App\Models\GrievanceDecisionApproval;
-use App\Models\GrievanceLetter;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseStage;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
+use Modules\Grievance\Domain\Models\GrievanceDecisionApproval;
+use Modules\Grievance\Domain\Models\GrievanceLetter;
 
 /**
  * Process-focused grievance reporting (docs/grievance-management.md §12).

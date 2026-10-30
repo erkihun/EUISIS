@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
-use App\Enums\GrievanceStatus;
-use App\Models\Grievance;
-use App\Models\GrievanceStatusHistory;
-use App\Services\Grievances\GrievanceCaseService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionOutcome as Outcome;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceStatusHistory;
 use Tests\Support\GrievanceScenario;
 
 afterEach(fn () => Carbon::setTestNow());

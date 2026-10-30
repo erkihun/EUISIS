@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Services\Performance;
 
 use App\Enums\AuditEventType;
-use App\Enums\CommitteeType;
 use App\Enums\Performance\AdjustmentStatus;
 use App\Enums\Performance\AppealDecision;
 use App\Enums\Performance\AppealStatus;
 use App\Enums\Performance\ResultStatus;
-use App\Models\GrievanceCommittee;
 use App\Models\PerformanceAppeal;
 use App\Models\PerformanceResult;
 use App\Models\User;
@@ -19,6 +17,8 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 /**
  * Appeals (docs/epms-workflow.md §7). The employee appeals their own released
@@ -52,7 +52,7 @@ final class PerformanceAppealService
             throw ValidationException::withMessages(['result' => __('performance.errors.appeal_open')]);
         }
 
-        $committee = GrievanceCommittee::query()
+        $committee = GrievanceCommitteeRecord::query()
             ->where('committee_type', CommitteeType::PerformanceAppeal->value)
             ->where('organization_id', $result->organization_id)->where('status', 'active')
             ->orderByRaw('organization_unit_id is null')->first();

@@ -2,17 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
 use App\Enums\AuditEventType;
-use App\Enums\Grievance\GrievanceConfidentiality;
-use App\Enums\Grievance\GrievanceCustodyAction;
-use App\Enums\Grievance\GrievanceEvidenceStatus;
-use App\Enums\Grievance\GrievanceEvidenceType;
-use App\Enums\GrievanceStatus;
-use App\Models\Grievance;
-use App\Models\GrievanceEvidence;
-use App\Models\GrievanceEvidenceCustody;
 use App\Models\User;
 use App\Support\Storage\StoredFileChecksum;
 use Illuminate\Http\UploadedFile;
@@ -20,6 +12,14 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceConfidentiality;
+use Modules\Grievance\Domain\Enums\GrievanceCustodyAction;
+use Modules\Grievance\Domain\Enums\GrievanceEvidenceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceEvidenceType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceEvidence;
+use Modules\Grievance\Domain\Models\GrievanceEvidenceCustody;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**

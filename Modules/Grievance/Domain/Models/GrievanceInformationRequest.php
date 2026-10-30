@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceInformationRequestStatus;
-use App\Enums\Grievance\GrievanceInformationTarget;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Grievance\Domain\Enums\GrievanceInformationRequestStatus;
+use Modules\Grievance\Domain\Enums\GrievanceInformationTarget;
 
 /**
  * A handler's request for further information. Responses and their files attach to the request only.

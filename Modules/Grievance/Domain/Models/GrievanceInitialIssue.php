@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceInitialResolutionOutcome;
-use App\Enums\Grievance\GrievanceInitialResolutionStatus;
+use App\Models\Employee;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionOutcome;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionStatus;
 
 /**
  * The pre-grievance initial-resolution record (Regulation 201/2018 Art. 33(1)):

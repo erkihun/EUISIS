@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums;
+namespace Modules\Grievance\Contracts\Data;
 
 /**
  * Case-level grievance status (docs/grievance-management.md §4). The detailed

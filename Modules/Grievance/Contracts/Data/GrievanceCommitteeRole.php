@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums\Grievance;
+namespace Modules\Grievance\Contracts\Data;
 
 /**
  * Role of a member on a grievance committee. Committee roles are NOT system roles.

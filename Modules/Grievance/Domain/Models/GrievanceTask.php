@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceTaskStatus;
-use App\Enums\Grievance\GrievanceTaskType;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceTaskStatus;
+use Modules\Grievance\Domain\Enums\GrievanceTaskType;
 
 /**
  * A lightweight case task (collect a response, schedule a hearing, prepare a decision…).

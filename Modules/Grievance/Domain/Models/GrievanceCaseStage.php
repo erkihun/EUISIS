@@ -2,18 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievanceMovementType;
-use App\Enums\Grievance\GrievanceSlaDayType;
-use App\Enums\Grievance\GrievanceSlaStartPoint;
-use App\Enums\Grievance\GrievanceStageStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Organization;
+use App\Models\OrganizationUnit;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceMovementType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaDayType;
+use Modules\Grievance\Domain\Enums\GrievanceSlaStartPoint;
+use Modules\Grievance\Domain\Enums\GrievanceStageStatus;
 
 /**
  * One handler level a case passed through (docs/grievance-management.md §5).

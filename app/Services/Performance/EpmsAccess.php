@@ -6,12 +6,12 @@ namespace App\Services\Performance;
 
 use App\Models\Employee;
 use App\Models\EmployeePerformanceAgreement;
-use App\Models\GrievanceCommittee;
 use App\Models\User;
-use Modules\DailyWork\Contracts\DailyWorkReviewers;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
+use Modules\DailyWork\Contracts\DailyWorkReviewers;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 /**
  * Who may do what in EPMS (docs/epms-permissions.md). Server-side only; the
@@ -152,7 +152,7 @@ final class EpmsAccess
     }
 
     /** Membership of a (reused) committee through the user's employee record. */
-    public function isCommitteeMember(User $user, ?GrievanceCommittee $committee): bool
+    public function isCommitteeMember(User $user, ?GrievanceCommitteeRecord $committee): bool
     {
         $employee = $this->employeeOf($user);
         if ($committee === null || $employee === null) {

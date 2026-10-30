@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Exceptions\Grievances;
+namespace Modules\Grievance\Domain\Exceptions;
 
 use DomainException;
 

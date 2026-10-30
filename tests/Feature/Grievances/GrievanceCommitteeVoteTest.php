@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceVoteType;
-use App\Models\GrievanceCommitteeMember;
-use App\Models\GrievanceDecision;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceDecisionService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Domain\Enums\GrievanceVoteType;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
+use Modules\Grievance\Domain\Models\GrievanceDecision;
 use Tests\Support\GrievanceScenario;
 
 /*

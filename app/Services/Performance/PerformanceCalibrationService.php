@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Performance;
 
 use App\Enums\AuditEventType;
-use App\Enums\CommitteeType;
 use App\Enums\Performance\AdjustmentStatus;
 use App\Enums\Performance\CalibrationStatus;
 use App\Enums\Performance\ResultStatus;
-use App\Models\GrievanceCommittee;
 use App\Models\OrganizationUnit;
 use App\Models\PerformanceCalibrationItem;
 use App\Models\PerformanceCalibrationSession;
@@ -19,6 +17,8 @@ use App\Models\User;
 use App\Services\Performance\Calculation\Dec;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 /**
  * Calibration (docs/epms-workflow.md §6): a panel reviews calculated results
@@ -55,7 +55,7 @@ final class PerformanceCalibrationService
         }
 
         if (! empty($data['committee_id'])) {
-            $committee = GrievanceCommittee::query()->find($data['committee_id']);
+            $committee = GrievanceCommitteeRecord::query()->find($data['committee_id']);
             if ($committee === null || $committee->committee_type !== CommitteeType::PerformanceCalibration || $committee->organization_id !== $data['organization_id']) {
                 throw ValidationException::withMessages(['committee_id' => __('performance.errors.committee_invalid')]);
             }

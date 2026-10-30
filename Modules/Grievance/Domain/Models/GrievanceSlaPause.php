@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceSlaPauseReason;
-use App\Enums\Grievance\GrievanceSlaPauseStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPauseReason;
+use Modules\Grievance\Domain\Enums\GrievanceSlaPauseStatus;
 
 /**
  * An approved pause of a stage deadline. Records the due date before and after so the recalculation is auditable.

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Console\Commands;
+namespace Modules\Grievance\Infrastructure\Console;
 
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceEscalationService;
-use App\Services\Grievances\GrievanceSettings;
 use Illuminate\Console\Command;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
+use Modules\Grievance\Application\Services\GrievanceSettings;
 
 /**
  * SLA reminders, automatic escalation of overdue stages and (when enabled)

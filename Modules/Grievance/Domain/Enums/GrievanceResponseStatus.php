@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Enums;
+namespace Modules\Grievance\Domain\Enums;
 
 enum GrievanceResponseStatus: string
 {

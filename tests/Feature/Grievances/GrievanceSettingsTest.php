@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceLetterLanguage;
-use App\Enums\Grievance\GrievanceLetterType;
-use App\Models\GrievanceApprovalRule;
-use App\Models\GrievanceDelegation;
-use App\Models\GrievanceLetterTemplate;
 use App\Models\OrganizationSeal;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Enums\GrievanceLetterLanguage;
+use Modules\Grievance\Domain\Enums\GrievanceLetterType;
+use Modules\Grievance\Domain\Models\GrievanceApprovalRule;
+use Modules\Grievance\Domain\Models\GrievanceDelegation;
+use Modules\Grievance\Domain\Models\GrievanceLetterTemplate;
 use Tests\Support\GrievanceScenario;
 
 beforeEach(function (): void {

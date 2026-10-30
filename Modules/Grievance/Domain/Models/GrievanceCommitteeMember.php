@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceCommitteeRole;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
+use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
 
 /**
  * A committee term of one employee. History is kept by effective dates: a

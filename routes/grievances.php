@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Grievances\GrievanceApprovalController;
-use App\Http\Controllers\Grievances\GrievanceCaseController;
-use App\Http\Controllers\Grievances\GrievanceCommitteeController;
-use App\Http\Controllers\Grievances\GrievanceCorrespondenceController;
-use App\Http\Controllers\Grievances\GrievanceDecisionController;
-use App\Http\Controllers\Grievances\GrievanceEvidenceController;
-use App\Http\Controllers\Grievances\GrievanceLookupController;
-use App\Http\Controllers\Grievances\GrievancePortalController;
-use App\Http\Controllers\Grievances\GrievanceProceedingsController;
-use App\Http\Controllers\Grievances\GrievanceReportController;
-use App\Http\Controllers\Grievances\GrievanceRoutingController;
-use App\Http\Controllers\Grievances\GrievanceSettingsController;
 use App\Http\Controllers\Web\AdministrativeTribunalController;
 use App\Http\Controllers\Web\InstitutionCourtCaseController;
 use App\Http\Controllers\Web\TribunalLetterController;
 use Illuminate\Support\Facades\Route;
+use Modules\Grievance\Http\Controllers\GrievanceApprovalController;
+use Modules\Grievance\Http\Controllers\GrievanceCaseController;
+use Modules\Grievance\Http\Controllers\GrievanceCommitteeController;
+use Modules\Grievance\Http\Controllers\GrievanceCorrespondenceController;
+use Modules\Grievance\Http\Controllers\GrievanceDecisionController;
+use Modules\Grievance\Http\Controllers\GrievanceEvidenceController;
+use Modules\Grievance\Http\Controllers\GrievanceLookupController;
+use Modules\Grievance\Http\Controllers\GrievancePortalController;
+use Modules\Grievance\Http\Controllers\GrievanceProceedingsController;
+use Modules\Grievance\Http\Controllers\GrievanceReportController;
+use Modules\Grievance\Http\Controllers\GrievanceRoutingController;
+use Modules\Grievance\Http\Controllers\GrievanceSettingsController;
 
 /*
 |--------------------------------------------------------------------------

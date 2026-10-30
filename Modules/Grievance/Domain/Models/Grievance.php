@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
 use App\Casts\RichTextHtml;
-use App\Enums\Grievance\GrievanceConfidentiality;
-use App\Enums\Grievance\GrievanceHandlerType;
-use App\Enums\Grievance\GrievancePriority;
-use App\Enums\Grievance\GrievanceRecordState;
-use App\Enums\GrievanceOriginLevel;
-use App\Enums\GrievanceStatus;
+use App\Models\AdministrativeTribunalCase;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
+use App\Models\EmployeeAssignment;
+use App\Models\Organization;
+use App\Models\OrganizationUnit;
+use App\Models\StatutoryDeadline;
+use App\Models\User;
 use App\Support\Legal\Regulation201;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
+use Modules\Grievance\Contracts\Data\GrievanceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceConfidentiality;
+use Modules\Grievance\Domain\Enums\GrievanceHandlerType;
+use Modules\Grievance\Domain\Enums\GrievanceOriginLevel;
+use Modules\Grievance\Domain\Enums\GrievancePriority;
+use Modules\Grievance\Domain\Enums\GrievanceRecordState;
 
 /**
  * A formal employee grievance case (docs/grievance-management.md).

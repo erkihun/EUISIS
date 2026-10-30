@@ -13,8 +13,6 @@ use App\Enums\EmployeeStatus;
 use App\Models\CodeRule;
 use App\Models\Employee;
 use App\Models\EmployeeServiceFeedback;
-use App\Models\Grievance;
-use App\Models\GrievanceCategory;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\TransferApplication;
@@ -26,6 +24,8 @@ use Illuminate\Support\Str;
 use Modules\Entitlements\Application\Services\ServiceProviderCodeLookup;
 use Modules\Entitlements\Domain\Models\ServiceProvider;
 use Modules\Entitlements\Domain\Models\ServiceType;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCategory;
 
 /*
  * Stage 5 of the master backbone separation: the backbone's registries are
@@ -65,8 +65,8 @@ it('keeps every collision check the generator had, now registered by the owning 
         'disciplinary_case' => ['Modules\Discipline\Domain\Models\DisciplinaryCase', 'case_number', false],
         // Grievance numbers were listed in the wrong match and never checked (fixed here).
         'grievance_case' => [Grievance::class, 'reference_number', true],
-        'grievance_decision' => ['App\Models\GrievanceDecision', 'decision_no', true],
-        'grievance_letter' => ['App\Models\GrievanceLetter', 'reference_number', true],
+        'grievance_decision' => ['Modules\Grievance\Domain\Models\GrievanceDecision', 'decision_no', true],
+        'grievance_letter' => ['Modules\Grievance\Domain\Models\GrievanceLetter', 'reference_number', true],
     ];
 
     foreach ($expected as $type => [$model, $column, $withTrashed]) {

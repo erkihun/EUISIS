@@ -2,18 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
-use App\Enums\CommitteeType;
-use App\Enums\Grievance\GrievanceCommitteeRole;
 use App\Http\Controllers\Controller;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceCommitteeMember;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
-use App\Services\Grievances\GrievanceCommitteeService;
-use App\Services\Grievances\GrievanceHandlerRegistry;
-use App\Services\Grievances\GrievanceSettings;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +14,13 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Application\Services\GrievanceCommitteeService;
+use Modules\Grievance\Application\Services\GrievanceHandlerRegistry;
+use Modules\Grievance\Application\Services\GrievanceSettings;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeRole;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
 
 /**
  * Grievance committees and their membership history. Also lists the EPMS

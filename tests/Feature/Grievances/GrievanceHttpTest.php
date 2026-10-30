@@ -2,24 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceSignatureMethod;
 use App\Models\AdministrativeTribunalCase;
-use App\Models\Grievance;
-use App\Models\GrievanceEvidence;
-use App\Models\GrievanceExternalAuthority;
-use App\Models\GrievanceRoute;
 use App\Models\PublicHoliday;
 use App\Models\User;
 use App\Services\Calendar\WorkingDayCalculator;
-use App\Services\Grievances\GrievanceCaseService;
-use App\Services\Grievances\GrievanceCorrespondenceService;
-use App\Services\Grievances\GrievanceDecisionService;
-use App\Services\Grievances\GrievanceEscalationService;
-use App\Services\Grievances\GrievanceReportService;
-use App\Services\Grievances\GrievanceSettings;
 use App\Services\SystemSettings\SystemSettingsService;
-use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
-use App\Support\Grievances\GrievanceRoles;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Http\UploadedFile;
@@ -27,6 +14,19 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
+use Modules\DailyWork\Contracts\Data\DailyActivityRoles;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Application\Services\GrievanceCorrespondenceService;
+use Modules\Grievance\Application\Services\GrievanceDecisionService;
+use Modules\Grievance\Application\Services\GrievanceEscalationService;
+use Modules\Grievance\Application\Services\GrievanceReportService;
+use Modules\Grievance\Application\Services\GrievanceSettings;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Enums\GrievanceSignatureMethod;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceEvidence;
+use Modules\Grievance\Domain\Models\GrievanceExternalAuthority;
+use Modules\Grievance\Domain\Models\GrievanceRoute;
 use Tests\Support\GrievanceScenario;
 
 beforeEach(function (): void {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
-use App\Models\Grievance;
 use App\Models\Organization;
 use App\Services\CourtMs\CourtMsException;
 use App\Services\CourtMs\EmployeeCourtFiling;
@@ -19,6 +18,7 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Discipline\Contracts\DisciplineCases;
+use Modules\Grievance\Contracts\GrievanceCourtRecords;
 
 /**
  * My Portal > My court cases > File a case (court-ms Flow 5). Only an employee
@@ -45,15 +45,7 @@ class EmployeeCourtFilingController extends Controller
             'organizations' => $filing->organizations()->orderBy('name_en')->get(['id', 'name_en', 'name_am'])
                 ->map(fn (Organization $o): array => ['id' => (string) $o->getKey(), 'name_en' => $o->name_en, 'name_am' => $o->name_am])->values()->all(),
             'defaultOrganizationId' => $filing->ownOrganizationId($employee),
-            'grievances' => $filing->grievances($user)->latest('submitted_at')->limit(50)->get()
-                ->map(fn (Grievance $g): array => [
-                    'id' => (string) $g->getKey(),
-                    'reference_number' => $g->reference_number,
-                    'subject' => $g->subject,
-                    'status' => $g->status->value,
-                    'submitted_at' => $g->submitted_at?->toIso8601String(),
-                    'documents' => $filing->documentCount($g, $user),
-                ])->values()->all(),
+            'grievances' => app(GrievanceCourtRecords::class)->filedBy($user, EmployeeCourtFiling::MAX_DOCUMENT_BYTES),
             // The employee's decided discipline cases (ADR 0013 #14): a case may challenge one, and its record travels with it.
             'disciplines' => app(DisciplineCases::class)->deliveredCasesOf((string) $employee->getKey()),
             // The court's register of verified lawyers (ADR 0013 #13): name and licence number only.
@@ -92,7 +84,7 @@ class EmployeeCourtFilingController extends Controller
         ]);
 
         $grievanceIds = array_values(array_unique((array) ($data['grievance_ids'] ?? [])));
-        if ($grievanceIds !== [] && $filing->grievances($user)->whereKey($grievanceIds)->count() !== count($grievanceIds)) {
+        if ($grievanceIds !== [] && count(app(GrievanceCourtRecords::class)->ownIds($user, $grievanceIds)) !== count($grievanceIds)) {
             throw ValidationException::withMessages(['grievance_ids' => __('validation.exists', ['attribute' => 'grievance'])]);
         }
         $disciplineIds = array_values(array_unique((array) ($data['discipline_ids'] ?? [])));

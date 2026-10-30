@@ -5,17 +5,12 @@ declare(strict_types=1);
 namespace App\Services\CourtMs;
 
 use App\Enums\AuditEventType;
-use App\Enums\Grievance\GrievanceEvidenceStatus;
 use App\Jobs\Grievances\SendCourtMsReferral;
 use App\Models\AdministrativeTribunalCase;
-use App\Models\GrievanceEvidence;
 use App\Models\User;
-use App\Services\Grievances\GrievanceAudit;
-use App\Services\Grievances\GrievanceTimeline;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Contracts\GrievanceCaseLinks;
 
 /**
  * Refers a tribunal case to court-ms (ADR 0013, Flow 2): a person confirms
@@ -27,8 +22,7 @@ final class CourtMsReferrals
 {
     public function __construct(
         private readonly CourtMsClient $client,
-        private readonly GrievanceTimeline $timeline,
-        private readonly GrievanceAudit $audit,
+        private readonly GrievanceCaseLinks $grievances,
     ) {}
 
     /** What the referral form starts from. @return array<string, mixed> */
@@ -57,20 +51,14 @@ final class CourtMsReferrals
         return trim(preg_replace("/\n{3,}/", "\n\n", str_replace("\r", '', $text)) ?? $text);
     }
 
-    /** PDF evidence of the grievance a person may choose to send. @return Collection<int, GrievanceEvidence> */
-    public function attachableEvidence(AdministrativeTribunalCase $case): Collection
+    /**
+     * PDF evidence of the grievance a person may choose to send.
+     *
+     * @return list<array{id: string, title: ?string, original_name: ?string, size_bytes: ?int, submitted_at: ?string}>
+     */
+    public function attachableEvidence(AdministrativeTribunalCase $case): array
     {
-        if ($case->grievance === null) {
-            return collect();
-        }
-
-        return GrievanceEvidence::query()
-            ->where('grievance_id', $case->grievance_id)
-            ->whereIn('status', [GrievanceEvidenceStatus::Submitted->value, GrievanceEvidenceStatus::Accepted->value])
-            ->where('mime_type', 'application/pdf')
-            ->where('size_bytes', '<=', (int) config('court_ms.max_document_bytes'))
-            ->orderBy('submitted_at')
-            ->get(['id', 'title', 'original_name', 'size_bytes', 'submitted_at']);
+        return $case->grievance_id === null ? [] : $this->grievances->referableEvidence((string) $case->grievance_id, (int) config('court_ms.max_document_bytes'));
     }
 
     /**
@@ -83,7 +71,7 @@ final class CourtMsReferrals
         if ($case->isReferred()) {
             throw ValidationException::withMessages(['referral' => __('grievances.courtMs.alreadyReferred')]);
         }
-        $allowed = $this->attachableEvidence($case)->pluck('id')->all();
+        $allowed = array_column($this->attachableEvidence($case), 'id');
         $documents = array_values(array_intersect((array) ($input['evidence_ids'] ?? []), $allowed));
 
         DB::transaction(function () use ($case, $actor, $input, $documents): void {
@@ -106,8 +94,8 @@ final class CourtMsReferrals
                 ],
             ])->save();
 
-            $this->timeline->record($case->grievance, 'court_ms_referral_queued', $actor, ['tribunal_case' => $case->case_number]);
-            $this->audit->record(AuditEventType::GrievanceConfigurationChanged, $actor, $case,
+            $this->grievances->recordEvent((string) $case->grievance_id, 'court_ms_referral_queued', $actor, ['tribunal_case' => $case->case_number]);
+            $this->grievances->audit(AuditEventType::GrievanceConfigurationChanged, $actor, $case,
                 ['court_ms_referral' => 'queued', 'case_type_id' => (int) $input['case_type_id'], 'documents' => count($documents)]);
         });
 
@@ -170,7 +158,7 @@ final class CourtMsReferrals
                 'court_status' => $record['status'] ?? null,
                 'court_synced_at' => now(),
             ])->save();
-            $this->timeline->record($case->grievance, 'court_ms_referred', $case->referredByUser,
+            $this->grievances->recordEvent((string) $case->grievance_id, 'court_ms_referred', $case->referredByUser,
                 ['court_case_number' => $record['case_number'] ?? null, 'tribunal_case' => $case->case_number]);
         });
     }
@@ -183,29 +171,13 @@ final class CourtMsReferrals
             'referral_error' => mb_substr($reason, 0, 500),
         ])->save();
         if ($case->grievance !== null) {
-            $this->timeline->record($case->grievance, 'court_ms_referral_failed', null, ['tribunal_case' => $case->case_number]);
+            $this->grievances->recordEvent((string) $case->grievance_id, 'court_ms_referral_failed', null, ['tribunal_case' => $case->case_number]);
         }
     }
 
     /** @return list<array{name: string, contents: string, title: string}> */
     private function documents(array $evidenceIds): array
     {
-        if ($evidenceIds === []) {
-            return [];
-        }
-        $out = [];
-        foreach (GrievanceEvidence::query()->whereKey($evidenceIds)->get() as $evidence) {
-            $disk = Storage::disk($evidence->disk);
-            if (! $disk->exists($evidence->path)) {
-                continue;
-            }
-            $out[] = [
-                'name' => (string) ($evidence->original_name ?: 'evidence.pdf'),
-                'contents' => (string) $disk->get($evidence->path),
-                'title' => (string) ($evidence->title ?: $evidence->original_name),
-            ];
-        }
-
-        return $out;
+        return $this->grievances->evidenceFiles(array_values(array_map('strval', $evidenceIds)));
     }
 }

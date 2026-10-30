@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
-use App\Services\Grievances\GrievanceCaseService;
 use Illuminate\Support\Carbon;
+use Modules\Grievance\Application\Services\GrievanceCaseService;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionOutcome as Outcome;
 use Tests\Support\GrievanceScenario;
 
 afterEach(fn () => Carbon::setTestNow());

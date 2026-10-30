@@ -11,6 +11,7 @@ use Modules\DailyWork\Providers\DailyWorkServiceProvider;
 use Modules\Discipline\Providers\DisciplineServiceProvider;
 use Modules\Entitlements\Providers\EntitlementsServiceProvider;
 use Modules\FieldWork\Providers\FieldWorkServiceProvider;
+use Modules\Grievance\Providers\GrievanceServiceProvider;
 use Modules\Providers\Providers\ProvidersServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
 
@@ -28,6 +29,7 @@ return [
     DailyWorkServiceProvider::class,
     CommunicationServiceProvider::class,
     AssessmentServiceProvider::class,
+    GrievanceServiceProvider::class,
     DisciplineServiceProvider::class,
     FieldWorkServiceProvider::class,
 ];

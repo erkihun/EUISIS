@@ -9,12 +9,9 @@ use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
-use App\Enums\CommitteeType;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceCommitteeMember;
 use App\Models\User;
 use App\Services\Legal\StatutoryCommitteeRules;
 use App\Services\Legal\StatutoryDeadlineService;
@@ -49,6 +46,9 @@ use Modules\Discipline\Domain\Models\DisciplinaryRecommendation;
 use Modules\Discipline\Domain\Models\DisciplinaryResponse;
 use Modules\Discipline\Domain\Models\DisciplinarySuspension;
 use Modules\Discipline\Domain\Models\DisciplinaryWitness;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeMemberRecord;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 /**
  * The only writer of disciplinary case state. Each step enforces the
@@ -193,7 +193,7 @@ final class DisciplinaryCaseService
             $case->members()->delete();
 
             if ($case->track === DisciplinaryTrack::Formal) {
-                $committee = GrievanceCommittee::query()->whereKey($committeeId)->first();
+                $committee = GrievanceCommitteeRecord::query()->whereKey($committeeId)->first();
                 if ($committee === null || $committee->committee_type !== CommitteeType::Disciplinary
                     || $committee->organization_id !== $case->organization_id || ! $committee->isActive()) {
                     $this->fail('committee_id', 'committee_invalid');
@@ -203,7 +203,7 @@ final class DisciplinaryCaseService
                 }
 
                 foreach ($committee->members()->servingOn(now())->get() as $member) {
-                    /** @var GrievanceCommitteeMember $member */
+                    /** @var GrievanceCommitteeMemberRecord $member */
                     if ($member->employee_id === $case->accused_employee_id) {
                         continue;
                     }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Performance;
 
 use App\Enums\Performance\AppealDecision;
-use App\Models\GrievanceCommitteeMember;
 use App\Models\PerformanceAppeal;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Performance\EpmsAccess;
@@ -16,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeMemberRecord;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Appeal review queue: committee members see their committees' appeals; reviewers their scope. */
@@ -34,7 +34,7 @@ class PerformanceAppealController extends PerformanceController
         abort_unless($user->can('performance_appeals.review') || $user->can('performance_appeals.decide'), 403);
 
         $employeeId = $this->access->employeeOf($user)?->getKey();
-        $committeeIds = $employeeId === null ? [] : GrievanceCommitteeMember::query()->where('employee_id', $employeeId)->where('status', 'active')->pluck('committee_id')->all();
+        $committeeIds = $employeeId === null ? [] : GrievanceCommitteeMemberRecord::query()->where('employee_id', $employeeId)->where('status', 'active')->pluck('committee_id')->all();
 
         $appeals = PerformanceAppeal::query()->with(['employee:id,full_name,name_en,employee_number', 'result:id,final_score,rating_label_en,rating_label_am'])
             ->where(function ($q) use ($user, $committeeIds): void {

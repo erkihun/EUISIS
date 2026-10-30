@@ -2,17 +2,21 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceLetterLanguage;
-use App\Enums\Grievance\GrievanceLetterStatus;
-use App\Enums\Grievance\GrievanceLetterType;
-use App\Enums\Grievance\GrievanceSignatureMethod;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\Employee;
+use App\Models\Organization;
+use App\Models\OrganizationSeal;
+use App\Models\Position;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use LogicException;
+use Modules\Grievance\Domain\Enums\GrievanceLetterLanguage;
+use Modules\Grievance\Domain\Enums\GrievanceLetterStatus;
+use Modules\Grievance\Domain\Enums\GrievanceLetterType;
+use Modules\Grievance\Domain\Enums\GrievanceSignatureMethod;
 
 /**
  * An official grievance letter. Once issued it is immutable: the model itself

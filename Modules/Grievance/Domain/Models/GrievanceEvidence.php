@@ -2,15 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace Modules\Grievance\Domain\Models;
 
-use App\Enums\Grievance\GrievanceConfidentiality;
-use App\Enums\Grievance\GrievanceEvidenceStatus;
-use App\Enums\Grievance\GrievanceEvidenceType;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Grievance\Domain\Enums\GrievanceConfidentiality;
+use Modules\Grievance\Domain\Enums\GrievanceEvidenceStatus;
+use Modules\Grievance\Domain\Enums\GrievanceEvidenceType;
 
 /**
  * A piece of evidence on the private disk. Accepted evidence is never replaced in place: a new version supersedes it and both are kept.

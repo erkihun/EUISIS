@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Enums\Grievance\GrievanceInitialResolutionOutcome;
-use App\Enums\Grievance\GrievanceInitialResolutionStatus;
-use App\Models\GrievanceInitialIssue;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionOutcome;
+use Modules\Grievance\Domain\Enums\GrievanceInitialResolutionStatus;
+use Modules\Grievance\Domain\Models\GrievanceInitialIssue;
 use Tests\Support\GrievanceScenario;
 
 it('persists an initial issue with server-resolved identity and casts enums', function () {

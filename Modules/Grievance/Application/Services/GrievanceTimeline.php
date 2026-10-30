@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Services\Grievances;
+namespace Modules\Grievance\Application\Services;
 
-use App\Enums\Grievance\GrievanceEventVisibility;
-use App\Models\Grievance;
-use App\Models\GrievanceCaseEvent;
 use App\Models\User;
+use Modules\Grievance\Domain\Enums\GrievanceEventVisibility;
+use Modules\Grievance\Domain\Models\Grievance;
+use Modules\Grievance\Domain\Models\GrievanceCaseEvent;
 
 /**
  * The unified case timeline. Complainant-visible events carry safe progress

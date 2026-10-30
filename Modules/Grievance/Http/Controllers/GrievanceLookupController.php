@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Grievances;
+namespace Modules\Grievance\Http\Controllers;
 
 use App\Enums\AssignmentStatus;
 use App\Http\Controllers\Controller;

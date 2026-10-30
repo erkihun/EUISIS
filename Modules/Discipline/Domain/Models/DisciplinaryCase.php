@@ -6,7 +6,6 @@ namespace Modules\Discipline\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\Employee;
-use App\Models\GrievanceCommittee;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
@@ -18,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Modules\Discipline\Contracts\Data\DisciplinaryCaseStatus;
 use Modules\Discipline\Contracts\Data\DisciplinarySeverity;
 use Modules\Discipline\Domain\Enums\DisciplinaryTrack;
+use Modules\Grievance\Contracts\ReadModels\GrievanceCommitteeRecord;
 
 /**
  * An employee disciplinary case (Regulation 201/2018 Parts Two–Three). It is
@@ -81,7 +81,7 @@ class DisciplinaryCase extends Model
 
     public function committee(): BelongsTo
     {
-        return $this->belongsTo(GrievanceCommittee::class, 'committee_id');
+        return $this->belongsTo(GrievanceCommitteeRecord::class, 'committee_id');
     }
 
     public function members(): HasMany

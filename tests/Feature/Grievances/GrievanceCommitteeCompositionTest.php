@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Enums\CommitteeType;
-use App\Enums\Grievance\GrievanceCommitteeSelectionSource as Source;
-use App\Models\GrievanceCommittee;
-use App\Models\GrievanceCommitteeMember;
 use App\Models\User;
-use App\Services\Grievances\GrievanceCommitteeService;
-use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Validation\ValidationException;
+use Modules\Grievance\Application\Services\GrievanceCommitteeService;
+use Modules\Grievance\Contracts\Data\CommitteeType;
+use Modules\Grievance\Contracts\Data\GrievanceCommitteeSelectionSource as Source;
+use Modules\Grievance\Contracts\Data\GrievanceRoles;
+use Modules\Grievance\Domain\Models\GrievanceCommittee;
+use Modules\Grievance\Domain\Models\GrievanceCommitteeMember;
 use Tests\Support\GrievanceScenario;
 
 /** A user who may approve committees in the woreda (and is not the creator). */
