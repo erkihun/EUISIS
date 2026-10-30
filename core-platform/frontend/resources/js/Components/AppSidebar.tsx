@@ -527,6 +527,22 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        /*
+         * Service Delivery Monitoring (docs/service-monitoring.md): institutions'
+         * periodic reports on forms the bureau builds. Forms are assigned to
+         * organization types, never to a fixed "sub-city / city" level.
+         */
+        key: 'serviceMonitoring',
+        labelKey: 'nav.serviceMonitoring',
+        icon: FileChartIcon,
+        items: [
+            { routeName: 'service-monitoring.reports.index', labelKey: 'nav.serviceMonitoringReports', icon: ClipboardListIcon, anyPermission: ['service_monitoring.reports.view', 'service_monitoring.reports.submit', 'service_monitoring.reports.review'] },
+            { routeName: 'service-monitoring.summary', labelKey: 'nav.serviceMonitoringSummary', icon: PieChartIcon, anyPermission: ['service_monitoring.reports.view', 'service_monitoring.reports.review'] },
+            { routeName: 'service-monitoring.forms.index', labelKey: 'nav.serviceMonitoringForms', icon: FilePenIcon, permission: 'service_monitoring.forms.manage' },
+            { routeName: 'service-monitoring.periods.index', labelKey: 'nav.serviceMonitoringPeriods', icon: CalendarIcon, permission: 'service_monitoring.periods.manage' },
+        ],
+    },
+    {
         key: 'transferManagement',
         labelKey: 'nav.transferManagement',
         icon: ArrowLeftRightIcon,
@@ -790,7 +806,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
  */
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['organization', 'hrMasterData', 'employeeManagement', 'identity', 'transferManagement', 'dailyActivity', 'fieldWork', 'performance', 'assessments', 'organizationDesign'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceManagement', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['situationRoom', 'intelligence', 'serviceManagement', 'serviceMonitoring', 'serviceFeedback', 'providers', 'cafeteria', 'transport'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['grievances', 'discipline', 'tribunalCourt', 'auditMonitoring'] },
     { keys: ['myWork'] },
 ];
