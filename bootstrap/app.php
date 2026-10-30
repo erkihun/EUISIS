@@ -45,8 +45,6 @@ use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
-use Modules\Transport\Http\Middleware\AuthenticateTransportDevice;
-use Modules\Transport\Infrastructure\Console\PlanTransportTrips;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -54,11 +52,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
-    // Console commands of modules moved into Modules/ (ADR 0016), by class: directory
-    // discovery only maps files under app/. app/Console/Commands stays discovered.
-    ->withCommands([
-        PlanTransportTrips::class,
-    ])
+    // Modules under Modules/ register their own commands, middleware aliases and
+    // bindings in Modules/<Name>/Providers (ADR 0017), listed in bootstrap/providers.php.
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -110,7 +105,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.external' => ExternalApplicationGate::class,
             'api.idempotency' => EnforceIdempotencyKey::class,
             'provider.scope' => EnsureProviderServiceScope::class,
-            'transport.device' => AuthenticateTransportDevice::class,
             'provider.portal' => EnsureProviderPortalUser::class,
             'provider.service' => EnsureProviderServiceEnabled::class,
             'provider.permission' => EnsureProviderServicePermission::class,

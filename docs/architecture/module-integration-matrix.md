@@ -23,7 +23,7 @@ is allowed).
 | Module | Files importing Core models | Status | Contracts / adapters used | Core events consumed | Writes to Core |
 | --- | --- | --- | --- | --- | --- |
 | Cafeteria | 21 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` (every scan); `CafeteriaEmployeeContext` over `AssignmentContextReader` (exclusion audit context); `EmployeeDirectory` (exclusion creation and selected ledger employee) | none (live verification per scan) | none |
-| Transport | 13 | ADAPTER_INTRODUCED, EVENT_SYNCED | `CredentialLookup`, `ServiceEligibility` (boarding), `EmployeeDirectory` (manual lookup) | `AssignmentChanged`, `EmployeeChanged` (eligibility re-evaluation) | none |
+| Transport (`Modules/Transport`, own public contracts: [Modules/README.md](../../Modules/README.md#public-contracts)) | 15 | ADAPTER_INTRODUCED, EVENT_SYNCED | `CredentialLookup`, `ServiceEligibility` (boarding), `EmployeeDirectory` (manual lookup) | `AssignmentChanged`, `EmployeeChanged` (eligibility re-evaluation) | none |
 | Entitlements / service transactions | (in cafeteria and transport counts) | CONTRACT_MIGRATED for the service gate | `ServiceEligibility`, `CredentialLookup` | none | none |
 | Communication | 12 | EVENT_SYNCED | none | `AssignmentChanged`, `EmployeeChanged` (membership sync) | none |
 | Transfer | 15 | DIRECT_CORE_ACCESS (reads); writes through Core | `TransferAssignment` command | none | `TransferAssignment` only |
@@ -41,7 +41,15 @@ is allowed).
 | Provider portals / NFC | 7 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` | none | none |
 | External systems | n/a | API only | `/api/v1` with scopes and organization bounds | change feed, webhooks | none (ADR 0002) |
 
-Total: 207 files in service modules import a Golden Path model (29 October: the issue category removal took one feedback import away).
+Total: 208 files in service modules import a Golden Path model, by the ratchet baselines in
+`tests/Unit/ServiceModuleCoreDependencyTest.php` on 30 October (the per-module counts above are
+older and may differ; the test is authoritative). Transport's baseline went from 8 to 15 that day
+without new coupling: its seven models' Core relations became visible once they left the shared
+`App\Models` namespace, and the ratchet now scans `Modules/` as well as `app/`.
+
+Ownership of every model and table is recorded in [`Modules/ownership.php`](../../Modules/ownership.php);
+modules that have moved into `Modules/` and the order of the rest are in
+[`Modules/MIGRATION.md`](../../Modules/MIGRATION.md) (ADR 0017).
 
 The exclusion-create and ledger-filter employee lookups now use the scoped
 `EmployeeDirectory` contract. Their existing URLs, permissions, cross-organization

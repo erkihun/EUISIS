@@ -10,13 +10,17 @@ use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use Modules\Transport\Domain\Enums\TransportTripStatus;
+use Modules\Transport\Contracts\Data\TripStatus;
 
 /**
  * Transport: verified boardings, riders, trips run and refused scans for
  * the employees of the scope (by the employee's current organization).
  * Trips follow the route's organization; city-wide routes count for every
  * scope. Counts only; no employee appears and no amount is shown here.
+ *
+ * A declared read-only reporting reader of Transport's tables (ADR 0017,
+ * ModulePublicApiTest): it aggregates in SQL across the organization scope
+ * and never writes.
  */
 final class TransportAnalytics extends SituationAnalytics
 {
@@ -66,7 +70,7 @@ final class TransportAnalytics extends SituationAnalytics
     {
         $verified = $this->verified($context);
         $trips = $this->tripsInScope($context);
-        $completed = (clone $trips)->where('tr.status', TransportTripStatus::Completed->value);
+        $completed = (clone $trips)->where('tr.status', TripStatus::COMPLETED);
         $seats = (int) (clone $completed)->sum('tr.capacity');
         $boardedOnCompleted = (int) (clone $completed)->sum('tr.boarded_count');
 
@@ -75,7 +79,7 @@ final class TransportAnalytics extends SituationAnalytics
             $this->kpi('transport_riders', (clone $verified)->distinct()->count('t.employee_id')),
             $this->kpi('transport_scans_refused', (clone $this->scans($context))->where('t.status', 'rejected')->count()),
             $this->kpi('trips_completed', (clone $completed)->count()),
-            $this->kpi('trips_cancelled', (clone $trips)->whereIn('tr.status', [TransportTripStatus::Cancelled->value, TransportTripStatus::Failed->value])->count()),
+            $this->kpi('trips_cancelled', (clone $trips)->whereIn('tr.status', [TripStatus::CANCELLED, TripStatus::FAILED])->count()),
             $this->kpi('seat_utilization', $seats > 0 ? round(100 * $boardedOnCompleted / $seats, 1) : null, ['unit' => '%']),
         ]);
     }
@@ -143,7 +147,7 @@ final class TransportAnalytics extends SituationAnalytics
     private function trips(SituationContext $context): SituationPanel
     {
         $counts = $this->countBy($this->tripsInScope($context), 'tr.status');
-        $buckets = TransportTripStatus::values();
+        $buckets = TripStatus::ALL;
 
         return $this->chart('transport_trips', 'donut', self::SOURCE, $this->valueLabels('transport_trip_status', $buckets), [
             ['key' => 'trips', 'label' => SituationLabel::key('situationRoom.series.trips'), 'values' => array_map(fn (string $b): int => $counts[$b] ?? 0, $buckets)],

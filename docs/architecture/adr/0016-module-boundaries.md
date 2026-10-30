@@ -1,6 +1,8 @@
 # ADR 0016 — Module boundaries: `Modules/<Name>/{Domain,Application,Infrastructure,Http}`
 
-- Status: accepted
+- Status: accepted; amended by [ADR 0017](0017-module-public-contracts-and-data-ownership.md), which adds the
+  `Contracts` and `Providers` layers and narrows what outside code may use to a module's `Contracts`
+  (decision 2's third rule below is superseded)
 - Date: 2026-10-30
 - Deciders: product owner (asked for a clear boundary per module); technical decisions delegated
 - Related: [ADR 0001](0001-master-identity-and-organization-backbone.md) (backbone), [ADR 0002](0002-core-write-authority-assignment-ending-and-sign-in.md), [ADR 0015](0015-standalone-apps-out-of-the-euisis-repository.md) (EUISIS is one modular application)

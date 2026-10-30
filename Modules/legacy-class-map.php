@@ -167,5 +167,5 @@ return [
     'App\Services\Transport\TransportSettings' => 'Modules\Transport\Application\Services\TransportSettings',
     'App\Services\Transport\TransportTripPlanner' => 'Modules\Transport\Application\Services\TransportTripPlanner',
     'App\Services\Transport\TransportTripService' => 'Modules\Transport\Application\Services\TransportTripService',
-    'Modules\Transport\Http\Middleware\AuthenticateTransportDevice' => 'Modules\Transport\Http\Middleware\AuthenticateTransportDevice',
+    'App\Http\Middleware\AuthenticateTransportDevice' => 'Modules\Transport\Http\Middleware\AuthenticateTransportDevice',
 ];

@@ -18,7 +18,6 @@ use App\Notifications\StatutoryDeadlineNotification;
 use App\Notifications\TransferAnnouncementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
-use Modules\Transport\Application\Notifications\TransportNotification;
 
 /**
  * Shapes a stored notification for the bell, My Portal and the dashboard.
@@ -42,8 +41,20 @@ final class NotificationPresenter
         'public_feedback' => PublicFeedbackNotification::class,
         'statutory_deadline' => StatutoryDeadlineNotification::class,
         'transfer' => TransferAnnouncementNotification::class,
-        'transport' => TransportNotification::class,
     ];
+
+    /** @var array<string, class-string> renderers of modules under Modules/, added by their providers */
+    private static array $moduleRenderers = [];
+
+    /**
+     * A module's service provider adds the class whose static render(array $data,
+     * string $locale): array{title: string, message: string} words its stored
+     * notifications; the stored data names the module.
+     */
+    public static function registerRenderer(string $module, string $renderer): void
+    {
+        self::$moduleRenderers[$module] = $renderer;
+    }
 
     /** The UI language is chosen in the browser, so it arrives with the request. */
     public static function locale(Request $request): string
@@ -61,7 +72,7 @@ final class NotificationPresenter
     public static function present(DatabaseNotification $notification, string $locale): array
     {
         $data = is_array($notification->data) ? $notification->data : [];
-        $renderer = self::RENDERERS[$data['module'] ?? ''] ?? null;
+        $renderer = self::RENDERERS[$data['module'] ?? ''] ?? self::$moduleRenderers[$data['module'] ?? ''] ?? null;
         $text = $renderer !== null && isset($data['kind'])
             ? $renderer::render($data, $locale)
             : ['title' => (string) ($data['title'] ?? ''), 'message' => (string) ($data['message'] ?? '')];

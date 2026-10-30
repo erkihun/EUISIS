@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Transport\Application\Services;
 
 use Illuminate\Support\Facades\DB;
+use Modules\Transport\Contracts\TransportDataQuality;
 use Modules\Transport\Domain\Enums\TransportSyncState;
 use Modules\Transport\Domain\Enums\TransportTripStatus;
 use Modules\Transport\Domain\Models\TransportContract;
@@ -14,7 +15,7 @@ use Modules\Transport\Domain\Models\TransportContract;
  * Intelligence data-quality area read: counts only, each with the page
  * that fixes it. Nothing here changes data.
  */
-class TransportDataQualityService
+class TransportDataQualityService implements TransportDataQuality
 {
     /** @return list<array{code: string, count: int, severity: string}> */
     public function summary(): array

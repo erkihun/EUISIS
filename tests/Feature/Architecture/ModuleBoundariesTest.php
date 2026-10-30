@@ -3,14 +3,15 @@
 declare(strict_types=1);
 
 /*
- * Module boundaries (ADR 0016), checked for every module under Modules/:
+ * Layer rules inside each module under Modules/ (ADR 0016, ADR 0017):
  *
- * - Domain depends on nothing else in its module, and never on HTTP.
- * - Application never uses its module's Http layer.
- * - Infrastructure never uses its module's Http layer.
- * - Code outside a module (app/ and other modules) may use its Application
- *   services and Domain models/enums, never its Http or Infrastructure layer;
- *   only the composition root (service providers) wires those in.
+ * - Domain depends on nothing else in its module except its own Contracts,
+ *   and never on HTTP.
+ * - Application never uses its module's Http layer or provider.
+ * - Infrastructure never uses its module's Http layer or provider.
+ *
+ * What other code may use of a module (its Contracts only) is checked in
+ * ModulePublicApiTest.
  */
 
 $modules = array_map('basename', glob(dirname(__DIR__, 3).'/Modules/*', GLOB_ONLYDIR) ?: []);
@@ -18,29 +19,26 @@ $modules = array_map('basename', glob(dirname(__DIR__, 3).'/Modules/*', GLOB_ONL
 foreach ($modules as $module) {
     $ns = "Modules\\{$module}";
 
-    arch("{$module}: Domain depends only on Domain")
+    arch("{$module}: Domain depends only on Domain and Contracts")
         ->expect("{$ns}\\Domain")
-        ->not->toUse(["{$ns}\\Application", "{$ns}\\Infrastructure", "{$ns}\\Http", 'Illuminate\\Http']);
+        ->not->toUse(["{$ns}\\Application", "{$ns}\\Infrastructure", "{$ns}\\Http", "{$ns}\\Providers", 'Illuminate\\Http']);
 
     arch("{$module}: Application does not use Http")
         ->expect("{$ns}\\Application")
-        ->not->toUse("{$ns}\\Http");
+        ->not->toUse(["{$ns}\\Http", "{$ns}\\Providers"]);
 
     arch("{$module}: Infrastructure does not use Http")
         ->expect("{$ns}\\Infrastructure")
-        ->not->toUse("{$ns}\\Http");
-
-    arch("{$module}: other code never reaches into its Http or Infrastructure")
-        ->expect(array_values(array_merge(['App'], array_map(fn (string $other): string => "Modules\\{$other}", array_diff($modules, [$module])))))
-        ->not->toUse(["{$ns}\\Http", "{$ns}\\Infrastructure"])
-        ->ignoring('App\\Providers');
+        ->not->toUse(["{$ns}\\Http", "{$ns}\\Providers"]);
 }
 
-it('has every module laid out in the four layers', function () use ($modules): void {
+it('has every module laid out in the six layers', function () use ($modules): void {
     expect($modules)->not->toBeEmpty();
     foreach ($modules as $module) {
         foreach (glob(dirname(__DIR__, 3)."/Modules/{$module}/*", GLOB_ONLYDIR) ?: [] as $layer) {
-            expect(basename($layer))->toBeIn(['Domain', 'Application', 'Infrastructure', 'Http'], "Modules/{$module}/".basename($layer).' is not one of the four layers');
+            expect(basename($layer))->toBeIn(['Contracts', 'Domain', 'Application', 'Infrastructure', 'Http', 'Providers'], "Modules/{$module}/".basename($layer).' is not one of the six layers');
         }
+        expect(is_file(dirname(__DIR__, 3)."/Modules/{$module}/Providers/{$module}ServiceProvider.php"))->toBeTrue("Modules/{$module} has no {$module}ServiceProvider")
+            ->and(require dirname(__DIR__, 3).'/bootstrap/providers.php')->toContain("Modules\\{$module}\\Providers\\{$module}ServiceProvider");
     }
 });

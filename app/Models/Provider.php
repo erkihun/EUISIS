@@ -11,12 +11,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Transport\Domain\Models\TransportDriver;
-use Modules\Transport\Domain\Models\TransportProviderProfile;
-use Modules\Transport\Domain\Models\TransportRoute;
-use Modules\Transport\Domain\Models\TransportTransaction;
-use Modules\Transport\Domain\Models\TransportTrip;
-use Modules\Transport\Domain\Models\TransportVehicle;
 
 class Provider extends Model
 {
@@ -94,35 +88,7 @@ class Provider extends Model
         return $this->hasMany(CafeteriaServiceNetwork::class);
     }
 
-    public function transportProfile(): HasOne
-    {
-        return $this->hasOne(TransportProviderProfile::class);
-    }
-
-    public function transportRoutes(): HasMany
-    {
-        return $this->hasMany(TransportRoute::class);
-    }
-
-    public function transportVehicles(): HasMany
-    {
-        return $this->hasMany(TransportVehicle::class);
-    }
-
-    public function transportDrivers(): HasMany
-    {
-        return $this->hasMany(TransportDriver::class);
-    }
-
-    public function transportTrips(): HasMany
-    {
-        return $this->hasMany(TransportTrip::class);
-    }
-
-    public function transportTransactions(): HasMany
-    {
-        return $this->hasMany(TransportTransaction::class);
-    }
+    // transportProfile() is attached by the Transport module (Modules/Transport/Providers).
 
     public function hasService(string $serviceCode): bool
     {

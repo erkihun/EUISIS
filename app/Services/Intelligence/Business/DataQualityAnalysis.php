@@ -20,7 +20,7 @@ use App\Support\Features;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use Modules\Transport\Application\Services\TransportDataQualityService;
+use Modules\Transport\Contracts\TransportDataQuality;
 
 /**
  * Data Quality Intelligence: how far every other business figure can be
@@ -219,7 +219,7 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
         ], $rows, span: 3);
     }
 
-    /** Installation-wide transport master-data checks (TransportDataQualityService): counts and where each is fixed. */
+    /** Installation-wide transport master-data checks (Transport's TransportDataQuality contract): counts and where each is fixed. */
     private function transport(): SituationPanel
     {
         $rows = array_map(fn (array $c): array => [
@@ -229,7 +229,7 @@ final class DataQualityAnalysis extends IntelligenceAnalysis
             'state' => $c['count'] === 0 ? SituationLabel::key('situationRoom.quality.state_ok') : SituationLabel::key('situationRoom.quality.state_review'),
             'impact' => SituationLabel::key(self::PREFIX."quality.transport_{$c['code']}.impact"),
             'remediation' => SituationLabel::key(self::PREFIX."quality.transport_{$c['code']}.remediation"),
-        ], app(TransportDataQualityService::class)->summary());
+        ], app(TransportDataQuality::class)->summary());
 
         return SituationPanel::table('quality_transport', $this->title('quality_transport'), $this->hint('quality_transport'), $this->source('data_quality'), [
             $this->column('check', 'label'),

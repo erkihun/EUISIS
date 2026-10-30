@@ -180,7 +180,6 @@ use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Mail\RuntimeMailSettings;
 use App\Support\RichText\RichTextSanitizer;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
@@ -195,33 +194,6 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\Sanctum;
-use Modules\Transport\Application\Policies\TransportDriverPolicy;
-use Modules\Transport\Application\Policies\TransportPassPolicy;
-use Modules\Transport\Application\Policies\TransportRoutePolicy;
-use Modules\Transport\Application\Policies\TransportTransactionPolicy;
-use Modules\Transport\Application\Policies\TransportTripPolicy;
-use Modules\Transport\Application\Policies\TransportVehiclePolicy;
-use Modules\Transport\Application\Services\TransportEligibilitySync;
-use Modules\Transport\Domain\Models\TransportContract;
-use Modules\Transport\Domain\Models\TransportDevice;
-use Modules\Transport\Domain\Models\TransportDriver;
-use Modules\Transport\Domain\Models\TransportEligibility;
-use Modules\Transport\Domain\Models\TransportException;
-use Modules\Transport\Domain\Models\TransportInvoice;
-use Modules\Transport\Domain\Models\TransportPass;
-use Modules\Transport\Domain\Models\TransportProviderProfile;
-use Modules\Transport\Domain\Models\TransportRoute;
-use Modules\Transport\Domain\Models\TransportRouteStop;
-use Modules\Transport\Domain\Models\TransportSchedule;
-use Modules\Transport\Domain\Models\TransportServiceCalendarDay;
-use Modules\Transport\Domain\Models\TransportSettlement;
-use Modules\Transport\Domain\Models\TransportSettlementAdjustment;
-use Modules\Transport\Domain\Models\TransportTransaction;
-use Modules\Transport\Domain\Models\TransportTrip;
-use Modules\Transport\Domain\Models\TransportTripPosition;
-use Modules\Transport\Domain\Models\TransportTripVehicleChange;
-use Modules\Transport\Domain\Models\TransportVehicle;
-use Modules\Transport\Http\Middleware\AuthenticateTransportDevice;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
@@ -295,12 +267,10 @@ class AppServiceProvider extends ServiceProvider
         Organization::observe(EmployeeAssignmentCardImpactObserver::class);
         Position::observe(EmployeeAssignmentCardImpactObserver::class);
         // Service modules follow the backbone through its domain events (master-backbone.md):
-        // Communication channel membership follows assignments and account status,
-        // Transport route assignments follow placement and status (docs/transport/eligibility.md).
+        // Communication channel membership follows assignments and account status.
+        // Modules under Modules/ register their own listeners (Modules/<Name>/Providers).
         Event::listen(AssignmentChanged::class, [CommunicationMembershipSync::class, 'onAssignmentChanged']);
         Event::listen(EmployeeChanged::class, [CommunicationMembershipSync::class, 'onEmployeeChanged']);
-        Event::listen(AssignmentChanged::class, [TransportEligibilitySync::class, 'onAssignmentChanged']);
-        Event::listen(EmployeeChanged::class, [TransportEligibilitySync::class, 'onEmployeeChanged']);
         User::saved(function (User $user): void {
             if ($user->employee_id !== null && $user->wasChanged('status')) {
                 app(CommunicationMembershipSync::class)->queue($user->employee_id);
@@ -405,40 +375,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(CommunicationTask::class, CommunicationTaskPolicy::class);
         Gate::policy(CommunicationReport::class, CommunicationReportPolicy::class);
         Gate::policy(CommunicationAccessRequest::class, CommunicationAccessRequestPolicy::class);
-
-        /*
-         * Modules moved into Modules/ (ADR 0016). Policy discovery only looks in
-         * App\Policies, so their policies are registered here; and their models keep
-         * their old class names in the database (roles, audit logs, tokens) through
-         * the morph map, so existing rows still resolve.
-         */
-        Gate::policy(TransportDriver::class, TransportDriverPolicy::class);
-        Gate::policy(TransportPass::class, TransportPassPolicy::class);
-        Gate::policy(TransportRoute::class, TransportRoutePolicy::class);
-        Gate::policy(TransportTransaction::class, TransportTransactionPolicy::class);
-        Gate::policy(TransportTrip::class, TransportTripPolicy::class);
-        Gate::policy(TransportVehicle::class, TransportVehiclePolicy::class);
-        Relation::morphMap([
-            'App\Models\TransportContract' => TransportContract::class,
-            'App\Models\TransportDevice' => TransportDevice::class,
-            'App\Models\TransportDriver' => TransportDriver::class,
-            'App\Models\TransportEligibility' => TransportEligibility::class,
-            'App\Models\TransportException' => TransportException::class,
-            'App\Models\TransportInvoice' => TransportInvoice::class,
-            'App\Models\TransportPass' => TransportPass::class,
-            'App\Models\TransportProviderProfile' => TransportProviderProfile::class,
-            'App\Models\TransportRoute' => TransportRoute::class,
-            'App\Models\TransportRouteStop' => TransportRouteStop::class,
-            'App\Models\TransportSchedule' => TransportSchedule::class,
-            'App\Models\TransportServiceCalendarDay' => TransportServiceCalendarDay::class,
-            'App\Models\TransportSettlement' => TransportSettlement::class,
-            'App\Models\TransportSettlementAdjustment' => TransportSettlementAdjustment::class,
-            'App\Models\TransportTransaction' => TransportTransaction::class,
-            'App\Models\TransportTrip' => TransportTrip::class,
-            'App\Models\TransportTripPosition' => TransportTripPosition::class,
-            'App\Models\TransportTripVehicleChange' => TransportTripVehicleChange::class,
-            'App\Models\TransportVehicle' => TransportVehicle::class,
-        ]);
+        // Modules under Modules/ register their own policies and morph-map names (ADR 0017).
 
         /*
          * Super Admin passes every check, except the self-protection rules:
@@ -579,24 +516,6 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(30)->by('sf-photo:'.$request->route('token').'|'.$request->ip()),
             Limit::perMinute(120)->by('sf-photo-ip:'.$request->ip()),
         ]);
-
-        /*
-         * Transport scanner devices (docs/transport/device-security.md): a bus
-         * door boards at most a few people a second, so 300 scans a minute per
-         * device never throttles a legitimate queue, while a provider's whole
-         * fleet shares a wider ceiling and unknown credentials are capped by IP.
-         */
-        RateLimiter::for('transport-device', function (Request $request): array {
-            $device = $request->attributes->get(AuthenticateTransportDevice::ATTRIBUTE);
-            if ($device === null) {
-                return [Limit::perMinute(60)->by('transport-device-ip:'.$request->ip())];
-            }
-
-            return [
-                Limit::perMinute(300)->by('transport-device:'.$device->id),
-                Limit::perMinute(3000)->by('transport-provider:'.$device->provider_id),
-            ];
-        });
 
         RateLimiter::for('api', function (Request $request): array {
             $perMinute = 120;
