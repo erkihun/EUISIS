@@ -88,6 +88,13 @@ const MODULE_TABLE_READERS = [
         'app/Services/SituationRoom/Analytics/FieldWorkAnalytics.php' => 'reporting',
         'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
     ],
+    'Grievance' => [
+        // The Situation Room case summary counts grievances by status within scope (totals only).
+        'app/Services/SituationRoom/Analytics/CaseSummaryAnalytics.php' => 'reporting',
+        // Retention keeps the audit rows of grievances still open or on legal hold: it reads which
+        // they are (it deletes only audit rows, never grievances; checked below).
+        'app/Services/Retention/RetentionProcessor.php' => 'retention',
+    ],
     'Discipline' => [
         // The Situation Room case summary counts discipline cases by status within scope (totals only).
         'app/Services/SituationRoom/Analytics/CaseSummaryAnalytics.php' => 'reporting',

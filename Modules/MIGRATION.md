@@ -3,7 +3,7 @@
 Where the move to `Modules/<Name>/{Contracts,Domain,Application,Infrastructure,Http,Providers}`
 stands ([ADR 0016](../docs/architecture/adr/0016-module-boundaries.md),
 [ADR 0017](../docs/architecture/adr/0017-module-public-contracts-and-data-ownership.md)). Update it
-in the same change as each step. **Verdict today: incomplete** — Transport, Cafeteria, Providers, Entitlements, Field work, Daily work, Communication, Assessment and Discipline have moved with no frozen inbound uses left; the other owners below are still in `app/`.
+in the same change as each step. **Verdict today: incomplete** — Transport, Cafeteria, Providers, Entitlements, Field work, Daily work, Communication, Assessment, Discipline and Grievance have moved with no frozen inbound uses left; the other owners below are still in `app/`.
 
 Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (enforced by
 `tests/Feature/Architecture/ModuleOwnershipTest.php`).
@@ -30,7 +30,7 @@ Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (en
 | Communication | `Modules/Communication` (2026-10-30) | `Data\CommunicationRoles` (its roles and permission sets for the default role matrix); `Data\CommunicationTelemetry` (the cache key system telemetry reads its broadcast failures from). 161 classes moved; its policies, Core event listeners (channel membership follows assignments and account status), notification renderer, rate limiters, five commands, attachment-scanner binding and the records the Super Admin role never opens by itself (`App\Support\Rbac\RoleBypassExemptions`) are registered from its provider. `routes/communication.php` and `routes/channels.php` name its controllers, middleware and broadcast authorization. | Inbound: none; nothing outside reads its tables. Outbound: Core models under the ratchet; `App\Backbone` events. |
 | Performance (EPMS) | app | — | |
 | Assessment | `Modules/Assessment` (2026-10-30) | `Data\AssessmentCoverageValues` (the gender spellings its coverage groups by, for the Situation Room's workforce panel). 71 classes moved; its policy, three commands and the oversight cache invalidation on record and response saves are registered from its provider; the form-version validation rules are an Application class (`AssessmentFormVersionRules`) shared by the builder's request and the importer. `EmployeeCompetencyAssessment` stays with Core employees (Performance's competency self-assessment, not this module). The direct-manager rule moved to Daily work (`DailyWorkReviewers::directManager`), whose reviewer assignments it reads; Assessment and Field work ask it there. | Inbound: none. Outbound: Daily work through `DailyWorkReviewers`; Core employees (`EmployeeWorkContextResolver`); Performance models in `app/` (rating scales) and Core models under the ratchet. |
-| Grievance | app | — | |
+| Grievance | `Modules/Grievance` (2026-10-30) | `GrievanceCaseLinks` (for the tribunal and court-ms: may a user view a case or handle its current stage, the assigned case ids, timeline and audit entries, notices, a statutory deadline's alert target, referable evidence and its files); `GrievanceCourtRecords` (an employee's own grievances, ids, court-ms snapshots and PDFs for a court filing — moved out of the filing service); read models `GrievanceRecord`, `GrievanceCategoryRecord`, `GrievanceCommitteeRecord`, `GrievanceCommitteeMemberRecord` (committees Discipline seats, Performance reuses and Legal's statutory rules check); `Data\GrievanceStatus`, `CommitteeType`, `GrievanceCommitteeRole`, `GrievanceCommitteeSelectionSource`, `GrievanceRoles`. 132 classes moved; its notification renderer, SLA command and number collision checks register from its provider. The court-ms referral job stays in `app/` (court-ms code). | Inbound: none; the Situation Room case summary and retention (which keeps audit rows of open or held cases) are declared readers. Legal's `StatutoryCommitteeRules` takes either committee record. |
 | Discipline / appeal | `Modules/Discipline` (2026-10-30) | `DisciplineCases` (whether an employee was penalised since a date under Art. 6(2), for the statutory committee rules; an employee's delivered cases, their ids and court-ms snapshots, for the court filing; a statutory deadline's alert target); `Data\DisciplinaryCaseStatus`, `DisciplinaryFinding`, `DisciplinaryPenalty`, `DisciplinarySeverity`, `DisciplineRoles`; `ReadModels\DisciplinaryCaseRecord` (recognising a deadline's subject). 29 classes moved; its case-number collision check is registered from its provider. | Inbound: none; the Situation Room case summary is a declared reader. Outbound: Grievance's committees (`GrievanceCommittee`, `GrievanceCommitteeMember`, in `app/` until Grievance moves) and Core models under the ratchet. |
 | Feedback (public and service) | app | implements Core `EmployeeFeedbackLinks` | |
 | Public site | app | — | |
@@ -51,22 +51,12 @@ Next slices, in this order, with the design each needs (the move tooling lives i
 scratchpad: `move_lib.py`, one `move_<module>.py` and one `<module>_post.py` per module; write the
 provider and read models after the move, since the reference rewrite renames stored names):
 
-1. **Grievance** (132 classes). Publish `GrievanceCommitteeRecord` and `GrievanceCommitteeMemberRecord`
-   read models (with `members`, `employee`, `isChairperson()`): Discipline, Performance (appeals,
-   calibration, `EpmsAccess`) and Legal's `StatutoryCommitteeRules` read committees. Legal and court-ms
-   (`CourtMsReferrals`, `CourtMsStatusSync`, `EmployeeCourtFiling`, `AdministrativeTribunalController`,
-   `SendStatutoryDeadlineAlerts`) use its timeline, audit, notifier, case access and evidence: give
-   them a `GrievanceCaseEvents` command (timeline + audit entry), `GrievanceCaseAccess` (may a user
-   see/act on a case), `GrievanceAlerts` (stage handlers of a case, as `DisciplineCases::deadlineAlertTarget`),
-   and a court snapshot query like `DisciplineCases::courtSnapshots`. Move its code-rule collision
-   checks out of `ServiceModuleServiceProvider`. `RetentionProcessor` names `Grievance::class` for audit
-   exemptions: use the read model's morph name.
-2. **Performance** (104 classes). Daily work uses `EmployeePerformanceItem` (KPI picker, item validation,
+1. **Performance** (104 classes). Daily work uses `EmployeePerformanceItem` (KPI picker, item validation,
    the item relation, cascade trace), so moving Performance as is makes a Performance ↔ Daily work
    cycle. Invert it: Daily work defines `Contracts\PerformanceItemSource` (current items of an employee,
    valid ids, a trace) and Performance implements it; Performance attaches `performanceItem` to Daily
    work's item read model with `resolveRelationUsing`.
-3. Feedback, Public site, Organization design, Transfer, Recruitment, Situation Room, Intelligence,
+2. Feedback, Public site, Organization design, Transfer, Recruitment, Situation Room, Intelligence,
    Legal, Integrations, ID cards; Core last.
 
 ## Notes
