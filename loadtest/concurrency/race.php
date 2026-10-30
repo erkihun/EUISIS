@@ -27,14 +27,11 @@ declare(strict_types=1);
 
 use App\Actions\Employees\RegisterEmployeeAction;
 use App\Actions\IdCards\RevokeCardAction;
-use App\Actions\ServiceTransactions\RecordServiceTransactionAction;
 use App\Actions\Transfers\CompleteTransferAction;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\ExternalApplication;
 use App\Models\IdCard;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Models\TransferApplication;
 use App\Models\User;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
@@ -44,6 +41,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
+use Modules\Entitlements\Application\Actions\ServiceTransactions\RecordServiceTransactionAction;
+use Modules\Entitlements\Domain\Models\ServiceProvider;
+use Modules\Entitlements\Domain\Models\ServiceType;
 
 $root = dirname(__DIR__, 2);
 require $root.'/vendor/autoload.php';
