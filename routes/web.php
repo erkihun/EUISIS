@@ -90,6 +90,7 @@ use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\ScanPhotoController;
 use App\Http\Controllers\Web\ServiceFeedbackController;
+use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceSubmissionController;
 use App\Http\Controllers\Web\ServiceTypeController;
 use App\Http\Controllers\Web\SituationRoom\SituationReportController;
@@ -139,7 +140,6 @@ use Modules\Cafeteria\Http\Controllers\ProviderPortal\ProviderTransactionControl
 use Modules\Providers\Http\Controllers\Portal\ProviderLoginController;
 use Modules\Providers\Http\Controllers\Portal\ProviderPasswordResetController;
 use Modules\Providers\Http\Controllers\ProviderUserController;
-use App\Http\Controllers\Web\ServiceProviderController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDashboardController as ProviderTransportDashboardController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDeviceController as ProviderTransportDeviceController;
 use Modules\Transport\Http\Controllers\ProviderPortal\TransportDriverController as ProviderTransportDriverController;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
 use App\Models\PasswordHistory;
+use App\Models\ServiceProviderUser;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Support\Rbac\DefaultRoleMatrix;
@@ -18,7 +19,6 @@ use Modules\Providers\Application\Services\ProviderUserPermissionCatalog;
 use Modules\Providers\Domain\Models\Provider;
 use Modules\Providers\Domain\Models\ProviderType;
 use Modules\Providers\Domain\Models\ProviderUser;
-use App\Models\ServiceProviderUser;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

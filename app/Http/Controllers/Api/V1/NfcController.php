@@ -7,6 +7,7 @@ use App\Actions\ServiceTransactions\VerifyCardForServiceAction;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\NfcVerificationResource;
 use App\Models\Entitlement;
+use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Services\CredentialVerificationService;
 use App\Services\Nfc\NfcAudit;
@@ -16,7 +17,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Modules\Cafeteria\Contracts\CafeteriaTerminalScan;
-use App\Models\ServiceProvider;
 use Ramsey\Uuid\Uuid;
 
 class NfcController extends Controller

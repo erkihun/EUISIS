@@ -6,6 +6,7 @@ namespace Modules\Cafeteria\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\Organization;
+use App\Models\ServiceProvider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Enums\CafeteriaOperationalStatus;
 use Modules\Providers\Domain\Models\Provider;
-use App\Models\ServiceProvider;
 
 /**
  * A cafeteria LOCATION (main, branch or service point) inside a provider's

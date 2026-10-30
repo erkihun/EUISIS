@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Infrastructure\Console;
 
+use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
-use App\Models\ServiceProvider;
 
 class LinkCafeteriaProvidersToServiceProviders extends Command
 {

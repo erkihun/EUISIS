@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Providers;
 
+use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTerminal;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -70,7 +71,6 @@ use Modules\Cafeteria\Infrastructure\Console\LinkCafeteriaProvidersToServiceProv
 use Modules\Cafeteria\Infrastructure\Console\SyncCafeteriaPolicyStatuses;
 use Modules\Providers\Contracts\PortalLocationSource;
 use Modules\Providers\Domain\Models\Provider;
-use App\Models\ServiceProvider as ServiceProviderModel;
 
 /**
  * Everything the application needs to know about the Cafeteria module

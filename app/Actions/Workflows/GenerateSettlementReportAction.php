@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Actions\Workflows;
 
+use App\Models\ServiceProvider;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
-use App\Models\ServiceProvider;
 
 /**
  * Settlement total for one provider over one period.

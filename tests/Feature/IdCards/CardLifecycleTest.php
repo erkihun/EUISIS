@@ -15,10 +15,10 @@ use App\Models\CardReplacement;
 use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\IdCard;
+use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
-use App\Models\ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

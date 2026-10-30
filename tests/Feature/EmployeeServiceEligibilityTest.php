@@ -13,13 +13,13 @@ use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\Entitlement;
 use App\Models\IdCard;
+use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\EmployeeServiceEligibilityService;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
-use App\Models\ServiceProvider;
 
 function serviceEmployee(EmployeeStatus $status = EmployeeStatus::Active): Employee
 {

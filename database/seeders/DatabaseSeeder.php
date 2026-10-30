@@ -32,6 +32,7 @@ use App\Models\OrganizationEdge;
 use App\Models\OrganizationNameHistory;
 use App\Models\OrganizationType;
 use App\Models\Position;
+use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
@@ -43,7 +44,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use App\Models\ServiceProvider;
 use RuntimeException;
 
 class DatabaseSeeder extends Seeder

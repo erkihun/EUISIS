@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
+use App\Models\ServiceProviderUser;
 use App\Models\ServiceType;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -15,7 +16,6 @@ use Modules\Cafeteria\Domain\Models\CafeteriaProviderAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaProviderBranch;
 use Modules\Cafeteria\Domain\Models\CafeteriaSetting;
 use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyRule;
-use App\Models\ServiceProviderUser;
 use Spatie\Permission\Models\Permission;
 
 function cafeteriaSettingsUser(bool $canUpdate = true): User

@@ -14,6 +14,7 @@ use App\Models\EmployeeTransfer;
 use App\Models\Entitlement;
 use App\Models\IdCard;
 use App\Models\NfcCredential;
+use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\User;
 use App\Services\Dashboard\DashboardMetricService;
@@ -22,7 +23,6 @@ use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
-use App\Models\ServiceProvider;
 
 /**
  * A fixed global dashboard scope.

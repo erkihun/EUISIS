@@ -6,6 +6,7 @@ namespace Modules\Cafeteria\Application\Actions;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
+use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -16,7 +17,6 @@ use Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Providers\Domain\Models\Provider;
-use App\Models\ServiceProvider;
 
 /**
  * Creates a cafeteria location end to end: the operating provider (payee)

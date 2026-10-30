@@ -31,6 +31,7 @@ use App\Models\NfcVerificationLog;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Models\ServiceProvider;
 use App\Models\ServiceTerminal;
 use App\Models\ServiceTransaction;
 use App\Models\User;
@@ -39,7 +40,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
-use App\Models\ServiceProvider;
 
 class DashboardMetricService
 {

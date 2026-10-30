@@ -14,11 +14,11 @@ use App\Models\CardVerification;
 use App\Models\Entitlement;
 use App\Models\ExternalApplication;
 use App\Models\IdCard;
+use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\Integration\IntegrationAccessService;
 use Illuminate\Http\Request;
-use App\Models\ServiceProvider;
 
 readonly class VerifyCardForServiceAction
 {

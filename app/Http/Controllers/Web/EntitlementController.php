@@ -10,6 +10,7 @@ use App\Http\Requests\EntitlementStoreRequest;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Entitlement;
+use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -18,7 +19,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Contracts\CafeteriaDirectory;
-use App\Models\ServiceProvider;
 
 class EntitlementController extends Controller
 {
