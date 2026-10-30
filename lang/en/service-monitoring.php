@@ -13,6 +13,7 @@ return [
     'declaration_default' => 'I declare that this report is complete and correct, covers only this quarter, and that the institution stands behind it under its stamp.',
 
     'enums' => [
+        'form_template_status' => ['draft' => 'Draft', 'published' => 'Published', 'superseded' => 'Superseded', 'archived' => 'Archived'],
         'reporting_level' => ['center' => 'Center', 'sub_city' => 'Sub-city', 'woreda' => 'Woreda'],
         'form_type' => ['A' => 'Form A (center)', 'B' => 'Form B (sub-city and woreda)'],
         'period_status' => ['scheduled' => 'Scheduled', 'open' => 'Open', 'closed' => 'Closed', 'locked' => 'Locked'],
@@ -258,7 +259,7 @@ return [
     'export' => [
         'sheet_section_1' => 'I.1 Register', 'sheet_summary' => 'I.2 Summary', 'sheet_section_2' => 'II Institution building',
         'sheet_section_3' => 'III Technology', 'sheet_section_4' => 'IV Standards', 'sheet_notes' => 'Notes',
-        'scope_submission' => 'Institution', 'scope_sub_city' => 'Sub-city consolidation', 'scope_city' => 'City consolidation',
+        'scope_submission' => 'Institution', 'scope_sub_city' => 'Parent-institution consolidation', 'scope_city' => 'Overall consolidation',
         'range_line' => ':range — FY :year E.C. (:from – :to)',
         'generated' => 'Generated :at by :user',
         'masked' => 'Names are hidden: the export shows the role category instead.',
@@ -277,6 +278,30 @@ return [
             'office_level' => 'Institution office level :level',
             'type_level' => 'Organization type :type (level order :order)',
             'edge' => 'Published hierarchy: child of :parent',
+        ],
+    ],
+
+    // Form templates: the form builder (docs/service-monitoring.md §Form templates).
+    'form_templates' => [
+        'flash' => [
+            'saved' => 'The form template was saved.',
+            'published' => 'The form template was published. Reports started from now on by institutions of its organization types use it.',
+            'version_created' => 'A new draft version was created.',
+            'duplicated' => 'The template was copied into a new draft.',
+            'archived' => 'The form template was archived.',
+            'discarded' => 'The draft was discarded.',
+        ],
+        'errors' => [
+            'not_draft' => 'A published template cannot be changed. Create a new version instead.',
+            'no_types' => 'Assign the template to at least one organization type before publishing.',
+            'types_taken' => 'Some of these organization types already have a published template (:codes). An organization type reports on one form.',
+            'draft_exists' => 'This template already has a draft. Edit or publish it first.',
+            'draft_not_archivable' => 'A draft is discarded, not archived.',
+            'draft_in_use' => 'Only a draft no report started on can be discarded.',
+            'no_custom_sections' => 'This report\'s form has no additional sections.',
+        ],
+        'validation' => [
+            'custom_incomplete' => 'The additional sections have :count missing or invalid answers.',
         ],
     ],
 ];

@@ -73,4 +73,7 @@ return [
     $entry('service_monitoring.settings.manage', 170, 'Manage monitoring settings', 'የክትትል ቅንብሮችን ያስተዳድሩ',
         'Change the declaration text, the stamped-copy requirement and the driver occupations.',
         'የማረጋገጫ ቃሉን፣ የማህተም ቅጂ መስፈርቱንና የሹፌር ሙያዎችን መቀየር።'),
+    $entry('service_monitoring.forms.manage', 180, 'Build monitoring form templates', 'የክትትል ቅጽ አብነቶችን ያዘጋጁ',
+        'Build, version, publish and archive the form templates and assign them to organization types.',
+        'የቅጽ አብነቶችን ማዘጋጀት፣ አዲስ እትም ማውጣት፣ ማተምና በማህደር ማስቀመጥ፣ ለተቋም ዓይነቶች መመደብ።'),
 ];

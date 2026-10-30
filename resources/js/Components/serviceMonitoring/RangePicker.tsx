@@ -6,10 +6,12 @@ import { inputCls, labelCls, panelCls, useSm } from './helpers';
 const RANGES: ReportRange[] = ['quarter', 'six_months', 'nine_months', 'annual'];
 
 /** Fiscal year, quarter and range (Q / 6M / 9M / Annual) for the consolidation and report pages. */
-export default function RangePicker({ years, selection, routeName, extra = {}, scope }: {
+export default function RangePicker({ years, selection, routeName, routeParams, extra = {}, scope }: {
     years: { id: string; ec_year: number }[] | FiscalYearRow[];
     selection: Selection;
     routeName: string;
+    /** Parameters of the page's own route (e.g. the form template a summary belongs to). */
+    routeParams?: Record<string, string>;
     extra?: Record<string, string>;
     /** An extra view switcher placed first, e.g. which sub-city's consolidation to show. */
     scope?: { param: string; label: string; value: string; options: { value: string; label: string }[] };
@@ -17,7 +19,7 @@ export default function RangePicker({ years, selection, routeName, extra = {}, s
     const { sm } = useSm();
     const id = useId();
     const go = (changes: Partial<Selection>, extraChanges: Record<string, string> = {}) =>
-        router.get(route(routeName), { ...extra, ...selection, ...changes, ...extraChanges } as Record<string, string | number>, { preserveScroll: true, preserveState: true });
+        router.get(route(routeName, routeParams), { ...extra, ...selection, ...changes, ...extraChanges } as Record<string, string | number>, { preserveScroll: true, preserveState: true });
 
     return (
         <div className={`${panelCls} grid gap-3 p-3 ${scope ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`}>

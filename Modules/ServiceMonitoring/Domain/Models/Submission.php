@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\ServiceMonitoring\Domain\Enums\FormType;
 use Modules\ServiceMonitoring\Domain\Enums\ReportingLevel;
 use Modules\ServiceMonitoring\Domain\Enums\SubmissionStatus;
+use Modules\ServiceMonitoring\Domain\Forms\TemplateContent;
 
 /** One revision of one participant's quarterly report (D9). Only the accepted revision counts; is_current marks the working revision. Status and attestation are never mass-assigned from a request: the Actions set them. */
 class Submission extends Model
@@ -34,6 +35,7 @@ class Submission extends Model
         'level',
         'form_type',
         'form_version',
+        'form_template_id',
         'revision_no',
         'is_current',
         'status',
@@ -45,6 +47,7 @@ class Submission extends Model
         'section_3_nothing',
         'section_4_nothing',
         'special_support_narrative',
+        'custom_data',
         'attested_by',
         'attested_at',
         'attester_name_snapshot',
@@ -64,6 +67,7 @@ class Submission extends Model
         return [
             'level' => ReportingLevel::class,
             'form_type' => FormType::class,
+            'custom_data' => 'array',
             'status' => SubmissionStatus::class,
             'revision_no' => 'integer',
             'is_current' => 'boolean',
@@ -87,6 +91,18 @@ class Submission extends Model
     public function period(): BelongsTo
     {
         return $this->belongsTo(ReportingPeriod::class, 'period_id');
+    }
+
+    /** The form template the report was started on; null is the official form. */
+    public function formTemplate(): BelongsTo
+    {
+        return $this->belongsTo(FormTemplate::class, 'form_template_id');
+    }
+
+    /** What the report's template changes; the official form when it has none. */
+    public function templateContent(): TemplateContent
+    {
+        return TemplateContent::from($this->form_template_id === null ? null : $this->formTemplate?->content);
     }
 
     public function participant(): BelongsTo

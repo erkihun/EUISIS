@@ -717,6 +717,9 @@ enum AuditEventType: string
     case ServiceMonitoringExportDownloaded = 'service_monitoring.export_downloaded';
     case ServiceMonitoringNamedDataViewed = 'service_monitoring.named_data_viewed';
     case ServiceMonitoringAttachmentDownloaded = 'service_monitoring.attachment_downloaded';
+    case ServiceMonitoringFormTemplateSaved = 'service_monitoring.form_template_saved';
+    case ServiceMonitoringFormTemplatePublished = 'service_monitoring.form_template_published';
+    case ServiceMonitoringFormTemplateArchived = 'service_monitoring.form_template_archived';
 
     // Work standards: sub-services, main tasks and task standards (BPR plans)
     case WorkStructureChanged = 'work_standards.structure_changed';

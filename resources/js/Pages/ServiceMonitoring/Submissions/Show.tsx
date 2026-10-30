@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import ExportPanel from '@/Components/serviceMonitoring/ExportPanel';
 import { DATE_MARK, errorCls, inputCls, labelCls, panelCls, placeDate, primaryBtn, scrollCls, secondaryBtn, tableCls, tdCls, textareaCls, thCls, useSm } from '@/Components/serviceMonitoring/helpers';
 import OfficialTables from '@/Components/serviceMonitoring/OfficialTables';
+import FormRenderer from '@/Components/serviceMonitoring/builder/FormRenderer';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import type { ExportRow, OfficialForm, SubmissionProps } from '@/types/serviceMonitoring';
@@ -18,7 +19,10 @@ type Props = SubmissionProps & {
 };
 
 /** Read-only report: the official layout, revisions with their differences, history, review and correction actions. */
-export default function SubmissionShow({ submission, definition, revisions, history, corrections, diff, form, years, exports, can }: Props): JSX.Element {
+/** The official section each layout block belongs to. */
+const SECTION_OF = { section_1: 1, summary: 1, section_2: 2, section_3: 3, section_4: 4 } as const;
+
+export default function SubmissionShow({ submission, definition, revisions, history, corrections, diff, form, years, exports, can, custom }: Props): JSX.Element {
     const { sm, name } = useSm();
     const [correcting, setCorrecting] = useState(false);
     const correction = useForm({ reason: '' });
@@ -116,9 +120,16 @@ export default function SubmissionShow({ submission, definition, revisions, hist
 
                 <section aria-labelledby="sm-form" className="space-y-4">
                     <h2 id="sm-form" className="text-sm font-semibold">{sm('show.officialForm')}</h2>
-                    {(['section_1', 'summary', 'section_2', 'section_3', 'section_4'] as const).map((key) => (
-                        <OfficialTables key={key} idPrefix={`show-${key}`} tables={form.sections[key]} />
-                    ))}
+                    {(['section_1', 'summary', 'section_2', 'section_3', 'section_4'] as const)
+                        // Only the official sections the report's form template keeps.
+                        .filter((key) => (definition.enabled_sections ?? [1, 2, 3, 4]).includes(SECTION_OF[key]))
+                        .map((key) => <OfficialTables key={key} idPrefix={`show-${key}`} tables={form.sections[key]} />)}
+                    {definition.custom && definition.custom.sections.length > 0 && (
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-semibold">{sm('templates.customTab')}</h3>
+                            <FormRenderer schema={definition.custom} data={custom.data} />
+                        </div>
+                    )}
                 </section>
 
                 {can.export && (

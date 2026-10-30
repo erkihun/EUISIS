@@ -36,7 +36,7 @@ class SubmissionPresenter
         $submission->load([
             'period.fiscalYear', 'participant.organization:id,name_en,name_am', 'organization:id,name_en,name_am', 'extension',
             'accountabilityEntries', 'institutionBuilding', 'prefillValues', 'digitalServices', 'serviceTotals', 'standardPerformance',
-            'histories.actor:id,name', 'reviewComments.author:id,name', 'attachments', 'correctionRequests',
+            'histories.actor:id,name', 'reviewComments.author:id,name', 'attachments', 'correctionRequests', 'formTemplate',
         ]);
         $named = $this->access->canViewNamed($user, $submission);
         if ($named && $submission->accountabilityEntries->isNotEmpty()) {
@@ -44,6 +44,7 @@ class SubmissionPresenter
         }
         $period = $submission->period;
         $problems = $this->validator->problems($submission);
+        $template = $submission->templateContent();
         $repeats = $this->validator->repeatEmployeeIds($submission)->all();
         $locale = app()->getLocale();
         $activeExtension = $this->guard->activeExtension($period, $submission->participant_id);
@@ -77,7 +78,13 @@ class SubmissionPresenter
                     'organization' => $submission->attester_organization_snapshot, 'at' => $submission->attested_at->toIso8601String(),
                 ],
             ],
-            'definition' => FormDefinition::describe($submission->form_type, $submission->form_version, (int) $period->fiscalYear->ec_year, $locale),
+            // The official form, re-worded and trimmed by the report's template (docs/service-monitoring.md §Form templates).
+            'definition' => $template->overlay(FormDefinition::describe($submission->form_type, $submission->form_version, (int) $period->fiscalYear->ec_year, $locale)),
+            'template' => $submission->formTemplate === null ? null : [
+                'id' => $submission->formTemplate->id, 'code' => $submission->formTemplate->code, 'version' => $submission->formTemplate->version,
+                'name_am' => $submission->formTemplate->name_am, 'name_en' => $submission->formTemplate->name_en,
+            ],
+            'custom' => ['data' => is_array($submission->custom_data) ? $submission->custom_data : (object) []],
             'section1' => [
                 'named' => $named,
                 'entries' => $submission->accountabilityEntries->map(fn (AccountabilityEntry $e): array => [
@@ -133,7 +140,8 @@ class SubmissionPresenter
                 'min_text' => FormDefinition::MIN_BELOW_STANDARD_TEXT,
             ],
             'problems' => array_map(fn (array $messages): array => array_values($messages), $problems),
-            'completeness' => [1 => ! isset($problems[1]), 2 => ! isset($problems[2]), 3 => ! isset($problems[3]), 4 => ! isset($problems[4])],
+            'completeness' => [1 => ! isset($problems[1]), 2 => ! isset($problems[2]), 3 => ! isset($problems[3]), 4 => ! isset($problems[4])]
+                + ($template->hasCustomSections() ? [SubmissionValidator::CUSTOM => ! isset($problems[SubmissionValidator::CUSTOM])] : []),
             'comments' => $submission->reviewComments->map(fn ($c): array => [
                 'id' => $c->id, 'section' => $c->section, 'line_reference' => $c->line_reference, 'body' => $c->body,
                 'author' => $c->author?->name, 'created_at' => $c->created_at?->toIso8601String(), 'resolved' => $c->resolved_at !== null,

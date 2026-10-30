@@ -11,6 +11,7 @@ use Modules\ServiceMonitoring\Application\Actions\AcceptDisciplineSuggestion;
 use Modules\ServiceMonitoring\Application\Actions\CaptureSection2Prefill;
 use Modules\ServiceMonitoring\Application\Actions\DeleteSection1Entry;
 use Modules\ServiceMonitoring\Application\Actions\DeleteSection3Entry;
+use Modules\ServiceMonitoring\Application\Actions\SaveCustomSections;
 use Modules\ServiceMonitoring\Application\Actions\SaveSection1Entry;
 use Modules\ServiceMonitoring\Application\Actions\SaveSection2;
 use Modules\ServiceMonitoring\Application\Actions\SaveSection3Entry;
@@ -21,6 +22,7 @@ use Modules\ServiceMonitoring\Domain\Models\DigitalService;
 use Modules\ServiceMonitoring\Domain\Models\Submission;
 use Modules\ServiceMonitoring\Http\Requests\AcceptSuggestionRequest;
 use Modules\ServiceMonitoring\Http\Requests\SaveAccountabilityEntryRequest;
+use Modules\ServiceMonitoring\Http\Requests\SaveCustomSectionsRequest;
 use Modules\ServiceMonitoring\Http\Requests\SaveDigitalServiceRequest;
 use Modules\ServiceMonitoring\Http\Requests\SaveSection2Request;
 use Modules\ServiceMonitoring\Http\Requests\SaveSection4Request;
@@ -119,6 +121,14 @@ final class SectionController extends Controller
             'main_total' => array_key_exists('main_total', $data) ? $int('main_total') : $totals?->main_total,
             'sub_total' => array_key_exists('sub_total', $data) ? $int('sub_total') : $totals?->sub_total,
         ], $performance, $request->user());
+
+        return back()->with('success', __('service-monitoring.flash.saved'));
+    }
+
+    /** The answers to the form template's additional sections (autosaved; required answers are checked at submission). */
+    public function custom(SaveCustomSectionsRequest $request, Submission $submission, SaveCustomSections $save): RedirectResponse
+    {
+        $save->execute($submission, (array) $request->validated('custom'), $request->user());
 
         return back()->with('success', __('service-monitoring.flash.saved'));
     }

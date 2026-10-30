@@ -9,6 +9,7 @@ use Modules\ServiceMonitoring\Http\Controllers\ClarificationController;
 use Modules\ServiceMonitoring\Http\Controllers\ConsolidationController;
 use Modules\ServiceMonitoring\Http\Controllers\DashboardController;
 use Modules\ServiceMonitoring\Http\Controllers\ExportController;
+use Modules\ServiceMonitoring\Http\Controllers\FormTemplateController;
 use Modules\ServiceMonitoring\Http\Controllers\ParticipantController;
 use Modules\ServiceMonitoring\Http\Controllers\PeriodController;
 use Modules\ServiceMonitoring\Http\Controllers\ReportController;
@@ -73,6 +74,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
             Route::put('/submissions/{submission}/section-3/{digitalService}', [SectionController::class, 'updateService'])->whereUuid(['submission', 'digitalService'])->middleware('throttle:60,1')->name('submissions.section3.update');
             Route::delete('/submissions/{submission}/section-3/{digitalService}', [SectionController::class, 'destroyService'])->whereUuid(['submission', 'digitalService'])->middleware('throttle:60,1')->name('submissions.section3.destroy');
             Route::put('/submissions/{submission}/section-4', [SectionController::class, 'section4'])->whereUuid('submission')->middleware('throttle:120,1')->name('submissions.section4');
+            Route::put('/submissions/{submission}/custom', [SectionController::class, 'custom'])->whereUuid('submission')->middleware('throttle:120,1')->name('submissions.custom');
         });
 
         // Review, comments and corrections
@@ -121,4 +123,18 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         // Settings
         Route::get('/settings', [SettingsController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [SettingsController::class, 'update'])->middleware('throttle:20,1')->name('settings.update');
+
+        // Form templates: the form builder (docs/service-monitoring.md §Form templates)
+        Route::get('/forms', [FormTemplateController::class, 'index'])->name('forms.index');
+        Route::get('/forms/create', [FormTemplateController::class, 'create'])->name('forms.create');
+        Route::post('/forms', [FormTemplateController::class, 'store'])->middleware('throttle:30,1')->name('forms.store');
+        Route::get('/forms/{template}', [FormTemplateController::class, 'show'])->whereUuid('template')->name('forms.show');
+        Route::get('/forms/{template}/edit', [FormTemplateController::class, 'edit'])->whereUuid('template')->name('forms.edit');
+        Route::put('/forms/{template}', [FormTemplateController::class, 'update'])->whereUuid('template')->middleware('throttle:60,1')->name('forms.update');
+        Route::delete('/forms/{template}', [FormTemplateController::class, 'destroy'])->whereUuid('template')->middleware('throttle:30,1')->name('forms.destroy');
+        Route::post('/forms/{template}/publish', [FormTemplateController::class, 'publish'])->whereUuid('template')->middleware('throttle:30,1')->name('forms.publish');
+        Route::post('/forms/{template}/new-version', [FormTemplateController::class, 'newVersion'])->whereUuid('template')->middleware('throttle:30,1')->name('forms.new-version');
+        Route::post('/forms/{template}/duplicate', [FormTemplateController::class, 'duplicate'])->whereUuid('template')->middleware('throttle:30,1')->name('forms.duplicate');
+        Route::post('/forms/{template}/archive', [FormTemplateController::class, 'archive'])->whereUuid('template')->middleware('throttle:30,1')->name('forms.archive');
+        Route::get('/forms/{template}/summary', [FormTemplateController::class, 'summary'])->whereUuid('template')->name('forms.summary');
     });

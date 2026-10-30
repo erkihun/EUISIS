@@ -89,6 +89,38 @@ under `form.` (the Amharic text is the forms' own wording).
 | IV | ከስታንዳርድ በላይ / በስታንዳርድ / በታች (main, sub) | `standard_performance.*` | manual; above + at + below = total | flow (sum and latest quarter) |
 | IV | ምክንያት, የተወሰደ እርምጃ | `below_reasons`, `actions_taken` | manual; ≥ 20 characters when anything is below standard | latest |
 
+## Form templates
+
+The official forms change from period to period, and many kinds of institutions report, not only
+"center", "sub-city" and "woreda". So the form an institution fills is shaped in the UI
+(**Form templates**, `service_monitoring.forms.manage`, city-wide), never in code:
+
+- A **form template** is versioned: `draft → published → superseded → archived`. Only a draft
+  changes. **New version** copies a version into the next draft (one draft per code); **Copy as new
+  template** starts an independent one; a draft no report started on can be discarded.
+- A template is assigned to **organization types**. An organization type belongs to at most one
+  published template, so every participant has exactly one form. Types without a template, and
+  every report started before one was published, use the official form unchanged.
+- A template changes the official form in three ways (`Domain/Forms/TemplateContent`):
+  1. **Wording**: the form title, the general notes, and each official section's title and notes.
+     An empty value keeps the official text.
+  2. **Official sections on or off**: a section left out is not shown, not validated, and not
+     required at submission. The sections that stay keep all their rules (identity, prefill,
+     verification, sums, I.2 derivation).
+  3. **Additional sections** (`Domain/Forms/FormSchema`): tables (rows entered by the
+     institution, fixed rows, or one row), typed columns (text, number, "X" mark, choice, row
+     total), grouped headings, notes and text answers. A number column is `flow` (summed over the
+     quarters of a range) or `stock` (latest quarter), like the Section II fields (D4).
+- `StartSubmission` pins the participant's published template on the report
+  (`service_monitoring_submissions.form_template_id`); corrections copy it with the revision.
+  Answers to additional sections are stored in `custom_data`, normalized and re-totalled by the
+  server, and required answers are enforced at submission (`SubmissionValidator::CUSTOM`).
+- **Consolidated figures** of the additional sections (`CustomSectionSummary`,
+  `GET /forms/{template}/summary`) read accepted revisions only, inside the viewer's scope, and
+  break fixed-row tables down by the organization types that reported, never by a built-in
+  administrative level.
+- The official XLSX/PDF exports keep the official layout; additional sections are not exported yet.
+
 ## Aggregation (D3, D4, D24)
 
 - Institutions report **one quarter each**. The official 3-, 6-, 9-month and annual reports are
@@ -149,12 +181,15 @@ realized and the decisions taken during the build (D28 onward), with the reason.
 | D41 | Pages without `periods.manage` | Every module user may read the periods page; only the coordinator edits. |
 | D42 | Policies | One policy per aggregate root (period, participant, submission, digital service, clarification, visit, action item, attachment, export, settings), as Field Work has one policy for its request and child rows. Section rows, prefill, comments, corrections, histories and snapshots are authorized through their parent's policy. |
 | D43 | Phases and commits | The six phases were delivered in two commits (backend for phases 1–5 with their tests; pages, exports, Situation Room, demo data and docs), each with the module tests, Pint, typecheck, the i18n audit and the build passing. |
+| D44 | Form templates | Forms are configured, not coded: versioned templates assigned to organization types re-word or leave out official sections and add new ones (§Form templates). Additive: without a template the official form is unchanged. |
+| D45 | One template per type | Publishing refuses a template whose organization types already belong to another code's published template, so a participant never has two forms. |
+| D46 | Level-neutral wording | Admin screens name the review chain generically (independent institution, parent institution, reporting unit; parent-institution and overall consolidation) instead of center / sub-city / woreda / city. The printed official form text is unchanged and is re-worded per template. |
 
 ## Routes
 
 All under `/service-monitoring`, names `service-monitoring.*`, middleware `auth, verified, mfa,
 force.password, admin.access`, throttled writes. `php artisan route:list --name=service-monitoring`
-lists the 65 routes; the main ones:
+lists the module's routes; the main ones:
 
 | Page | Route |
 | --- | --- |
@@ -168,6 +203,7 @@ lists the 65 routes; the main ones:
 | Support | `/clarifications`, `/visits`, `/action-items` |
 | Reports, exports | `GET /reports`, `POST /exports`, `GET /exports/{e}/download` |
 | Settings | `GET|PUT /settings` |
+| Form templates | `GET /forms`, `/forms/create`, `/forms/{t}`, `/forms/{t}/edit`, `/forms/{t}/summary`; `POST /forms/{t}/publish|new-version|duplicate|archive` |
 
 ## Permissions and roles
 
@@ -189,6 +225,7 @@ registered by `2026_10_30_200100_register_service_monitoring_permissions.php`; r
 | visits.manage | | | | ✓ | | ✓ |
 | reports.view | | | ✓ | ✓ | ✓ | ✓ |
 | reports.export | | | ✓ | ✓ | | |
+| forms.manage | | | | ✓ | | |
 
 ## Audit events
 

@@ -5,14 +5,18 @@ import Section1Panel from '@/Components/serviceMonitoring/edit/Section1Panel';
 import Section2Panel from '@/Components/serviceMonitoring/edit/Section2Panel';
 import Section3Panel from '@/Components/serviceMonitoring/edit/Section3Panel';
 import Section4Panel from '@/Components/serviceMonitoring/edit/Section4Panel';
+import CustomSectionsPanel from '@/Components/serviceMonitoring/edit/CustomSectionsPanel';
 import { DATE_MARK, errorCls, labelCls, panelCls, placeDate, primaryBtn, secondaryBtn, useSm } from '@/Components/serviceMonitoring/helpers';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import type { SectionNumber, SubmissionProps, Suggestion } from '@/types/serviceMonitoring';
+import { CUSTOM_SECTION, type SectionNumber, type SubmissionProps, type Suggestion } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useId, useRef, useState, type FormEvent, type JSX, type KeyboardEvent } from 'react';
 
-const SECTIONS: SectionNumber[] = [1, 2, 3, 4];
+const OFFICIAL: SectionNumber[] = [1, 2, 3, 4];
+
+/** A tab: an official section, or the form template's additional sections. */
+type Tab = SectionNumber | typeof CUSTOM_SECTION;
 
 /**
  * The entry screen: one tab per official form section, each with its "የለም"
@@ -20,12 +24,16 @@ const SECTIONS: SectionNumber[] = [1, 2, 3, 4];
  * the attestation dialog with the declaration and the stamped copy (D10, D11).
  */
 export default function SubmissionEdit(props: SubmissionProps & { suggestions?: Suggestion[] }): JSX.Element {
-    const { submission, definition, section1, section2, section3, section4, problems, completeness, comments, attachments, declaration, require_stamped_copy, can, suggestions, history } = props;
+    const { submission, definition, section1, section2, section3, section4, problems, completeness, comments, attachments, declaration, require_stamped_copy, can, suggestions, history, custom } = props;
+    // The report's form template may leave out official sections and add its own (docs/service-monitoring.md §Form templates).
+    const official = OFFICIAL.filter((n) => (definition.enabled_sections ?? OFFICIAL).includes(n));
+    const hasCustom = (definition.custom?.sections.length ?? 0) > 0;
+    const SECTIONS: Tab[] = hasCustom ? [...official, CUSTOM_SECTION] : official;
     // The reviewer's reason for the latest return, shown with the banner.
     const returnReason = [...history].reverse().find((h) => h.to === 'returned')?.reason ?? null;
     const { sm, name } = useSm();
     const id = useId();
-    const [tab, setTab] = useState<SectionNumber>(1);
+    const [tab, setTab] = useState<Tab>(SECTIONS[0] ?? 1);
     const [attesting, setAttesting] = useState(false);
     const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
     const errors = usePage().props.errors as Record<string, string>;
@@ -33,7 +41,7 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
     const upload = useForm<{ file: File | null }>({ file: null });
     const editable = can.edit;
 
-    function toggleNothing(section: SectionNumber, nothing: boolean) {
+    function toggleNothing(section: Tab, nothing: boolean) {
         router.post(route('service-monitoring.submissions.nothing', submission.id), { section, nothing }, { preserveScroll: true });
     }
 
@@ -54,9 +62,9 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
         upload.post(route('service-monitoring.submissions.stamped-copy', submission.id), { forceFormData: true, preserveScroll: true, onSuccess: () => upload.reset() });
     }
 
-    const sectionTitle = (n: SectionNumber) => [definition.section_1.title, definition.section_2.title, definition.section_3.title, definition.section_4.title][n - 1];
+    const sectionTitle = (n: Tab) => n === CUSTOM_SECTION ? sm('templates.customTab') : [definition.section_1.title, definition.section_2.title, definition.section_3.title, definition.section_4.title][n - 1];
     const allProblems = Object.values(problems).flat();
-    const serverErrors = Object.entries(errors).filter(([key]) => key.startsWith('section_') || ['deadline', 'period', 'submission', 'stamped_copy', 'attest'].includes(key));
+    const serverErrors = Object.entries(errors).filter(([key]) => key.startsWith('section_') || ['deadline', 'period', 'submission', 'stamped_copy', 'attest', 'custom'].includes(key));
 
     return (
         <AuthenticatedLayout contentWidth="form" header={<PageHeader title={sm('edit.title', { name: name(submission.organization) })} description={`${submission.period.label} · ${sm(`formType.${submission.form_type}`)} · ${sm('common.revision', { n: submission.revision_no })}`}
@@ -91,7 +99,7 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
                         <button key={n} ref={(el) => { tabRefs.current[index] = el; }} type="button" role="tab" id={`${id}-tab-${n}`} aria-controls={`${id}-panel-${n}`} aria-selected={tab === n} tabIndex={tab === n ? 0 : -1}
                             onKeyDown={(e) => onTabKey(e, index)} onClick={() => setTab(n)}
                             className={`rounded-t-md px-3 py-2 text-sm ${tab === n ? 'border-b-2 border-(--app-foreground) font-semibold' : 'text-(--app-muted-foreground)'}`}>
-                            {sm('edit.section', { n })} <span aria-hidden="true">{completeness[n] ? '✓' : '•'}</span>
+                            {n === CUSTOM_SECTION ? sm('templates.customTab') : sm('edit.section', { n })} <span aria-hidden="true">{completeness[n] ? '✓' : '•'}</span>
                             <span className="sr-only">{completeness[n] ? sm('edit.complete') : sm('edit.incomplete')}</span>
                         </button>
                     ))}
@@ -104,10 +112,12 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
                                 <h2 className="text-sm font-semibold text-(--app-foreground)">{sectionTitle(n)}</h2>
                                 <p className="text-xs text-(--app-muted-foreground)">{completeness[n] ? sm('edit.complete') : sm('edit.incomplete')}</p>
                             </div>
-                            <label className="flex items-center gap-2 text-sm" title={sm('edit.nothingHint')}>
-                                <input type="checkbox" checked={submission.nothing[n]} disabled={!editable} onChange={(e) => toggleNothing(n, e.target.checked)} />
-                                {sm('edit.nothing')}
-                            </label>
+                            {n !== CUSTOM_SECTION && (
+                                <label className="flex items-center gap-2 text-sm" title={sm('edit.nothingHint')}>
+                                    <input type="checkbox" checked={submission.nothing[n]} disabled={!editable} onChange={(e) => toggleNothing(n, e.target.checked)} />
+                                    {sm('edit.nothing')}
+                                </label>
+                            )}
                         </div>
                         {(problems[n] ?? []).length > 0 && <ul className="list-disc ps-5 text-sm text-amber-800 dark:text-amber-200">{(problems[n] ?? []).map((p, i) => <li key={i}>{p}</li>)}</ul>}
                         {comments.filter((c) => c.section === n).length > 0 && (
@@ -123,6 +133,7 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
                         {n === 1 && <Section1Panel submissionId={submission.id} level={submission.level} quarter={submission.period} definition={definition} entries={section1.entries} named={section1.named} summary={section1.summary} editable={editable && !submission.nothing[1]} suggestions={suggestions} />}
                         {n === 2 && <Section2Panel submissionId={submission.id} definition={definition} values={section2.values} prefill={section2.prefill} narrative={submission.special_support_narrative} driverListEmpty={section2.driver_list_empty} notices={section2.notices} editable={editable} />}
                         {n === 3 && <Section3Panel submissionId={submission.id} definition={definition} totals={section3.totals} services={section3.services} catalog={section3.catalog} fiscalYear={section3.fiscal_year} editable={editable && !submission.nothing[3]} totalsEditable={editable} />}
+                        {n === CUSTOM_SECTION && definition.custom && <CustomSectionsPanel submissionId={submission.id} schema={definition.custom} data={custom.data} editable={editable} errors={errors} />}
                         {n === 4 && <Section4Panel submissionId={submission.id} definition={definition} totals={section3.totals} values={section4.values} minText={section4.min_text} editable={editable && !submission.nothing[4]} />}
                     </section>
                 ))}
