@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\CafeteriaProviderUser;
 use App\Models\ProviderUser;
 use App\Models\User;
+use Modules\Cafeteria\Domain\Models\CafeteriaProviderUser;
 
 return [
 

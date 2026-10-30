@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-use App\Models\CafeteriaDayRule;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaServicePolicy;
-use App\Models\CafeteriaSpecialDay;
-use App\Models\CafeteriaTransaction;
 use App\Models\Employee;
-use App\Models\EmployeeCafeteriaExclusion;
 use App\Models\IdCard;
 use App\Models\PublicHoliday;
-use App\Services\Cafeteria\CafeteriaCalendarService;
-use App\Services\Cafeteria\CafeteriaQrScanService;
-use App\Services\Cafeteria\CafeteriaSettingsService;
-use App\Services\Cafeteria\CafeteriaWeekWindowService;
-use App\Services\Cafeteria\WorkingDayCalendarService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Application\Services\CafeteriaCalendarService;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Application\Services\CafeteriaSettingsService;
+use Modules\Cafeteria\Application\Services\CafeteriaWeekWindowService;
+use Modules\Cafeteria\Application\Services\WorkingDayCalendarService;
+use Modules\Cafeteria\Domain\Models\CafeteriaDayRule;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\CafeteriaSpecialDay;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Cafeteria\Domain\Models\EmployeeCafeteriaExclusion;
 use Tests\Support\CafeteriaScenario;
 
 /**

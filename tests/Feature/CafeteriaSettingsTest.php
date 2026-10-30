@@ -3,19 +3,19 @@
 declare(strict_types=1);
 
 use App\Actions\Audit\WriteAuditLogAction;
-use App\Actions\Cafeteria\UpdateCafeteriaSettingsAction;
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaProviderAssignment;
-use App\Models\CafeteriaProviderBranch;
-use App\Models\CafeteriaSetting;
-use App\Models\CafeteriaSubsidyRule;
 use App\Models\ServiceProviderUser;
 use App\Models\ServiceType;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaSettingsService;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Cafeteria\Application\Actions\UpdateCafeteriaSettingsAction;
+use Modules\Cafeteria\Application\Services\CafeteriaSettingsService;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaProviderAssignment;
+use Modules\Cafeteria\Domain\Models\CafeteriaProviderBranch;
+use Modules\Cafeteria\Domain\Models\CafeteriaSetting;
+use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyRule;
 use Spatie\Permission\Models\Permission;
 
 function cafeteriaSettingsUser(bool $canUpdate = true): User

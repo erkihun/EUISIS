@@ -2,14 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Enums\CafeteriaPolicyStatus;
 use App\Enums\CardStatus;
 use App\Enums\DailyActivityStatus;
 use App\Enums\GrievanceStatus;
 use App\Enums\HierarchyVersionStatus;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaServicePolicy;
-use App\Models\CafeteriaTransaction;
 use App\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\Grievance;
@@ -26,8 +22,6 @@ use App\Models\ProviderUser;
 use App\Models\StrategicGoal;
 use App\Models\SystemSetting;
 use App\Models\User;
-use App\Services\Cafeteria\Policy\CafeteriaEntitlementService;
-use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
@@ -38,6 +32,12 @@ use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DemoDataSeeder;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaEntitlementService;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaPolicyResolver;
+use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 
 /*
  * The development / QA / UAT demo dataset (docs/demo-seed-data.md).

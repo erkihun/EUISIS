@@ -5,14 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Demo;
 
 use App\Enums\AssignmentStatus;
-use App\Enums\CafeteriaGrantStatus;
-use App\Enums\CafeteriaLocationType;
-use App\Enums\CafeteriaPolicyStatus;
 use App\Enums\HierarchyVersionStatus;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaServiceAssignment;
-use App\Models\CafeteriaServicePolicy;
-use App\Models\CafeteriaTransaction;
 use App\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -20,7 +13,6 @@ use App\Models\Grievance;
 use App\Models\HierarchyVersion;
 use App\Models\IdCard;
 use App\Models\Organization;
-use App\Models\OrganizationCafeteriaAccess;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\ProviderUser;
@@ -28,6 +20,14 @@ use App\Models\StrategicGoal;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Modules\Cafeteria\Domain\Enums\CafeteriaGrantStatus;
+use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
+use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
 
 /**
  * Read-only checks and counts for the demo dataset (demo-data:validate,

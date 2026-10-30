@@ -76,7 +76,7 @@ git rm --cached -r -q --ignore-unmatch -- "${EXCLUDE[@]}"
 tree="$(git write-tree)"
 unset GIT_INDEX_FILE
 
-if dangling="$(git grep -l -E "$LEFT_OUT_REFERENCES" "$tree" -- app bootstrap config database routes)"; then
+if dangling="$(git grep -l -E "$LEFT_OUT_REFERENCES" "$tree" -- app Modules bootstrap config database routes)"; then
     echo "Refusing to build: shipped files refer to code left out of ${TARGET_BRANCH}:" >&2
     echo "$dangling" >&2
     exit 1

@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Services\Cafeteria\CafeteriaQrScanService;
 use Illuminate\Support\Carbon;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
 use Tests\Support\CafeteriaScenario;
 
 /*

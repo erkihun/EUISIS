@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-use App\Enums\CafeteriaLocationType;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaServiceAssignment;
-use App\Models\CafeteriaServiceNetwork;
-use App\Models\CafeteriaServicePolicy;
-use App\Models\OrganizationCafeteriaAccess;
 use App\Models\Provider;
 use App\Models\ServiceType;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaQrScanService;
 use Illuminate\Support\Carbon;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
+use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
 use Spatie\Permission\Models\Role;
 use Tests\Support\CafeteriaScenario;
 

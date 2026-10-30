@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
-use App\Enums\CafeteriaSettlementStatus;
-use App\Models\CafeteriaServicePolicy;
-use App\Models\CafeteriaTransaction;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaQrScanService;
-use App\Services\Cafeteria\Settlement\CafeteriaSettlementService;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Cafeteria\Application\Actions\ReverseCafeteriaTransactionAction;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Application\Services\Settlement\CafeteriaSettlementService;
+use Modules\Cafeteria\Domain\Enums\CafeteriaSettlementStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Tests\Support\CafeteriaScenario;
 
 beforeEach(function (): void {

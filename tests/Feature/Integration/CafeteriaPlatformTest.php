@@ -7,11 +7,11 @@ use App\Models\Employee;
 use App\Models\Entitlement;
 use App\Models\ServiceType;
 use App\Models\User;
-use App\Services\CafeteriaPlatform\CafeteriaPlatformClient;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Cafeteria\Infrastructure\Platform\CafeteriaPlatformClient;
 
 /*
  * The cafeteria on its own platform (ADR 0014, config/cafeteria_platform.php):

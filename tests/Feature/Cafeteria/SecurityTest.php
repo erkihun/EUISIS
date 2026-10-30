@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Models\CafeteriaServicePolicy;
-use App\Models\CafeteriaTransaction;
 use App\Models\ProviderUser;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
-use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Support\Rbac\DefaultRoleMatrix;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\Support\CafeteriaScenario;

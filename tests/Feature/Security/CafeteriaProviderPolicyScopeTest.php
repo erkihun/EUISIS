@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaTransaction;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaProviderAccessService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Application\Services\CafeteriaProviderAccessService;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Spatie\Permission\Models\Permission;
 
 /*

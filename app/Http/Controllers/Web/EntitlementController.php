@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Web;
 use App\Actions\Entitlements\GrantEntitlementAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EntitlementStoreRequest;
-use App\Models\CafeteriaProvider;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\Entitlement;
@@ -19,6 +18,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Cafeteria\Contracts\CafeteriaDirectory;
 
 class EntitlementController extends Controller
 {
@@ -56,10 +56,7 @@ class EntitlementController extends Controller
             'entitlements' => $entitlements,
             'serviceTypes' => ServiceType::query()->orderBy('name_en')->get(['id', 'name_en']),
             'providers' => ServiceProvider::query()->orderBy('name')->get(['id', 'name', 'service_type_id']),
-            'cafeteriaProviders' => CafeteriaProvider::query()
-                ->with('organization:id,name_en')
-                ->orderBy('name_en')
-                ->get(['id', 'code', 'name_en', 'name_am', 'organization_id', 'is_active', 'location']),
+            'cafeteriaProviders' => app(CafeteriaDirectory::class)->locations(),
         ]);
     }
 

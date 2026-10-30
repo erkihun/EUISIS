@@ -6,10 +6,7 @@ use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnforceSessionIdleTimeout;
 use App\Http\Middleware\EnsureAdminAccess;
 use App\Http\Middleware\EnsureApiScope;
-use App\Http\Middleware\EnsureCafeteriaPortalUser;
-use App\Http\Middleware\EnsureCafeteriaProviderAssigned;
 use App\Http\Middleware\EnsureMfaNotRequired;
-use App\Http\Middleware\EnsureProviderHasActiveAssignment;
 use App\Http\Middleware\EnsureProviderPortalUser;
 use App\Http\Middleware\EnsureProviderServiceEnabled;
 use App\Http\Middleware\EnsureProviderServicePermission;
@@ -22,11 +19,9 @@ use App\Http\Middleware\GuardMasterDataWrites;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PrivateQrPageHeaders;
 use App\Http\Middleware\RecordRequestTelemetry;
-use App\Http\Middleware\RedirectCafeteriaToPlatform;
 use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
-use App\Http\Middleware\SetCafeteriaPortalContext;
 use App\Http\Middleware\SetClientLocale;
 use App\Http\Middleware\SetProviderPortalContext;
 use App\Models\ProviderUser;
@@ -45,6 +40,7 @@ use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
+use Modules\Cafeteria\Http\Middleware\RedirectCafeteriaToPlatform;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -90,6 +86,7 @@ return Application::configure(basePath: dirname(__DIR__))
             // Modules outside the current production scope (config/features.php) answer 404.
             BlockDisabledModules::class,
             // The cafeteria module on its own platform (config/cafeteria_platform.php, ADR 0014): its pages live there.
+            // Registered here, not in Modules/Cafeteria/Providers, because its place in the web group matters.
             RedirectCafeteriaToPlatform::class,
             SetClientLocale::class,
             EnforceSessionIdleTimeout::class,
@@ -109,10 +106,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'provider.service' => EnsureProviderServiceEnabled::class,
             'provider.permission' => EnsureProviderServicePermission::class,
             'provider.portal.context' => SetProviderPortalContext::class,
-            'provider.assigned' => EnsureProviderHasActiveAssignment::class,
-            'cafeteria.portal' => EnsureCafeteriaPortalUser::class,
-            'cafeteria.provider.assigned' => EnsureCafeteriaProviderAssigned::class,
-            'cafeteria.portal.context' => SetCafeteriaPortalContext::class,
             'admin.access' => EnsureAdminAccess::class,
             'mfa' => RequireMfa::class,
             'force.password' => ForcePasswordChange::class,

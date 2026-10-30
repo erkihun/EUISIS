@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Enums\AuditEventType;
 use App\Http\Requests\Settings\UpdateSecuritySettingsRequest;
 use App\Models\AuditLog;
-use App\Models\CafeteriaProvider;
 use App\Models\Employee;
 use App\Models\EmployeeRegistrationOtp;
 use App\Models\PasswordHistory;
@@ -35,6 +34,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Spatie\Permission\Models\Role;
 
 /*

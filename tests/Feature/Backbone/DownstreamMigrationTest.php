@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cafeteria\ArchiveEmployeeCafeteriaExclusionAction;
-use App\Actions\Cafeteria\CreateEmployeeCafeteriaExclusionAction;
-use App\Actions\Cafeteria\EndEmployeeCafeteriaExclusionAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\AuditLog;
@@ -13,7 +10,10 @@ use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaEmployeeContext;
+use Modules\Cafeteria\Application\Actions\ArchiveEmployeeCafeteriaExclusionAction;
+use Modules\Cafeteria\Application\Actions\CreateEmployeeCafeteriaExclusionAction;
+use Modules\Cafeteria\Application\Actions\EndEmployeeCafeteriaExclusionAction;
+use Modules\Cafeteria\Application\Services\CafeteriaEmployeeContext;
 
 /*
  * Stage 3 of the Core migration: service modules read Golden Path facts

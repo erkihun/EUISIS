@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Demo;
 
-use App\Actions\Cafeteria\CreateCafeteriaProviderAction;
 use App\Models\ProviderUser;
 use App\Services\ProviderPortal\ProviderUserAccountService;
 use App\Support\Demo\DemoDataset;
 use Illuminate\Support\Facades\DB;
+use Modules\Cafeteria\Application\Actions\CreateCafeteriaProviderAction;
 
 /**
  * Providers (payees) → networks → locations, created as Cafeteria

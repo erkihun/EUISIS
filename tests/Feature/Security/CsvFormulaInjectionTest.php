@@ -40,7 +40,7 @@ test('non-string cells pass through unchanged', function (): void {
 /* Every CSV writer in the app must route its rows through the sanitizer. */
 test('every fputcsv call site sanitises its row', function (): void {
     $files = [
-        'app/Services/Cafeteria/ProviderTransactionExportService.php',
+        'Modules/Cafeteria/Application/Services/ProviderTransactionExportService.php',
         'Modules/Transport/Http/Controllers/ProviderPortal/TransportTransactionController.php',
         'app/Http/Controllers/Web/ServiceFeedbackController.php',
     ];

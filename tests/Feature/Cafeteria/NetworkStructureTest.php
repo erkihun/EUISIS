@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Enums\CafeteriaLocationType;
-use App\Models\CafeteriaServiceNetwork;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaQrScanService;
-use App\Services\Cafeteria\Network\CafeteriaNetworkService;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Application\Services\Network\CafeteriaNetworkService;
+use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
+use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use Tests\Support\CafeteriaScenario;
 
 beforeEach(function (): void {

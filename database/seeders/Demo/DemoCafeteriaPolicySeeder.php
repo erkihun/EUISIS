@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Demo;
 
-use App\Enums\CafeteriaGrantStatus;
-use App\Enums\CafeteriaPolicyStatus;
-use App\Models\CafeteriaServiceAssignment;
-use App\Models\CafeteriaServicePolicy;
 use App\Models\Organization;
 use App\Models\User;
-use App\Services\Cafeteria\Policy\CafeteriaPolicyWorkflowService;
 use App\Support\Demo\DemoDataset;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaPolicyWorkflowService;
+use Modules\Cafeteria\Domain\Enums\CafeteriaGrantStatus;
+use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use RuntimeException;
 
 /**

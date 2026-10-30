@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\ProviderPortal;
 
-use App\Models\CafeteriaProvider;
 use App\Models\Provider;
 use App\Models\ProviderUser;
 use App\Support\Features;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
+use Modules\Cafeteria\Contracts\CafeteriaPortalLocations;
 
 class ProviderPortalContext
 {
@@ -44,73 +43,17 @@ class ProviderPortalContext
         return route('provider.portal.dashboard');
     }
 
-    private const SELECTED_CAFETERIA = 'provider_portal.cafeteria_id';
-
-    /**
-     * The cafeteria location the portal is working at. A provider may run
-     * several; the user may pick any of their OWN provider's active ones
-     * (?provider_id=… from the switcher, remembered in the session). A
-     * location of another provider can never be selected.
-     */
-    public function selectedProvider(Request $request): ?CafeteriaProvider
-    {
-        $cafeterias = $this->cafeterias($request);
-        if ($cafeterias->isEmpty()) {
-            return null;
-        }
-
-        $requested = $request->query('provider_id');
-        if (is_string($requested) && $cafeterias->contains('id', $requested) && $request->hasSession()) {
-            $request->session()->put(self::SELECTED_CAFETERIA, $requested);
-        }
-
-        $remembered = $request->hasSession() ? $request->session()->get(self::SELECTED_CAFETERIA) : null;
-
-        return $cafeterias->firstWhere('id', $remembered) ?? $cafeterias->first();
-    }
-
-    /**
-     * Active cafeteria locations of the signed-in user's provider, main first.
-     *
-     * @return Collection<int, CafeteriaProvider>
-     */
-    public function cafeterias(Request $request): Collection
-    {
-        $provider = $this->provider($request);
-
-        if ($provider === null || ! $provider->hasService('cafeteria')) {
-            return collect();
-        }
-
-        return $provider->cafeterias()
-            ->where('is_active', true)
-            ->orderByRaw("case when location_type = 'main' then 0 else 1 end")
-            ->orderBy('name_en')
-            ->get();
-    }
-
     /** @return array<string, mixed> */
     public function providerPayload(Request $request): array
     {
         $provider = $this->provider($request);
-        $cafeteriaProvider = $this->selectedProvider($request);
+        // The cafeteria locations the portal can switch between belong to the Cafeteria module.
+        $cafeterias = app(CafeteriaPortalLocations::class)->selection($request);
 
         return [
-            'providers' => $this->cafeterias($request)->map(fn (CafeteriaProvider $c): array => $this->formatCafeteriaProvider($c))->values()->all(),
-            'selected_provider_id' => $cafeteriaProvider?->id,
+            'providers' => $cafeterias->locations,
+            'selected_provider_id' => $cafeterias->selectedId,
             'providerPortal' => $provider ? $this->formatProviderPortal($request, $provider) : null,
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function formatCafeteriaProvider(CafeteriaProvider $provider): array
-    {
-        return [
-            'id' => $provider->id,
-            'code' => $provider->code,
-            'name_en' => $provider->name_en,
-            'name_am' => $provider->name_am,
-            'location' => $provider->location,
         ];
     }
 

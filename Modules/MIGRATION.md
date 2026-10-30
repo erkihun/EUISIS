@@ -3,7 +3,7 @@
 Where the move to `Modules/<Name>/{Contracts,Domain,Application,Infrastructure,Http,Providers}`
 stands ([ADR 0016](../docs/architecture/adr/0016-module-boundaries.md),
 [ADR 0017](../docs/architecture/adr/0017-module-public-contracts-and-data-ownership.md)). Update it
-in the same change as each step. **Verdict today: incomplete** — Transport has moved; the other owners below are still in `app/`.
+in the same change as each step. **Verdict today: incomplete** — Transport and Cafeteria have moved; the other owners below are still in `app/`.
 
 Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (enforced by
 `tests/Feature/Architecture/ModuleOwnershipTest.php`).
@@ -22,8 +22,8 @@ Ownership of every model and table: [`Modules/ownership.php`](ownership.php) (en
 | Owner | Home | Public contracts | Remaining work |
 | --- | --- | --- | --- |
 | Transport | `Modules/Transport` (2026-10-30) | `EmployeeTransportActivity`, `TransportOperationalMetrics`, `TransportDataQuality`; `Data\TripStatus` published values. Inbound: nothing outside uses its internals (enforced). | Outbound, to owners not yet modules (not enforceable until they move): (1) **Providers** — `App\Models\Provider`/`ProviderUser` in relations, requests and services; `TransportProviderService` creates provider, provider-service and provider-user records (a cross-module write: needs a Providers command); SQL on `providers`/`provider_services` in `TransportDataQualityService` and `TransportReportService`. (2) **Core** — 15 files import Core models (ratchet); `TransportSettlementService` reads `employees` and `organization_closure_paths` in SQL (should use `OrganizationHierarchy`). (3) **Daily work** — `TransportEmployeeNotifier` uses `App\Services\DailyActivity\DailyActivityNotifier`. Shared platform use (users, audit, settings, calendar, organization scope) is allowed. |
-| Cafeteria | app | — | next: 22 models, 24 actions, 32 services; already uses `CredentialLookup`, `ServiceEligibility`, `EmployeeDirectory` |
-| Providers (provider records, portals, terminals) | app | — | needed by Transport and Cafeteria: provider lookup contract |
+| Cafeteria | `Modules/Cafeteria` (2026-10-30) | `EmployeeCafeteriaActivity` (My Portal), `CafeteriaPortalLocations` (provider-portal location switcher), `CafeteriaTerminalScan` (NFC terminals), `CafeteriaDirectory` (location pickers), `CafeteriaStaffAssignments` (staff portal access); `Data\TransactionStatus` published values. Inbound: nothing outside uses its internals (enforced). 175 classes moved plus the `provider.assigned` middleware; the three public-holiday actions moved out to `app/Actions/PublicHolidays` (platform, not cafeteria). | Outbound, to owners not yet modules: (1) **Providers** — `App\Models\Provider`, `ProviderUser`, `ServiceProvider`, `ServiceProviderUser`, `ServiceTerminal`, `ProviderService`, `ProviderType` in relations and services, and `App\Services\ProviderPortal\ProviderPortalContext` in portal controllers. (2) **Core** — 39 files import Core models (ratchet). (3) **Entitlements** — `ServiceType`, `ServiceTransaction`. Declared read-only readers of its tables: Situation Room (`CafeteriaAnalytics`, `SupportingIndicators`), the duplicate-data audit, the legacy provider-user migration, the retention and scope catalogues, `config/auth.php`. The redirect to the cafeteria platform stays in the web group in `bootstrap/app.php` (middleware order). |
+| Providers (provider records, portals, terminals) | app | — | next: Transport and Cafeteria both depend on it; needs provider lookup contracts and a command for creating provider records |
 | Entitlements / service transactions | app | partly via `App\Backbone` (`ServiceEligibility`) | |
 | Field work | app | — | |
 | Daily work | app | — | |

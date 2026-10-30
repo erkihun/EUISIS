@@ -23,8 +23,9 @@ make to Core records) and `App\Backbone\Events`. Service modules should be shape
 1. **Two more layers.** A module is
    `Modules/<Name>/{Contracts, Domain, Application, Infrastructure, Http, Providers}`:
    - `Contracts`: its public API. Interfaces, plus immutable data (`Contracts\Data`) and published
-     integration events (`Contracts\Events`). No Eloquent model, builder, request or internal class
-     appears in a signature.
+     integration events (`Contracts\Events`). No Eloquent model, builder, response, form request or
+     internal class appears in a signature. `Illuminate\Http\Request` may be passed as request
+     context (audit trail, client IP), as the Core's `ServiceEligibility` already does.
    - `Providers`: one service provider that binds the contracts to their implementations and
      registers everything else the framework must know (policies, morph map, event listeners,
      middleware aliases, rate limiters, console commands, relations the module attaches to Core

@@ -5,11 +5,11 @@ declare(strict_types=1);
 use App\Backbone\Contracts\EmployeeDirectory;
 use App\Enums\OrganizationScopeType;
 use App\Models\Employee;
-use App\Models\EmployeeCafeteriaExclusion;
 use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Cafeteria\Domain\Models\EmployeeCafeteriaExclusion;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\GrievanceScenario;
 

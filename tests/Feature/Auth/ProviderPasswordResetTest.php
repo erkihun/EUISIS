@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Contracts\SmsGateway;
-use App\Models\CafeteriaProvider;
 use App\Models\Provider;
 use App\Models\ProviderPasswordResetCode;
 use App\Models\ProviderType;
@@ -16,6 +15,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 
 const PR_NEW_PASSWORD = 'violet harbor lanterns drift slowly';
 

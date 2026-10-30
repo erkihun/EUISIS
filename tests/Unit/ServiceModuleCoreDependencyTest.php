@@ -73,7 +73,12 @@ function serviceModuleCoreImports(): array
 it('lets no service module add a direct dependency on Golden Path models', function (): void {
     // Baseline 2026-10-24. Lower a number when a module moves onto Core contracts.
     $baseline = [
-        'cafeteria' => 21,
+        // 2026-10-30: 39, not new coupling. The move to Modules/Cafeteria gave 15 models
+        // `use` lines for Core relations they always had (they shared App\Models), and two
+        // classes took over code that already read Core models in non-module files (My
+        // Portal's cafeteria card, the NFC terminal scan). The provider-portal screens now
+        // count here instead of under provider_portal.
+        'cafeteria' => 39,
         // 2026-10-25: route access, organization lookup, eligibility request, the
         // reevaluation job and the scan service read through Core contracts.
         // 2026-10-30: 15, not new coupling: the move to Modules/Transport gave its
@@ -93,7 +98,8 @@ it('lets no service module add a direct dependency on Golden Path models', funct
         'intelligence' => 2,
         'situation_room' => 12,
         'communication' => 12,
-        'provider_portal' => 7,
+        // 2026-10-30: 6; the cafeteria portal screens moved to Modules/Cafeteria and count there.
+        'provider_portal' => 6,
         'organization_design' => 37,
     ];
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\CafeteriaDayRule;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Domain\Models\CafeteriaDayRule;
 
 class CafeteriaDayRuleSeeder extends Seeder
 {

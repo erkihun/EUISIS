@@ -1,10 +1,6 @@
 <?php
 
-use App\Exports\Cafeteria\TransactionStatementExport;
-use App\Models\CafeteriaTransaction;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaProviderAccessService;
-use App\Services\Cafeteria\TransactionStatementService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
@@ -12,6 +8,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
+use Modules\Cafeteria\Application\Services\CafeteriaProviderAccessService;
+use Modules\Cafeteria\Application\Services\TransactionStatementService;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Cafeteria\Infrastructure\Exports\TransactionStatementExport;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Tests\TestCase;
 

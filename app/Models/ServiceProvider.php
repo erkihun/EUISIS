@@ -8,7 +8,6 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ServiceProvider extends Model
 {
@@ -45,8 +44,5 @@ class ServiceProvider extends Model
         return $this->hasMany(ServiceTransaction::class);
     }
 
-    public function cafeteriaDetails(): HasOne
-    {
-        return $this->hasOne(CafeteriaProvider::class);
-    }
+    // cafeteriaDetails() is attached by the Cafeteria module.
 }

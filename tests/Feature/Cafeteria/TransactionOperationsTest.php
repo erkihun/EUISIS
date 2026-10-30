@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
-use App\Enums\CafeteriaTransactionStatus;
 use App\Models\AuditLog;
-use App\Models\CafeteriaProviderAssignment;
-use App\Models\CafeteriaProviderLedgerEntry;
-use App\Models\CafeteriaSubsidyLedger;
-use App\Models\CafeteriaTransaction;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaProviderLedgerService;
-use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Services\IdCards\CardQrPayloadService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Validation\ValidationException;
+use Modules\Cafeteria\Application\Actions\ReverseCafeteriaTransactionAction;
+use Modules\Cafeteria\Application\Services\CafeteriaProviderLedgerService;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaProviderAssignment;
+use Modules\Cafeteria\Domain\Models\CafeteriaProviderLedgerEntry;
+use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyLedger;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\CafeteriaScenario;
 

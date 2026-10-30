@@ -25,10 +25,7 @@ class ServiceTerminal extends Model
         return $this->belongsTo(ServiceProvider::class, 'provider_id');
     }
 
-    public function cafeteriaProvider(): BelongsTo
-    {
-        return $this->belongsTo(CafeteriaProvider::class, 'cafeteria_provider_id');
-    }
+    // cafeteriaProvider() is attached by the Cafeteria module.
 
     public function organization(): BelongsTo
     {

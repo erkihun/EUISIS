@@ -9,7 +9,6 @@ use App\Support\Features;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Provider extends Model
@@ -66,28 +65,7 @@ class Provider extends Model
         return $this->hasMany(ProviderUser::class);
     }
 
-    /**
-     * The provider's default cafeteria location: its main cafeteria, else the
-     * oldest one. A provider may now run several (see cafeterias()).
-     */
-    public function cafeteriaProvider(): HasOne
-    {
-        return $this->hasOne(CafeteriaProvider::class)
-            ->orderByRaw("case when location_type = 'main' then 0 else 1 end")
-            ->oldest();
-    }
-
-    /** Every cafeteria location this provider operates, in any network. */
-    public function cafeterias(): HasMany
-    {
-        return $this->hasMany(CafeteriaProvider::class);
-    }
-
-    public function cafeteriaNetworks(): HasMany
-    {
-        return $this->hasMany(CafeteriaServiceNetwork::class);
-    }
-
+    // cafeteriaProvider(), cafeterias() and cafeteriaNetworks() are attached by the Cafeteria module.
     // transportProfile() is attached by the Transport module (Modules/Transport/Providers).
 
     public function hasService(string $serviceCode): bool

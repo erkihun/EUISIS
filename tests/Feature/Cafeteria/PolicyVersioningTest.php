@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Enums\CafeteriaPolicyStatus;
-use App\Models\CafeteriaServicePolicy;
-use App\Models\CafeteriaTransaction;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaCalendarService;
-use App\Services\Cafeteria\CafeteriaQrScanService;
-use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
-use App\Services\Cafeteria\Policy\CafeteriaPolicyWorkflowService;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
+use Modules\Cafeteria\Application\Services\CafeteriaCalendarService;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaPolicyResolver;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaPolicyWorkflowService;
+use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Tests\Support\CafeteriaScenario;
 
 beforeEach(function (): void {

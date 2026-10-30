@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Actions\Cafeteria\ArchivePublicHolidayAction;
-use App\Actions\Cafeteria\CreatePublicHolidayAction;
-use App\Actions\Cafeteria\UpdatePublicHolidayAction;
+use App\Actions\PublicHolidays\ArchivePublicHolidayAction;
+use App\Actions\PublicHolidays\CreatePublicHolidayAction;
+use App\Actions\PublicHolidays\UpdatePublicHolidayAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePublicHolidayRequest;
 use App\Http\Requests\UpdatePublicHolidayRequest;

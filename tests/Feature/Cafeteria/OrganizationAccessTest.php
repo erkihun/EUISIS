@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Models\OrganizationCafeteriaLocationAccess;
-use App\Services\Cafeteria\CafeteriaQrScanService;
 use Illuminate\Support\Carbon;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaLocationAccess;
 use Tests\Support\CafeteriaScenario;
 
 beforeEach(function (): void {

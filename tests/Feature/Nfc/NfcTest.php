@@ -1,8 +1,6 @@
 <?php
 
 use App\Models\ApiEndpointDefinition;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaTransaction;
 use App\Models\Employee;
 use App\Models\ExternalApplication;
 use App\Models\IdCard;
@@ -11,12 +9,14 @@ use App\Models\NfcVerificationLog;
 use App\Models\ServiceTerminal;
 use App\Models\User;
 use App\Services\ApiEndpointCatalogService;
-use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Services\Nfc\NfcCredentialService;
 use App\Services\Nfc\SecureCardAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Ramsey\Uuid\Uuid;
 use Tests\Support\CafeteriaScenario;
 

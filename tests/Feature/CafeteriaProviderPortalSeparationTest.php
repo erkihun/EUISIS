@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Models\CafeteriaProvider;
 use App\Models\Provider;
 use App\Models\ProviderType;
 use App\Models\ProviderUser;
@@ -12,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 
 function createPortalUserWithProvider(): array
 {

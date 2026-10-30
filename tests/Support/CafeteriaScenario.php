@@ -4,20 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
-use App\Enums\CafeteriaGrantStatus;
-use App\Enums\CafeteriaLocationType;
-use App\Enums\CafeteriaPolicyStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaServiceAssignment;
-use App\Models\CafeteriaServiceNetwork;
-use App\Models\CafeteriaServicePolicy;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\IdCard;
 use App\Models\Organization;
-use App\Models\OrganizationCafeteriaAccess;
 use App\Models\OrganizationType;
 use App\Models\Provider;
 use App\Models\ProviderType;
@@ -25,6 +17,14 @@ use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Domain\Enums\CafeteriaGrantStatus;
+use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
+use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
+use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
 
 /**
  * The brief's reference layout, built fresh for each test:

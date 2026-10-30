@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Auth\MfaController;
 use App\Models\AuditLog;
-use App\Models\CafeteriaProvider;
 use App\Models\Provider;
 use App\Models\ProviderType;
 use App\Models\ProviderUser;
@@ -20,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Spatie\Permission\Models\Permission;
 
 /*

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support\Demo;
 
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaServiceNetwork;
 use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
@@ -13,6 +11,8 @@ use App\Models\Position;
 use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use RuntimeException;
 
 /**

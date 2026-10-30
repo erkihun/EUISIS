@@ -9,15 +9,13 @@ use App\Services\Security\MfaRequirementService;
 use App\Support\Security\NationalIdHash;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
+use Modules\Cafeteria\Contracts\CafeteriaStaffAssignments;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -191,21 +189,10 @@ class User extends Authenticatable
         return $this->hasMany(UserOrganizationScope::class);
     }
 
-    public function cafeteriaProviders(): BelongsToMany
-    {
-        return $this->belongsToMany(CafeteriaProvider::class, 'cafeteria_provider_assignments')
-            ->withPivot(['role', 'provider_role', 'is_active', 'assigned_by', 'effective_from', 'effective_to'])
-            ->withTimestamps();
-    }
-
-    public function primaryCafeteriaProvider(): BelongsTo
-    {
-        return $this->belongsTo(CafeteriaProvider::class, 'cafeteria_provider_id');
-    }
+    // cafeteriaProviders() and primaryCafeteriaProvider() are attached by the Cafeteria module.
 
     public function hasProviderPortalAccess(): bool
     {
-        $today = Carbon::today()->toDateString();
         $hasPortalGrant = $this->provider_portal_enabled
             || $this->user_type === 'provider'
             || $this->can('cafeteria-portal.login')
@@ -215,17 +202,7 @@ class User extends Authenticatable
 
         return $this->isActive()
             && $hasPortalGrant
-            && $this->cafeteriaProviders()
-                ->wherePivot('is_active', true)
-                ->where(function ($query) use ($today): void {
-                    $query->whereNull('cafeteria_provider_assignments.effective_from')
-                        ->orWhere('cafeteria_provider_assignments.effective_from', '<=', $today);
-                })
-                ->where(function ($query) use ($today): void {
-                    $query->whereNull('cafeteria_provider_assignments.effective_to')
-                        ->orWhere('cafeteria_provider_assignments.effective_to', '>=', $today);
-                })
-                ->exists();
+            && app(CafeteriaStaffAssignments::class)->hasActiveAssignment($this->getKey());
     }
 
     /**

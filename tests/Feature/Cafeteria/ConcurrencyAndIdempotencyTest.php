@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
-use App\Enums\CafeteriaUsageMode;
-use App\Models\CafeteriaTransaction;
-use App\Models\CafeteriaTransactionConsumedDay;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaQrScanService;
-use App\Services\Cafeteria\Policy\CafeteriaEntitlementService;
-use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
-use App\Services\Cafeteria\Policy\CafeteriaTransactionPricingService;
-use App\Services\Cafeteria\Policy\CafeteriaTransactionService;
-use App\Services\Cafeteria\Policy\EntitlementAlreadyConsumed;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Application\Actions\ReverseCafeteriaTransactionAction;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaEntitlementService;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaPolicyResolver;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaTransactionPricingService;
+use Modules\Cafeteria\Application\Services\Policy\CafeteriaTransactionService;
+use Modules\Cafeteria\Application\Services\Policy\EntitlementAlreadyConsumed;
+use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransactionConsumedDay;
 use Tests\Support\CafeteriaScenario;
 
 beforeEach(function (): void {

@@ -22,7 +22,7 @@ is allowed).
 
 | Module | Files importing Core models | Status | Contracts / adapters used | Core events consumed | Writes to Core |
 | --- | --- | --- | --- | --- | --- |
-| Cafeteria | 21 | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` (every scan); `CafeteriaEmployeeContext` over `AssignmentContextReader` (exclusion audit context); `EmployeeDirectory` (exclusion creation and selected ledger employee) | none (live verification per scan) | none |
+| Cafeteria (`Modules/Cafeteria`, own public contracts: [Modules/README.md](../../Modules/README.md#public-contracts)) | see the ratchet | ADAPTER_INTRODUCED | `CredentialLookup`, `ServiceEligibility` (every scan); `CafeteriaEmployeeContext` over `AssignmentContextReader` (exclusion audit context); `EmployeeDirectory` (exclusion creation and selected ledger employee) | none (live verification per scan) | none |
 | Transport (`Modules/Transport`, own public contracts: [Modules/README.md](../../Modules/README.md#public-contracts)) | 15 | ADAPTER_INTRODUCED, EVENT_SYNCED | `CredentialLookup`, `ServiceEligibility` (boarding), `EmployeeDirectory` (manual lookup) | `AssignmentChanged`, `EmployeeChanged` (eligibility re-evaluation) | none |
 | Entitlements / service transactions | (in cafeteria and transport counts) | CONTRACT_MIGRATED for the service gate | `ServiceEligibility`, `CredentialLookup` | none | none |
 | Communication | 12 | EVENT_SYNCED | none | `AssignmentChanged`, `EmployeeChanged` (membership sync) | none |

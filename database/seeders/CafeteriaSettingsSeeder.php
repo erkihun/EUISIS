@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\CafeteriaSetting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Domain\Models\CafeteriaSetting;
 
 class CafeteriaSettingsSeeder extends Seeder
 {

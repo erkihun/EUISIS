@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Backbone\Contracts\EmployeeDirectory;
-use App\Models\CafeteriaSubsidyLedger;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
@@ -11,6 +10,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyLedger;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

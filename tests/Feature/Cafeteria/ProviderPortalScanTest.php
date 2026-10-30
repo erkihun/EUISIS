@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 use App\Models\AuditLog;
-use App\Models\CafeteriaMenu;
-use App\Models\CafeteriaProviderLedgerEntry;
-use App\Models\CafeteriaTransaction;
 use App\Models\ProviderUser;
 use App\Services\IdCards\CardQrPayloadService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Domain\Models\CafeteriaMenu;
+use Modules\Cafeteria\Domain\Models\CafeteriaProviderLedgerEntry;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Tests\Support\CafeteriaScenario;
 
 /*

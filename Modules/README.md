@@ -29,7 +29,9 @@ flowchart LR
 Rules, all enforced by `tests/Feature/Architecture`:
 
 - Outside code (`app/` and other modules) uses only a module's `Contracts` (`ModulePublicApiTest`).
-- Contracts are interfaces plus final data; they expose no model, builder, request or internal class.
+- Contracts are interfaces plus final data; they expose no model, builder, response, form request or
+  internal class. `Illuminate\Http\Request` may pass through as request context (audit, IP), as in
+  the Core's own contracts.
 - Every contract is bound in the module's provider; modules do not depend on each other in a cycle.
 - Every model, and so every table, has one owner in [`ownership.php`](ownership.php)
   (`ModuleOwnershipTest`). Only the owner writes it. Outside SQL on a module's tables is allowed only
@@ -49,6 +51,12 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Transport | `TransportOperationalMetrics::snapshot($now)` | `?Data\TransportOperationsSnapshot` | system telemetry |
 | Transport | `TransportDataQuality::summary()` | list of `{code, count, severity}` | data-quality report |
 | Transport | `Data\TripStatus` constants | the trip status values | Situation Room reports |
+| Cafeteria | `EmployeeCafeteriaActivity::forEmployee($employeeId, $today)` | My Portal's cafeteria card (array) | My Portal |
+| Cafeteria | `CafeteriaPortalLocations::selection($request)` | `Data\CafeteriaPortalSelection` | provider-portal context |
+| Cafeteria | `CafeteriaTerminalScan::scan(...)` | `?Data\CafeteriaScanOutcome` | NFC API |
+| Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |
+| Cafeteria | `CafeteriaStaffAssignments::hasActiveAssignment($userId)` | bool | `User::hasProviderPortalAccess()` |
+| Cafeteria | `Data\TransactionStatus` constants | the transaction status values | Situation Room reports |
 
 Transport reacts to the Core's `AssignmentChanged` and `EmployeeChanged` events and reads people and
 cards through `App\Backbone` contracts (`CredentialLookup`, `ServiceEligibility`, `EmployeeDirectory`).

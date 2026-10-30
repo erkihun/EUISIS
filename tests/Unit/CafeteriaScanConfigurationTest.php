@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Enums\CafeteriaUsageMode;
-use App\Http\Requests\ProcessCafeteriaQrScanRequest;
+use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
+use Modules\Cafeteria\Http\Requests\ProcessCafeteriaQrScanRequest;
 
 test('cafeteria usage modes are fixed subsidy modes only', function (): void {
     expect(array_map(fn (CafeteriaUsageMode $mode): string => $mode->value, CafeteriaUsageMode::cases()))

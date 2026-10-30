@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Enums\CafeteriaPolicyStatus;
-use App\Models\CafeteriaServicePolicy;
-use App\Models\CafeteriaSubsidyRule;
-use App\Models\CafeteriaTransactionConsumedDay;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaQrScanService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\CafeteriaSubsidyRule;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransactionConsumedDay;
 use Tests\Support\CafeteriaScenario;
 
 beforeEach(function (): void {

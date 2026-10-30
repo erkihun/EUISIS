@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Database\Seeders\Demo;
 
-use App\Actions\Cafeteria\CreateEmployeeCafeteriaExclusionAction;
-use App\Enums\CafeteriaPolicyStatus;
-use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaServicePolicy;
-use App\Models\CafeteriaTransaction;
-use App\Models\EmployeeCafeteriaExclusion;
-use App\Services\Cafeteria\CafeteriaQrScanService;
-use App\Services\Cafeteria\WorkingDayCalendarService;
 use App\Services\IdCards\CardQrPayloadService;
 use App\Support\Demo\DemoDataset;
 use Illuminate\Support\Carbon;
+use Modules\Cafeteria\Application\Actions\CreateEmployeeCafeteriaExclusionAction;
+use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
+use Modules\Cafeteria\Application\Services\WorkingDayCalendarService;
+use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
+use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
+use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Cafeteria\Domain\Models\EmployeeCafeteriaExclusion;
 use Ramsey\Uuid\Uuid;
 use RuntimeException;
 

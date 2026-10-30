@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Support\Retention\RetentionMatrix;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Cafeteria\Contracts\Data\TransactionStatus;
+use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Transport\Contracts\Data\TripStatus;
 use Modules\Transport\Domain\Enums\TransportTripStatus;
 
@@ -15,7 +17,7 @@ use Modules\Transport\Domain\Enums\TransportTripStatus;
  *   wires its internals into the application; route files name its
  *   controllers.
  * - Contracts are interfaces plus immutable data (Contracts\Data) and expose
- *   no Eloquent model, builder, request or internal class.
+ *   no Eloquent model, builder, response, form request or internal class.
  * - Every contract is bound to an implementation.
  * - Only the owner touches its tables; the few read-only exceptions are
  *   listed below with their reason, and may not write.
@@ -33,6 +35,9 @@ $modules = array_map('basename', glob($root.'/Modules/*', GLOB_ONLYDIR) ?: []);
  */
 const MODULE_DEV_TOOLING = [
     'App\\Console\\Commands\\Transport\\SeedTransportLoadTest' => 'app/Console/Commands/Transport/SeedTransportLoadTest.php',
+    'App\\Support\\Demo\\DemoDataset' => 'app/Support/Demo/DemoDataset.php',
+    'App\\Support\\Demo\\DemoDataValidator' => 'app/Support/Demo/DemoDataValidator.php',
+    'App\\Console\\Commands\\Scale\\GenerateScaleData' => 'app/Console/Commands/Scale/GenerateScaleData.php',
 ];
 
 /*
@@ -48,6 +53,21 @@ const MODULE_TABLE_READERS = [
         // The retention catalogue; transport tables sit only in categories that are not pruned automatically.
         'app/Support/Retention/RetentionMatrix.php' => 'catalogue',
     ],
+    'Cafeteria' => [
+        // Situation Room panels aggregate meals, refusals and subsidy by organization scope (totals only).
+        'app/Services/SituationRoom/Analytics/CafeteriaAnalytics.php' => 'reporting',
+        // Situation Room's supporting indicators count meals by scope.
+        'app/Services/SituationRoom/SupportingIndicators.php' => 'reporting',
+        // The data-integrity audit looks for duplicate ledger entries; it reports, never repairs.
+        'app/Console/Commands/Audit/AuditDuplicateData.php' => 'reporting',
+        // One-off move of legacy provider users: reads cafeteria locations and assignments to
+        // find a user's provider; it writes provider users only (checked below).
+        'app/Console/Commands/MigrateLegacyProviderUsers.php' => 'migration',
+        // The cafeteria portal's auth guard and user provider are named after its table.
+        'config/auth.php' => 'catalogue',
+        'app/Providers/ServiceModuleServiceProvider.php' => 'catalogue',
+        'app/Support/Retention/RetentionMatrix.php' => 'catalogue',
+    ],
 ];
 
 foreach ($modules as $module) {
@@ -60,7 +80,9 @@ foreach ($modules as $module) {
 
     arch("{$module}: Contracts expose no internals")
         ->expect("{$ns}\\Contracts")
-        ->not->toUse(["{$ns}\\Domain", "{$ns}\\Application", "{$ns}\\Infrastructure", "{$ns}\\Http", "{$ns}\\Providers", 'Illuminate\\Database', 'Illuminate\\Http']);
+        // Illuminate\Http\Request may pass through as request context (audit, IP), as in the Core's contracts.
+        ->not->toUse(["{$ns}\\Domain", "{$ns}\\Application", "{$ns}\\Infrastructure", "{$ns}\\Http", "{$ns}\\Providers", 'Illuminate\\Database',
+            'Illuminate\\Http\\Response', 'Illuminate\\Http\\JsonResponse', 'Illuminate\\Http\\RedirectResponse', 'Illuminate\\Http\\Resources', 'Illuminate\\Http\\UploadedFile', 'Illuminate\\Foundation\\Http']);
 
     arch("{$module}: Contracts are interfaces")
         ->expect("{$ns}\\Contracts")
@@ -146,7 +168,9 @@ it('keeps a module\'s tables to the module and its declared read-only readers', 
     $ownership = require $root.'/Modules/ownership.php';
     foreach ($modules as $module) {
         $tables = array_unique(array_map(fn (string $model): string => (new $model)->getTable(), array_filter($ownership[$module]['models'], fn (string $m): bool => is_subclass_of($m, Model::class))));
-        $pattern = '/[\'"]('.implode('|', array_map(fn (string $t): string => preg_quote($t, '/'), $tables)).')\b/';
+        // A table name as a whole string or before an alias ('x as t'); 'x.view' is a permission name.
+        $names = implode('|', array_map(fn (string $t): string => preg_quote($t, '/'), $tables));
+        $pattern = '/[\'"]('.$names.')(?=[\'" ])/';
         $allowed = [...array_keys(MODULE_TABLE_READERS[$module] ?? []), ...array_values(MODULE_DEV_TOOLING)];
 
         $offenders = [];
@@ -169,19 +193,22 @@ it('keeps a module\'s tables to the module and its declared read-only readers', 
             if ($kind === 'reporting') {
                 expect($source)->not->toMatch('/->(insert\w*|upsert|update\w*|delete|forceDelete|truncate|increment|decrement)\(/', "{$path} may only read {$module} tables");
             }
+            // No declared reader writes the module's tables, whatever else it writes.
+            expect($source)->not->toMatch('/table\([\'"]('.$names.')[\'"]\)[^;]*->(insert\w*|upsert|update\w*|delete|truncate|increment|decrement)\(/', "{$path} writes {$module} tables");
         }
     }
 });
 
-it('never prunes transport records automatically', function (): void {
+it('never prunes transport or cafeteria records automatically', function (): void {
     foreach (RetentionMatrix::RECORD_CLASSES as $key => $category) {
-        $transport = array_filter($category['tables'], fn (string $t): bool => str_starts_with($t, 'transport_'));
-        if ($transport !== []) {
-            expect($category['automated'])->toBeFalse("retention category {$key} would prune ".implode(', ', $transport));
+        $owned = array_filter($category['tables'], fn (string $t): bool => str_starts_with($t, 'transport_') || str_starts_with($t, 'cafeteria_'));
+        if ($owned !== []) {
+            expect($category['automated'])->toBeFalse("retention category {$key} would prune ".implode(', ', $owned));
         }
     }
 });
 
-it('publishes exactly the trip statuses the module uses', function (): void {
-    expect(TripStatus::ALL)->toBe(TransportTripStatus::values());
+it('publishes exactly the status values the modules use', function (): void {
+    expect(TripStatus::ALL)->toBe(TransportTripStatus::values())
+        ->and(TransactionStatus::ALL)->toBe(array_column(CafeteriaTransactionStatus::cases(), 'value'));
 });
