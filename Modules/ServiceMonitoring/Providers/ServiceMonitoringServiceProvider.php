@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\ServiceMonitoring\Providers;
 
 use App\Support\NotificationPresenter;
+use App\Support\Rbac\RoleBypassExemptions;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Modules\ServiceMonitoring\Application\Notifications\ServiceMonitoringNotification;
@@ -67,6 +68,15 @@ final class ServiceMonitoringServiceProvider extends ServiceProvider
         Gate::policy(MonitoringAttachment::class, MonitoringAttachmentPolicy::class);
         Gate::policy(MonitoringExport::class, MonitoringExportPolicy::class);
         Gate::policy(MonitoringSetting::class, MonitoringSettingPolicy::class);
+
+        // Every rule here depends on the record's state (locked period, accepted
+        // report, own submission) as much as on the role, so the Super Admin role
+        // bypass must not skip them: the policies decide. Permissions and city-wide
+        // reach still come from the role (OrganizationScopeService::isUnrestricted).
+        RoleBypassExemptions::register([
+            ReportingPeriod::class, Participant::class, Submission::class, DigitalService::class, Clarification::class,
+            MonitoringVisit::class, ActionItem::class, MonitoringAttachment::class, MonitoringExport::class, MonitoringSetting::class,
+        ]);
 
         NotificationPresenter::registerRenderer('service_monitoring', ServiceMonitoringNotification::class);
 

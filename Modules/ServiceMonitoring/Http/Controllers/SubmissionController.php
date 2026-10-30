@@ -18,6 +18,7 @@ use Modules\ServiceMonitoring\Application\Actions\SubmitSubmission;
 use Modules\ServiceMonitoring\Application\Actions\UploadStampedCopy;
 use Modules\ServiceMonitoring\Application\Services\AccountabilitySuggestionService;
 use Modules\ServiceMonitoring\Application\Services\ConsolidationService;
+use Modules\ServiceMonitoring\Application\Services\ExportList;
 use Modules\ServiceMonitoring\Application\Services\PeriodDirectory;
 use Modules\ServiceMonitoring\Application\Services\ServiceMonitoringAccess;
 use Modules\ServiceMonitoring\Application\Services\SubmissionPresenter;
@@ -98,7 +99,7 @@ final class SubmissionController extends Controller
         ]);
     }
 
-    public function show(Request $request, Submission $submission, ConsolidationService $consolidation): Response
+    public function show(Request $request, Submission $submission, ConsolidationService $consolidation, ExportList $exports): Response
     {
         $this->authorize('view', $submission);
         $props = $this->presenter->present($submission, $request->user(), false);
@@ -113,6 +114,7 @@ final class SubmissionController extends Controller
                 'sections' => OfficialFormLayout::sections($submission->form_type, $submission->form_version, (int) $period->fiscalYear->ec_year, $report, $props['section1']['named'], $locale),
             ],
             'years' => [['id' => $period->fiscal_year_id, 'ec_year' => $period->fiscalYear->ec_year]],
+            'exports' => $exports->recentFor($request->user(), 'submission', $submission->id),
         ]);
     }
 

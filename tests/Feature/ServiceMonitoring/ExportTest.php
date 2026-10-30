@@ -7,6 +7,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 use Modules\ServiceMonitoring\Application\Actions\SaveSection1Entry;
 use Modules\ServiceMonitoring\Application\Services\ConsolidationService;
 use Modules\ServiceMonitoring\Domain\Enums\FormType;
@@ -133,4 +134,24 @@ it('renders the PDF of a single submission', function (): void {
     $export = MonitoringExport::query()->sole();
     expect($export->status->value)->toBe('ready')
         ->and(substr((string) Storage::disk('local')->get($export->path), 0, 4))->toBe('%PDF');
+});
+
+it('lists the report\'s own exports on the report page, with their download links', function (): void {
+    $coordinator = $this->s->coordinator();
+    $submission = $this->s->accepted('center');
+    $other = $this->s->accepted('subA');
+    foreach ([$submission, $other] as $s) {
+        $this->actingAs($coordinator)->post(route('service-monitoring.exports.store'), [
+            'scope_type' => 'submission', 'scope_id' => $s->id, 'fiscal_year_id' => $this->s->year->id, 'quarter' => 1, 'range' => 'quarter', 'format' => 'pdf',
+        ])->assertSessionHasNoErrors();
+    }
+    $mine = MonitoringExport::query()->where('scope_id', $submission->id)->sole();
+
+    $this->actingAs($coordinator)->get(route('service-monitoring.submissions.show', $submission))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('exports', 1)
+            ->where('exports.0.id', $mine->id)
+            ->where('exports.0.download_url', route('service-monitoring.exports.download', $mine)));
+    // Exports are personal: another user sees none.
+    $this->actingAs($this->s->coordinator())->get(route('service-monitoring.submissions.show', $submission))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('exports', 0));
 });

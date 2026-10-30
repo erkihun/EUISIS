@@ -122,7 +122,7 @@ export default function SubmissionEdit(props: SubmissionProps & { suggestions?: 
                         )}
                         {n === 1 && <Section1Panel submissionId={submission.id} level={submission.level} quarter={submission.period} definition={definition} entries={section1.entries} named={section1.named} summary={section1.summary} editable={editable && !submission.nothing[1]} suggestions={suggestions} />}
                         {n === 2 && <Section2Panel submissionId={submission.id} definition={definition} values={section2.values} prefill={section2.prefill} narrative={submission.special_support_narrative} driverListEmpty={section2.driver_list_empty} notices={section2.notices} editable={editable} />}
-                        {n === 3 && <Section3Panel submissionId={submission.id} definition={definition} totals={section3.totals} services={section3.services} catalog={section3.catalog} fiscalYear={section3.fiscal_year} editable={editable && !submission.nothing[3]} />}
+                        {n === 3 && <Section3Panel submissionId={submission.id} definition={definition} totals={section3.totals} services={section3.services} catalog={section3.catalog} fiscalYear={section3.fiscal_year} editable={editable && !submission.nothing[3]} totalsEditable={editable} />}
                         {n === 4 && <Section4Panel submissionId={submission.id} definition={definition} totals={section3.totals} values={section4.values} minText={section4.min_text} editable={editable && !submission.nothing[4]} />}
                     </section>
                 ))}

@@ -16,6 +16,7 @@ use Modules\ServiceMonitoring\Application\Actions\CertifySubCityConsolidation;
 use Modules\ServiceMonitoring\Application\Actions\RecordNonSubmission;
 use Modules\ServiceMonitoring\Application\Services\ComplianceService;
 use Modules\ServiceMonitoring\Application\Services\ConsolidationService;
+use Modules\ServiceMonitoring\Application\Services\ExportList;
 use Modules\ServiceMonitoring\Application\Services\ParticipantResolver;
 use Modules\ServiceMonitoring\Application\Services\PeriodDirectory;
 use Modules\ServiceMonitoring\Application\Services\ServiceMonitoringAccess;
@@ -26,7 +27,6 @@ use Modules\ServiceMonitoring\Domain\Enums\ReportRange;
 use Modules\ServiceMonitoring\Domain\Forms\FormDefinition;
 use Modules\ServiceMonitoring\Domain\Models\Certification;
 use Modules\ServiceMonitoring\Domain\Models\FiscalYear;
-use Modules\ServiceMonitoring\Domain\Models\MonitoringExport;
 use Modules\ServiceMonitoring\Domain\Models\Participant;
 use Modules\ServiceMonitoring\Domain\Models\ReportingPeriod;
 use Modules\ServiceMonitoring\Http\Requests\ReasonRequest;
@@ -45,6 +45,7 @@ final class ConsolidationController extends Controller
         private readonly PeriodDirectory $periods,
         private readonly ServiceMonitoringAccess $access,
         private readonly ServiceMonitoringAudit $audit,
+        private readonly ExportList $exportList,
     ) {}
 
     public function subCity(Request $request): Response
@@ -209,11 +210,7 @@ final class ConsolidationController extends Controller
     /** @return list<array<string, mixed>> */
     private function exports(User $user): array
     {
-        return MonitoringExport::query()->where('requested_by', $user->id)->latest()->limit(10)->get()->map(fn (MonitoringExport $e): array => [
-            'id' => $e->id, 'scope_type' => $e->scope_type, 'range' => $e->range->value, 'quarter' => $e->quarter, 'format' => $e->format,
-            'status' => $e->status->value, 'filename' => $e->filename, 'created_at' => $e->created_at?->toIso8601String(),
-            'download_url' => $e->isReady() ? route('service-monitoring.exports.download', $e) : null,
-        ])->all();
+        return $this->exportList->recentFor($user);
     }
 
     /** A UUID query parameter, or null when absent or malformed (PostgreSQL rejects a non-UUID on a uuid column). */

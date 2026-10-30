@@ -126,3 +126,26 @@ it('gates exports on reports.export and names on export_named', function (): voi
     $this->actingAs($this->s->reviewer('subA'))->post(route('service-monitoring.exports.store'), $payload)->assertForbidden();
     $this->actingAs($this->s->reviewer('subA'))->post(route('service-monitoring.exports.store'), [...$payload, 'scope_type' => 'sub_city', 'scope_id' => $this->s->p['subB']->id])->assertForbidden();
 });
+
+it('binds a Super Admin to the period and report workflow rules', function (): void {
+    $admin = $this->s->user([], [], false, 'Super Admin');
+
+    // A period that is not locked is not offered for reopening, and cannot be reopened.
+    $period = $this->s->period(1);
+    $this->actingAs($admin)->get(route('service-monitoring.periods.show', $period))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('can.reopen', false)->where('can.lock', true));
+    $this->actingAs($admin)->post(route('service-monitoring.periods.reopen', $period), ['reason' => 'Reopen a period that is not locked.'])->assertForbidden();
+
+    // Nobody reviews their own submission, a Super Admin included.
+    $own = $this->s->complete($this->s->start('center', 1, $admin));
+    $this->s->submit($own, $admin);
+    $this->actingAs($admin)->post(route('service-monitoring.review.accept', $own))->assertForbidden();
+
+    // An accepted report is changed only through a correction, never edited in place.
+    $accepted = $this->s->accepted('wA1');
+    $this->actingAs($admin)->put(route('service-monitoring.submissions.section2', $accepted), ['values' => ['led_count' => 1]])->assertForbidden();
+
+    // The rules still let a Super Admin do what the state allows.
+    $other = $this->s->submit($this->s->complete($this->s->start('wB1')));
+    $this->actingAs($admin)->post(route('service-monitoring.review.accept', $other))->assertSessionHasNoErrors();
+});

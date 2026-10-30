@@ -21,11 +21,14 @@ interface Props {
     services: DigitalServiceRow[];
     catalog: NamedWithId[];
     fiscalYear: { from: string; to: string };
+    /** The digital services list: false once Section III is marked "None". */
     editable: boolean;
+    /** The institution's totals stay required with "None" (Section IV checks against them), so they follow the report, not the "None" mark. */
+    totalsEditable: boolean;
 }
 
 /** Section III (D20): the institution's service totals and its digital services as a main → sub tree; only verified rows count. */
-export default function Section3Panel({ submissionId, definition, totals, services, catalog, fiscalYear, editable }: Props): JSX.Element {
+export default function Section3Panel({ submissionId, definition, totals, services, catalog, fiscalYear, editable, totalsEditable }: Props): JSX.Element {
     const { sm, name, locale } = useSm();
     const calendar = useCalendarSystem();
     const id = useId();
@@ -86,14 +89,14 @@ export default function Section3Panel({ submissionId, definition, totals, servic
             <form onSubmit={saveTotals} className={`${panelCls} grid gap-3 p-3 sm:grid-cols-3`} aria-label={sm('edit.section3.totals')}>
                 <div>
                     <label htmlFor={`${id}-main`} className={labelCls}>{columns.main_total}</label>
-                    <input id={`${id}-main`} type="number" min={0} className={inputCls} disabled={!editable} value={totalsForm.data.main_total} onChange={(e) => totalsForm.setData('main_total', e.target.value)} />
+                    <input id={`${id}-main`} type="number" min={0} className={inputCls} disabled={!totalsEditable} value={totalsForm.data.main_total} onChange={(e) => totalsForm.setData('main_total', e.target.value)} />
                     <p className="mt-1 text-xs text-(--app-muted-foreground)">{sm('edit.section3.catalogCount', { count: totals.catalog_main_total })}</p>
                 </div>
                 <div>
                     <label htmlFor={`${id}-sub`} className={labelCls}>{columns.sub_total}</label>
-                    <input id={`${id}-sub`} type="number" min={0} className={inputCls} disabled={!editable} value={totalsForm.data.sub_total} onChange={(e) => totalsForm.setData('sub_total', e.target.value)} />
+                    <input id={`${id}-sub`} type="number" min={0} className={inputCls} disabled={!totalsEditable} value={totalsForm.data.sub_total} onChange={(e) => totalsForm.setData('sub_total', e.target.value)} />
                 </div>
-                {editable && <div className="flex items-end"><button type="submit" className={primaryBtn} disabled={totalsForm.processing || !totalsForm.isDirty}>{sm('common.save')}</button></div>}
+                {totalsEditable && <div className="flex items-end"><button type="submit" className={primaryBtn} disabled={totalsForm.processing || !totalsForm.isDirty}>{sm('common.save')}</button></div>}
             </form>
 
             <section aria-labelledby={`${id}-services`} className={`${panelCls} p-3`}>

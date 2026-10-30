@@ -5,7 +5,7 @@ import { DATE_MARK, errorCls, inputCls, labelCls, panelCls, placeDate, primaryBt
 import OfficialTables from '@/Components/serviceMonitoring/OfficialTables';
 import SmStatusBadge from '@/Components/serviceMonitoring/SmStatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import type { OfficialForm, SubmissionProps } from '@/types/serviceMonitoring';
+import type { ExportRow, OfficialForm, SubmissionProps } from '@/types/serviceMonitoring';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type JSX } from 'react';
 import ActionErrors from '@/Components/serviceMonitoring/ActionErrors';
@@ -14,10 +14,11 @@ type Props = SubmissionProps & {
     diff: { section: number; field: string; before: number | string | null; after: number | string | null }[];
     form: OfficialForm;
     years: { id: string; ec_year: number }[];
+    exports: ExportRow[];
 };
 
 /** Read-only report: the official layout, revisions with their differences, history, review and correction actions. */
-export default function SubmissionShow({ submission, definition, revisions, history, corrections, diff, form, years, can }: Props): JSX.Element {
+export default function SubmissionShow({ submission, definition, revisions, history, corrections, diff, form, years, exports, can }: Props): JSX.Element {
     const { sm, name } = useSm();
     const [correcting, setCorrecting] = useState(false);
     const correction = useForm({ reason: '' });
@@ -121,7 +122,7 @@ export default function SubmissionShow({ submission, definition, revisions, hist
                 </section>
 
                 {can.export && (
-                    <ExportPanel scopeType="submission" scopeId={submission.id} fiscalYearId={years[0].id} quarter={submission.period.quarter} range="quarter" canNamed={can.view_named} exports={[]} />
+                    <ExportPanel scopeType="submission" scopeId={submission.id} fiscalYearId={years[0].id} quarter={submission.period.quarter} range="quarter" canNamed={can.view_named} exports={exports} />
                 )}
 
                 <section className={`${panelCls} p-4`} aria-labelledby="sm-history">
