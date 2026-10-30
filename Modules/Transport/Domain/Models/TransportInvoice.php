@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Modules\Transport\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\Provider;
-use App\Models\ProviderUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Enums\TransportInvoiceStatus;
 
 /** The provider's claim for a period. Claimed ≠ verified ≠ approved: all three are kept. */

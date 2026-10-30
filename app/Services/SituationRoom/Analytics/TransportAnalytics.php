@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\SituationRoom\Analytics;
 
-use App\Models\Provider;
 use App\Services\SituationRoom\SituationContext;
 use App\Services\SituationRoom\SituationLabel;
 use App\Services\SituationRoom\SituationPanel;
@@ -118,7 +117,7 @@ final class TransportAnalytics extends SituationAnalytics
     private function providers(SituationContext $context): SituationPanel
     {
         $top = $this->topWithOther($this->countBy($this->verified($context), 't.provider_id'));
-        $names = Provider::withTrashed()->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($p): string => (string) $p->id);
+        $names = DB::table('providers')->whereIn('id', array_filter(array_keys($top), fn ($k): bool => ! str_starts_with((string) $k, '__')))->get(['id', 'name_en', 'name_am'])->keyBy(fn ($p): string => (string) $p->id);
 
         return $this->chart('transport_providers', 'hbar', self::SOURCE, array_map(fn ($key): array => match ((string) $key) {
             '__other' => SituationLabel::key('situationRoom.values.common.other'),

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns;
 
 use App\Models\User;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\Request;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 
 trait FormatsProviderPortalData
 {

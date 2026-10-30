@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -13,6 +12,7 @@ use Modules\Cafeteria\Application\Services\Portal\CafeteriaPortalSelector;
 use Modules\Cafeteria\Domain\Models\CafeteriaProviderLedgerEntry;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Resources\ProviderPortal\CafeteriaProviderLedgerEntryResource;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 
 class ProviderLedgerController extends Controller
 {

@@ -6,7 +6,6 @@ namespace Modules\Cafeteria\Application\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\ProviderUser;
 use App\Models\User;
 use App\Services\Calendar\CalendarService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -19,6 +18,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Infrastructure\Exports\ProviderPaymentClaimExport;
 use Modules\Cafeteria\Infrastructure\Exports\ProviderTransactionsExport;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 

@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Cafeteria\Domain\Enums\CafeteriaSettlementStatus;
+use Modules\Providers\Domain\Models\Provider;
 
 /** What one provider (the payee) is owed for a period, split by employee organization and cafeteria. */
 class CafeteriaSettlement extends Model

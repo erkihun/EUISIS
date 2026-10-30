@@ -8,7 +8,6 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\Organization;
-use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
+use Modules\Providers\Domain\Models\Provider;
 
 class CafeteriaTransaction extends Model
 {

@@ -18,7 +18,6 @@ use App\Models\OrganizationEdge;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\ProviderUser;
 use App\Models\StrategicGoal;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -38,6 +37,7 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 /*
  * The development / QA / UAT demo dataset (docs/demo-seed-data.md).

@@ -6,9 +6,9 @@ namespace Modules\Transport\Application\Services;
 
 use App\Models\Employee;
 use App\Models\IdCard;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Enums\TransportEligibilitySubject;
 use Modules\Transport\Domain\Models\TransportEligibility;
 use Modules\Transport\Domain\Models\TransportPass;

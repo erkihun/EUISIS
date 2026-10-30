@@ -6,7 +6,6 @@ namespace Modules\Cafeteria\Application\Services\Settlement;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -19,6 +18,7 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaSettlementStatus;
 use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Cafeteria\Domain\Models\CafeteriaSettlement;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * Provider settlements (docs/cafeteria-settlement-rules.md).

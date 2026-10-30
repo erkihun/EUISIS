@@ -7,7 +7,6 @@ namespace Modules\Cafeteria\Http\Controllers;
 use App\Enums\OrganizationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
-use App\Models\Provider;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +22,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use Modules\Cafeteria\Http\Requests\StoreCafeteriaProviderRequest;
 use Modules\Cafeteria\Http\Requests\UpdateCafeteriaProviderRequest;
 use Modules\Cafeteria\Http\Resources\CafeteriaProviderResource;
+use Modules\Providers\Domain\Models\Provider;
 
 class CafeteriaProviderController extends Controller
 {

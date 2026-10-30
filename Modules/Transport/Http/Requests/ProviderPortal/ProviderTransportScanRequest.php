@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Http\Requests\ProviderPortal;
 
-use App\Models\ProviderUser;
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Http\Requests\Concerns\TransportScanRules;
 
 class ProviderTransportScanRequest extends FormRequest

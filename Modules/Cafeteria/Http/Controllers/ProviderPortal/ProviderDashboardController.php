@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -18,6 +17,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Resources\CafeteriaTransactionResource;
 use Modules\Cafeteria\Http\Resources\ProviderPortal\CafeteriaFoodOrderResource;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 
 class ProviderDashboardController extends Controller
 {

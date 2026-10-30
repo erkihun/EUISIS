@@ -32,6 +32,10 @@ make to Core records) and `App\Backbone\Events`. Service modules should be shape
      models). It is listed in `bootstrap/providers.php`. No other code wires the module's
      internals; route files name its controllers.
 2. **Dependency rule.** Code outside a module (`app/` and other modules) uses only its `Contracts`.
+   When a module is moved whose models other code holds in Eloquent relations (Providers), the
+   uses that cannot be replaced in the same change are frozen by class in
+   `tests/Feature/Architecture/module-internal-use-baseline.php`: the test ignores exactly those and
+   fails when one no longer needs it, so the list only shrinks. New code gets no exception.
    `Domain`, `Application`, `Infrastructure`, `Http` and `Providers` are private. The Core keeps its
    existing public API in `App\Backbone` (contracts, data, commands, events); a module may use those
    and the shared platform (`App\Models\User`, `App\Support`, audit, settings) until the Core itself

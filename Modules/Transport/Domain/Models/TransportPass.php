@@ -6,10 +6,10 @@ namespace Modules\Transport\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\Employee;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * The employee's route assignment: which provider and route they ride by

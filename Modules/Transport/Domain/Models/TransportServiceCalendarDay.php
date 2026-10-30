@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Transport\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Providers\Domain\Models\Provider;
 
 /** A day the service runs although the calendar says not (operating), or does not run (suspended). */
 class TransportServiceCalendarDay extends Model

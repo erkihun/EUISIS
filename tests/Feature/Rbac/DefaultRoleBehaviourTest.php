@@ -12,7 +12,6 @@ use App\Models\EmployeeAssignment;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\ProviderUser;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
@@ -21,6 +20,7 @@ use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 /*
  * The seeded default roles, exercised through the real routes and policies

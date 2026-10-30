@@ -6,11 +6,11 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Actions\Workflows\GenerateSettlementReportAction;
 use App\Http\Controllers\Controller;
-use App\Models\ServiceProvider;
 use App\Support\Api\ApiError;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 class ProviderSettlementController extends Controller
 {

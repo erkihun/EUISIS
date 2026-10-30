@@ -29,6 +29,9 @@ flowchart LR
 Rules, all enforced by `tests/Feature/Architecture`:
 
 - Outside code (`app/` and other modules) uses only a module's `Contracts` (`ModulePublicApiTest`).
+  Uses that existed when a module moved and could not be replaced in the same change are frozen in
+  `tests/Feature/Architecture/module-internal-use-baseline.php` (today: Providers); that list may only
+  shrink.
 - Contracts are interfaces plus final data; they expose no model, builder, response, form request or
   internal class. `Illuminate\Http\Request` may pass through as request context (audit, IP), as in
   the Core's own contracts.
@@ -52,7 +55,7 @@ Progress and the order of the remaining modules: [`MIGRATION.md`](MIGRATION.md).
 | Transport | `TransportDataQuality::summary()` | list of `{code, count, severity}` | data-quality report |
 | Transport | `Data\TripStatus` constants | the trip status values | Situation Room reports |
 | Cafeteria | `EmployeeCafeteriaActivity::forEmployee($employeeId, $today)` | My Portal's cafeteria card (array) | My Portal |
-| Cafeteria | `CafeteriaPortalLocations::selection($request)` | `Data\CafeteriaPortalSelection` | provider-portal context |
+| Providers | `PortalLocationSource::selection($request)` (implemented by Cafeteria) | `Data\PortalLocationSelection` | provider-portal context |
 | Cafeteria | `CafeteriaTerminalScan::scan(...)` | `?Data\CafeteriaScanOutcome` | NFC API |
 | Cafeteria | `CafeteriaDirectory::locations()` | list of locations | entitlement and NFC terminal pages |
 | Cafeteria | `CafeteriaStaffAssignments::hasActiveAssignment($userId)` | bool | `User::hasProviderPortalAccess()` |

@@ -6,7 +6,6 @@ namespace Modules\Cafeteria\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
-use App\Models\Provider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -18,6 +17,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaSettlement;
 use Modules\Cafeteria\Domain\Models\CafeteriaSettlementLine;
 use Modules\Cafeteria\Http\Controllers\Concerns\CafeteriaAdminContext;
+use Modules\Providers\Domain\Models\Provider;
 
 /** Cafeteria Management → Settlements (provider payables by employee organization). */
 class CafeteriaSettlementController extends Controller

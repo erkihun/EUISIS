@@ -6,7 +6,6 @@ namespace Modules\Cafeteria\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use App\Support\EmployeeScanPhoto;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -24,6 +23,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Requests\ProviderPortal\ProviderScanRequest;
 use Modules\Cafeteria\Http\Resources\CafeteriaTransactionResource;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 
 class ProviderScanController extends Controller
 {

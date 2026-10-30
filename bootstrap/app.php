@@ -7,10 +7,6 @@ use App\Http\Middleware\EnforceSessionIdleTimeout;
 use App\Http\Middleware\EnsureAdminAccess;
 use App\Http\Middleware\EnsureApiScope;
 use App\Http\Middleware\EnsureMfaNotRequired;
-use App\Http\Middleware\EnsureProviderPortalUser;
-use App\Http\Middleware\EnsureProviderServiceEnabled;
-use App\Http\Middleware\EnsureProviderServicePermission;
-use App\Http\Middleware\EnsureProviderServiceScope;
 use App\Http\Middleware\EnsurePublicSiteEnabled;
 use App\Http\Middleware\EnterCoreWorkspace;
 use App\Http\Middleware\ExternalApplicationGate;
@@ -23,10 +19,7 @@ use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetClientLocale;
-use App\Http\Middleware\SetProviderPortalContext;
-use App\Models\ProviderUser;
 use App\Services\ErrorLoggingService;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use App\Services\Security\SessionActivityService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -41,6 +34,8 @@ use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Modules\Cafeteria\Http\Middleware\RedirectCafeteriaToPlatform;
+use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -101,11 +96,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.scope' => EnsureApiScope::class,
             'api.external' => ExternalApplicationGate::class,
             'api.idempotency' => EnforceIdempotencyKey::class,
-            'provider.scope' => EnsureProviderServiceScope::class,
-            'provider.portal' => EnsureProviderPortalUser::class,
-            'provider.service' => EnsureProviderServiceEnabled::class,
-            'provider.permission' => EnsureProviderServicePermission::class,
-            'provider.portal.context' => SetProviderPortalContext::class,
             'admin.access' => EnsureAdminAccess::class,
             'mfa' => RequireMfa::class,
             'force.password' => ForcePasswordChange::class,

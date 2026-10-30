@@ -8,9 +8,6 @@ use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeRegistrationOtp;
 use App\Models\PasswordHistory;
-use App\Models\Provider;
-use App\Models\ProviderType;
-use App\Models\ProviderUser;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -35,6 +32,9 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderType;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Spatie\Permission\Models\Role;
 
 /*

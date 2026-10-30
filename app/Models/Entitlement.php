@@ -9,6 +9,7 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 class Entitlement extends Model
 {

@@ -6,11 +6,11 @@ namespace Modules\Transport\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\Organization;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Providers\Domain\Models\Provider;
 
 class TransportRoute extends Model
 {

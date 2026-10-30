@@ -6,12 +6,12 @@ namespace Modules\Cafeteria\Http\Controllers\Concerns;
 
 use App\Enums\OrganizationStatus;
 use App\Models\Organization;
-use App\Models\Provider;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * Option lists and organization scope for the cafeteria administration pages.

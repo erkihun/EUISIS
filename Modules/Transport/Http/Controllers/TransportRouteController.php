@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Provider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Models\TransportRoute;
 use Modules\Transport\Http\Requests\StoreTransportRouteRequest;
 use Modules\Transport\Http\Requests\UpdateTransportRouteRequest;

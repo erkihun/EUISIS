@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
@@ -17,6 +16,7 @@ use Modules\Cafeteria\Application\Services\ProviderTransactionExportService;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Resources\CafeteriaTransactionResource;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ProviderTransactionController extends Controller

@@ -8,6 +8,8 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Providers\Domain\Models\ProviderService;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 class ServiceType extends Model
 {

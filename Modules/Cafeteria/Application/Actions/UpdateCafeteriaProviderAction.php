@@ -6,7 +6,6 @@ namespace Modules\Cafeteria\Application\Actions;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +14,7 @@ use Modules\Cafeteria\Application\Services\Network\CafeteriaNetworkService;
 use Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * Updates a cafeteria location's identity, placement and operations. The

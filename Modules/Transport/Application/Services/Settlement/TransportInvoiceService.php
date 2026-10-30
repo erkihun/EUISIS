@@ -6,12 +6,12 @@ namespace Modules\Transport\Application\Services\Settlement;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\Provider;
-use App\Models\ProviderUser;
 use App\Models\User;
 use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Enums\TransportInvoiceStatus;
 use Modules\Transport\Domain\Models\TransportInvoice;
 

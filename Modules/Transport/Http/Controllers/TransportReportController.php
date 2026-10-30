@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Provider;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Application\Services\TransportReportService;
 use Modules\Transport\Domain\Models\TransportRoute;

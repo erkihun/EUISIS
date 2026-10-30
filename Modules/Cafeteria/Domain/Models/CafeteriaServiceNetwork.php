@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Cafeteria\Domain\Enums\CafeteriaLocationType;
+use Modules\Providers\Domain\Models\Provider;
 
 /** One provider's group of cafeteria locations: a main cafeteria, branches and service points. */
 class CafeteriaServiceNetwork extends Model

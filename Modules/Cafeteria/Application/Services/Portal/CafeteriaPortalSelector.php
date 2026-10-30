@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Application\Services\Portal;
 
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Modules\Cafeteria\Contracts\CafeteriaPortalLocations;
-use Modules\Cafeteria\Contracts\Data\CafeteriaPortalSelection;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Contracts\Data\PortalLocationSelection;
+use Modules\Providers\Contracts\PortalLocationSource;
 
 /**
  * The cafeteria location the provider portal is working at (moved from
@@ -18,7 +18,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
  * remembered in the session). A location of another provider can never be
  * selected.
  */
-final class CafeteriaPortalSelector implements CafeteriaPortalLocations
+final class CafeteriaPortalSelector implements PortalLocationSource
 {
     private const SELECTED_CAFETERIA = 'provider_portal.cafeteria_id';
 
@@ -61,9 +61,9 @@ final class CafeteriaPortalSelector implements CafeteriaPortalLocations
             ->get();
     }
 
-    public function selection(Request $request): CafeteriaPortalSelection
+    public function selection(Request $request): PortalLocationSelection
     {
-        return new CafeteriaPortalSelection(
+        return new PortalLocationSelection(
             locations: $this->cafeterias($request)->map(fn (CafeteriaProvider $c): array => [
                 'id' => $c->id,
                 'code' => $c->code,

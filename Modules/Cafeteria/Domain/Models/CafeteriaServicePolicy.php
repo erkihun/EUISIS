@@ -6,7 +6,6 @@ namespace Modules\Cafeteria\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\Organization;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 use Modules\Cafeteria\Domain\Enums\CafeteriaExtraScanPolicy;
 use Modules\Cafeteria\Domain\Enums\CafeteriaPolicyStatus;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * The financial and entitlement terms for one organization's employees at one

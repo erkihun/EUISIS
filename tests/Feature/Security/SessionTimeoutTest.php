@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Auth\MfaController;
 use App\Models\AuditLog;
-use App\Models\Provider;
-use App\Models\ProviderType;
-use App\Models\ProviderUser;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Providers\AppServiceProvider;
@@ -20,6 +17,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderType;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Spatie\Permission\Models\Permission;
 
 /*

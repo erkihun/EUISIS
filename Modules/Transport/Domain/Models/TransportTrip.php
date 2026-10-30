@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Modules\Transport\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Enums\TransportDirection;
 use Modules\Transport\Domain\Enums\TransportTripStatus;
 

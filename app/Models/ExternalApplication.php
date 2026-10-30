@@ -17,6 +17,7 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Support\Carbon;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Sanctum\PersonalAccessToken;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 /**
  * An approved external system permitted to call the integration API.

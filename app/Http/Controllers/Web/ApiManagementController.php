@@ -13,7 +13,6 @@ use App\Models\ApiRequestLog;
 use App\Models\ExternalApplication;
 use App\Models\ExternalApplicationOrganizationScope;
 use App\Models\Organization;
-use App\Models\ServiceProvider;
 use App\Services\ApiEndpointCatalogService;
 use App\Services\Integration\PartnerAccessReviewService;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +24,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 /**
  * System Settings → API Management.

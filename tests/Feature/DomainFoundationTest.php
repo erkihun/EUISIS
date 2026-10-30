@@ -36,7 +36,6 @@ use App\Models\OrganizationNameHistory;
 use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
-use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
@@ -44,6 +43,7 @@ use App\Models\TransferSetting;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Laravel\Sanctum\Sanctum;
+use Modules\Providers\Domain\Models\ServiceProvider;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 

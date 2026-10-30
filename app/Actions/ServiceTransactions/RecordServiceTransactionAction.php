@@ -12,13 +12,13 @@ use App\Enums\CardStatus;
 use App\Models\Employee;
 use App\Models\Entitlement;
 use App\Models\IdCard;
-use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\User;
 use DomainException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 readonly class RecordServiceTransactionAction
 {

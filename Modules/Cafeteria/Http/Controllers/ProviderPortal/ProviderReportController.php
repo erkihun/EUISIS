@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -15,6 +14,7 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Cafeteria\Domain\Models\CafeteriaFoodOrder;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 
 class ProviderReportController extends Controller
 {

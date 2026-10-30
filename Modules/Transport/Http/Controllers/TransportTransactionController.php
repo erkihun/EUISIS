@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Provider;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Application\Services\Boarding\TransportBoardingService;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Application\Services\TransportReportService;

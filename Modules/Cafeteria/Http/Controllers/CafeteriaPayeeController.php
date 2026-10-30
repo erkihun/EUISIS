@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,6 +13,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Application\Services\Network\CafeteriaProviderRegistry;
 use Modules\Cafeteria\Http\Controllers\Concerns\CafeteriaAdminContext;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * Cafeteria Management → Providers: the payees that operate cafeterias.

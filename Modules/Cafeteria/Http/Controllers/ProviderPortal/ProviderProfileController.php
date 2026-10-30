@@ -6,10 +6,8 @@ namespace Modules\Cafeteria\Http\Controllers\ProviderPortal;
 
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
-use App\Models\ProviderUser;
 use App\Security\Passwords\PasswordLifecycle;
 use App\Security\Passwords\PasswordPolicy;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +17,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Cafeteria\Application\Services\Portal\CafeteriaPortalSelector;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
+use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 class ProviderProfileController extends Controller
 {

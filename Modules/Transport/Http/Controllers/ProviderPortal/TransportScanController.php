@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProviderUser;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\TransportQrScanService;
 use Modules\Transport\Application\Services\TransportSettings;
 use Modules\Transport\Domain\Models\TransportRoute;

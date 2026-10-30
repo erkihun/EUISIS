@@ -15,7 +15,6 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\ProviderUser;
 use App\Models\StrategicGoal;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -28,6 +27,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 /**
  * Read-only checks and counts for the demo dataset (demo-data:validate,

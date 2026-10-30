@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Models\Provider;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Models\TransportRoute;
 use Modules\Transport\Http\Requests\StoreTransportRouteRequest;
 use Modules\Transport\Http\Requests\UpdateTransportRouteRequest;

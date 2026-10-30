@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Application\Services;
 
-use App\Models\Provider;
-use App\Models\ProviderService;
-use App\Models\ProviderType;
-use App\Models\ProviderUser;
 use App\Models\ServiceType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderService;
+use Modules\Providers\Domain\Models\ProviderType;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Models\TransportProviderProfile;
 
 class TransportProviderService

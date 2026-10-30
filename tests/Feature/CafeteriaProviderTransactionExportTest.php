@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Enums\AuditEventType;
 use App\Models\AuditLog;
 use App\Models\Employee;
-use App\Models\Provider;
-use App\Models\ProviderType;
-use App\Models\ProviderUser;
 use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +15,9 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaTransactionStatus;
 use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderType;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 function createExportPortalUserWithProvider(bool $canExport = true): array
 {

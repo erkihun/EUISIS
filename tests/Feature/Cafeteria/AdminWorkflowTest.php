@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Models\Provider;
 use App\Models\ServiceType;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -13,6 +12,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
+use Modules\Providers\Domain\Models\Provider;
 use Spatie\Permission\Models\Role;
 use Tests\Support\CafeteriaScenario;
 

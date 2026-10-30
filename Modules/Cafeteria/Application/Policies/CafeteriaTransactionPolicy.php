@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Application\Policies;
 
-use App\Models\ProviderUser;
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
 use Modules\Cafeteria\Application\Services\CafeteriaProviderAccessService;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 readonly class CafeteriaTransactionPolicy
 {

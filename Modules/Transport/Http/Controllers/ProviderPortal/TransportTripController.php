@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Models\Provider;
-use App\Models\ProviderUser;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\TransportExportService;
 use Modules\Transport\Application\Services\TransportReportService;
 use Modules\Transport\Application\Services\TransportTripService;

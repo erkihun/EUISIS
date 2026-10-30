@@ -54,13 +54,11 @@ use App\Models\PositionEstablishment;
 use App\Models\PositionProfile;
 use App\Models\PositionService;
 use App\Models\Process;
-use App\Models\ProviderUser;
 use App\Models\PublicFeedbackReportExport;
 use App\Models\PublicHoliday;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\ServiceClassification;
-use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
@@ -116,13 +114,11 @@ use App\Policies\PositionEstablishmentPolicy;
 use App\Policies\PositionPolicy;
 use App\Policies\PositionServicePolicy;
 use App\Policies\ProcessPolicy;
-use App\Policies\ProviderUserPolicy;
 use App\Policies\PublicFeedbackReportExportPolicy;
 use App\Policies\PublicHolidayPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\ServiceClassificationPolicy;
 use App\Policies\ServicePolicy;
-use App\Policies\ServiceProviderPolicy;
 use App\Policies\ServiceTransactionPolicy;
 use App\Policies\ServiceTypePolicy;
 use App\Policies\SystemSettingPolicy;
@@ -297,7 +293,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Entitlement::class, EntitlementPolicy::class);
         Gate::policy(EntitlementRule::class, EntitlementRulePolicy::class);
         Gate::policy(ServiceTransaction::class, ServiceTransactionPolicy::class);
-        Gate::policy(ServiceProviderModel::class, ServiceProviderPolicy::class);
         Gate::policy(ServiceType::class, ServiceTypePolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
         Gate::policy(OrganizationType::class, OrganizationTypePolicy::class);
@@ -333,7 +328,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Permission::class, PermissionPolicy::class);
         Gate::policy(Role::class, RolePolicy::class);
         Gate::policy(SystemSetting::class, SystemSettingPolicy::class);
-        Gate::policy(ProviderUser::class, ProviderUserPolicy::class);
         Gate::policy(PublicHoliday::class, PublicHolidayPolicy::class);
 
         // Communication & Collaboration (docs/communication-module.md).

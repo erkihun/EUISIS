@@ -7,13 +7,13 @@ namespace Modules\Cafeteria\Application\Actions;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\IdCard;
-use App\Models\ProviderUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Modules\Cafeteria\Application\Services\CafeteriaQrScanService;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 readonly class ProcessCafeteriaQrScanAction
 {

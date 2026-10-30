@@ -17,15 +17,15 @@ use App\Models\Grievance;
 use App\Models\GrievanceCategory;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\TransferApplication;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleTargetRegistry;
 use App\Services\Organizations\OrganizationDeletionGuard;
 use App\Services\ServiceFeedback\EmployeeFeedbackLinkAdapter;
-use App\Services\ServiceProviders\ServiceProviderCodeLookup;
 use Illuminate\Support\Str;
+use Modules\Providers\Application\Services\ServiceProviderCodeLookup;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 /*
  * Stage 5 of the master backbone separation: the backbone's registries are

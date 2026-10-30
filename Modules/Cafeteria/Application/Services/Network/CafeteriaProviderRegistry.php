@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Application\Services\Network;
 
-use App\Models\Provider;
-use App\Models\ProviderService;
-use App\Models\ProviderType;
 use App\Models\ServiceType;
 use App\Models\User;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderService;
+use Modules\Providers\Domain\Models\ProviderType;
 
 /**
  * Providers as payees: the organization that operates cafeterias and is paid

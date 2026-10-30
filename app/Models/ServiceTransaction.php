@@ -8,6 +8,7 @@ use App\Enums\TransactionStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 class ServiceTransaction extends Model
 {

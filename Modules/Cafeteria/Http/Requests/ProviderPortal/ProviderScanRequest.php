@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Http\Requests\ProviderPortal;
 
-use App\Models\ProviderUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Modules\Cafeteria\Domain\Enums\CafeteriaUsageMode;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 class ProviderScanRequest extends FormRequest
 {

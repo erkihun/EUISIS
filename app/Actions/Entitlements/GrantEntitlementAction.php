@@ -9,9 +9,9 @@ use App\Enums\AuditEventType;
 use App\Enums\EntitlementStatus;
 use App\Models\Employee;
 use App\Models\Entitlement;
-use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 readonly class GrantEntitlementAction
 {

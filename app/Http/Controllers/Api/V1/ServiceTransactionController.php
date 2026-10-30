@@ -11,10 +11,10 @@ use App\Http\Requests\Api\ServiceTransactionRequest;
 use App\Http\Resources\VerificationResultResource;
 use App\Models\Entitlement;
 use App\Models\IdCard;
-use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Services\Integration\IntegrationAccessService;
 use DomainException;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 class ServiceTransactionController extends Controller
 {

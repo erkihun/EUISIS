@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Http\Requests;
 
-use App\Models\Provider;
 use App\Rules\OrganizationInScope;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Enums\TransportSettlementModel;
 use Modules\Transport\Domain\Enums\TransportSettlementPeriod;
 

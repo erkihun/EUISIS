@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +15,7 @@ use Modules\Cafeteria\Application\Services\Portal\CafeteriaPortalSelector;
 use Modules\Cafeteria\Domain\Models\CafeteriaMenu;
 use Modules\Cafeteria\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use Modules\Cafeteria\Http\Resources\ProviderPortal\CafeteriaMenuResource;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 
 class ProviderMenuController extends Controller
 {

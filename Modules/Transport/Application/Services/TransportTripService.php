@@ -6,14 +6,14 @@ namespace Modules\Transport\Application\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\Provider;
-use App\Models\ProviderUser;
 use App\Models\User;
 use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Enums\TransportDirection;
 use Modules\Transport\Domain\Enums\TransportExceptionType;
 use Modules\Transport\Domain\Enums\TransportTripStatus;

@@ -11,9 +11,6 @@ use App\Models\EmployeeAssignment;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
-use App\Models\Provider;
-use App\Models\ProviderType;
-use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -25,6 +22,9 @@ use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderType;
+use Modules\Providers\Domain\Models\ServiceProvider;
 
 /**
  * The brief's reference layout, built fresh for each test:

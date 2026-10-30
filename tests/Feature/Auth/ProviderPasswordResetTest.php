@@ -3,12 +3,7 @@
 declare(strict_types=1);
 
 use App\Contracts\SmsGateway;
-use App\Models\Provider;
-use App\Models\ProviderPasswordResetCode;
-use App\Models\ProviderType;
-use App\Models\ProviderUser;
 use App\Models\ServiceType;
-use App\Notifications\ProviderPasswordResetCodeNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -16,6 +11,11 @@ use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
+use Modules\Providers\Application\Notifications\ProviderPasswordResetCodeNotification;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderPasswordResetCode;
+use Modules\Providers\Domain\Models\ProviderType;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 const PR_NEW_PASSWORD = 'violet harbor lanterns drift slowly';
 

@@ -7,7 +7,6 @@ namespace Modules\Cafeteria\Application\Services\Network;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\Organization;
-use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -18,6 +17,7 @@ use Modules\Cafeteria\Domain\Enums\CafeteriaGrantStatus;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * Organization ↔ provider (↔ network | cafeteria) service assignments: which

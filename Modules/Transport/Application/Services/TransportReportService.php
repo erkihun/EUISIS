@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Application\Services;
 
-use App\Models\Provider;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Enums\TransportTripStatus;
 use Modules\Transport\Domain\Models\TransportTransaction;
 use Modules\Transport\Domain\Models\TransportTrip;

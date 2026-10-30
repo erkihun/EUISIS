@@ -5,6 +5,7 @@ use App\Providers\BackboneServiceProvider;
 use App\Providers\IntelligenceServiceProvider;
 use App\Providers\ServiceModuleServiceProvider;
 use Modules\Cafeteria\Providers\CafeteriaServiceProvider;
+use Modules\Providers\Providers\ProvidersServiceProvider;
 use Modules\Transport\Providers\TransportServiceProvider;
 
 return [
@@ -14,6 +15,7 @@ return [
     ServiceModuleServiceProvider::class,
     IntelligenceServiceProvider::class,
     // Business modules under Modules/ (ADR 0017): each wires only itself.
+    ProvidersServiceProvider::class,
     CafeteriaServiceProvider::class,
     TransportServiceProvider::class,
 ];

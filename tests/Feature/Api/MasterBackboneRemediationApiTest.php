@@ -23,7 +23,6 @@ use App\Models\OrganizationClosurePath;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
@@ -33,6 +32,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Modules\Providers\Domain\Models\ServiceProvider;
 use Spatie\Permission\Models\Permission;
 
 /**

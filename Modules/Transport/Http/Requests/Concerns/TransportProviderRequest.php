@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Http\Requests\Concerns;
 
-use App\Models\Provider;
-use App\Models\ProviderUser;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rules\Exists;
 use Illuminate\Validation\Rules\Unique;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderUser;
 
 /**
  * Shared by the transport Form Requests, which serve two audiences:

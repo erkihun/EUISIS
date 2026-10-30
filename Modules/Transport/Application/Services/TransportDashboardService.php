@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Application\Services;
 
-use App\Models\Provider;
 use Illuminate\Support\Carbon;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Models\TransportDriver;
 use Modules\Transport\Domain\Models\TransportPass;
 use Modules\Transport\Domain\Models\TransportRoute;

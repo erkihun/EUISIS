@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\Transport\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Enums\TransportDirection;
 
 /** A recurring planned departure of a route in one direction (the GTFS trip pattern + calendar). */

@@ -6,7 +6,6 @@ namespace Modules\Cafeteria\Application\Services\Reports;
 
 use App\Models\Employee;
 use App\Models\Organization;
-use App\Models\Provider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -20,6 +19,7 @@ use Modules\Cafeteria\Domain\Models\CafeteriaSettlement;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransaction;
 use Modules\Cafeteria\Domain\Models\CafeteriaTransactionConsumedDay;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * Cafeteria analytics (docs/cafeteria-settlement-rules.md → Reporting).

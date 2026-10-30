@@ -6,10 +6,10 @@ namespace Modules\Cafeteria\Domain\Models;
 
 use App\Models\Concerns\HasUuidPrimaryKey;
 use App\Models\Organization;
-use App\Models\ServiceProviderUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\Providers\Domain\Models\ServiceProviderUser;
 
 /**
  * Historical pivot: admin user ↔ cafeteria provider assignment.

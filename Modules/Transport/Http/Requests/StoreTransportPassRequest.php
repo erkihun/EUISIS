@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Requests;
 
 use App\Models\Employee;
-use App\Models\Provider;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Application\Services\TransportRouteAccessService;
 use Modules\Transport\Domain\Models\TransportPass;
 use Modules\Transport\Domain\Models\TransportRoute;

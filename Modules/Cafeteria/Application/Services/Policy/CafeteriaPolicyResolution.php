@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Modules\Cafeteria\Application\Services\Policy;
 
 use App\Models\EmployeeAssignment;
-use App\Models\Provider;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceAssignment;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
 use Modules\Cafeteria\Domain\Models\CafeteriaServicePolicy;
 use Modules\Cafeteria\Domain\Models\OrganizationCafeteriaAccess;
+use Modules\Providers\Domain\Models\Provider;
 
 /**
  * Everything the resolver established for one employee at one cafeteria on

@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Modules\Cafeteria\Providers;
 
-use App\Models\Provider;
-use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTerminal;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -32,7 +30,6 @@ use Modules\Cafeteria\Application\Queries\EmployeeCafeteriaActivityQuery;
 use Modules\Cafeteria\Application\Services\CafeteriaTerminalScanService;
 use Modules\Cafeteria\Application\Services\Portal\CafeteriaPortalSelector;
 use Modules\Cafeteria\Contracts\CafeteriaDirectory;
-use Modules\Cafeteria\Contracts\CafeteriaPortalLocations;
 use Modules\Cafeteria\Contracts\CafeteriaStaffAssignments;
 use Modules\Cafeteria\Contracts\CafeteriaTerminalScan;
 use Modules\Cafeteria\Contracts\EmployeeCafeteriaActivity;
@@ -71,6 +68,9 @@ use Modules\Cafeteria\Infrastructure\Console\CafeteriaPlatformPing;
 use Modules\Cafeteria\Infrastructure\Console\CafeteriaProviderUsersMigrateCommand;
 use Modules\Cafeteria\Infrastructure\Console\LinkCafeteriaProvidersToServiceProviders;
 use Modules\Cafeteria\Infrastructure\Console\SyncCafeteriaPolicyStatuses;
+use Modules\Providers\Contracts\PortalLocationSource;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ServiceProvider as ServiceProviderModel;
 
 /**
  * Everything the application needs to know about the Cafeteria module
@@ -85,7 +85,8 @@ final class CafeteriaServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(EmployeeCafeteriaActivity::class, EmployeeCafeteriaActivityQuery::class);
-        $this->app->bind(CafeteriaPortalLocations::class, CafeteriaPortalSelector::class);
+        // Plugs the cafeteria locations into the provider portal's switcher.
+        $this->app->bind(PortalLocationSource::class, CafeteriaPortalSelector::class);
         $this->app->bind(CafeteriaTerminalScan::class, CafeteriaTerminalScanService::class);
         $this->app->bind(CafeteriaDirectory::class, CafeteriaDirectoryQuery::class);
         $this->app->bind(CafeteriaStaffAssignments::class, CafeteriaStaffAssignmentsQuery::class);

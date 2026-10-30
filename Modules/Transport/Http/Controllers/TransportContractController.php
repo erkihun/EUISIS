@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\Provider;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -14,6 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Application\Services\Settlement\TransportContractService;
 use Modules\Transport\Domain\Enums\TransportSettlementModel;
 use Modules\Transport\Domain\Enums\TransportSettlementPeriod;

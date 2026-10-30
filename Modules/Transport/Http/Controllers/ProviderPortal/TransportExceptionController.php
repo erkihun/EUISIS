@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Modules\Transport\Http\Controllers\ProviderPortal;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Providers\Application\Services\ProviderPortalContext;
 use Modules\Transport\Domain\Enums\TransportExceptionType;
 use Modules\Transport\Domain\Models\TransportException;
 use Modules\Transport\Http\Resources\TransportExceptionResource;

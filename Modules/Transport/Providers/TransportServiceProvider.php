@@ -6,7 +6,6 @@ namespace Modules\Transport\Providers;
 
 use App\Backbone\Events\AssignmentChanged;
 use App\Backbone\Events\EmployeeChanged;
-use App\Models\Provider;
 use App\Support\NotificationPresenter;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -17,6 +16,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Application\Notifications\TransportNotification;
 use Modules\Transport\Application\Policies\TransportDriverPolicy;
 use Modules\Transport\Application\Policies\TransportPassPolicy;

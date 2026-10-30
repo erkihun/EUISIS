@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-use App\Models\Provider;
-use App\Models\ProviderUser;
 use App\Models\SystemSetting;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Models\TransportPass;
 use Modules\Transport\Domain\Models\TransportRoute;
 use Modules\Transport\Domain\Models\TransportTransaction;

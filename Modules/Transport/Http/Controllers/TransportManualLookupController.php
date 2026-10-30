@@ -8,11 +8,11 @@ use App\Backbone\Contracts\EmployeeDirectory;
 use App\Enums\EmployeeStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
-use App\Models\Provider;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Modules\Providers\Application\Services\ProviderPortalContext;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Application\Services\TransportEligibilityService;
 
 /**

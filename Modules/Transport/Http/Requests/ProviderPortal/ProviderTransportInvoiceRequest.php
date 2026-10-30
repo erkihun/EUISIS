@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Http\Requests\ProviderPortal;
 
-use App\Models\ProviderUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Domain\Models\TransportInvoice;
 
 /**

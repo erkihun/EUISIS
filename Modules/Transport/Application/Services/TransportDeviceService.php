@@ -6,11 +6,11 @@ namespace Modules\Transport\Application\Services;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Modules\Providers\Domain\Models\Provider;
 use Modules\Transport\Domain\Enums\TransportDeviceStatus;
 use Modules\Transport\Domain\Models\TransportDevice;
 

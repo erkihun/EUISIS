@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\Transport\Application\Services;
 
-use App\Models\Provider;
-use App\Models\ProviderUser;
 use App\Models\User;
+use Modules\Providers\Domain\Models\Provider;
+use Modules\Providers\Domain\Models\ProviderUser;
 use Modules\Transport\Application\Services\Boarding\BoardingRequest;
 use Modules\Transport\Application\Services\Boarding\CardCredentialResolver;
 use Modules\Transport\Application\Services\Boarding\TransportBoardingService;

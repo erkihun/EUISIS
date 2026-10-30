@@ -8,11 +8,11 @@ use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
-use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Modules\Cafeteria\Domain\Models\CafeteriaProvider;
 use Modules\Cafeteria\Domain\Models\CafeteriaServiceNetwork;
+use Modules\Providers\Domain\Models\Provider;
 use RuntimeException;
 
 /**

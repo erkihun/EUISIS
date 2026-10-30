@@ -38,20 +38,20 @@ const MODULE_DEV_TOOLING = [
     'App\\Support\\Demo\\DemoDataset' => 'app/Support/Demo/DemoDataset.php',
     'App\\Support\\Demo\\DemoDataValidator' => 'app/Support/Demo/DemoDataValidator.php',
     'App\\Console\\Commands\\Scale\\GenerateScaleData' => 'app/Console/Commands/Scale/GenerateScaleData.php',
+    'App\\Console\\Commands\\Scale\\ExportApiLoadTestData' => 'app/Console/Commands/Scale/ExportApiLoadTestData.php',
 ];
 
 /*
- * Code outside a module that may name its tables, and why. Reporting and
- * catalogue entries are read-only and are checked for writes below.
+ * Code outside a module that may query its tables, and why. Reporting readers
+ * are checked to write nothing; every reader is checked not to write the
+ * module's tables. Catalogues that only name tables (the organization-scope
+ * registry, the retention matrix, config/auth.php) are not queries and need
+ * no entry; the retention matrix has its own check below.
  */
 const MODULE_TABLE_READERS = [
     'Transport' => [
         // Situation Room panels aggregate boardings and trips by organization scope (counts only).
         'app/Services/SituationRoom/Analytics/TransportAnalytics.php' => 'reporting',
-        // The organization-scope registry: which column scopes a table. Metadata, no query.
-        'app/Providers/ServiceModuleServiceProvider.php' => 'catalogue',
-        // The retention catalogue; transport tables sit only in categories that are not pruned automatically.
-        'app/Support/Retention/RetentionMatrix.php' => 'catalogue',
     ],
     'Cafeteria' => [
         // Situation Room panels aggregate meals, refusals and subsidy by organization scope (totals only).
@@ -62,21 +62,35 @@ const MODULE_TABLE_READERS = [
         'app/Console/Commands/Audit/AuditDuplicateData.php' => 'reporting',
         // One-off move of legacy provider users: reads cafeteria locations and assignments to
         // find a user's provider; it writes provider users only (checked below).
-        'app/Console/Commands/MigrateLegacyProviderUsers.php' => 'migration',
-        // The cafeteria portal's auth guard and user provider are named after its table.
-        'config/auth.php' => 'catalogue',
-        'app/Providers/ServiceModuleServiceProvider.php' => 'catalogue',
-        'app/Support/Retention/RetentionMatrix.php' => 'catalogue',
+        'Modules/Providers/Infrastructure/Console/MigrateLegacyProviderUsers.php' => 'migration',
+    ],
+    'Providers' => [
+        // Provider names for the Situation Room transport panel.
+        'app/Services/SituationRoom/Analytics/TransportAnalytics.php' => 'reporting',
+        // Home dashboard counts of service providers.
+        'app/Services/Dashboard/DashboardMetricService.php' => 'reporting',
+        // Transport's data-quality checks (providers without a contract) and its reports (provider names).
+        'Modules/Transport/Application/Services/TransportDataQualityService.php' => 'reporting',
+        'Modules/Transport/Application/Services/TransportReportService.php' => 'reporting',
+        // The cafeteria configuration audit counts portal users per provider.
+        'Modules/Cafeteria/Infrastructure/Console/AuditCafeteriaConfiguration.php' => 'reporting',
     ],
 ];
+
+/* Uses of a module's internals frozen when it moved; may only shrink (see the file). */
+$internalUseBaseline = require __DIR__.'/module-internal-use-baseline.php';
 
 foreach ($modules as $module) {
     $ns = "Modules\\{$module}";
 
-    arch("{$module}: other code uses only its Contracts")
-        ->expect(array_values(array_merge(['App'], array_map(fn (string $other): string => "Modules\\{$other}", array_diff($modules, [$module])))))
-        ->not->toUse(["{$ns}\\Domain", "{$ns}\\Application", "{$ns}\\Infrastructure", "{$ns}\\Http", "{$ns}\\Providers"])
-        ->ignoring(array_keys(MODULE_DEV_TOOLING));
+    // One expectation per outside namespace: Pest's not->toUse passes silently when
+    // expect() is given a list of namespaces (found 2026-10-30 with a planted use).
+    foreach (['App', ...array_map(fn (string $other): string => "Modules\\{$other}", array_values(array_diff($modules, [$module])))] as $outside) {
+        arch("{$module}: {$outside} uses only its Contracts")
+            ->expect($outside)
+            ->not->toUse(["{$ns}\\Domain", "{$ns}\\Application", "{$ns}\\Infrastructure", "{$ns}\\Http", "{$ns}\\Providers"])
+            ->ignoring([...array_keys(MODULE_DEV_TOOLING), ...($internalUseBaseline[$module] ?? [])]);
+    }
 
     arch("{$module}: Contracts expose no internals")
         ->expect("{$ns}\\Contracts")
@@ -90,9 +104,25 @@ foreach ($modules as $module) {
         ->ignoring(["{$ns}\\Contracts\\Data", "{$ns}\\Contracts\\Events"]);
 
     arch("{$module}: contract data is final")
-        ->expect(["{$ns}\\Contracts\\Data", "{$ns}\\Contracts\\Events"])
+        ->expect("{$ns}\\Contracts\\Data")
+        ->toBeFinal();
+
+    arch("{$module}: contract events are final")
+        ->expect("{$ns}\\Contracts\\Events")
         ->toBeFinal();
 }
+
+it('only shrinks the frozen uses of module internals', function () use ($internalUseBaseline): void {
+    foreach ($internalUseBaseline as $module => $classes) {
+        expect(count($classes))->toBe(count(array_unique($classes)), "{$module}: a class is listed twice");
+        foreach ($classes as $class) {
+            expect(class_exists($class) || interface_exists($class) || trait_exists($class) || enum_exists($class))->toBeTrue("{$class} no longer exists: drop it from the {$module} baseline");
+            $source = (string) file_get_contents((new ReflectionClass($class))->getFileName());
+            expect(preg_match('/Modules\\\\+'.$module.'\\\\+(Domain|Application|Infrastructure|Http|Providers)\\\\/', $source))
+                ->toBe(1, "{$class} no longer uses {$module} internals: drop it from the baseline");
+        }
+    }
+});
 
 it('binds every module contract to an implementation', function () use ($root, $modules): void {
     $checked = 0;
@@ -168,9 +198,12 @@ it('keeps a module\'s tables to the module and its declared read-only readers', 
     $ownership = require $root.'/Modules/ownership.php';
     foreach ($modules as $module) {
         $tables = array_unique(array_map(fn (string $model): string => (new $model)->getTable(), array_filter($ownership[$module]['models'], fn (string $m): bool => is_subclass_of($m, Model::class))));
-        // A table name as a whole string or before an alias ('x as t'); 'x.view' is a permission name.
+        // Database access to a table: the query builder's table(), the joins, from(), and the
+        // schema checks, with the name as a whole string or before an alias ('x as t'). Words
+        // like 'providers' are also prop keys and permission names, so a bare string does not
+        // count. Validation rules (exists:x,id) are foreign-key checks, allowed in one database.
         $names = implode('|', array_map(fn (string $t): string => preg_quote($t, '/'), $tables));
-        $pattern = '/[\'"]('.$names.')(?=[\'" ])/';
+        $pattern = '/(?:table|join|leftJoin|rightJoin|crossJoin|joinSub|from|hasTable|hasColumn|hasColumns)\(\s*[\'"]('.$names.')(?=[\'" ])/';
         $allowed = [...array_keys(MODULE_TABLE_READERS[$module] ?? []), ...array_values(MODULE_DEV_TOOLING)];
 
         $offenders = [];
